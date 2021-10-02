@@ -273,8 +273,14 @@ elif [ supported_pi="4gb_swap" ]; then
 	# sudo fallocate -l 4G /swapfile
     exit
 else
+     echo "Unable to continue. This device is not a Raspberry Pi 4 4GB/8Gb"
 	exit
 fi
+
+######################################
+echo "exit script here while testing."
+exit
+######################################
 
 echo "[{txtblu}i{txtrst}] Generating random RPC password."
 rpcpass=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
