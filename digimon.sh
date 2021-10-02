@@ -12,6 +12,17 @@
 #
 # -------------------------------------------------------
 
+
+######## VARIABLES #########
+# For better maintainability, we store as much information that can change in variables
+# This allows us to make a change in one place that can propagate to all instances of the variable
+# These variables should all be GLOBAL variables, written in CAPS
+# Local variables will be in lowercase and will exist only within functions
+
+# File and folder locations
+SETTINGSFILE=$HOME/.digibyte/diginode.settings
+
+
 ## Set variables for colors and formatting
 
 txtred=$(tput setaf 1) # Red
@@ -43,19 +54,6 @@ echo " ║                                                        ║"
 echo " ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
 echo " ║                                                        ║"
 echo " ║         Monitor your DigiByte & DigiAsset Node         ║"
-echo " ║                                                        ║"
-echo " ╚════════════════════════════════════════════════════════╝" 
-echo ""
-echo "Performing start up checks:"
-echo ""
-
-## Show description at launch
-clear -x
-echo " ╔════════════════════════════════════════════════════════╗"
-echo " ║                                                        ║"
-echo " ║         ${txtbld}D I G I N O D E   I N S T A L L E R${txtrst}            ║ "
-echo " ║                                                        ║"
-echo " ║ Auto configure your DigiByte & DigiAsset Node for Pi 4 ║"
 echo " ║                                                        ║"
 echo " ╚════════════════════════════════════════════════════════╝" 
 echo ""
@@ -343,7 +341,7 @@ fi
 # fi # end of $sysmem = ?
 
 
-# Check for 'digibyte' symbolic link or folder in home folder
+# Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
 
 if [ -h "$HOME/digibyte" ]; then
   echo "[${txtgrn}✓${txtrst}] digibyte symbolic link found in home folder."
