@@ -32,6 +32,9 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 SETTINGSFILE=$HOME/.digibyte/diginode.settings
 INSTALLFOLDER=$HOME/diginode
 
+# Location for final installation log storage
+installLogLoc=/etc/pihole/install.log
+
 # This is the URLs where the script is hosted
 DigiNodeOfficialURL=https://diginode-installer.digibyte.help
 DigiNodeGithubReleaseURL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
@@ -54,6 +57,18 @@ fi
 # whiptail dialog dimensions: 20 rows and 70 chars width assures to fit on small screens and is known to hold all content.
 r=20
 c=70
+
+
+# Set these values so the installer can still run in color
+COL_NC='\e[0m' # No Color
+COL_LIGHT_GREEN='\e[1;32m'
+COL_LIGHT_RED='\e[1;31m'
+TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
+CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
+INFO="[i]"
+# shellcheck disable=SC2034
+DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
+OVER="\\r\\033[K"
 
 ## Set variables for colors and formatting
 
@@ -89,6 +104,15 @@ show_title_box() {
      echo " ║ Auto configure your DigiByte & DigiAsset Node for Pi 4 ║"
      echo " ║                                                        ║"
      echo " ╚════════════════════════════════════════════════════════╝" 
+}
+
+# Show a disclaimer text during testing phase
+disclaimer() {
+    echo "WAARNING: This script is still under active development and may cause damage to your machine"
+    echo "in its current state. It is currently being optimised for the Raspberry Pi 4 4Gb or 8Gb."
+    echo "Only run this if you are testing it on isolated hardware."
+    echo ""
+    read -n 1 -s -r -p "      < Press Ctrl-C to quit. Otherwise press a key to Continue. >"
 }
 
 is_command() {
@@ -250,7 +274,7 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    OS_CHECK_DEPS=(grep bind-utils)
+    OS_CHECK_DEPS=(grep bind-utils arch)
     INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof)
 
@@ -261,6 +285,34 @@ else
     # so exit the installer
     exit
 fi
+}
+
+# A function to check the hardware architecture
+hw_check() {
+    # Lookup architecture
+    local arch="$(arch)"
+
+    if arch = "i386"
+     arch="$(arch)
+
+    # A variable to store the return code
+    local rc
+    # If the first argument passed to this function is a directory,
+    if [[ -d "${directory}" ]]; then
+        # move into the directory
+        pushd "${directory}" &> /dev/null || return 1
+        # Use git to check if the directory is a repo
+        # git -C is not used here to support git versions older than 1.8.4
+        git status --short &> /dev/null || rc=$?
+    # If the command was not successful,
+    else
+        # Set a non-zero return code if directory does not exist
+        rc=1
+    fi
+    # Move back into the directory the user started in
+    popd &> /dev/null || return 1
+    # Return the code; if one is not set, return 0
+    return "${rc:-0}"
 }
 
 
@@ -988,6 +1040,9 @@ main() {
 
     # Check that the installed OS is officially supported - display warning if not
     os_check
+
+    # Check what kind hardware architehture we are running on
+    hw_check
 
     # Install packages used by this installation script
     printf "  %b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
