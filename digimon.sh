@@ -12,7 +12,12 @@
 #          cd~
 #          git clone https://github.com/saltedlolly/diginode/
 #
-# To run:  ~/diginode/digimon.sh
+#          To run:
+#
+#          ~/diginode/digimon.sh
+#
+#
+# Updated:  October 4 2021 11:20pm GMT
 #
 # -------------------------------------------------------
 

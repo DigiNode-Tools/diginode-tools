@@ -11,6 +11,8 @@
 #
 #           curl http://diginode-installer.digibyte.help | bash 
 #
+# Updated:  October 4 2021 11:20pm GMT
+#
 # -----------------------------------------------------------------------------------------------------
 
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
