@@ -17,7 +17,7 @@
 #          ~/diginode/digimon.sh
 #
 #
-# Updated:  October 4 2021 11:20pm GMT
+# Updated:  October 4 2021 11:27pm GMT
 #
 # -------------------------------------------------------
 
