@@ -139,65 +139,117 @@ digimon_disclaimer() {
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
 }
 
+is_dgbnode_installed() {
 
+    # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
 
-swap_check() {
+    if [ -h "$HOME/digibyte" ]; then
+      echo "[${txtgrn}✓${txtrst}] digibyte symbolic link found in home folder."
+    else
+      if [ -e "$HOME/digibyte" ]; then
+        echo "[${txtgrn}✓${txtrst}] digibyte folder found in home folder."
+      else
+        echo "[${txtred}x${txtrst}] digibyte symbolic link NOT found in home folder."
+        echo ""
+        echo "[!] Unable to continue - please create a symbolic link in"
+        echo "    your home folder pointing to the location of digibyte core."
+        echo "    For example:"  
+        echo "    $ cd ~"
+        echo "    $ ln -s digibyte-7.17.3 digibyte" 
+        echo ""
+        exit
+      fi
+    fi
 
-# Check for swap file if there is less than 8Gb RAM
+    # Check if digibyted is installed
 
-swaptotal=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
-memtotal=
+    if [ -f "$HOME/digibyte/bin/digibyted" -a -f "$HOME/digibyte/bin/digibyte-cli" ]; then
+      echo "[${txtgrn}✓${txtrst}] DigiByte Core is installed - digibyted and digibyte-cli located" 
+    else
+      echo "[${txtred}x${txtrst}] DigiByte Core is NOT installed - binaries not found "
+      echo ""
+      echo "[!] Unable to continue - please install DigiByte Core."
+      echo ""
+      echo "    The digibyted and digibyte-cli binaries must be located at:"
+      echo "    ~/digibyte/bin/"
+      echo ""
+      exit
+    fi
 
-# Workout reccomended Swap file size
+    # Check if digibyte core is configured to run as a service
 
-if [ $SYSMEM = "1Gb" ]; then
-  swaprec=xxx
-elif [ $sysmem = "2Gb" ]; then
-  swaprec=xxx
-elif [ $sysmem = "4Gb" ]; then
-  swaprec=xxx
-fi
+    if [ -f "/etc/systemd/system/digibyted.service" ]; then
+      echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is installed  - digibyted.service file located"
+    else
+      echo "[${txtred}x${txtrst}] DigiByte daemon service is not installed  - digibyted.service file NOT found"
+      echo ""
+      echo "[!] DigiByte daemon needs to be configured to run as a service."
+      echo "    If you already have a service file to run digibyted please"
+      echo "    rename it to /etc/systemd/system/digibyted.service so that this"
+      echo "    script can find it."
+      echo ""
+      echo "    If you have not already created a service file to run digibyted"
+      echo "    this script can attempt to create one for you in systemd."
+      echo ""
+      read -p "    Would you like to install it now? " -n 1 -r
+      echo    # (optional) move to a new line
+      if [[ ! $REPLY =~ ^[Yy]$ ]]
+      then
+        exit 1
+        echo "***install service file script here****"
+      else
+        exit
+      fi
+    fi
 
-#if [ $sysmem = "1Gb" ]; then  
+    # Check if digibyted service is running. Exit if it isn't.
 
-#  if [ $swaptotaln = '0' ]; then
-#    echo "[${txtgrn}✓${txtrst}] RAM Memory - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: not found"
-#    echo "    Since your system has only $sysmem RAM you need"
-#    echo "    to create a swap file in order to run DigiByte Core."
-#    echo "    Your swap file of at least."
-#    echo ""
-#    exit
-#  elif [ $swaptotaln -lt '5000' ]; then
-#    echo "[${txtgrn}✓${txtrst}] Low RAM - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: $swaptotal"
-#    echo "    Your swap file is too small for DigiByte Core."
-#    echo "    is too small. Please increase it to at least Gb."
-#    echo ""
-#    exit
-#   elif [ $swaptotaln -ge '5000' ]; then
-#    echo "[${txtgrn}✓${txtrst}] Low RAM  - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: $swaptotal"
-#   else 
-#  fi 
+    if [ $(systemctl is-active digibyted) = 'active' ]; then
+      echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is running."
+      digibyted_status="running"
+    else
+      echo "[${txtred}x${txtrst}] Digibyte daemon service is NOT running."
+      digibyted_status="stopped"
+      echo ""
+      echo "[!] Unable to continue - please start the DigiByte daemon service:"
+      echo "    sudo systemctl start digibyted"
+      echo ""
+      exit
+    fi
 
-# elif [ $sysmem = '2Gb' ]; then 
+    # Check for .digibyte settings directory
 
-# elif [ $sysmem = '4Gb' ]; then 
-   
-# else
+    if [ -d "$HOME/.digibyte" ]; then
+      echo "[${txtgrn}✓${txtrst}] .digibyte settings folder located."
+    else
+      echo ""
+      echo "[${txtred}x${txtrst}] Unable to locate the .digibyte settings folder."
+      echo "    The file should be at: $HOME/.digibyte/"
+      echo ""
+      exit
+    fi
 
-# fi # end of $sysmem = ?
+    # Check digibyte.conf file can be found
 
+    if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
+      echo "[${txtgrn}✓${txtrst}] digibyte.conf file located."
+    else
+      echo ""
+      echo "[${txtred}x${txtrst}] Unable to find digibyte.conf configuration file."
+      echo "    The file should be at: $HOME/.digibyte/digibyte.conf"
+      echo ""
+      exit
+    fi
 }
+
 
 # Check if this DigiNode was setup using the official install script
 # (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
 check_official() {
 
-    if [ -f "$HOME/digibyte/.officialdiginode" ]; then
+    if [ -f "$HOME/digibyte/.officialdiginode" ] && [ -f "$HOME/digiasset_ipfs_metadata_server/.officialdiginode" ]; then
         echo "$TICK Official DigiNode detected - the offical DigiNode installer was used."
-        officialinstall="yes"
+        officialdgbinstall="yes"
     else
         echo ""
         echo "$CROSS Offical DigiNode NOT detected - the official DigiNode installer was not used."
@@ -208,16 +260,21 @@ check_official() {
     fi
 }
 
-startup_checks() {
-  digimon_title_box
-  digimon_disclaimer
-  digimon_title_box
-  sys_check
-  exit
+startup() {
+  digimon_title_box      # Clear screen and display title box
+  digimon_disclaimer     # Display disclaimer warning during development. Pause for confirmation.
+  digimon_title_box      # Clear screen and display title box again
+  sys_check              # Perform basic OS check - is this Linux? Is it 64bit?
+  rpi_check              # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+# swap_warning           # if this system has 4Gb or less RAM, check there is a swap drive
+  check_official         # check if this is an official install
+  is_dgbnode_installed   # Run checks to see if DigiByte Node is present. Exit if it isn't.
+  get_rpc_credentials    # Get the RPC username and password from config file. Warn if not present.
+  is_dganode_installed   # Run checks to see if DigiAsset Node is present. Warn if it isn't.
+
   read -n 1 -s -r -p "   < TEST PAUSE HERE. >"
-  rpi_check
-  swap_check
-  check_official
+
+exit
 
 }
 
@@ -226,7 +283,7 @@ startup_checks() {
 ######### RUN SCRIPT FROM HERE #######################
 ######################################################
 
-startup_checks
+startup
 
 ##############################
 ## OLDER NON FUNCTION CODE ###
@@ -288,147 +345,11 @@ fi
 # fi # end of $sysmem = ?
 
 
-# Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
 
-if [ -h "$HOME/digibyte" ]; then
-  echo "[${txtgrn}✓${txtrst}] digibyte symbolic link found in home folder."
-else
-  if [ -e "$HOME/digibyte" ]; then
-    echo "[${txtgrn}✓${txtrst}] digibyte folder found in home folder."
-  else
-    echo "[${txtred}x${txtrst}] digibyte symbolic link NOT found in home folder."
-    echo ""
-    echo "[!] Unable to continue - please create a symbolic link in"
-    echo "    your home folder pointing to the location of digibyte core."
-    echo "    For example:"  
-    echo "    $ cd ~"
-    echo "    $ ln -s digibyte-7.17.3 digibyte" 
-    echo ""
-    exit
-  fi
-fi
 
-# Check if digibyted is installed
 
-if [ -f "$HOME/digibyte/bin/digibyted" -a -f "$HOME/digibyte/bin/digibyte-cli" ]; then
-  echo "[${txtgrn}✓${txtrst}] DigiByte Core is installed - digibyted and digibyte-cli located" 
-else
-  echo "[${txtred}x${txtrst}] DigiByte Core is NOT installed - binaries not found "
-  echo ""
-  echo "[!] Unable to continue - please install DigiByte Core."
-  echo ""
-  echo "    The digibyted and digibyte-cli binaries must be located at:"
-  echo "    ~/digibyte/bin/"
-  echo ""
-  exit
-fi
 
-# Check if digibyte core is configured to run as a service
 
-if [ -f "/etc/systemd/system/digibyted.service" ]; then
-  echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is installed  - digibyted.service file located"
-else
-  echo "[${txtred}x${txtrst}] DigiByte daemon service is not installed  - digibyted.service file NOT found"
-  echo ""
-  echo "[!] DigiByte daemon needs to be configured to run as a service."
-  echo "    If you already have a service file to run digibyted please"
-  echo "    rename it to /etc/systemd/system/digibyted.service so that this"
-  echo "    script can find it."
-  echo ""
-  echo "    If you have not already created a service file to run digibyted"
-  echo "    this script can attempt to create one for you in systemd."
-  echo ""
-  read -p "    Would you like to install it now? " -n 1 -r
-  echo    # (optional) move to a new line
-  if [[ ! $REPLY =~ ^[Yy]$ ]]
-  then
-    exit 1
-    echo "***install service file script here****"
-  else
-    exit
-  fi
-fi
-
-# Check if digibyted service is running. Exit if it isn't.
-
-if [ $(systemctl is-active digibyted) = 'active' ]; then
-  echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is running."
-  digibyted_status="running"
-else
-  echo "[${txtred}x${txtrst}] Digibyte daemon service is NOT running."
-  digibyted_status="stopped"
-  echo ""
-  echo "[!] Unable to continue - please start the DigiByte daemon service:"
-  echo "    sudo systemctl start digibyted"
-  echo ""
-  exit
-fi
-
-# Check for .digibyte settings directory
-
-if [ -d "$HOME/.digibyte" ]; then
-  echo "[${txtgrn}✓${txtrst}] .digibyte settings folder located."
-else
-  echo ""
-  echo "[${txtred}x${txtrst}] Unable to locate the .digibyte settings folder."
-  echo "    The file should be at: $HOME/.digibyte/"
-  echo ""
-  exit
-fi
-
-# Check digibyte.conf file can be found
-
-if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
-  echo "[${txtgrn}✓${txtrst}] digibyte.conf file located."
-else
-  echo ""
-  echo "[${txtred}x${txtrst}] Unable to find digibyte.conf configuration file."
-  echo "    The file should be at: $HOME/.digibyte/digibyte.conf"
-  echo ""
-  exit
-fi
-
-# Get RPC CREDENTIALS from digibyte.conf 
-
-if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
-  rpcuser=$(cat ~/.digibyte/digibyte.conf | grep rpcuser | cut -d'=' -f 2)
-  rpcpassword=$(cat ~/.digibyte/digibyte.conf | grep rpcpassword | cut -d'=' -f 2)
-  rpcport=$(cat ~/.digibyte/digibyte.conf | grep rpcport | cut -d'=' -f 2)
-  if [ "$rpcuser" != "" ] && [ "$rpcpassword" != "" ] && [ "$rpcport" != "" ]; then 
-    echo "[${txtgrn}✓${txtrst}] RPC settings found in digibyte.conf"
-    echo "    Found: [${txtgrn}✓${txtrst}] Username     [${txtgrn}✓${txtrst}] Password     [${txtgrn}✓${txtrst}] Port" 
-  else
-    echo "[${txtred}x${txtrst}] RPC settings missing in digibyte.conf"
-    printf "    Found: ["
-    if [ $rpcuser != "" ]; then
-      printf "${txtgrn}✓${txtrst}"
-    else
-      printf "${txtred}x${txtrst}"
-    fi
-    printf "] Username     ["
-    if [ $rpcpassword != "" ]; then
-      printf "${txtgrn}✓${txtrst}"
-    else
-      printf "${txtred}x${txtrst}"
-    fi
-    printf "] Password     ["
-    if [ $rpcport != "" ]; then
-      printf "${txtgrn}✓${txtrst}"
-    else
-      printf "${txtred}x${txtrst}"
-    fi
-    printf "] Port"
-    echo ""
-    echo "     You need to add the missing RPC credentials to your digibyte.conf file:"
-    echo "     nano ~/.digibyte/digibyte.conf"
-    echo ""
-    echo "     Add this:"
-    echo ""
-    echo "     rpcuser=desiredusername      \# change desiredusername to something else"
-    echo "     rpcpassword=desiredpassword  \# change desiredpassword to something else"
-    echo "     rpcport=14022                \# best to leave this as is"
-  fi
-fi
 
 #####################################################
 # Perform initial checks for required DAMS pacakges #
