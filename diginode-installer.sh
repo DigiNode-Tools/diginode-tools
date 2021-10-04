@@ -1352,7 +1352,7 @@ main() {
     installer_disclaimer
 
     # clear the screen and display the title box
-    show_installer_title_box
+    installer_title_box
 
     # Perform basic OS check and lookup hardware architecture
     sys_check
@@ -1404,9 +1404,10 @@ main() {
     # Check for Raspberry Pi hardware
     rpi_check
 
-    ############################
+    #####################################
+    ech "Exit script early during testing"
     exit # EXIT HERE DURING TEST
-    ############################
+    #####################################
 
     # Check for supported package managers so that we may install dependencies
     package_manager_detect
