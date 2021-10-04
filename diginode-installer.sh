@@ -9,7 +9,7 @@
 #
 # Usage:    Install with this command (from your Linux machine):
 #
-#           curl -sSL https://diginode-installer.digibyte.help | bash 
+#           curl http://diginode-installer.digibyte.help | bash 
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ installer_title_box() {
      echo " ║                                                        ║"
      echo " ║         ${txtbld}D I G I N O D E   I N S T A L L E R${txtrst}            ║ "
      echo " ║                                                        ║"
-     echo " ║ Auto configure your DigiByte & DigiAsset Node for Pi 4 ║"
+     echo " ║     Auto configure your DigiByte & DigiAsset Node      ║"
      echo " ║                                                        ║"
      echo " ╚════════════════════════════════════════════════════════╝" 
      echo ""
@@ -111,14 +111,16 @@ installer_title_box() {
 # Show a disclaimer text during testing phase
 installer_disclaimer() {
     echo "WARNING: This script is still under active development and should"
-    echo "be considered early alpha in its current state. It is currently being"
-    echo "optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for other."
-    echo "hardware will hopefully follow."
+    echo "be considered pre alpha in its current state. Initially, it is being"
+    echo "optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for other hardware"
+    echo "will hopefully follow. Expect bugs - at times it may not even run."
     echo ""
-    echo "Currently it should be run on a clean install of Ubuntu Server 64-bit"
-    echo "booting from an SSD. It will attempt to detect compatible hardware and"
-    echo "setup a DigiByte Node & DigiAssets Metadata Server with DigiAssetX support."
-    echo "Please do not continue you are running this on your primary machine!"
+    echo "Currently it should be used with a Pi 4, running a clean install"
+    echo "of Ubuntu Server 64-bit booting from SSD. The installer will first attempt"
+    echo "to detect compatible hardware, before setting up a DigiByte Node & DigiAsset"
+    echo "Metadata Server with DigiAssetX support."
+    echo ""
+    echo "Please quit now if you are running this on anything other than a test machine!"
     echo ""
     read -n 1 -s -r -p "      < Press Ctrl-C to quit or any other key a key to Continue. >"
 }
