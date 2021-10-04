@@ -41,7 +41,7 @@ installLogLoc=/etc/pihole/install.log
 DigiNodeOfficialURL=https://diginode-installer.digibyte.help
 DigiNodeGithubReleaseURL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DigiNodeGithubDevelopURL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
-DigiNodeInstallURL=$DigiNodeOfficialInstallURL
+DigiNodeInstallURL=$DigiNodeGithubDevelopURL
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
 DigiNodeGitUrl="https://github.com/saltedlolly/diginode.git"
@@ -124,7 +124,7 @@ installer_disclaimer() {
     echo ""
     echo "Please quit now if you are running this on anything other than a test machine!"
     echo ""
-    read -n 1 -s -r -p "      < Press Ctrl-C to quit or any other key a key to Continue. >"
+    echo "      < Press Ctrl-C to quit>"
 }
 
 # Function to establish OS type and system architecture
@@ -1351,12 +1351,6 @@ main() {
     # display the disclaimer
     installer_disclaimer
 
-    # clear the screen and display the title box
-    installer_title_box
-
-    # Perform basic OS check and lookup hardware architecture
-    sys_check
-
     ######## FIRST CHECK ########
     # Must be root to install
     local str="Root user check"
@@ -1385,7 +1379,7 @@ main() {
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DigiNodeGithubReleaseURL | sudo bash "$@"
+                exec curl -sSL $DigiNodeInstallURL | sudo bash "$@"
             else
                 # when run via calling local bash script
                 exec sudo bash "$0" "$@"
@@ -1400,6 +1394,12 @@ main() {
             exit 1
         fi
     fi
+
+    # clear the screen and display the title box
+    installer_title_box
+
+    # Perform basic OS check and lookup hardware architecture
+    sys_check
 
     # Check for Raspberry Pi hardware
     rpi_check
