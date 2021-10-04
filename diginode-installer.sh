@@ -2,8 +2,8 @@
 #
 # Name:     DigiNode Installer
 # Purpose:  Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
-#           Script has been written to support the Raspberry Pi 4 4Gb & 8Gb models.
-#           Support for other hardware may follow.
+#           Script has initially been designed to support the Raspberry Pi 4 4Gb & 8Gb models.
+#           Support for other linux-supporting hardware may follow.
 # Authors:  Olly Stedall @saltedlolly
 #           Matthew Cornellise @mctrivia
 #
@@ -96,7 +96,8 @@ txtbld=$(tput bold) # Set bold mode
 
 
 # A simple function that just the installer title in a box
-show_title_box() {
+installer_title_box() {
+     clear -x
      echo " ╔════════════════════════════════════════════════════════╗"
      echo " ║                                                        ║"
      echo " ║         ${txtbld}D I G I N O D E   I N S T A L L E R${txtrst}            ║ "
@@ -104,15 +105,304 @@ show_title_box() {
      echo " ║ Auto configure your DigiByte & DigiAsset Node for Pi 4 ║"
      echo " ║                                                        ║"
      echo " ╚════════════════════════════════════════════════════════╝" 
+     echo ""
 }
 
 # Show a disclaimer text during testing phase
-disclaimer() {
-    echo "WAARNING: This script is still under active development and may cause damage to your machine"
-    echo "in its current state. It is currently being optimised for the Raspberry Pi 4 4Gb or 8Gb."
-    echo "Only run this if you are testing it on isolated hardware."
+installer_disclaimer() {
+    echo "WARNING: This script is still under active development and should"
+    echo "be considered early alpha in its current state. It is currently being"
+    echo "optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for other."
+    echo "hardware will hopefully follow."
     echo ""
-    read -n 1 -s -r -p "      < Press Ctrl-C to quit. Otherwise press a key to Continue. >"
+    echo "Currently it should be run on a clean install of Ubuntu Server 64-bit"
+    echo "booting from an SSD. It will attempt to detect compatible hardware and"
+    echo "setup a DigiByte Node & DigiAssets Metadata Server with DigiAssetX support."
+    echo "Please do not continue you are running this on your primary machine!"
+    echo ""
+    read -n 1 -s -r -p "      < Press Ctrl-C to quit or any other key a key to Continue. >"
+}
+
+# Function to establish OS type and system architecture
+# These checks are a work in progress since we need more hardware/OS combinations to test against
+# Currently BSD is not being supported. I am unclear if we can run DigiNode on it.
+sys_check() {
+    # Lookup OS type, and only continue if the user is running linux
+    local is_linux
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Linux detected
+        echo "$INFO OS Type: Linux GNU"
+        is_linux="yes"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "$INFO OS Type: Mac OS"
+        is_linux="no"
+    elif [[ "$OSTYPE" == "cygwin" ]]; then
+        # POSIX compatibility layer and Linux environment emulation for Windows
+        echo "$INFO OS Type: Cygwin"
+        is_linux="no"
+    elif [[ "$OSTYPE" == "msys" ]]; then
+        echo "$INFO OS Type: Windows"
+        is_linux="no"
+        # bsd detected
+    elif [[ "$OSTYPE" == "bsd" ]]; then
+        echo "$INFO OS Type: BSD"
+        is_linux="no"
+        # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
+    elif [[ "$OSTYPE" == "win32" ]]; then
+        # I'm not sure this can happen.
+        echo "$INFO OS Type: Windows"
+        is_linux="no"
+    elif [[ "$OSTYPE" == "freebsd"* ]]; then
+        echo "$INFO OS Type: FreeBSD"
+        is_linux="no"
+        # solaris detected
+    elif [[ "$OSTYPE" == "solaris" ]]; then
+        echo "$INFO OS Type: Solaris"
+        is_linux="no"
+    else
+        # Unknown.
+        echo "$INFO OS Type: Unknown - $OSTYPE"
+        is_linux="no"
+    fi
+
+    if [ $is_linux = "no" ]; then 
+        echo ""
+        echo "$CROSS Unable to continue - OS type is unrecognised or incompatible."
+        echo ""
+        echo "$CROSS DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)."
+        echo "$INDENT Ubuntu Server 64-bit is recommended."
+        echo ""
+        echo "$INDENT If you believe your OS should be supported please contact @saltedlolly"
+        echo "$INDENT on Twitter including your reported OS type: $OSTYPE"
+        exit 1
+    fi
+
+    # Try to establish system architecture, and only continue if it is 64 bit
+    local sysarch
+    local is_64bit
+    sysarch=$(arch)
+
+    # Try and identify 64bit OS's
+    if [ "$sysarch" = "aarch64" ]; then
+        ARCH="aarch64"
+        is_64bit="yes"
+    elif [ "$sysarch" = "arm" ]; then
+        is_64bit="no32"
+    elif [ "$sysarch" = "x86_64" ]; then
+        ARCH="x86_64"
+        is_64bit="yes"
+    elif [ "$sysarch" = "x86_32" ]; then
+        is_64bit="no32"
+    else
+        is_64bit="no"
+    fi
+
+    printf "$INFO System Architecture: $sysarch"
+    if [ "$is_64bit" = "yes" ]; then
+        printf "  [ 64-bit OS ]\n" 
+    fi
+
+
+    if [[ "$is_64bit" == "no32" ]]; then
+        echo ""
+        echo "$CROSS Unable to Continue - 32-bit OS detected."
+        echo "$CROSS DigiNode Installer requires a 64bit OS (aarch64 or X86_64)"
+        echo "$INDENT Ubuntu Server 64bit is recommended."
+        echo ""
+        echo "$INDENT If you believe your hardware should be supported please contact @saltedlolly"
+        echo "$INDENT on Twitter letting me know the reported system architecture above."
+        echo ""
+        exit 1
+    elif [[ "$is_64bit" == "no" ]]; then
+        echo ""
+        echo "$CROSS Unable to Continue - system architecture is unrecognised."
+        echo ""
+        echo "$CROSS DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)."
+        echo "$INDENT Ubuntu Server 64bit is recommended."
+        echo ""
+        echo "$INDENT If you believe your hardware should be supported please contact @saltedlolly"
+        echo "$INDENT on Twitter letting me know the reported system architecture above."
+        echo ""
+        exit 1
+    fi
+}
+
+# Script to check for compatible Raspberry Pi hardware
+rpi_check() {
+
+sysarch=$(arch)
+
+if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
+
+    # Store device model in variable
+    MODEL=$(tr -d '\0' < /proc/device-tree/model)
+
+    # Store device revision in variable
+    revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
+
+    # Store total system RAM in whole Gb. Append Gb to number..
+    SYSMEM="$(free --giga | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)Gb"
+
+    # Store total system RAM in whole Mb.
+    SYSMEMMB=$(free --mega | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
+
+    ######### RPI MODEL DETECTION ###################################
+
+    # Attempt to detect future but as yet unknown Raspberry Pi's
+    # Look for any mention of [Raspberry Pi] so we at least know it is a Pi 
+    pigen=$(tr -d '\0' < /proc/device-tree/model | cut -d ' ' -f1-2)
+    if [ "$pigen" = "Raspberry Pi" ]; then
+        pitype="piunknown"
+    fi
+
+    # Look for any mention of [Raspberry Pi 5] so we can narrow it to Pi 5
+    # Obviously it doesn't exist yet but we can at least be ready for it
+    pigen=$(tr -d '\0' < /proc/device-tree/model | cut -d ' ' -f1-3)
+    if [ "$pigen" = "Raspberry Pi 5" ]; then
+        pitype="pi5"
+    fi
+
+    # Look for any mention of [Raspberry Pi 4] so we can narrow it to a Pi 4 
+    # even if it is a model we have not seen before
+    if [ "$pigen" = "Raspberry Pi 4" ]; then
+        pitype="pi4"
+    fi
+
+    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
+    if [ "$pitype" != "" ];then
+        if [ $revision = 'd03114' ]; then #Pi 4 8Gb
+            pitype="pi8gb"
+        elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
+            pitype="pi4gb"
+        elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
+            pitype="pi4gb"
+        elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
+            pitype="pi4gb"
+        elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
+            pitype="pi4lowmem"
+        elif [ $revision = 'b03111' ]; then #Pi 4 2Gb
+            pitype="pi4lowmem"
+        elif [ $revision = 'a03111' ]; then #Pi 4 1Gb
+            pitype="pi4lowmem"
+        elif [ $revision = 'a020d3' ]; then #Pi 3 Model B+ 1Gb
+            pitype="pi3"
+        elif [ $revision = 'a22082' ]; then #Pi 3 Model B 1Gb
+            pitype="pi3"
+        elif [ $revision = 'a02082' ]; then #Pi 3 Model B 1Gb
+            pitype="pi3"
+        elif [ $revision = '9000C1' ]; then #Pi Zero W 512Mb
+            pitype="piold"
+        elif [ $revision = '900093' ]; then #Pi Zero v1.3 512Mb
+            pitype="piold"
+        elif [ $revision = '900092' ]; then #Pi Zero v1.2 512Mb
+            pitype="piold"
+        elif [ $revision = 'a22042' ]; then #Pi 2 Model B v1.2 1Gb
+            pitype="piold"
+        elif [ $revision = 'a21041' ]; then #Pi 2 Model B v1.1 1Gb
+            pitype="piold"
+        elif [ $revision = 'a01041' ]; then #Pi 2 Model B v1.1 1Gb
+            pitype="piold"
+        elif [ $revision = '0015' ]; then #Pi Model A+ 512Mb / 256Mb
+            pitype="piold"
+        elif [ $revision = '0012' ]; then #Pi Model A+ 256Mb
+            pitype="piold"
+        elif [ $revision = '0014' ]; then #Pi Computer Module 512Mb
+            pitype="piold"
+        elif [ $revision = '0011' ]; then #Pi Compute Module 512Mb
+            pitype="piold"
+        elif [ $revision = '900032' ]; then #Pi Module B+ 512Mb
+            pitype="piold"
+        elif [ $revision = '0013' ]; then #Pi Module B+ 512Mb
+            pitype="piold"
+        elif [ $revision = '0010' ]; then #Pi Module B+ 512Mb
+            pitype="piold"
+        elif [ $revision = '000d' ]; then #Pi Module B Rev 2 512Mb
+            pitype="piold"
+        elif [ $revision = '000e' ]; then #Pi Module B Rev 2 512Mb
+            pitype="piold"
+        elif [ $revision = '000f' ]; then #Pi Module B Rev 2 512Mb
+            pitype="piold"
+        elif [ $revision = '0007' ]; then #Pi Module A 256Mb
+            pitype="piold"
+        elif [ $revision = '0008' ]; then #Pi Module A 256Mb
+            pitype="piold"
+        elif [ $revision = '0009' ]; then #Pi Module A 256Mb
+            pitype="piold"
+        elif [ $revision = '0004' ]; then #Pi Module B Rev 2 256Mb
+            pitype="piold"
+        elif [ $revision = '0005' ]; then #Pi Module B Rev 2 256Mb
+            pitype="piold"
+        elif [ $revision = '0006' ]; then #Pi Module B Rev 2 256Mb
+            pitype="piold"
+        elif [ $revision = '0003' ]; then #Pi Module B Rev 1 256Mb
+         pitype="piold"
+        elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
+         pitype="piold"
+        fi
+    fi
+
+    # Generate Pi hardware read out
+    if [ "$pitype" = "pi5" ]; then
+        echo "$TICK Check for Raspberry Pi hardware"
+        echo "    Detected: $model $sysmem"
+    elif [ "$pitype" = "pi4_8gb" ]; then
+        echo "$TICK Check for Raspberry Pi hardware"
+        echo "    Detected: $model $sysmem"
+    elif [ "$pitype" = "pi4_4gb" ]; then
+        echo "$TICK Check for Raspberry Pi hardware"
+        echo "    Detected: $model $sysmem"
+    elif [ "$pitype" = "pi4_lowmem" ]; then
+        echo "$CROSS Check for Raspberry Pi hardware"
+        echo "    Detected: $model $sysmem [LOW MEM WARNING!!]"
+        echo "    You can use this script to monitor your DigiByte Node on your Pi. However,"
+        echo "    it is not reccomeneded to also run the DigiAssets Metadata server on this device"
+        echo "    due to its low memory. To run a full DigiNode, requires a Raspberry Pi 4"
+        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
+    elif [ "$pitype" = "pi3" ]; then
+        echo "$CROSS Check for Raspberry Pi hardware"
+        echo "    Detected: $model $sysmem"
+        echo "    You can use this script to monitor your DigiByte Node on your Pi. However,"
+        echo "    it is not reccomeneded to also run the DigiAssets Metadata server on the same device"
+        echo "    due to its limited resources. To run a full DigiNode, requires a Raspberry Pi 4"
+        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
+    elif [ "$pitype" = "piold" ]; then
+        echo "$CROSS Check for Raspberry Pi hardware"
+        echo "    Error: $model $sysmem is incompatible."
+        echo ""
+        echo "    This Raspberry Pi is too old to run a DigiByte node."
+        echo "    To run a a DigiNode, requires a Raspberry Pi 4"
+        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
+        echo ""
+        exit 1
+    elif [ "$pitype" = "piunknown" ]; then
+        echo "$CROSS Check for Raspberry Pi hardware"
+        echo "    Error: This Raspberry Pi model is unrecognised.  "
+        echo ""
+        echo "    Your Raspberry Pi model cannot be recognised by"
+        echo "    this script. Please contact @saltedlolly on Twitter"
+        echo "    including the following information so it can be added:"
+        echo ""
+        echo "    Device:   $MODEL"
+        echo "    Revision: $revision"
+        echo "    Memory:   $SYSMEM"
+        echo ""
+        STARTPAUSE="yes"
+    else
+        echo "$CROSS Check for Raspberry Pi hardware"
+        echo "    Error: No Raspberry Pi detected.  "
+        echo ""
+        echo "    If you are using a Raspberry Pi and it has not"
+        echo "    been detected by this script, please contact"
+        echo "    @saltedlolly on Twitter with the following"
+        echo "    information so it can be added:"
+        echo ""
+        echo "    Device:   $PIMODEL"
+        echo "    Revision: $revision"
+        echo "    Memory:   $SYSMEM" 
+        echo ""
+        STARTWAIT="yes"
+    fi
+fi
 }
 
 is_command() {
@@ -122,6 +412,7 @@ is_command() {
 
     command -v "${check_command}" >/dev/null 2>&1
 }
+
 
 os_check() {
     if [ "$DIGINODE_SKIP_OS_CHECK" != true ]; then
@@ -212,6 +503,8 @@ os_check() {
     fi
 }
 
+
+
 # Compatibility
 package_manager_detect() {
 # If apt-get is installed, then we know it's part of the Debian family
@@ -239,8 +532,8 @@ if is_command apt-get ; then
         exit 1
     fi
  
-    # Packages required to perfom the os_check (stored as an array)
-    OS_CHECK_DEPS=(grep dnsutils)
+    # Packages required to perfom the system check (stored as an array)
+    SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" whiptail ca-certificates jq)
     # Packages required to run DigiNode (stored as an array)
@@ -274,7 +567,7 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    OS_CHECK_DEPS=(grep bind-utils arch)
+    SYS_CHECK_DEPS=(grep bind-utils arch)
     INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof)
 
@@ -285,34 +578,6 @@ else
     # so exit the installer
     exit
 fi
-}
-
-# A function to check the hardware architecture
-hw_check() {
-    # Lookup architecture
-    local arch="$(arch)"
-
-    if arch = "i386"
-     arch="$(arch)
-
-    # A variable to store the return code
-    local rc
-    # If the first argument passed to this function is a directory,
-    if [[ -d "${directory}" ]]; then
-        # move into the directory
-        pushd "${directory}" &> /dev/null || return 1
-        # Use git to check if the directory is a repo
-        # git -C is not used here to support git versions older than 1.8.4
-        git status --short &> /dev/null || rc=$?
-    # If the command was not successful,
-    else
-        # Set a non-zero return code if directory does not exist
-        rc=1
-    fi
-    # Move back into the directory the user started in
-    popd &> /dev/null || return 1
-    # Return the code; if one is not set, return 0
-    return "${rc:-0}"
 }
 
 
@@ -984,6 +1249,19 @@ copy_to_install_log() {
 }
 
 main() {
+
+    # clear the screen and display the title box
+    installer_title_box
+
+    # display the disclaimer
+    installer_disclaimer
+
+    # clear the screen and display the title box
+    show_installer_title_box
+
+    # Perform basic OS check and lookup hardware architecture
+    sys_check
+
     ######## FIRST CHECK ########
     # Must be root to install
     local str="Root user check"
@@ -1036,13 +1314,10 @@ main() {
 
     # Install packages necessary to perform os_check
     printf "  %b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"
-    install_dependent_packages "${OS_CHECK_DEPS[@]}"
+    install_dependent_packages "${SYS_CHECK_DEPS[@]}"
 
     # Check that the installed OS is officially supported - display warning if not
     os_check
-
-    # Check what kind hardware architehture we are running on
-    hw_check
 
     # Install packages used by this installation script
     printf "  %b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
@@ -1239,7 +1514,7 @@ main() {
     fi
 }
 
-if [[ "${DN_TEST}" != true ]] ; then
+if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     main "$@"
 fi
 

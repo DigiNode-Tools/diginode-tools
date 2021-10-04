@@ -2,13 +2,17 @@
 #
 # Name:    DigiNode Status Monitor
 # Purpose: Monitor the status of your DigiByte Node and DigiAsset Metadata server.
-#          Includes stats for the Raspberr Pi when used.
+#          Includes stats for the Raspberry Pi when used.
 # Author:  Olly Stedall @saltedlolly <digibyte.help> 
 # 
-# Script:  digimon.sh
-# Usage:   Place file in your home folder and make it executable:  chmod +x digimon.sh
-# To run:  ./digimon.sh
-# To stop: Ctrl-C
+# Usage:   Use the official DigiNode Installer to install this script on your system. 
+#
+#          Alternatively clone the repo to your home folder:
+#
+#          cd~
+#          git clone https://github.com/saltedlolly/diginode/
+#
+# To run:  ~/diginode/digimon.sh
 #
 # -------------------------------------------------------
 
@@ -24,6 +28,43 @@
 
 # File and folder locations
 SETTINGSFILE=$HOME/.digibyte/diginode.settings
+INSTALLFOLDER=$HOME/diginode
+INSTALLFILE=$INSTALLFOLDER/diginode-installer.sh
+
+# BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
+RUN_INSTALLER="NO"
+
+# PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
+
+# If the installer file exists,
+if [[ -f "$INSTALLFILE" ]]; then
+    # source it
+    echo "Sourcing diginode-installer.sh"
+    source "$INSTALLFILE"
+# Otherwise,
+else
+    clear -x
+    echo ""
+    echo "ERROR: diginode-installer.sh file not found."
+    echo ""
+    echo "The diginode-installer.sh file is required to continue."
+    echo "It contains functions we need to run the DigiNode Monitor."
+    echo ""
+    echo "If you have not already setup your DigiNode, please use"
+    echo "the official DigiNode installer:"
+    echo "curl -sSL htts://diginode-installer.digibyte.help | bash"
+    echo ""
+    echo "Alternatively, to use DigiNode Monitor with your existing"
+    echo "node clone the official repo to your home folder:"
+    echo ""
+    echo " cd~"
+    echo " git clone https://github.com/saltedlolly/diginode/"
+    echo ""
+    echo "To run:  ~/diginode/digimon.sh"
+    echo ""
+    exit -1
+fi
+
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -70,7 +111,7 @@ txtbld=$(tput bold) # Set bold mode
 ######################################################
 
 # A simple function that clears the sreen and displays the status monitor title in a box
-show_title_box() {
+digimon_title_box() {
     clear -x
     echo ""
     echo " ╔════════════════════════════════════════════════════════╗"
@@ -81,245 +122,24 @@ show_title_box() {
     echo " ║                                                        ║"
     echo " ╚════════════════════════════════════════════════════════╝" 
     echo ""
+    echo "Performing start up checks:"
+    echo ""
 }
 
 # Show a disclaimer text during testing phase
-disclaimer() {
-    echo "WAARNING: This script is still under active development and may cause damage to your machine"
-    echo "in its current state. It is currently being optimised for the Raspberry Pi 4 4Gb or 8Gb."
-    echo "Only run this if you are testing it on isolated hardware."
+digimon_disclaimer() {
+    echo "WARNING: This script is still under active development and should"
+    echo "be considered early alpha in its current state. It is currently"
+    echo "being optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for"
+    echo "other hardware will hopefully follow."
     echo ""
-    read -n 1 -s -r -p "      < Press Ctrl-C to quit. Otherwise press a key to Continue. >"
+    echo "Please only use with a test setup until further notice."
+    echo "Please do not continue if have any concerns."
+    echo ""
+    read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
 }
 
 
-# Fucntion to check for compatible system architecture and OS
-sys_check() {
-    # Lookup system architecture
-    sysarch=$(arch)
-    echo "$INFO System Architecture: $sysarch"
-
-    # If architecture is ARM64 store in variable
-
-    if [[ "$OSTYPE" == "linux"* ]]; then
-        # Linux detected
-        echo "$INFO OS Type: Linux"
-        continue="yes"
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "$INFO OS Type: Mac OS"
-        continue="no"
-    elif [[ "$OSTYPE" == "cygwin" ]]; then
-        # POSIX compatibility layer and Linux environment emulation for Windows
-        echo "$INFO OS Type: Cygwin"
-        continue="no"
-    elif [[ "$OSTYPE" == "msys" ]]; then
-        echo "$INFO OS Type: Windows"
-        continue="no"
-        # bsd detected
-    elif [[ "$OSTYPE" == "bsd" ]]; then
-        echo "$INFO OS Type: BSD"
-        continue="no"
-        # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
-    elif [[ "$OSTYPE" == "win32" ]]; then
-        # I'm not sure this can happen.
-        echo "$INFO OS Type: Windows"
-        continue="no"
-    elif [[ "$OSTYPE" == "freebsd"* ]]; then
-        echo "$INFO OS Type: FreeBSD"
-        continue="no"
-        # solaris detected
-    elif [[ "$OSTYPE" == "solaris" ]]; then
-        echo "$INFO OS Type: Solaris"
-        continue="no"
-    else
-        # Unknown.
-        echo "$INFO OS Type: Unknown - $OSTYPE"
-        continue="no"
-    fi
-
-    if $continue = "no" ;then 
-        echo ""
-        echo "$CROSS Unable to continue - OS is unrecognised or incompatible."
-        echo ""
-        exit 1
-    fi
-}
-
-# Script to check for compatible Raspberry Pi hardware
-rpi_check() {
-
-sysarch=$(arch)
-
-if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
-
-    # Store device model in variable
-    MODEL=$(tr -d '\0' < /proc/device-tree/model)
-
-    # Store device revision in variable
-    revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
-
-    # Store total system RAM in whole Gb. Append Gb to number..
-    SYSMEM="$(free --giga | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)Gb"
-
-    # Store total system RAM in whole Mb.
-    SYSMEMMB=$(free --mega | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
-
-    ######### RPI MODEL DETECTION ###################################
-
-    # Attempt to detect future but as yet unknown Raspberry Pi's
-    # Look for any mention of [Raspberry Pi] so we at least know it is a Pi 
-    pigen=$(tr -d '\0' < /proc/device-tree/model | cut -d ' ' -f1-2)
-    if [ "$pigen" = "Raspberry Pi" ]; then
-        pitype="piunknown"
-    fi
-
-    # Look for any mention of [Raspberry Pi 5] so we can narrow it to Pi 5
-    # Obviously it doesn't exist yet but we can at least be ready for it
-    pigen=$(tr -d '\0' < /proc/device-tree/model | cut -d ' ' -f1-3)
-    if [ "$pigen" = "Raspberry Pi 5" ]; then
-        pitype="pi5"
-    fi
-
-    # Look for any mention of [Raspberry Pi 4] so we can narrow it to a Pi 4 
-    # even if it is a model we have not seen before
-    if [ "$pigen" = "Raspberry Pi 4" ]; then
-        pitype="pi4"
-    fi
-
-    # Lookup the known models of Rasberry Pi hardware 
-    if [ $revision = 'd03114' ]; then #Pi 4 8Gb
-        pitype="pi8gb"
-    elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
-        pitype="pi4gb"
-    elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
-        pitype="pi4gb"
-    elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
-        pitype="pi4gb"
-    elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
-        pitype="pi4lowmem"
-    elif [ $revision = 'b03111' ]; then #Pi 4 2Gb
-        pitype="pi4lowmem"
-    elif [ $revision = 'a03111' ]; then #Pi 4 1Gb
-        pitype="pi4lowmem"
-    elif [ $revision = 'a020d3' ]; then #Pi 3 Model B+ 1Gb
-        pitype="pi3"
-    elif [ $revision = 'a22082' ]; then #Pi 3 Model B 1Gb
-        pitype="pi3"
-    elif [ $revision = 'a02082' ]; then #Pi 3 Model B 1Gb
-        pitype="pi3"
-    elif [ $revision = '9000C1' ]; then #Pi Zero W 512Mb
-        pitype="piold"
-    elif [ $revision = '900093' ]; then #Pi Zero v1.3 512Mb
-        pitype="piold"
-    elif [ $revision = '900092' ]; then #Pi Zero v1.2 512Mb
-        pitype="piold"
-    elif [ $revision = 'a22042' ]; then #Pi 2 Model B v1.2 1Gb
-        pitype="piold"
-    elif [ $revision = 'a21041' ]; then #Pi 2 Model B v1.1 1Gb
-        pitype="piold"
-    elif [ $revision = 'a01041' ]; then #Pi 2 Model B v1.1 1Gb
-        pitype="piold"
-    elif [ $revision = '0015' ]; then #Pi Model A+ 512Mb / 256Mb
-        pitype="piold"
-    elif [ $revision = '0012' ]; then #Pi Model A+ 256Mb
-        pitype="piold"
-    elif [ $revision = '0014' ]; then #Pi Computer Module 512Mb
-        pitype="piold"
-    elif [ $revision = '0011' ]; then #Pi Compute Module 512Mb
-        pitype="piold"
-    elif [ $revision = '900032' ]; then #Pi Module B+ 512Mb
-        pitype="piold"
-    elif [ $revision = '0013' ]; then #Pi Module B+ 512Mb
-        pitype="piold"
-    elif [ $revision = '0010' ]; then #Pi Module B+ 512Mb
-        pitype="piold"
-    elif [ $revision = '000d' ]; then #Pi Module B Rev 2 512Mb
-        pitype="piold"
-    elif [ $revision = '000e' ]; then #Pi Module B Rev 2 512Mb
-        pitype="piold"
-    elif [ $revision = '000f' ]; then #Pi Module B Rev 2 512Mb
-        pitype="piold"
-    elif [ $revision = '0007' ]; then #Pi Module A 256Mb
-        pitype="piold"
-    elif [ $revision = '0008' ]; then #Pi Module A 256Mb
-        pitype="piold"
-    elif [ $revision = '0009' ]; then #Pi Module A 256Mb
-        pitype="piold"
-    elif [ $revision = '0004' ]; then #Pi Module B Rev 2 256Mb
-        pitype="piold"
-    elif [ $revision = '0005' ]; then #Pi Module B Rev 2 256Mb
-        pitype="piold"
-    elif [ $revision = '0006' ]; then #Pi Module B Rev 2 256Mb
-        pitype="piold"
-    elif [ $revision = '0003' ]; then #Pi Module B Rev 1 256Mb
-     pitype="piold"
-    elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
-     pitype="piold"
-    fi
-
-    # Generate Pi hardware read out
-    if [ "$pitype" = "pi5" ]; then
-        echo "$TICK Check for Raspberry Pi hardware"
-        echo "    Detected: $model $sysmem"
-    elif [ "$pitype" = "pi4_8gb" ]; then
-        echo "$TICK Check for Raspberry Pi hardware"
-        echo "    Detected: $model $sysmem"
-    elif [ "$pitype" = "pi4_4gb" ]; then
-        echo "$TICK Check for Raspberry Pi hardware"
-        echo "    Detected: $model $sysmem"
-    elif [ "$pitype" = "pi4_lowmem" ]; then
-        echo "$CROSS Check for Raspberry Pi hardware"
-        echo "    Detected: $model $sysmem [LOW MEM WARNING!!]"
-        echo "    You can use this script to monitor your DigiByte Node on your Pi. However,"
-        echo "    it is not reccomeneded to also run the DigiAssets Metadata server on this device"
-        echo "    due to its low memory. To run a full DigiNode, requires a Raspberry Pi 4"
-        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
-    elif [ "$pitype" = "pi3" ]; then
-        echo "$CROSS Check for Raspberry Pi hardware"
-        echo "    Detected: $model $sysmem"
-        echo "    You can use this script to monitor your DigiByte Node on your Pi. However,"
-        echo "    it is not reccomeneded to also run the DigiAssets Metadata server on the same device"
-        echo "    due to its limited resources. To run a full DigiNode, requires a Raspberry Pi 4"
-        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
-    elif [ "$pitype" = "piold" ]; then
-        echo "$CROSS Check for Raspberry Pi hardware"
-        echo "    Error: $model $sysmem is incompatible."
-        echo ""
-        echo "    This Raspberry Pi is too old to run a DigiByte node."
-        echo "    To run a a DigiNode, requires a Raspberry Pi 4"
-        echo "    or later with at least 4Gb RAM. 8Gb or more is recommended."
-        echo ""
-        exit 1
-    elif [ "$pitype" = "piunknown" ]; then
-        echo "$CROSS Check for Raspberry Pi hardware"
-        echo "    Error: This Raspberry Pi model is unrecognised.  "
-        echo ""
-        echo "    Your Raspberry Pi model cannot be recognised by"
-        echo "    this script. Please contact @saltedlolly on Twitter"
-        echo "    including the following information so it can be added:"
-        echo ""
-        echo "    Device:   $MODEL"
-        echo "    Revision: $revision"
-        echo "    Memory:   $SYSMEM"
-        echo ""
-        STARTPAUSE="yes"
-    else
-        echo "$CROSS Check for Raspberry Pi hardware"
-        echo "    Error: No Raspberry Pi detected.  "
-        echo ""
-        echo "    If you are using a Raspberry Pi and it has not"
-        echo "    been detected by this script, please contact"
-        echo "    @saltedlolly on Twitter with the following"
-        echo "    information so it can be added:"
-        echo ""
-        echo "    Device:   $PIMODEL"
-        echo "    Revision: $revision"
-        echo "    Memory:   $SYSMEM" 
-        echo ""
-        STARTWAIT="yes"
-    fi
-fi
-}
 
 swap_check() {
 
@@ -389,12 +209,12 @@ check_official() {
 }
 
 startup_checks() {
-  show_title_box
-  disclaimer
-  echo ""
-  echo "Performing start up checks:"
-  echo ""
+  digimon_title_box
+  digimon_disclaimer
+  digimon_title_box
   sys_check
+  exit
+  read -n 1 -s -r -p "   < TEST PAUSE HERE. >"
   rpi_check
   swap_check
   check_official
