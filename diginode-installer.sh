@@ -11,7 +11,7 @@
 #
 #           curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated:  October 6 2021 9:05pm GMT
+# Updated:  October 6 2021 12:29am GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -1307,6 +1307,60 @@ install_diginode_scripts() {
     chmod +x diginode-installer.sh
 }
 
+create_diginode_settings() {
+# Get saved variables from diginode.settings. Create settings file if it does not exist.
+if test -f $HOME/.digibyte/diginode.settings; then
+  # import saved variables from settings file
+  echo "[i] Importing diginode.settings file..."
+  source $HOME/.digibyte/diginode.settings
+else
+  # create diginode.settings file
+  echo "[i] Creating diginode.settings file..."
+  touch $HOME/.digibyte/diginode.settings
+  echo "#!/bin/bash" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings
+  echo "# This settings file is used to store variables for DigiNode Status Monitor" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings
+  echo "# Setup timer variables" >> $HOME/.digibyte/diginode.settings
+  echo "savedtime15sec=" >> $HOME/.digibyte/diginode.settings
+  echo "savedtime1min=" >> $HOME/.digibyte/diginode.settings
+  echo "savedtime15min=" >> $HOME/.digibyte/diginode.settings
+  echo "savedtime1day=" >> $HOME/.digibyte/diginode.settings
+  echo "savedtime1week=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings
+  echo "# store diginode installation details" >> $HOME/.digibyte/diginode.settings
+  echo "official_install=" >> $HOME/.digibyte/diginode.settings
+  echo "install_date=" >> $HOME/.digibyte/diginode.settings
+  echo "update_date=" >> $HOME/.digibyte/diginode.settings
+  echo "statusmonitor_last_run=" >> $HOME/.digibyte/diginode.settings
+  echo "dams_first_run=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings  
+  echo "# Store IP addresses to ensure they are only rechecked once every 15 minute." >> $HOME/.digibyte/diginode.settings
+  echo "externalip=" >> $HOME/.digibyte/diginode.settings
+  echo "internalip=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings
+  echo "# Store number of available system updates so the script only checks once every 24 hours." >> $HOME/.digibyte/diginode.settings
+  echo "system_updates=" >> $HOME/.digibyte/diginode.settings
+  echo "security_updates=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings 
+  echo "# Store local version numbers so the local node is not hammered with requests every second." >> $HOME/.digibyte/diginode.settings
+  echo "dgb_ver_local=" >> $HOME/.digibyte/diginode.settings
+  echo "dga_ver_local=" >> $HOME/.digibyte/diginode.settings
+  echo "ipfs_ver_local=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings 
+  echo "# Store software release version numbers in settings file so Github only needs to be queried once a day." >> $HOME/.digibyte/diginode.settings
+  echo "dgb_ver_github=" >> $HOME/.digibyte/diginode.settings
+  echo "dga_ver_github=" >> $HOME/.digibyte/diginode.settings
+  echo "dnt_ver_github=" >> $HOME/.digibyte/diginode.settings
+  echo "" >> $HOME/.digibyte/diginode.settings
+  echo "# Store when an open port test last ran." >> $HOME/.digibyte/diginode.settings
+  echo "ipfs_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
+  echo "ipfs_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
+  echo "dgb_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
+  echo "dgb_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
+fi
+}
+
 # Create digibyte.config file if it does not already exist
 create_digibyte_conf() {
 
@@ -1337,10 +1391,10 @@ create_digibyte_conf() {
     # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
         # Import variables from diginode.conf settings file
-        echo "$INFO Retrieving variables from diginode.settings file"
+        echo "$INFO Retrieving diginode.settings file"
         source $DGB_CONF_FILE
 
-        echo "$INFO Verifying existing digibyte.conf variables"
+        echo "$INFO Verifying existing digibyte.conf settings"
         
 
         #Update daemon variable in settings if it exists and is blank, otherwise append it
@@ -1456,7 +1510,7 @@ create_digibyte_conf() {
 
     else
         # Create a new digibyte.conf file
-        echo "$INFO Creating digibyte.conf setting file"
+        echo "$INFO Creating digibyte.conf file"
         cat <<EOF > $DGB_CONF_FILE
 # This config should be placed in following path:
 # ~/.digibyte/digibyte.conf

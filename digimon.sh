@@ -17,7 +17,7 @@
 #          ~/diginode/digimon.sh
 #
 #
-# Updated:  October 4 2021 11:27pm GMT
+# Updated:  October 6 2021 12:29am GMT
 #
 # -------------------------------------------------------
 
@@ -32,9 +32,8 @@
 # Local variables will be in lowercase and will exist only within functions
 
 # File and folder locations
-SETTINGSFILE=$HOME/.digibyte/diginode.settings
-INSTALLFOLDER=$HOME/diginode
-INSTALLFILE=$INSTALLFOLDER/diginode-installer.sh
+DGN_SCRIPT_FOLDER=$HOME/diginode
+DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER/diginode-installer.sh
 
 # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
 RUN_INSTALLER="NO"
@@ -42,10 +41,10 @@ RUN_INSTALLER="NO"
 # PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
 
 # If the installer file exists,
-if [[ -f "$INSTALLFILE" ]]; then
+if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
     # source it
-    echo "Sourcing diginode-installer.sh"
-    source "$INSTALLFILE"
+    echo "[i] Importing functions from diginode-installer.sh..."
+    source "$DGN_INSTALL_SCRIPT"
 # Otherwise,
 else
     clear -x
@@ -144,163 +143,9 @@ digimon_disclaimer() {
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
 }
 
-is_dgbnode_installed() {
-
-    # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
-
-    if [ -h "$HOME/digibyte" ]; then
-      echo "[${txtgrn}✓${txtrst}] digibyte symbolic link found in home folder."
-    else
-      if [ -e "$HOME/digibyte" ]; then
-        echo "[${txtgrn}✓${txtrst}] digibyte folder found in home folder."
-      else
-        echo "[${txtred}x${txtrst}] digibyte symbolic link NOT found in home folder."
-        echo ""
-        echo "[!] Unable to continue - please create a symbolic link in"
-        echo "    your home folder pointing to the location of digibyte core."
-        echo "    For example:"  
-        echo "    $ cd ~"
-        echo "    $ ln -s digibyte-7.17.3 digibyte" 
-        echo ""
-        exit
-      fi
-    fi
-
-    # Check if digibyted is installed
-
-    if [ -f "$HOME/digibyte/bin/digibyted" -a -f "$HOME/digibyte/bin/digibyte-cli" ]; then
-      echo "[${txtgrn}✓${txtrst}] DigiByte Core is installed - digibyted and digibyte-cli located" 
-    else
-      echo "[${txtred}x${txtrst}] DigiByte Core is NOT installed - binaries not found "
-      echo ""
-      echo "[!] Unable to continue - please install DigiByte Core."
-      echo ""
-      echo "    The digibyted and digibyte-cli binaries must be located at:"
-      echo "    ~/digibyte/bin/"
-      echo ""
-      exit
-    fi
-
-    # Check if digibyte core is configured to run as a service
-
-    if [ -f "/etc/systemd/system/digibyted.service" ]; then
-      echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is installed  - digibyted.service file located"
-    else
-      echo "[${txtred}x${txtrst}] DigiByte daemon service is not installed  - digibyted.service file NOT found"
-      echo ""
-      echo "[!] DigiByte daemon needs to be configured to run as a service."
-      echo "    If you already have a service file to run digibyted please"
-      echo "    rename it to /etc/systemd/system/digibyted.service so that this"
-      echo "    script can find it."
-      echo ""
-      echo "    If you have not already created a service file to run digibyted"
-      echo "    this script can attempt to create one for you in systemd."
-      echo ""
-      read -p "    Would you like to install it now? " -n 1 -r
-      echo    # (optional) move to a new line
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
-      then
-        exit 1
-        echo "***install service file script here****"
-      else
-        exit
-      fi
-    fi
-
-    # Check if digibyted service is running. Exit if it isn't.
-
-    if [ $(systemctl is-active digibyted) = 'active' ]; then
-      echo "[${txtgrn}✓${txtrst}] DigiByte daemon service is running."
-      digibyted_status="running"
-    else
-      echo "[${txtred}x${txtrst}] Digibyte daemon service is NOT running."
-      digibyted_status="stopped"
-      echo ""
-      echo "[!] Unable to continue - please start the DigiByte daemon service:"
-      echo "    sudo systemctl start digibyted"
-      echo ""
-      exit
-    fi
-
-    # Check for .digibyte settings directory
-
-    if [ -d "$HOME/.digibyte" ]; then
-      echo "[${txtgrn}✓${txtrst}] .digibyte settings folder located."
-    else
-      echo ""
-      echo "[${txtred}x${txtrst}] Unable to locate the .digibyte settings folder."
-      echo "    The file should be at: $HOME/.digibyte/"
-      echo ""
-      exit
-    fi
-
-    # Check digibyte.conf file can be found
-
-    if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
-      echo "[${txtgrn}✓${txtrst}] digibyte.conf file located."
-    else
-      echo ""
-      echo "[${txtred}x${txtrst}] Unable to find digibyte.conf configuration file."
-      echo "    The file should be at: $HOME/.digibyte/digibyte.conf"
-      echo ""
-      exit
-    fi
-}
-
-
-# Check if this DigiNode was setup using the official install script
-# (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
-check_official() {
-
-    if [ -f "$HOME/digibyte/.officialdiginode" ] && [ -f "$HOME/digiasset_ipfs_metadata_server/.officialdiginode" ]; then
-        echo "$TICK Official DigiNode detected - the offical DigiNode installer was used."
-        officialdgbinstall="yes"
-    else
-        echo ""
-        echo "$CROSS Offical DigiNode NOT detected - the official DigiNode installer was not used."
-        echo "    This script will attempt to detect your setup but may require you to make"
-        echo "    manual changes to your file locations to make it work. It is possible things may break."
-        echo "    For best results use the official DigiNode installer."
-        echo ""
-    fi
-}
-
-startup() {
-  digimon_title_box      # Clear screen and display title box
-  digimon_disclaimer     # Display disclaimer warning during development. Pause for confirmation.
-  digimon_title_box      # Clear screen and display title box again
-  sys_check              # Perform basic OS check - is this Linux? Is it 64bit?
-  rpi_check              # Look for Raspberry Pi hardware. If found, only continue if it compatible.
-# swap_warning           # if this system has 4Gb or less RAM, check there is a swap drive
-  check_official         # check if this is an official install
-  is_dgbnode_installed   # Run checks to see if DigiByte Node is present. Exit if it isn't.
-  get_rpc_credentials    # Get the RPC username and password from config file. Warn if not present.
-  is_dganode_installed   # Run checks to see if DigiAsset Node is present. Warn if it isn't.
-
-  read -n 1 -s -r -p "   < TEST PAUSE HERE. >"
-
-exit
-
-}
-
-
-######################################################
-######### RUN SCRIPT FROM HERE #######################
-######################################################
-
-startup
-
-##############################
-## OLDER NON FUNCTION CODE ###
-###############################
-
-
-
-
-
-
 
 # Check for swap file if using a device with low memory
+digimon_disclaimer() {
 
 swaptotal=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
@@ -348,236 +193,480 @@ fi
 # else
 
 # fi # end of $sysmem = ?
+}
 
+is_dgbnode_installed() {
 
+    # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
 
-
-
-
-
-
-#####################################################
-# Perform initial checks for required DAMS pacakges #
-#####################################################
-
-# Check if snapd is installed
-
-REQUIRED_PKG="snapd"
-PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-if [ "" = "$PKG_OK" ]; then
-    snapd_installed="no"
-    startwait=yes
-else
-    snapd_installed="yes"
-    dga_status="snapdinstalled"
-fi
-
-# Check if snap core is installed
-
-PKG_OK=$(snap list | grep "core")
-if [ "" = "$PKG_OK" ]; then
-    snapcore_installed="no"
-    startwait=yes
-else
-    snapcore_installed="no"
-    if [ $dga_status = "snapdinstalled" ]; then
-      dga_status="snapcoreinstalled"
-    fi
-fi
-
-# Check if ipfs is installed
-
-PKG_OK=$(snap list | grep "ipfs")
-if [ "" = "$PKG_OK" ]; then
-    ipfs_installed="no"
-    startwait=yes
-else
-    if [ $dga_status = "snapcoreinstalled" ]; then
-      dga_status="ipfsinstalled"
-    fi
-    ipfs_installed="yes"
-fi
-
-# Check if nodejs is installed
-
-REQUIRED_PKG="nodejs"
-PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-if [ "" = "$PKG_OK" ]; then
-    nodejs_installed="no"
-    startwait=yes
-else
-    if [ $dga_status = "ipfsinstalled" ]; then
-      dga_status="nodejsinstalled"
-    fi
-     nodejs_installed="yes"
-fi
-
-# Display if DAMS packages are installed
-
-
-if [ "$nodejs_installed" = "yes" ]; then 
-  echo "[${txtgrn}✓${txtrst}] Required \'DigiAsset Metadata Server\' packages are installed."
-  echo "    Found: [${txtgrn}✓${txtrst}] snapd   [${txtgrn}✓${txtrst}] snap core   [${txtgrn}✓${txtrst}] ipfs   [${txtgrn}✓${txtrst}] nodejs" 
-else
-  echo "[${txtred}x${txtrst}] Required \'DigiAsset Metadata Server\' pacakages are NOT installed:"
-  printf "    Found: ["
-  if [ $snapd_installed = "yes" ]; then
-    printf "${txtgrn}✓${txtrst}"
-  else
-    printf "${txtred}x${txtrst}"
-  fi
-  printf "] snapd   ["
-  if [ $snapcore_installed = "yes" ]; then
-    printf "${txtgrn}✓${txtrst}"
-  else
-    printf "${txtred}x${txtrst}"
-  fi
-  printf "] snap core   ["
-  if [ $ipfs_installed = "yes" ]; then
-    printf "${txtgrn}✓${txtrst}"
-  else
-    printf "${txtred}x${txtrst}"
-  fi
-  printf "] ipfs   ["
-  if [ $nodejs_installed = "yes" ]; then
-    printf "${txtgrn}✓${txtrst}"
-  else
-    printf "${txtred}x${txtrst}"
-  fi
-    printf "] nodejs"
-    echo ""
-    echo "     Some packages required to run the DigiAsset Metadata Server are not"
-    echo "     currently installed."
-    echo ""
-    echo "     You can install them using the DigiNode Installer."
-    echo ""
-    startwait="yes"
-  fi
-
-# Check if ipfs service is running. Required for DigiAssets server.
-
-# ps aux | grep ipfs
-
-if [ "" = "$(ps aux | grep ipfs)" ]; then
-    echo "[${txtred}x${txtrst}] IPFS daemon is NOT running."
-    echo ""
-    echo "The IPFS daemon is required to run the DigiAsset Metadata Server."
-    echo ""
-    echo "You can set it up using the DigiNode Installer."
-    echo ""
-    ipfs_running="no"
-else
-    echo "[${txtgrn}✓${txtrst}] IPFS daemon is running."
-    if [ $dga_status = "nodejsinstalled" ]; then
-      dga_status="ipfsrunning"
-    fi
-    ipfs_running="yes"
-fi
-
-
-# Check for 'digiasset_ipfs_metadata_server' index.js file
-
-if [ -f "$HOME/digiasset_ipfs_metadata_server/index.js" ]; then
-  if [ $dga_status = "nodejsinstalled" ]; then
-     dga_status="installed" 
-  fi
-  echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is installed - index.js located."
-else
-    echo "[${txtred}x${txtrst}] DigiAsset Metadata Server NOT found."
-    echo ""
-    echo "   DigiAssets Metadata Server is not currently installed. You can install"
-    echo "   it using the DigiNode Installer."
-    echo ""
-    startwait="yes"
-fi
-
-
-
-
-# -----
-
-
-
-
-# Check if 'digiasset_ipfs_metadata_server' is running
-
-if [ $dga_status = "installed" ]; then
-  if [! $(pgrep -f index.js) -eq "" ]; then
-      dga_status="running"
-      echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is running."
-  else
-      dga_status="stopped"
-      echo "[${txtred}x${txtrst}] DigiAsset Metadata Server is NOT running.."
-      echo ""
-      startwait=yes
-  fi
-fi
-
-# Check if digibyte core wallet is enabled
-
-if [ $dga_status = "running" ]; then
-  if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
-    walletstatus=$(cat ~/.digibyte/digibyte.conf | grep disablewallet | cut -d'=' -f 2)
-    if [ walletstatus = "1" ]; then
-      walletstatus="disabled"
-      echo "[${txtgrn}✓${txtrst}] DigiByte Core wallet is enabled."
+    if [ -h "$HOME/digibyte" ]; then
+      echo "$TICK digibyte symbolic link found in home folder."
     else
-      walletstatus="enabled"
-      echo ""
-      echo "[${txtred}x${txtrst}] DigiByte Core wallet is disabled."
-      echo "   The DigiByte Core wallet is required if you want to create DigiAssets"
-      echo "   from within the web UI. You can enable it by editing the digibyte.conf"
-      echo "   file and removing the disablewallet=1 flag"
-      echo ""
-      startwait="yes"
+      if [ -e "$HOME/digibyte" ]; then
+        echo "$TICK digibyte folder found in home folder."
+      else
+        echo "$CROSS digibyte symbolic link NOT found in home folder."
+        echo ""
+        echo "[!] Unable to continue - please create a symbolic link in"
+        echo "    your home folder pointing to the location of digibyte core."
+        echo "    For example:"  
+        echo "    $ cd ~"
+        echo "    $ ln -s digibyte-7.17.3 digibyte" 
+        echo ""
+        exit
+      fi
     fi
-  fi
-fi
 
-##  Check if jq package is installed
+    # Check if digibyted is installed
 
-REQUIRED_PKG="jq"
-PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-if [ "" = "$PKG_OK" ]; then
-  echo "[${txtred}x${txtrst}] jq package is required and will be installed. "
-  echo "    Required to retrieve data from the DigiAsset Metadata server."
-  echo ""
-  install_jq='yes'
-else
-  echo "[${txtgrn}✓${txtrst}] jq is installed."
-fi
+    if [ -f "$HOME/digibyte/bin/digibyted" -a -f "$HOME/digibyte/bin/digibyte-cli" ]; then
+      echo "$TICK DigiByte Core is installed - digibyted and digibyte-cli located" 
+    else
+      echo "$CROSS DigiByte Core is NOT installed - binaries not found "
+      echo ""
+      echo "[!] Unable to continue - please install DigiByte Core."
+      echo ""
+      echo "    The digibyted and digibyte-cli binaries must be located at:"
+      echo "    ~/digibyte/bin/"
+      echo ""
+      exit
+    fi
+
+    # Check if digibyte core is configured to run as a service
+
+    if [ -f "/etc/systemd/system/digibyted.service" ]; then
+      echo "$TICK DigiByte daemon service is installed  - digibyted.service file located"
+    else
+      echo "$CROSS DigiByte daemon service is not installed  - digibyted.service file NOT found"
+      echo ""
+      echo "[!] DigiByte daemon needs to be configured to run as a service."
+      echo "    If you already have a service file to run digibyted please"
+      echo "    rename it to /etc/systemd/system/digibyted.service so that this"
+      echo "    script can find it."
+      echo ""
+      echo "    If you have not already created a service file to run digibyted"
+      echo "    this script can attempt to create one for you in systemd."
+      echo ""
+      read -p "    Would you like to install it now? " -n 1 -r
+      echo    # (optional) move to a new line
+      if [[ ! $REPLY =~ ^[Yy]$ ]]
+      then
+        exit 1
+        echo "***install service file script here****"
+      else
+        exit
+      fi
+    fi
+
+    # Check if digibyted service is running. Exit if it isn't.
+
+    if [ $(systemctl is-active digibyted) = 'active' ]; then
+      echo "$TICK DigiByte daemon service is running."
+      digibyted_status="running"
+    else
+      echo "$CROSS Digibyte daemon service is NOT running."
+      digibyted_status="stopped"
+      echo ""
+      echo "[!] Unable to continue - please start the DigiByte daemon service:"
+      echo "    sudo systemctl start digibyted"
+      echo ""
+      exit
+    fi
+
+    # Check for .digibyte settings directory
+
+    if [ -d "$HOME/.digibyte" ]; then
+      echo "$TICK .digibyte settings folder located."
+    else
+      echo ""
+      echo "$CROSS Unable to locate the .digibyte settings folder."
+      echo "    The file should be at: $HOME/.digibyte/"
+      echo ""
+      exit
+    fi
+
+    # Check digibyte.conf file can be found
+
+    if [ -f "$DGB_CONF_FILE" ]; then
+      echo "$TICK digibyte.conf file located."
+    else
+      echo ""
+      echo "$CROSS Unable to find digibyte.conf configuration file."
+      echo "    The file should be at: $DGB_CONF_FILE"
+      echo ""
+      exit
+    fi
+
+    # Load digibyte.conf file to get variables
+      echo "$INFO Importing digibyte.conf settings"
+      source "$DGB_CONF_FILE"
+
+}
+
+# Get RPC CREDENTIALS from digibyte.conf
+check_rpc_credentials() {
+    if [ -f "$DGB_CONF_FILE" ]; then
+      rpcuser=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
+      rpcpassword=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
+      rpcport=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
+      if [ "$rpcuser" != "" ] && [ "$rpcpassword" != "" ] && [ "$rpcport" != "" ]; then
+        echo "$TICK RPC settings found in digibyte.conf"
+        echo "    Found: $TICK Username     $TICK Password     [$TICK] Port"
+      else
+        echo "$CROSS RPC settings missing in digibyte.conf"
+        printf "    Found: ["
+        if [ $rpcuser != "" ]; then
+          printf "$TICK"
+        else
+          printf "$CROSS"
+        fi
+        printf "] Username     ["
+        if [ $rpcpassword != "" ]; then
+          printf "$TICK"
+        else
+          printf "$CROSS"
+        fi
+        printf "] Password     ["
+        if [ $rpcport != "" ]; then
+          printf "$$TICK"
+        else
+          printf "$CROSS"
+        fi
+        printf "] Port"
+        echo ""
+        echo "     You need to add the missing RPC credentials to your digibyte.conf file:"
+        echo "     nano $DGB_CONF_FILE"
+        echo ""
+        echo "     Add this:"
+        echo ""
+        echo "     rpcuser=desiredusername      # change desiredusername to something else"
+        echo "     rpcpassword=desiredpassword  # change desiredpassword to something else"
+        echo "     rpcport=14022                # best to leave this as is"
+      fi
+    fi
+}
+
+
+# Check if this DigiNode was setup using the official install script
+# (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
+check_official() {
+
+    if [ -f "$HOME/digibyte/.officialdiginode" ] && [ -f "$HOME/digiasset_ipfs_metadata_server/.officialdiginode" ]; then
+        echo "$TICK Official DigiNode detected - the offical DigiNode installer was used."
+        officialdgbinstall="yes"
+    else
+        echo ""
+        echo "$CROSS Offical DigiNode NOT detected - the official DigiNode installer was not used."
+        echo "    This script will attempt to detect your setup but may require you to make"
+        echo "    manual changes to your file locations to make it work. It is possible things may break."
+        echo "    For best results use the official DigiNode installer."
+        echo ""
+    fi
+}
+
+# Check if the DigAssets Node is installed and running
+is_dganode_installed() {
+
+      #####################################################
+      # Perform initial checks for required DAMS pacakges #
+      #####################################################
+
+      # Check if snapd is installed
+
+      REQUIRED_PKG="snapd"
+      PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+      if [ "" = "$PKG_OK" ]; then
+          snapd_installed="no"
+          startwait=yes
+      else
+          snapd_installed="yes"
+          dga_status="snapdinstalled"
+      fi
+
+      # Check if snap core is installed
+
+      PKG_OK=$(snap list | grep "core")
+      if [ "" = "$PKG_OK" ]; then
+          snapcore_installed="no"
+          startwait=yes
+      else
+          snapcore_installed="no"
+          if [ $dga_status = "snapdinstalled" ]; then
+            dga_status="snapcoreinstalled"
+          fi
+      fi
+
+      # Check if ipfs is installed
+
+      PKG_OK=$(snap list | grep "ipfs")
+      if [ "" = "$PKG_OK" ]; then
+          ipfs_installed="no"
+          startwait=yes
+      else
+          if [ $dga_status = "snapcoreinstalled" ]; then
+            dga_status="ipfsinstalled"
+          fi
+          ipfs_installed="yes"
+      fi
+
+      # Check if nodejs is installed
+
+      REQUIRED_PKG="nodejs"
+      PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+      if [ "" = "$PKG_OK" ]; then
+          nodejs_installed="no"
+          startwait=yes
+      else
+          if [ $dga_status = "ipfsinstalled" ]; then
+            dga_status="nodejsinstalled"
+          fi
+           nodejs_installed="yes"
+      fi
+
+      # Display if DAMS packages are installed
+
+
+      if [ "$nodejs_installed" = "yes" ]; then 
+        echo "[${txtgrn}✓${txtrst}] Required \'DigiAsset Metadata Server\' packages are installed."
+        echo "    Found: [${txtgrn}✓${txtrst}] snapd   [${txtgrn}✓${txtrst}] snap core   [${txtgrn}✓${txtrst}] ipfs   [${txtgrn}✓${txtrst}] nodejs" 
+      else
+        echo "[${txtred}x${txtrst}] Required \'DigiAsset Metadata Server\' pacakages are NOT installed:"
+        printf "    Found: ["
+        if [ $snapd_installed = "yes" ]; then
+          printf "${txtgrn}✓${txtrst}"
+        else
+          printf "${txtred}x${txtrst}"
+        fi
+        printf "] snapd   ["
+        if [ $snapcore_installed = "yes" ]; then
+          printf "${txtgrn}✓${txtrst}"
+        else
+          printf "${txtred}x${txtrst}"
+        fi
+        printf "] snap core   ["
+        if [ $ipfs_installed = "yes" ]; then
+          printf "${txtgrn}✓${txtrst}"
+        else
+          printf "${txtred}x${txtrst}"
+        fi
+        printf "] ipfs   ["
+        if [ $nodejs_installed = "yes" ]; then
+          printf "${txtgrn}✓${txtrst}"
+        else
+          printf "${txtred}x${txtrst}"
+        fi
+          printf "] nodejs"
+          echo ""
+          echo "     Some packages required to run the DigiAsset Metadata Server are not"
+          echo "     currently installed."
+          echo ""
+          echo "     You can install them using the DigiNode Installer."
+          echo ""
+          startwait="yes"
+        fi
+
+      # Check if ipfs service is running. Required for DigiAssets server.
+
+      # ps aux | grep ipfs
+
+      if [ "" = "$(ps aux | grep ipfs)" ]; then
+          echo "[${txtred}x${txtrst}] IPFS daemon is NOT running."
+          echo ""
+          echo "The IPFS daemon is required to run the DigiAsset Metadata Server."
+          echo ""
+          echo "You can set it up using the DigiNode Installer."
+          echo ""
+          ipfs_running="no"
+      else
+          echo "[${txtgrn}✓${txtrst}] IPFS daemon is running."
+          if [ $dga_status = "nodejsinstalled" ]; then
+            dga_status="ipfsrunning"
+          fi
+          ipfs_running="yes"
+      fi
+
+
+      # Check for 'digiasset_ipfs_metadata_server' index.js file
+
+      if [ -f "$HOME/digiasset_ipfs_metadata_server/index.js" ]; then
+        if [ $dga_status = "nodejsinstalled" ]; then
+           dga_status="installed" 
+        fi
+        echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is installed - index.js located."
+      else
+          echo "[${txtred}x${txtrst}] DigiAsset Metadata Server NOT found."
+          echo ""
+          echo "   DigiAssets Metadata Server is not currently installed. You can install"
+          echo "   it using the DigiNode Installer."
+          echo ""
+          startwait="yes"
+      fi
+
+      # Check if 'digiasset_ipfs_metadata_server' is running
+
+      if [ $dga_status = "installed" ]; then
+        if [! $(pgrep -f index.js) -eq "" ]; then
+            dga_status="running"
+            echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is running."
+        else
+            dga_status="stopped"
+            echo "[${txtred}x${txtrst}] DigiAsset Metadata Server is NOT running.."
+            echo ""
+            startwait=yes
+        fi
+      fi
+
+}
+
+# Load the diginode.settings file if it exists. Create it if it doesn't. 
+load_diginode_settings() {
+    # Get saved variables from diginode.settings. Create settings file if it does not exist.
+    if test -f $HOME/.digibyte/diginode.settings; then
+      # import saved variables from settings file
+      echo "[i] Importing diginode.settings file..."
+      source $HOME/.digibyte/diginode.settings
+    else
+      # create diginode.settings file
+      create_diginode_settings
+    fi
+}
 
 ## Check if avahi-daemon is installed
+is_bonjour_installed() {
+    REQUIRED_PKG="avahi-daemon"
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+    if [ "" = "$PKG_OK" ]; then
+      echo "[i] avahi-daemon is not currently installed."
+      echo "    It is optional, but recommended if you are using a dedicated"
+      echo "    device to run your DigiNode such as a Raspberry Pi. It means"
+      echo "    you can you can access it at the address $(hostname).local"
+      echo "    instead of having to remember the IP address. Install it"
+      echo "    with the command: sudo apt-get install avahi-daemon"
+      echo ""
+    else
+      bonjour="installed"
+      echo "$TICK avahi-daemon is installed."
+      echo "    Local URL: $(hostname).local"
+    fi
+}
 
-REQUIRED_PKG="avahi-daemon"
-PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-if [ "" = "$PKG_OK" ]; then
-  echo "[-] avahi-daemon is not currently installed."
-  echo "    It is optional, but recommended if you are using a dedicated"
-  echo "    device to run your DigiNode such as a Raspberry Pi. It means"
-  echo "    you can you can access it at the address $(hostname).local"
-  echo "    instead of having to remember the IP address. Install it"
-  echo "    with the command: sudo apt-get install avahi-daemon"
-  echo ""
-else
-  bonjour="installed"
-  echo "[${txtgrn}✓${txtrst}] avahi-daemon is installed."
-  echo "    Local URL: $(hostname).local"
-fi
+##  Check if jq package is installed
+is_jq_installed() {
+    REQUIRED_PKG="jq"
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+    if [ "" = "$PKG_OK" ]; then
+      echo "$CROSS jq package is required and will be installed. "
+      echo "    Required to retrieve data from the DigiAsset Metadata server."
+      echo ""
+      install_jq='yes'
+    else
+      echo "$TICK jq is installed."
+    fi
+}
+
+
+# Check if digibyte core wallet is enabled
+is_wallet_enabled() {
+if [ $dga_status = "running" ]; then
+    if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
+      walletstatus=$(cat ~/.digibyte/digibyte.conf | grep disablewallet | cut -d'=' -f 2)
+      if [ walletstatus = "1" ]; then
+        walletstatus="disabled"
+        echo "[${txtgrn}✓${txtrst}] DigiByte Core wallet is enabled."
+      else
+        walletstatus="enabled"
+        echo ""
+        echo "[${txtred}x${txtrst}] DigiByte Core wallet is disabled."
+        echo "   The DigiByte Core wallet is required if you want to create DigiAssets"
+        echo "   from within the web UI. You can enable it by editing the digibyte.conf"
+        echo "   file and removing the disablewallet=1 flag"
+        echo ""
+        startwait="yes"
+      fi
+    fi
+  fi
+}
+
+# Install needed packages
+install_required_pkgs() {
+    if [ "$install_jq" = "yes" ]; then
+      echo ""
+      echo "[i]  Enter your password to install required packages. Press Ctrl-C to cancel."
+      echo ""
+      sudo apt-get --yes install jq
+    fi
+}
+
+
+## PERFROM STARTUP CHECKS
+
+startup() {
+  digimon_title_box      # Clear screen and display title box
+  digimon_disclaimer     # Display disclaimer warning during development. Pause for confirmation.
+  digimon_title_box      # Clear screen and display title box again
+  sys_check              # Perform basic OS check - is this Linux? Is it 64bit?
+  rpi_check              # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+# swap_warning           # if this system has 4Gb or less RAM, check there is a swap drive
+  check_official         # check if this is an official install
+  is_dgbnode_installed   # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
+  get_rpc_credentials    # Get the RPC username and password from config file. Warn if not present.
+  is_wallet_enabled      # Check that the DigiByte Core wallet is enabled
+  is_dganode_installed   # Run checks to see if DigiAsset Node is present. Warn if it isn't.
+  load_diginode_settings # Load the diginode.settings file. Create it if it does not exist.
+  is_bonjour_installed   # Check if avahi-daemon is installed
+  is_jq_installed        # Check if jq is installed
+  install_required_pkgs  # Install jq
+
+  read -n 1 -s -r -p "   < TEST PAUSE HERE. >"
+
+exit
+
+}
+
+
+
+
+######################################################
+######### RUN SCRIPT FROM HERE #######################
+######################################################
+
+startup
+
+##############################
+## OLDER NON FUNCTION CODE ###
+###############################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ###################################################################################
 ##################  INSTALL MISSING PACKAGES ######################################
 ###################################################################################
 
-# Install needed packages
 
-if [ "$install_jq" = "yes" ]; then
-  echo ""
-  echo "[i]  Enter your password to install required packages. Press Ctrl-C to cancel."
-  echo ""
-  sudo apt-get --yes install jq
-fi
 
 # Optionally require a key press to continue, or a long 5 second pause. Otherwise wait 3 seconds before starting monitoring. 
 
@@ -619,6 +708,7 @@ loopcounter=0
 # Set timenow variable with the current time
 timenow=$(date)
 
+load_diginode_settings() {
 # Get saved variables from diginode.settings. Create settings file if it does not exist.
 if test -f $HOME/.digibyte/diginode.settings; then
   # import saved variables from settings file
@@ -626,50 +716,9 @@ if test -f $HOME/.digibyte/diginode.settings; then
   source $HOME/.digibyte/diginode.settings
 else
   # create diginode.settings file
-  echo "[i] Creating diginode.settings file..."
-  touch $HOME/.digibyte/diginode.settings
-  echo "#!/bin/bash" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# This settings file is used to store variables for DigiNode Status Monitor" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Setup timer variables" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime15sec=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1min=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime15min=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1day=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1week=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# store diginode installation details" >> $HOME/.digibyte/diginode.settings
-  echo "official_install=" >> $HOME/.digibyte/diginode.settings
-  echo "install_date=" >> $HOME/.digibyte/diginode.settings
-  echo "update_date=" >> $HOME/.digibyte/diginode.settings
-  echo "statusmonitor_last_run=" >> $HOME/.digibyte/diginode.settings
-  echo "dams_first_run=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings  
-  echo "# Store IP addresses to ensure they are only rechecked once every 15 minute." >> $HOME/.digibyte/diginode.settings
-  echo "externalip=" >> $HOME/.digibyte/diginode.settings
-  echo "internalip=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Store number of available system updates so the script only checks once every 24 hours." >> $HOME/.digibyte/diginode.settings
-  echo "system_updates=" >> $HOME/.digibyte/diginode.settings
-  echo "security_updates=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings 
-  echo "# Store local version numbers so the local node is not hammered with requests every second." >> $HOME/.digibyte/diginode.settings
-  echo "dgb_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "dga_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings 
-  echo "# Store software release version numbers in settings file so Github only needs to be queried once a day." >> $HOME/.digibyte/diginode.settings
-  echo "dgb_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "dga_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "dnt_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Store when an open port test last ran." >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "dgb_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "dgb_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
+  create_diginode_settings
 fi
+}
 
 # Get base64 authentication for RPC
 rpcauth=$(printf '%s:%s' "$rpcuser" "$rpcpassword" | base64)
