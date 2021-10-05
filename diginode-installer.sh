@@ -11,7 +11,7 @@
 #
 #           curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated:  October 4 2021 11:27pm GMT
+# Updated:  October 6 2021 9:05pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -31,20 +31,25 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # Local variables will be in lowercase and will exist only within functions
 # It's still a work in progress, so you may see some variance in this guideline until it is complete
 
-SETTINGSFILE=$HOME/.digibyte/diginode.settings
-INSTALLFOLDER=$HOME/diginode
+DGB_SETTINGS_FOLDER=$HOME/.digibyte/
+DGB_CONF_FILE=$HOME/.digibyte/digibyte.conf
+DGN_SETTINGS_FILE=$HOME/.digibyte/diginode.settings
+DGN_SCRIPT_FOLDER=$HOME/diginode
 
 # Location for final installation log storage
 installLogLoc=/etc/pihole/install.log
 
 # This is the URLs where the script is hosted
-DigiNodeOfficialURL=https://diginode-installer.digibyte.help
-DigiNodeGithubReleaseURL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
-DigiNodeGithubDevelopURL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
-DigiNodeInstallURL=$DigiNodeGithubDevelopURL
+DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
+DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
+DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
-DigiNodeGitUrl="https://github.com/saltedlolly/diginode.git"
+DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+
+TOTALRAM_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+TOTALRAM_MB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -576,7 +581,7 @@ os_check() {
             printf "      If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n"
             printf "\\n"
             printf "      e.g: If you are seeing this message on a fresh install, you can run:\\n"
-            printf "             %bcurl -sSL $DigiNodeInstallURL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "             %bcurl -sSL $DGN_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "      It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n"
             printf "      If that is the case, you can feel free to ask @saltedlolly on Twitter.\\n" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -625,7 +630,7 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" whiptail ca-certificates jq)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2)
+    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
 
     # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
     test_dpkg_lock() {
@@ -656,8 +661,8 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils arch)
-    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates)
-    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof)
+    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
+    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -1293,6 +1298,228 @@ create_digibyte_user() {
     fi
 }
 
+# Install DigiNode scripts including DigiMon
+install_diginode_scripts() {
+    cd~
+    git clone https://github.com/saltedlolly/diginode
+    cd diginode
+    chmod +x digimon.sh
+    chmod +x diginode-installer.sh
+}
+
+# Create digibyte.config file if it does not already exist
+create_digibyte_conf() {
+
+   # Set max connections to higher if running a dedicated server (Default: 125)
+    local set_maxconnections
+    set_maxconnections=300
+
+    # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
+    # Initial sync times are significantly faster with a larger db cache.
+    local set_dbcache
+    if [ $TOTALRAM_KB -ge "7340032" ]; then
+        set_dbcache=2048
+    else
+        set_dbcache=450
+    fi
+
+    # generate a random rpc password
+    local set_rpcpassword
+    echo "$INFO Generating random RPC password"
+    set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+
+    # create .digibyte settings folder if it does not already exist
+    if [ ! -d $DGB_SETTINGS_FOLDER ]; then
+        echo "$INFO Creating ~/.digibyte folder"
+        mkdir $DGB_SETTINGS_FOLDER
+    fi
+
+    # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
+    if test -f "$DGB_CONF_FILE"; then
+        # Import variables from diginode.conf settings file
+        echo "$INFO Retrieving variables from diginode.settings file"
+        source $DGB_CONF_FILE
+
+        echo "$INFO Verifying existing digibyte.conf variables"
+        
+
+        #Update daemon variable in settings if it exists and is blank, otherwise append it
+        if grep -q "daemon=" $DGB_CONF_FILE; then
+            if [ "$daemon" = "" ] || [ "$daemon" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: daemon=1"
+                sed -i -e "/^daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: daemon=1"
+            echo "daemon=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update dbcache variable in settings file, otherwise append it
+        if grep -q "dbcache=" $DGB_CONF_FILE; then
+            if [ "$dbcache" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+            echo "dbcache=$set_dbcache" >> $DGB_CONF_FILE
+        fi
+
+        #Update maxconnections variable in settings file, otherwise append it
+        if grep -q "maxconnections=" $DGB_CONF_FILE; then
+            if [ "$maxconnections" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+            echo "maxconnections=$set_maxconnections" >> $DGB_CONF_FILE
+        fi
+
+        #Update listen variable in settings if it exists and is blank, otherwise append it
+        if grep -q "listen=" $DGB_CONF_FILE; then
+            if [ "$listen" = "" ] || [ "$listen" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: listen=1"
+                sed -i -e "/^listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: listen=1"
+            echo "listen=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcuser variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcuser=" $DGB_CONF_FILE; then
+            if [ "$rpcuser" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+            echo "rpcuser=digibyte" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcpassword variable in settings if variable exists but is blank, otherwise append it
+        if grep -q "rpcpassword=" $DGB_CONF_FILE; then
+            if [ "$rpcpassword" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+            echo "rpcuser=$set_rpcpassword" >> $DGB_CONF_FILE
+        fi
+
+        #Update server variable in settings if it exists and is blank, otherwise append it
+        if grep -q "server=" $DGB_CONF_FILE; then
+            if [ "$server" = "" ] || [ "$server" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: server=1"
+                sed -i -e "/^server=/s|.*|server=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: server=1"
+            echo "server=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcport variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcport=" $DGB_CONF_FILE; then
+            if [ "$rpcport" = "" ] || [ "$rpcport" != "14022" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+                sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+            echo "rpcport=14022" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcbind=" $DGB_CONF_FILE; then
+            if [ "$rpcbind" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcallowip variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcallowip=" $DGB_CONF_FILE; then
+            if [ "$rpcallowip" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=127.0.0.1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+            echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
+        fi
+
+
+    else
+        # Create a new digibyte.conf file
+        echo "$INFO Creating digibyte.conf setting file"
+        cat <<EOF > $DGB_CONF_FILE
+# This config should be placed in following path:
+# ~/.digibyte/digibyte.conf
+
+# [core]
+# Run in the background as a daemon and accept commands.
+daemon=1
+# Set database cache size in megabytes; machines sync faster with a larger cache.
+# Recommend setting as high as possible based upon machine's available RAM. (default: 450)
+dbcache=$set_dbcache
+# Reduce storage requirements by only storing most recent N MiB of block. This mode is 
+# incompatible with -txindex and -coinstatsindex. WARNING: Reverting this setting requires
+# re-downloading the entire blockchain. (default: 0 = disable pruning blocks, 1 = allow manual
+# pruning via RPC, greater than 550 = automatically prune blocks to stay under target size in MiB).
+prune=0
+# Keep at most <n> unconnectable transactions in memory.
+maxorphantx=
+# Keep the transaction memory pool below <n> megabytes.
+maxmempool=
+
+# [network]
+# Maintain at most N connections to peers. (default: 125)
+maxconnections=$set_maxconnections
+# Tries to keep outbound traffic under the given target (in MiB per 24h), 0 = no limit.
+maxuploadtarget=
+# Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) or CIDR notated network
+# (e.g. 1.2.3.0/24). Use [permissions]address for permissions. Uses same permissions as
+# Whitelist Bound IP Address. Can be specified multiple times. Whitelisted peers cannot be
+# DoS banned and their transactions are always relayed, even if they are already in the mempool.
+# Useful for a gateway node.
+whitelist=127.0.0.1
+# Accept incoming connections from peers.
+listen=1
+
+# [rpc]
+# RPC user
+rpcuser=digibyte
+# RPC password
+rpcpassword=$set_rpcpassword
+# Accept command line and JSON-RPC commands.
+server=1
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+# Listen for JSON-RPC connections on this port
+rpcport=14022
+# Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
+# a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
+# can be specified multiple times.
+rpcallowip=127.0.0.1
+
+# [wallet]
+# Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
+disablewallet=0
+EOF
+    fi
+
+}
+
+
+
+
 # Install base files and web interface
 installDigiNode() {
     # If the user wants to install the Web interface,
@@ -1348,6 +1575,9 @@ main() {
     # clear the screen and display the title box
     installer_title_box
 
+    # Perform basic OS check and lookup hardware architecture
+    sys_check
+
     # display the disclaimer
     installer_disclaimer
 
@@ -1361,7 +1591,7 @@ main() {
         # they are root and all is good
         printf "  %b %s\\n" "${TICK}" "${str}"
         # Show the DigiNode Installer title box
-        show_title_box
+        installer_title_box
         make_temporary_log
     else
         # Otherwise, they do not have enough privileges, so let the user know
@@ -1394,9 +1624,6 @@ main() {
             exit 1
         fi
     fi
-
-    # clear the screen and display the title box
-    installer_title_box
 
     # Perform basic OS check and lookup hardware architecture
     sys_check
