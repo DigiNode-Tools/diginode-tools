@@ -1,17 +1,16 @@
 #!/bin/bash
 #
-# Name:     DigiNode Installer
-# Purpose:  Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
-#           Script has initially been designed to support the Raspberry Pi 4 4Gb & 8Gb models.
-#           Support for other linux-supporting hardware may follow.
-# Authors:  Olly Stedall @saltedlolly
-#           Matthew Cornellise @mctrivia
+# Name:    DigiNode Installer
+# Purpose: Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
+#          Script has initially been designed to support the Raspberry Pi 4 4Gb & 8Gb models.
 #
-# Usage:    Install with this command (from your Linux machine):
+# Author:  Olly Stedall @saltedlolly
 #
-#           curl http://diginode-installer.digibyte.help | bash 
+# Usage:   Install with this command (from your Linux machine):
 #
-# Updated:  October 6 2021 12:29am GMT
+#          curl http://diginode-installer.digibyte.help | bash 
+#
+# Updated: October 7 2021 12:32am GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -31,25 +30,39 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # Local variables will be in lowercase and will exist only within functions
 # It's still a work in progress, so you may see some variance in this guideline until it is complete
 
+DGB_INSTALL_FOLDER=$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
 DGB_SETTINGS_FOLDER=$HOME/.digibyte/
-DGB_CONF_FILE=$HOME/.digibyte/digibyte.conf
-DGN_SETTINGS_FILE=$HOME/.digibyte/diginode.settings
-DGN_SCRIPT_FOLDER=$HOME/diginode
+DGB_CONF_FILE=$DGB_SETTINGS_FOLDER/digibyte.conf
+
+DGA_INSTALL_FOLDER=$HOME/digiasset_ipfs_metadata_server
+DGA_SETTINGS_FILE=$DGA_INSTALL_FOLDER/_config/main.json
+
+DGN_SCRIPTS_FOLDER=$HOME/diginode
+DGN_SETTINGS_FILE=$DGB_SETTINGS_FOLDER/diginode.settings 
 
 # Location for final installation log storage
-installLogLoc=/etc/pihole/install.log
+installLogLoc=$DGN_SCRIPTS_FOLDER/install.log
 
 # This is the URLs where the script is hosted
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
+DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+
+# This is the command people will enter to run the install script
+DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
-TOTALRAM_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
-TOTALRAM_MB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+# Store total system RAM as variables
+RAMTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
+
+# Store current total swap file size as variables
+SWAPTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -70,9 +83,13 @@ c=70
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
-TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
-CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
-INFO="[i]"
+COL_LIGHT_CYAN='\e[1;96m'
+COL_BOLD_WHITE='\e[1;37m'
+TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
+CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
+WARN="  [${COL_LIGHT_CYAN}!${COL_NC}]"
+INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
 OVER="\\r\\033[K"
@@ -117,19 +134,17 @@ installer_title_box() {
 
 # Show a disclaimer text during testing phase
 installer_disclaimer() {
-    echo "WARNING: This script is still under active development and should"
-    echo "be considered pre alpha in its current state. Initially, it is being"
-    echo "optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for other hardware"
-    echo "will hopefully follow. Expect bugs - at times it may not even run."
-    echo ""
-    echo "Currently it should be used with a Pi 4, running a clean install"
-    echo "of Ubuntu Server 64-bit booting from SSD. The installer will first attempt"
-    echo "to detect compatible hardware, before setting up a DigiByte Node & DigiAsset"
-    echo "Metadata Server with DigiAssetX support."
-    echo ""
-    echo "Please quit now if you are running this on anything other than a test machine!"
-    echo ""
-    echo "      < Press Ctrl-C to quit>"
+
+    # Otherwise, they do not have enough privileges, so let the user know
+    printf "%b %bWARNING: This script is still under active development%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Expect bugs and for it to break things - at times it may\\n" "${INDENT}"
+    printf "%b not even run. Currently I recommend running your DigiNode\\n" "${INDENT}"
+    printf "%b on a Raspberry Pi 4 8Gb. Start with a clean install of Ubuntu\\n" "${INDENT}"
+    printf "%b 64-bit booting from an external SSD driver over USB.\\n" "${INDENT}"
+    printf "%b This installer does not support Pi's booting from a microSD card.\\n" "${INDENT}"
+    printf "%b %bQUIT NOW if you are running this on anything other than a test system.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
+    printf "%b             < Press Ctrl-C to Quit>\\n" "${INDENT}"
 }
 
 # Function to establish OS type and system architecture
@@ -140,49 +155,50 @@ sys_check() {
     local is_linux
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Linux detected
-        echo "$INFO OS Type: Linux GNU"
+        printf "%b OS Type: %bLinux GNU%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         is_linux="yes"
     elif [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "$INFO OS Type: Mac OS"
+        printf "%b OS Type: %bMacOS%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
     elif [[ "$OSTYPE" == "cygwin" ]]; then
         # POSIX compatibility layer and Linux environment emulation for Windows
-        echo "$INFO OS Type: Cygwin"
+        printf "%b OS Type: %bWindows (Cygwin)%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
     elif [[ "$OSTYPE" == "msys" ]]; then
-        echo "$INFO OS Type: Windows"
+        printf "%b OS Type: %bWindows (msys)%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
         # bsd detected
     elif [[ "$OSTYPE" == "bsd" ]]; then
-        echo "$INFO OS Type: BSD"
+        printf "  %b OS Type: %bBSD%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
         # Lightweight shell and GNU utilities compiled for Windows (part of MinGW)
     elif [[ "$OSTYPE" == "win32" ]]; then
         # I'm not sure this can happen.
-        echo "$INFO OS Type: Windows"
+        printf "%b OS Type: %bWindows%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
     elif [[ "$OSTYPE" == "freebsd"* ]]; then
-        echo "$INFO OS Type: FreeBSD"
+        printf "%b OS Type: %bFreeBSD%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
         # solaris detected
     elif [[ "$OSTYPE" == "solaris" ]]; then
-        echo "$INFO OS Type: Solaris"
+        printf "%b OS Type: %bSolaris%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
     else
         # Unknown.
-        echo "$INFO OS Type: Unknown - $OSTYPE"
+        printf "%b OS Type: %bUnknown - $OSTYPE%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_linux="no"
     fi
 
     if [ $is_linux = "no" ]; then 
-        echo ""
-        echo "$CROSS Unable to continue - OS type is unrecognised or incompatible."
-        echo ""
-        echo "$CROSS DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)."
-        echo "$INDENT Ubuntu Server 64-bit is recommended."
-        echo ""
-        echo "$INDENT If you believe your OS should be supported please contact @saltedlolly"
-        echo "$INDENT on Twitter including your reported OS type: $OSTYPE"
+        printf "\\n"
+        printf "  %b %bOS is unrecognised or incompatible%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf " %b Running a DigiNode requires a 64-bit OS (aarch64 or X86_64).\\n" "${INFO}"
+        printf "%b Ubuntu Server 64-bit is recommended.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b If you believe your OS should be supported please contact @saltedlolly\\n" "${INDENT}"
+        printf "%b on Twitter including your reported OS type: $OSTYPE\\n" "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 
@@ -193,45 +209,53 @@ sys_check() {
 
     # Try and identify 64bit OS's
     if [ "$sysarch" = "aarch64" ]; then
+        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         ARCH="aarch64"
         is_64bit="yes"
     elif [ "$sysarch" = "arm" ]; then
+        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_64bit="no32"
     elif [ "$sysarch" = "x86_64" ]; then
+        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         ARCH="x86_64"
         is_64bit="yes"
     elif [ "$sysarch" = "x86_32" ]; then
+        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_64bit="no32"
     else
+        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         is_64bit="no"
     fi
 
-    printf "$INFO System Architecture: $sysarch"
     if [ "$is_64bit" = "yes" ]; then
-        printf "  [ 64-bit OS ]\n" 
+        printf "  [ %b64-bit OS%b ]\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+    else
+        printf "\n" 
     fi
 
 
     if [[ "$is_64bit" == "no32" ]]; then
-        echo ""
-        echo "$CROSS Unable to Continue - 32-bit OS detected."
-        echo "$CROSS DigiNode Installer requires a 64bit OS (aarch64 or X86_64)"
-        echo "$INDENT Ubuntu Server 64bit is recommended."
-        echo ""
-        echo "$INDENT If you believe your hardware should be supported please contact @saltedlolly"
-        echo "$INDENT on Twitter letting me know the reported system architecture above."
-        echo ""
+        printf "\\n"
+        printf "%b ERROR: %b32-bit OS detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
+        printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
+        printf "\\n"
+        printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
+        printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
+        printf "\\n"
         exit 1
     elif [[ "$is_64bit" == "no" ]]; then
-        echo ""
-        echo "$CROSS Unable to Continue - system architecture is unrecognised."
-        echo ""
-        echo "$CROSS DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)."
-        echo "$INDENT Ubuntu Server 64bit is recommended."
-        echo ""
-        echo "$INDENT If you believe your hardware should be supported please contact @saltedlolly"
-        echo "$INDENT on Twitter letting me know the reported system architecture above."
-        echo ""
+        printf "\\n"
+        printf "%b ERROR: %bSystem Architecture unrecognised%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
+        printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
+        printf "\\n"
+        printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
+        printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 }
@@ -239,11 +263,16 @@ sys_check() {
 
 # This will display a warning that the Pi must be booting from an SSD card not a microSD
 rpi_ssd_warning() {
+     # Only display this message if running this install script directly (not when running digimon.sh)
      if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-        echo ""
-        echo "    IMPORTANT: For this installer to work correctly, you must be booting"
-        echo "    from an SSD or HDD connected via USB. Do not continue if you are booting"
-        echo "    from a microSD card."
+        printf "\\n"
+        printf "%b WARNING: %bMake sure you are booting from USB (NOT microSD)!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b For this installer to work correctly, you must be booting your" "${INFO}"
+        printf "%b Raspberry Pi from an external SSD over USB. Booting from a microSD" "${INDENT}"
+        printf "%b card is not supported. For best performance, make sure your drive" "${INDENT}"
+        printf "%b is connected to a blue USB3 ports on your Pi." "${INDENT}"
+        printf "\\n"
         STARTPAUSE="yes"
     main "$@"
 fi
@@ -259,11 +288,12 @@ if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
     # Store device model in variable
     MODEL=$(tr -d '\0' < /proc/device-tree/model)
 
-    # Store device revision in variable
+    # Store device revision in local variable (used to work out which Pi model it is)
+    local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
     # Store total system RAM in whole Gb. Append Gb to number.. (Used for future Pi models we don't know about yet)
-    SYSMEM="$(free --giga | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)Gb"
+    MODELMEM="$(free --giga | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)Gb"
 
     ######### RPI MODEL DETECTION ###################################
 
@@ -291,152 +321,168 @@ if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
     if [ "$pitype" != "" ];then
         if [ $revision = 'd03114' ]; then #Pi 4 8Gb
             pitype="pi4"
-            SYSMEM="8Gb"
+            MODELMEM="8Gb"
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
             pitype="pi4"
-            SYSMEM="4Gb"
+            MODELMEM="4Gb"
         elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
             pitype="pi4"
-            SYSMEM="4Gb"
+            MODELMEM="4Gb"
         elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
-            SYSMEM="4Gb"
+            MODELMEM="4Gb"
         elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
             pitype="pi4_lowmem"
-            SYSMEM="2Gb"
+            MODELMEM="2Gb"
         elif [ $revision = 'b03111' ]; then #Pi 4 2Gb
             pitype="pi4_lowmem"
-            SYSMEM="2Gb"
+            MODELMEM="2Gb"
         elif [ $revision = 'a03111' ]; then #Pi 4 1Gb
             pitype="pi4_lowmem"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = 'a020d3' ]; then #Pi 3 Model B+ 1Gb
             pitype="pi3"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = 'a22082' ]; then #Pi 3 Model B 1Gb
             pitype="pi3"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = 'a02082' ]; then #Pi 3 Model B 1Gb
             pitype="pi3"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = '9000C1' ]; then #Pi Zero W 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '900093' ]; then #Pi Zero v1.3 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '900092' ]; then #Pi Zero v1.2 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = 'a22042' ]; then #Pi 2 Model B v1.2 1Gb
             pitype="piold"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = 'a21041' ]; then #Pi 2 Model B v1.1 1Gb
             pitype="piold"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = 'a01041' ]; then #Pi 2 Model B v1.1 1Gb
             pitype="piold"
-            SYSMEM="1Gb"
+            MODELMEM="1Gb"
         elif [ $revision = '0015' ]; then #Pi Model A+ 512Mb / 256Mb
             pitype="piold"
-            SYSMEM="512Mb / 256Mb"
+            # the same revision number was used for both the 512Mb and 256Mb models so lets check which is which
+            local pi0015ram
+            pi0015ram=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+            if [ "$pi0015ram" -gt "300000" ]; then
+                MODELMEM="512Mb"
+            else
+                MODELMEM="256Mb"
+            fi
+            MODELMEM="512Mb / 256Mb"
         elif [ $revision = '0012' ]; then #Pi Model A+ 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0014' ]; then #Pi Computer Module 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '0011' ]; then #Pi Compute Module 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '900032' ]; then #Pi Module B+ 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '0013' ]; then #Pi Module B+ 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '0010' ]; then #Pi Module B+ 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '000d' ]; then #Pi Module B Rev 2 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '000e' ]; then #Pi Module B Rev 2 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '000f' ]; then #Pi Module B Rev 2 512Mb
             pitype="piold"
-            SYSMEM="512Mb"
+            MODELMEM="512Mb"
         elif [ $revision = '0007' ]; then #Pi Module A 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0008' ]; then #Pi Module A 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0009' ]; then #Pi Module A 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0004' ]; then #Pi Module B Rev 2 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0005' ]; then #Pi Module B Rev 2 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0006' ]; then #Pi Module B Rev 2 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0003' ]; then #Pi Module B Rev 1 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
             pitype="piold"
-            SYSMEM="256Mb"
+            MODELMEM="256Mb"
         fi
     fi
 
     # Generate Pi hardware read out
     if [ "$pitype" = "pi5" ]; then
-        echo "$TICK Raspberry Pi 5 Detected"
-        echo "    Model: $MODEL $SYSMEM"
+        printf "%b Raspberry Pi 5 Detected\\n" "${TICK}"
+        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         rpi_ssd_warning
     elif [ "$pitype" = "pi4" ]; then
-        echo "$TICK Raspberry Pi 4 Detected"
-        echo "    Model: $MODEL $SYSMEM"
+        printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
+        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         rpi_ssd_warning
     elif [ "$pitype" = "pi4_lowmem" ]; then
-        echo "$TICK Raspberry Pi 4 Detected  [ LOW MEMORY WARNING!! ]"
-        echo "    Model: $MODEL $SYSMEM"
-        echo "    You should be able to run a DigiNode on this Pi but performance may suffer"
-        echo "    due to this model only having $SYSMEM RAM. You will need a swap file."
-        echo "    A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred."
+        printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        # hide this part if running digimon
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "\\n"
+            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer" "${INFO}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file." "${INDENT}"
+            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+        fi
         rpi_ssd_warning
     elif [ "$pitype" = "pi3" ]; then
-        echo "$TICK Raspberry Pi 3 Detected  [ LOW MEMORY WARNING!! ]"
-        echo "    Model: $MODEL $SYSMEM"
-        echo "    You may be able to run a DigiNode on this Pi but performance may suffer"
-        echo "    due to this model only having $SYSMEM RAM. You will need a swap file."
-        echo "    A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred."
+        printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        # hide this part if running digimon
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "\\n"
+            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer" "${INFO}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file." "${INDENT}"
+            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+        fi
         rpi_ssd_warning
     elif [ "$pitype" = "piold" ]; then
-        echo "$CROSS Incompatible Raspberry Pi Detected"
-        echo "    Model: $model $sysmem"
-        echo ""
-        echo "    This Raspberry Pi is too old to run a DigiNode."
-        echo "    A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred."
-        echo ""
+        printf "%b ERROR: %bIncompatible Raspberry Detected%b ]\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b This Raspberry Pi is too old to run a DigiNode." "${INFO}"   
+        printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+        printf "\\n"
         exit 1
     elif [ "$pitype" = "piunknown" ]; then
-        echo "$CROSS Unknown Raspberry Pi Detected"
-        echo "    Model: Unknown"  
-        echo ""
-        echo "    Your Raspberry Pi model cannot be recognised by"
-        echo "    this script. Please contact @saltedlolly on Twitter"
-        echo "    including the following information so it can be added:"
-        echo ""
-        echo "    Device:   $MODEL"
-        echo "    Revision: $revision"
-        echo "    Memory:   $SYSMEM"
-        echo ""
+        printf "\\n"
+        printf "%b ERROR: %bUnknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b Your Raspberry Pi model cannot be recognised by" "${INFO}"
+        printf "%b this script. Please contact @saltedlolly on Twitter" "${INDENT}"
+        printf "%b including the following information so it can be added:" "${INDENT}"
+        printf "\\n"
+        printf "%b Device: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Memory: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
         exit 1
     fi
 fi
@@ -512,7 +558,7 @@ os_check() {
         # This function gets a list of supported OS versions from a TXT record at diginode-versions.digibyte.help
         # and determines whether or not the script is running on one of those systems
         local remote_os_domain valid_os valid_version valid_response detected_os detected_version display_warning cmdResult digReturnCode response
-        remote_os_domain=${OS_CHECK_DOMAIN_NAME:-"diginode-versions.digibyte.help"}
+        remote_os_domain=${OS_CHECK_DOMAIN_NAME:-"$DGN_VERSIONS_URL"}
 
         detected_os=$(grep "\bID\b" /etc/os-release | cut -d '=' -f2 | tr -d '"')
         detected_version=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
@@ -569,7 +615,7 @@ os_check() {
                 printf "      %bUnable to determine if the detected OS (%s %s) is supported%b\\n" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
                 printf "      Possible causes for this include:\\n"
                 printf "        - Firewall blocking certain DNS lookups from DigiNode device\\n"
-                printf "        - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from diginode-versions.digibyte.help containing supported operating systems)\\n"
+                printf "        - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from $$DGN_VERSIONS_URL containing supported operating systems)\\n"
                 printf "        - Other internet connectivity issues\\n"
             else
                 printf "  %b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
@@ -628,7 +674,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
-    INSTALLER_DEPS=(git "${iproute_pkg}" whiptail ca-certificates jq)
+    INSTALLER_DEPS=(git "${iproute_pkg}" whiptail ca-certificates jq qrencode)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
 
@@ -660,8 +706,8 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    SYS_CHECK_DEPS=(grep bind-utils arch)
-    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
+    SYS_CHECK_DEPS=(grep bind-utils)
+    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq qrencode)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -1308,56 +1354,64 @@ install_diginode_scripts() {
 }
 
 create_diginode_settings() {
-# Get saved variables from diginode.settings. Create settings file if it does not exist.
-if test -f $HOME/.digibyte/diginode.settings; then
+# Get saved variables from diginode.settings file. Create it if it does not exist.
+if test -f $DGN_SETTINGS_FILE; then
   # import saved variables from settings file
-  echo "[i] Importing diginode.settings file..."
-  source $HOME/.digibyte/diginode.settings
+  echo "$INFO Importing diginode.settings file..."
+  source $DGN_SETTINGS_FILE
 else
+  # create settings folder if it does not exist
+  if [ -d "$DGB_SETTINGS_FOLDER" ]; then
+    echo "$INFO Creating .diginode settings folder"
+    mkdir $DGB_SETTINGS_FOLDER
+  fi
   # create diginode.settings file
-  echo "[i] Creating diginode.settings file..."
-  touch $HOME/.digibyte/diginode.settings
-  echo "#!/bin/bash" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# This settings file is used to store variables for DigiNode Status Monitor" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Setup timer variables" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime15sec=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1min=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime15min=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1day=" >> $HOME/.digibyte/diginode.settings
-  echo "savedtime1week=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# store diginode installation details" >> $HOME/.digibyte/diginode.settings
-  echo "official_install=" >> $HOME/.digibyte/diginode.settings
-  echo "install_date=" >> $HOME/.digibyte/diginode.settings
-  echo "update_date=" >> $HOME/.digibyte/diginode.settings
-  echo "statusmonitor_last_run=" >> $HOME/.digibyte/diginode.settings
-  echo "dams_first_run=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings  
-  echo "# Store IP addresses to ensure they are only rechecked once every 15 minute." >> $HOME/.digibyte/diginode.settings
-  echo "externalip=" >> $HOME/.digibyte/diginode.settings
-  echo "internalip=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Store number of available system updates so the script only checks once every 24 hours." >> $HOME/.digibyte/diginode.settings
-  echo "system_updates=" >> $HOME/.digibyte/diginode.settings
-  echo "security_updates=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings 
-  echo "# Store local version numbers so the local node is not hammered with requests every second." >> $HOME/.digibyte/diginode.settings
-  echo "dgb_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "dga_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_ver_local=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings 
-  echo "# Store software release version numbers in settings file so Github only needs to be queried once a day." >> $HOME/.digibyte/diginode.settings
-  echo "dgb_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "dga_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "dnt_ver_github=" >> $HOME/.digibyte/diginode.settings
-  echo "" >> $HOME/.digibyte/diginode.settings
-  echo "# Store when an open port test last ran." >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "ipfs_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "dgb_port_test_status=\"\"" >> $HOME/.digibyte/diginode.settings
-  echo "dgb_port_test_date=\"\"" >> $HOME/.digibyte/diginode.settings
+  echo "$INFO Creating diginode.settings file"
+  touch $DGN_SETTINGS_FILE
+  cat <<EOF > $DGN_SETTINGS_FILE
+#!/bin/bash
+
+# This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
+
+# Setup timer variables
+savedtime15sec=
+savedtime1min=
+savedtime15min=
+savedtime1day=
+savedtime1week=
+
+# store diginode installation details
+official_install=
+install_date=
+update_date=
+statusmonitor_last_run=
+dams_first_run=
+
+Store IP addresses to ensure they are only rechecked once every 15 minute.
+externalip=
+internalip=
+
+# Store number of available system updates so the script only checks once every 24 hours.
+system_updates=
+security_updates=
+
+Store local version numbers so the local node is not hammered with requests every second.
+dgb_ver_local=
+dga_ver_local=
+ipfs_ver_local=
+
+# Store software release version numbers in settings file so Github only needs to be queried once a day.
+dgb_ver_github=
+dga_ver_github=
+dnt_ver_github=
+
+# Store when an open port test last ran.
+ipfs_port_test_status=
+ipfs_port_test_date=
+dgb_port_test_status=
+dgb_port_test_date=
+EOF
+
 fi
 }
 
@@ -1369,9 +1423,9 @@ create_digibyte_conf() {
     set_maxconnections=300
 
     # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
-    # Initial sync times are significantly faster with a larger db cache.
+    # Initial sync times are significantly faster with a larger dbcache.
     local set_dbcache
-    if [ $TOTALRAM_KB -ge "7340032" ]; then
+    if [ $RAMTOTAL_KB -ge "7340032" ]; then
         set_dbcache=2048
     else
         set_dbcache=450
@@ -1624,6 +1678,28 @@ set_official() {
     echo "$INFO Verifying Official DigiNode Installation
 }
 
+donation_qrcode() {       
+    echo "    If you found this tool useful,"
+    echo " donations in DGB are much appreciated:"             
+    echo "     ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
+    echo "     █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
+    echo "     █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
+    echo "     █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
+    echo "     ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
+    echo "     █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
+    echo "      ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
+    echo "      █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
+    echo "     ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
+    echo "     █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
+    echo "     █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
+    echo "     ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
+    echo "     █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
+    echo "     █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
+    echo "     █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "  
+    echo ""
+    echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+}
+
 main() {
 
     # clear the screen and display the title box
@@ -1649,12 +1725,12 @@ main() {
         make_temporary_log
     else
         # Otherwise, they do not have enough privileges, so let the user know
-        printf "  %b %s\\n" "${INFO}" "${str}"
-        printf "  %b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "      The installer requires elevated privileges to setup your DigiNode.\\n"
-        printf "      Please check the review the source code for any concerns regarding this requirement\\n"
-        printf "      Make sure to download this script from a trusted source\\n\\n"
-        printf "  %b Sudo utility check" "${INFO}"
+        printf "%b %s\\n" "${INFO}" "${str}"
+        printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b The installer requires elevated privileges to setup your DigiNode.\\n" "${INDENT}"
+        printf "%b Please check the review the source code for any concerns regarding this requirement\\n" "${INDENT}"
+        printf "%b Make sure to download this script from a trusted source\\n\\n" "${INDENT}"
+        printf "%b Sudo utility check" "${INFO}"
 
         # If the sudo command exists, try rerunning as admin
         if is_command sudo ; then
@@ -1673,8 +1749,8 @@ main() {
         else
             # Otherwise, tell the user they need to run the script as root, and bail
             printf "%b  %b Sudo utility check\\n" "${OVER}" "${CROSS}"
-            printf "  %b Sudo is needed for the Web Interface to run pihole commands\\n\\n" "${INFO}"
-            printf "  %b %bPlease re-run this installer as root${COL_NC}\\n" "${INFO}" "${COL_LIGHT_RED}"
+            printf "%b Sudo is needed for the Web Interface to run pihole commands\\n\\n" "${INFO}"
+            printf "%b %bPlease re-run this installer as root${COL_NC}\\n" "${INFO}" "${COL_LIGHT_RED}"
             exit 1
         fi
     fi
@@ -1686,7 +1762,7 @@ main() {
     rpi_check
 
     #####################################
-    ech "Exit script early during testing"
+    echo "Exit script early during testing"
     exit # EXIT HERE DURING TEST
     #####################################
 
@@ -1697,14 +1773,14 @@ main() {
     notify_package_updates_available
 
     # Install packages necessary to perform os_check
-    printf "  %b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"
+    printf "%b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"
     install_dependent_packages "${SYS_CHECK_DEPS[@]}"
 
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
     # Install packages used by this installation script
-    printf "  %b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
+    printf "%b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
 
     #In case of RPM based distro, select the proper PHP version

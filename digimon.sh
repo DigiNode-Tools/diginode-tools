@@ -3,21 +3,23 @@
 # Name:    DigiNode Status Monitor
 # Purpose: Monitor the status of your DigiByte Node and DigiAsset Metadata server.
 #          Includes stats for the Raspberry Pi when used.
+#
 # Author:  Olly Stedall @saltedlolly <digibyte.help> 
 # 
 # Usage:   Use the official DigiNode Installer to install this script on your system. 
 #
 #          Alternatively clone the repo to your home folder:
 #
-#          cd~
+#          cd ~
 #          git clone https://github.com/saltedlolly/diginode/
+#          chmod +x ~/diginode/digimon.sh
 #
 #          To run:
 #
 #          ~/diginode/digimon.sh
 #
 #
-# Updated:  October 6 2021 12:29am GMT
+# Updated: October 7 2021 12:32am GMT
 #
 # -------------------------------------------------------
 
@@ -31,53 +33,27 @@
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
-# File and folder locations
-DGN_SCRIPT_FOLDER=$HOME/diginode
-DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER/diginode-installer.sh
+# Set this to YES to get more verbose feedback. Very useful for debugging.
+VERBOSE_MODE="YES"
 
-# BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
-RUN_INSTALLER="NO"
+# This is the command people will enter to run the install script
+DGN_INSTALLER_OFFICIAL_CMD="curl http://diginode-installer.digibyte.help | bash"
 
-# PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
-
-# If the installer file exists,
-if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
-    # source it
-    echo "[i] Importing functions from diginode-installer.sh..."
-    source "$DGN_INSTALL_SCRIPT"
-# Otherwise,
-else
-    clear -x
-    echo ""
-    echo "ERROR: diginode-installer.sh file not found."
-    echo ""
-    echo "The diginode-installer.sh file is required to continue."
-    echo "It contains functions we need to run the DigiNode Monitor."
-    echo ""
-    echo "If you have not already setup your DigiNode, please use"
-    echo "the official DigiNode installer:"
-    echo "curl -sSL htts://diginode-installer.digibyte.help | bash"
-    echo ""
-    echo "Alternatively, to use DigiNode Monitor with your existing"
-    echo "node clone the official repo to your home folder:"
-    echo ""
-    echo " cd~"
-    echo " git clone https://github.com/saltedlolly/diginode/"
-    echo ""
-    echo "To run:  ~/diginode/digimon.sh"
-    echo ""
-    exit -1
-fi
-
+#################################################
+#### UPDATE THESE VALUES FROM THE INSTALLER #####
+#################################################
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
-TICK="[${COL_LIGHT_GREEN}✓${COL_NC}]"
-CROSS="[${COL_LIGHT_RED}✗${COL_NC}]"
-INFO="[i]"
-INDENT="   "
+COL_LIGHT_CYAN='\e[1;96m'
+COL_BOLD_WHITE='\e[1;37m'
+TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
+CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
+WARN="  [${COL_LIGHT_CYAN}!${COL_NC}]"
+INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
 OVER="\\r\\033[K"
@@ -114,6 +90,62 @@ txtbld=$(tput bold) # Set bold mode
 ######### FUNCTIONS ##################################
 ######################################################
 
+# Find where this script is running from, so iwe can make sure the installer script is with it
+get_script_location() {
+  SOURCE="${BASH_SOURCE[0]}"
+  while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+  done
+  DGN_SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER/diginode-installer.sh
+  if [ "$VERBOSE_MODE" = "YES" ]; then
+    printf "%b Monitor Script Location: $DGN_SCRIPT_FOLDER\\n" "${INFO}"
+    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT\\n" "${INFO}"
+  fi
+}
+
+# PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
+import_installer_functions() {
+    # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
+    RUN_INSTALLER="NO"
+    # If the installer file exists,
+    if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
+        # source it
+        if [ $VERBOSE_MODE = "YES" ]; then
+          printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
+          printf "\\n"
+        fi
+        source "$DGN_INSTALL_SCRIPT"
+    # Otherwise,
+    else
+        printf "\\n"
+        printf "%b %bERROR: diginode-installer.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b The diginode-installer.sh file is required to continue.\\n" "${INDENT}"
+        printf "%b It contains functions we need to run the DigiNode Status Monitor.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b If you have not already setup your DigiNode, please use\\n" "${INDENT}"
+        printf "%b the official DigiNode installer:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   $DGN_INSTALLER_OFFICIAL_CMD\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Alternatively, to use 'DigiNode Status Monitor' with your existing\\n" "${INDENT}"
+        printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   cd ~ \\n" "${INDENT}"
+        printf "%b   git clone https://github.com/saltedlolly/diginode/ \\n" "${INDENT}"
+        printf "%b   chmod +x ~/diginode/digimon.sh \\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To run it:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ~/diginode/digimon.sh\\n" "${INDENT}"
+        printf "\\n"
+        exit -1
+    fi
+}
+
 # A simple function that clears the sreen and displays the status monitor title in a box
 digimon_title_box() {
     clear -x
@@ -126,73 +158,66 @@ digimon_title_box() {
     echo " ║                                                        ║"
     echo " ╚════════════════════════════════════════════════════════╝" 
     echo ""
-    echo "Performing start up checks:"
-    echo ""
 }
 
 # Show a disclaimer text during testing phase
 digimon_disclaimer() {
-    echo "WARNING: This script is still under active development and should"
-    echo "be considered early alpha in its current state. It is currently"
-    echo "being optimised for the Raspberry Pi 4 4Gb or 8Gb. Support for"
-    echo "other hardware will hopefully follow."
-    echo ""
-    echo "Please only use with a test setup until further notice."
-    echo "Please do not continue if have any concerns."
-    echo ""
+    printf "%b %bWARNING: This script is still under active development%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Expect bugs and for it to break things - at times it may\\n" "${INDENT}"
+    printf "%b not even run. Please use for testing only until further notice.\\n" "${INDENT}"
+    printf "\\n"
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
 }
 
 
-# Check for swap file if using a device with low memory
-digimon_disclaimer() {
+# Check for swap file if using a device with low memory, and make sure it is large enough
+swap_warning() {
 
-swaptotal=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
+local swap_too_small
+local swap_rec_size
+local swap_current_size
 
-# Get swap total in Mb
-
-swaptotaln=$(free --mega | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
-
-# Workout reccomended Swap file size
-
-if [ $sysmem = "1Gb" ]; then
-  swaprec=xxx
-elif [ $sysmem = "2Gb" ]; then
-  swaprec=xxx
-elif [ $sysmem = "4Gb" ]; then
-  swaprec=xxx
+if [ "$SWAPTOTAL_HR" = "0B" ]; then
+  swap_current_size="${COL_LIGHT_RED}none${COL_NC}"
+else
+  swap_current_size="${COL_LIGHT_GREEN}$SWAPTOTAL_HR${COL_NC}"
 fi
 
-#if [ $sysmem = "1Gb" ]; then  
+printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
 
-#  if [ $swaptotaln = '0' ]; then
-#    echo "[${txtgrn}✓${txtrst}] RAM Memory - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: not found"
-#    echo "    Since your system has only $sysmem RAM you need"
-#    echo "    to create a swap file in order to run DigiByte Core."
-#    echo "    Your swap file of at least."
-#    echo ""
-#    exit
-#  elif [ $swaptotaln -lt '5000' ]; then
-#    echo "[${txtgrn}✓${txtrst}] Low RAM - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: $swaptotal"
-#    echo "    Your swap file is too small for DigiByte Core."
-#    echo "    is too small. Please increase it to at least Gb."
-#    echo ""
-#    exit
-#   elif [ $swaptotaln -ge '5000' ]; then
-#    echo "[${txtgrn}✓${txtrst}] Low RAM  - Check for swap file"
-#    echo "    RAM: $sysmem   Swap: $swaptotal"
-#   else 
-#  fi 
+if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="7Gb"
+elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="6Gb"
+elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="5Gb"
+elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="4Gb"
+elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="3Gb"
+elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "1000000" ];  then
+    swap_too_small="YES"
+    swap_rec_size="2Gb"
+elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    printf "%b %bWARNING: No Swap file detected.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device\\n" "${INDENT}"
+    printf "%b only has $RAMTOTAL_HR RAM, you need to create a swap file\\n" "${INDENT}"
+    printf "%b of at least $swap_rec_size or more.\\n" "${INDENT}"
+    printf "\\n"
+fi
 
-# elif [ $sysmem = '2Gb' ]; then 
-
-# elif [ $sysmem = '4Gb' ]; then 
-   
-# else
-
-# fi # end of $sysmem = ?
+if [ "$swaptoosmall" = "YES" ]; then
+    printf "%b %bWARNING: Your swap file is too small.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device\\n" "${INDENT}"
+    printf "%b only has ${RAMTOTAL_HR}b RAM, you need to increase the size\\n" "${INDENT}"
+    printf "%b of your swap file to at least $swap_rec_size or more.\\n" "${INDENT}"
+    printf "\\n"
+fi
 }
 
 is_dgbnode_installed() {
@@ -304,27 +329,27 @@ is_dgbnode_installed() {
 }
 
 # Get RPC CREDENTIALS from digibyte.conf
-check_rpc_credentials() {
+get_rpc_credentials() {
     if [ -f "$DGB_CONF_FILE" ]; then
       rpcuser=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
       rpcpassword=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
       rpcport=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
       if [ "$rpcuser" != "" ] && [ "$rpcpassword" != "" ] && [ "$rpcport" != "" ]; then
-        echo "$TICK RPC settings found in digibyte.conf"
-        echo "    Found: $TICK Username     $TICK Password     [$TICK] Port"
+        echo "${TICK} RPC settings found in digibyte.conf"
+        echo "${INDENT}   Found: ${TICK} Username     ${TICK} Password     ${TICK} Port"
       else
-        echo "$CROSS RPC settings missing in digibyte.conf"
-        printf "    Found: ["
+        echo "${CROSS} RPC settings missing in digibyte.conf"
+        printf "${INDENT}   Found: ["
         if [ $rpcuser != "" ]; then
-          printf "$TICK"
+          printf "${TICK}"
         else
-          printf "$CROSS"
+          printf "${CROSS}"
         fi
         printf "] Username     ["
         if [ $rpcpassword != "" ]; then
-          printf "$TICK"
+          printf "${TICK}"
         else
-          printf "$CROSS"
+          printf "${CROSS}"
         fi
         printf "] Password     ["
         if [ $rpcport != "" ]; then
@@ -334,14 +359,14 @@ check_rpc_credentials() {
         fi
         printf "] Port"
         echo ""
-        echo "     You need to add the missing RPC credentials to your digibyte.conf file:"
-        echo "     nano $DGB_CONF_FILE"
+        echo "${INDENT} You need to add the missing RPC credentials to your digibyte.conf file:"
+        echo "${INDENT} nano $DGB_CONF_FILE"
         echo ""
-        echo "     Add this:"
+        echo "${INDENT} Add the following:"
         echo ""
-        echo "     rpcuser=desiredusername      # change desiredusername to something else"
-        echo "     rpcpassword=desiredpassword  # change desiredpassword to something else"
-        echo "     rpcport=14022                # best to leave this as is"
+        echo "${INDENT} rpcuser=desiredusername      # change desiredusername to something else"
+        echo "${INDENT} rpcpassword=desiredpassword  # change desiredpassword to something else"
+        echo "${INDENT} rpcport=14022                # best to leave this as is"
       fi
     fi
 }
@@ -599,28 +624,25 @@ install_required_pkgs() {
 
 
 ## PERFROM STARTUP CHECKS
-
 startup() {
-  digimon_title_box      # Clear screen and display title box
-  digimon_disclaimer     # Display disclaimer warning during development. Pause for confirmation.
-  digimon_title_box      # Clear screen and display title box again
-  sys_check              # Perform basic OS check - is this Linux? Is it 64bit?
-  rpi_check              # Look for Raspberry Pi hardware. If found, only continue if it compatible.
-# swap_warning           # if this system has 4Gb or less RAM, check there is a swap drive
-  check_official         # check if this is an official install
-  is_dgbnode_installed   # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
-  get_rpc_credentials    # Get the RPC username and password from config file. Warn if not present.
-  is_wallet_enabled      # Check that the DigiByte Core wallet is enabled
-  is_dganode_installed   # Run checks to see if DigiAsset Node is present. Warn if it isn't.
-  load_diginode_settings # Load the diginode.settings file. Create it if it does not exist.
-  is_bonjour_installed   # Check if avahi-daemon is installed
-  is_jq_installed        # Check if jq is installed
-  install_required_pkgs  # Install jq
-
-  read -n 1 -s -r -p "   < TEST PAUSE HERE. >"
-
-exit
-
+  
+  digimon_title_box          # Clear screen and display title box
+  digimon_disclaimer         # Display disclaimer warning during development. Pause for confirmation.
+  digimon_title_box          # Clear screen and display title box (again)
+  get_script_location        # Find which folder this script is running in
+  import_installer_functions # Import diginode-instaler.sh because it contains functions we need
+  sys_check                  # Perform basic OS check - is this Linux? Is it 64bit?
+  rpi_check                  # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+  swap_warning               # if this system has 4Gb or less RAM, check there is a swap drive
+  check_official             # check if this is an official install
+  is_dgbnode_installed       # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
+  get_rpc_credentials        # Get the RPC username and password from config file. Warn if not present.
+  is_wallet_enabled          # Check that the DigiByte Core wallet is enabled
+  is_dganode_installed       # Run checks to see if DigiAsset Node is present. Warn if it isn't.
+  load_diginode_settings     # Load the diginode.settings file. Create it if it does not exist.
+  is_bonjour_installed       # Check if avahi-daemon is installed
+  is_jq_installed            # Check if jq is installed
+  install_required_pkgs      # Install jq
 }
 
 
@@ -631,6 +653,8 @@ exit
 ######################################################
 
 startup
+
+exit
 
 ##############################
 ## OLDER NON FUNCTION CODE ###
