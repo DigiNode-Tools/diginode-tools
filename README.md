@@ -1,4 +1,6 @@
-# DigiNode - Install and monitor your own DigiByte & DigiAssets Node
+# DigiNode Tools
+
+## Install and monitor your own DigiByte & DigiAssets Node
 
 These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode on your Linux hardware of choice. The recommended setup for this is a Raspberry Pi 4 8Gb running Ubuntu Server 64-bit.
 
@@ -7,19 +9,19 @@ WARNING: This script is still under development and should only be used for test
 
 ## DigiNode Installer
 
-Install script to set up your DigiNode - installs and configure DigiByte Core and the DigiAsset Metadata Server. It will also upgrade an existing install with any updates.
+Install script to set up your DigiNode - installs and configures a DigiByte Node and DigiAsset Node. It will also upgrade an existing install with any updates.
 
-- Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node
+- Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node.
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
-- Automatically checks for 64-bit linux OS at startup - it won't run on hardware it can't support.
+- Automatically checks hardware and OS at launch - it lets you know if your system is compatible.
 - Detects compatible Raspberry Pi hardware (if present).
-- Creates a swap file on low memory devices, and checks any existing swap file is big enough.
-- Installs or upgrades DigiByte Core and DigiAssets Node with the latest releases from GitHub
-- Creates or updates an digibyte.conf with required settings.
-- Creates digibyted.service file to keep the DigiByte node running 24/7
+- Creates a swap file on low memory devices, and checks if any existing swap file is large enough.
+- Installs or upgrades DigiByte and DigiAssets software with the latest releases from GitHub.
+- Creates or updates a digibyte.conf settings file with optimal settings.
+- Creates digibyted.service file to keep the DigiByte Node running 24/7.
 - Creates or updates an DigiAsset config file with RPC settings. 
-- Creates 'digibyte' user and sets system hostname to 'diginode'
-- Enables zeroconf networking so you can access your node at http://diginode.local - no need to remember the IP address
+- Creates 'digibyte' user and sets system hostname to 'diginode'.
+- Enables zeroconf networking so you can access your node at http://diginode.local - no need to remember the IP address.
 
 
 ## DigiNode Status Monitor
@@ -34,7 +36,7 @@ Let's you monitor your DigiNode from the terminal.
     + Web UI address
     + Node uptime
     + Disk, RAM and swap usage
-- Periodically checks for software updates (not more than once every 24 hours) and helps you install them
+- Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
 
 
 ## Bonus Features
