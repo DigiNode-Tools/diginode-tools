@@ -1,16 +1,13 @@
-# DigiNode
-## Tools for installing and monitoring a DigiByte and DigiAssets Node
+# DigiNode - Install and monitor your own DigiByte & DigiAssets Node
 
-These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode on your Linux hardware of choice. The recommended device for this is a Raspberry Pi 4 8Gb.
+These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode on your Linux hardware of choice. The recommended setup for this is a Raspberry Pi 4 8Gb running Ubuntu Server 64-bit.
 
-WARNING: This script is still under development is should only be used for testing purposes until further notice.
+WARNING: This script is still under development and should only be used for testing purposes.
 
 
 ## DigiNode Installer
 
 Install script to set up your DigiNode - installs and configure DigiByte Core and the DigiAsset Metadata Server. It will also upgrade an existing install with any updates.
-
-### Main Features
 
 - Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
@@ -29,8 +26,6 @@ Install script to set up your DigiNode - installs and configure DigiByte Core an
 
 Let's you monitor your DigiNode from the terminal.
 
-### Main Features
-
 - Monitor your DigiNode on your local machine via the terminal, or remotely over SSH.
 - Displays live DigiByte and DigiAsset data including:
     + Connection Count
@@ -42,6 +37,6 @@ Let's you monitor your DigiNode from the terminal.
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them
 
 
-### Bonus Features
+## Bonus Features
 
 - Verbose Mode: This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. Set variable at top of either script.
