@@ -19,7 +19,7 @@
 #          ~/diginode/digimon.sh
 #
 #
-# Updated: October 7 2021 12:32am GMT
+# Updated: October 7 2021 5:53pm GMT
 #
 # -------------------------------------------------------
 
@@ -51,7 +51,7 @@ COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
-WARN="  [${COL_LIGHT_CYAN}!${COL_NC}]"
+WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
 INDENT="     "
 # shellcheck disable=SC2034
@@ -90,7 +90,7 @@ txtbld=$(tput bold) # Set bold mode
 ######### FUNCTIONS ##################################
 ######################################################
 
-# Find where this script is running from, so iwe can make sure the installer script is with it
+# Find where this script is running from, so we can make sure the diginode-installer.sh script is with it
 get_script_location() {
   SOURCE="${BASH_SOURCE[0]}"
   while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -101,8 +101,8 @@ get_script_location() {
   DGN_SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
   DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER/diginode-installer.sh
   if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Monitor Script Location: $DGN_SCRIPT_FOLDER\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT\\n" "${INFO}"
+    printf "%b Monitor Script Location: $DGN_SCRIPT_FOLDER     [ VERBOSE MODE ]\\n" "${INFO}"
+    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT     [ VERBOSE MODE ]\\n" "${INFO}"
   fi
 }
 
@@ -114,7 +114,7 @@ import_installer_functions() {
     if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
         # source it
         if [ $VERBOSE_MODE = "YES" ]; then
-          printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
+          printf "%b Importing functions from diginode-installer.sh     [ VERBOSE MODE ]\\n" "${TICK}"
           printf "\\n"
         fi
         source "$DGN_INSTALL_SCRIPT"
@@ -173,51 +173,85 @@ digimon_disclaimer() {
 # Check for swap file if using a device with low memory, and make sure it is large enough
 swap_warning() {
 
-local swap_too_small
-local swap_rec_size
-local swap_current_size
+    local swap_too_small
+    local swap_rec_size
+    local swap_current_size
 
-if [ "$SWAPTOTAL_HR" = "0B" ]; then
-  swap_current_size="${COL_LIGHT_RED}none${COL_NC}"
-else
-  swap_current_size="${COL_LIGHT_GREEN}$SWAPTOTAL_HR${COL_NC}"
-fi
+    if [ "$SWAPTOTAL_HR" = "0B" ]; then
+      swap_current_size="${COL_LIGHT_RED}none${COL_NC}"
+    else
+      swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
+    fi
 
-printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
 
-if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="7Gb"
-elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="6Gb"
-elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="5Gb"
-elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="4Gb"
-elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="3Gb"
-elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "1000000" ];  then
-    swap_too_small="YES"
-    swap_rec_size="2Gb"
-elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-    printf "%b %bWARNING: No Swap file detected.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device\\n" "${INDENT}"
-    printf "%b only has $RAMTOTAL_HR RAM, you need to create a swap file\\n" "${INDENT}"
-    printf "%b of at least $swap_rec_size or more.\\n" "${INDENT}"
-    printf "\\n"
-fi
+    # Check the existing swap file is large enough based on how much RAM the device has
+    #
+    # Note: these checks on the current swap size use the lower Kibibyte value
+    # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
+    # the size check will come out the same for either
+    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
+        swap_too_small="YES"
+        swap_rec_size="7Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
+        swap_too_small="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
+        swap_too_small="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
+        swap_too_small="YES"
+        swap_rec_size="4Gb"
+    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
+        swap_too_small="YES"
+        swap_rec_size="3Gb"
+    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
+        swap_too_small="YES"
+        swap_rec_size="2Gb"
 
-if [ "$swaptoosmall" = "YES" ]; then
-    printf "%b %bWARNING: Your swap file is too small.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device\\n" "${INDENT}"
-    printf "%b only has ${RAMTOTAL_HR}b RAM, you need to increase the size\\n" "${INDENT}"
-    printf "%b of your swap file to at least $swap_rec_size or more.\\n" "${INDENT}"
-    printf "\\n"
-fi
+    # If there is no swap file present, calculate recomended swap file size
+    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="7Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="4Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="7Gb"
+    fi
+
+    if [ "$swap_not_detected" = "YES" ]; then
+        printf "\\n"
+        printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
+        printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    if [ "$swap_too_small" = "YES" ]; then
+        printf "\\n"
+        printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
+        printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        printf "\\n"
+    fi
 }
 
 is_dgbnode_installed() {
@@ -331,44 +365,60 @@ is_dgbnode_installed() {
 # Get RPC CREDENTIALS from digibyte.conf
 get_rpc_credentials() {
     if [ -f "$DGB_CONF_FILE" ]; then
-      rpcuser=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
-      rpcpassword=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
-      rpcport=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
-      if [ "$rpcuser" != "" ] && [ "$rpcpassword" != "" ] && [ "$rpcport" != "" ]; then
-        echo "${TICK} RPC settings found in digibyte.conf"
-        echo "${INDENT}   Found: ${TICK} Username     ${TICK} Password     ${TICK} Port"
+      RPCUSER=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
+      RPCPASSWORD=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
+      RPCPORT=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
+      if [ "$RPCUSER" != "" ] && [ "$RPCPASSWORD" != "" ] && [ "$RPCPORT" != "" ]; then
+        RPC_CREDENTIALS_OK="YES"
+        printf "%b RPC credentials found in digibyte.conf\\n" "${TICK}"
+        printf "%b   Found: ${TICK} Username     ${TICK} Password     ${TICK} Port\\n" "${TICK}"
       else
-        echo "${CROSS} RPC settings missing in digibyte.conf"
-        printf "${INDENT}   Found: ["
-        if [ $rpcuser != "" ]; then
+        RPC_CREDENTIALS_OK="NO"
+        printf "%b %bERROR: RPC credentials missing in digibyte.confb\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "${INDENT}   Found: "
+        if [ $RPCUSER != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
-        printf "] Username     ["
-        if [ $rpcpassword != "" ]; then
+        printf " Username     "
+        if [ $RPCPASSWORD != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
-        printf "] Password     ["
-        if [ $rpcport != "" ]; then
-          printf "$$TICK"
+        printf " Password     "
+        if [ $RPCPORT != "" ]; then
+          printf "${TICK}"
         else
-          printf "$CROSS"
+          printf "${CROSS}"
         fi
-        printf "] Port"
-        echo ""
-        echo "${INDENT} You need to add the missing RPC credentials to your digibyte.conf file:"
-        echo "${INDENT} nano $DGB_CONF_FILE"
-        echo ""
-        echo "${INDENT} Add the following:"
-        echo ""
-        echo "${INDENT} rpcuser=desiredusername      # change desiredusername to something else"
-        echo "${INDENT} rpcpassword=desiredpassword  # change desiredpassword to something else"
-        echo "${INDENT} rpcport=14022                # best to leave this as is"
+        printf " Port"
+        printf "\\n"
+        printf "%b You need to add the missing RPC credentials to your digibyte.conf file.\\n" "${INFO}"
+        printf "%b Without them your DigiAsset Node is unable to communicate with your DigiByte Node.\\n" "${INDENT}"
+        printf "\\n"
+        printf "Edit the digibyte.conf file:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  nano $DGB_CONF_FILE\\n" "${INDENT}"
+        printf "\\n"
+        printf "Add the following:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  rpcuser=desiredusername      # change desiredusername to something else\\n" "${INDENT}"
+        printf "  rpcpassword=desiredpassword  # change desiredpassword to something else\\n" "${INDENT}"
+        printf "  rpcport=14022                # best to leave this as is" "${INDENT}"
+        printf "\\n"
+        exit 1
       fi
     fi
+}
+
+# function to update the _config/main.json file with updated RPC credentials (if they have been changed)
+update_dga_config() {
+  # Only update if there are RPC get_rpc_credentials
+  if [ "$RPC_CREDENTIALS_OK" = " YES" ]; then
+    # need to write this one
+  fi
 }
 
 
@@ -377,15 +427,16 @@ get_rpc_credentials() {
 check_official() {
 
     if [ -f "$HOME/digibyte/.officialdiginode" ] && [ -f "$HOME/digiasset_ipfs_metadata_server/.officialdiginode" ]; then
-        echo "$TICK Official DigiNode detected - the offical DigiNode installer was used."
+        printf "%b Official DigiNode detected\\n" "${TICK}"
         officialdgbinstall="yes"
     else
-        echo ""
-        echo "$CROSS Offical DigiNode NOT detected - the official DigiNode installer was not used."
-        echo "    This script will attempt to detect your setup but may require you to make"
-        echo "    manual changes to your file locations to make it work. It is possible things may break."
-        echo "    For best results use the official DigiNode installer."
-        echo ""
+        printf "\\n"
+        printf "%b %bWARNING: Official DigiNode not detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b It appears that this DigiNode was not setup using the DigiNode installer.\\n" "${INDENT}"
+        printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
+        printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
+        printf "%b For best results use the official DigiNode installer.\\n" "${INDENT}"
+        printf "\\n"
     fi
 }
 

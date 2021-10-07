@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 7 2021 12:32am GMT
+# Updated: October 7 2021 5:53pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -30,12 +30,18 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # Local variables will be in lowercase and will exist only within functions
 # It's still a work in progress, so you may see some variance in this guideline until it is complete
 
+# Set this to YES to get more verbose feedback. Very useful for debugging.
+# Don't set this if sourcing from digimon.sh - it has its own VERBOSE_MODE setting
+if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    VERBOSE_MODE="YES"
+fi
+
 DGB_INSTALL_FOLDER=$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
 DGB_SETTINGS_FOLDER=$HOME/.digibyte/
 DGB_CONF_FILE=$DGB_SETTINGS_FOLDER/digibyte.conf
 
-DGA_INSTALL_FOLDER=$HOME/digiasset_ipfs_metadata_server
-DGA_SETTINGS_FILE=$DGA_INSTALL_FOLDER/_config/main.json
+DGA_INSTALL_FOLDER=$HOME/digiasset_node
+DGA_CONFIG_FILE=$DGA_INSTALL_FOLDER/_config/main.json
 
 DGN_SCRIPTS_FOLDER=$HOME/diginode
 DGN_SETTINGS_FILE=$DGB_SETTINGS_FOLDER/diginode.settings 
@@ -48,6 +54,7 @@ DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
+
 DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
 
 # This is the command people will enter to run the install script
@@ -263,19 +270,17 @@ sys_check() {
 
 # This will display a warning that the Pi must be booting from an SSD card not a microSD
 rpi_ssd_warning() {
-     # Only display this message if running this install script directly (not when running digimon.sh)
-     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    # Only display this message if running this install script directly (not when running digimon.sh)
+    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
         printf "\\n"
-        printf "%b WARNING: %bMake sure you are booting from USB (NOT microSD)!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b For this installer to work correctly, you must be booting your" "${INFO}"
-        printf "%b Raspberry Pi from an external SSD over USB. Booting from a microSD" "${INDENT}"
-        printf "%b card is not supported. For best performance, make sure your drive" "${INDENT}"
-        printf "%b is connected to a blue USB3 ports on your Pi." "${INDENT}"
+        printf "%b %bIMPORTANT: Make sure you are booting from USB (NOT microSD)!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b For this installer to work correctly, you must be booting your\\n" "${INDENT}"
+        printf "%b Raspberry Pi from an external SSD over USB. Booting from a microSD\\n" "${INDENT}"
+        printf "%b card is not supported. If using a Pi 4 or newer, make sure your drive\\n" "${INDENT}"
+        printf "%b is connected to a blue USB3 port.\\n" "${INDENT}"
         printf "\\n"
         STARTPAUSE="yes"
-    main "$@"
-fi
+    fi
 }
 
 # Script to check for compatible Raspberry Pi hardware
@@ -283,7 +288,7 @@ rpi_check() {
 
 sysarch=$(arch)
 
-if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
+if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     # Store device model in variable
     MODEL=$(tr -d '\0' < /proc/device-tree/model)
@@ -292,10 +297,14 @@ if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
-    # Store total system RAM in whole Gb. Append Gb to number.. (Used for future Pi models we don't know about yet)
-    MODELMEM="$(free --giga | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)Gb"
+    # Store total system RAM in whole Gb. Append 'b' to it so it say Gb. (Used for future Pi models we don't know about yet)
+    MODELMEM="${RAMTOTAL_HR}b"
 
     ######### RPI MODEL DETECTION ###################################
+
+    # Create local variables to store the pitype and pigen
+    local pitype
+    local pigen
 
     # Look for any mention of [Raspberry Pi] so we at least know it is a Pi 
     pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi")
@@ -312,13 +321,17 @@ if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
 
     # Look for any mention of [Raspberry Pi 4] so we can narrow it to a Pi 4 
     # even if it is a model we have not seen before
-    tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4"
+    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4")
     if [ "$pigen" = "Raspberry Pi 4" ]; then
         pitype="pi4"
     fi
 
+    if [ "$pitype" != "" ] && [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b Pi Type: $pitype     [ VERBOSE MODE ]\\n" "${INFO}"
+    fi
+
     # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
-    if [ "$pitype" != "" ];then
+    if [ "$pitype" != "" ]; then
         if [ $revision = 'd03114' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
@@ -435,53 +448,67 @@ if [ "$sysarch" == "aarch"* ] || [ "$sysarch" == "arm"* ];then
     # Generate Pi hardware read out
     if [ "$pitype" = "pi5" ]; then
         printf "%b Raspberry Pi 5 Detected\\n" "${TICK}"
-        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        rpi_ssd_warning
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            rpi_ssd_warning
+        fi
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
-        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        rpi_ssd_warning
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            rpi_ssd_warning
+        fi
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
         # hide this part if running digimon
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             printf "\\n"
-            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer" "${INFO}"   
-            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file." "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            rpi_ssd_warning
         fi
-        rpi_ssd_warning
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         # hide this part if running digimon
+        IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             printf "\\n"
-            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer" "${INFO}"   
-            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file." "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            rpi_ssd_warning
         fi
-        rpi_ssd_warning
+        
     elif [ "$pitype" = "piold" ]; then
-        printf "%b ERROR: %bIncompatible Raspberry Detected%b ]\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bRaspberry Pi 2 (or older) Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b This Raspberry Pi is too old to run a DigiNode." "${INFO}"   
-        printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred." "${INDENT}"
+        printf "%b %bERROR: This Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     elif [ "$pitype" = "piunknown" ]; then
         printf "\\n"
-        printf "%b ERROR: %bUnknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bUnknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b Your Raspberry Pi model cannot be recognised by" "${INFO}"
-        printf "%b this script. Please contact @saltedlolly on Twitter" "${INDENT}"
-        printf "%b including the following information so it can be added:" "${INDENT}"
+        printf "%b %bERROR: This Raspberry Pi model cannot be recognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
+        printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Device: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Please contact @saltedlolly on Twitter including the following information\\n" "${INDENT}"
+        printf "%b so that support for it can be added:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Model: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Memory: %b$MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b Memory: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         exit 1
     fi
@@ -674,7 +701,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
-    INSTALLER_DEPS=(git "${iproute_pkg}" whiptail ca-certificates jq qrencode)
+    INSTALLER_DEPS=(git jq "${iproute_pkg}" whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
 
@@ -707,7 +734,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq qrencode)
+    INSTALLER_DEPS=(git jq iproute newt procps-ng which chkconfig ca-certificates)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -1344,13 +1371,20 @@ create_digibyte_user() {
     fi
 }
 
-# Install DigiNode scripts including DigiMon
+# Install or upgrade DigiNode scripts
 install_diginode_scripts() {
-    cd~
+    # delete current version if already exists
+    if [ -d "$DGN_SCRIPT_FOLDER" ]; then
+        printf "%b Deleting current DigiNode scripts folder\\n" "${INFO}" 
+        rm +x $DGN_SCRIPT_FOLDER
+    fi
+
+    # delete current version if already exists
+    cd ~
     git clone https://github.com/saltedlolly/diginode
     cd diginode
-    chmod +x digimon.sh
-    chmod +x diginode-installer.sh
+    chmod +x "${DGN_SCRIPT_FOLDER}/digimon.sh"
+    chmod +x "${DGN_SCRIPT_FOLDER}diginode-installer.sh"
 }
 
 create_diginode_settings() {
@@ -1438,7 +1472,7 @@ create_digibyte_conf() {
 
     # create .digibyte settings folder if it does not already exist
     if [ ! -d $DGB_SETTINGS_FOLDER ]; then
-        echo "$INFO Creating ~/.digibyte folder"
+        printf "%b Creating ~/.digibyte folder" "${INFO}"
         mkdir $DGB_SETTINGS_FOLDER
     fi
 
@@ -1622,7 +1656,73 @@ rpcallowip=127.0.0.1
 disablewallet=0
 EOF
     fi
+}
 
+# Function to create DigiAssets main.json config file, or update the RPC credentials in it, if it already exists
+create_digiassets_config() {
+
+    # This function assumes that the digibyte.conf file already exists
+    # and that the RPC credentials are in it
+
+    # Import variables from diginode.conf settings file
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b Retrieving variables from digibyte.conf: $DGB_CONF_FILE     [ VERBOSE MODE ]" "${TICK}"
+    fi
+    source $DGB_CONF_FILE
+
+    # create ~/digiasset_metadata_server/_config settings folder if it does not already exist
+    if [ ! -d $DGA_CONFIG_FOLDER ]; then
+        if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "%b Creating $DGA_CONFIG_FOLDER folder     [ VERBOSE MODE ]" "${TICK}"
+        fi
+        mkdir $DGA_CONFIG_FOLDER
+    fi
+
+    # If _config settings file already exists, append any missing values. Otherwise create it.
+    if test -f "$DGA_CONFIG_FILE"; then
+        # Update config file with updated values
+        printf "%b Updating $DGA_CONFIG_FILE file" "${TICK}"
+
+
+
+
+    else
+        # Create config file, adding the RPC values from digibyte.conf
+        printf "%b Creating $DGA_CONFIG_FILE file" "${TICK}"
+        cat <<EOF > $DGA_CONFIG_FILE
+{
+    "ignoreList": [
+        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
+    ],
+    "quiet":          true,
+    "includeMedia":   {
+        "maxSize":    1000000,
+        "names":      ["icon"],
+        "mimeTypes":  ["image/png","image/jpg","image/gif"],
+        "paid":       "always"
+    },
+    "timeout":        6000000,
+    "errorDelay":     600000,
+    "port":           8090,
+    "scanDelay":      600000,
+    "sessionLife":    86400000,
+    "users":          false,
+    "publish":        false,
+    "wallet":         {
+      "user":         "$rpcuser",
+      "pass":         "$rpcpassword",
+      "host":         "127.0.0.1",
+      "port":         $rpcport
+    }
+}
+EOF
+
+    fi
+}
+
+# Set the hostname to 'diginode'
+set_hostname() {
+    sudo hostnamectl set-hostname diginode
 }
 
 
@@ -1739,7 +1839,7 @@ main() {
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DigiNodeInstallURL | sudo bash "$@"
+                exec curl -sSL $DGN_INSTALLER_URL | sudo bash "$@"
             else
                 # when run via calling local bash script
                 exec sudo bash "$0" "$@"
@@ -1868,8 +1968,8 @@ main() {
     else
         LIGHTTPD_ENABLED=false
     fi
-    # Create the pihole user
-    create_pihole_user
+    # Create the digibyte user
+    create_digibyte_user
 
     # Check if FTL is installed - do this early on as FTL is a hard dependency for Pi-hole
     local funcOutput
