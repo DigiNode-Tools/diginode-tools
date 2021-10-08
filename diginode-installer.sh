@@ -176,7 +176,7 @@ echo -e "${COL_BOLD_WHITE}    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ $
 echo -e "${COL_BOLD_WHITE}   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${COL_NC}"
 echo -e "${COL_BOLD_WHITE}              /____/                                 ${COL_NC}"
 echo    ""
-sleep 1
+sleep 0.5
 }
 
 
@@ -1229,7 +1229,7 @@ main() {
     if [[ "${useUpdateVars}" == false ]]; then
 
         # pause for a moment beofe displaying menu
-        sleep 2
+        sleep 3
 
         # Display welcome dialogs
         welcomeDialogs
