@@ -28,11 +28,10 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # This allows us to make a change in one place that can propagate to all instances of the variable
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
-# It's still a work in progress, so you may see some variance in this guideline until it is complete
 
-# Set this to YES to get more verbose feedback. Very useful for debugging.
 # Don't set this if sourcing from digimon.sh - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    # Set this to YES to get more verbose feedback. Very useful for debugging.
     VERBOSE_MODE="YES"
 fi
 
@@ -177,6 +176,7 @@ echo -e "${COL_BOLD_WHITE}    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ $
 echo -e "${COL_BOLD_WHITE}   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${COL_NC}"
 echo -e "${COL_BOLD_WHITE}              /____/                                 ${COL_NC}"
 echo    ""
+sleep 1
 }
 
 
@@ -265,11 +265,11 @@ sys_check() {
         sysarch=$(arch)
 
         # Try and identify 64bit OS's
-        if [ "$sysarch" = "aarch64" ]; then
+        if [[ "$sysarch" == "aarch64" ]]; then
             printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             ARCH="aarch64"
             is_64bit="yes"
-        elif [ "$sysarch" = "arm" ]; then
+        elif [[ "$sysarch" == "arm"* ]]; then
             printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             is_64bit="no32"
         elif [ "$sysarch" = "x86_64" ]; then
@@ -892,8 +892,6 @@ checkSelinux() {
 # Check for swap file if using a device with low memory, and make sure it is large enough
 swap_check() {
 
-    local swap_too_small
-    local swap_rec_size
     local swap_current_size
 
     if [ "$SWAPTOTAL_HR" = "0B" ]; then
@@ -914,69 +912,100 @@ swap_check() {
     # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
     # the size check will come out the same for either
     if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
-        swap_too_small="YES"
-        swap_rec_size="7Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="7Gb"
     elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
-        swap_too_small="YES"
-        swap_rec_size="6Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="6Gb"
     elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
-        swap_too_small="YES"
-        swap_rec_size="5Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="5Gb"
     elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
-        swap_too_small="YES"
-        swap_rec_size="4Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="4Gb"
     elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
-        swap_too_small="YES"
-        swap_rec_size="3Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="3Gb"
     elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
-        swap_too_small="YES"
-        swap_rec_size="2Gb"
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE="2Gb"
 
     # If there is no swap file present, calculate recomended swap file size
     elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="7Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="7Gb"
     elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="6Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="6Gb"
     elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="5Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="5Gb"
     elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="4Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="4Gb"
     elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="5Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="5Gb"
     elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="6Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="6Gb"
     elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="7Gb"
+        SWAP_NEEDED="YES"
+        SWAP_REC_SIZE="7Gb"
     fi
 
-    if [ "$swap_not_detected" = "YES" ]; then
+    if [ "$SWAP_NEEDED" = "YES" ]; then
         printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        # Only display this line when using digimon.sh
+        if [[ "$RUN_INSTALLER" = "NO" ]] ; then
+            printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
         printf "\\n"
     fi
 
-    if [ "$swap_too_small" = "YES" ]; then
+    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
         printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $swap_rec_size or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        # Only display this line when using digimon.sh
+        if [[ "$RUN_INSTALLER" = "NO" ]] ; then
+            printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
         printf "\\n"
     fi
+}
+
+# This function will setup a swap file for your device
+swap_setup() {
+
+    #create local variable
+    local str
+
+    if [ "$SWAP_NEEDED" = "YES" ]; then
+        # Local, named variables
+        str="Creating $SWAP_REC_SIZE swap file..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+
+        sleep 2
+
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+
+    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+        str="Increasing swap file from ${RAMTOTAL_HR}b to $SWAP_REC_SIZE..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+
+        sleep 2
+
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+
 }
 
 
@@ -1172,7 +1201,7 @@ main() {
     notify_package_updates_available
 
     # Install packages necessary to perform os_check
-    printf "%b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"
+    printf "%b Checking for / installing required dependencies for OS Check...\\n" "${INFO}"
     install_dependent_packages "${SYS_CHECK_DEPS[@]}"
 
     # Check that the installed OS is officially supported - display warning if not
@@ -1182,7 +1211,7 @@ main() {
     swap_check
 
     # Install packages used by this installation script
-    printf "%b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
+    printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
 
     # Check if SELinux is Enforcing
@@ -1204,6 +1233,9 @@ main() {
     fi
 
     if [[ "${useUpdateVars}" == false ]]; then
+
+        # pause for a moment beofe displaying menu
+        sleep 3
 
         # Display welcome dialogs
         welcomeDialogs
@@ -1259,7 +1291,7 @@ main() {
     fi
 
     # Install packages used by the actual software
-    printf "  %b Checking for / installing Required dependencies for Pi-hole software...\\n" "${INFO}"
+    printf "  %b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
     install_dependent_packages "${dep_install_list[@]}"
     unset dep_install_list
 
