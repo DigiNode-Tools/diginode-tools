@@ -889,6 +889,97 @@ checkSelinux() {
     fi
 }
 
+# Check for swap file if using a device with low memory, and make sure it is large enough
+swap_check() {
+
+    local swap_too_small
+    local swap_rec_size
+    local swap_current_size
+
+    if [ "$SWAPTOTAL_HR" = "0B" ]; then
+      swap_current_size="${COL_LIGHT_RED}none${COL_NC}"
+    else
+      swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
+    fi
+
+    printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    # insert a single line gap if this is the installer
+    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+        printf "\\n"
+    fi
+
+    # Check the existing swap file is large enough based on how much RAM the device has
+    #
+    # Note: these checks on the current swap size use the lower Kibibyte value
+    # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
+    # the size check will come out the same for either
+    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
+        swap_too_small="YES"
+        swap_rec_size="7Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
+        swap_too_small="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
+        swap_too_small="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
+        swap_too_small="YES"
+        swap_rec_size="4Gb"
+    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
+        swap_too_small="YES"
+        swap_rec_size="3Gb"
+    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
+        swap_too_small="YES"
+        swap_rec_size="2Gb"
+
+    # If there is no swap file present, calculate recomended swap file size
+    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="7Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="4Gb"
+    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="5Gb"
+    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="6Gb"
+    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        swap_not_detected="YES"
+        swap_rec_size="7Gb"
+    fi
+
+    if [ "$swap_not_detected" = "YES" ]; then
+        printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        fi
+        printf "\\n"
+    fi
+
+    if [ "$swap_too_small" = "YES" ]; then
+        printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
+        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
+        fi
+        printf "\\n"
+    fi
+}
+
+
 update_dialogs() {
     # If diginode -r "reconfigure" option was selected,
     if [[ "${reconfigure}" = true ]]; then
@@ -957,7 +1048,7 @@ welcomeDialogs() {
 
     # If this is a Raspberry Pi, explain the need for booting from a SSD
     if [[ "${IS_RPI}" = "YES" ]]; then
-    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Pi from a microSD card or SSD?
+    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Pi from an external SSD or a microSD card?
    
 For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD* connected via USB. 
 
@@ -974,7 +1065,7 @@ else
 fi
 
     # Warn user to unplug the microSD card (just to double check that they are booting from SSD!)
-    whiptail --msgbox --backtitle "" --title "Raspberry Pi Detected" "\\n\\nRemember to remove the microSD card from the Raspberry Pi, if there is one!" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Raspberry Pi Detected" "\\n\\nBefore proceeding, please remove the microSD card from the Raspberry Pi, if there is one." "${r}" "${c}"
 
     fi
 
@@ -1086,6 +1177,9 @@ main() {
 
     # Check that the installed OS is officially supported - display warning if not
     os_check
+
+    # Check swap requirements
+    swap_check
 
     # Install packages used by this installation script
     printf "%b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
