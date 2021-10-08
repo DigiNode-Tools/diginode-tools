@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 8 2021 1:30pm GMT
+# Updated: October 8 2021 4:09pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -955,7 +955,7 @@ welcomeDialogs() {
 
     # If this is a Raspberry Pi, explain the need for booting from a SSD
     if [[ "${IS_RPI}" = "YES" ]]; then
-    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "IMPORTANT: Are you booting your Pi from a microSD card?
+    if whiptail --backtitle "" --title "WARNING: Raspberry Pi Detected" --yesno "Are you booting your Pi from a microSD card or SSD?
    
 For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD connected via USB. 
 
