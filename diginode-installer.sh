@@ -1048,7 +1048,7 @@ welcomeDialogs() {
 
     # If this is a Raspberry Pi, explain the need for booting from a SSD
     if [[ "${IS_RPI}" = "YES" ]]; then
-    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Pi from an external SSD or a microSD card?
+    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Raspberry Pi from an external SSD or a microSD card?
    
 For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD* connected via USB. 
 
