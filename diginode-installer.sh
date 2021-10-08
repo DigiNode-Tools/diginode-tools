@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 8 2021 9:41am GMT
+# Updated: October 8 2021 1:30pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -48,6 +48,8 @@ DGN_SETTINGS_FILE=$DGB_SETTINGS_FOLDER/diginode.settings
 
 # Location for final installation log storage
 installLogLoc=$DGN_SCRIPTS_FOLDER/install.log
+# This is an important file as it contains information specific to the machine it's being installed on
+setupVars=$DGN_SCRIPTS_FOLDER/setupVars.conf
 
 # This is the URLs where the script is hosted
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
@@ -82,7 +84,7 @@ if [ -z "$useUpdateVars" ]; then
 fi
 
 # whiptail dialog dimensions: 20 rows and 70 chars width assures to fit on small screens and is known to hold all content.
-r=20
+r=24
 c=70
 
 
@@ -99,7 +101,7 @@ INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
 INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
-OVER="\\r\\033[K"
+OVER="  \\r\\033[K"
 
 ## Set variables for colors and formatting
 
@@ -201,6 +203,7 @@ is_command() {
 # Function to establish OS type and system architecture
 # These checks are a work in progress since we need more hardware/OS combinations to test against
 # Currently BSD is not being supported. I am unclear if we can run DigiNode on it.
+
 sys_check() {
     # Lookup OS type, and only continue if the user is running linux
     local is_linux
@@ -254,61 +257,69 @@ sys_check() {
     fi
 
     # Try to establish system architecture, and only continue if it is 64 bit
-    local sysarch
-    local is_64bit
-    sysarch=$(arch)
 
-    # Try and identify 64bit OS's
-    if [ "$sysarch" = "aarch64" ]; then
-        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        ARCH="aarch64"
-        is_64bit="yes"
-    elif [ "$sysarch" = "arm" ]; then
-        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        is_64bit="no32"
-    elif [ "$sysarch" = "x86_64" ]; then
-        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        ARCH="x86_64"
-        is_64bit="yes"
-    elif [ "$sysarch" = "x86_32" ]; then
-        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        is_64bit="no32"
+    # only run this check if the 'arch' command is present on the system
+    if is_command arch ; then
+        local sysarch
+        local is_64bit
+        sysarch=$(arch)
+
+        # Try and identify 64bit OS's
+        if [ "$sysarch" = "aarch64" ]; then
+            printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            ARCH="aarch64"
+            is_64bit="yes"
+        elif [ "$sysarch" = "arm" ]; then
+            printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            is_64bit="no32"
+        elif [ "$sysarch" = "x86_64" ]; then
+            printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            ARCH="x86_64"
+            is_64bit="yes"
+        elif [ "$sysarch" = "x86_32" ]; then
+            printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            is_64bit="no32"
+        else
+            printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            is_64bit="no"
+        fi
+
+        if [ "$is_64bit" = "yes" ]; then
+            printf "    %b %b64-bit OS%b\n" "${TICK}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+        else
+            printf "    %b 64-bit OS\n" "${CROSS}"
+            printf "\n" 
+        fi
+
+
+        if [[ "$is_64bit" == "no32" ]]; then
+            printf "\\n"
+            printf "%b ERROR: %b32-bit OS detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
+            printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
+            printf "\\n"
+            printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
+            printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
+            printf "\\n"
+            exit 1
+        elif [[ "$is_64bit" == "no" ]]; then
+            printf "\\n"
+            printf "%b ERROR: %bSystem Architecture unrecognised%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
+            printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
+            printf "\\n"
+            printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
+            printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
+            printf "\\n"
+            exit 1
+        fi
     else
-        printf "%b Architecture: %b$sysarch%b" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        is_64bit="no"
-    fi
-
-    if [ "$is_64bit" = "yes" ]; then
-        printf "    %b %b64-bit OS%b\n" "${TICK}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
-    else
-        printf "    %b 64-bit OS\n" "${CROSS}"
-        printf "\n" 
-    fi
-
-
-    if [[ "$is_64bit" == "no32" ]]; then
-        printf "\\n"
-        printf "%b ERROR: %b32-bit OS detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
-        printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
-        printf "\\n"
-        printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
-        printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
-        printf "\\n"
-        exit 1
-    elif [[ "$is_64bit" == "no" ]]; then
-        printf "\\n"
-        printf "%b ERROR: %bSystem Architecture unrecognised%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)" "${INFO}"
-        printf "%b Ubuntu Server 64bit is recommended." "${INDENT}"
-        printf "\\n"
-        printf "%b If you believe your hardware should be supported please contact @saltedlolly" "${INDENT}"
-        printf "%b on Twitter letting me know the reported system architecture above." "${INDENT}"
-        printf "\\n"
-        exit 1
+        if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "%b %b$WARNING: Unable to check for 64-bit OS - arch command is not present  [ VERBOSE MODE ]%b" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        fi
     fi
 }
 
@@ -316,14 +327,14 @@ sys_check() {
 # Function to check for compatible Raspberry Pi hardware
 rpi_check() {
 
-if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Running Raspberry Pi checks...  [ VERBOSE MODE ]\\n" "${INFO}"
-fi
-
 sysarch=$(arch)
 
 if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
+    # check the 'tr' command is available
+    if ! is_command tr ; then
+        printf "%b %bERROR: Unable to check for No Raspberry Pi hardware - 'tr' command not found%b  [ VERBOSE MODE ]\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    fi
 
     # Store device model in variable
     MODEL=$(tr -d '\0' < /proc/device-tree/model)
@@ -542,6 +553,10 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "\\n"
         exit 1
     fi
+else
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b No Raspberry Pi Detected - ARM processor not found  [ VERBOSE MODE ]\\n" "${INFO}"
+    fi
 fi
 
 }
@@ -555,7 +570,7 @@ rpi_ssd_warning() {
         printf "%b For this installer to work correctly, you must be booting your\\n" "${INDENT}"
         printf "%b Raspberry Pi from an external SSD over USB. Booting from a microSD\\n" "${INDENT}"
         printf "%b card is not supported. If using a Pi 4 or newer, make sure your drive\\n" "${INDENT}"
-        printf "%b is connected to a blue USB3 port.\\n" "${INDENT}"
+        printf "%b is connected to a USB3 port (i.e. a blue one).\\n" "${INDENT}"
         printf "\\n"
         STARTPAUSE="yes"
     fi
@@ -584,14 +599,14 @@ if is_command apt-get ; then
         iproute_pkg="iproute"
     # Else print error and exit
     else
-        printf "  %b Aborting installation: iproute2 and iproute packages were not found in APT repository.\\n" "${CROSS}"
+        printf "%b Aborting installation: iproute2 and iproute packages were not found in APT repository.\\n" "${CROSS}"
         exit 1
     fi
  
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
-    INSTALLER_DEPS=(git jq whiptail)
+    INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
 
@@ -624,13 +639,13 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    INSTALLER_DEPS=(git jq iproute newt procps-ng which chkconfig ca-certificates)
+    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
 
 # If neither apt-get or yum/dnf package managers were found
 else
     # it's not an OS we can support,
-    printf "  %b OS distribution not supported\\n" "${CROSS}"
+    printf "%b OS distribution not supported\\n" "${CROSS}"
     # so exit the installer
     exit
 fi
@@ -641,20 +656,21 @@ fi
 notify_package_updates_available() {
     # Local, named variables
     local str="Checking ${PKG_MANAGER} for upgraded packages"
-    printf "\\n  %b %s..." "${INFO}" "${str}"
+    printf "\\n%b %s..." "${INFO}" "${str}"
     # Store the list of packages in a variable
     updatesToInstall=$(eval "${PKG_COUNT}")
 
     if [[ -d "/lib/modules/$(uname -r)" ]]; then
         if [[ "${updatesToInstall}" -eq 0 ]]; then
-            printf "%b  %b %s... up to date!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s... up to date!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
-            printf "%b  %b %s... %s updates available\\n" "${OVER}" "${TICK}" "${str}" "${updatesToInstall}"
-            printf "  %b %bIt is recommended to update your OS after installing DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b%b %s... %s updates available\\n" "${OVER}" "${TICK}" "${str}" "${updatesToInstall}"
+            echo ""
+            printf "%b %bIt is recommended to update your OS after installing DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
     else
-        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "      Kernel update detected. If the install fails, please reboot and try again\\n"
+        printf "%b %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "    Kernel update detected. If the install fails, please reboot and try again\\n"
     fi
 }
 
@@ -667,126 +683,337 @@ update_package_cache() {
 
     # Local, named variables
     local str="Update local cache of available packages"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "%b %s..." "${INFO}" "${str}"
     # Create a command from the package cache variable
     if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
-        printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s" "${OVER}" "${TICK}" "${str}"
     else
         # Otherwise, show an error and exit
-        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
         printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
         return 1
     fi
 }
 
+install_dependent_packages() {
 
-# A function for checking if a directory is a git repository
-is_repo() {
-    # Use a named, local variable instead of the vague $1, which is the first argument passed to this function
-    # These local variables should always be lowercase
-    local directory="${1}"
-    # A variable to store the return code
-    local rc
-    # If the first argument passed to this function is a directory,
-    if [[ -d "${directory}" ]]; then
-        # move into the directory
-        pushd "${directory}" &> /dev/null || return 1
-        # Use git to check if the directory is a repo
-        # git -C is not used here to support git versions older than 1.8.4
-        git status --short &> /dev/null || rc=$?
-    # If the command was not successful,
+    # Install packages passed in via argument array
+    # No spinner - conflicts with set -e
+    declare -a installArray
+
+    # Debian based package install - debconf will download the entire package list
+    # so we just create an array of packages not currently installed to cut down on the
+    # amount of download traffic.
+    # NOTE: We may be able to use this installArray in the future to create a list of package that were
+    # installed by us, and remove only the installed packages, and not the entire list.
+    if is_command apt-get ; then
+        # For each package, check if it's already installed (and if so, don't add it to the installArray)
+        for i in "$@"; do
+            printf "%b Checking for %s..." "${INFO}" "${i}"
+            if dpkg-query -W -f='${Status}' "${i}" 2>/dev/null | grep "ok installed" &> /dev/null; then
+                printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
+            else
+                printf "%b  %b Checking for %s (will be installed)\\n" "${OVER}" "${INFO}" "${i}"
+                installArray+=("${i}")
+            fi
+        done
+        # If there's anything to install, install everything in the list.
+        if [[ "${#installArray[@]}" -gt 0 ]]; then
+            test_dpkg_lock
+            printf "%b Processing %s install(s) for: %s, please wait...\\n" "${INFO}" "${PKG_MANAGER}" "${installArray[*]}"
+            printf '%*s\n' "$columns" '' | tr " " -;
+            "${PKG_INSTALL[@]}" "${installArray[@]}"
+            printf '%*s\n' "$columns" '' | tr " " -;
+            return
+        fi
+        printf "\\n"
+        return 0
+    fi
+
+    # Install Fedora/CentOS packages
+    for i in "$@"; do
+    # For each package, check if it's already installed (and if so, don't add it to the installArray)
+        printf "  %b Checking for %s..." "${INFO}" "${i}"
+        if "${PKG_MANAGER}" -q list installed "${i}" &> /dev/null; then
+            printf "%b  %b Checking for %s\\n" "${OVER}" "${TICK}" "${i}"
+        else
+            printf "%b  %b Checking for %s (will be installed)\\n" "${OVER}" "${INFO}" "${i}"
+            installArray+=("${i}")
+        fi
+    done
+    # If there's anything to install, install everything in the list.
+    if [[ "${#installArray[@]}" -gt 0 ]]; then
+        printf "%b Processing %s install(s) for: %s, please wait...\\n" "${INFO}" "${PKG_MANAGER}" "${installArray[*]}"
+        printf '%*s\n' "$columns" '' | tr " " -;
+        "${PKG_INSTALL[@]}" "${installArray[@]}"
+        printf '%*s\n' "$columns" '' | tr " " -;
+        return
+    fi
+    printf "\\n"
+    return 0
+}
+
+os_check() {
+    if [ "$DIGINODE_SKIP_OS_CHECK" != true ]; then
+        # This function gets a list of supported OS versions from a TXT record at diginode-versions.digibyte.help
+        # and determines whether or not the script is running on one of those systems
+        local remote_os_domain valid_os valid_version valid_response detected_os detected_version display_warning cmdResult digReturnCode response
+        remote_os_domain=${OS_CHECK_DOMAIN_NAME:-"$DGN_VERSIONS_URL"}
+
+        detected_os=$(grep "\bID\b" /etc/os-release | cut -d '=' -f2 | tr -d '"')
+        detected_version=$(grep VERSION_ID /etc/os-release | cut -d '=' -f2 | tr -d '"')
+
+        cmdResult="$(dig +short -t txt "${remote_os_domain}" @8.8.8.8 2>&1; echo $?)"
+        # Gets the return code of the previous command (last line)
+        digReturnCode="${cmdResult##*$'\n'}"
+
+        if [ ! "${digReturnCode}" == "0" ]; then
+            valid_response=false
+        else
+            # Dig returned 0 (success), so get the actual response, and loop through it to determine if the detected variables above are valid
+            response="${cmdResult%%$'\n'*}"
+            # If the value of ${response} is a single 0, then this is the return code, not an actual response.
+            if [ "${response}" == 0 ]; then
+                valid_response=false
+            fi
+
+            IFS=" " read -r -a supportedOS < <(echo "${response}" | tr -d '"')
+            for distro_and_versions in "${supportedOS[@]}"
+            do
+                distro_part="${distro_and_versions%%=*}"
+                versions_part="${distro_and_versions##*=}"
+
+                # If the distro part is a (case-insensistive) substring of the computer OS
+                if [[ "${detected_os^^}" =~ ${distro_part^^} ]]; then
+                    valid_os=true
+                    IFS="," read -r -a supportedVer <<<"${versions_part}"
+                    for version in "${supportedVer[@]}"
+                    do
+                        if [[ "${detected_version}" =~ $version ]]; then
+                            valid_version=true
+                            break
+                        fi
+                    done
+                    break
+                fi
+            done
+        fi
+
+        if [ "$valid_os" = true ] && [ "$valid_version" = true ] && [ ! "$valid_response" = false ]; then
+            display_warning=false
+        fi
+
+        if [ "$display_warning" != false ]; then
+            if [ "$valid_response" = false ]; then
+
+                if [ "${digReturnCode}" -eq 0 ]; then
+                    errStr="dig succeeded, but response was blank. Please contact support"
+                else
+                    errStr="dig failed with return code ${digReturnCode}"
+                fi
+                printf "%b %bRetrieval of supported OS list failed. %s. %b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${errStr}" "${COL_NC}"
+                printf "    %bUnable to determine if the detected OS (%s %s) is supported%b\\n" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
+                printf "    Possible causes for this include:\\n"
+                printf "      - Firewall blocking certain DNS lookups from DigiNode device\\n"
+                printf "      - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from $$DGN_VERSIONS_URL containing supported operating systems)\\n"
+                printf "      - Other internet connectivity issues\\n"
+            else
+                printf "  %b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
+                printf "    If you are seeing this message and you believe your OS should be supported, please contact @saltedlolly on Twitter.\\n"
+            fi
+            printf "\\n"
+            printf "    %bhttps://digibyte.help\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "    If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n"
+            printf "\\n"
+            printf "    e.g: If you are seeing this message on a fresh install, you can run:\\n"
+            printf "           %bcurl -sSL $DGN_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "    It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n"
+            printf "    If that is the case, feel free to ask @saltedlolly on Twitter.\\n" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            exit 1
+
+        else
+            printf "%b %bSupported OS detected%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            echo ""
+        fi
     else
-        # Set a non-zero return code if directory does not exist
-        rc=1
+        printf "%b %bDIGINODE_SKIP_OS_CHECK env variable set to true - installer will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
-    # Move back into the directory the user started in
-    popd &> /dev/null || return 1
-    # Return the code; if one is not set, return 0
-    return "${rc:-0}"
 }
 
-# A function to clone a repo
-make_repo() {
-    # Set named variables for better readability
-    local directory="${1}"
-    local remoteRepo="${2}"
-
-    # The message to display when this function is running
-    str="Clone ${remoteRepo} into ${directory}"
-    # Display the message and use the color table to preface the message with an "info" indicator
-    printf "  %b %s..." "${INFO}" "${str}"
-    # If the directory exists,
-    if [[ -d "${directory}" ]]; then
-        # Return with a 1 to exit the installer. We don't want to overwrite what could already be here in case it is not ours
-        str="Unable to clone ${remoteRepo} into ${directory} : Directory already exists"
-        printf "%b  %b%s\\n" "${OVER}" "${CROSS}" "${str}"
-        return 1
+# SELinux
+checkSelinux() {
+    local DEFAULT_SELINUX
+    local CURRENT_SELINUX
+    local SELINUX_ENFORCING=0
+    # Check for SELinux configuration file and getenforce command
+    if [[ -f /etc/selinux/config ]] && command -v getenforce &> /dev/null; then
+        # Check the default SELinux mode
+        DEFAULT_SELINUX=$(awk -F= '/^SELINUX=/ {print $2}' /etc/selinux/config)
+        case "${DEFAULT_SELINUX,,}" in
+            enforcing)
+                printf "%b %bDefault SELinux: %s%b\\n" "${CROSS}" "${COL_RED}" "${DEFAULT_SELINUX}" "${COL_NC}"
+                SELINUX_ENFORCING=1
+                ;;
+            *)  # 'permissive' and 'disabled'
+                printf "%b %bDefault SELinux: %s%b\\n" "${TICK}" "${COL_GREEN}" "${DEFAULT_SELINUX}" "${COL_NC}"
+                ;;
+        esac
+        # Check the current state of SELinux
+        CURRENT_SELINUX=$(getenforce)
+        case "${CURRENT_SELINUX,,}" in
+            enforcing)
+                printf "%b %bCurrent SELinux: %s%b\\n" "${CROSS}" "${COL_RED}" "${CURRENT_SELINUX}" "${COL_NC}"
+                SELINUX_ENFORCING=1
+                ;;
+            *)  # 'permissive' and 'disabled'
+                printf "%b %bCurrent SELinux: %s%b\\n" "${TICK}" "${COL_GREEN}" "${CURRENT_SELINUX}" "${COL_NC}"
+                ;;
+        esac
+    else
+        echo -e "${INFO} ${COL_GREEN}SELinux not detected${COL_NC}";
     fi
-    # Clone the repo and return the return code from this command
-    git clone -q --depth 20 "${remoteRepo}" "${directory}" &> /dev/null || return $?
-    # Move into the directory that was passed as an argument
-    pushd "${directory}" &> /dev/null || return 1
-    # Check current branch. If it is master, then reset to the latest available tag.
-    # In case extra commits have been added after tagging/release (i.e in case of metadata updates/README.MD tweaks)
-    curBranch=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" == "master" ]]; then
-        # If we're calling make_repo() then it should always be master, we may not need to check.
-        git reset --hard "$(git describe --abbrev=0 --tags)" || return $?
+    # Exit the installer if any SELinux checks toggled the flag
+    if [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -z "${DIGINODE_SELINUX}" ]]; then
+        printf "  DigiNode does not provide an SELinux policy as the required changes modify the security of your system.\\n"
+        printf "  Please refer to https://wiki.centos.org/HowTos/SELinux if SELinux is required for your deployment.\\n"
+        printf "      This check can be skipped by setting the environment variable %bDIGINODE_SELINUX%b to %btrue%b\\n" "${COL_LIGHT_RED}" "${COL_NC}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "      e.g: export DIGINODE_SELINUX=true\\n"
+        printf "      By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n"
+        printf "\\n  %bSELinux Enforcing detected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}";
+        exit 1;
+    elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${PIHOLE_SELINUX}" ]]; then
+        printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
-    # Show a colored message showing it's status
-    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-    # Data in the repositories is public anyway so we can make it readable by everyone (+r to keep executable permission if already set by git)
-    chmod -R a+rX "${directory}"
-    # Move back into the original directory
-    popd &> /dev/null || return 1
-    return 0
 }
 
-# We need to make sure the repos are up-to-date so we can effectively install Clean out the directory if it exists for git to clone into
-update_repo() {
-    # Use named, local variables
-    # As you can see, these are the same variable names used in the last function,
-    # but since they are local, their scope does not go beyond this function
-    # This helps prevent the wrong value from being assigned if you were to set the variable as a GLOBAL one
-    local directory="${1}"
-    local curBranch
-
-    # A variable to store the message we want to display;
-    # Again, it's useful to store these in variables in case we need to reuse or change the message;
-    # we only need to make one change here
-    local str="Update repo in ${1}"
-    # Move into the directory that was passed as an argument
-    pushd "${directory}" &> /dev/null || return 1
-    # Let the user know what's happening
-    printf "  %b %s..." "${INFO}" "${str}"
-    # Stash any local commits as they conflict with our working code
-    git stash --all --quiet &> /dev/null || true # Okay for stash failure
-    git clean --quiet --force -d || true # Okay for already clean directory
-    # Pull the latest commits
-    git pull --quiet &> /dev/null || return $?
-    # Check current branch. If it is master, then reset to the latest available tag.
-    # In case extra commits have been added after tagging/release (i.e in case of metadata updates/README.MD tweaks)
-    curBranch=$(git rev-parse --abbrev-ref HEAD)
-    if [[ "${curBranch}" == "master" ]]; then
-         git reset --hard "$(git describe --abbrev=0 --tags)" || return $?
+update_dialogs() {
+    # If diginode -r "reconfigure" option was selected,
+    if [[ "${reconfigure}" = true ]]; then
+        # set some variables that will be used
+        opt1a="Repair"
+        opt1b="This will retain existing settings including your local DigiByte wallet."
+        strAdd="You will remain on the same version"
+    else
+        # Otherwise, set some variables with different values
+        opt1a="Update"
+        opt1b="This will retain existing settings including your local DigiByte wallet."
+        strAdd="You will be updated to the latest version."
     fi
-    # Show a completion message
-    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-    # Data in the repositories is public anyway so we can make it readable by everyone (+r to keep executable permission if already set by git)
-    chmod -R a+rX "${directory}"
-    # Move back into the original directory
-    popd &> /dev/null || return 1
-    return 0
+    opt2a="Reconfigure"
+    opt2b="Resets your DigiNode and allows re-selecting settings. "
+
+    # Display the information to the user
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" "${r}" "${c}" 2 \
+    "${opt1a}"  "${opt1b}" \
+    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    { printf "%bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+
+    # Set the variable based on if the user chooses
+    case ${UpdateCmd} in
+        # repair, or
+        ${opt1a})
+            printf "%b %s option selected\\n" "${INFO}" "${opt1a}"
+            useUpdateVars=true
+            ;;
+        # reconfigure,
+        ${opt2a})
+            printf "%b %s option selected\\n" "${INFO}" "${opt2a}"
+            useUpdateVars=false
+            ;;
+    esac
+}
+
+# A function for displaying the dialogs the user sees when first running the installer
+welcomeDialogs() {
+    # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
+    whiptail --msgbox --backtitle "" --title "DigiNode Installer" "\\n\\nThis will install and configure a DigiByte and DigiAsset Node on your device!" "${r}" "${c}"
+
+    # Request that users donate if they enjoy the software since we all work on it in our free time
+#   whiptail --msgbox --backtitle "Plea" --title "Free and open source" "\\n\\nThis DigiNode Installer is free, but powered by your donations:  https://pi-hole.net/donate/" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Free and open source" "DigiNode Installer is free, but donations in DGB are appreciated:
+                  ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
+                  █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
+                  █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
+                  █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█  
+                  ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄   
+                  █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀  
+                   ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀  
+                   █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀  
+                  ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀  
+                  █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀  
+                  █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀   
+                  ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀  
+                  █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█  
+                  █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
+                  █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
+
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
+
+
+    # If this is a Raspberry Pi, explain the need for booting from a SSD
+    if [[ "${IS_RPI}" = "YES" ]]; then
+    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "IMPORTANT: Are you booting your Pi from a microSD card?
+   
+For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD connected via USB. 
+
+Booting from a microSD card is not supported. 
+
+If using a Pi 4 or newer, make sure your drive is connected to a USB3 port (i.e. a blue one). Before continuing, you should unplug the microSD card, if present..
+
+(NOTE: An HDD will also work, but an SSD is recomended.) " --no-button "microSD" --yes-button "External SSD" "${r}" "${c}"; then
+#Nothing to do, continue
+  echo
+else
+  printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
+  exit 1
+fi
+    fi
+
+    # Explain the need for a static address
+    if whiptail --defaultno --backtitle "" --title "Static IP Needed" --yesno "\\n\\nYour DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.
+
+IMPORTANT: If you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.
+
+Choose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
+#Nothing to do, continue
+  echo
+else
+  printf "%b Installer exited at static IP message.\\n" "${INFO}"
+  exit 1
+fi
+}
+
+donation_qrcode() {       
+    echo "    If you find this tool useful,"
+    echo " donations in DGB are much appreciated:"             
+    echo "     ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
+    echo "     █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
+    echo "     █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
+    echo "     █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
+    echo "     ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
+    echo "     █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
+    echo "      ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
+    echo "      █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
+    echo "     ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
+    echo "     █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
+    echo "     █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
+    echo "     ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
+    echo "     █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
+    echo "     █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
+    echo "     █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
+    echo ""  
+    echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
 }
 
 
 #####################################################################################################
-### FUNCTIONS - MAIN
+### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
 #####################################################################################################
 
 main() {
-
-
 
     ######## FIRST CHECK ########
     # Must be root to install
@@ -829,8 +1056,8 @@ main() {
         else
             # Otherwise, tell the user they need to run the script as root, and bail
             printf "%b  %b Sudo utility check\\n" "${OVER}" "${CROSS}"
-            printf "%b Sudo is needed for the Web Interface to run pihole commands\\n\\n" "${INFO}"
-            printf "%b %bPlease re-run this installer as root${COL_NC}\\n" "${INFO}" "${COL_LIGHT_RED}"
+            printf "%b Sudo is needed for the DigiNode installer to proceed.\\n\\n" "${INFO}"
+            printf "%b %bPlease re-run as root.${COL_NC}\\n" "${INFO}" "${COL_LIGHT_RED}"
             exit 1
         fi
     fi
@@ -847,11 +1074,6 @@ main() {
     # Notify user of package availability
     notify_package_updates_available
 
-    #####################################
-    echo "Exit script early during testing"
-    exit # EXIT HERE DURING TEST
-    #####################################
-
     # Install packages necessary to perform os_check
     printf "%b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"
     install_dependent_packages "${SYS_CHECK_DEPS[@]}"
@@ -863,11 +1085,6 @@ main() {
     printf "%b Checking for / installing Required dependencies for this install script...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
 
-    #In case of RPM based distro, select the proper PHP version
-    if [[ "$PKG_MANAGER" == "yum" || "$PKG_MANAGER" == "dnf" ]] ; then
-      select_rpm_php
-    fi
-
     # Check if SELinux is Enforcing
     checkSelinux
 
@@ -875,7 +1092,7 @@ main() {
     if [[ -f "${setupVars}" ]]; then
         # if it's running unattended,
         if [[ "${runUnattended}" == true ]]; then
-            printf "  %b Performing unattended setup, no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "%b Performing unattended setup, no whiptail dialogs will be displayed\\n" "${INFO}"
             # Use the setup variables
             useUpdateVars=true
             # also disable debconf-apt-progress dialogs
@@ -887,8 +1104,17 @@ main() {
     fi
 
     if [[ "${useUpdateVars}" == false ]]; then
+
         # Display welcome dialogs
         welcomeDialogs
+
+        #####################################
+        echo ""
+        printf "%b Exiting script early during testing!!" "${INFO}"
+        echo ""
+        exit # EXIT HERE DURING TEST
+        #####################################
+
         # Create directory for Pi-hole storage
         install -d -m 755 /etc/pihole/
         # Determine available interfaces
