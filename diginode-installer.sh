@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 8 2021 4:09pm GMT
+# Updated: October 8 2021 5:01pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -929,7 +929,9 @@ update_dialogs() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "DigiNode Installer" "\\n\\nThis will install and configure a DigiByte and DigiAsset Node on your device!" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "DigiNode Installer" "\\n\\nDigiNode Installer will install and configure a DigiByte and DigiAsset Node on this device!
+
+    To learn more, visit https://www.digibyte.help/diginode" "${r}" "${c}"
 
     # Request that users donate if they enjoy the software since we all work on it in our free time
 #   whiptail --msgbox --backtitle "Plea" --title "Free and open source" "\\n\\nThis DigiNode Installer is free, but powered by your donations:  https://pi-hole.net/donate/" "${r}" "${c}"
@@ -955,21 +957,25 @@ welcomeDialogs() {
 
     # If this is a Raspberry Pi, explain the need for booting from a SSD
     if [[ "${IS_RPI}" = "YES" ]]; then
-    if whiptail --backtitle "" --title "WARNING: Raspberry Pi Detected" --yesno "Are you booting your Pi from a microSD card or SSD?
+    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Pi from a microSD card or SSD?
    
-For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD connected via USB. 
+For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD* connected via USB. 
 
 Booting from a microSD card is not supported. 
 
-If using a Pi 4 or newer, make sure your drive is connected to a USB3 port (i.e. a blue one). Before continuing, you should unplug the microSD card, if present..
+If using a Pi 4 or newer, make sure your drive is connected to a USB3 port (i.e. a blue one).
 
-(NOTE: An HDD will also work, but an SSD is recomended.) " --no-button "microSD" --yes-button "External SSD" "${r}" "${c}"; then
+(*NOTE: An HDD will also work, but an SSD is recommended.) " --no-button "microSD card" --yes-button "External SSD" "${r}" "${c}"; then
 #Nothing to do, continue
   echo
 else
   printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
   exit 1
 fi
+
+    # Warn user to unplug the microSD card (just to double check that they are booting from SSD!)
+    whiptail --msgbox --backtitle "" --title "Raspberry Pi Detected" "\\n\\nRemember to remove the microSD card from the Raspberry Pi, if there is one!" "${r}" "${c}"
+
     fi
 
     # Explain the need for a static address
