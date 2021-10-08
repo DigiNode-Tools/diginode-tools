@@ -294,23 +294,19 @@ sys_check() {
 
 
         if [[ "$is_64bit" == "no32" ]]; then
-            printf "%b ERROR: %b32-bit OS detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)\\n" "${INFO}"
-            printf "%b Ubuntu Server 64bit is recommended.\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b If you believe your hardware should be supported please contact @saltedlolly\\n" "${INDENT}"
-            printf "%b on Twitter letting me know the reported system architecture above.\\n" "${INDENT}"
+            printf "%b %bERROR: 32-bit OS detected%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64bit is recommended. If you believe your hardware\\n" "${INDENT}"
+            printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
+            printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
-            printf "%b ERROR: %bSystem Architecture unrecognised%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b DigiNode Installer requires a 64bit OS (aarch64 or X86_64)\\n" "${INFO}"
-            printf "%b Ubuntu Server 64bit is recommended.\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b If you believe your hardware should be supported please contact @saltedlolly\\n" "${INDENT}"
-            printf "%b on Twitter letting me know the reported system architecture above.\\n" "${INDENT}"
+            printf "%b %bERROR: System Architecture unrecognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64bit is recommended. If you believe your hardware\\n" "${INDENT}"
+            printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
+            printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             exit 1
         fi
