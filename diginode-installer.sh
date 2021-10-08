@@ -64,14 +64,6 @@ DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
-# Store total system RAM as variables
-RAMTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
-RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
-
-# Store current total swap file size as variables
-SWAPTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
-SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
-
 # Store user in variable
 if [ -z "${USER}" ]; then
   USER="$(id -un)"
@@ -131,6 +123,19 @@ txtbld=$(tput bold) # Set bold mode
 #####################################################################################################
 ### FUNCTIONS
 #####################################################################################################
+
+# These are only set after the intitial OS check since they cause an error on MacOS
+set_mem_variables() {
+
+    # Store total system RAM as variables
+    RAMTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+    RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
+
+    # Store current total swap file size as variables
+    SWAPTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
+    SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
+}
+
 
 # A simple function that just the installer title in a box
 installer_title_box() {
@@ -245,13 +250,11 @@ sys_check() {
 
     if [ $is_linux = "no" ]; then 
         printf "\\n"
-        printf "  %b %bOS is unrecognised or incompatible%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf " %b Running a DigiNode requires a 64-bit OS (aarch64 or X86_64).\\n" "${INFO}"
-        printf "%b Ubuntu Server 64-bit is recommended.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b If you believe your OS should be supported please contact @saltedlolly\\n" "${INDENT}"
-        printf "%b on Twitter including your reported OS type: $OSTYPE\\n" "${INDENT}"
+        printf "%b %bERROR: Unsupported OS%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b DigiNode Installer requires a 64-bit linux OS (aarch64 or X86_64)\\n" "${INDENT}"
+        printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
+        printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
+        printf "%b know the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -294,17 +297,17 @@ sys_check() {
 
 
         if [[ "$is_64bit" == "no32" ]]; then
-            printf "%b %bERROR: 32-bit OS detected%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bERROR: Unsupported 32-bit OS%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
-            printf "%b Ubuntu Server 64bit is recommended. If you believe your hardware\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
-            printf "%b %bERROR: System Architecture unrecognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bERROR: System architecture is unrecognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
-            printf "%b Ubuntu Server 64bit is recommended. If you believe your hardware\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
@@ -1184,6 +1187,9 @@ main() {
 
     # Perform basic OS check and lookup hardware architecture
     sys_check
+
+    # Set the memory variables once we know we are on linux
+    set_mem_variables
 
     # Check for Raspberry Pi hardware
     rpi_check

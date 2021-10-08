@@ -170,90 +170,6 @@ digimon_disclaimer() {
 }
 
 
-# Check for swap file if using a device with low memory, and make sure it is large enough
-swap_warning() {
-
-    local swap_too_small
-    local swap_rec_size
-    local swap_current_size
-
-    if [ "$SWAPTOTAL_HR" = "0B" ]; then
-      swap_current_size="${COL_LIGHT_RED}none${COL_NC}"
-    else
-      swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
-    fi
-
-    printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-
-    # Check the existing swap file is large enough based on how much RAM the device has
-    #
-    # Note: these checks on the current swap size use the lower Kibibyte value
-    # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
-    # the size check will come out the same for either
-    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
-        swap_too_small="YES"
-        swap_rec_size="7Gb"
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
-        swap_too_small="YES"
-        swap_rec_size="6Gb"
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
-        swap_too_small="YES"
-        swap_rec_size="5Gb"
-    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
-        swap_too_small="YES"
-        swap_rec_size="4Gb"
-    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
-        swap_too_small="YES"
-        swap_rec_size="3Gb"
-    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
-        swap_too_small="YES"
-        swap_rec_size="2Gb"
-
-    # If there is no swap file present, calculate recomended swap file size
-    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="7Gb"
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="6Gb"
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="5Gb"
-    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="4Gb"
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="5Gb"
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="6Gb"
-    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
-        swap_not_detected="YES"
-        swap_rec_size="7Gb"
-    fi
-
-    if [ "$swap_not_detected" = "YES" ]; then
-        printf "\\n"
-        printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
-        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n" "${INDENT}"
-        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
-        printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
-        printf "\\n"
-    fi
-
-    if [ "$swap_too_small" = "YES" ]; then
-        printf "\\n"
-        printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
-        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $swap_rec_size or more.\\n" "${INDENT}"
-        printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
-        printf "%b The official DigiNode installer can configure your swap file for you.\\n" "${INDENT}"
-        printf "\\n"
-    fi
-}
-
 is_dgbnode_installed() {
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
@@ -681,6 +597,7 @@ startup() {
   digimon_disclaimer         # Display disclaimer warning during development. Pause for confirmation.
   get_script_location        # Find which folder this script is running in
   import_installer_functions # Import diginode-instaler.sh because it contains functions we need
+  set_mem_variables          # Set the memory variables once we know we are on linux (stored in function in the installer)
   diginode_logo              # Clear screen and display title box (again)
   sys_check                  # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                  # Look for Raspberry Pi hardware. If found, only continue if it compatible.
