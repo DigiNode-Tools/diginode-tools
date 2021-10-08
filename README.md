@@ -4,7 +4,7 @@
 
 These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode on your Linux hardware of choice. The recommended setup for this is a Raspberry Pi 4 8Gb running Ubuntu Server 64-bit.
 
-WARNING: This script is still under development and should only be used for testing purposes.
+* WARNING: This script is still under development and should only be used for testing purposes.
 
 
 ## DigiNode Installer

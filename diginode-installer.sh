@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 7 2021 5:53pm GMT
+# Updated: October 8 2021 9:41am GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -133,6 +133,7 @@ txtbld=$(tput bold) # Set bold mode
 
 # A simple function that just the installer title in a box
 installer_title_box() {
+     clear -x
      echo ""
      echo " ╔════════════════════════════════════════════════════════╗"
      echo " ║                                                        ║"
@@ -141,6 +142,7 @@ installer_title_box() {
      echo " ║  Install and configure your DigiByte & DigiAsset Node  ║"
      echo " ║                                                        ║"
      echo " ╚════════════════════════════════════════════════════════╝" 
+     echo ""
 }
 
 diginode_logo() {
@@ -315,16 +317,13 @@ sys_check() {
 rpi_check() {
 
 if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Running Raspberry Pi checks..." "${INFO}"
+    printf "%b Running Raspberry Pi checks...  [ VERBOSE MODE ]\\n" "${INFO}"
 fi
 
 sysarch=$(arch)
 
 if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf " ARM hardware detected    [ VERBOSE MODE ]\\n"
-    fi
 
     # Store device model in variable
     MODEL=$(tr -d '\0' < /proc/device-tree/model)
@@ -343,34 +342,26 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local pigen
 
     # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi")
-    if [ "$pigen" = "Raspberry Pi" ]; then
+    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
+    if [[ $pigen == "Raspberry Pi" ]]; then
         pitype="pi"
     fi
-   
+    
     # Look for any mention of 'Raspberry Pi 5' so we can narrow it to Pi 5
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 5")
-    if [ "$pigen" = "Raspberry Pi 5" ]; then
+    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 5" || echo "")
+    if [[ $pigen == "Raspberry Pi 5" ]]; then
         pitype="pi5"
-
-    fi
-
-    if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b Pi Type: $pitype     [ VERBOSE MODE ]\\n" "${INFO}"
     fi
 
     # Look for any mention of 'Raspberry Pi 4' so we can narrow it to a Pi 4 
     # even if it is a model we have not seen before
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4")
-    if [ "$pigen" = "Raspberry Pi 4" ]; then
+    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4" || echo "")
+    if [[ $pigen = "Raspberry Pi 4" ]]; then
         pitype="pi4"
     fi
 
     # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
     if [ "$pitype" != "" ]; then
-        if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b Looking up known Pi models     [ VERBOSE MODE ]\\n" "${INFO}"
-        fi
         if [ $revision = 'd03114' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
@@ -551,11 +542,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "\\n"
         exit 1
     fi
-else
-    if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf " ARM hardware not found    [ VERBOSE MODE ]\\n"
-    fi
 fi
+
 }
 
 # This will display a warning that the Pi must be booting from an SSD card not a microSD
@@ -573,6 +561,224 @@ rpi_ssd_warning() {
     fi
 }
 
+# Compatibility
+package_manager_detect() {
+# If apt-get is installed, then we know it's part of the Debian family
+if is_command apt-get ; then
+    # Set some global variables here
+    # We don't set them earlier since the family might be Red Hat, so these values would be different
+    PKG_MANAGER="apt-get"
+    # A variable to store the command used to update the package cache
+    UPDATE_PKG_CACHE="${PKG_MANAGER} update"
+    # The command we will use to actually install packages
+    PKG_INSTALL=("${PKG_MANAGER}" -qq --no-install-recommends install)
+    # grep -c will return 1 if there are no matches. This is an acceptable condition, so we OR TRUE to prevent set -e exiting the script.
+    PKG_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
+    # Update package cache. This is required already here to assure apt-cache calls have package lists available.
+    update_package_cache || exit 1
+    # Debian 7 doesn't have iproute2 so check if it's available first
+    if apt-cache show iproute2 > /dev/null 2>&1; then
+        iproute_pkg="iproute2"
+    # Otherwise, check if iproute is available
+    elif apt-cache show iproute > /dev/null 2>&1; then
+        iproute_pkg="iproute"
+    # Else print error and exit
+    else
+        printf "  %b Aborting installation: iproute2 and iproute packages were not found in APT repository.\\n" "${CROSS}"
+        exit 1
+    fi
+ 
+    # Packages required to perfom the system check (stored as an array)
+    SYS_CHECK_DEPS=(grep dnsutils)
+    # Packages required to run this install script (stored as an array)
+    INSTALLER_DEPS=(git jq whiptail)
+    # Packages required to run DigiNode (stored as an array)
+    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
+
+    # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
+    test_dpkg_lock() {
+        i=0
+        # fuser is a program to show which processes use the named files, sockets, or filesystems
+        # So while the lock is held,
+        while fuser /var/lib/dpkg/lock >/dev/null 2>&1
+        do
+            # we wait half a second,
+            sleep 0.5
+            # increase the iterator,
+            ((i=i+1))
+        done
+        # and then report success once dpkg is unlocked.
+        return 0
+    }
+
+# If apt-get is not found, check for rpm to see if it's a Red Hat family OS
+elif is_command rpm ; then
+    # Then check if dnf or yum is the package manager
+    if is_command dnf ; then
+        PKG_MANAGER="dnf"
+    else
+        PKG_MANAGER="yum"
+    fi
+
+    # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
+    PKG_INSTALL=("${PKG_MANAGER}" install -y)
+    PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
+    SYS_CHECK_DEPS=(grep bind-utils)
+    INSTALLER_DEPS=(git jq iproute newt procps-ng which chkconfig ca-certificates)
+    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
+
+# If neither apt-get or yum/dnf package managers were found
+else
+    # it's not an OS we can support,
+    printf "  %b OS distribution not supported\\n" "${CROSS}"
+    # so exit the installer
+    exit
+fi
+}
+
+# Let user know if they have outdated packages on their system and
+# advise them to run a package update at soonest possible.
+notify_package_updates_available() {
+    # Local, named variables
+    local str="Checking ${PKG_MANAGER} for upgraded packages"
+    printf "\\n  %b %s..." "${INFO}" "${str}"
+    # Store the list of packages in a variable
+    updatesToInstall=$(eval "${PKG_COUNT}")
+
+    if [[ -d "/lib/modules/$(uname -r)" ]]; then
+        if [[ "${updatesToInstall}" -eq 0 ]]; then
+            printf "%b  %b %s... up to date!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b  %b %s... %s updates available\\n" "${OVER}" "${TICK}" "${str}" "${updatesToInstall}"
+            printf "  %b %bIt is recommended to update your OS after installing DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        fi
+    else
+        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "      Kernel update detected. If the install fails, please reboot and try again\\n"
+    fi
+}
+
+update_package_cache() {
+    # Running apt-get update/upgrade with minimal output can cause some issues with
+    # requiring user input (e.g password for phpmyadmin see #218)
+
+    # Update package cache on apt based OSes. Do this every time since
+    # it's quick and packages can be updated at any time.
+
+    # Local, named variables
+    local str="Update local cache of available packages"
+    printf "  %b %s..." "${INFO}" "${str}"
+    # Create a command from the package cache variable
+    if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
+        printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        # Otherwise, show an error and exit
+        printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
+        return 1
+    fi
+}
+
+
+# A function for checking if a directory is a git repository
+is_repo() {
+    # Use a named, local variable instead of the vague $1, which is the first argument passed to this function
+    # These local variables should always be lowercase
+    local directory="${1}"
+    # A variable to store the return code
+    local rc
+    # If the first argument passed to this function is a directory,
+    if [[ -d "${directory}" ]]; then
+        # move into the directory
+        pushd "${directory}" &> /dev/null || return 1
+        # Use git to check if the directory is a repo
+        # git -C is not used here to support git versions older than 1.8.4
+        git status --short &> /dev/null || rc=$?
+    # If the command was not successful,
+    else
+        # Set a non-zero return code if directory does not exist
+        rc=1
+    fi
+    # Move back into the directory the user started in
+    popd &> /dev/null || return 1
+    # Return the code; if one is not set, return 0
+    return "${rc:-0}"
+}
+
+# A function to clone a repo
+make_repo() {
+    # Set named variables for better readability
+    local directory="${1}"
+    local remoteRepo="${2}"
+
+    # The message to display when this function is running
+    str="Clone ${remoteRepo} into ${directory}"
+    # Display the message and use the color table to preface the message with an "info" indicator
+    printf "  %b %s..." "${INFO}" "${str}"
+    # If the directory exists,
+    if [[ -d "${directory}" ]]; then
+        # Return with a 1 to exit the installer. We don't want to overwrite what could already be here in case it is not ours
+        str="Unable to clone ${remoteRepo} into ${directory} : Directory already exists"
+        printf "%b  %b%s\\n" "${OVER}" "${CROSS}" "${str}"
+        return 1
+    fi
+    # Clone the repo and return the return code from this command
+    git clone -q --depth 20 "${remoteRepo}" "${directory}" &> /dev/null || return $?
+    # Move into the directory that was passed as an argument
+    pushd "${directory}" &> /dev/null || return 1
+    # Check current branch. If it is master, then reset to the latest available tag.
+    # In case extra commits have been added after tagging/release (i.e in case of metadata updates/README.MD tweaks)
+    curBranch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" == "master" ]]; then
+        # If we're calling make_repo() then it should always be master, we may not need to check.
+        git reset --hard "$(git describe --abbrev=0 --tags)" || return $?
+    fi
+    # Show a colored message showing it's status
+    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+    # Data in the repositories is public anyway so we can make it readable by everyone (+r to keep executable permission if already set by git)
+    chmod -R a+rX "${directory}"
+    # Move back into the original directory
+    popd &> /dev/null || return 1
+    return 0
+}
+
+# We need to make sure the repos are up-to-date so we can effectively install Clean out the directory if it exists for git to clone into
+update_repo() {
+    # Use named, local variables
+    # As you can see, these are the same variable names used in the last function,
+    # but since they are local, their scope does not go beyond this function
+    # This helps prevent the wrong value from being assigned if you were to set the variable as a GLOBAL one
+    local directory="${1}"
+    local curBranch
+
+    # A variable to store the message we want to display;
+    # Again, it's useful to store these in variables in case we need to reuse or change the message;
+    # we only need to make one change here
+    local str="Update repo in ${1}"
+    # Move into the directory that was passed as an argument
+    pushd "${directory}" &> /dev/null || return 1
+    # Let the user know what's happening
+    printf "  %b %s..." "${INFO}" "${str}"
+    # Stash any local commits as they conflict with our working code
+    git stash --all --quiet &> /dev/null || true # Okay for stash failure
+    git clean --quiet --force -d || true # Okay for already clean directory
+    # Pull the latest commits
+    git pull --quiet &> /dev/null || return $?
+    # Check current branch. If it is master, then reset to the latest available tag.
+    # In case extra commits have been added after tagging/release (i.e in case of metadata updates/README.MD tweaks)
+    curBranch=$(git rev-parse --abbrev-ref HEAD)
+    if [[ "${curBranch}" == "master" ]]; then
+         git reset --hard "$(git describe --abbrev=0 --tags)" || return $?
+    fi
+    # Show a completion message
+    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+    # Data in the repositories is public anyway so we can make it readable by everyone (+r to keep executable permission if already set by git)
+    chmod -R a+rX "${directory}"
+    # Move back into the original directory
+    popd &> /dev/null || return 1
+    return 0
+}
+
 
 #####################################################################################################
 ### FUNCTIONS - MAIN
@@ -580,8 +786,7 @@ rpi_ssd_warning() {
 
 main() {
 
-    # show installer title box
-    installer_title_box
+
 
     ######## FIRST CHECK ########
     # Must be root to install
@@ -596,6 +801,9 @@ main() {
         diginode_logo
         make_temporary_log
     else
+        # show installer title box
+        installer_title_box
+
         # Otherwise, they do not have enough privileges, so let the user know
         printf "%b %s\\n" "${INFO}" "${str}"
         printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -633,17 +841,16 @@ main() {
     # Check for Raspberry Pi hardware
     rpi_check
 
-
-    #####################################
-    echo "Exit script early during testing"
-    exit # EXIT HERE DURING TEST
-    #####################################
-
     # Check for supported package managers so that we may install dependencies
     package_manager_detect
 
     # Notify user of package availability
     notify_package_updates_available
+
+    #####################################
+    echo "Exit script early during testing"
+    exit # EXIT HERE DURING TEST
+    #####################################
 
     # Install packages necessary to perform os_check
     printf "%b Checking for / installing Required dependencies for OS Check...\\n" "${INFO}"

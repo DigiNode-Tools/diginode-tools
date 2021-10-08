@@ -19,7 +19,7 @@
 #          ~/diginode/digimon.sh
 #
 #
-# Updated: October 7 2021 5:53pm GMT
+# Updated: October 8 2021 9:41am GMT
 #
 # -------------------------------------------------------
 
@@ -416,7 +416,7 @@ get_rpc_credentials() {
 # function to update the _config/main.json file with updated RPC credentials (if they have been changed)
 update_dga_config() {
   # Only update if there are RPC get_rpc_credentials
-  if [ "$RPC_CREDENTIALS_OK" = " YES" ]; then
+  if [[ $RPC_CREDENTIALS_OK == "YES" ]]; then
     # need to write this one
   fi
 }
@@ -679,9 +679,9 @@ startup() {
   
   digimon_title_box          # Clear screen and display title box
   digimon_disclaimer         # Display disclaimer warning during development. Pause for confirmation.
-  digimon_title_box          # Clear screen and display title box (again)
   get_script_location        # Find which folder this script is running in
   import_installer_functions # Import diginode-instaler.sh because it contains functions we need
+  diginode_logo              # Clear screen and display title box (again)
   sys_check                  # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                  # Look for Raspberry Pi hardware. If found, only continue if it compatible.
   swap_warning               # if this system has 4Gb or less RAM, check there is a swap drive
