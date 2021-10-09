@@ -23,6 +23,22 @@
 #
 # -------------------------------------------------------
 
+#####################################################
+##### IMPORTANT INFORMATION #########################
+#####################################################
+
+# Please note that this script requires the diginode-installer.sh script to be with it
+# in the same folder when it runs. Tne installer script contains functions and variables
+# used by this one.
+#
+# Both the DigiNode Installer and Status Monitor scripts make use of a settings file
+# located at: ~/.diginode/diginode.settings
+#
+# It want to make changes to folder locations etc. please edit this file.
+# (e.g. To move your DigiByte data folder to an external drive.)
+# 
+# Note: The default location of the diginode.settings file can be changed at the top of
+# the installer script, but this is not recommended.
 
 ######################################################
 ######### VARIABLES ##################################
@@ -36,12 +52,15 @@
 # Set this to YES to get more verbose feedback. Very useful for debugging.
 VERBOSE_MODE="YES"
 
-# This is the command people will enter to run the install script
+# This is the command people will enter to run the install script.
 DGN_INSTALLER_OFFICIAL_CMD="curl http://diginode-installer.digibyte.help | bash"
 
 #################################################
 #### UPDATE THESE VALUES FROM THE INSTALLER #####
 #################################################
+
+# These variables are included in both files since they are required before the installer-script is loaded.
+# Changes to these variables should be first made in the installer script and then copied here.
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -98,8 +117,9 @@ get_script_location() {
     SOURCE="$(readlink "$SOURCE")"
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
-  DGN_SCRIPT_FOLDER="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER/diginode-installer.sh
+  DGN_SCRIPT_FOLDER_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER_NOW/diginode-installer.sh
+
   if [ "$VERBOSE_MODE" = "YES" ]; then
     printf "%b Monitor Script Location: $DGN_SCRIPT_FOLDER     [ VERBOSE MODE ]\\n" "${INFO}"
     printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT     [ VERBOSE MODE ]\\n" "${INFO}"
@@ -170,72 +190,132 @@ digimon_disclaimer() {
 }
 
 
-is_dgbnode_installed() {
+# Run checks to be sure that digibyte node is installed and running
+check_dgbnode() {
+
+    # Set local variables for DigiByte Core checks
+    local find_dgb_folder
+    local find_dgb_binaries
+    local find_dgb_data_folder
+    local find_dgb_conf_file
+    local find_dgb_service
+
+    # Begin check to see that DigiByte Core is installed
+    printf "%b Checking DigiByte Node...\\n" "${INFO}"
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
-
-    if [ -h "$HOME/digibyte" ]; then
-      echo "$TICK digibyte symbolic link found in home folder."
+    if [ -h "$DGB_INSTALL_FOLDER" ]; then
+      find_dgb_folder="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b digibyte symbolic link found in home folder.  [ VERBOSE MODE ]\\n" "${TICK}"
+      fi
     else
-      if [ -e "$HOME/digibyte" ]; then
-        echo "$TICK digibyte folder found in home folder."
+      if [ -e "$DGB_INSTALL_FOLDER" ]; then
+      find_dgb_folder="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b digibyte folder found in home folder. [ VERBOSE MODE ]\\n" "${TICK}"
+      fi
       else
-        echo "$CROSS digibyte symbolic link NOT found in home folder."
-        echo ""
-        echo "[!] Unable to continue - please create a symbolic link in"
-        echo "    your home folder pointing to the location of digibyte core."
-        echo "    For example:"  
-        echo "    $ cd ~"
-        echo "    $ ln -s digibyte-7.17.3 digibyte" 
-        echo ""
-        exit
+        printf "\\n"
+        printf "  %b %bERROR: Unable to locate digibyte installation in home folder.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %b This script is unable to find your DigiByte Core installation folder\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
+        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b For example:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b   cd ~\\n" "${INDENT}"
+        printf "  %b   ln -s digibyte-7.17.3 digibyte\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
       fi
     fi
 
     # Check if digibyted is installed
 
-    if [ -f "$HOME/digibyte/bin/digibyted" -a -f "$HOME/digibyte/bin/digibyte-cli" ]; then
-      echo "$TICK DigiByte Core is installed - digibyted and digibyte-cli located" 
+    if [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" -a -f "$DGB_INSTALL_FOLDER/bin/digibyte-cli" ]; then
+      find_dgb_binaries="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b Digibyte Core Binaries located:   ${TICK} digibyted   ${TICK} digibyte-cli   [ VERBOSE MODE ]\\n" "${TICK}"
+      fi
     else
-      echo "$CROSS DigiByte Core is NOT installed - binaries not found "
-      echo ""
-      echo "[!] Unable to continue - please install DigiByte Core."
-      echo ""
-      echo "    The digibyted and digibyte-cli binaries must be located at:"
-      echo "    ~/digibyte/bin/"
-      echo ""
-      exit
+        printf "\\n"
+        printf "  %b %bERROR: Unable to locate DigiByte Core binaries.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %b This script is unable to find your DigiByte Core binaries - digibyte & digibye-cli.\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
+        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b For example:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b   cd ~\\n" "${INDENT}"
+        printf "  %b   ln -s digibyte-7.17.3 digibyte\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
     fi
 
     # Check if digibyte core is configured to run as a service
 
     if [ -f "/etc/systemd/system/digibyted.service" ]; then
-      echo "$TICK DigiByte daemon service is installed  - digibyted.service file located"
-    else
-      echo "$CROSS DigiByte daemon service is not installed  - digibyted.service file NOT found"
-      echo ""
-      echo "[!] DigiByte daemon needs to be configured to run as a service."
-      echo "    If you already have a service file to run digibyted please"
-      echo "    rename it to /etc/systemd/system/digibyted.service so that this"
-      echo "    script can find it."
-      echo ""
-      echo "    If you have not already created a service file to run digibyted"
-      echo "    this script can attempt to create one for you in systemd."
-      echo ""
-      read -p "    Would you like to install it now? " -n 1 -r
-      echo    # (optional) move to a new line
-      if [[ ! $REPLY =~ ^[Yy]$ ]]
-      then
-        exit 1
-        echo "***install service file script here****"
-      else
-        exit
+      find_dgb_service="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b DigiByte daemon service file is installed   [ VERBOSE MODE ]\\n" "${TICK}"
       fi
+    else
+        printf "  %b DigiByte daemon service file is NOT installed\\n" "${CROSS}"
+        printf "\\n"
+        printf "  %b %bWARNING: digibyted.service not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %b To ensure your DigiByte Node stays running 24/7, it is a good idea to setup\\n" "${INDENT}"
+        printf "  %b DigiByte daemon to run as a service. If you already have a service file\\n" "${INDENT}"
+        printf "  %b to run 'digibyted', please, rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
+        printf "  %b so that this script can find it.\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b If you wish to setup you DigiByte Node as a service, please use the DigiNode Installer.\\n" "${INDENT}"
+        printf "\\n"
     fi
 
-    # Check if digibyted service is running. Exit if it isn't.
+    # Check for .digibyte data directory
 
-    if [ $(systemctl is-active digibyted) = 'active' ]; then
+    if [ -d "$DGB_DATA_FOLDER" ]; then
+      find_dgb_data_folder="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b .digibyte data folder located   [ VERBOSE MODE ]\\n" "${TICK}"
+      fi
+    else
+        printf "\\n"
+        printf "  %b %bERROR: .digibyted data folder not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %b The DigiByte Core data folder contains your wallet and digibyte.conf\\n" "${INDENT}"
+        printf "  %b in addition to the blockchain data itself. The folder was not found in\\n" "${INDENT}"
+        printf "  %b the expected location here: $DGB_DATA_FOLDER\\n" "${INDENT}"
+        printf "\\n"
+        printf "\\n"
+        exit 1
+    fi
+
+    # Check digibyte.conf file can be found
+
+    if [ -f "$DGB_CONF_FILE" ]; then
+      find_dgb_conf_file="yes"
+      if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "  %b digibyte.conf file located   [ VERBOSE MODE ]\\n" "${TICK}"
+           # Load digibyte.conf file to get variables
+          printf "  %b Importing digibyte.conf   [ VERBOSE MODE ]\\n" "${TICK}"
+          source "$DGB_CONF_FILE"
+      fi
+    else
+        printf "\\n"
+        printf "  %b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "  %b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
+        printf "  %b your node. The DigiNode Installer can help you create one.\\n" "${INDENT}"
+        printf "  %b The expected location is here: $DGB_CONF_FILE\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+
+
+
+    # Check if digibyted service is running. Exit if it isn't.
+       if [ $(systemctl is-active digibyted) = 'active' ]; then
       echo "$TICK DigiByte daemon service is running."
       digibyted_status="running"
     else
@@ -248,33 +328,6 @@ is_dgbnode_installed() {
       exit
     fi
 
-    # Check for .digibyte settings directory
-
-    if [ -d "$HOME/.digibyte" ]; then
-      echo "$TICK .digibyte settings folder located."
-    else
-      echo ""
-      echo "$CROSS Unable to locate the .digibyte settings folder."
-      echo "    The file should be at: $HOME/.digibyte/"
-      echo ""
-      exit
-    fi
-
-    # Check digibyte.conf file can be found
-
-    if [ -f "$DGB_CONF_FILE" ]; then
-      echo "$TICK digibyte.conf file located."
-    else
-      echo ""
-      echo "$CROSS Unable to find digibyte.conf configuration file."
-      echo "    The file should be at: $DGB_CONF_FILE"
-      echo ""
-      exit
-    fi
-
-    # Load digibyte.conf file to get variables
-      echo "$INFO Importing digibyte.conf settings"
-      source "$DGB_CONF_FILE"
 
 }
 
@@ -342,7 +395,7 @@ update_dga_config() {
 # (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
 check_official() {
 
-    if [ -f "$HOME/digibyte/.officialdiginode" ] && [ -f "$HOME/digiasset_ipfs_metadata_server/.officialdiginode" ]; then
+    if [ -f "$DGB_INSTALL_FOLDER/.officialdiginode" ] && [ -f "$DGA_INSTALL_FOLDER/.officialdiginode" ]; then
         printf "%b Official DigiNode detected\\n" "${TICK}"
         officialdgbinstall="yes"
     else
@@ -589,6 +642,25 @@ install_required_pkgs() {
     fi
 }
 
+# Quit message
+quit_message() {
+    # On quit, if there are updates available, ask the user if they want to install them
+   if [ "$update_available" = "yes" ]; then
+
+      # Install updates now
+      echo "Installing uopdates!"
+
+    donation_qrcode
+
+  # if there are no updates available display the donation QR code (not more than once every 15 minutes)
+  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available = ""; ] then
+      echo ""
+      donation_qrcode
+      DONATION_PLEA="no"
+      echo ""
+    fi
+}
+
 
 ## PERFROM STARTUP CHECKS
 startup() {
@@ -597,11 +669,12 @@ startup() {
   digimon_disclaimer         # Display disclaimer warning during development. Pause for confirmation.
   get_script_location        # Find which folder this script is running in
   import_installer_functions # Import diginode-instaler.sh because it contains functions we need
-  set_mem_variables          # Set the memory variables once we know we are on linux (stored in function in the installer)
+  import_diginode_settings   # Import diginode-instaler.sh because it contains functions we need
+  set_mem_variables          # Set the memory variables once we know we are on linux (these are stored in a function in the installer)
   diginode_logo              # Clear screen and display title box (again)
   sys_check                  # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                  # Look for Raspberry Pi hardware. If found, only continue if it compatible.
-  swap_warning               # if this system has 4Gb or less RAM, check there is a swap drive
+  swap_check                 # if this system has 4Gb or less RAM, check there is a swap drive
   check_official             # check if this is an official install
   is_dgbnode_installed       # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
   get_rpc_credentials        # Get the RPC username and password from config file. Warn if not present.
@@ -829,6 +902,19 @@ if [ $loopcounter -gt 43200 ]; then
     exit
 fi
 
+# Display the quit message on exit
+trap quit_message EXIT
+
+read -rsn1 input
+if [ "$input" = "q" ]; then
+    echo ""
+    printf "%b Quitting...\\n" "${INDENT}"
+    echo ""
+    exit
+fi
+
+
+
 # ------------------------------------------------------------------------------
 #    UPDATE EVERY 1 SECOND - HARDWARE
 # ------------------------------------------------------------------------------
@@ -934,10 +1020,10 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Compare current DigiByte Core version with Github version to know if there is a new version available
     if [ "$dgb_ver_github" -gt "$dgb_ver_local" ]; then
-        update_available="yes"
-        dgb_update_available="yes"
+        UPDATE_AVAILABLE="yes"
+        UPDATE_AVAILABLE_DGB="yes"
     else
-        dgb_update_available="no"
+        UPDATE_AVAILABLE_DGB="no"
     fi 
 
     savedtime15sec="$timenow"
@@ -1000,6 +1086,9 @@ if [ $timedif15min -gt 300 ]; then
       dga_ver_local=$(curl localhost:8090/api/version/list.json)
       ipfs_ver_local=$(ipfs version | cut -d ' ' -f 3)
     fi
+
+    # When the user quits, display a donation plea
+    DONATION_PLEA="yes"
 
 
     savedtime15min="$timenow"
@@ -1079,7 +1168,11 @@ fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
+if [ $UPDATE_AVAILABLE_DGB = "yes" ];then
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$dgb_ver_local" "[ Update Available: v$dgb_ver_github" "]  ║"
+else
+printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$dgb_ver_local" "]  ║"
+fi
 echo " ║   SOFTWARE      ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "IPFS daemon v$ipfs_ver_local"
 echo " ║               ╠═════════════════════════════════════════════════════╣"
@@ -1111,9 +1204,6 @@ echo "  count above - it should start increasing. If the number is above 8,"
 echo "  this indicates that things are working correctly. This message will"
 echo "  disappear when the total connections exceeds 10."
 fi
-if [ $update_available = "yes" ];then
-echo "           Press U to install software updates now."
-fi
 echo ""
 echo " ╔═══════════════╦════════════════════════════════════════════════════╗"
 printf " ║ DEVICE      ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
@@ -1131,7 +1221,7 @@ echo " ╠═══════════════╬═══════�
 printf " ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$timenow" "  ║"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
 echo ""
-echo "              Press Ctrl-C to stop monitoring"
+echo "              Press Q to quit and stop monitoring"
 echo ""
 
 # end output double buffer

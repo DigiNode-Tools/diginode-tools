@@ -29,40 +29,26 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
+######### IMPORTANT NOTE ###########
+# Both the DigiNode Installer and Status Monitor scripts make use of a setting file
+# located at ~/.diginode/diginode.settings
+# It want to make changes to folder locations, please edit this file.
+# e.g. To move you data file to an external drive.
+#
+# NOTE: This variable sets the default location of the diginode.settings file. 
+# There should be no reason to change this, and it is unadvisable to do.
+DGN_SETTINGS_FOLDER=$HOME/.diginode
+DGN_SETTINGS_FILE=$HOME/.diginode
+
 # Don't set this if sourcing from digimon.sh - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     # Set this to YES to get more verbose feedback. Very useful for debugging.
     VERBOSE_MODE="YES"
 fi
 
-DGB_INSTALL_FOLDER=$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
-DGB_SETTINGS_FOLDER=$HOME/.digibyte/
-DGB_CONF_FILE=$DGB_SETTINGS_FOLDER/digibyte.conf
 
-DGA_INSTALL_FOLDER=$HOME/digiasset_node
-DGA_CONFIG_FILE=$DGA_INSTALL_FOLDER/_config/main.json
-
-DGN_SCRIPTS_FOLDER=$HOME/diginode
-DGN_SETTINGS_FILE=$DGB_SETTINGS_FOLDER/diginode.settings 
-
-# Location for final installation log storage
-installLogLoc=$DGN_SCRIPTS_FOLDER/install.log
-# This is an important file as it contains information specific to the machine it's being installed on
-setupVars=$DGN_SCRIPTS_FOLDER/setupVars.conf
-
-# This is the URLs where the script is hosted
-DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
-DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
-DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
-
-DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
-
-# This is the command people will enter to run the install script
-DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
-
-# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
-DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+# File and Folder locations. These variables are used thoughout the DigiNode Installer and Status Monitor.
+# Changes made here will update everywhere else.
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -77,6 +63,21 @@ fi
 # whiptail dialog dimensions: 20 rows and 70 chars width assures to fit on small screens and is known to hold all content.
 r=24
 c=70
+
+######## Undocumented Flags. Shhh ########
+# These are undocumented flags; some of which we can use when repairing an installation
+# The runUnattended flag is one example of this
+reconfigure=false
+runUnattended=false
+Pi4_8GB_unnattended=true
+# Check arguments for the undocumented flags
+for var in "$@"; do
+    case "$var" in
+        "--reconfigure" ) reconfigure=true;;
+        "--unattended" ) runUnattended=true;;
+        "--pi4-8gb-unattended" ) Pi4_8GB_unnattended=false;;
+    esac
+done
 
 
 # Set these values so the installer can still run in color
@@ -123,6 +124,110 @@ txtbld=$(tput bold) # Set bold mode
 #####################################################################################################
 ### FUNCTIONS
 #####################################################################################################
+
+
+
+# Load variables from diginode.settings file. Create the file first if it does not exit.
+import_diginode_settings() {
+
+local str
+
+if test -f $DGN_SETTINGS_FILE; then
+  # It exists, so no need to create it
+else
+  # create .diginode settings folder if it does not exist
+  if [ ! -d "$DGN_SETTINGS_FOLDER" ]; then
+    str="Creating .diginode settings folder..."
+    printf "\\n%b %s" "${INFO}" "${str}"
+    mkdir $DGN_SETTINGS_FOLDER
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+  fi
+  # create diginode.settings file
+  str="Creating diginode.settings file..."
+  printf "\\n%b %s" "${INFO}" "${str}"
+  touch $DGN_SETTINGS_FILE
+  cat <<EOF > $DGN_SETTINGS_FILE
+#!/bin/bash
+# This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
+
+# DEFAULT FOLDER AND FILE LOCATIONS
+# If you want to change the default location of folders you can edit them here
+
+# DIGIBYTE NODE:
+DGB_INSTALL_LOCATION=\$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
+DGB_CONF_FILE=\$DGB_DATA_FOLDER/digibyte.conf
+
+# DIGIASSETS NODE:
+DGA_INSTALL_FOLDER=\$HOME/digiasset_node
+DGA_CONFIG_FILE=\$DGA_INSTALL_FOLDER/_config/main.json
+
+# DIGINODE TOOLS:
+DGN_SCRIPTS_FOLDER=\$HOME/diginode
+DGN_INSTALL_LOG=\$DGN_SETTINGS_FOLDER/install.log
+
+# This is the URLs where the script is hosted
+DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
+DGN_INSTALLER_OFFICIAL_CMD="curl \$DGN_INSTALLER_OFFICIAL_URL | bash"
+DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
+DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGN_INSTALLER_URL=\$DGN_INSTALLER_GITHUB_DEV_URL
+
+# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
+DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+
+
+# Setup timer variables
+savedtime15sec=
+savedtime1min=
+savedtime15min=
+savedtime1day=
+savedtime1week=
+
+# store diginode installation details
+official_install=
+install_date=
+update_date=
+statusmonitor_last_run=
+dams_first_run=
+
+Store IP addresses to ensure they are only rechecked once every 15 minute.
+externalip=
+internalip=
+
+# Store number of available system updates so the script only checks once every 24 hours.
+system_updates=
+security_updates=
+
+Store local version numbers so the local node is not hammered with requests every second.
+dgb_ver_local=
+dga_ver_local=
+ipfs_ver_local=
+
+# Store software release version numbers in settings file so Github only needs to be queried once a day.
+dgb_ver_github=
+dga_ver_github=
+dnt_ver_github=
+
+# Store when an open port test last ran.
+ipfs_port_test_status=
+ipfs_port_test_date=
+dgb_port_test_status=
+dgb_port_test_date=
+EOF
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# The settings file exists, so source it
+str="Importing diginode.settings file..."
+printf "\\n%b %s" "${INFO}" "${str}"
+source $DGN_SETTINGS_FILE
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+}
+
+
 
 # These are only set after the intitial OS check since they cause an error on MacOS
 set_mem_variables() {
@@ -1217,20 +1322,21 @@ main() {
     # Check if SELinux is Enforcing
     checkSelinux
 
-    # If the setup variable file exists,
-    if [[ -f "${setupVars}" ]]; then
-        # if it's running unattended,
-        if [[ "${runUnattended}" == true ]]; then
-            printf "%b Performing unattended setup, no whiptail dialogs will be displayed\\n" "${INFO}"
-            # Use the setup variables
-            useUpdateVars=true
-            # also disable debconf-apt-progress dialogs
-            export DEBIAN_FRONTEND="noninteractive"
-        else
-            # If running attended, show the available options (repair/reconfigure)
-            update_dialogs
-        fi
+    # Import diginode.settings file because it contains variables we need for the install
+    import_diginode_settings
+
+    # if it's running unattended,
+    if [[ "${runUnattended}" == true ]]; then
+        printf "%b Performing unattended setup, no whiptail dialogs will be displayed\\n" "${INFO}"
+        # Use the setup variables
+        useUpdateVars=true
+        # also disable debconf-apt-progress dialogs
+        export DEBIAN_FRONTEND="noninteractive"
+    else
+        # If running attended, show the available options (repair/reconfigure)
+        update_dialogs
     fi
+
 
     if [[ "${useUpdateVars}" == false ]]; then
 
