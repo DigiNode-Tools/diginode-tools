@@ -38,17 +38,13 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
 DGN_SETTINGS_FOLDER=$HOME/.diginode
-DGN_SETTINGS_FILE=$HOME/.diginode
+DGN_SETTINGS_FILE=$DGN_SETTINGS_FOLDER/diginode.settings
 
-# Don't set this if sourcing from digimon.sh - it has its own VERBOSE_MODE setting
+# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    # Set this to YES to get more verbose feedback. Very useful for debugging.
+    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
     VERBOSE_MODE="YES"
 fi
-
-
-# File and Folder locations. These variables are used thoughout the DigiNode Installer and Status Monitor.
-# Changes made here will update everywhere else.
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -69,13 +65,11 @@ c=70
 # The runUnattended flag is one example of this
 reconfigure=false
 runUnattended=false
-Pi4_8GB_unnattended=true
 # Check arguments for the undocumented flags
 for var in "$@"; do
     case "$var" in
         "--reconfigure" ) reconfigure=true;;
         "--unattended" ) runUnattended=true;;
-        "--pi4-8gb-unattended" ) Pi4_8GB_unnattended=false;;
     esac
 done
 
@@ -84,6 +78,7 @@ done
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
+COL_LIGHT_BLUE='\e[0;94m'
 COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
@@ -278,13 +273,13 @@ echo -e "${txtblu}
        ƊƊƊƊƊƊƊ    ƊƊ   *ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
             ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
-                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}       ____   _         _   _   __            __     ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}      / __ \ (_)____ _ (_) / | / /____   ____/ /___  ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}     / / / // // __ '// / /  |/ // __ \ / __  // _ \ ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${COL_NC}"
-echo -e "${COL_BOLD_WHITE}              /____/                                 ${COL_NC}"
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txt_rst}${txtbld}"
+       ____   _         _   _   __            __             "
+      / __ \ (_)____ _ (_) / | / /____   ____/ /___  
+     / / / // // __ '// / /  |/ // __ \ / __  // _ \
+    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/
+   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/
+              /____/                                 ${txtrst}"
 echo    ""
 sleep 0.5
 }
@@ -355,7 +350,7 @@ sys_check() {
 
     if [ $is_linux = "no" ]; then 
         printf "\\n"
-        printf "%b %bERROR: Unsupported OS%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: $OSTYPE is unsupported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Installer requires a 64-bit linux OS (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
         printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
@@ -1312,9 +1307,6 @@ main() {
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
-    # Check swap requirements
-    swap_check
-
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
@@ -1324,6 +1316,9 @@ main() {
 
     # Import diginode.settings file because it contains variables we need for the install
     import_diginode_settings
+
+    # Check swap requirements
+    swap_check
 
     # if it's running unattended,
     if [[ "${runUnattended}" == true ]]; then
