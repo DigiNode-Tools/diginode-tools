@@ -358,7 +358,7 @@ sys_check() {
     if [ $is_linux = "no" ]; then 
         printf "\\n"
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b DigiNode Installer requires a 64-bit linux OS (aarch64 or X86_64)\\n" "${INDENT}"
+        printf "%b DigiNode Installer requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
         printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
         printf "%b know the OS type: $OSTYPE\\n" "${INDENT}"
@@ -404,15 +404,15 @@ sys_check() {
 
 
         if [[ "$is_64bit" == "no32" ]]; then
-            printf "%b %bERROR: Unsupported 32-bit OS%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
+            printf "%b %bERROR: 32-bit OS detected - 64-bit required%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b DigiNode Installer requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
-            printf "%b %bERROR: System architecture is unrecognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
