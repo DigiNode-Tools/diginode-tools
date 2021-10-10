@@ -23,7 +23,7 @@ set -e
 # When using "su" an incomplete PATH could be passed.
 export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
-######## VARIABLES #########
+######## VARIABLES START HERE #########
 # For better maintainability, we store as much information that can change in variables
 # This allows us to make a change in one place that can propagate to all instances of the variable
 # These variables should all be GLOBAL variables, written in CAPS
@@ -40,11 +40,27 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 DGN_SETTINGS_FOLDER=$HOME/.diginode
 DGN_SETTINGS_FILE=$DGN_SETTINGS_FOLDER/diginode.settings
 
+# This is the URLs where the install script is hosted
+DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
+DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
+DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGN_INSTALLER_URL=\$DGN_INSTALLER_GITHUB_DEV_URL
+
+# These are the commands that the use pastes into the terminal to run the installer
+DGN_INSTALLER_OFFICIAL_CMD="curl \$DGN_INSTALLER_OFFICIAL_URL | bash"
+
+# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
+DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+
 # THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
     VERBOSE_MODE="YES"
 fi
+
+######## VARIABLES END HERE #########
+# -----------------------------------------------------------------------------------------------------
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -137,7 +153,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
     mkdir $DGN_SETTINGS_FOLDER
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
   fi
-  
+
   # create diginode.settings file
   str="Creating diginode.settings file..."
   printf "\\n%b %s" "${INFO}" "${str}"
@@ -160,17 +176,6 @@ DGA_CONFIG_FILE=\$DGA_INSTALL_FOLDER/_config/main.json
 # DIGINODE TOOLS:
 DGN_SCRIPTS_FOLDER=\$HOME/diginode
 DGN_INSTALL_LOG=\$DGN_SETTINGS_FOLDER/install.log
-
-# This is the URLs where the script is hosted
-DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
-DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGN_INSTALLER_OFFICIAL_CMD="curl \$DGN_INSTALLER_OFFICIAL_URL | bash"
-DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
-DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
-DGN_INSTALLER_URL=\$DGN_INSTALLER_GITHUB_DEV_URL
-
-# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
-DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
 
 # Setup timer variables
