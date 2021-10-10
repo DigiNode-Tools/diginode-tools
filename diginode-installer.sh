@@ -10,7 +10,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 8 2021 5:01pm GMT
+# Updated: October 10 2021 6:01pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -165,17 +165,18 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 # DEFAULT FOLDER AND FILE LOCATIONS
 # If you want to change the default location of folders you can edit them here
 
+# DIGINODE TOOLS:
+DGN_SCRIPTS_FOLDER=\$HOME/diginode
+DGN_INSTALL_LOG=\$DGN_SETTINGS_FOLDER/install.log
+
 # DIGIBYTE NODE:
 DGB_INSTALL_LOCATION=\$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
+DGB_DATA_FODLER=\$DGB_DATA_FOLDER/digibyte.conf
 DGB_CONF_FILE=\$DGB_DATA_FOLDER/digibyte.conf
 
 # DIGIASSETS NODE:
 DGA_INSTALL_FOLDER=\$HOME/digiasset_node
 DGA_CONFIG_FILE=\$DGA_INSTALL_FOLDER/_config/main.json
-
-# DIGINODE TOOLS:
-DGN_SCRIPTS_FOLDER=\$HOME/diginode
-DGN_INSTALL_LOG=\$DGN_SETTINGS_FOLDER/install.log
 
 
 # Setup timer variables
