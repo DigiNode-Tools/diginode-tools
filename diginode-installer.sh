@@ -127,9 +127,9 @@ import_diginode_settings() {
 
 local str
 
-if test -f $DGN_SETTINGS_FILE; then
-  # It exists, so no need to create it
-else
+# check if diginode.settings file exists
+if [ ! -f "$DGN_SETTINGS_FILE" ]; then
+
   # create .diginode settings folder if it does not exist
   if [ ! -d "$DGN_SETTINGS_FOLDER" ]; then
     str="Creating .diginode settings folder..."
@@ -137,6 +137,7 @@ else
     mkdir $DGN_SETTINGS_FOLDER
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
   fi
+  
   # create diginode.settings file
   str="Creating diginode.settings file..."
   printf "\\n%b %s" "${INFO}" "${str}"
