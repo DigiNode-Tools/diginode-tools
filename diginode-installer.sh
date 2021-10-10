@@ -19,6 +19,9 @@
 # instead of continuing the installation with something broken
 set -e
 
+# Play an error beep if it exits with an error
+trap error_beep exit 1
+
 # Append common folders to the PATH to ensure that all basic commands are available.
 # When using "su" an incomplete PATH could be passed.
 export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -596,14 +599,14 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_ssd_warning
+            rpi_check_microsd
         fi
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_ssd_warning
+            rpi_check_microsd
         fi
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -616,7 +619,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_ssd_warning
+            rpi_check_microsd
         fi
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -629,22 +632,20 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_ssd_warning
+            rpi_check_microsd
         fi
         
     elif [ "$pitype" = "piold" ]; then
-        printf "%b %bRaspberry Pi 2 (or older) Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Raspberry Pi 2 (or older) Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b %bERROR: This Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     elif [ "$pitype" = "pi" ]; then
         printf "\\n"
-        printf "%b %bUnknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b %bERROR: This Raspberry Pi model cannot be recognised%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
@@ -666,7 +667,7 @@ fi
 }
 
 # This will display a warning that the Pi must be booting from an SSD card not a microSD
-rpi_ssd_warning() {
+rpi_check_microsd() {
     # Only display this message if running this install script directly (not when running digimon.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
         printf "\\n"
@@ -1242,6 +1243,12 @@ donation_qrcode() {
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
 #####################################################################################################
+
+error_beep() {
+    echo -en "\007"
+    echo -en "\007"
+    echo -en "\007"    
+}
 
 main() {
 
