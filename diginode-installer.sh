@@ -45,10 +45,10 @@ DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record c
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
-DGN_INSTALLER_URL=\$DGN_INSTALLER_GITHUB_DEV_URL
+DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
 # These are the commands that the use pastes into the terminal to run the installer
-DGN_INSTALLER_OFFICIAL_CMD="curl \$DGN_INSTALLER_OFFICIAL_URL | bash"
+DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
