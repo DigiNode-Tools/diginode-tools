@@ -148,14 +148,14 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
   if [ ! -d "$DGN_SETTINGS_FOLDER" ]; then
-    str="Creating .diginode settings folder..."
+    str="Creating .diginode settings folder: $DGN_SETTINGS_FOLDER   "
     printf "\\n%b %s" "${INFO}" "${str}"
     mkdir $DGN_SETTINGS_FOLDER
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
   fi
 
   # create diginode.settings file
-  str="Creating diginode.settings file..."
+  str="Creating diginode.settings file... $DGN_SETTINGS_FILE   "
   printf "\\n%b %s" "${INFO}" "${str}"
   touch $DGN_SETTINGS_FILE
   cat <<EOF > $DGN_SETTINGS_FILE
@@ -221,7 +221,7 @@ printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
 # The settings file exists, so source it
-str="Importing diginode.settings file..."
+str="Importing diginode.settings file: $DGN_SETTINGS_FILE   "
 printf "\\n%b %s" "${INFO}" "${str}"
 source $DGN_SETTINGS_FILE
 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -279,13 +279,13 @@ echo -e "${txtblu}
        ƊƊƊƊƊƊƊ    ƊƊ   *ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
             ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
-                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txt_rst}${txtbld}
-       ____   _         _   _   __            __             
-      / __ \ (_)____ _ (_) / | / /____   ____/ /___  
-     / / / // // __ '// / /  |/ // __ \ / __  // _ \
-    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/
-   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/
-              /____/                                 ${txtrst}"
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txtrst}${txtbld}"
+echo -e "       ____   _         _   _   __            __     "             
+echo -e "      / __ \ (_)____ _ (_) / | / /____   ____/ /___  "
+echo -e "     / / / // // __ '// / /  |/ // __ \ / __  // _ \ "
+echo -e "    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ "
+echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  "
+echo -e "              /____/                                 ${txtrst}"
 echo    ""
 sleep 0.5
 }
@@ -356,7 +356,7 @@ sys_check() {
 
     if [ $is_linux = "no" ]; then 
         printf "\\n"
-        printf "%b %bERROR: $OSTYPE is unsupported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Installer requires a 64-bit linux OS (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
         printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
