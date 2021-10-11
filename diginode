@@ -12,14 +12,14 @@
 #
 #          cd ~
 #          git clone https://github.com/saltedlolly/diginode/
-#          chmod +x ~/diginode/digimon.sh
+#          chmod +x ~/diginode/diginode
 #
 #          To run:
 #
-#          ~/diginode/digimon.sh
+#          ~/diginode/diginode
 #
 #
-# Updated: October 8 2021 4:09pm GMT
+# Updated: October 11 2021 11:02pm GMT
 #
 # -------------------------------------------------------
 
@@ -117,12 +117,12 @@ get_script_location() {
     SOURCE="$(readlink "$SOURCE")"
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
-  DGN_SCRIPT_FOLDER_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_FOLDER_NOW/diginode-installer.sh
+  DGN_SCRIPT_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_LOCATION_NOW/diginode-installer.sh
 
   if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Monitor Script Location: $DGN_SCRIPT_FOLDER     [ VERBOSE MODE ]\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT     [ VERBOSE MODE ]\\n" "${INFO}"
+    printf "%b Monitor Script Location: $DGN_SCRIPT_LOCATION_NOW\\n" "${INFO}"
+    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT\\n" "${INFO}"
   fi
 }
 
@@ -134,7 +134,7 @@ import_installer_functions() {
     if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
         # source it
         if [ $VERBOSE_MODE = "YES" ]; then
-          printf "%b Importing functions from diginode-installer.sh     [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
           printf "\\n"
         fi
         source "$DGN_INSTALL_SCRIPT"
@@ -204,16 +204,16 @@ check_dgbnode() {
     printf "%b Checking DigiByte Node...\\n" "${INFO}"
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
-    if [ -h "$DGB_INSTALL_FOLDER" ]; then
+    if [ -h "$DGB_INSTALL_LOCATION" ]; then
       find_dgb_folder="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b digibyte symbolic link found in home folder.  [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b digibyte symbolic link found in home folder.\\n" "${TICK}"
       fi
     else
-      if [ -e "$DGB_INSTALL_FOLDER" ]; then
+      if [ -e "$DGB_INSTALL_LOCATION" ]; then
       find_dgb_folder="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b digibyte folder found in home folder. [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b digibyte folder found in home folder.\\n" "${TICK}"
       fi
       else
         printf "\\n"
@@ -234,10 +234,10 @@ check_dgbnode() {
 
     # Check if digibyted is installed
 
-    if [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" -a -f "$DGB_INSTALL_FOLDER/bin/digibyte-cli" ]; then
+    if [ -f "$DGB_INSTALL_LOCATION/bin/digibyted" -a -f "$DGB_INSTALL_LOCATION/bin/digibyte-cli" ]; then
       find_dgb_binaries="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b Digibyte Core Binaries located:   ${TICK} digibyted   ${TICK} digibyte-cli   [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b Digibyte Core Binaries located:   ${TICK} digibyted   ${TICK} digibyte-cli\\n" "${TICK}"
       fi
     else
         printf "\\n"
@@ -260,7 +260,7 @@ check_dgbnode() {
     if [ -f "/etc/systemd/system/digibyted.service" ]; then
       find_dgb_service="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b DigiByte daemon service file is installed   [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b DigiByte daemon service file is installed\\n" "${TICK}"
       fi
     else
         printf "  %b DigiByte daemon service file is NOT installed\\n" "${CROSS}"
@@ -271,16 +271,17 @@ check_dgbnode() {
         printf "  %b to run 'digibyted', please, rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
         printf "  %b so that this script can find it.\\n" "${INDENT}"
         printf "\\n"
-        printf "  %b If you wish to setup you DigiByte Node as a service, please use the DigiNode Installer.\\n" "${INDENT}"
+        printf "  %b If you wish to setup your DigiByte Node as a service, please use the DigiNode Installer.\\n" "${INDENT}"
         printf "\\n"
+        local dgb_service_warning="yes"
     fi
 
     # Check for .digibyte data directory
 
-    if [ -d "$DGB_DATA_FOLDER" ]; then
-      find_dgb_data_folder="yes"
+    if [ -d "$DGB_SETTINGS_LOCATION" ]; then
+      find_dgb_settings_folder="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b .digibyte data folder located   [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b .digibyte settings folder located\\n" "${TICK}"
       fi
     else
         printf "\\n"
@@ -298,9 +299,9 @@ check_dgbnode() {
     if [ -f "$DGB_CONF_FILE" ]; then
       find_dgb_conf_file="yes"
       if [ "$VERBOSE_MODE" = "YES" ]; then
-          printf "  %b digibyte.conf file located   [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b digibyte.conf file located\\n" "${TICK}"
            # Load digibyte.conf file to get variables
-          printf "  %b Importing digibyte.conf   [ VERBOSE MODE ]\\n" "${TICK}"
+          printf "  %b Importing digibyte.conf\\n" "${TICK}"
           source "$DGB_CONF_FILE"
       fi
     else
@@ -311,21 +312,58 @@ check_dgbnode() {
         printf "  %b The expected location is here: $DGB_CONF_FILE\\n" "${INDENT}"
         printf "\\n"
         exit 1
+    fi
 
+    # Run checks to see DigiByte Core is running
 
-
-    # Check if digibyted service is running. Exit if it isn't.
-       if [ $(systemctl is-active digibyted) = 'active' ]; then
-      echo "$TICK DigiByte daemon service is running."
-      digibyted_status="running"
+    # Check if digibyte daemon is running as a service.
+    if [ $(systemctl is-active digibyted) = 'active' ]; then
+       if [ "$VERBOSE_MODE" = "YES" ]; then
+          printf "%b DigiByte daemon is running as a service\\n" "${TICK}"
+       fi
+       digibyted_status="running"
     else
-      echo "$CROSS Digibyte daemon service is NOT running."
-      digibyted_status="stopped"
-      echo ""
-      echo "[!] Unable to continue - please start the DigiByte daemon service:"
-      echo "    sudo systemctl start digibyted"
-      echo ""
-      exit
+      # Check if digibyted is running (but not as a service).
+      if [ "" = "$(ps aux | grep digibyted)" ]; then
+          if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "%b DigiByte daemon is running\\n" "${TICK}"
+            # Don't display service warning mesage if it has already been shown above
+            if [ "$dgb_service_warning" = "YES" ]; then
+              printf "\\n"
+              printf "  %b %bWARNING: digibyted is not currently running as a service%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+              printf "  %b DigiNode Installer can help you to setup digibyted to run as a service.\\n" "${INDENT}"
+              printf "  %b This ensures that your DigiByte Node starts automatically at boot and\\n" "${INDENT}"
+              printf "  %b will restart automatically if it crashes for some reason. This is the preferred\\n" "${INDENT}"
+              printf "  %b way to run a DigiByte Node and helps to ensure it is kept running 24/7.\\n" "${INDENT}"
+              printf "\\n"
+            fi
+          fi
+          digibyted_status="running"
+      else
+        # Finally, check if digibyte-qt
+        if [ "" = "$(ps aux | grep digibyte-qt)" ]; then
+            if [ "$VERBOSE_MODE" = "YES" ]; then
+              printf "%b digibyte-qt is running\\n" "${TICK}"
+            fi
+            digibyted_status="running"
+        # Exit if digibyted is not running
+        else
+          printf "\\n"
+          printf "  %b %bERROR: DigiByte daemon is not running.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "  %b DigiNode Status Monitor cannot start as your DigiByte Node is not currently running.\\n" "${INDENT}"
+          printf "  %b Please start digibyted and then relaunch the status monitor.\\n" "${INDENT}"
+          printf "  %b DigiNode Installer can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
+          printf "  %b so that it launches automatically at boot.\\n" "${INDENT}"
+          printf "\\n"
+          exit 1
+        fi
+      fi
+    fi
+
+    # Display message if the DigiByte Node is running okay
+
+    if [ "$find_dgb_folder" = "YES" ] && [ "$find_dgb_binaries" = "YES" ] && [ "$find_dgb_settings_folder" = "YES" ] && [ "$find_dgb_conf_file" = "YES" ] && [ "$digibyted_status" = "running" ]; then
+        printf "  %b %bDigiByte Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
 
@@ -566,10 +604,10 @@ is_dganode_installed() {
 # Load the diginode.settings file if it exists. Create it if it doesn't. 
 load_diginode_settings() {
     # Get saved variables from diginode.settings. Create settings file if it does not exist.
-    if test -f $HOME/.digibyte/diginode.settings; then
+    if test -f $DGN_SETTINGS_FILE; then
       # import saved variables from settings file
       echo "[i] Importing diginode.settings file..."
-      source $HOME/.digibyte/diginode.settings
+      source $DGN_SETTINGS_FILE
     else
       # create diginode.settings file
       create_diginode_settings
@@ -648,12 +686,24 @@ quit_message() {
    if [ "$update_available" = "yes" ]; then
 
       # Install updates now
-      echo "Installing uopdates!"
+      clear -x
+      printf "%b Updates are available for your DigiNode.\\n" "${INFO}"
+      printf "\\n"
+      read -p "Would you like to install them now? (Y/N)" -n 1 -r
 
-    donation_qrcode
+      if [[ $REPLY =~ ^[Yy]$ ]]
+      then
+      echo
+      printf "%b Installing updates...\\n" "${INFO}"
+      
+
+      fi
+      printf "\\n"
+      donation_qrcode
+      printf "\\n"
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available = ""; ] then
+  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available = "" ]; then
       echo ""
       donation_qrcode
       DONATION_PLEA="no"
@@ -662,19 +712,21 @@ quit_message() {
 }
 
 
-## PERFROM STARTUP CHECKS
+## PERFORM STARTUP CHECKS
 startup() {
   
   digimon_title_box          # Clear screen and display title box
   digimon_disclaimer         # Display disclaimer warning during development. Pause for confirmation.
   get_script_location        # Find which folder this script is running in
   import_installer_functions # Import diginode-instaler.sh because it contains functions we need
-  import_diginode_settings   # Import diginode-instaler.sh because it contains functions we need
-  set_mem_variables          # Set the memory variables once we know we are on linux (these are stored in a function in the installer)
-  diginode_logo              # Clear screen and display title box (again)
+  import_diginode_settings   # Import or create diginode.settings file
+  diginode_logo              # Display DigiNode logo
+  verbose_mode               # Display a message if Verbose Mode is enabled
   sys_check                  # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                  # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+  set_sys_variables          # Set the memory variables once we know we are on linux (these are stored in a function in the installer)
   swap_check                 # if this system has 4Gb or less RAM, check there is a swap drive
+  install_diginode_tools     # install or upgrade the DigiNode tools scripts
   check_official             # check if this is an official install
   is_dgbnode_installed       # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
   get_rpc_credentials        # Get the RPC username and password from config file. Warn if not present.
@@ -778,7 +830,7 @@ load_diginode_settings() {
 if test -f $HOME/.digibyte/diginode.settings; then
   # import saved variables from settings file
   echo "[i] Importing diginode.settings file..."
-  source $HOME/.digibyte/diginode.settings
+  source $DGN_SETTINGS_FILE
 else
   # create diginode.settings file
   create_diginode_settings
@@ -796,39 +848,39 @@ if [ $statusmonitor_last_run="" ]; then
 
     # update external IP address and save to settings file
     externalip=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    sed -i -e "/^externalip=/s|.*|externalip=\"$externalip\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^externalip=/s|.*|externalip=\"$externalip\"|" $DGN_SETTINGS_FILE
 
     # update internal IP address and save to settings file
     internalip=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
-    sed -i -e "/^internalip=/s|.*|internalip=\"$internalip\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^internalip=/s|.*|internalip=\"$internalip\"|" $DGN_SETTINGS_FILE
 
     echo "    Storing timer variables in settings file..."
 
     # set 15 sec timer and save to settings file
     savedtime15sec="$(date)"
-    sed -i -e "/^savedtime15sec=/s|.*|savedtime15sec=\"$(date)\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^savedtime15sec=/s|.*|savedtime15sec=\"$(date)\"|" $DGN_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
     savedtime1min="$(date)"
-    sed -i -e "/^savedtime1min=/s|.*|savedtime1min=\"$(date)\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^savedtime1min=/s|.*|savedtime1min=\"$(date)\"|" $DGN_SETTINGS_FILE
 
     # set 15 min timer and save to settings file
     savedtime15min="$(date)"
-    sed -i -e "/^savedtime15min=/s|.*|savedtime15min=\"$(date)\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^savedtime15min=/s|.*|savedtime15min=\"$(date)\"|" $DGN_SETTINGS_FILE
 
     # set daily timer and save to settings file
     savedtime1day="$(date)"
-    sed -i -e "/^savedtime1day=/s|.*|savedtime1day=\"$(date)\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^savedtime1day=/s|.*|savedtime1day=\"$(date)\"|" $DGN_SETTINGS_FILE
 
     # set weekly timer and save to settings file
     savedtime1week="$(date)"
-    sed -i -e "/^savedtime1week=/s|.*|savedtime1week=\"$(date)\"|" $HOME/.digibyte/diginode.settings
+    sed -i -e "/^savedtime1week=/s|.*|savedtime1week=\"$(date)\"|" $DGN_SETTINGS_FILE
 
     echo "    Storing DigiByte Core current version number in settings file..."  
 
     # check for current version number of DigiByte Core and save to settings file
     dgb_ver_local=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-    sed -i -e "/^dgb_ver_local=/s|.*|dgb_ver_local=\"$dgb_ver_local\"|" $HOME/.digibyte/diginode.settings 
+    sed -i -e "/^dgb_ver_local=/s|.*|dgb_ver_local=\"$dgb_ver_local\"|" $DGN_SETTINGS_FILE
     echo "    Detected: DigiByte Core v$dgb_ver_local" 
 
 
@@ -836,9 +888,9 @@ if [ $statusmonitor_last_run="" ]; then
     if [ $dga_status = "running" ]; then
       echo "    Storing DigiAsset Metadata Server version number in settings file..."
       dga_ver_local=$(curl localhost:8090/api/version/list.json)
-      sed -i -e '/^dga_ver_local=/s|.*|dga_ver_local="$(date)"|' $HOME/.digibyte/diginode.settings
+      sed -i -e '/^dga_ver_local=/s|.*|dga_ver_local="$(date)"|' $DGN_SETTINGS_FILE
       ipfs_ver_local=$(ipfs version | cut -d ' ' -f 3)
-      sed -i -e '/^ipfs_ver_local=/s|.*|ipfs_ver_local="$ipfs_ver_local"|' $HOME/.digibyte/diginode.settings
+      sed -i -e '/^ipfs_ver_local=/s|.*|ipfs_ver_local="$ipfs_ver_local"|' $DGN_SETTINGS_FILE
     fi
 fi
 
@@ -848,11 +900,11 @@ if [ $dga_status = "running" ] && [ $dams_first_run = ""  ]; then
     echo "[i] First time running DigiAsset Metadata Server - performing initial setup."
     echo "    Storing DigiAsset Metadata Server version number in settings file..."
     dga_ver_local=$(curl localhost:8090/api/version/list.json)
-    sed -i -e '/^dga_ver_local=/s|.*|dga_ver_local="$(date)"|' $HOME/.digibyte/diginode.settings
+    sed -i -e '/^dga_ver_local=/s|.*|dga_ver_local="$(date)"|' $DGN_SETTINGS_FILE
     ipfs_ver_local=$(ipfs version | cut -d ' ' -f 3)
-    sed -i -e '/^ipfs_ver_local=/s|.*|ipfs_ver_local="$(date)"|' $HOME/.digibyte/diginode.settings
+    sed -i -e '/^ipfs_ver_local=/s|.*|ipfs_ver_local="$(date)"|' $DGN_SETTINGS_FILE
     dams_first_run=$(date)
-    sed -i -e '/^dams_first_run=/s|.*|dams_first_run="$(date)"|' $HOME/.digibyte/diginode.settings
+    sed -i -e '/^dams_first_run=/s|.*|dams_first_run="$(date)"|' $DGN_SETTINGS_FILE
 fi
 
 
@@ -894,12 +946,14 @@ do
 # Optional loop counter - useful for debugging
 # echo "Loop Count: $loopcounter"
 
-# Exit status monitor if it is left running for more than 12 hours
-if [ $loopcounter -gt 43200 ]; then
-    echo ""
-    echo "DigiNode Status Monitor quit automatically as it was left running for more than 12 hours."
-    echo ""
-    exit
+# Quit status monitor automatically based on the time set in diginode.settings
+if [ $SM_AUTO_QUIT -gt 0 ]; then
+  if [ $loopcounter -gt 43200 ]; then
+      echo ""
+      echo "DigiNode Status Monitor quit automatically as it was left running for more than 12 hours."
+      echo ""
+      exit
+  fi
 fi
 
 # Display the quit message on exit
@@ -1059,7 +1113,7 @@ timedif1min=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedt
 
     # Update local IP address if it has changed
     internalip=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
-    sed -i -e '/^internalip=/s|.*|internalip="$internalip"|' $HOME/.digibyte/diginode.settings
+    sed -i -e '/^internalip=/s|.*|internalip="$internalip"|' $DGN_SETTINGS_FILE
 
     savedtime1min="$timenow"
 fi
@@ -1076,7 +1130,7 @@ if [ $timedif15min -gt 300 ]; then
 
     # update external IP if it has changed
     externalip=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    sed -i -e '/^externalip=/s|.*|externalip="$externalip"|' $HOME/.digibyte/diginode.settings
+    sed -i -e '/^externalip=/s|.*|externalip="$externalip"|' $DGN_SETTINGS_FILE
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
     if [ $dga_status = "running" ]; then
@@ -1108,7 +1162,7 @@ if [ $timedif24hrs -gt 86400 ]; then
 
     # check for system updates
     IFS=';' read updates security_updates < <(/usr/lib/update-notifier/apt-check 2>&1)
-        sed -i -e '/^savedtime15sec=/s|.*|savedtime15sec="$(date)"|; $HOME/.digibyte/diginode.settings
+        sed -i -e '/^savedtime15sec=/s|.*|savedtime15sec="$(date)"|; $DGN_SETTINGS_FILE
 
 
     # Check for new release of DigiByte Core on Github
@@ -1132,15 +1186,14 @@ fi
 # Double buffer output to reduce display flickering
 # (output=$(clear -x;
 
+echo -e "${txtbld}"
+echo -e "       ____   _         _   _   __            __     "             
+echo -e "      / __ \ (_)____ _ (_) / | / /____   ____/ /___  ${txtrst}╔═════════╗${txtbld}"
+echo -e "     / / / // // __ '// / /  |/ // __ \ / __  // _ \ ${txtrst}║ STATUS  ║${txtbld}"
+echo -e "    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ ${txtrst}║ MONITOR ║${txtbld}"
+echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${txtrst}╚═════════╝${txtbld}"
+echo -e "              /____/                                 ${txtrst}"                         
 echo '
-        ____   _         _  _   __            __    
-       / __ \ (_)____ _ (_)/ | / /____   ____/ /___    ╔═════════╗
-      / / / // // __ `// //  |/ // __ \ / __  // _ \   ║ STATUS  ║
-     / /_/ // // /_/ // // /|  // /_/ // /_/ //  __/   ║ MONITOR ║
-    /_____//_/ \__, //_//_/ |_/ \____/ \__,_/ \___/    ╚═════════╝ 
-              /____/                               
-                       Monitor your DigiByte & DigiAssets Node 
-
  ╔═══════════════╦════════════════════════════════════════════════════╗'
 if [ $digibyted_status = 'running' ]; then # Only display if digibyted is running
   printf " ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$connections Nodes" "[ $connectionsmsg" "]  ║"

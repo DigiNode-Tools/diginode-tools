@@ -2,7 +2,8 @@
 #
 # Name:    DigiNode Installer
 # Purpose: Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
-#          Script has initially been designed to support the Raspberry Pi 4 4Gb & 8Gb models.
+#          Script supports most Linux servers and the Raspberry Pi 3 and later.
+#          A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
 # Author:  Olly Stedall @saltedlolly
 #
@@ -10,7 +11,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 10 2021 6:01pm GMT
+# Updated: October 11 2021 11:02pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -34,26 +35,28 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Installer and Status Monitor scripts make use of a setting file
-# located at ~/.diginode/diginode.settings
-# It want to make changes to folder locations, please edit this file.
-# e.g. To move you data file to an external drive.
+# located at ~/.digibyte/diginode.settings
+# If you want to change the default folder locations, please edit this file.
+# (e.g. To move your DigiByte Core data file to an external drive.)
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-DGN_SETTINGS_FOLDER=$HOME/.diginode
-DGN_SETTINGS_FILE=$DGN_SETTINGS_FOLDER/diginode.settings
+DGN_SETTINGS_LOCATION=$HOME/.digibyte       
+DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings    
 
-# This is the URLs where the install script is hosted
+# This is the URLs where the install script is hosted. This is used primarily for testing.
 DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+
+# CHANGE THIS VARIABLE TO USE A DIFERENT INSTALL LOCATION (THIS SHOULD USE THE OFFICIAL URL IN RELEASE VERSIONS)
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
 # These are the commands that the use pastes into the terminal to run the installer
 DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 
-# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest versions of the relevant files.
+# We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
 # THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
@@ -61,9 +64,6 @@ if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
     VERBOSE_MODE="YES"
 fi
-
-######## VARIABLES END HERE #########
-# -----------------------------------------------------------------------------------------------------
 
 # Store user in variable
 if [ -z "${USER}" ]; then
@@ -84,14 +84,15 @@ c=70
 # The runUnattended flag is one example of this
 reconfigure=false
 runUnattended=false
+DGN_TOOLS_BRANCH="release"
 # Check arguments for the undocumented flags
 for var in "$@"; do
     case "$var" in
         "--reconfigure" ) reconfigure=true;;
         "--unattended" ) runUnattended=true;;
+        "--dgn_dev_branch" ) DGN_TOOLS_BRANCH="develop";; # This will install the development branch of DigiNode Tools
     esac
 done
-
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -139,7 +140,13 @@ txtbld=$(tput bold) # Set bold mode
 ### FUNCTIONS
 #####################################################################################################
 
-
+# Inform user if Verbose Mode is enabled
+verbose_mode() {
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    fi
+}
 
 # Load variables from diginode.settings file. Create the file first if it does not exit.
 import_diginode_settings() {
@@ -150,17 +157,17 @@ local str
 if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
-  if [ ! -d "$DGN_SETTINGS_FOLDER" ]; then
-    str="Creating .diginode settings folder: $DGN_SETTINGS_FOLDER   "
+  if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
+    str="Creating .diginode settings folder: $DGN_SETTINGS_LOCATION   "
     printf "\\n%b %s" "${INFO}" "${str}"
-    mkdir $DGN_SETTINGS_FOLDER
+    mkdir $DGN_SETTINGS_LOCATION
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
   fi
 
   # create diginode.settings file
   str="Creating diginode.settings file... $DGN_SETTINGS_FILE   "
-  printf "\\n%b %s" "${INFO}" "${str}"
-  touch $DGN_SETTINGS_FILE
+  printf "%b %s" "${INFO}" "${str}"
+  touch $DGN_SETTINGS_LOCATION
   cat <<EOF > $DGN_SETTINGS_FILE
 #!/bin/bash
 # This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
@@ -169,18 +176,28 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 # If you want to change the default location of folders you can edit them here
 
 # DIGINODE TOOLS:
-DGN_SCRIPTS_FOLDER=\$HOME/diginode
-DGN_INSTALL_LOG=\$DGN_SETTINGS_FOLDER/install.log
+ # This is the default location where the scripts get installed to. There should be no need to change this.
+DGN_INSTALL_LOCATION=\$HOME/diginode              
+DGN_INSTALL_LOG=\$DGN_SETTINGS_LOCATION/diginode.log
+DGN_MONITOR_SCRIPT=\$DGN_INSTALL_LOCATION/diginode
+DGN_INSTALLER_SCRIPT=\$DGN_INSTALL_LOCATION/diginode-installer.sh
 
 # DIGIBYTE NODE:
-DGB_INSTALL_LOCATION=\$HOME/digibyte/       # Typically this is a symbolic link that points at the actual install folder
-DGB_DATA_FODLER=\$DGB_DATA_FOLDER/digibyte.conf
-DGB_CONF_FILE=\$DGB_DATA_FOLDER/digibyte.conf
+# Typically this is a symbolic link that points at the actual install folder:
+DGB_INSTALL_LOCATION=\$HOME/digibyte/
+# Do not change this:             
+DGB_SETTINGS_LOCATION=\$HOME/.digibyte/           
+DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf 
 
 # DIGIASSETS NODE:
-DGA_INSTALL_FOLDER=\$HOME/digiasset_node
-DGA_CONFIG_FILE=\$DGA_INSTALL_FOLDER/_config/main.json
+DGA_INSTALL_LOCATION=\$HOME/digiasset_node
+DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
+# THese are updated automatically every time DigiNode Tools is installed/upgraded. Don not change these manually.
+# Stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
+DGN_TOOLS_LOCAL_BRANCH=
+# Stores the version number of the 'release' branch (if currently installed)
+DGN_TOOLS_LOCAL_RELEASE_VER=
 
 # Setup timer variables
 savedtime15sec=
@@ -219,14 +236,45 @@ ipfs_port_test_status=
 ipfs_port_test_date=
 dgb_port_test_status=
 dgb_port_test_date=
+
+# Stop status monitor automatically if left running
+# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
+# e.g. To stop after 12 hours enter: 43200
+SM_AUTO_QUIT=43200
+
+
+#####################################
+####### UNATTENDED INSTALL ##########
+#####################################
+
+# These variables are used during an unnatended install to automatically configure your device
+
+# You can change this to store your DigiByte data on another drive
+DGB_DATA_LOCATION=\$HOME/.digibyte/
+
+# Choose whether to change the hostname to 'diginode' (Set to YES/NO) [NOT WORKING YET]
+UI_SET_HOSTNAME="YES"
+
+# Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
+UI_SETUP_FIREWALL="YES"
+
+# Choose whether to change the hostname to 'diginode' [NOT WORKING YET]
+UI_SETUP_SWAP="YES"
+
+# Choose whether to setup tor [NOT WORKING YET]
+UI_SETUP_TOR="YES"                     
+
 EOF
 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 fi
 
+# Sets a variable to know that the diginode.settings file has been created for the first time
+IS_DGN_SETTINGS_FILE_NEW="YES"
+
 # The settings file exists, so source it
 str="Importing diginode.settings file: $DGN_SETTINGS_FILE   "
-printf "\\n%b %s" "${INFO}" "${str}"
+printf "%b %s" "${INFO}" "${str}"
 source $DGN_SETTINGS_FILE
 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -235,7 +283,14 @@ printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
 # These are only set after the intitial OS check since they cause an error on MacOS
-set_mem_variables() {
+set_sys_variables() {
+
+    local str
+
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        str="Lookup RAM and swap file size..."
+        printf "%b %s" "${INFO}" "${str}"
+    fi
 
     # Store total system RAM as variables
     RAMTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
@@ -244,6 +299,233 @@ set_mem_variables() {
     # Store current total swap file size as variables
     SWAPTOTAL_KB=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
+
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        str="Lookup drive size..."
+        printf "%b %s" "${INFO}" "${str}"
+    fi
+
+    # Store system totals in variables
+    echo "[i] Looking up system RAM and disk space."
+    DISKTOTAL=$(df /dev/sda2 -h --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    ramtotal=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2 | sed 's/.$//')
+
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+}
+
+# Create digibyte.config file if it does not already exist
+create_digibyte_conf() {
+
+   # Set max connections to higher if running a dedicated server (Default: 125)
+    local set_maxconnections
+    set_maxconnections=300
+
+    # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
+    # Initial sync times are significantly faster with a larger dbcache.
+    local set_dbcache
+    if [ $RAMTOTAL_KB -ge "7340032" ]; then
+        set_dbcache=2048
+    else
+        set_dbcache=450
+    fi
+
+    # generate a random rpc password
+    local set_rpcpassword
+    echo "$INFO Generating random RPC password"
+    set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+
+    # create .digibyte settings folder if it does not already exist
+    if [ ! -d $DGB_SETTINGS_FOLDER ]; then
+        printf "%b Creating ~/.digibyte folder" "${INFO}"
+        mkdir $DGB_SETTINGS_FOLDER
+    fi
+
+    # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
+    if test -f "$DGB_CONF_FILE"; then
+        # Import variables from diginode.conf settings file
+        echo "$INFO Retrieving diginode.settings file"
+        source $DGB_CONF_FILE
+
+        echo "$INFO Verifying existing digibyte.conf settings"
+        
+
+        #Update daemon variable in settings if it exists and is blank, otherwise append it
+        if grep -q "daemon=" $DGB_CONF_FILE; then
+            if [ "$daemon" = "" ] || [ "$daemon" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: daemon=1"
+                sed -i -e "/^daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: daemon=1"
+            echo "daemon=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update dbcache variable in settings file, otherwise append it
+        if grep -q "dbcache=" $DGB_CONF_FILE; then
+            if [ "$dbcache" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+            echo "dbcache=$set_dbcache" >> $DGB_CONF_FILE
+        fi
+
+        #Update maxconnections variable in settings file, otherwise append it
+        if grep -q "maxconnections=" $DGB_CONF_FILE; then
+            if [ "$maxconnections" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+            echo "maxconnections=$set_maxconnections" >> $DGB_CONF_FILE
+        fi
+
+        #Update listen variable in settings if it exists and is blank, otherwise append it
+        if grep -q "listen=" $DGB_CONF_FILE; then
+            if [ "$listen" = "" ] || [ "$listen" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: listen=1"
+                sed -i -e "/^listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: listen=1"
+            echo "listen=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcuser variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcuser=" $DGB_CONF_FILE; then
+            if [ "$rpcuser" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+            echo "rpcuser=digibyte" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcpassword variable in settings if variable exists but is blank, otherwise append it
+        if grep -q "rpcpassword=" $DGB_CONF_FILE; then
+            if [ "$rpcpassword" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+            echo "rpcuser=$set_rpcpassword" >> $DGB_CONF_FILE
+        fi
+
+        #Update server variable in settings if it exists and is blank, otherwise append it
+        if grep -q "server=" $DGB_CONF_FILE; then
+            if [ "$server" = "" ] || [ "$server" = "0" ]; then
+                echo "$INDENT   Updating digibyte.conf: server=1"
+                sed -i -e "/^server=/s|.*|server=1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: server=1"
+            echo "server=1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcport variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcport=" $DGB_CONF_FILE; then
+            if [ "$rpcport" = "" ] || [ "$rpcport" != "14022" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+                sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+            echo "rpcport=14022" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcbind=" $DGB_CONF_FILE; then
+            if [ "$rpcbind" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
+        fi
+
+        #Update rpcallowip variable in settings if it exists and is blank, otherwise append it
+        if grep -q "rpcallowip=" $DGB_CONF_FILE; then
+            if [ "$rpcallowip" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=127.0.0.1|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+            echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
+        fi
+
+
+    else
+        # Create a new digibyte.conf file
+        echo "$INFO Creating digibyte.conf file"
+        cat <<EOF > $DGB_CONF_FILE
+# This config should be placed in following path:
+# ~/.digibyte/digibyte.conf
+
+# [core]
+# Run in the background as a daemon and accept commands.
+daemon=1
+# Set database cache size in megabytes; machines sync faster with a larger cache.
+# Recommend setting as high as possible based upon machine's available RAM. (default: 450)
+dbcache=$set_dbcache
+# Reduce storage requirements by only storing most recent N MiB of block. This mode is 
+# incompatible with -txindex and -coinstatsindex. WARNING: Reverting this setting requires
+# re-downloading the entire blockchain. (default: 0 = disable pruning blocks, 1 = allow manual
+# pruning via RPC, greater than 550 = automatically prune blocks to stay under target size in MiB).
+prune=0
+# Keep at most <n> unconnectable transactions in memory.
+maxorphantx=
+# Keep the transaction memory pool below <n> megabytes.
+maxmempool=
+# Specify a non-default location to store blockchain and other data.
+datadir=$DGB_DATA_LOCATION
+
+# [network]
+# Maintain at most N connections to peers. (default: 125)
+maxconnections=$set_maxconnections
+# Tries to keep outbound traffic under the given target (in MiB per 24h), 0 = no limit.
+maxuploadtarget=
+# Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) or CIDR notated network
+# (e.g. 1.2.3.0/24). Use [permissions]address for permissions. Uses same permissions as
+# Whitelist Bound IP Address. Can be specified multiple times. Whitelisted peers cannot be
+# DoS banned and their transactions are always relayed, even if they are already in the mempool.
+# Useful for a gateway node.
+whitelist=127.0.0.1
+# Accept incoming connections from peers.
+listen=1
+
+# [rpc]
+# RPC user
+rpcuser=digibyte
+# RPC password
+rpcpassword=$set_rpcpassword
+# Accept command line and JSON-RPC commands.
+server=1
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+# Listen for JSON-RPC connections on this port
+rpcport=14022
+# Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
+# a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
+# can be specified multiple times.
+rpcallowip=127.0.0.1
+
+# [wallet]
+# Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
+disablewallet=0
+EOF
+    fi
 }
 
 
@@ -424,9 +706,7 @@ sys_check() {
             exit 1
         fi
     else
-        if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b %b$WARNING: Unable to check for 64-bit OS - arch command is not present  [ VERBOSE MODE ]%b" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        fi
+        printf "%b %b$ERROR: Unable to perform check for 64-bit OS - arch command is not present%b" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 }
 
@@ -440,7 +720,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     # check the 'tr' command is available
     if ! is_command tr ; then
-        printf "%b %bERROR: Unable to check for No Raspberry Pi hardware - 'tr' command not found%b  [ VERBOSE MODE ]\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unable to check for No Raspberry Pi hardware - 'tr' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 
     # Store device model in variable
@@ -660,7 +940,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     fi
 else
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b No Raspberry Pi Detected - ARM processor not found  [ VERBOSE MODE ]\\n" "${INFO}"
+        printf "%b No Raspberry Pi Detected - ARM processor not found\\n" "${INFO}"
     fi
 fi
 
@@ -1102,7 +1382,7 @@ swap_setup() {
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        str="Increasing swap file from ${RAMTOTAL_HR}b to $SWAP_REC_SIZE..."
+        str="Increasing swap file size from ${RAMTOTAL_HR}b to $SWAP_REC_SIZE..."
         printf "\\n%b %s..." "${INFO}" "${str}"
 
         sleep 2
@@ -1110,6 +1390,11 @@ swap_setup() {
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         printf "\\n"
     fi
+
+}
+
+#check there is sufficient space on the drive to download the blockchain
+storage_check() {
 
 }
 
@@ -1151,6 +1436,132 @@ update_dialogs() {
     esac
 }
 
+# This function will install or upgrade the local version of the 'DigiNode Tools' scripts.
+# By default, it will always install the latest release version from GitHub. If the existing installed version
+# is the develop version or an older release version, it will be upgraded to the latest release version.
+# If the --dgn_dev_branch flag is used at launch it will always replace the local version
+# with the latest develop branch version from Github.
+install_diginode_tools() {
+
+    local dgn_install_required
+    local dgn_github_branch
+    local str
+
+    #lookup latest release version on Github (need jq installed for this query)
+    dgn_github_rel_ver=$(curl -sL https://api.github.com/repos/saltedlolly/diginode/releases/latest | jq -r ".tag_name" | sed 's/v//')
+
+     #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
+
+    # If there is no release version, use the main version
+    if [ $dgn_github_rel_ver = "null" ]; then
+        printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        DGN_TOOLS_LOCAL_BRANCH="main"
+        dgn_install_required = "YES"
+    fi
+
+   
+
+    # Upgrade to release branch
+    if [ $DGN_TOOLS_BRANCH = "release" ]; then
+        # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
+
+        if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ] && [ $DGN_TOOLS_LOCAL_RELEASE_VER -gt $dgn_github_rel_ver ]; then
+            printf "%b %bDigiNode Tools v${dgn_github_rel_ver} is available and will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
+            printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${dgn_github_rel_ver} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"}
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
+            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${dgn_github_rel_ver} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        else 
+            printf "%b %bDigiNode Tools v${dgn_github_rel_ver} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        fi
+
+    # Upgrade to develop branch
+    elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
+        if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
+            printf "%b %bDigiNode Tools v${DGN_TOOLS_LOCAL_RELEASE_VER} replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
+            printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"}
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
+            printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        else
+            printf "%b %bDigiNode Tools develop branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        fi
+    
+    # Upgrade to main branch
+    elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
+        if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
+            printf "%b %bDigiNode Tools v${DGN_TOOLS_LOCAL_RELEASE_VER} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
+            printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"}
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
+            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        else
+            printf "%b %bDigiNode Tools main branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgn_install_required = "YES"
+        fi
+    fi
+
+    # If a new version needs to be installed, do it now
+    if [ $dgn_install_required = "YES" ]; then
+
+        # first delete the current installed version of DigiNode Tools (if it exists)
+        if [[ -d $DGN_INSTALL_LOCATION ]];
+            str="Removing DigiNode Tools current version..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            rm -rf d $DGN_INSTALL_LOCATION
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        # Next install the newest version
+        cd ~
+        # Clone the develop version if develop flag is set
+        if [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
+            str="Installing DigiNode Tools develop branch..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --quiet --branch develop https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==develop|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        # Clone the develop version if develop flag is set
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
+            str="Installing DigiNode Tools main branch..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --quiet --branch main https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==main|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
+            str="Installing DigiNode Tools v${dgn_github_rel_ver}..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --quiet https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==release|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==$dgn_github_rel_ver|" $DGN_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Make downloads executable
+        chmod +x $DGN_INSTALLER_SCRIPT
+        chmod +x $DGN_MONITOR_SCRIPT
+
+        # Add path so entering 'diginode' works from any folder
+
+        ###########
+
+    fi
+}
+
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
@@ -1158,9 +1569,8 @@ welcomeDialogs() {
 
     To learn more, visit https://www.digibyte.help/diginode" "${r}" "${c}"
 
-    # Request that users donate if they enjoy the software since we all work on it in our free time
-#   whiptail --msgbox --backtitle "Plea" --title "Free and open source" "\\n\\nThis DigiNode Installer is free, but powered by your donations:  https://pi-hole.net/donate/" "${r}" "${c}"
-    whiptail --msgbox --backtitle "" --title "Free and open source" "DigiNode Installer is free, but donations in DGB are appreciated:
+# Request that users donate if they enjoy the software since we all work on it in our free time
+whiptail --msgbox --backtitle "" --title "Free and open source" "DigiNode Installer is free, but donations in DGB are appreciated:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -1179,10 +1589,35 @@ welcomeDialogs() {
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
 
+# If this is the first time running the installer, and the diginode.settings file has just been created,
+# ask the user if they want to EXIT to customize their install settings.
+if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 
-    # If this is a Raspberry Pi, explain the need for booting from a SSD
-    if [[ "${IS_RPI}" = "YES" ]]; then
-    if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Raspberry Pi from an external SSD or a microSD card?
+    if whiptail --defaultno --backtitle "" --title "diginode.settings has been created" --yesno "\\n\\nProceed with default installation settings? (Y/N) 
+
+    Before continuing, if you would like to customize your install, such as to change the default location of the data folder, you can edit the diginode.settings file that has just been created in the ~/.digibyte folder. For most people, there should be no reason to change anything, and you can safely continue with the defaults.
+
+      To continue with default settings, press:  CONTINUE  (Recommended)
+
+      To exit and customize your installation:   EXIT" --no-button "EXIT" --yes-button "CONTINUE (Recommended)" "${r}" "${c}"; then
+    #Nothing to do, continue
+      echo
+    else
+      printf "\\n"
+      printf "%b %bPlease edit the diginode.settings file to customize your installation%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b You can edit the settings file by entering:\\n" "${INDENT}"
+      printf "\\n"
+      printf "%b   nano $DGN_SETTINGS_FILE\\n" "${INDENT}"
+      printf "\\n"
+      printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+      exit
+    fi
+
+fi
+
+# If this is a Raspberry Pi, explain the need for booting from a SSD
+if [[ "${IS_RPI}" = "YES" ]]; then
+if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Raspberry Pi from an external SSD or a microSD card?
    
 For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD* connected via USB. 
 
@@ -1203,8 +1638,8 @@ fi
 
     fi
 
-    # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Static IP Needed" --yesno "\\n\\nYour DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.
+# Explain the need for a static address
+if whiptail --defaultno --backtitle "" --title "Static IP Needed" --yesno "\\n\\nYour DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.
 
 IMPORTANT: If you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.
 
@@ -1213,7 +1648,7 @@ Choose yes to indicate that you have understood this message, and wish to contin
   echo
 else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
-  exit 1
+  exit
 fi
 }
 
@@ -1240,15 +1675,17 @@ donation_qrcode() {
 }
 
 
+# This function is used to have the machine beep when there is an exit error
+# This will be useful when doing an unattended install
+error_beep() {
+    echo -en "\007"   
+}
+
+
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
 #####################################################################################################
 
-error_beep() {
-    echo -en "\007"
-    echo -en "\007"
-    echo -en "\007"    
-}
 
 main() {
 
@@ -1299,11 +1736,14 @@ main() {
         fi
     fi
 
+    # Display a message if Verbose Mode is enabled
+    verbose_mode
+
     # Perform basic OS check and lookup hardware architecture
     sys_check
 
-    # Set the memory variables once we know we are on linux
-    set_mem_variables
+    # Set the system variables once we know we are on linux
+    set_sys_variables
 
     # Check for Raspberry Pi hardware
     rpi_check
@@ -1321,6 +1761,9 @@ main() {
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
+    # Import diginode.settings file because it contains variables we need for the install
+    import_diginode_settings
+
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
@@ -1328,8 +1771,8 @@ main() {
     # Check if SELinux is Enforcing
     checkSelinux
 
-    # Import diginode.settings file because it contains variables we need for the install
-    import_diginode_settings
+    # Check space space requirements
+    storage_check
 
     # Check swap requirements
     swap_check
