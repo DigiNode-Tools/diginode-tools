@@ -140,6 +140,12 @@ txtbld=$(tput bold) # Set bold mode
 ### FUNCTIONS
 #####################################################################################################
 
+# This function is used to have the machine beep when there is an exit error
+# This will be useful when doing an unattended install
+error_beep() {
+    echo -en "\007"   
+}
+
 # Inform user if Verbose Mode is enabled
 verbose_mode() {
     if [ "$VERBOSE_MODE" = "YES" ]; then
@@ -1840,13 +1846,6 @@ donation_qrcode() {
     echo "     █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
     echo ""  
     echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
-}
-
-
-# This function is used to have the machine beep when there is an exit error
-# This will be useful when doing an unattended install
-error_beep() {
-    echo -en "\007"   
 }
 
 
