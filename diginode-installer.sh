@@ -1041,7 +1041,7 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}" )
+    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "$avahi_package" )
 
     # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
     test_dpkg_lock() {
@@ -1073,7 +1073,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
-    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "${avahi_package}" )
+    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "$avahi_package" )
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -1363,10 +1363,10 @@ if [[ ! "$HOSTNAME" == "diginode" ]]; then
         printf "\\n"
         INSTALL_AVAHI="YES"
     else
-        printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         exit 1
     fi
-if
+fi
 }
 
 # Check for swap file if using a device with low memory, and make sure it is large enough
