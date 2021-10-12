@@ -164,14 +164,14 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
   if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
-    str="Creating .diginode settings folder: $DGN_SETTINGS_LOCATION   "
+    str="Creating .diginode folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     mkdir $DGN_SETTINGS_LOCATION
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
   fi
 
   # create diginode.settings file
-  str="Creating diginode.settings file... $DGN_SETTINGS_FILE   "
+  str="Creating diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
   touch $DGN_SETTINGS_LOCATION
   cat <<EOF > $DGN_SETTINGS_FILE
@@ -183,21 +183,21 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
 # DIGINODE TOOLS:
  # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_TOOLS_LOCATION=\$HOME/diginode 
-DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh             
+DGN_TOOLS_LOCATION=\$HOME/diginode
+DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
 DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
 DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
 DGB_INSTALL_LOCATION=\$HOME/digibyte/
-# Do not change this:             
+# Do not change this:
 DGB_SETTINGS_LOCATION=\$HOME/.digibyte/
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
-# Note - changing this after the DigiByte Node ode has already been installed will cause 
+# Note - changing this after the DigiByte Node ode has already been installed will cause
 # the blockchain to be be re-downloaded in the new location, unless you move the data manually
 # first. For best results do this:
 # 1) Stop the digibyted service
@@ -205,7 +205,7 @@ DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 # 3) Update this file with the new location
 # 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
 # 5) Restart the digibyted service 
-DGB_DATA_LOCATION=\$HOME/.digibyte/     
+DGB_DATA_LOCATION=\$HOME/.digibyte/
 
 # DIGIASSETS NODE:
 DGA_INSTALL_LOCATION=\$HOME/digiasset_node
@@ -214,7 +214,7 @@ DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 # THese are updated automatically every time DigiNode Tools is installed/upgraded. Don not change these manually.
 # Stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
 DGN_TOOLS_LOCAL_BRANCH=
-# Stores the version number of the 'release' branch (if currently installed)
+# Stores the version number of the release branch (if currently installed)
 DGN_TOOLS_LOCAL_RELEASE_VER=
 
 # Setup timer variables
@@ -231,7 +231,7 @@ update_date=
 statusmonitor_last_run=
 dams_first_run=
 
-Store IP addresses to ensure they are only rechecked once every 15 minute.
+# Store IP addresses to ensure they are only rechecked once every 15 minute.
 externalip=
 internalip=
 
@@ -239,7 +239,7 @@ internalip=
 system_updates=
 security_updates=
 
-Store local version numbers so the local node is not hammered with requests every second.
+# Store local version numbers so the local node is not hammered with requests every second.
 dgb_ver_local=
 dga_ver_local=
 ipfs_ver_local=
@@ -267,7 +267,7 @@ SM_AUTO_QUIT=43200
 
 # These variables are used during an unnatended install to automatically configure your device
 
-# Choose whether to change the hostname to 'diginode' (Set to YES/NO) [NOT WORKING YET]
+# Choose whether to change the hostname to: diginode (Set to YES/NO) [NOT WORKING YET]
 UI_SET_HOSTNAME="YES"
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
@@ -279,8 +279,9 @@ UI_SETUP_FIREWALL="YES"
 # This can be overrided by manually entering size below (See UI_SETUP_SWAP_SIZE)
 UI_SETUP_SWAP="YES"
 
-# If a value is provided here (e.g. "4Gb" ) then it will be used for the swap size
+# If a value is provided here (e.g. 4Gb) then it will be used for the swap size
 # Leave empty to have the size calculated automatically
+
 UI_SETUP_SWAP_SIZE=
 
 # THis will set the max connections in the digibyte.conf file
@@ -288,21 +289,29 @@ UI_SETUP_SWAP_SIZE=
 UI_DGB_MAX_CONNECTIONS=300
 
 # Choose whether to setup Tor [NOT WORKING YET]
-UI_SETUP_TOR="YES"                     
+UI_SETUP_TOR="YES"
 
 EOF
-printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-fi
+# The settings file exists, so source it
+str="Importing diginode.settings file..."
+printf "%b %s" "${INFO}" "${str}"
+source $DGN_SETTINGS_FILE
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 # Sets a variable to know that the diginode.settings file has been created for the first time
 IS_DGN_SETTINGS_FILE_NEW="YES"
 
+else
+
 # The settings file exists, so source it
-str="Importing diginode.settings file: $DGN_SETTINGS_FILE   "
+str="Importing diginode.settings file..."
 printf "%b %s" "${INFO}" "${str}"
 source $DGN_SETTINGS_FILE
 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
 
 }
 
@@ -751,7 +760,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     # check the 'tr' command is available
     if ! is_command tr ; then
-        printf "%b %bERROR: Unable to check for No Raspberry Pi hardware - 'tr' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'tr' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 
     # Store device model in variable
@@ -1309,7 +1318,7 @@ checkSelinux() {
         printf "%b  By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n" "${INDENT}" 
         printf "\\n%b  %bSELinux Enforcing detected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
         exit 1;
-    elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${PIHOLE_SELINUX}" ]]; then
+    elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${DIGINODE_SELINUX}" ]]; then
         printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 }
@@ -1323,14 +1332,14 @@ if [[ "$HOSTNAME" == "diginode" ]]; then
     INSTALL_AVAHI="YES"
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b This installer currently assumes it will always be able to discover the\\n"  "${INDENT}"
-    printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n"  "${INDENT}"
-    printf "%b If you have, please contact @saltedloly on Twitter and let me know so I can work on\\n"  "${INDENT}"
-    printf "%b a workaround for your linux system.\\n"  "${INDENT}"
+    printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
+    printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
+    printf "%b If you have, please contact @saltedloly on Twitter and let me know so I can work on\\n" "${INDENT}"
+    printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
     exit 1
 else
-    printf "%b Hostname is currently set to: $current_hostname\\n"  "${CROSS}" "${COL_NC}"
+    printf "%b Hostname is currently set to: $current_hostname\\n" "${CROSS}" "${COL_NC}"
     printf "%b It is recommended that you change your hostname to 'diginode'. This is optional\\n"  "${INDENT}"
     printf "%b but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
