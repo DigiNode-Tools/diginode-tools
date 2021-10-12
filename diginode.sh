@@ -117,12 +117,12 @@ get_script_location() {
     SOURCE="$(readlink "$SOURCE")"
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
-  DGN_SCRIPT_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGN_INSTALL_SCRIPT=$DGN_SCRIPT_LOCATION_NOW/diginode-installer.sh
+  DGN_TOOLS_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  DGN_INSTALLER_SCRIPT_NOW=$DGN_TOOLS_LOCATION_NOW/diginode-installer.sh
 
   if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Monitor Script Location: $DGN_SCRIPT_LOCATION_NOW\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGN_INSTALL_SCRIPT\\n" "${INFO}"
+    printf "%b Monitor Script Location: $DGN_TOOLS_LOCATION_NOW\\n" "${INFO}"
+    printf "%b Install Script Location (presumed): $DGN_INSTALLER_SCRIPT_NOW\\n" "${INFO}"
   fi
 }
 
@@ -131,13 +131,13 @@ import_installer_functions() {
     # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
     RUN_INSTALLER="NO"
     # If the installer file exists,
-    if [[ -f "$DGN_INSTALL_SCRIPT" ]]; then
+    if [[ -f "$DGN_INSTALLER_SCRIPT_NOW" ]]; then
         # source it
         if [ $VERBOSE_MODE = "YES" ]; then
           printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
           printf "\\n"
         fi
-        source "$DGN_INSTALL_SCRIPT"
+        source "$DGN_INSTALLER_SCRIPT_NOW"
     # Otherwise,
     else
         printf "\\n"
@@ -162,7 +162,7 @@ import_installer_functions() {
         printf "\\n"
         printf "%b   ~/diginode/digimon.sh\\n" "${INDENT}"
         printf "\\n"
-        exit -1
+        exit 1
     fi
 }
 
@@ -615,21 +615,21 @@ load_diginode_settings() {
 }
 
 ## Check if avahi-daemon is installed
-is_bonjour_installed() {
+is_avahi_installed() {
     REQUIRED_PKG="avahi-daemon"
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
-      echo "[i] avahi-daemon is not currently installed."
-      echo "    It is optional, but recommended if you are using a dedicated"
-      echo "    device to run your DigiNode such as a Raspberry Pi. It means"
-      echo "    you can you can access it at the address $(hostname).local"
-      echo "    instead of having to remember the IP address. Install it"
-      echo "    with the command: sudo apt-get install avahi-daemon"
-      echo ""
+      printf "%b %bavahi-daemon is not currently installed.%b\\n"  "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+      printf "%b It is optional, but recommended if you are using a dedicated\\n" "${INDENT}"
+      printf "%b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
+      printf "%b you can you can access it at the address $(hostname).local\\n" "${INDENT}"
+      printf "%b instead of having to remember the IP address. DigiNode Installer\\n" "${INDENT}"
+      printf "%b can set this up for for you.\\n" "${INDENT}"
+      printf "\\n"
     else
-      bonjour="installed"
-      echo "$TICK avahi-daemon is installed."
-      echo "    Local URL: $(hostname).local"
+      printf "%b %bavahi-daemon is installed.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b   Local URL: $(hostname).local\\n" "${INDENT}"
+      avahi="installed"
     fi
 }
 
@@ -691,24 +691,34 @@ quit_message() {
       printf "\\n"
       read -p "Would you like to install them now? (Y/N)" -n 1 -r
 
-      if [[ $REPLY =~ ^[Yy]$ ]]
-      then
-      echo
-      printf "%b Installing updates...\\n" "${INFO}"
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo
+        printf "%b Installing updates...\\n" "${INFO}"
       
 
       fi
+
+      # Display donation qr code
       printf "\\n"
-      donation_qrcode
+      donation_qrcode "Status Monitor"
       printf "\\n"
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available = "" ]; then
-      echo ""
-      donation_qrcode
+  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available" = "" ]; then
+      clear -x
+      printf "\\n"
+      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
+      printf "\\n"
+      donation_qrcode "Status Monitor"
+      printf "\\n"
+      # Don't show the donation plea again for at least 15 minutes
       DONATION_PLEA="no"
-      echo ""
-    fi
+  else
+      clear -x
+      printf "\\n"
+      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
+      printf "\\n"
+  fi
 }
 
 
@@ -733,7 +743,7 @@ startup() {
   is_wallet_enabled          # Check that the DigiByte Core wallet is enabled
   is_dganode_installed       # Run checks to see if DigiAsset Node is present. Warn if it isn't.
   load_diginode_settings     # Load the diginode.settings file. Create it if it does not exist.
-  is_bonjour_installed       # Check if avahi-daemon is installed
+  is_avahi_installed         # Check if avahi-daemon is installed
   is_jq_installed            # Check if jq is installed
   install_required_pkgs      # Install jq
 }
@@ -1213,7 +1223,7 @@ if [ $digibyted_status = 'startingup' ]; then # Only display if digibyted is NOT
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $internalip  External: $externalip" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $bonjour = 'ok' ]; then # Use .local domain if available, otherwise use the IP address
+if [ $avahi = 'installed' ]; then # Use .local domain if available, otherwise use the IP address
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$hostname.local:8090" "║"
 else
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$internalip:8090" "║"

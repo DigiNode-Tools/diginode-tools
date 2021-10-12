@@ -11,7 +11,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 11 2021 11:02pm GMT
+# Updated: October 12 2021 6:50pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -177,17 +177,29 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
 # DIGINODE TOOLS:
  # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_INSTALL_LOCATION=\$HOME/diginode              
-DGN_INSTALL_LOG=\$DGN_SETTINGS_LOCATION/diginode.log
-DGN_MONITOR_SCRIPT=\$DGN_INSTALL_LOCATION/diginode
-DGN_INSTALLER_SCRIPT=\$DGN_INSTALL_LOCATION/diginode-installer.sh
+DGN_TOOLS_LOCATION=\$HOME/diginode 
+DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh             
+DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
+DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
 DGB_INSTALL_LOCATION=\$HOME/digibyte/
 # Do not change this:             
-DGB_SETTINGS_LOCATION=\$HOME/.digibyte/           
-DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf 
+DGB_SETTINGS_LOCATION=\$HOME/.digibyte/
+DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
+DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
+
+# You can change this to optionally store the DigiByte blockchain data in a diferent location
+# Note - changing this after the DigiByte Node ode has already been installed will cause 
+# the blockchain to be be re-downloaded in the new location, unless you move the data manually
+# first. For best results do this:
+# 1) Stop the digibyted service
+# 2) Manually move the blockchain data to the new location
+# 3) Update this file with the new location
+# 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
+# 5) Restart the digibyted service 
+DGB_DATA_LOCATION=\$HOME/.digibyte/     
 
 # DIGIASSETS NODE:
 DGA_INSTALL_LOCATION=\$HOME/digiasset_node
@@ -249,19 +261,27 @@ SM_AUTO_QUIT=43200
 
 # These variables are used during an unnatended install to automatically configure your device
 
-# You can change this to store your DigiByte data on another drive
-DGB_DATA_LOCATION=\$HOME/.digibyte/
-
 # Choose whether to change the hostname to 'diginode' (Set to YES/NO) [NOT WORKING YET]
 UI_SET_HOSTNAME="YES"
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
 UI_SETUP_FIREWALL="YES"
 
-# Choose whether to change the hostname to 'diginode' [NOT WORKING YET]
+# Choose whether to create or change the swap file size [NOT WORKING YET]
+# The optimal swap size will be calculated automatically based on the system RAM
+# If there is more than 8Gb RAM available, no swap will be created
+# This can be overrided by manually entering size below (See UI_SETUP_SWAP_SIZE)
 UI_SETUP_SWAP="YES"
 
-# Choose whether to setup tor [NOT WORKING YET]
+# If a value is provided here (e.g. "4Gb" ) then it will be used for the swap size
+# Leave empty to have the size calculated automatically
+UI_SETUP_SWAP_SIZE=
+
+# THis will set the max connections in the digibyte.conf file
+# (it is only set if the digibyte.conf file does not already exist)
+UI_DGB_MAX_CONNECTIONS=300
+
+# Choose whether to setup Tor [NOT WORKING YET]
 UI_SETUP_TOR="YES"                     
 
 EOF
@@ -322,7 +342,12 @@ create_digibyte_conf() {
 
    # Set max connections to higher if running a dedicated server (Default: 125)
     local set_maxconnections
-    set_maxconnections=300
+    set_maxconnections=125
+
+    # Is this is an unattended install, use the value from the diginode.settings file
+    if [[ "$runUnattended" = true ]]; then
+        set_maxconnections=$UI_DGB_MAX_CONNECTIONS
+    fi
 
     # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
     # Initial sync times are significantly faster with a larger dbcache.
@@ -339,13 +364,13 @@ create_digibyte_conf() {
     set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 
     # create .digibyte settings folder if it does not already exist
-    if [ ! -d $DGB_SETTINGS_FOLDER ]; then
+    if [ ! -d $DGB_SETTINGS_LOCATION ]; then
         printf "%b Creating ~/.digibyte folder" "${INFO}"
         mkdir $DGB_SETTINGS_FOLDER
     fi
 
     # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
-    if test -f "$DGB_CONF_FILE"; then
+    if test -f "$DGB_SETTINGS_LOCATION"; then
         # Import variables from diginode.conf settings file
         echo "$INFO Retrieving diginode.settings file"
         source $DGB_CONF_FILE
@@ -963,6 +988,14 @@ rpi_check_microsd() {
 
 # Compatibility
 package_manager_detect() {
+
+# Does avahi daemon need to be installed? (this only gets installed if the hostname is set to 'diginode')
+if [[ "$INSTALL_AVAHI" = "YES" ]]; then
+    avahi_package="avahi-daemon"
+else
+    avahi_package=""
+fi
+
 # If apt-get is installed, then we know it's part of the Debian family
 if is_command apt-get ; then
     # Set some global variables here
@@ -993,7 +1026,7 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 avahi-daemon)
+    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}" )
 
     # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
     test_dpkg_lock() {
@@ -1025,7 +1058,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
-    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof avahi-daemon)
+    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "${avahi_package}" )
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -1274,6 +1307,53 @@ checkSelinux() {
     fi
 }
 
+# Function to check if the hostname of the machine is set to 'diginode'
+hostname_check() {
+
+if [[ "$HOSTNAME" == "diginode" ]]; then
+    printf "%b %bHostname is set to: diginode%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    INSTALL_AVAHI="YES"
+elif [[ "$HOSTNAME" == "" ]]; then
+    printf "%b %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b This installer currently assumes it will always be able to discover the\\n"  "${INDENT}"
+    printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n"  "${INDENT}"
+    printf "%b If you have, please contact @saltedloly on Twitter and let me know so I can work on\\n"  "${INDENT}"
+    printf "%b a workaround for your linux system.\\n"  "${INDENT}"
+    printf "\\n"
+    exit 1
+else
+    printf "%b Hostname is currently set to: $current_hostname\\n"  "${CROSS}" "${COL_NC}"
+    printf "%b It is recommended that you change your hostname to 'diginode'. This is optional\\n"  "${INDENT}"
+    printf "%b but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
+    printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
+    printf "\\n"
+    REQUEST_HOSTNAME_CHANGE="YES"
+fi
+
+}
+
+# Function to change the hostname of the machine to 'diginode'
+hostname_change() {
+
+# change the hostname if not set to 'diginode' then go ahead
+if [[ ! "$HOSTNAME" == "diginode" ]]; then
+
+    if is_command hostnamectl ; then
+        str="Changing hostname from '$HOSTNAME' to 'diginode'..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        sudo hostnamectl set-hostname diginode
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+        INSTALL_AVAHI="YES"
+    else
+        printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        exit 1
+    fi
+if
+
+}
+
 # Check for swap file if using a device with low memory, and make sure it is large enough
 swap_check() {
 
@@ -1443,8 +1523,8 @@ update_dialogs() {
 # with the latest develop branch version from Github.
 install_diginode_tools() {
 
-    local dgn_install_required
-    local dgn_github_branch
+    local dgn_tools_install_now
+    local dgn_github_rel_ver
     local str
 
     #lookup latest release version on Github (need jq installed for this query)
@@ -1456,7 +1536,7 @@ install_diginode_tools() {
     if [ $dgn_github_rel_ver = "null" ]; then
         printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         DGN_TOOLS_LOCAL_BRANCH="main"
-        dgn_install_required = "YES"
+        dgn_tools_install_now = "YES"
     fi
 
    
@@ -1467,59 +1547,59 @@ install_diginode_tools() {
 
         if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ] && [ $DGN_TOOLS_LOCAL_RELEASE_VER -gt $dgn_github_rel_ver ]; then
             printf "%b %bDigiNode Tools v${dgn_github_rel_ver} is available and will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${dgn_github_rel_ver} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"}
+            dgn_tools_install_now = "YES"}
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${dgn_github_rel_ver} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         else 
             printf "%b %bDigiNode Tools v${dgn_github_rel_ver} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         fi
 
     # Upgrade to develop branch
     elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
         if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
             printf "%b %bDigiNode Tools v${DGN_TOOLS_LOCAL_RELEASE_VER} replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"}
+            dgn_tools_install_now = "YES"}
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
             printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         else
             printf "%b %bDigiNode Tools develop branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         fi
     
     # Upgrade to main branch
     elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
         if [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
             printf "%b %bDigiNode Tools v${DGN_TOOLS_LOCAL_RELEASE_VER} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"}
+            dgn_tools_install_now = "YES"}
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
             printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         else
             printf "%b %bDigiNode Tools main branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgn_install_required = "YES"
+            dgn_tools_install_now = "YES"
         fi
     fi
 
     # If a new version needs to be installed, do it now
-    if [ $dgn_install_required = "YES" ]; then
+    if [ $dgn_tools_install_now = "YES" ]; then
 
         # first delete the current installed version of DigiNode Tools (if it exists)
-        if [[ -d $DGN_INSTALL_LOCATION ]];
+        if [[ -d $DGN_TOOLS_LOCATION ]];
             str="Removing DigiNode Tools current version..."
             printf "\\n%b %s" "${INFO}" "${str}"
-            rm -rf d $DGN_INSTALL_LOCATION
+            rm -rf d $DGN_TOOLS_LOCATION
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         fi
@@ -1552,12 +1632,45 @@ install_diginode_tools() {
         fi
 
         # Make downloads executable
+        str="Making DigiNode scripts executable..."
+        printf "\\n%b %s" "${INFO}" "${str}"
         chmod +x $DGN_INSTALLER_SCRIPT
         chmod +x $DGN_MONITOR_SCRIPT
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Add path so entering 'diginode' works from any folder
+        # Add alias so entering 'diginode' works from any folder
+        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+            str="Adding 'diginode' alias to .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Append alias to .bashrc file
+            echo "" >> $HOME/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $HOME/.bashrc
+            echo "alias diginode='$DGN_MONITOR_SCRIPT'" >> $HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGN_MONITOR_SCRIPT'|" $HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
-        ###########
+        # Add alias so entering 'diginode-installer' works from any folder
+        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+            str="Adding 'diginode-installer' alias to .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Append alias to .bashrc file
+            echo "" >> $HOME/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $HOME/.bashrc
+            echo "alias diginode-installer='$DGN_INSTALLER_SCRIPT'" >> $HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
     fi
 }
@@ -1569,8 +1682,8 @@ welcomeDialogs() {
 
     To learn more, visit https://www.digibyte.help/diginode" "${r}" "${c}"
 
-# Request that users donate if they enjoy the software since we all work on it in our free time
-whiptail --msgbox --backtitle "" --title "Free and open source" "DigiNode Installer is free, but donations in DGB are appreciated:
+# Request that users donate if they find DigiNode Installer useful
+whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find DigiNode Installer useful, donations in DGB are much appreciated:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -1650,10 +1763,65 @@ else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
   exit
 fi
+
+
+
+# Display a request to change the hostname, if needed
+if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
+if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
+
+This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
+
+Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+  hostname_change
+else
+  printf "%b Hostname will not be changed.\\n" "${INFO}"
+fi
+fi
+}
+
+# Create digibyted.service file if it does not already exist
+create_digibyted_service() {
+
+    # If digibyte.service settings file already exists, delete it, since we will update it
+    if test -f "$DGB_DAEMON_SERVICE_FILE"; then
+
+        str="Deleting DigiByte daemon service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGB_DAEMON_SERVICE_FILE
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        # Create a new DigiByte service file
+        echo "$INFO Creating digibyted.service file"
+        cat <<EOF > $DGB_DAEMON_SERVICE_FILE
+Description=DigiByte's distributed currency daemon
+After=network.target
+
+[Service]
+User=digibyte
+Group=digibyte
+
+Type=forking
+PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
+ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
+-conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    fi
 }
 
 donation_qrcode() {       
-    echo "    If you find this tool useful,"
+    echo "If you find DigiNode $1 useful,"
     echo " donations in DGB are much appreciated:"             
     echo "     ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "     █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -1763,6 +1931,9 @@ main() {
 
     # Import diginode.settings file because it contains variables we need for the install
     import_diginode_settings
+
+    # Check if the Raspberry Pi
+    hostname_check
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
