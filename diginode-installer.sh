@@ -1171,6 +1171,7 @@ install_dependent_packages() {
     return 0
 }
 
+# Check that this OS is supported
 os_check() {
     if [ "$DIGINODE_SKIP_OS_CHECK" != true ]; then
         # This function gets a list of supported OS versions from a TXT record at diginode-versions.digibyte.help
@@ -1230,25 +1231,25 @@ os_check() {
                     errStr="dig failed with return code ${digReturnCode}"
                 fi
                 printf "%b %bRetrieval of supported OS list failed. %s. %b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${errStr}" "${COL_NC}"
-                printf "    %bUnable to determine if the detected OS (%s %s) is supported%b\\n" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
-                printf "    Possible causes for this include:\\n"
-                printf "      - Firewall blocking certain DNS lookups from DigiNode device\\n"
-                printf "      - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from $$DGN_VERSIONS_URL containing supported operating systems)\\n"
-                printf "      - Other internet connectivity issues\\n"
+                printf "%b %bUnable to determine if the detected OS (%s %s) is supported%b\\n"  "${INDENT}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
+                printf "%b Possible causes for this include:\\n" "${INDENT}" 
+                printf "%b  - Firewall blocking certain DNS lookups from DigiNode device\\n" "${INDENT}" 
+                printf "%b  - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from ${DGN_VERSIONS_URL} containing supported OS)\\n" "${INDENT}" 
+                printf "%b  - Other internet connectivity issues\\n" "${INDENT}"
             else
-                printf "  %b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
-                printf "    If you are seeing this message and you believe your OS should be supported, please contact @saltedlolly on Twitter.\\n"
+                printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
+                printf "%b If you are seeing this message and you believe your OS should be supported, please contact @saltedlolly on Twitter.\\n" "${INDENT}" 
             fi
             printf "\\n"
-            printf "    %bhttps://digibyte.help\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "    If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n"
+            printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
-            printf "    e.g: If you are seeing this message on a fresh install, you can run:\\n"
-            printf "           %bcurl -sSL $DGN_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
+            printf "%b   %bcurl -sSL $DGN_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "    It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n"
-            printf "    If that is the case, feel free to ask @saltedlolly on Twitter.\\n" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
+            printf "%b %bIf that is the case, feel free to ask @saltedlolly on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
 
@@ -1295,12 +1296,12 @@ checkSelinux() {
     fi
     # Exit the installer if any SELinux checks toggled the flag
     if [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -z "${DIGINODE_SELINUX}" ]]; then
-        printf "  DigiNode does not provide an SELinux policy as the required changes modify the security of your system.\\n"
-        printf "  Please refer to https://wiki.centos.org/HowTos/SELinux if SELinux is required for your deployment.\\n"
-        printf "      This check can be skipped by setting the environment variable %bDIGINODE_SELINUX%b to %btrue%b\\n" "${COL_LIGHT_RED}" "${COL_NC}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "      e.g: export DIGINODE_SELINUX=true\\n"
-        printf "      By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n"
-        printf "\\n  %bSELinux Enforcing detected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}";
+        printf "%b DigiNode does not provide an SELinux policy as the required changes modify the security of your system.\\n" "${INDENT}" 
+        printf "%b Please refer to https://wiki.centos.org/HowTos/SELinux if SELinux is required for your deployment.\\n" "${INDENT}" 
+        printf "%b  This check can be skipped by setting the environment variable %bDIGINODE_SELINUX%b to %btrue%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b  e.g: export DIGINODE_SELINUX=true\\n" "${INDENT}" 
+        printf "%b  By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n" "${INDENT}" 
+        printf "\\n%b  %bSELinux Enforcing detected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
         exit 1;
     elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${PIHOLE_SELINUX}" ]]; then
         printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1351,7 +1352,6 @@ if [[ ! "$HOSTNAME" == "diginode" ]]; then
         exit 1
     fi
 if
-
 }
 
 # Check for swap file if using a device with low memory, and make sure it is large enough
