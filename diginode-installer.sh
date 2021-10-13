@@ -787,7 +787,7 @@ sys_check() {
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
-            if [[ "$sysarch" == "arm"* && "$OSTYPE" == "linux-gnu"* ]] 
+            if [[ "$sysarch" == "arm"* && "$OSTYPE" == "linux-gnu"* ]]; then
                 printf "%b If you are running Raspberry Pi OS 32-bit on a Pi 4, you should be able to enable the\\n" "${INFO}"
                 printf "%b 64-bit kernel. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
                 printf "\n" 
