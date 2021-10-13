@@ -55,6 +55,9 @@ DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
+# DigiByte.Help URLs
+DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/
+
 # CHANGE THIS VARIABLE TO USE A DIFERENT INSTALL LOCATION (THIS SHOULD USE THE OFFICIAL URL IN RELEASE VERSIONS)
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
@@ -784,6 +787,11 @@ sys_check() {
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
+            if [[ "$sysarch" == "arm"* && "$OSTYPE" == "linux-gnu"* ]] 
+                printf "%b If you are running Raspberry Pi OS 32-bit on a Pi 4, you should be able to enable the\\n" "${INFO}"
+                printf "%b 64-bit kernel. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
+                printf "\n" 
+            fi
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
