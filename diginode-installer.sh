@@ -154,7 +154,7 @@ error_beep() {
 # Inform user if Verbose Mode is enabled
 verbose_mode() {
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
