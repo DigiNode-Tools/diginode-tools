@@ -19,7 +19,7 @@
 #          ~/diginode/diginode
 #
 #
-# Updated: October 11 2021 11:02pm GMT
+# Updated: October 13 2021 11:33pm GMT
 #
 # -------------------------------------------------------
 
@@ -917,17 +917,10 @@ if [ $dga_status = "running" ] && [ $dams_first_run = ""  ]; then
     sed -i -e '/^dams_first_run=/s|.*|dams_first_run="$(date)"|' $DGN_SETTINGS_FILE
 fi
 
-
-
-# Store system totals in variables
-echo "[i] Looking up system RAM and disk space."
-disktotal=$(df /dev/sda2 -h --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-ramtotal=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2 | sed 's/.$//')
-
 # Get maxconnections from digibyte.conf
 echo "[i] Looking up max connections."
-if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
-  maxconnections=$(cat ~/.digibyte/digibyte.conf | grep maxconnections | cut -d'=' -f 2)
+if [ -f "$DGB_CONF_FILE" ]; then
+  maxconnections=$(cat $DGB_CONF_FILE | grep maxconnections | cut -d'=' -f 2)
   if [ maxconnections = "" ]; then
     maxconnections="125"
   fi
@@ -985,20 +978,15 @@ fi
 
 # Update timenow variable with current time
 timenow=$(date)
+loopcounter=$((loopcounter+1))
 
-temperature=$(</sys/class/thermal/thermal_zone0/temp)
-diskpercent=$(df /dev/sda2 --output=pcent | tail -n +2)
-diskavail=$(df /dev/sda2 -h --output=avail | tail -n +2)
-diskused=$(df /dev/sda2 -h --output=used | tail -n +2)
+# Get current memory usage
 ramused=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3 | sed 's/.$//')
 ramavail=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.$//')
 swapused=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
-loopcounter=$((loopcounter+1))
 
-# Trim white space from disk variables
-diskpercent=$(echo -e " \t $diskpercent \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-diskavail=$(echo -e " \t $diskavail \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-diskused=$(echo -e " \t $diskused \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+# Get current system temp
+temperature=$(cat </sys/class/thermal/thermal_zone0/temp)
 
 # Convert temperature to Degrees C
 tempc=$((temperature/1000))
@@ -1081,6 +1069,22 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Get current software version
     dgb_ver_local=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+
+    # Update current disk usage variables
+    DISKUSED_HR=$(df /dev/sda2 -h --output=used | tail -n +2)
+    DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
+    DISKUSED_PERC=$(df /dev/sda2 --output=pcent | tail -n +2)
+
+    # Trim white space from disk variables
+    DISKUSED_HR=$(echo -e " \t $DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DISKFREE_HR=$(echo -e " \t $DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+    # Write disk variables to diginode.settings
+    sed -i -e '/^DISKUSED_HR=/s|.*|DISKUSED_HR="$DISKUSED_HR"|' $DGN_SETTINGS_FILE
+    sed -i -e '/^DISKFREE_HR=/s|.*|DISKFREE_HR="$DISKFREE_HR"|' $DGN_SETTINGS_FILE
+    sed -i -e '/^DISKUSED_PERC_HR=/s|.*|DISKUSED_PERC_HR="$DISKUSED_PERC"|' $DGN_SETTINGS_FILE
+
 
     # Compare current DigiByte Core version with Github version to know if there is a new version available
     if [ "$dgb_ver_github" -gt "$dgb_ver_local" ]; then
@@ -1271,9 +1275,9 @@ echo ""
 echo " ╔═══════════════╦════════════════════════════════════════════════════╗"
 printf " ║ DEVICE      ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "$diskused of $disktotal ($diskpercent)" "[ $diskavail free ]  ║"
+printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "${}DISKUSED_HR}b of ${DISKTOTAL_HR}b ($DISKUSED_PERC)" "[ ${DISKFREE_HR}b free ]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$ramused of $ramtotal" "[ $ramavail free ]  ║"
+printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$ramused of $RAMTOTAL_HR" "[ $ramavail free ]  ║"
 if [ $swaptotal != '0B' ]; then # only display the swap file status if there is one
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "$swapused of $swaptotal"  "  ║"

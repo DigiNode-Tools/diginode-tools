@@ -11,7 +11,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 12 2021 6:50pm GMT
+# Updated: October 13 2021 11:33pm GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -42,7 +42,12 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
 DGN_SETTINGS_LOCATION=$HOME/.digibyte       
-DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings    
+DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings 
+
+# This variable stores the approximate amount of space required to download the entire DigiByte blockchain
+# This value needs updating periodically as the size increases
+DGB_DATA_REQUIRED_HR="28Gb"
+DGB_DATA_REQUIRED_KB="28000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -178,6 +183,11 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 #!/bin/bash
 # This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
 
+
+############################################
+####### FOLDER AND FILE LOCATIONS ##########
+############################################
+
 # DEFAULT FOLDER AND FILE LOCATIONS
 # If you want to change the default location of folders you can edit them here
 
@@ -197,7 +207,8 @@ DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
-# Note - changing this after the DigiByte Node ode has already been installed will cause
+# The value set below will be used by the normal install and the unattended install
+# Note - changing this after the DigiByte Node has already been installed will cause
 # the blockchain to be be re-downloaded in the new location, unless you move the data manually
 # first. For best results do this:
 # 1) Stop the digibyted service
@@ -211,27 +222,86 @@ DGB_DATA_LOCATION=\$HOME/.digibyte/
 DGA_INSTALL_LOCATION=\$HOME/digiasset_node
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
-# THese are updated automatically every time DigiNode Tools is installed/upgraded. Don not change these manually.
+
+#####################################
+####### OTHER SETTINGS ##############
+#####################################
+
+# THis will set the max connections in the digibyte.conf file
+# (it is only set if the digibyte.conf file does not already exist)
+# This value is also used for both the standard install and the unattended
+DGB_MAX_CONNECTIONS=300
+
+# Stop status monitor automatically if left running
+# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
+# e.g. To stop after 12 hours enter: 43200
+SM_AUTO_QUIT=43200
+
+
+#####################################
+####### UNATTENDED INSTALLER ########
+#####################################
+
+# INSTRUCTIONS: 
+# These variables are used during an unnatended install to automatically configure your DigiNode.
+# Set these variables and then run the installer with the --unattended flag set.
+
+# Choose whether to change the hostname to: diginode (Set to YES/NO) [NOT WORKING YET]
+UI_SET_HOSTNAME="YES"
+
+# Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
+UI_SETUP_FIREWALL="YES"
+
+# Choose whether to create or change the swap file size [NOT WORKING YET]
+# The optimal swap size will be calculated automatically based on the system RAM
+# If there is more than 8Gb RAM available, no swap will be created.
+# If a you manually enter the desired size in UI_SETUP_SWAP_SIZE below then that size is used.
+UI_SETUP_SWAP="YES"
+
+# If the swap size in GB is entered here then it will be used for the swap file size
+# Leave empty to have the size calculated automatically by the installer
+# Enter the number of GB only, without the units. (e.g. 4 )
+UI_SETUP_SWAP_SIZE=
+
+# Choose whether to setup Tor [NOT WORKING YET]
+UI_SETUP_TOR="YES"
+
+# Will install regardless of available space. Use with caution.
+UI_DISKSPACE_OVERRIDE="NO"
+
+
+#############################################
+####### SYSTEM VARIABLES ####################
+#############################################
+
+# IMPORTANT: DO NOT CHANGE THESE. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
+
+# store diginode installation details
+DGN_INSTALL_DATE=
+DGN_UPGRADE_DATE=
+DGN_MONITOR_LAST_RUN=
+DGA_FIRST_RUN=
+
+# THese are updated automatically every time DigiNode Tools is installed/upgraded. 
 # Stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
 DGN_TOOLS_LOCAL_BRANCH=
 # Stores the version number of the release branch (if currently installed)
 DGN_TOOLS_LOCAL_RELEASE_VER=
 
-# Setup timer variables
+# Timer variables
 savedtime15sec=
 savedtime1min=
 savedtime15min=
 savedtime1day=
 savedtime1week=
 
-# store diginode installation details
-official_install=
-install_date=
-update_date=
-statusmonitor_last_run=
-dams_first_run=
+# Disk usage variables (updated every 15 seconds)
+DISKFREE_HR=
+DISKFREE_MB=
+DISKUSED_HR=
+DISKUSED_PERC=
 
-# Store IP addresses to ensure they are only rechecked once every 15 minute.
+# IP addresses (only rechecked once every 15 minutes)
 externalip=
 internalip=
 
@@ -255,41 +325,6 @@ ipfs_port_test_date=
 dgb_port_test_status=
 dgb_port_test_date=
 
-# Stop status monitor automatically if left running
-# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
-# e.g. To stop after 12 hours enter: 43200
-SM_AUTO_QUIT=43200
-
-
-#####################################
-####### UNATTENDED INSTALL ##########
-#####################################
-
-# These variables are used during an unnatended install to automatically configure your device
-
-# Choose whether to change the hostname to: diginode (Set to YES/NO) [NOT WORKING YET]
-UI_SET_HOSTNAME="YES"
-
-# Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
-UI_SETUP_FIREWALL="YES"
-
-# Choose whether to create or change the swap file size [NOT WORKING YET]
-# The optimal swap size will be calculated automatically based on the system RAM
-# If there is more than 8Gb RAM available, no swap will be created
-# This can be overrided by manually entering size below (See UI_SETUP_SWAP_SIZE)
-UI_SETUP_SWAP="YES"
-
-# If a value is provided here (e.g. 4Gb) then it will be used for the swap size
-# Leave empty to have the size calculated automatically
-
-UI_SETUP_SWAP_SIZE=
-
-# THis will set the max connections in the digibyte.conf file
-# (it is only set if the digibyte.conf file does not already exist)
-UI_DGB_MAX_CONNECTIONS=300
-
-# Choose whether to setup Tor [NOT WORKING YET]
-UI_SETUP_TOR="YES"
 
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -337,17 +372,37 @@ set_sys_variables() {
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        str="Lookup drive size..."
+        str="Lookup total disk size..."
         printf "%b %s" "${INFO}" "${str}"
     fi
-
-    # Store system totals in variables
-    echo "[i] Looking up system RAM and disk space."
-    DISKTOTAL=$(df /dev/sda2 -h --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-    ramtotal=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2 | sed 's/.$//')
-
+    DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # No need to update the disk usage variables if running the status monitor, as it does it itself
+    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+
+        if [ "$VERBOSE_MODE" = "YES" ]; then
+            str="Lookup disk usage..."
+            printf "%b %s" "${INFO}" "${str}"
+        fi
+
+        # Update current disk usage variables
+        DISKUSED_HR=$(df . -h --output=used | tail -n +2)
+        DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
+        DISKFREE_KB=$(df . --output=avail | tail -n +2)
+        DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
+
+        # Trim white space from disk variables
+        DISKUSED_HR=$(echo -e " \t $DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DISKFREE_HR=$(echo -e " \t $DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DISKFREE_KB=$(echo -e " \t $DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+        if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
 }
@@ -355,14 +410,8 @@ set_sys_variables() {
 # Create digibyte.config file if it does not already exist
 create_digibyte_conf() {
 
-   # Set max connections to higher if running a dedicated server (Default: 125)
-    local set_maxconnections
-    set_maxconnections=125
-
-    # Is this is an unattended install, use the value from the diginode.settings file
-    if [[ "$runUnattended" = true ]]; then
-        set_maxconnections=$UI_DGB_MAX_CONNECTIONS
-    fi
+   # Max connections are set from the diginode.settings file
+    set_maxconnections=$DGB_MAX_CONNECTIONS
 
     # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
     # Initial sync times are significantly faster with a larger dbcache.
@@ -919,14 +968,14 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_check_microsd
+            rpi_check_usb_drive
         fi
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_check_microsd
+            rpi_check_usb_drive
         fi
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -939,7 +988,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_check_microsd
+            rpi_check_usb_drive
         fi
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -952,7 +1001,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_check_microsd
+            rpi_check_usb_drive
         fi
         
     elif [ "$pitype" = "piold" ]; then
@@ -986,18 +1035,46 @@ fi
 
 }
 
-# This will display a warning that the Pi must be booting from an SSD card not a microSD
-rpi_check_microsd() {
+# This will check if the Raspbery Pi is booting from a microSSD card, rather than an external drive connected via USB
+rpi_check_usb_drive() {
     # Only display this message if running this install script directly (not when running digimon.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-        printf "\\n"
-        printf "%b %bIMPORTANT: Make sure you are booting from USB (NOT microSD)!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b For this installer to work correctly, you must be booting your\\n" "${INDENT}"
-        printf "%b Raspberry Pi from an external SSD over USB. Booting from a microSD\\n" "${INDENT}"
-        printf "%b card is not supported. If using a Pi 4 or newer, make sure your drive\\n" "${INDENT}"
-        printf "%b is connected to a USB3 port (i.e. a blue one).\\n" "${INDENT}"
-        printf "\\n"
-        STARTPAUSE="yes"
+
+        # Go to home folder
+        cd ~
+
+        local usb_drive=$(df | grep boot | grep -oa sda)
+        local microsd_drive=$(df | grep boot | grep -oa mscblk0)
+
+        # Check for hdd/ssd boot drive
+        if [[ "$usb_drive" == "sda" ]]; then
+            printf "\\n"
+            printf "%b %bRaspberry Pi is running from an external drive via USB%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+        fi
+        # Check for micro sd boot drive
+        if [[ "$microsd_drive" == "mscblk" ]]; then
+            if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
+                printf "\\n"
+                printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
+                printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
+                printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
+                printf "%b Please use an external SSD drive connected via USB.\\n" "${INDENT}"
+                printf "\\n"
+                exit 1
+            else
+                printf "\\n"
+                printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Running a DigiNode from a microSD card is not recomnended.\\n" "${INFO}" "${COL_NC}"
+                printf "%b It is highly reccomended that you use an external SSD drive connected via USB.\\n" "${INDENT}"
+                printf "%b microSD cards are prone to corruption and are significantly slower.\\n" "${INDENT}"
+                printf "%b You may proceed, but do so at your own risk.\\n" "${INDENT}"
+                WARN_MICROSD="yes"
+                STARTPAUSE="yes"
+                printf "\\n"
+            fi
+        fi
     fi
 }
 
@@ -1489,8 +1566,32 @@ swap_setup() {
 }
 
 #check there is sufficient space on the drive to download the blockchain
-storage_check() {
-
+disk_space_check() {
+    # Only run disk space check if the default location is used
+    if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$HOME/.digibyte/" ]]; then
+        if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
+            print "\\n"
+            printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
+            printf "%b This drive only has $DISKFREE_HR free. You can move the data folder to another driver\\n" "${INDENT}"
+            printf "%b by editing the location in the diginode.conf file.\\n" "${INDENT}"
+            # Only display this line when using digimon.sh
+            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
+                printf "%b Unattended Install Override Enable. Continuing anyway..\\n" "${INFO}"
+                print "\\n"
+            elif [[ "$runUnattended" = true ]]; then
+                printf "%b Unattended Install Override Disabled. Cancelling Install..\\n" "${INFO}"
+                print "\\n"
+                exit 1
+            else
+                QUERY_LOWDISK_SPACE="YES"
+                printf "\\n"
+            fi      
+        fi
+    else
+        printf "%b Skipping disk space check as data location has been set manually.\\n" "${INFO}"
+        print "\\n"
+    fi
 }
 
 
@@ -1608,15 +1709,14 @@ install_diginode_tools() {
     fi
 
     # If a new version needs to be installed, do it now
-    if [ $dgn_tools_install_now = "YES" ]; then
+    if [ "$dgn_tools_install_now" = "YES" ]; then
 
         # first delete the current installed version of DigiNode Tools (if it exists)
-        if [[ -d $DGN_TOOLS_LOCATION ]];
+        if [[ -d $DGN_TOOLS_LOCATION ]]; then
             str="Removing DigiNode Tools current version..."
             printf "\\n%b %s" "${INFO}" "${str}"
             rm -rf d $DGN_TOOLS_LOCATION
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
         fi
 
         # Next install the newest version
@@ -1779,6 +1879,19 @@ else
   exit
 fi
 
+# If low disk space is detected on in the default install location, ask the user if they want to continue
+if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
+if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space on this drive to download a full copy of the DigiByte blockchain. If you want to use this drive, you will need to enable the setting to prune the blockchain so that it will fit. You can do this by editing the digibyte.conf settings file.
+
+Would you like to install on this drive anyway?" --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
+
+  printf "%b User selected not to continue with install.\\n" "${INFO}"
+  exit
+
+else
+  printf "%b User selected to proceed with installation regardless.\\n" "${INFO}"
+fi
+fi
 
 
 # Display a request to change the hostname, if needed
@@ -1951,7 +2064,7 @@ main() {
     checkSelinux
 
     # Check space space requirements
-    storage_check
+    disk_check
 
     # Check swap requirements
     swap_check
