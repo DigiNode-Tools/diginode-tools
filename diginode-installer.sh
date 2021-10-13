@@ -787,10 +787,18 @@ sys_check() {
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
-            if [[ "$sysarch" == "arm"* && "$OSTYPE" == "linux-gnu"* ]]; then
-                printf "%b If you are running Raspberry Pi OS 32-bit on a Pi 4, you should be able to enable the\\n" "${INFO}"
-                printf "%b 64-bit kernel. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
-                printf "\n" 
+            if [[ "$sysarch" == "arm"* ]] && [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                printf "%b If you are running Raspberry Pi OS 32-bit, you should be able to install the\\n" "${INFO}"
+                printf "%b 64-bit kernel using the rpi-config utility. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
+                printf "\n"
+                if [[ lsb_release -a | grep buster || true ]]; then
+                    printf "%b Install it now by copying this command and pasting into the terminal below:\\n" "${INDENT}"
+                    printf "\n"
+                    printf "%b sudo apt update && sudo apt upgrade && sudo echo \"arm_64bit=1\" >> /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
+                    printf "\\n"
+                    printf "%b Your machine will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
+                    printf "\n"
+                fi
             fi
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
