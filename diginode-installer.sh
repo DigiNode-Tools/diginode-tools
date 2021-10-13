@@ -168,17 +168,17 @@ local str
 if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
-  if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
-    str="Creating .diginode folder..."
+  if [ ! -d "$DGB_SETTINGS_LOCATION" ]; then
+    str="Creating settings folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
-    mkdir $DGN_SETTINGS_LOCATION
+    mkdir $DGB_SETTINGS_LOCATION
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
   fi
 
   # create diginode.settings file
   str="Creating diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
-  touch $DGN_SETTINGS_LOCATION
+  touch $DGN_SETTINGS_FILE
   cat <<EOF > $DGN_SETTINGS_FILE
 #!/bin/bash
 # This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
@@ -1547,7 +1547,7 @@ swap_setup() {
         str="Creating $SWAP_REC_SIZE swap file..."
         printf "\\n%b %s..." "${INFO}" "${str}"
 
-        sleep 2
+        sleep 3
 
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         printf "\\n"
@@ -1557,7 +1557,7 @@ swap_setup() {
         str="Increasing swap file size from ${RAMTOTAL_HR}b to $SWAP_REC_SIZE..."
         printf "\\n%b %s..." "${INFO}" "${str}"
 
-        sleep 2
+        sleep 3
 
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         printf "\\n"
@@ -2063,8 +2063,8 @@ main() {
     # Check if SELinux is Enforcing
     checkSelinux
 
-    # Check space space requirements
-    disk_check
+    # Check disk space to ensure there is enough space to download the blockchain
+    disk_space_check
 
     # Check swap requirements
     swap_check
