@@ -1084,6 +1084,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             rpi_check_usb_drive
         fi
+        printf "\\n"
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1097,6 +1098,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             rpi_check_usb_drive
         fi
+        printf "\\n"
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1108,9 +1110,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_check_usb_drive
+            rpi_check_usb_drive     
         fi
-        
+        printf "\\n"
     elif [ "$pitype" = "piold" ]; then
         printf "%b %bERROR: Raspberry Pi 2 (or older) Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1148,9 +1150,6 @@ rpi_check_usb_drive() {
     # Only display this message if running this install script directly (not when running digimon.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
 
-        # Go to home folder
-        cd ~
-
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
@@ -1159,7 +1158,6 @@ rpi_check_usb_drive() {
             printf "\\n"
             printf "%b %bRaspberry Pi is running from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   Note: While an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
-            printf "\\n"
         fi
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
@@ -1182,7 +1180,6 @@ rpi_check_usb_drive() {
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
                 printf "%b For help on what equipment to get, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
-                printf "\\n"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
             fi
