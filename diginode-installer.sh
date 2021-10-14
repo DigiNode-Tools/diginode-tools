@@ -368,35 +368,45 @@ dgb_port_test_date=
 
 EOF
 
-if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "\\n"
-    printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "\\n"
+        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+    else
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # The settings file exists, so source it
+    str="Importing diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
+    source $DGN_SETTINGS_FILE
+
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "\\n"
+        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "\\n"
+    else
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+
+    # Sets a variable to know that the diginode.settings file has been created for the first time
+    IS_DGN_SETTINGS_FILE_NEW="YES"
+
 else
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-fi
 
-# The settings file exists, so source it
-str="Importing diginode.settings file..."
-printf "%b %s" "${INFO}" "${str}"
-source $DGN_SETTINGS_FILE
-printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    # The settings file exists, so source it
+    str="Importing diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
+    source $DGN_SETTINGS_FILE
 
-# Sets a variable to know that the diginode.settings file has been created for the first time
-IS_DGN_SETTINGS_FILE_NEW="YES"
-
-else
-
-# The settings file exists, so source it
-str="Importing diginode.settings file..."
-printf "%b %s" "${INFO}" "${str}"
-source $DGN_SETTINGS_FILE
-
-if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "\\n"
-    printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
-else
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-fi
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "\\n"
+        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "\\n"
+    else
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
 
 fi
 
