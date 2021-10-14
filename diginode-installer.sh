@@ -44,6 +44,9 @@ if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
 
+# Store the user's home folder in a variable (needed when running root)
+USER_HOME=$(eval echo ~${SUDO_USER})
+
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Installer and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
@@ -52,8 +55,7 @@ fi
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-USER_HOME_FOLDER="/home/$USER"
-DGN_SETTINGS_LOCATION=$USER_HOME_FOLDER/.digibyte
+DGN_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
@@ -2133,6 +2135,9 @@ main() {
             exit 1
         fi
     fi
+
+    # Echo home folder
+    DGN_SETTINGS_LOCATION
 
     # Display a message if Verbose Mode is enabled
     verbose_mode
