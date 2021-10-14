@@ -407,8 +407,8 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total RAM (HR): $RAMTOTAL_HR\\n" "${INDENT}"
-        printf "%b   Total RAM (KB): $RAMTOTAL_KB\\n" "${INDENT}"
+        printf "%b   Total RAM (HR):  $RAMTOTAL_HR\\n" "${INDENT}"
+        printf "%b   Total RAM (KB):  $RAMTOTAL_KB\\n" "${INDENT}"
         printf "%b   Total SWAP (HR): $SWAPTOTAL_HR\\n" "${INDENT}"
         printf "%b   Total SWAP (KB): $SWAPTOTAL_KB\\n" "${INDENT}"
     fi
@@ -437,9 +437,9 @@ set_sys_variables() {
         DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b   Disk Used (HR): $DISKUSED_HR\\n [ $DISKUSED_PERC ]" "${INDENT}"
-            printf "%b   Disk Free (HR): $DISKFREE_HR\\n" "${INDENT}"
-            printf "%b   Disk Free (KB): $DISKFREE_KB\\n" "${INDENT}"
+            printf "%b   Disk Used (HR):  $DISKUSED_HR \[ $DISKUSED_PERC \]\\n" "${INDENT}"
+            printf "%b   Disk Free (HR):  $DISKFREE_HR\\n" "${INDENT}"
+            printf "%b   Disk Free (KB):  $DISKFREE_KB\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
