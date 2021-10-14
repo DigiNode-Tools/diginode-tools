@@ -791,14 +791,11 @@ sys_check() {
             if [[ "$sysarch" == "arm"* ]] && [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # ...if it's Raspbian buster, show the instructions to upgrade the kernel to 64-bit.
                 if [[ $(lsb_release -is) = "Raspbian" ]] && [[ $(lsb_release -cs) = "buster" ]]; then
-                    printf "%b If you are running Raspberry Pi OS 32-bit, you can install the\\n" "${INFO}"
-                    printf "%b 64-bit kernel using the rpi-config utility. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
-                    printf "\n"
-                    printf "%b Install it now by copying this command and pasting into the terminal below:\\n" "${INDENT}"
-                    printf "\n"
-                    printf "%b sudo apt update && sudo apt upgrade && sudo echo \"arm_64bit=1\" >> /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
+                    printf "%b Since you are running 'Raspberry Pi OS', you can install the 64-bit kernel\\n" "${INFO}"
+                    printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
+                    printf "%b Your Pi will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
                     printf "\\n"
-                    printf "%b Your machine will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
+                    printf "%b sudo apt update && sudo apt upgrade && sudo echo \"arm_64bit=1\" >> /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
                     printf "\n"
                 fi
             fi
