@@ -55,10 +55,7 @@ DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
-# DigiByte.Help URLs
-DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/
-
-# CHANGE THIS VARIABLE TO USE A DIFERENT INSTALL LOCATION (THIS SHOULD USE THE OFFICIAL URL IN RELEASE VERSIONS)
+# CHANGE THIS VARIABLE TO USE A DIFERENT INSTALL REPO (THIS SHOULD USE THE OFFICIAL URL IN RELEASE VERSIONS)
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
 # These are the commands that the use pastes into the terminal to run the installer
@@ -66,6 +63,10 @@ DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+
+# DigiByte.Help URLs
+DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
+DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 
 # THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
@@ -1132,7 +1133,8 @@ rpi_check_usb_drive() {
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
             printf "\\n"
-            printf "%b %bRaspberry Pi is running from an external drive via USB%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bRaspberry Pi is running from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   Note: While an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
         fi
         # Check for micro sd boot drive
@@ -1145,16 +1147,20 @@ rpi_check_usb_drive() {
                 printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
                 printf "%b Please use an external SSD drive connected via USB.\\n" "${INDENT}"
                 printf "\\n"
+                printf "%b For advise on what equipment you need, go here: $DGBH_URL_HARDWARE"
+                printf "\\n"
                 exit 1
             else
                 printf "\\n"
                 printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b Running a DigiNode from a microSD card is not recommended.\\n" "${INDENT}"
-                printf "%b You are encouraged to use an external SSD drive connected via USB.\\n" "${INDENT}"
-                printf "%b MicroSD cards are prone to corruption and are significantly slower.\\n" "${INDENT}"
+                printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
+                printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
+                printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b For advise on what equipment you need, go here: $DGBH_URL_HARDWARE"
+                printf "\\n"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
-                printf "\\n"
             fi
         fi
     fi
