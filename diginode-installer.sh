@@ -70,7 +70,7 @@ DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 # THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
-    VERBOSE_MODE="YES"
+    VERBOSE_MODE="NO"
 fi
 
 # Store user in variable
