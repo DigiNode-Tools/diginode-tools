@@ -866,6 +866,11 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'tr' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 
+    # check the 'tr' command is available
+    if ! is_command grep ; then
+        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'grep' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    fi
+
     # Store device model in variable
     MODEL=$(tr -d '\0' < /proc/device-tree/model)
 
@@ -2087,13 +2092,7 @@ main() {
     # Perform basic OS check and lookup hardware architecture
     sys_check
 
-    # Set the system variables once we know we are on linux
-    set_sys_variables
-
-    # Check for Raspberry Pi hardware
-    rpi_check
-
-    # Check for supported package managers so that we may install dependencies
+     # Check for supported package managers so that we may install dependencies
     package_manager_detect
 
     # Notify user of package availability
@@ -2106,7 +2105,13 @@ main() {
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
-    # Import diginode.settings file because it contains variables we need for the install
+    # Set the system variables once we know we are on linux
+    set_sys_variables
+
+    # Check for Raspberry Pi hardware
+    rpi_check
+
+    # Import diginode.settings file because it contains variables we need for the install (or create it if this is the first run)
     import_diginode_settings
 
     # Check if the Raspberry Pi
