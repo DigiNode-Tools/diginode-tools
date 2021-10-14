@@ -1624,7 +1624,7 @@ swap_setup() {
     # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
     if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]
         SWAP_REC_SIZE=$UI_SETUP_SWAP_SIZE
-        printf "%b %bSwap file size will be set from the value in diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bUnattended Mode: Swap size will be set from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
     #create local variable
@@ -1665,10 +1665,10 @@ disk_space_check() {
             printf "%b by editing the location in the diginode.conf file.\\n" "${INDENT}"
             # Only display this line when using digimon.sh
             if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
-                printf "%b Unattended Install Override Enable. Continuing anyway..\\n" "${INFO}"
+                printf "%b Unattended Mode: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
                 print "\\n"
             elif [[ "$runUnattended" = true ]]; then
-                printf "%b Unattended Install Override Disabled. Cancelling Install..\\n" "${INFO}"
+                printf "%b Unattended Mode: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
                 print "\\n"
                 exit 1
             else
@@ -1677,7 +1677,7 @@ disk_space_check() {
             fi      
         fi
     else
-        printf "%b Skipping disk space check as data location has been set manually.\\n" "${INFO}"
+        printf "%b Skipping disk space check as data location has been set manually in diginode.settings\\n" "${INFO}"
         print "\\n"
     fi
 }
