@@ -1622,7 +1622,7 @@ swap_check() {
 swap_setup() {
 
     # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]
+    if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]; then
         SWAP_REC_SIZE=$UI_SETUP_SWAP_SIZE
         printf "%b %bUnattended Mode: Swap size will be set from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
