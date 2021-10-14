@@ -39,7 +39,7 @@ if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     VERBOSE_MODE="YES"
 fi
 
-# Store user in variable
+# Store the user running the script in a variable (needed to find the user's home folder when running root)
 if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
@@ -53,7 +53,7 @@ fi
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
 USER_HOME_FOLDER="/home/$USER"
-DGN_SETTINGS_LOCATION=${$USER_HOME_FOLDER/.digibyte}
+DGN_SETTINGS_LOCATION=$USER_HOME_FOLDER/.digibyte
 DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
