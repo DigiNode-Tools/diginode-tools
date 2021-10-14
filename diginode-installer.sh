@@ -37,7 +37,7 @@ if [ -z "${USER}" ]; then
 fi
 
 # Store the user's home folder in a variable (needed when running root).
-if [[ ! "${EUID}" -eq 0 ]]; then
+if [[ "${EUID}" -eq 0 ]]; then
      USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 else
      USER_HOME=$(getent passwd $USER | cut -d: -f6)
@@ -45,6 +45,8 @@ else
 
 
 echo "!!!!!!!!!!! HOME FOLDER: $USER_HOME"
+
+exit
 
 ######## VARIABLES START HERE #########
 # For better maintainability, we store as much information that can change in variables
