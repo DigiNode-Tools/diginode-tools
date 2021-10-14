@@ -162,6 +162,28 @@ verbose_mode() {
     fi
 }
 
+# Inform user if Verbose Mode is enabled
+unnattended_mode() {
+    if [ "$runUnattended" = true ]; then
+        printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if test -f "$DGB_SETTINGS_FILE"; then
+            printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
+        else
+            printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
+        fi
+        printf "\\n"
+    fi
+}
+
+# Inform user if Verbose Mode is enabled
+dgntools_dev_mode() {
+    if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
+        printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   The develop branch will be used.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+}
+
 # Load variables from diginode.settings file. Create the file first if it does not exit.
 import_diginode_settings() {
 
@@ -441,7 +463,7 @@ set_sys_variables() {
             printf "%b   Disk Free (HR):  $DISKFREE_HR\\n" "${INDENT}"
             printf "%b   Disk Free (KB):  $DISKFREE_KB\\n" "${INDENT}"
         else
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -472,16 +494,16 @@ create_digibyte_conf() {
     # create .digibyte settings folder if it does not already exist
     if [ ! -d $DGB_SETTINGS_LOCATION ]; then
         printf "%b Creating ~/.digibyte folder" "${INFO}"
-        mkdir $DGB_SETTINGS_FOLDER
+        mkdir $DGB_SETTINGS_LOCATION
     fi
 
     # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
-    if test -f "$DGB_SETTINGS_LOCATION"; then
+    if test -f "$DGB_SETTINGS_FILE"; then
         # Import variables from diginode.conf settings file
-        echo "$INFO Retrieving diginode.settings file"
+        printf "%b Importing digibyte.conf file" "${INFO}"
         source $DGB_CONF_FILE
 
-        echo "$INFO Verifying existing digibyte.conf settings"
+        printf "%b Verifying existing digibyte.conf settings..." "${INFO}"
         
 
         #Update daemon variable in settings if it exists and is blank, otherwise append it
@@ -1130,7 +1152,6 @@ rpi_check_usb_drive() {
                 printf "%b Running a DigiNode from a microSD card is not recommended.\\n" "${INDENT}"
                 printf "%b You are encouraged to use an external SSD drive connected via USB.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and are significantly slower.\\n" "${INDENT}"
-                printf "%b You may proceed, but do so at your own risk.\\n" "${INDENT}"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
                 printf "\\n"
@@ -1599,6 +1620,12 @@ swap_check() {
 
 # This function will setup a swap file for your device
 swap_setup() {
+
+    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
+    if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]
+        SWAP_REC_SIZE=$UI_SETUP_SWAP_SIZE
+        printf "%b %bSwap file size will be set from the value in diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
 
     #create local variable
     local str
@@ -2089,7 +2116,13 @@ main() {
     # Display a message if Verbose Mode is enabled
     verbose_mode
 
-    # Perform basic OS check and lookup hardware architecture
+    # Display a message if Unnattended Mode is enabled
+    unnattended_mode
+
+    # Display a message if DigiNode Tools develop mode is enabled
+    dgntools_dev_mode
+
+    # Perform basic system check and lookup hardware architecture
     sys_check
 
      # Check for supported package managers so that we may install dependencies
@@ -2099,7 +2132,7 @@ main() {
     notify_package_updates_available
 
     # Install packages necessary to perform os_check
-    printf "%b Checking for / installing required dependencies for OS Check...\\n" "${INFO}"
+    printf "%b Checking for / installing required dependencies for pre-install checks...\\n" "${INFO}"
     install_dependent_packages "${SYS_CHECK_DEPS[@]}"
 
     # Check that the installed OS is officially supported - display warning if not
