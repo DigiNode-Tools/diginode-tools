@@ -41,8 +41,8 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-DGN_SETTINGS_LOCATION=$HOME/.digibyte       
-DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings 
+DGB_SETTINGS_LOCATION="$HOME/.digibyte"    
+DGN_SETTINGS_FILE=$DGB_SETTINGS_LOCATION/diginode.settings 
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size increases
@@ -1058,7 +1058,7 @@ fi
 
 }
 
-# This will check if the Raspbery Pi is booting from a microSSD card, rather than an external drive connected via USB
+# This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
 rpi_check_usb_drive() {
     # Only display this message if running this install script directly (not when running digimon.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
