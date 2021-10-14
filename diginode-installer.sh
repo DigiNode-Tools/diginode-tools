@@ -111,7 +111,7 @@ COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
-WARN="  [${COL_LIGHT_CYAN}!${COL_NC}]"
+WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
 INDENT="     "
 # shellcheck disable=SC2034
@@ -1083,9 +1083,9 @@ rpi_check_usb_drive() {
             else
                 printf "\\n"
                 printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b Running a DigiNode from a microSD card is not recomnended.\\n" "${INFO}" "${COL_NC}"
-                printf "%b It is highly reccomended that you use an external SSD drive connected via USB.\\n" "${INDENT}"
-                printf "%b microSD cards are prone to corruption and are significantly slower.\\n" "${INDENT}"
+                printf "%b Running a DigiNode from a microSD card is not recommended.\\n" "${INDENT}"
+                printf "%b You are encouraged to use an external SSD drive connected via USB.\\n" "${INDENT}"
+                printf "%b MicroSD cards are prone to corruption and are significantly slower.\\n" "${INDENT}"
                 printf "%b You may proceed, but do so at your own risk.\\n" "${INDENT}"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
