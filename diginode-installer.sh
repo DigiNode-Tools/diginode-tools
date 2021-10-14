@@ -23,6 +23,10 @@ set -e
 # Play an error beep if it exits with an error
 trap error_beep exit 1
 
+error_beep() {
+    echo -en "\007"   
+}
+
 # Append common folders to the PATH to ensure that all basic commands are available.
 # When using "su" an incomplete PATH could be passed.
 export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
@@ -44,11 +48,9 @@ if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
 
-# Store the user's home folder in a variable (needed when running root). This only gets updated when the user isn't running root.
-if [[ "${EUID}" -eq 0 ]]; then
-    # Don't touch home folder variable if user is root
-else
-    # Update home folder variable if user is not root
+# Store the user's home folder in a variable (needed when running root).
+# This only gets updated when the user isn't running root.
+if [[ ! "${EUID}" -eq 0 ]]; then
     USER_HOME=$(eval echo ~${SUDO_USER})
 fi
 
@@ -158,12 +160,6 @@ txtbld=$(tput bold) # Set bold mode
 #####################################################################################################
 ### FUNCTIONS
 #####################################################################################################
-
-# This function is used to have the machine beep when there is an exit error
-# This will be useful when doing an unattended install
-error_beep() {
-    echo -en "\007"   
-}
 
 # Inform user if Verbose Mode is enabled
 verbose_mode() {
