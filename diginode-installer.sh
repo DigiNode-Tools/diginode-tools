@@ -37,12 +37,12 @@ if [ -z "${USER}" ]; then
 fi
 
 # Store the user's home folder in a variable (needed when running root).
-# This only gets updated when the user isn't running root.
+if [[ ! "${EUID}" -eq 0 ]]; then
+     USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+else
+     USER_HOME=$(getent passwd $USER | cut -d: -f6)
+ fi
 
-# if [[ ! "${EUID}" -eq 0 ]]; then
-#     USER_HOME=$(eval echo ~${SUDO_USER})
-# fi
-USER_HOME=$PWD
 
 echo "!!!!!!!!!!! HOME FOLDER: $USER_HOME"
 
@@ -233,7 +233,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
 # DIGINODE TOOLS:
  # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_TOOLS_LOCATION=\$USER_HOME/diginode
+DGN_TOOLS_LOCATION=$USER_HOME/diginode
 DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
 DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
 DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
@@ -242,9 +242,9 @@ DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
-DGB_INSTALL_LOCATION=\$USER_HOME/digibyte/
+DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
 # Do not change this:
-DGB_SETTINGS_LOCATION=\$USER_HOME/.digibyte/
+DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 
@@ -258,10 +258,10 @@ DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 # 3) Update this file with the new location
 # 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
 # 5) Restart the digibyted service 
-DGB_DATA_LOCATION=\$USER_HOME/.digibyte/
+DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
 # DIGIASSETS NODE:
-DGA_INSTALL_LOCATION=\$USER_HOME/digiasset_node
+DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 
@@ -880,9 +880,11 @@ sys_check() {
                     printf "%b Since you are running 'Raspberry Pi OS', you can install the 64-bit kernel\\n" "${INFO}"
                     printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
                     printf "%b Your Pi will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
+                    printf "%b For more information, visit: $DGBH_URL_RPIOS64\\n" "${INDENT}"
                     printf "\\n"
                     printf "%b sudo apt update && sudo apt upgrade && echo \"arm_64bit=1\" | sudo tee -a /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
                     printf "\n"
+
                 fi
             fi
             exit 1
@@ -1170,7 +1172,8 @@ rpi_check_usb_drive() {
                 printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
                 printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
                 printf "%b Please use an external SSD drive connected via USB. For help on what\\n" "${INDENT}"
-                printf "%b hardware to get, go here: $DGBH_URL_HARDWARE\\n" "${INDENT}"
+                printf "%b hardware to get, visit:\\n" "${INDENT}"
+                printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
                 exit 1
             else
@@ -1179,7 +1182,8 @@ rpi_check_usb_drive() {
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
                 printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
-                printf "%b For help on what equipment to get, go here: $DGBH_URL_HARDWARE\\n" "${INDENT}"
+                printf "%b For help on what equipment to get, visit:\\n" "${INDENT}"
+                printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
@@ -1686,7 +1690,7 @@ disk_space_check() {
     # Only run disk space check if the default location is used
     if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$USER_HOME/.digibyte/" ]]; then
         if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            print "\\n"
+            printf "\\n"
             printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b This drive only has $DISKFREE_HR free. You can move the data folder to another driver\\n" "${INDENT}"
