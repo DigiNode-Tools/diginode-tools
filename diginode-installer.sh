@@ -385,7 +385,6 @@ set_sys_variables() {
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "%b Looking up system variables...\\n" "${INFO}"
-        printf "%b   (Note: HR = Human Readable)\\n" "${INDENT}"
     else
         str="Looking up system variables..."
         printf "%b %s" "${INFO}" "${str}"
@@ -430,15 +429,15 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b    Total RAM: ${RAMTOTAL_HR}b  ( ${RAMTOTAL_KB}Kb )\\n" "${INDENT}"
-        printf "%b   Total SWAP: ${SWAPTOTAL_HR}b  ( ${SWAPOTAL_KB}Kb )\\n" "${INDENT}"
+        printf "%b   Total RAM: ${RAMTOTAL_HR}b  ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
+        printf "%b   Total SWAP: ${SWAPTOTAL_HR}b  ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
     fi
 
     DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-    DISKTOTAL_KB=$(df . --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DISKTOTAL_KB=$(df . -BKB --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total Disk Space: ${DISKTOTAL_HR}b  ( ${DISKTOTAL_KB}Kb )\\n" "${INDENT}"
+        printf "%b   Total Disk Space: ${DISKTOTAL_HR}b  ( KB: ${DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
     # No need to update the disk usage variables if running the status monitor, as it does it itself
@@ -458,7 +457,7 @@ set_sys_variables() {
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
             printf "%b   Used Disk Space: ${DISKUSED_HR}b  ( ${DISKUSED_PERC} )\\n" "${INDENT}"
-            printf "%b   Free Disk Space: ${DISKFREE_HR}b  ( ${DISKFREE_KB}Kb )\\n" "${INDENT}"
+            printf "%b   Free Disk Space: ${DISKFREE_HR}b  ( KB: ${DISKFREE_KB} )\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
