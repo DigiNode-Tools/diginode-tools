@@ -31,19 +31,7 @@ error_beep() {
 # When using "su" an incomplete PATH could be passed.
 export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
-######## VARIABLES START HERE #########
-# For better maintainability, we store as much information that can change in variables
-# This allows us to make a change in one place that can propagate to all instances of the variable
-# These variables should all be GLOBAL variables, written in CAPS
-# Local variables will be in lowercase and will exist only within functions
-
-# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
-if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
-    VERBOSE_MODE="YES"
-fi
-
-# Store the user running the script in a variable (needed to find the user's home folder when running root)
+# Store the user in a variable
 if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
@@ -55,6 +43,18 @@ if [[ ! "${EUID}" -eq 0 ]]; then
 fi
 
 echo "!!!!!!!!!!! HOME FOLDER: $USER_HOME"
+
+######## VARIABLES START HERE #########
+# For better maintainability, we store as much information that can change in variables
+# This allows us to make a change in one place that can propagate to all instances of the variable
+# These variables should all be GLOBAL variables, written in CAPS
+# Local variables will be in lowercase and will exist only within functions
+
+# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
+if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
+    VERBOSE_MODE="YES"
+fi
 
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Installer and Status Monitor scripts make use of a setting file
