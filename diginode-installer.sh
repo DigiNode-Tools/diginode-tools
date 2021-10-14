@@ -33,6 +33,12 @@ export PATH+=':/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
+# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
+if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
+    VERBOSE_MODE="YES"
+fi
+
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Installer and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
@@ -67,12 +73,6 @@ DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 # DigiByte.Help URLs
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
-
-# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
-if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
-    VERBOSE_MODE="NO"
-fi
 
 # Store user in variable
 if [ -z "${USER}" ]; then
