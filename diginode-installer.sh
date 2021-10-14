@@ -1145,9 +1145,8 @@ rpi_check_usb_drive() {
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
                 printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
                 printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
-                printf "%b Please use an external SSD drive connected via USB.\\n" "${INDENT}"
-                printf "\\n"
-                printf "%b For advise on what equipment you need, go here: $DGBH_URL_HARDWARE"
+                printf "%b Please use an external SSD drive connected via USB. For help on what\\n" "${INDENT}"
+                printf "%b equipment to get, go here: $DGBH_URL_HARDWARE" "${INDENT}"
                 printf "\\n"
                 exit 1
             else
@@ -1156,8 +1155,7 @@ rpi_check_usb_drive() {
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
                 printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
-                printf "\\n"
-                printf "%b For advise on what equipment you need, go here: $DGBH_URL_HARDWARE"
+                printf "%b For help on what equipment to get, go here: $DGBH_URL_HARDWARE" "${INDENT}"
                 printf "\\n"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
