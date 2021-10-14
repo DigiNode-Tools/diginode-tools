@@ -395,7 +395,7 @@ set_sys_variables() {
         if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
-        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         exit 1
     fi
@@ -405,7 +405,7 @@ set_sys_variables() {
         if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
-        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         exit 1
     fi
@@ -415,7 +415,7 @@ set_sys_variables() {
         if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
-        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         exit 1
     fi
@@ -445,18 +445,19 @@ set_sys_variables() {
 
         # Update current disk usage variables
         DISKUSED_HR=$(df . -h --output=used | tail -n +2)
+        DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
         DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
         DISKFREE_KB=$(df . --output=avail | tail -n +2)
-        DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
 
         # Trim white space from disk variables
         DISKUSED_HR=$(echo -e " \t $DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DISKFREE_HR=$(echo -e " \t $DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DISKFREE_KB=$(echo -e " \t $DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-        if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b   Used Disk Space: ${DISKUSED_HR}b  ( ${DISKUSED_PERC} )\\n" "${INDENT}"
+        if [[ "$VERBOSE_MODE" = "YES" ]]; then
+            printf "%b   Used Disk Space: ${DISKUSED_HR}b  ( ${DISKUSED_PERC}% )\\n" "${INDENT}"
             printf "%b   Free Disk Space: ${DISKFREE_HR}b  ( KB: ${DISKFREE_KB} )\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
