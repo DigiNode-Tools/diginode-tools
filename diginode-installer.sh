@@ -787,11 +787,13 @@ sys_check() {
             printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
+            # If it's linux running on ARM and...
             if [[ "$sysarch" == "arm"* ]] && [[ "$OSTYPE" == "linux-gnu"* ]]; then
-                printf "%b If you are running Raspberry Pi OS 32-bit, you should be able to install the\\n" "${INFO}"
-                printf "%b 64-bit kernel using the rpi-config utility. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
-                printf "\n"
-                if [[ lsb_release -a | grep -Eo "buster" || echo "" ]]; then
+                # ...if it's Raspbian buster, show the instructions to upgrade the kernel to 64-bit.
+                if [[ $(lsb_release -is) = "Raspbian" ]] && [[ $(lsb_release -cs) = "buster" ]]; then
+                    printf "%b If you are running Raspberry Pi OS 32-bit, you can install the\\n" "${INFO}"
+                    printf "%b 64-bit kernel using the rpi-config utility. For help go here: $DGBH_URL_RPIOS64\\n" "${INDENT}"
+                    printf "\n"
                     printf "%b Install it now by copying this command and pasting into the terminal below:\\n" "${INDENT}"
                     printf "\n"
                     printf "%b sudo apt update && sudo apt upgrade && sudo echo \"arm_64bit=1\" >> /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
