@@ -361,11 +361,41 @@ set_sys_variables() {
     local str
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b Looking up system variables..." "${INFO}"
-        printf "%b   (Note: HR = Human Readable)" "${INDENT}"
+        printf "%b Looking up system variables...\\n" "${INFO}"
+        printf "%b   (Note: HR = Human Readable)\\n" "${INDENT}"
     else
         str="Looking up system variables..."
         printf "%b %s" "${INFO}" "${str}"
+    fi
+
+    # check the 'cat' command is available
+    if ! is_command cat ; then
+        if [ "$VERBOSE_MODE" != "YES" ];
+            printf "\\n"
+        fi
+        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        exit 1
+    fi
+
+    # check the 'free' command is available
+    if ! is_command free ; then
+        if [ "$VERBOSE_MODE" != "YES" ];
+            printf "\\n"
+        fi
+        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        exit 1
+    fi
+
+    # check the 'df' command is available
+    if ! is_command df ; then
+        if [ "$VERBOSE_MODE" != "YES" ];
+            printf "\\n"
+        fi
+        printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        exit 1
     fi
 
     # Store total system RAM as variables
@@ -377,18 +407,18 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total RAM (HR): $RAMTOTAL_HR" "${INDENT}"
-        printf "%b   Total RAM (KB): $RAMTOTAL_KB" "${INDENT}"
-        printf "%b   Total SWAP (HR): $SWAPTOTAL_HR" "${INDENT}"
-        printf "%b   Total SWAP (KB): $SWAPTOTAL_KB" "${INDENT}"
+        printf "%b   Total RAM (HR): $RAMTOTAL_HR\\n" "${INDENT}"
+        printf "%b   Total RAM (KB): $RAMTOTAL_KB\\n" "${INDENT}"
+        printf "%b   Total SWAP (HR): $SWAPTOTAL_HR\\n" "${INDENT}"
+        printf "%b   Total SWAP (KB): $SWAPTOTAL_KB\\n" "${INDENT}"
     fi
 
     DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     DISKTOTAL_KB=$(df . --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total Disk (HR): $DISKTOTAL_HR" "${INDENT}"
-        printf "%b   Total Disk (KB): $DISKTOTAL_HR" "${INDENT}"
+        printf "%b   Total Disk (HR): $DISKTOTAL_HR\\n" "${INDENT}"
+        printf "%b   Total Disk (KB): $DISKTOTAL_HR\\n" "${INDENT}"
     fi
 
     # No need to update the disk usage variables if running the status monitor, as it does it itself
@@ -407,9 +437,9 @@ set_sys_variables() {
         DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b   Disk Used (HR): $DISKUSED_HR [ $DISKUSED_PERC ]" "${INDENT}"
-            printf "%b   Disk Free (HR): $DISKFREE_HR" "${INDENT}"
-            printf "%b   Disk Free (KB): $DISKFREE_KB" "${INDENT}"
+            printf "%b   Disk Used (HR): $DISKUSED_HR\\n [ $DISKUSED_PERC ]" "${INDENT}"
+            printf "%b   Disk Free (HR): $DISKFREE_HR\\n" "${INDENT}"
+            printf "%b   Disk Free (KB): $DISKFREE_KB\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
