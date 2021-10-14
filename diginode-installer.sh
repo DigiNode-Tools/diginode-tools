@@ -984,17 +984,14 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             rpi_check_usb_drive
-        else
-            print "\\n"
         fi
+        printf "\\n"
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             rpi_check_usb_drive
-        else
-            print "\\n"
         fi
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1008,8 +1005,6 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             rpi_check_usb_drive
-        else
-            print "\\n"
         fi
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1023,8 +1018,6 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             rpi_check_usb_drive
-        else
-            print "\\n"
         fi
         
     elif [ "$pitype" = "piold" ]; then
@@ -1052,7 +1045,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     fi
 else
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b No Raspberry Pi Detected - ARM processor not found\\n" "${INFO}"
+        printf "%b Raspberry Pi NOT Detected - no ARM processor found\\n" "${INFO}"
+        printf "\\n"
     fi
 fi
 
@@ -1067,7 +1061,7 @@ rpi_check_usb_drive() {
         cd ~
 
         local usb_drive=$(df | grep boot | grep -oa sda)
-        local microsd_drive=$(df | grep boot | grep -oa mscblk0)
+        local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
@@ -1076,7 +1070,7 @@ rpi_check_usb_drive() {
             printf "\\n"
         fi
         # Check for micro sd boot drive
-        if [[ "$microsd_drive" == "mscblk" ]]; then
+        if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
                 printf "\\n"
                 printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1439,9 +1433,9 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 else
-    printf "%b %b Hostname is currently set to: $HOSTNAME\\n" "${CROSS}" "${COL_NC}"
-    printf "%b It is advisable to change your hostname to 'diginode'. This is optional\\n"  "${INDENT}"
-    printf "%b but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
+    printf "%b %bHostname is not set to 'diginode'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
+    printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
     REQUEST_HOSTNAME_CHANGE="YES"
