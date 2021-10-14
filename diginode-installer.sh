@@ -42,7 +42,7 @@ fi
 # if [[ ! "${EUID}" -eq 0 ]]; then
 #     USER_HOME=$(eval echo ~${SUDO_USER})
 # fi
-USER_HOME=$(pwd)
+USER_HOME=$PWD
 
 echo "!!!!!!!!!!! HOME FOLDER: $USER_HOME"
 
@@ -2141,8 +2141,6 @@ main() {
         fi
     fi
 
-    # Echo home folder
-    DGN_SETTINGS_LOCATION
 
     # Display a message if Verbose Mode is enabled
     verbose_mode
