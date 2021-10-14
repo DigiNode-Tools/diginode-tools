@@ -404,7 +404,7 @@ set_sys_variables() {
         DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
 
@@ -984,6 +984,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             rpi_check_usb_drive
+        else
+            print "\\n"
         fi
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
@@ -991,6 +993,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
             rpi_check_usb_drive
+        else
+            print "\\n"
         fi
     elif [ "$pitype" = "pi4_lowmem" ]; then
         printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1004,6 +1008,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             rpi_check_usb_drive
+        else
+            print "\\n"
         fi
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1017,6 +1023,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             rpi_check_usb_drive
+        else
+            print "\\n"
         fi
         
     elif [ "$pitype" = "piold" ]; then
