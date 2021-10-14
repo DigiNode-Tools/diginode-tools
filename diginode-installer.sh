@@ -39,6 +39,11 @@ if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     VERBOSE_MODE="YES"
 fi
 
+# Store user in variable
+if [ -z "${USER}" ]; then
+  USER="$(id -un)"
+fi
+
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Installer and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
@@ -47,7 +52,8 @@ fi
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-DGN_SETTINGS_LOCATION=~/.digibyte
+USER_HOME_FOLDER="/home/$USER"
+DGN_SETTINGS_LOCATION=${$USER_HOME_FOLDER/.digibyte}
 DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
@@ -73,11 +79,6 @@ DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 # DigiByte.Help URLs
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
-
-# Store user in variable
-if [ -z "${USER}" ]; then
-  USER="$(id -un)"
-fi
 
 # If update variable isn't specified, set to false
 if [ -z "$useUpdateVars" ]; then
@@ -225,7 +226,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
 # DIGINODE TOOLS:
  # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_TOOLS_LOCATION=\$HOME/diginode
+DGN_TOOLS_LOCATION=\$USER_HOME_FOLDER/diginode
 DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
 DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
 DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
@@ -234,9 +235,9 @@ DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
-DGB_INSTALL_LOCATION=\$HOME/digibyte/
+DGB_INSTALL_LOCATION=\$USER_HOME_FOLDER/digibyte/
 # Do not change this:
-DGB_SETTINGS_LOCATION=\$HOME/.digibyte/
+DGB_SETTINGS_LOCATION=\$USER_HOME_FOLDER/.digibyte/
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 
@@ -250,10 +251,10 @@ DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 # 3) Update this file with the new location
 # 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
 # 5) Restart the digibyted service 
-DGB_DATA_LOCATION=\$HOME/.digibyte/
+DGB_DATA_LOCATION=\$USER_HOME_FOLDER/.digibyte/
 
 # DIGIASSETS NODE:
-DGA_INSTALL_LOCATION=\$HOME/digiasset_node
+DGA_INSTALL_LOCATION=\$USER_HOME_FOLDER/digiasset_node
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 
@@ -1676,7 +1677,7 @@ swap_setup() {
 #check there is sufficient space on the drive to download the blockchain
 disk_space_check() {
     # Only run disk space check if the default location is used
-    if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$HOME/.digibyte/" ]]; then
+    if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$USER_HOME_FOLDER/.digibyte/" ]]; then
         if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             print "\\n"
             printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1866,15 +1867,15 @@ install_diginode_tools() {
             str="Adding 'diginode' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
-            echo "" >> $HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $HOME/.bashrc
-            echo "alias diginode='$DGN_MONITOR_SCRIPT'" >> $HOME/.bashrc
+            echo "" >> $USER_HOME_FOLDER/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME_FOLDER/.bashrc
+            echo "alias diginode='$DGN_MONITOR_SCRIPT'" >> $USER_HOME_FOLDER/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Updating 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGN_MONITOR_SCRIPT'|" $HOME/.bashrc
+            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGN_MONITOR_SCRIPT'|" $USER_HOME_FOLDER/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -1883,15 +1884,15 @@ install_diginode_tools() {
             str="Adding 'diginode-installer' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
-            echo "" >> $HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $HOME/.bashrc
-            echo "alias diginode-installer='$DGN_INSTALLER_SCRIPT'" >> $HOME/.bashrc
+            echo "" >> $USER_HOME_FOLDER/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME_FOLDER/.bashrc
+            echo "alias diginode-installer='$DGN_INSTALLER_SCRIPT'" >> $USER_HOME_FOLDER/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Updating 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $HOME/.bashrc
+            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $USER_HOME_FOLDER/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
