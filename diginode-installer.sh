@@ -38,6 +38,7 @@ fi
 
 # Store the user's home folder in a variable (needed when running root).
 # This only gets updated when the user isn't running root.
+sudo -k
 if [[ ! "${EUID}" -eq 0 ]]; then
     USER_HOME=$(eval echo ~${SUDO_USER})
 fi
