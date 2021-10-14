@@ -370,7 +370,7 @@ set_sys_variables() {
 
     # check the 'cat' command is available
     if ! is_command cat ; then
-        if [ "$VERBOSE_MODE" != "YES" ];
+        if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -380,7 +380,7 @@ set_sys_variables() {
 
     # check the 'free' command is available
     if ! is_command free ; then
-        if [ "$VERBOSE_MODE" != "YES" ];
+        if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -390,7 +390,7 @@ set_sys_variables() {
 
     # check the 'df' command is available
     if ! is_command df ; then
-        if [ "$VERBOSE_MODE" != "YES" ];
+        if [ "$VERBOSE_MODE" != "YES" ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to check for Raspberry Pi hardware - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
