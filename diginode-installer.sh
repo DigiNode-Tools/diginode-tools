@@ -47,8 +47,8 @@ fi
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-DGB_SETTINGS_LOCATION="$HOME/.digibyte"    
-DGN_SETTINGS_FILE=$DGB_SETTINGS_LOCATION/diginode.settings 
+DGN_SETTINGS_LOCATION=~/.digibyte
+DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size increases
@@ -167,7 +167,7 @@ verbose_mode() {
 unnattended_mode() {
     if [ "$runUnattended" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        if test -f "$DGB_SETTINGS_FILE"; then
+        if test -f "$DGN_SETTINGS_FILE"; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
         else
             printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
@@ -194,15 +194,15 @@ local str
 if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
-  if [ ! -d "$DGB_SETTINGS_LOCATION" ]; then
-    str="Creating settings folder..."
+  if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
+    str="Creating DigiNode settings folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
-        printf "%b   Folder location: $DGB_SETTINGS_LOCATION\\n" "${INDENT}"
-        mkdir $DGB_SETTINGS_LOCATION
+        printf "%b   Folder location: $DGN_SETTINGS_LOCATION\\n" "${INDENT}"
+        mkdir $DGN_SETTINGS_LOCATION
     else
-        mkdir $DGB_SETTINGS_LOCATION
+        mkdir $DGN_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
   fi
@@ -229,6 +229,8 @@ DGN_TOOLS_LOCATION=\$HOME/diginode
 DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
 DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
 DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
+# DGN_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
+# DGN_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
