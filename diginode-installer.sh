@@ -795,7 +795,7 @@ sys_check() {
                     printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
                     printf "%b Your Pi will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
                     printf "\\n"
-                    printf "%b sudo apt update && sudo apt upgrade && sudo echo \"arm_64bit=1\" >> /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
+                    printf "%b sudo apt update && sudo apt upgrade && echo \"arm_64bit=1\" | sudo tee -a /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
                     printf "\n"
                 fi
             fi
