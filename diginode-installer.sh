@@ -430,18 +430,15 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total RAM (HR):  $RAMTOTAL_HR\\n" "${INDENT}"
-        printf "%b   Total RAM (KB):  $RAMTOTAL_KB\\n" "${INDENT}"
-        printf "%b   Total SWAP (HR): $SWAPTOTAL_HR\\n" "${INDENT}"
-        printf "%b   Total SWAP (KB): $SWAPTOTAL_KB\\n" "${INDENT}"
+        printf "%b    Total RAM: ${RAMTOTAL_HR}b  ( ${RAMTOTAL_KB}Kb )\\n" "${INDENT}"
+        printf "%b   Total SWAP: ${SWAPTOTAL_HR}b  ( ${SWAPOTAL_KB}Kb )\\n" "${INDENT}"
     fi
 
     DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     DISKTOTAL_KB=$(df . --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total Disk (HR): $DISKTOTAL_HR\\n" "${INDENT}"
-        printf "%b   Total Disk (KB): $DISKTOTAL_HR\\n" "${INDENT}"
+        printf "%b   Total Disk Space: ${DISKTOTAL_HR}b  ( ${DISKTOTAL_KB}Kb )\\n" "${INDENT}"
     fi
 
     # No need to update the disk usage variables if running the status monitor, as it does it itself
@@ -460,9 +457,8 @@ set_sys_variables() {
         DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "%b   Disk Used (HR):  $DISKUSED_HR [ $DISKUSED_PERC ]\\n" "${INDENT}"
-            printf "%b   Disk Free (HR):  $DISKFREE_HR\\n" "${INDENT}"
-            printf "%b   Disk Free (KB):  $DISKFREE_KB\\n" "${INDENT}"
+            printf "%b   Used Disk Space: ${DISKUSED_HR}b  ( ${DISKUSED_PERC} )\\n" "${INDENT}"
+            printf "%b   Free Disk Space: ${DISKFREE_HR}b  ( ${DISKFREE_KB}Kb )\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
