@@ -361,7 +361,10 @@ set_sys_variables() {
     local str
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        str="Lookup RAM and swap file size..."
+        printf "%b Looking up system variables..." "${INFO}"
+        printf "%b   (Note: HR = Human Readable)" "${INDENT}"
+    else
+        str="Looking up system variables..."
         printf "%b %s" "${INFO}" "${str}"
     fi
 
@@ -374,22 +377,22 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        str="Lookup total disk size..."
-        printf "%b %s" "${INFO}" "${str}"
+        printf "%b   Total RAM (HR): $RAMTOTAL_HR" "${INDENT}"
+        printf "%b   Total RAM (KB): $RAMTOTAL_KB" "${INDENT}"
+        printf "%b   Total SWAP (HR): $SWAPTOTAL_HR" "${INDENT}"
+        printf "%b   Total SWAP (KB): $SWAPTOTAL_KB" "${INDENT}"
     fi
+
     DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DISKTOTAL_KB=$(df . --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b   Total Disk (HR): $DISKTOTAL_HR" "${INDENT}"
+        printf "%b   Total Disk (KB): $DISKTOTAL_HR" "${INDENT}"
     fi
 
     # No need to update the disk usage variables if running the status monitor, as it does it itself
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-
-        if [ "$VERBOSE_MODE" = "YES" ]; then
-            str="Lookup disk usage..."
-            printf "%b %s" "${INFO}" "${str}"
-        fi
 
         # Update current disk usage variables
         DISKUSED_HR=$(df . -h --output=used | tail -n +2)
@@ -404,9 +407,15 @@ set_sys_variables() {
         DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "%b   Disk Used (HR): $DISKUSED_HR [ $DISKUSED_PERC ]" "${INDENT}"
+            printf "%b   Disk Free (HR): $DISKFREE_HR" "${INDENT}"
+            printf "%b   Disk Free (KB): $DISKFREE_KB" "${INDENT}"
+        else
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
     fi
+    printf "\\n"
 
 }
 
