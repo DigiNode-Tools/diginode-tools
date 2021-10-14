@@ -1439,8 +1439,8 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 else
-    printf "%b Hostname is currently set to: $current_hostname\\n" "${CROSS}" "${COL_NC}"
-    printf "%b It is recommended that you change your hostname to 'diginode'. This is optional\\n"  "${INDENT}"
+    printf "%b %b Hostname is currently set to: $HOSTNAME\\n" "${CROSS}" "${COL_NC}"
+    printf "%b It is advisable to change your hostname to 'diginode'. This is optional\\n"  "${INDENT}"
     printf "%b but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
