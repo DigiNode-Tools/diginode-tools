@@ -1764,7 +1764,7 @@ update_dialogs() {
     opt1a="Update"
     opt1b="This will retain existing settings."
     strAdd="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
-    fi
+    
     opt2a="Reset"
     opt2b="Resets all DigiNode configuration. DigiByte wallet will be untouched."
 
