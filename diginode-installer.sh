@@ -759,7 +759,6 @@ echo -e "    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ "
 echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  "
 echo -e "              /____/                                 ${txtrst}"
 echo    ""
-sleep 0.5
 }
 
 
@@ -1721,37 +1720,39 @@ disk_space_check() {
 
 
 update_dialogs() {
-    # If diginode -r "reconfigure" option was selected,
+    # If pihole -r "reconfigure" option was selected,
     if [[ "${reconfigure}" = true ]]; then
         # set some variables that will be used
         opt1a="Repair"
-        opt1b="This will retain existing settings including your local DigiByte wallet."
+        opt1b="This will retain existing settings"
         strAdd="You will remain on the same version"
     else
         # Otherwise, set some variables with different values
         opt1a="Update"
-        opt1b="This will retain existing settings including your local DigiByte wallet."
+        opt1b="This will retain existing settings."
         strAdd="You will be updated to the latest version."
     fi
     opt2a="Reconfigure"
-    opt2b="Resets your DigiNode and allows re-selecting settings. "
+    opt2b="Resets Pi-hole and allows re-selecting settings."
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" "${r}" "${c}" 2 \
+    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" "${r}" "${c}" 2 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+
+    exit
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
         # repair, or
         ${opt1a})
-            printf "%b %s option selected\\n" "${INFO}" "${opt1a}"
+            printf "  %b %s option selected\\n" "${INFO}" "${opt1a}"
             useUpdateVars=true
             ;;
         # reconfigure,
         ${opt2a})
-            printf "%b %s option selected\\n" "${INFO}" "${opt2a}"
+            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
             useUpdateVars=false
             ;;
     esac
