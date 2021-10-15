@@ -1735,13 +1735,13 @@ update_dialogs() {
     opt2a="Reconfigure"
     opt2b="Resets Pi-hole and allows re-selecting settings."
 
+        exit
+
     # Display the information to the user
     UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" "${r}" "${c}" 2 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
-
-    exit
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
