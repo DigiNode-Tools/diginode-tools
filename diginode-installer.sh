@@ -1537,7 +1537,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
-    printf "%b If you have, please contact @saltedloly on Twitter and let me know so I can work on\\n" "${INDENT}"
+    printf "%b If you have, please contact @saltedlolly on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
     exit 1
@@ -1547,39 +1547,39 @@ else
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
-    REQUEST_HOSTNAME_CHANGE="YES"
+    HOSTNAME_ASK_CHANGE="YES"
 fi
 
 }
 
-ask_hostname_change() {
+hostname_ask_change() {
 # Display a request to change the hostname, if needed
-if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
-if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
+if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
+    if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
 
 This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
 
 Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-  DO_HOSTNAME_CHANGE="YES"
-  hostname_change
-else
-  printf "%b Hostname will not be changed.\\n" "${INFO}"
-fi
+      HOSTNAME_DO_CHANGE="YES"
+        hostname_do_change
+    else
+      printf "%b Hostname will not be changed.\\n" "${INFO}"
+    fi
 fi
 
 }
 
 # Function to change the hostname of the machine to 'diginode'
-do_hostname_change() {
+hostname_do_change() {
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
 if [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
-    DO_HOSTNAME_CHANGE="YES"
+    HOSTNAME_DO_CHANGE="YES"
 else
 
 # Only change the hostname if the user has agreed to do so (either via prompt or via settings)
-if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
+if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
     # change the hostname if not set to 'diginode' then go ahead
     if [[ ! "$HOSTNAME" == "diginode" ]]; then
