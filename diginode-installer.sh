@@ -36,7 +36,7 @@ if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
 
-# Store the user's home folder in a variable (varies depending on whether the user is running root or not)
+# Store the user's home folder in a variable (varies depending on whether the user is running asroot or not)
 if [[ "${EUID}" -eq 0 ]]; then
      USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 else
@@ -92,8 +92,8 @@ DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching 
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 
 # If update variable isn't specified, set to false
-if [ -z "$useUpdateVars" ]; then
-  useUpdateVars=false
+if [ -z "$NewInstall" ]; then
+  NewInstall=true
 fi
 
 # whiptail dialog dimensions: 20 rows and 70 chars width assures to fit on small screens and is known to hold all content.
@@ -192,7 +192,7 @@ dgntools_dev_mode() {
 }
 
 # Load variables from diginode.settings file. Create the file first if it does not exit.
-import_diginode_settings() {
+create_diginode_settings() {
 
 local str
 
@@ -283,7 +283,7 @@ SM_AUTO_QUIT=43200
 #####################################
 
 # INSTRUCTIONS: 
-# These variables are used during an unnatended install to automatically configure your DigiNode.
+# These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run the installer with the --unattended flag set.
 
 # Choose whether to change the hostname to: diginode (Set to YES/NO) [NOT WORKING YET]
@@ -392,7 +392,15 @@ EOF
     # Sets a variable to know that the diginode.settings file has been created for the first time
     IS_DGN_SETTINGS_FILE_NEW="YES"
 
-else
+fi
+
+}
+
+# Import the diginode.settings file it it exists
+# check if diginode.settings file exists
+import_diginode_Settings() {
+
+if [ -f "$DGN_SETTINGS_FILE" ]; then
 
     # The settings file exists, so source it
     str="Importing diginode.settings file..."
@@ -411,8 +419,6 @@ else
 fi
 
 }
-
-
 
 # These are only set after the intitial OS check since they cause an error on MacOS
 set_sys_variables() {
@@ -1502,7 +1508,8 @@ checkSelinux() {
                 ;;
         esac
     else
-        echo -e "${INFO} ${COL_GREEN}SELinux not detected${COL_NC}";
+        echo -e "${INFO} ${COL_GREEN}SELinux not detected${COL_NC}\\n";
+        printf "\\n"
     fi
     # Exit the installer if any SELinux checks toggled the flag
     if [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -z "${DIGINODE_SELINUX}" ]]; then
@@ -1512,6 +1519,7 @@ checkSelinux() {
         printf "%b  e.g: export DIGINODE_SELINUX=true\\n" "${INDENT}" 
         printf "%b  By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n" "${INDENT}" 
         printf "\\n%b  %bSELinux Enforcing detected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
+        printf "\\n"
         exit 1;
     elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${DIGINODE_SELINUX}" ]]; then
         printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1544,22 +1552,49 @@ fi
 
 }
 
+ask_hostname_change() {
+# Display a request to change the hostname, if needed
+if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
+if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
+
+This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
+
+Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+  DO_HOSTNAME_CHANGE="YES"
+  hostname_change
+else
+  printf "%b Hostname will not be changed.\\n" "${INFO}"
+fi
+fi
+
+}
+
 # Function to change the hostname of the machine to 'diginode'
-hostname_change() {
+do_hostname_change() {
 
-# change the hostname if not set to 'diginode' then go ahead
-if [[ ! "$HOSTNAME" == "diginode" ]]; then
+# If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
+if [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
+    DO_HOSTNAME_CHANGE="YES"
+else
 
-    if is_command hostnamectl ; then
-        str="Changing hostname from '$HOSTNAME' to 'diginode'..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
-        sudo hostnamectl set-hostname diginode
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        printf "\\n"
-        INSTALL_AVAHI="YES"
-    else
-        printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        exit 1
+# Only change the hostname if the user has agreed to do so (either via prompt or via settings)
+if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
+
+    # change the hostname if not set to 'diginode' then go ahead
+    if [[ ! "$HOSTNAME" == "diginode" ]]; then
+
+        if is_command hostnamectl ; then
+            str="Changing hostname from '$HOSTNAME' to 'diginode'..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+            sudo hostnamectl set-hostname diginode
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+            INSTALL_AVAHI="YES"
+        else
+            printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            exit 1
+        fi
     fi
 fi
 }
@@ -1660,7 +1695,11 @@ swap_setup() {
     # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
     if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]; then
         SWAP_REC_SIZE=$UI_SETUP_SWAP_SIZE
-        printf "%b %bUnattended Mode: Swap size will be set from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bUnattended Mode: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
+
+    if [[ "$UI_SETUP_SWAP_SIZE" = "" ]] && [[ "$runUnattended" = "true" ]]; then
+        printf "%b %bUnattended Mode: Using recommended swap size%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
     #create local variable
@@ -1720,40 +1759,34 @@ disk_space_check() {
 
 
 update_dialogs() {
-    # If pihole -r "reconfigure" option was selected,
-    if [[ "${reconfigure}" = true ]]; then
-        # set some variables that will be used
-        opt1a="Repair"
-        opt1b="This will retain existing settings"
-        strAdd="You will remain on the same version"
-    else
-        # Otherwise, set some variables with different values
-        opt1a="Update"
-        opt1b="This will retain existing settings."
-        strAdd="You will be updated to the latest version."
-    fi
-    opt2a="Reconfigure"
-    opt2b="Resets Pi-hole and allows re-selecting settings."
 
-        exit
+    opt1a="Update"
+    opt1b="This will retain existing settings."
+    strAdd="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
+    fi
+    opt2a="Reset"
+    opt2b="Resets all DigiNode configuration. DigiByte wallet will be untouched."
+
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing install.\\n\\nPlease choose from the following options: \\n($strAdd)" "${r}" "${c}" 2 \
+    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing DigiNode install.\\n\\nPlease choose from the following options: \\n($strAdd)
+
+        Note: Your existing DigiByte Core wallet.dat file will not be touched." "${r}" "${c}" 2 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
-        # repair, or
+        # Update, or
         ${opt1a})
             printf "  %b %s option selected\\n" "${INFO}" "${opt1a}"
-            useUpdateVars=true
+            UnattendedUpgrade=true
             ;;
-        # reconfigure,
+        # Reset,
         ${opt2a})
             printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
-            useUpdateVars=false
+            UnattendedReset=true
             ;;
     esac
 }
@@ -2019,20 +2052,6 @@ else
 fi
 fi
 
-
-# Display a request to change the hostname, if needed
-if [[ "$REQUEST_HOSTNAME_CHANGE" = "YES" ]]; then
-if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
-
-This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
-
-Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-
-  hostname_change
-else
-  printf "%b Hostname will not be changed.\\n" "${INFO}"
-fi
-fi
 }
 
 # Create digibyted.service file if it does not already exist
@@ -2113,6 +2132,10 @@ main() {
     if [[ "${EUID}" -eq 0 ]]; then
         # they are root and all is good
         printf "  %b %s\\n" "${TICK}" "${str}"
+
+        # import diginode settings
+        import_diginode_settings
+
         # Show the DigiNode logo
         diginode_logo
         make_temporary_log
@@ -2183,8 +2206,8 @@ main() {
     # Check for Raspberry Pi hardware
     rpi_check
 
-    # Import diginode.settings file because it contains variables we need for the install (or create it if this is the first run)
-    import_diginode_settings
+    # Create the diginode.settings file if this is the first run
+    create_diginode_settings
 
     # Check if the Raspberry Pi
     hostname_check
@@ -2202,20 +2225,49 @@ main() {
     # Check swap requirements
     swap_check
 
-    # if it's running unattended,
-    if [[ "${runUnattended}" == true ]]; then
-        printf "%b Performing unattended setup, no whiptail dialogs will be displayed\\n" "${INFO}"
-        # Use the setup variables
-        useUpdateVars=true
-        # also disable debconf-apt-progress dialogs
-        export DEBIAN_FRONTEND="noninteractive"
+    # Check if there is an existing install of DigiByte Core, installed with this script
+    if [[ -f "${DGB_INSTALL_FOLDER}/.officialdiginode" ]]; then
+        NewInstall=false
+        # if it's running unattended,
+        if [[ "${runUnattended}" == true ]]; then
+            printf "%b Unattended Mode: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
+            # Perform unattended upgrade
+            UnattendedUpgrade=true
+            # also disable debconf-apt-progress dialogs
+            export DEBIAN_FRONTEND="noninteractive"
+        else
+            # If running attended, show the available options (upgrade/repair/reconfigure)
+            printf "%b Interactive Mode: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
+            UnattendedUpgrade=false
+            update_dialogs
+        fi
+        printf "\\n"
     else
-        # If running attended, show the available options (repair/reconfigure)
-        update_dialogs
+        NewInstall=true
+        if [[ "${runUnattended}" == true ]]; then
+            printf "%b Unattended Install: Using diginode.settings file - no whiptail dialogs will be displayed\\n" "${INFO}"
+            # Perform unattended upgrade
+            UnattendedInstall=true
+            # also disable debconf-apt-progress dialogs
+            export DEBIAN_FRONTEND="noninteractive"
+        else
+            UnattendedInstall=false
+            printf "%b Interactive Install: Displaying installation menu - Whiptail dialogs will be displayed\\n" "${INFO}"
+        fi
+        printf "\\n"
     fi
 
+    # If there is an existing install of DigiByte Core, but it was not installed by this script, then exit
+    if [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+        printf "%b %bUnable to upgrade this DigiNode%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b An existing install of DigiByte Core was discovered, but it was not orignally installed\\n" "${INDENT}"
+        printf "%b using this Installer and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+    fi
 
-    if [[ "${useUpdateVars}" == false ]]; then
+    # IF this is a new interaactive Install, display the welcome dialogs
+    if [[ "${NewInstall}" == true ]] && [[ "${runUnattended}" == false ]]; then
 
         # pause for a moment beofe displaying menu
         sleep 3
@@ -2223,12 +2275,28 @@ main() {
         # Display welcome dialogs
         welcomeDialogs
 
-        #####################################
-        echo ""
-        printf "%b Exiting script early during testing!!" "${INFO}"
-        echo ""
-        exit # EXIT HERE DURING TEST
-        #####################################
+    fi
+
+
+
+
+
+    #####################################
+    echo ""
+    printf "%b Exiting script early during testing!!" "${INFO}"
+    echo ""
+    exit # EXIT HERE DURING TEST
+    #####################################
+
+
+    if [[ "${NewInstall}" == true ]]; then
+
+        # pause for a moment beofe displaying menu
+        sleep 3
+
+        # Display welcome dialogs
+        welcomeDialogs
+
 
         # Create directory for Pi-hole storage
         install -d -m 755 /etc/pihole/
