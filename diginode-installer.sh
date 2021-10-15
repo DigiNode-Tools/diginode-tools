@@ -23,6 +23,7 @@ set -e
 # Play an error beep if it exits with an error
 trap error_beep exit 1
 
+# Function to beep on an exit 1
 error_beep() {
     echo -en "\007"   
 }
@@ -398,7 +399,7 @@ fi
 
 # Import the diginode.settings file it it exists
 # check if diginode.settings file exists
-import_diginode_Settings() {
+import_diginode_settings() {
 
 if [ -f "$DGN_SETTINGS_FILE" ]; then
 
@@ -1576,7 +1577,7 @@ hostname_do_change() {
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
 if [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
-else
+fi
 
 # Only change the hostname if the user has agreed to do so (either via prompt or via settings)
 if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
