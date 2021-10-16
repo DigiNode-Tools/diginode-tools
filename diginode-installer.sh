@@ -2199,13 +2199,15 @@ main() {
 
         # If the sudo command exists, try rerunning as admin
         if is_command sudo ; then
-            printf "%b  %b Sudo utility check\\n" "${OVER}"  "${TICK}"
+            printf "%b %b Sudo utility check\\n" "${OVER}"  "${TICK}"
 
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
+                echo "hello"
                 # Download the install script and run it with admin rights
                 exec curl -sSL $DGN_INSTALLER_URL | sudo bash "$@"
             else
+                echo "hello local"
                 # when run via calling local bash script
                 exec sudo bash "$0" "$@"
             fi
