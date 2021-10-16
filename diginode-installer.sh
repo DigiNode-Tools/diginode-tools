@@ -1922,7 +1922,7 @@ install_diginode_tools() {
         if [ $DGN_TOOLS_LOCAL_BRANCH = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --quiet --branch develop https://github.com/saltedlolly/diginode/
+            git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==develop|" $DGN_SETTINGS_FILE
             sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -1930,14 +1930,14 @@ install_diginode_tools() {
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --quiet --branch main https://github.com/saltedlolly/diginode/
+            git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==main|" $DGN_SETTINGS_FILE
             sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
             str="Installing DigiNode Tools v${dgn_github_rel_ver}..."
             printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --quiet https://github.com/saltedlolly/diginode/
+            git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==release|" $DGN_SETTINGS_FILE
             sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==$dgn_github_rel_ver|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -2153,6 +2153,88 @@ donation_qrcode() {
     echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
 }
 
+stop_service() {
+    # Stop service passed in as argument.
+    # Can softfail, as process may not be installed when this is called
+    local str="Stopping ${1} service"
+    printf "  %b %s..." "${INFO}" "${str}"
+    if is_command systemctl ; then
+        systemctl stop "${1}" &> /dev/null || true
+    else
+        service "${1}" stop &> /dev/null || true
+    fi
+    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+}
+
+# Start/Restart service passed in as argument
+restart_service() {
+    # Local, named variables
+    local str="Restarting ${1} service"
+    printf "  %b %s..." "${INFO}" "${str}"
+    # If systemctl exists,
+    if is_command systemctl ; then
+        # use that to restart the service
+        systemctl restart "${1}" &> /dev/null
+    else
+        # Otherwise, fall back to the service command
+        service "${1}" restart &> /dev/null
+    fi
+    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+}
+
+# Enable service so that it will start with next reboot
+enable_service() {
+    # Local, named variables
+    local str="Enabling ${1} service to start on reboot"
+    printf "  %b %s..." "${INFO}" "${str}"
+    # If systemctl exists,
+    if is_command systemctl ; then
+        # use that to enable the service
+        systemctl enable "${1}" &> /dev/null
+    else
+        #  Otherwise, use update-rc.d to accomplish this
+        update-rc.d "${1}" defaults &> /dev/null
+    fi
+    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+}
+
+# Disable service so that it will not with next reboot
+disable_service() {
+    # Local, named variables
+    local str="Disabling ${1} service"
+    printf "  %b %s..." "${INFO}" "${str}"
+    # If systemctl exists,
+    if is_command systemctl ; then
+        # use that to disable the service
+        systemctl disable "${1}" &> /dev/null
+    else
+        # Otherwise, use update-rc.d to accomplish this
+        update-rc.d "${1}" disable &> /dev/null
+    fi
+    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+}
+
+check_service_active() {
+    # If systemctl exists,
+    if is_command systemctl ; then
+        # use that to check the status of the service
+        systemctl is-enabled "${1}" &> /dev/null
+    else
+        # Otherwise, fall back to service command
+        service "${1}" status &> /dev/null
+    fi
+}
+
+# This function will install DigiByte Core if it does not exist, and upgrade it if it does
+# It does not restart the digibyted.service automatically when done, in case a reboot is needed 
+install_digibyte_core() {
+
+    if check_service_active "digibyted"; then
+
+    fi
+
+}
+
 
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
@@ -2201,7 +2283,7 @@ main() {
 
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
-                echo "hello"
+                echo "Script URL: $DGN_INSTALLER_URL"
                 # Download the install script and run it with admin rights
                 exec curl -sSL $DGN_INSTALLER_URL | sudo bash "$@"
             else
