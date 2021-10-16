@@ -51,9 +51,10 @@ else
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
-# THis ensures that this VERBOSE_MODE setting is ignored if running the Status Monitor script - it has its own VERBOSE_MODE setting
+# Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
+# (Note: This condition ensures that this VERBOSE_MODE setting is ignored if running
+# the Status Monitor script - it has its own VERBOSE_MODE setting.
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    # INSTRUCTIONS: Set this to YES to get more verbose feedback. Very useful for troubleshooting.
     VERBOSE_MODE="YES"
 fi
 
@@ -228,19 +229,14 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 # DIGINODE TOOLS:
  # This is the default location where the scripts get installed to. There should be no need to change this.
 DGN_TOOLS_LOCATION=$USER_HOME/diginode
-DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
-DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
-DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
+
 # DGN_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
 # DGN_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
 
 # DIGIBYTE NODE:
 # Typically this is a symbolic link that points at the actual install folder:
 DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
-# Do not change this:
 DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
-DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
-DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
 # The value set below will be used by the normal install and the unattended install
@@ -256,7 +252,6 @@ DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
 # DIGIASSETS NODE:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
-DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 
 #####################################
@@ -285,13 +280,13 @@ DGN_TOOLS_DEV_BRANCH="yes"
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run the installer with the --unattended flag set.
 
-# Choose whether to change the hostname to: diginode (Set to YES/NO) [NOT WORKING YET]
+# Choose whether to change the hostname to: diginode (Set to YES/NO)
 UI_SET_HOSTNAME="YES"
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
 UI_SETUP_FIREWALL="YES"
 
-# Choose whether to create or change the swap file size [NOT WORKING YET]
+# Choose whether to create or change the swap file size
 # The optimal swap size will be calculated automatically based on the system RAM
 # If there is more than 8Gb RAM available, no swap will be created.
 # If a you manually enter the desired size in UI_SETUP_SWAP_SIZE below then that size is used.
@@ -302,11 +297,11 @@ UI_SETUP_SWAP="YES"
 # Enter the number of GB only, without the units. (e.g. 4 )
 UI_SETUP_SWAP_SIZE=
 
+# Will install regardless of available disk space on the drive. Use with caution.
+UI_DISKSPACE_OVERRIDE="NO"
+
 # Choose whether to setup Tor [NOT WORKING YET]
 UI_SETUP_TOR="YES"
-
-# Will install regardless of available space. Use with caution.
-UI_DISKSPACE_OVERRIDE="NO"
 
 
 #############################################
@@ -314,6 +309,20 @@ UI_DISKSPACE_OVERRIDE="NO"
 #############################################
 
 # IMPORTANT: DO NOT CHANGE THESE. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
+
+# DigiNode Tools file locations:
+DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
+DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
+DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
+
+# DigiByte Core file locations:
+DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
+DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
+DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
+DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
+
+# DigiAsset Node file locations:
+DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 # store diginode installation details
 DGN_INSTALL_DATE=
@@ -341,24 +350,27 @@ DISKUSED_HR=
 DISKUSED_PERC=
 
 # IP addresses (only rechecked once every 15 minutes)
-externalip=
-internalip=
+IP4_INTERNAL=
+IP4_EXTERNAL=
 
-# Store number of available system updates so the script only checks once every 24 hours.
-system_updates=
-security_updates=
+# Store number of available system updates so the script only checks this occasionally
+SYSTEM_REGULAR_UPDATES=
+SYSTEM_SECURITY_UPDATES=
 
 # Store local version numbers so the local node is not hammered with requests every second.
-dgb_ver_local=
-dga_ver_local=
-ipfs_ver_local=
+DGN_VER_LOCAL=
+DGB_VER_LOCAL=
+DGA_VER_LOCAL=
+IPFS_VER_LOCAL=
 
-# Store software release version numbers in settings file so Github only needs to be queried once a day.
-dgb_ver_github=
-dga_ver_github=
-dnt_ver_github=
+# Store software release version numbers in settings file so Github etc. only needs to be queried once a day.
+DGN_VER_GITHUB=
+DGB_VER_GITHUB=
+DGA_VER_GITHUB=
+IPFS_VER_RELEASE=
 
-# Store when an open port test last ran.
+# Store when an open port test last ran successfully
+# Note: If you want to run a port test again, remove the status and date from here
 ipfs_port_test_status=
 ipfs_port_test_date=
 dgb_port_test_status=
@@ -2225,13 +2237,102 @@ check_service_active() {
     fi
 }
 
-# This function will install DigiByte Core if it does not exist, and upgrade it if it does
-# It does not restart the digibyted.service automatically when done, in case a reboot is needed 
+# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
+# Note: It does not start the digibyted.service automatically when done, in case a reboot is needed 
 install_digibyte_core() {
 
+    # First let's check if DigiByte daemon is running
+    str="Is DigiByte Core already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
     if check_service_active "digibyted"; then
+        digibyted_status="running"
+        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    # First let's check if DigiByte daemon is running
+    str="Is DigiByte Core already running?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if check_service_active "digibyted"; then
+        digibyted_status="running"
+        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
+    if [ $digibyted_status = "running" ]; then
+        str="Is DigiByte Core already installed and running..."
+        printf "%b %s" "${INFO}" "${str}"
+        blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+
+        if [ "$blockcount_local" != ^[0-9]+$ ]; then
+          digibyted_status = "startingup"
+        fi
+    fi
+
+
+    # If DigiByte Core is currently in the process of starting up, we need to wait until it
+    # can actually respond to requests so we can get the current version number from digibyte-cli
+    if [ $digibyted_status = "startingup" ]; then
+
+        while (( SECONDS <15  )) && digibyted_status = "startingup"; do
+            blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+            if [ "$blockcount_local" = ^[0-9]+$ ]; then
+              digibyted_status = "running"
+            fi
+
+        done
 
     fi
+
+    # Get the version number of the current DigiByte Core and save it to the settings file
+    if [ $digibyted_status = "running" ]; then
+        sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
+    if [ $digibyted_status = "running" ]; then
+
+
+    ####
+
+    # Update existing alias for 'diginode'
+    sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
+
+    # Check if digibyted is successfully responding to requests up yet after starting up
+
+        if [[ "$blocklatest" = ^[0-9]+$ ]]
+            digibyted_status = "running"
+        fi
+        fi
+        
+
+
+
+
+        if [ $digibyted_status = "running" ]; then
+            blocklatest=$(~/digibyte/bin/digibyte-cli getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+        fi
+
+        # Get current software version
+        dgb_ver_local=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+
+
+        stop_service "digibyted"
+    fi
+
+    # Is digibyted running?
+systemctl is-active --quiet digibyted && digibyted_status="running" || digibyted_status="stopped"
+
+# Is digibyted in the process of starting up, and not ready to respond to requests?
+if [ $digibyted_status = "running" ]; then
+    blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+
+    if [ "$blockcount_local" != ^[0-9]+$ ]; then
+      digibyted_status = "startingup"
+    fi
+fi
+
+
 
 }
 
