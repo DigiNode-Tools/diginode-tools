@@ -434,12 +434,6 @@ fi
 # Function to set the DigiNode Tools Dev branch to use
 set_dgn_tools_branch() {
 
-    if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
-        printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   The develop branch will be used.\\n" "${INDENT}"
-        printf "\\n"
-    fi
-
     # Set relevant Github branch for DigiNode Tools
     if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
@@ -2171,16 +2165,18 @@ main() {
 
     printf "\\n"
 
-    # import diginode settings
-    import_diginode_settings
-
-    # set the DigiNode Tools branch to use for the installer
-    set_dgn_tools_branch
+    ######## FIRST CHECK ########
+    # Must be root to install
+    local str="Root user check"
+    printf "\\n"
 
     # If the user's id is zero,
     if [[ "${EUID}" -eq 0 ]]; then
         # they are root and all is good
         printf "  %b %s\\n" "${TICK}" "${str}"
+
+        # set the DigiNode Tools branch to use for the installer
+        set_dgn_tools_branch
 
         # Show the DigiNode logo
         diginode_logo
@@ -2189,6 +2185,9 @@ main() {
     else
         # show installer title box
         installer_title_box
+
+        # set the DigiNode Tools branch to use for the installer
+        set_dgn_tools_branch
 
         # Otherwise, they do not have enough privileges, so let the user know
         printf "%b %s\\n" "${INFO}" "${str}"
@@ -2252,6 +2251,9 @@ main() {
 
     # Create the diginode.settings file if this is the first run
     create_diginode_settings
+
+    # import diginode settings
+    import_diginode_settings
 
     # Check if the Raspberry Pi
     hostname_check
