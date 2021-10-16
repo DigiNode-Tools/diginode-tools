@@ -18,7 +18,7 @@
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
 # We do not want users to end up with a partially working install, so we exit the script
 # instead of continuing the installation with something broken
-# set -e
+ set -e
 
 # Play an error beep if it exits with an error
 trap error_beep exit 1
@@ -104,15 +104,21 @@ c=70
 ######## Undocumented Flags. Shhh ########
 # These are undocumented flags; some of which we can use when repairing an installation
 # The runUnattended flag is one example of this
-reconfigure=false
+reset=false
 runUnattended=false
-DGN_TOOLS_BRANCH="release"
+DGN_TOOLS_BRANCH="main"
+uninstall=false
 # Check arguments for the undocumented flags
+# --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
     case "$var" in
-        "--reconfigure" ) reconfigure=true;;
+        "-r" ) reset=true;;
+        "--reconfigure" ) reset=true;;
+        "-u" ) runUnattended=true;;
         "--unattended" ) runUnattended=true;;
-        "--dgndev" ) DGN_TOOLS_BRANCH="develop";; # This will install the development branch of DigiNode Tools
+        "-d" ) DGN_TOOLS_BRANCH="develop";; #
+        "--dgndev" ) DGN_TOOLS_BRANCH="develop";; 
+        "--uninstall" ) uninstall=true";;
     esac
 done
 
@@ -416,6 +422,11 @@ if [ -f "$DGN_SETTINGS_FILE" ]; then
         fi
     fi
 
+else
+    if [ "$VERBOSE_MODE" = "YES" ]; then
+        printf "%b diginode.settings file not found\\n" "${INDENT}"
+        printf "\\n"
+    fi
 fi
 
 }
@@ -423,13 +434,13 @@ fi
 # Function to set the DigiNode Tools Dev branch to use
 set_dgn_tools_branch() {
 
-        if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
+    if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
         printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b   The develop branch will be used.\\n" "${INDENT}"
         printf "\\n"
     fi
 
-        # Set relevant Github branch for DigiNode Tools
+    # Set relevant Github branch for DigiNode Tools
     if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
             printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2158,9 +2169,6 @@ donation_qrcode() {
 
 main() {
 
-    ######## FIRST CHECK ########
-    # Must be root to install
-    local str="Root user check"
     printf "\\n"
 
     # import diginode settings
@@ -2272,7 +2280,7 @@ main() {
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
-            # If running attended, show the available options (upgrade/repair/reconfigure)
+            # If running attended, show the available options (upgrade/reset/uninstall)
             printf "%b Interactive Mode: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
             UnattendedUpgrade=false
             update_dialogs
