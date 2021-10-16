@@ -80,8 +80,6 @@ DGN_INSTALLER_GITHUB_RELEASE_URL=
 DGN_INSTALLER_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
-DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
-
 # These are the commands that the use pastes into the terminal to run the installer
 DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 
@@ -2199,7 +2197,7 @@ main() {
 
         # If the sudo command exists, try rerunning as admin
         if is_command sudo ; then
-            printf "%b %b Sudo utility check\\n" "${OVER}"  "${TICK}"
+            printf "%b%b Sudo utility check\\n" "${OVER}" "${TICK}"
 
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
