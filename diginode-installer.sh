@@ -76,7 +76,7 @@ DGB_DATA_REQUIRED_KB="28000000"
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGN_INSTALLER_GITHUB_RELEASE_URL=
+DGN_INSTALLER_GITHUB_LATEST_RELEASE_URL=
 DGN_INSTALLER_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
 DGN_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
@@ -441,8 +441,8 @@ set_dgn_tools_branch() {
         fi
         DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEVELOP_URL
     else
-        # If release branch does not exist, use main branch
-            if [ "$DGN_INSTALLER_GITHUB_RELEASE_URL" = "" ]; then
+        # If latest release branch does not exist, use main branch
+            if [ "$DGN_INSTALLER_GITHUB_LATEST_RELEASE_URL" = "" ]; then
                 if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
                     printf "%b %bDigiNode Tools release branch is unavailable - main branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
@@ -450,10 +450,10 @@ set_dgn_tools_branch() {
                 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_MAIN_URL
             else
                 if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
-                    printf "%b %bDigiNode Tools release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                    printf "%b %bDigiNode Tools latest release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
-                DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_RELEASE_URL
+                DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_LATEST_RELEASE_URL
             fi
     fi
 }
