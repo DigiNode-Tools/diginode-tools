@@ -76,10 +76,10 @@ DGB_DATA_REQUIRED_KB="28000000"
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
 DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGN_INSTALLER_GITHUB_REL_URL=https://raw.githubusercontent.com/saltedlolly/diginode/release/diginode-installer.sh
-DGN_INSTALLER_GITHUB_DEV_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGN_INSTALLER_GITHUB_RELEASE_URL=
+DGN_INSTALLER_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
+DGN_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
-# CHANGE THIS VARIABLE TO USE A DIFERENT INSTALL REPO (THIS SHOULD USE THE OFFICIAL URL IN RELEASE VERSIONS)
 DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEV_URL
 
 # These are the commands that the use pastes into the terminal to run the installer
@@ -112,7 +112,7 @@ for var in "$@"; do
     case "$var" in
         "--reconfigure" ) reconfigure=true;;
         "--unattended" ) runUnattended=true;;
-        "--dgn_dev_branch" ) DGN_TOOLS_BRANCH="develop";; # This will install the development branch of DigiNode Tools
+        "--dgndev" ) DGN_TOOLS_BRANCH="develop";; # This will install the development branch of DigiNode Tools
     esac
 done
 
@@ -179,15 +179,6 @@ unnattended_mode() {
         else
             printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
         fi
-        printf "\\n"
-    fi
-}
-
-# Inform user if Verbose Mode is enabled
-dgntools_dev_mode() {
-    if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
-        printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   The develop branch will be used.\\n" "${INDENT}"
         printf "\\n"
     fi
 }
@@ -277,6 +268,9 @@ DGB_MAX_CONNECTIONS=300
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=43200
+
+# Use the develop Github branch for DigiNode Tools
+DGN_TOOLS_DEV_BRANCH="yes"
 
 
 #####################################
@@ -404,21 +398,61 @@ import_diginode_settings() {
 if [ -f "$DGN_SETTINGS_FILE" ]; then
 
     # The settings file exists, so source it
-    str="Importing diginode.settings file..."
-    printf "%b %s" "${INFO}" "${str}"
-    source $DGN_SETTINGS_FILE
+    if [[ "${EUID}" -eq 0 ]]; then
+        str="Importing diginode.settings file..."
+        printf "%b %s" "${INFO}" "${str}"
+    fi
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "\\n"
-        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
-        printf "\\n"
-    else
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        printf "\\n"
+    source $DGN_SETTINGS_FILE
+    
+    if [[ "${EUID}" -eq 0 ]]; then
+        if [ "$VERBOSE_MODE" = "YES" ]; then
+            printf "\\n"
+            printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+            printf "\\n"
+        else
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
     fi
 
 fi
 
+}
+
+# Function to set the DigiNode Tools Dev branch to use
+set_dgn_tools_branch() {
+
+        if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
+        printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   The develop branch will be used.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+        # Set relevant Github branch for DigiNode Tools
+    if [ "$DGN_TOOLS_BRANCH" = "develop" ]; then
+        if [[ "${EUID}" -eq 0 ]]; then
+            printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   The develop branch will be used.\\n" "${INDENT}"
+            printf "\\n"
+        fi
+        DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_DEVELOP_URL
+    else
+        # If release branch does not exist, use main branch
+            if [ "$DGN_INSTALLER_GITHUB_RELEASE_URL" = "" ]; then
+                if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
+                    printf "%b %bDigiNode Tools release branch is unavailable - main branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                    printf "\\n"
+                fi
+                DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_MAIN_URL
+            else
+                if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
+                    printf "%b %bDigiNode Tools release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                    printf "\\n"
+                fi
+                DGN_INSTALLER_URL=$DGN_INSTALLER_GITHUB_RELEASE_URL
+            fi
+    fi
 }
 
 # These are only set after the intitial OS check since they cause an error on MacOS
@@ -2129,17 +2163,21 @@ main() {
     local str="Root user check"
     printf "\\n"
 
+    # import diginode settings
+    import_diginode_settings
+
+    # set the DigiNode Tools branch to use for the installer
+    set_dgn_tools_branch
+
     # If the user's id is zero,
     if [[ "${EUID}" -eq 0 ]]; then
         # they are root and all is good
         printf "  %b %s\\n" "${TICK}" "${str}"
 
-        # import diginode settings
-        import_diginode_settings
-
         # Show the DigiNode logo
         diginode_logo
         make_temporary_log
+
     else
         # show installer title box
         installer_title_box
@@ -2181,9 +2219,6 @@ main() {
 
     # Display a message if Unnattended Mode is enabled
     unnattended_mode
-
-    # Display a message if DigiNode Tools develop mode is enabled
-    dgntools_dev_mode
 
     # Perform basic system check and lookup hardware architecture
     sys_check
