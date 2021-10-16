@@ -113,12 +113,12 @@ uninstall=false
 for var in "$@"; do
     case "$var" in
         "-r" ) reset=true;;
-        "--reconfigure" ) reset=true;;
+        "--reset" ) reset=true;;
         "-u" ) runUnattended=true;;
         "--unattended" ) runUnattended=true;;
-        "-d" ) DGN_TOOLS_BRANCH="develop";; #
+        "-d" ) DGN_TOOLS_BRANCH="develop";;
         "--dgndev" ) DGN_TOOLS_BRANCH="develop";; 
-        "--uninstall" ) uninstall=true";;
+        "--uninstall" ) uninstall=true;;
     esac
 done
 
