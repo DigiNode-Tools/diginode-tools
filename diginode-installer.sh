@@ -2237,102 +2237,159 @@ check_service_active() {
     fi
 }
 
+# Function to compare two version numbers
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
-# Note: It does not start the digibyted.service automatically when done, in case a reboot is needed 
+
 install_digibyte_core() {
 
-    # First let's check if DigiByte daemon is running
+    # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
-    if check_service_active "digibyted"; then
-        digibyted_status="running"
+    if [ -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+        digibyted_status="installed"
         printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
     else
+        digibyted_status="not_detected"
+    fi
+
+    # Just to be sure, let's try another way to check if DigiByte Core installed is running, by looking for the digibyted binary
+    if [ $digibyted_status = "not_detected" ] && [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ]; then
+        digibyted_status="installed"
+        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        digibyted_status="not_detected"
         printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
     fi
 
-    # First let's check if DigiByte daemon is running
-    str="Is DigiByte Core already running?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if check_service_active "digibyted"; then
-        digibyted_status="running"
-        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+
+    # Next let's check if DigiByte daemon is running
+    if [ $digibyted_status = "installed" ]; then
+      str="Is DigiByte Core already running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted"; then
+          digibyted_status="running"
+          printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          digibyted_status="not_running"
+          printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
     fi
 
     # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
     if [ $digibyted_status = "running" ]; then
-        str="Is DigiByte Core already installed and running..."
+        str="Is DigiByte Core in the process of starting up?..."
         printf "%b %s" "${INFO}" "${str}"
         blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
 
         if [ "$blockcount_local" != ^[0-9]+$ ]; then
+          printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
           digibyted_status = "startingup"
+        else
+          printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
         fi
     fi
-
 
     # If DigiByte Core is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
     if [ $digibyted_status = "startingup" ]; then
-
-        while (( SECONDS <15  )) && digibyted_status = "startingup"; do
-            blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
-            if [ "$blockcount_local" = ^[0-9]+$ ]; then
-              digibyted_status = "running"
+        local every15secs=0
+        local countdown
+        str="DigiByte Core is in the process of starting up. This can take up to 10 minutes. Please wait..."
+        printf "%b %s" "${INFO}" "${str}"
+        while [ $digibyted_status = "running" ]; do
+            if [ "$every15secs" -gt 15 ]; then
+              blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+              if [ "$blockcount_local" = ^[0-9]+$ ]; then
+                digibyted_status = "running"
+                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+              else
+                countdown=$((16 - every15secs))
+                printf "%b%b %s $countdown\\n\\n" "${OVER}" "${INFO}" "${str}"
+                every15secs=0
+                sleep 1
+              fi
+            else
+                every15secs=$((every15secs + 1))
+                countdown=$((16 - every15secs))
+                printf "%b%b %s $countdown\\n\\n" "${OVER}" "${INFO}" "${str}"
+                sleep 1
             fi
-
         done
 
     fi
 
-    # Get the version number of the current DigiByte Core and save it to the settings file
+    # Get the version number of the current DigiByte Core and write it to to the settings file
     if [ $digibyted_status = "running" ]; then
-        sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
-    if [ $digibyted_status = "running" ]; then
-
-
-    ####
-
-    # Update existing alias for 'diginode'
-    sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
-
-    # Check if digibyted is successfully responding to requests up yet after starting up
-
-        if [[ "$blocklatest" = ^[0-9]+$ ]]
-            digibyted_status = "running"
-        fi
-        fi
-        
-
-
-
-
-        if [ $digibyted_status = "running" ]; then
-            blocklatest=$(~/digibyte/bin/digibyte-cli getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
-        fi
-
-        # Get current software version
-        dgb_ver_local=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-
-
-        stop_service "digibyted"
+        DGB_VER_LOCAL=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b Current Version: DigiByte Core v${DGB_VER_LOCAL}\\n" "${INFO}" 
     fi
 
-    # Is digibyted running?
-systemctl is-active --quiet digibyted && digibyted_status="running" || digibyted_status="stopped"
 
-# Is digibyted in the process of starting up, and not ready to respond to requests?
-if [ $digibyted_status = "running" ]; then
-    blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+    # Check Github repo to find the version number of the latest DigiByte Core release
+    DGB_VER_GITHUB=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+    printf "%b Latest Release: DigiByte Core v${DGB_VER_GITHUB}\\n" "${INFO}"
 
-    if [ "$blockcount_local" != ^[0-9]+$ ]; then
-      digibyted_status = "startingup"
+
+    # If a local version already exists.... (i.e. we have a local version number)
+    if [ $DGB_VER_GITHUB != "" ]; then
+      # ....then check if a DigiByte Core upgrade is required
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+          dgb_install=="current"
+          printf "%b DigiByte Core is already running the latest version\\n" "${INFO}"
+          return
+      else
+          printf "%b DigiByte Core will be upgraded to the latest version\\n" "${INFO}"
+          dgb_install=="upgrade"
+      fi
+    fi 
+
+    # If no current version is installed, then do a clean install
+    if [ $digibyted_status = "not_detected" ]; then
+      printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
+      dgb_install=="new"
     fi
-fi
 
+    # Stop DigiByte Core if it is running, as we need to upgrade it
+    if [ $digibyted_status = "running" ] && [ $dgb_install = "upgrade" ]; then
+       stop_service digibyted
+    fi
+    
+   # Delete old DigiByte Core folders and tar files
+    rm -r $USER_HOME/digibyte-*
 
+    # Delete old ~/digibyte symbolic link
+    if [ -h "$DGB_INSTALL_LOCATION" ]; then
+      rm $DGB_INSTALL_LOCATION
+    fi
+
+    # Downloading latest DigiByte Core binary from GitHub
+    printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
+    str="Downloading DigiByte Core v${DGB_VER_GITHUB}..."
+    printf "%b %s" "${INFO}" "${str}"
+    wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Extracting DigiByte Core binary
+    str="Extracting DigiByte Core v${DGB_VER_GITHUB}..."
+    printf "%b %s" "${INFO}" "${str}"
+    tar -xf digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    ln -s digibyte-$DGB_VER_GITHUB digibyte
+    rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+
+    # Delete DigiByte Core tar file
+    rm $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+
+    # Create new symbolic link
+    ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+
+    # Restart digibyte service
+    restart_service digibyted
 
 }
 

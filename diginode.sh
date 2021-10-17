@@ -1104,12 +1104,12 @@ if [ $timedif15sec -gt 15 ]; then
 
 
     # Compare current DigiByte Core version with Github version to know if there is a new version available
-    if [ "$DGB_VER_GITHUB" -gt "$DGB_VER_LOCAL" ]; then
+    if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_GITHUB) ]; then
         UPDATE_AVAILABLE="yes"
         UPDATE_AVAILABLE_DGB="yes"
     else
         UPDATE_AVAILABLE_DGB="no"
-    fi 
+    fi
 
     savedtime15sec="$timenow"
 fi
