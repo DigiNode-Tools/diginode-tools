@@ -2589,7 +2589,7 @@ main() {
             if [[ "$0" == "bash" ]]; then
                 # Only append this to the curl command this if there are arguments to include
                 if [ ! "$@" == "" ]; then
-                    local add_args = "-s --"
+                    local add_args="-s --"
                 fi
                 # Download the install script and run it with admin rights
                 exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s $add_args "$@"
