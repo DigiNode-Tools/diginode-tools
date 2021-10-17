@@ -2388,8 +2388,10 @@ install_digibyte_core() {
     # Create new symbolic link
     ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
 
-    # Restart digibyte service
-    restart_service digibyted
+    # Create hidden file to denote this version was installed with the official installer
+    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+        touch $DGB_INSTALL_FOLDER/.officialdiginode
+    fi
 
 }
 
