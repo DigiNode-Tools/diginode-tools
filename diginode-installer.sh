@@ -2589,7 +2589,7 @@ main() {
             if [[ "$0" == "bash" ]]; then
                 echo "Script URL: $DGN_INSTALLER_URL"
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGN_INSTALLER_URL | sudo bash "$@"
+                exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s -- "$@"
             else
                 echo "hello local"
                 # when run via calling local bash script
