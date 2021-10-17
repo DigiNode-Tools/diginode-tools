@@ -849,7 +849,7 @@ echo -e "${txtblu}
   ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊ
   ƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊ
    ƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊ${txtrst}##########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ 
-    ƊƊƊƊƊƊƊƊ${txtrst}########Ɗ############${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
+    ƊƊƊƊƊƊƊƊ${txtrst}#####################${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
      ƊƊƊƊƊƊ${txtrst}##############${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
        ƊƊƊƊƊƊƊ${txtrst}####${txtblu}ƊƊ${txtrst}###${txtblu}*ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
@@ -2557,7 +2557,7 @@ main() {
     # If the user's id is zero,
     if [[ "${EUID}" -eq 0 ]]; then
         # they are root and all is good
-        printf "  %b %s\\n" "${TICK}" "${str}"
+        printf "%b %s\\n\\n" "${TICK}" "${str}"
 
         # set the DigiNode Tools branch to use for the installer
         set_dgn_tools_branch
