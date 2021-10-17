@@ -234,7 +234,10 @@ DGN_TOOLS_LOCATION=$USER_HOME/diginode
 # DGN_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
 
 # DIGIBYTE NODE:
-# Typically this is a symbolic link that points at the actual install folder:
+# This references a symbolic link that points at the actual install folder. There should be no need to change this.
+# If you really want to change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
+# called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder
+# It is not advisable 
 DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
 DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
 
@@ -242,7 +245,7 @@ DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
 # The value set below will be used by the normal install and the unattended install
 # Note - changing this after the DigiByte Node has already been installed will cause
 # the blockchain to be be re-downloaded in the new location, unless you move the data manually
-# first. For best results do this:
+# first. Follow these recommended steps to change the location:
 # 1) Stop the digibyted service
 # 2) Manually move the blockchain data to the new location
 # 3) Update this file with the new location
@@ -258,17 +261,18 @@ DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 ####### OTHER SETTINGS ##############
 #####################################
 
-# THis will set the max connections in the digibyte.conf file
-# (it is only set if the digibyte.conf file does not already exist)
-# This value is also used for both the standard install and the unattended
+# THis will set the max connections in the digibyte.conf file on the first install
+# This value set here is also used when performing an unattended install
+# (Note: If the digibyte.conf file already exists, the value here will be ignored)
 DGB_MAX_CONNECTIONS=300
 
-# Stop status monitor automatically if left running
+# Stop 'DigiNode Satus Monitor' automatically if left running
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=43200
 
-# Use the develop Github branch for DigiNode Tools
+# Install the develop branch of DigiNode Tools (Specify either 'yes' or 'no')
+# If 'no', it will install the latest release version
 DGN_TOOLS_DEV_BRANCH="yes"
 
 
@@ -280,22 +284,26 @@ DGN_TOOLS_DEV_BRANCH="yes"
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run the installer with the --unattended flag set.
 
-# Choose whether to change the hostname to: diginode (Set to YES/NO)
+# Choose whether to change the system hostname to: diginode (Set to YES/NO)
+# If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
+# If it is running on a Linux box with a load of other stuff, then probably not.
 UI_SET_HOSTNAME="YES"
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
 UI_SETUP_FIREWALL="YES"
 
 # Choose whether to create or change the swap file size
-# The optimal swap size will be calculated automatically based on the system RAM
+# The optimal swap size will be calculated to ensure there is 8Gb total memory.
+# e.g. If the system has 2Gb RAM, it will create a 6Gb swap file. Total: 8Gb.
 # If there is more than 8Gb RAM available, no swap will be created.
-# If a you manually enter the desired size in UI_SETUP_SWAP_SIZE below then that size is used.
+# You can override this by manually entering the desired size in UI_SETUP_SWAP_SIZE_MB below.
 UI_SETUP_SWAP="YES"
 
-# If the swap size in GB is entered here then it will be used for the swap file size
-# Leave empty to have the size calculated automatically by the installer
-# Enter the number of GB only, without the units. (e.g. 4 )
-UI_SETUP_SWAP_SIZE=
+# You can optionally manually enter a desired swap file size here in MB.
+# The UI_SETUP_SWAP variable above must be set to YES for this to be used.
+# If you leave this value empty, the optimal swap file size will calculated by the installer.
+# Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
+UI_SETUP_SWAP_SIZE_MB=
 
 # Will install regardless of available disk space on the drive. Use with caution.
 UI_DISKSPACE_OVERRIDE="NO"
@@ -308,7 +316,7 @@ UI_SETUP_TOR="YES"
 ####### SYSTEM VARIABLES ####################
 #############################################
 
-# IMPORTANT: DO NOT CHANGE THESE. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
+# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
 
 # DigiNode Tools file locations:
 DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
@@ -327,8 +335,9 @@ DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 # Store DigiByte Core Installation details:
 DGB_INSTALL_DATE=
 DGB_UPGRADE_DATE=
-DGB_VER_LOCAL=
 DGB_VER_GITHUB=
+DGB_VER_LOCAL=
+DGB_VER_LOCAL_CHECK_FREQ=daily
 
 # Store DigiNode Tools installation details
 # Release/Github versions are queried once a day and stored here. Local version number are queried every minute.
@@ -823,6 +832,37 @@ echo -e "              /____/                                 ${txtrst}"
 echo    ""
 }
 
+diginode_logo_v2() {
+echo ""
+echo -e "${txtblu}
+                          ƊƊ                       
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ              
+            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
+         ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
+       ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}###{txtblu}ƊƊ{txtrst}####{txtblu}ƊƊƊƊƊƊƊƊƊƊƊ     
+     ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}####{txtblu}Ɗ{txtrst}####{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
+    ƊƊƊƊƊƊƊƊƊ{txtrst}###########################{txtblu}ƊƊƊƊƊƊƊƊƊ  
+   ƊƊƊƊƊƊƊƊ{txtrst}###############################{txtblu}ƊƊƊƊƊƊƊƊ 
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}#######{txtblu}ƊƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}#######{txtblu}ƊƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}#######{txtblu}ƊƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊ{txtrst}#######{txtblu}ƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊ
+   ƊƊƊƊƊƊƊƊƊƊ{txtrst}########{txtblu}ƊƊƊƊ{txtrst}##########{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ 
+    ƊƊƊƊƊƊƊƊ{txtrst}.####################{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
+     ƊƊƊƊƊƊ{txtrst}##############{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
+       ƊƊƊƊƊƊƊ{txtrst}####{txtblu}ƊƊ{txtrst}###*{txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
+         ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
+            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txtrst}${txtbld}"
+echo -e "       ____   _         _   _   __            __     "             
+echo -e "      / __ \ (_)____ _ (_) / | / /____   ____/ /___  "
+echo -e "     / / / // // __ '// / /  |/ // __ \ / __  // _ \ "
+echo -e "    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ "
+echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  "
+echo -e "              /____/                                 ${txtrst}"
+echo    ""
+}
 
 make_temporary_log() {
     # Create a random temporary file for the log
@@ -1630,7 +1670,7 @@ fi
 hostname_do_change() {
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
+if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]] && ; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -1655,7 +1695,7 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 fi
 }
 
-# Check for swap file if using a device with low memory, and make sure it is large enough
+# This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
 swap_check() {
 
     local swap_current_size
@@ -1679,51 +1719,64 @@ swap_check() {
     # the size check will come out the same for either
     if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="7Gb"
+        SWAP_REC_SIZE_HR="7Gb"
+        SWAP_REC_SIZE_MB=7000
     elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="6Gb"
+        SWAP_REC_SIZE_HR="6Gb"
+        SWAP_REC_SIZE_MB=6000
     elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="5Gb"
+        SWAP_REC_SIZE_HR="5Gb"
+        SWAP_REC_SIZE_MB=5000
     elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="4Gb"
+        SWAP_REC_SIZE_HR="4Gb"
+        SWAP_REC_SIZE_MB=4000
     elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="3Gb"
+        SWAP_REC_SIZE_HR="3Gb"
+        SWAP_REC_SIZE_MB=3000
     elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE="2Gb"
+        SWAP_REC_SIZE_HR="2Gb"
+        SWAP_REC_SIZE_MB=2000
 
     # If there is no swap file present, calculate recomended swap file size
     elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="7Gb"
+        SWAP_REC_SIZE_HR="7Gb"
+        SWAP_REC_SIZE_MB=7000
     elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="6Gb"
+        SWAP_REC_SIZE_HR="6Gb"
+        SWAP_REC_SIZE_MB=6000
     elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="5Gb"
+        SWAP_REC_SIZE_HR="5Gb"
+        SWAP_REC_SIZE_MB=5000
     elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="4Gb"
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        SWAP_REC_SIZE_HR="4Gb"
+        SWAP_REC_SIZE_MB=4000
+    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="5Gb"
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        SWAP_REC_SIZE_HR="3Gb"
+        SWAP_REC_SIZE_MB=3000
+    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="6Gb"
-    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+        SWAP_REC_SIZE_HR="2Gb"
+        SWAP_REC_SIZE_MB=2000
+    elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
-        SWAP_REC_SIZE="7Gb"
+        SWAP_REC_SIZE_HR="1Gb"
+        SWAP_REC_SIZE_MB=1000
     fi
 
     if [ "$SWAP_NEEDED" = "YES" ]; then
         printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
-        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
@@ -1735,7 +1788,7 @@ swap_check() {
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
         printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
-        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $swap_rec_size or more.\\n" "${INDENT}"
+        printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
@@ -1745,41 +1798,85 @@ swap_check() {
     fi
 }
 
-# This function will setup a swap file for your device
-swap_setup() {
+# If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
+swap_ask_change() {
+# Display a request to change the hostname, if needed
+if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
+    local str_swap_needed
+    if [ "$SWAP_NEEDED" = "YES" ]; then
+        str_swap_needed="\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
-    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ "$UI_SETUP_SWAP_SIZE" != "" ]] && [[ "$runUnattended" = "true" ]]; then
-        SWAP_REC_SIZE=$UI_SETUP_SWAP_SIZE
-        printf "%b %bUnattended Mode: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "WARNING: No swap file detected!" 3>&1 1>&2 2>&3) 
+
+        local str_swap_too_low
+        str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
+        if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
+            whiptail --msgbox --title "Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            swap_ask_change
+        fi
+
     fi
 
-    if [[ "$UI_SETUP_SWAP_SIZE" = "" ]] && [[ "$runUnattended" = "true" ]]; then
-        printf "%b %bUnattended Mode: Using recommended swap size%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+        str="\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "WARNING: Swap file size is too small!" 3>&1 1>&2 2>&3) 
+
+        local str_swap_too_low
+        str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
+        if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
+            whiptail --msgbox --title "Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            swap_ask_change
+        fi
+
+    fi
+
+fi
+
+}
+
+# If a swap file is needed, this function will create one or change the size of an existing one
+swap_do_change() {
+
+    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
+    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
+        SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
+        SWAP_DO_CHANGE="YES"
+        printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
+
+    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
+        printf "%b %bUnattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
+        SWAP_DO_CHANGE="YES"
     fi
 
     #create local variable
     local str
 
-    if [ "$SWAP_NEEDED" = "YES" ]; then
-        # Local, named variables
-        str="Creating $SWAP_REC_SIZE swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+    # Go ahead and create/change the swap if requested
+    if [[ $SWAP_DO_CHANGE = "YES" ]]; then
 
-        sleep 3
+        if [ "$SWAP_NEEDED" = "YES" ]; then
+            # Local, named variables
+            str="Creating $SWAP_TARG_SIZE_MB MB swap file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
 
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        printf "\\n"
-    fi
+            sleep 3
 
-    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        str="Increasing swap file size from ${RAMTOTAL_HR}b to $SWAP_REC_SIZE..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
 
-        sleep 3
+        if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+            str="Changing swap file size to $SWAP_TARG_SIZE_MB..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
 
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        printf "\\n"
+            sleep 3
+
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
     fi
 
 }
@@ -2120,10 +2217,11 @@ create_digibyted_service() {
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_DAEMON_SERVICE_FILE
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        # Create a new DigiByte service file
-        echo "$INFO Creating digibyted.service file"
-        cat <<EOF > $DGB_DAEMON_SERVICE_FILE
+    fi
+    
+    # Create a new DigiByte service file
+    echo "$INFO Creating digibyted.service file"
+    cat <<EOF > $DGB_DAEMON_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
 
@@ -2146,7 +2244,7 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
-    fi
+
 }
 
 donation_qrcode() {       
@@ -2350,6 +2448,7 @@ install_digibyte_core() {
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
           dgb_install=="current"
           printf "%b DigiByte Core is already running the latest version\\n" "${INFO}"
+          UPDATE_AVAILABLE_DGB="no"
           return
       else
           printf "%b DigiByte Core will be upgraded to the latest version\\n" "${INFO}"
@@ -2423,11 +2522,20 @@ install_digibyte_core() {
     elif [ $dgb_install = "upgrade" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE==/s|.*|DGB_UPGRADE_DATE==$(date)|" $DGN_SETTINGS_FILE
     fi
+    UPDATE_AVAILABLE_DGB="no"
 
     # Create hidden file to denote this version was installed with the official installer
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
         touch $DGB_INSTALL_FOLDER/.officialdiginode
     fi
+
+}
+
+# Perform uninstall if requested
+uninstall_everything() {
+
+    printf "%b Your entire DigiByte Node will now be uninstalled. Your DigiByte wallet file will be untouched.\\n" "${INFO}"
+    exit
 
 }
 
@@ -2455,7 +2563,7 @@ main() {
         set_dgn_tools_branch
 
         # Show the DigiNode logo
-        diginode_logo
+        diginode_logo_v2
         make_temporary_log
 
     else
@@ -2552,6 +2660,12 @@ main() {
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_FOLDER}/.officialdiginode" ]]; then
         NewInstall=false
+
+        # If uninstall is requested, then do it now
+        if [[ "$uninstall" == "yes" ]]; then
+            uninstall_everything
+        fi
+
         # if it's running unattended,
         if [[ "${runUnattended}" == true ]]; then
             printf "%b Unattended Mode: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
@@ -2581,17 +2695,19 @@ main() {
         printf "\\n"
     fi
 
+
+
     # If there is an existing install of DigiByte Core, but it was not installed by this script, then exit
     if [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
-        printf "%b %bUnable to upgrade this DigiNode%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b An existing install of DigiByte Core was discovered, but it was not orignally installed\\n" "${INDENT}"
+        printf "%b %bUnable to upgrade DigiByte Coree%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
         printf "%b using this Installer and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
 
-    # IF this is a new interaactive Install, display the welcome dialogs
-    if [[ "${NewInstall}" == true ]] && [[ "${runUnattended}" == false ]]; then
+    # If this is a new interaactive Install, display the welcome dialogs
+    if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
 
         # pause for a moment beofe displaying menu
         sleep 3
@@ -2600,6 +2716,25 @@ main() {
         welcomeDialogs
 
     fi
+
+    # Change the hostname
+    hostname_do_change
+
+    # Do swap setup
+    swap_setup
+
+    # Install DigiByte Core
+    install_digibyte_core
+
+    # Create DigiByte.conf file
+    create_digibyte_conf
+
+    # Create DigiByte.conf file
+    create_digibyted_service
+
+
+
+
 
 
 

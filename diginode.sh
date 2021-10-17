@@ -683,7 +683,7 @@ install_required_pkgs() {
 # Quit message
 quit_message() {
     # On quit, if there are updates available, ask the user if they want to install them
-   if [ "$update_available" = "yes" ]; then
+    if [ "$UPDATE_AVAILABLE_DGB" = "yes" ] || [ "$UPDATE_AVAILABLE_DGA" = "yes" ] || [ "$UPDATE_AVAILABLE_DGN" = "yes" ] || [ "$UPDATE_AVAILABLE_IPFS" = "yes" ]; then
 
       # Install updates now
       clear -x
@@ -694,8 +694,19 @@ quit_message() {
       if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo
         printf "%b Installing updates...\\n" "${INFO}"
-      
-
+        echo ""
+        if [ "$UPDATE_AVAILABLE_DGB" = "yes" ]; then
+          install_digibyte_core
+        fi
+        if [ "$UPDATE_AVAILABLE_IPFS" = "yes" ]; then
+          install_ipfs
+        fi
+        if [ "$UPDATE_AVAILABLE_DGA" = "yes" ]; then
+          install_digiassets_node
+        fi
+        if [ "$UPDATE_AVAILABLE_DGN" = "yes" ]; then
+          install_diginode_tools
+        fi
       fi
 
       # Display donation qr code
@@ -704,7 +715,7 @@ quit_message() {
       printf "\\n"
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "yes" ] && [ "$update_available" = "" ]; then
+  elif [ "$DONATION_PLEA" = "yes" ]; then
       clear -x
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
@@ -984,7 +995,7 @@ trap quit_message EXIT
 read -rsn1 input
 if [ "$input" = "q" ]; then
     echo ""
-    printf "%b Quitting...\\n" "${INDENT}"
+    printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
     echo ""
     exit
 fi
@@ -1081,14 +1092,29 @@ if [ $timedif15sec -gt 15 ]; then
           digibyted_status = "running"
         fi
     fi
+
+    # Update local block count every 15 seconds (approx once per block)
     if [ $digibyted_status = "running" ]; then
-        blockcount_local=$($DGB_CLI getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+          blockcount_local=$($DGB_CLI getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+    fi
+
+    # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
+    if [ $digibyted_status = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "15secs" ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
-    fi
 
+        # If DigiByte Core is up to date, switch back to checking the local version number daily
+        if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+          DGB_VER_LOCAL_CHECK_FREQ="daily"
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
+          UPDATE_AVAILABLE_DGB="no"
+        else
+          UPDATE_AVAILABLE_DGB="yes"
+        fi
+
+    fi
 
 
     # Update current disk usage variables
@@ -1106,14 +1132,6 @@ if [ $timedif15sec -gt 15 ]; then
     sed -i -e '/^DISKFREE_HR=/s|.*|DISKFREE_HR="$DISKFREE_HR"|' $DGN_SETTINGS_FILE
     sed -i -e '/^DISKUSED_PERC_HR=/s|.*|DISKUSED_PERC_HR="$DISKUSED_PERC"|' $DGN_SETTINGS_FILE
 
-
-    # Compare current DigiByte Core version with Github version to know if there is a new version available
-    if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_GITHUB) ]; then
-        UPDATE_AVAILABLE="yes"
-        UPDATE_AVAILABLE_DGB="yes"
-    else
-        UPDATE_AVAILABLE_DGB="no"
-    fi
 
     savedtime15sec="$timenow"
 fi
@@ -1221,6 +1239,23 @@ if [ $timedif24hrs -gt 86400 ]; then
     # Check for new release of DigiByte Core on Github
     DGB_VER_GITHUB=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+
+    # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
+    if [ $digibyted_status = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
+
+        # Get current software version, and write to diginode.settings
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+
+        # Compare current DigiByte Core version with Github version to know if there is a new version available
+        if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_GITHUB) ]; then
+          DGB_VER_LOCAL_CHECK_FREQ="15secs"
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
+          UPDATE_AVAILABLE_DGB="yes"
+        else
+          UPDATE_AVAILABLE_DGB="no"
+        fi
+    fi
 
     # Check for new release of DigiNode Tools on Github
  #   DGN_VER_GITHUB=
