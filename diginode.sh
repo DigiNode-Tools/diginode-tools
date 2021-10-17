@@ -786,6 +786,10 @@ if [ $DGN_MONITOR_LAST_RUN="" ]; then
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
     echo "    Detected: DigiByte Core v${DGB_VER_LOCAL}" 
 
+    # Log date of Status Monitor first run to diginode.settings
+    DGN_MONITOR_FIRST_RUN=$(date)
+    sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
+
 
     # if digiassets server is installed, set variables
     if [ $dga_status = "running" ]; then

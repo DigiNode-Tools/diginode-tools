@@ -324,10 +324,20 @@ DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 # DigiAsset Node file locations:
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
-# store diginode installation details
+# Store DigiByte Core Installation details:
+DGB_INSTALL_DATE=
+DGB_UPGRADE_DATE=
+DGB_VER_LOCAL=
+DGB_VER_GITHUB=
+
+# Store DigiNode Tools installation details
+# Release/Github versions are queried once a day and stored here. Local version number are queried every minute.
 DGN_INSTALL_DATE=
 DGN_UPGRADE_DATE=
+DGN_MONITOR_FIRST_RUN=
 DGN_MONITOR_LAST_RUN=
+DGN_VER_LOCAL=
+DGN_VER_GITHUB=
 DGA_FIRST_RUN=
 
 # THese are updated automatically every time DigiNode Tools is installed/upgraded. 
@@ -335,6 +345,14 @@ DGA_FIRST_RUN=
 DGN_TOOLS_LOCAL_BRANCH=
 # Stores the version number of the release branch (if currently installed)
 DGN_TOOLS_LOCAL_RELEASE_VER=
+
+# Store DigiAssets Node installation details:
+DGA_INSTALL_DATE=
+DGA_UPGRADE_DATE=
+DGA_VER_LOCAL=
+DGA_VER_GITHUB=
+IPFS_VER_LOCAL=
+IPFS_VER_RELEASE=
 
 # Timer variables
 savedtime15sec=
@@ -356,18 +374,6 @@ IP4_EXTERNAL=
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
 SYSTEM_SECURITY_UPDATES=
-
-# Store local version numbers so the local node is not hammered with requests every second.
-DGN_VER_LOCAL=
-DGB_VER_LOCAL=
-DGA_VER_LOCAL=
-IPFS_VER_LOCAL=
-
-# Store software release version numbers in settings file so Github etc. only needs to be queried once a day.
-DGN_VER_GITHUB=
-DGB_VER_GITHUB=
-DGA_VER_GITHUB=
-IPFS_VER_RELEASE=
 
 # Store when an open port test last ran successfully
 # Note: If you want to run a port test again, remove the status and date from here
@@ -2242,8 +2248,11 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
-
+# Note: It does not (re)start the digibyted.service automatically when done
 install_digibyte_core() {
+
+    # Create local variable to store if we need to do a new install, an upgrade,
+    local dgb_install
 
     # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
@@ -2359,34 +2368,61 @@ install_digibyte_core() {
        stop_service digibyted
     fi
     
-   # Delete old DigiByte Core folders and tar files
-    rm -r $USER_HOME/digibyte-*
-
-    # Delete old ~/digibyte symbolic link
-    if [ -h "$DGB_INSTALL_LOCATION" ]; then
-      rm $DGB_INSTALL_LOCATION
-    fi
+   # Delete any old DigiByte Core tar files
+    str="Deleting any old DigiByte Core tar.gz files from home folder..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Downloading latest DigiByte Core binary from GitHub
     printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
     str="Downloading DigiByte Core v${DGB_VER_GITHUB}..."
     printf "%b %s" "${INFO}" "${str}"
-    wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+    wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_GITHUB}..."
+    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
     printf "%b %s" "${INFO}" "${str}"
     tar -xf digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     ln -s digibyte-$DGB_VER_GITHUB digibyte
     rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
 
-    # Delete DigiByte Core tar file
-    rm $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    # Delete old ~/digibyte symbolic link
+    if [ -h "$DGB_INSTALL_LOCATION" ]; then
+        str="Deleting old 'digibyte' symbolic link from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $DGB_INSTALL_LOCATION
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Create new symbolic link
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    printf "%b %s" "${INFO}" "${str}"
     ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete previous version of DigiByte Core
+    str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -rf $USER_HOME/digibyte-{DGB_VER_LOCAL}
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    
+    # Delete DigiByte Core tar.gz file
+    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
+    DGB_VER_LOCAL=$DGB_VER_GITHUB
+    sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    if [ $dgb_install = "install" ]; then
+        sed -i -e "/^DGB_INSTALL_DATE==/s|.*|DGB_INSTALL_DATE==$(date)|" $DGN_SETTINGS_FILE
+    elif [ $dgb_install = "upgrade" ]; then
+        sed -i -e "/^DGB_UPGRADE_DATE==/s|.*|DGB_UPGRADE_DATE==$(date)|" $DGN_SETTINGS_FILE
+    fi
 
     # Create hidden file to denote this version was installed with the official installer
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
