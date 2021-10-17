@@ -1670,7 +1670,7 @@ fi
 hostname_do_change() {
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
+if [[ "$NewInstall" = "yes" ]] && [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
