@@ -2587,11 +2587,13 @@ main() {
 
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
-                echo "Script URL: $DGN_INSTALLER_URL"
+                # Only append this to the curl command this if there are arguments to include
+                if [ ! "$@" == "" ]; then
+                    local add_args = "-s --"
+                fi
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s -- "$@"
+                exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s $add_args "$@"
             else
-                echo "hello local"
                 # when run via calling local bash script
                 exec sudo bash "$0" "$@"
             fi
