@@ -92,6 +92,7 @@ DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching 
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
+DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Help on how to set a static IP
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -2415,11 +2416,7 @@ if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 fi
 
 # Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Static IP Needed" --yesno "\\n\\nYour DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.
-
-IMPORTANT: If you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.
-
-Choose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address. Needed" --yesno "Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\n. This devices current IP address is: $IPV4_ADDRESS.\\n\\nIf you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nFor help, please visit: $DGBH_URL_STATICIP\\n\\nChoose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
 #Nothing to do, continue
   echo
 else
