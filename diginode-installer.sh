@@ -1223,6 +1223,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
@@ -1231,6 +1232,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+            printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
@@ -1245,6 +1247,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
@@ -1259,6 +1262,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "\\n"
             rpi_microsd_check     
         fi
         printf "\\n"
@@ -1299,15 +1303,15 @@ rpi_microsd_check() {
     # Only display this message if running this install script directly (not when running diginode.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
 
-        printf "%b Checking if Raspberry Pi is booting from SSD or microSD...\\n" "${INFO}"
-
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
+        str="Is Raspberry Pi booting from microSD or an external USB drive?..."
+        printf "%b %s" "${INFO}" "${str}"
+
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
-            
-            printf "%b %bRaspberry Pi is booting from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b%b %s External USB!\\n" "${OVER}" "${TICK}" "${str}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
@@ -1315,6 +1319,7 @@ rpi_microsd_check() {
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
+                printf "%b%b %s microSD!\\n" "${OVER}" "${CROSS}" "${str}"
                 printf "\\n"
                 printf "%b %bERROR: Raspberry Pi is booting from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
@@ -1326,6 +1331,7 @@ rpi_microsd_check() {
                 printf "\\n"
                 exit 1
             else
+                printf "%b%b %s microSD!\\n" "${OVER}" "${INFO}" "${str}"
                 printf "\\n"
                 printf "%b %bWARNING: Raspberry Pi is booting from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
@@ -2106,7 +2112,7 @@ disk_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bWARNING: Not enough disk space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b This current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
@@ -2125,8 +2131,9 @@ disk_check() {
                 printf "\\n"
             fi      
         else
-            printf "%b %bDisk Space Check: The data location has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Free: ${DGB_DATA_DISKFREE_HR}b" "${INDENT}"
+            printf "%b %bDisk Space Check: The drive has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
+            printf "\\n"
         fi
     else
         printf "%b Disk Space Check: Skipped - DigiByte Core is already installed.\\n" "${INFO}"
