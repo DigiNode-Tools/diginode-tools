@@ -44,6 +44,9 @@ else
      USER_HOME=$(getent passwd $USER | cut -d: -f6)
  fi
 
+ # Store the user's account (this works the same regardless of whether we are root or not)
+ USER_CURRENT=$(echo $USER_HOME | cut -d'/' -f3)
+
 
 ######## VARIABLES START HERE #########
 # For better maintainability, we store as much information that can change in variables
@@ -1371,7 +1374,7 @@ fi
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "Before continuing, make sure the microSD card slot on the Raspberry Pi is empty. If there is a microSD card in the slot, please remove it now.\\n\\nThis is to avoid any accidental data loss during the install." 11 "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "Before continuing, make sure the microSD card slot on the Raspberry Pi is empty. If there is a microSD card in the slot, please remove it now. It is not required.\\n\\nThis is to avoid any accidental data loss during the install." 11 "${c}"
 fi
 
 }
@@ -1776,11 +1779,6 @@ fi
 # Function to check if the user account 'digibyte' is currently in use, and if it is not, check if it already exists
 user_check() {
 
-# First let's make sure the whoami command is vailable
-if is_command whoami ; then
-
-USER_CURRENT=$(whoami)
-
     # Only do this check if DigiByte Core is not currently installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
@@ -1808,18 +1806,8 @@ USER_CURRENT=$(whoami)
             fi
         fi
 
-    else
-        printf "\\n"
-        printf "%b %bUnable to check current user - whoami command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
-        printf "%b current user with the whoami command. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
-        printf "%b If you are seeing this, please contact @saltedlolly on Twitter and let me know so I can work on\\n" "${INDENT}"
-        printf "%b a workaround for your linux system.\\n" "${INDENT}"
-        printf "\\n"
-        exit 1
     fi
 
-fi
 
 }
 
