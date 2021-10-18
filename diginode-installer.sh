@@ -2111,24 +2111,25 @@ disk_check() {
             printf "%b This current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
             # Only display this line when using digimon.sh
-            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
+            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]; then
                 printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
                 print "\\n"
             elif [[ "$runUnattended" = true ]]; then
-                if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]  ; then
-                printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
-                print "\\n"
-                exit 1
+                if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]; then
+                  printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
+                  print "\\n"
+                  exit 1
+                fi
             else
                 QUERY_LOWDISK_SPACE="YES"
                 printf "\\n"
             fi      
         else
-            printf "%b %bDisk Space Check: The current location has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b    Space Required: $DGB_DATA_REQUIRED_GB  Space Free: ${DGB_DATA_DISKFREE_HR}b" "${INDENT}"
+            printf "%b %bDisk Space Check: The data location has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Free: ${DGB_DATA_DISKFREE_HR}b" "${INDENT}"
         fi
     else
-        printf "%b Skipping disk space check since DigiByte Core is already installed.\\n" "${INFO}"
+        printf "%b Disk Space Check: Skipped - DigiByte Core is already installed.\\n" "${INFO}"
         printf "\\n"
     fi
 }
