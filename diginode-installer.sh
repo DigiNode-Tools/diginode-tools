@@ -55,7 +55,7 @@ else
 # (Note: This condition ensures that this VERBOSE_MODE setting is ignored if running
 # the Status Monitor script - it has its own VERBOSE_MODE setting.
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    VERBOSE_MODE="YES"
+    VERBOSE_MODE="NO"
 fi
 
 ######### IMPORTANT NOTE ###########
