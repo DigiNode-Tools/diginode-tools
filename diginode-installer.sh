@@ -2586,10 +2586,10 @@ main() {
             printf "%b%b Sudo utility check\\n" "${OVER}" "${TICK}"
 
             # when run via curl piping
-            echo "Included Arguments: $0"
+            echo "Included Arguments: $#"
             if [[ "$0" == "bash" ]]; then
                 # Only append this to the curl command this if there are arguments to include
-                if [ ! "$@" == "" ]; then
+                if [ ! $# -eq 0 ]; then
                     local add_args="-s --"
                 fi
                 # Download the install script and run it with admin rights
