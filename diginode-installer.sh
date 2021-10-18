@@ -366,7 +366,7 @@ DGA_VER_GITHUB=
 IPFS_VER_LOCAL=
 IPFS_VER_RELEASE=
 
-# Timer variables
+# Timer variables (these control the timers in the Status Monitor loop)
 savedtime15sec=
 savedtime1min=
 savedtime15min=
@@ -384,7 +384,6 @@ DGB_DATA_DISKFREE_MB=
 DGB_DATA_DISKUSED_HR=
 DGB_DATA_DISKUSED_MB=
 DGB_DATA_DISKUSED_PERC=
-
 
 # IP addresses (only rechecked once every 15 minutes)
 IP4_INTERNAL=
@@ -586,6 +585,10 @@ set_sys_variables() {
         DGB_DATA_DISKFREE_HR=$(echo -e " \t $DGB_DATA_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
+        # Get internal IP address
+        IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+    
+
         # Update diginode.settings file it it exists
         if [ -f "$DGN_SETTINGS_FILE" ]; then
             sed -i -e '/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"|' $DGN_SETTINGS_FILE
@@ -598,6 +601,7 @@ set_sys_variables() {
             sed -i -e '/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"|' $DGN_SETTINGS_FILE
             sed -i -e '/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"|' $DGN_SETTINGS_FILE
             sed -i -e '/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"|' $DGN_SETTINGS_FILE
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGN_SETTINGS_FILE
         fi
 
         if [[ "$VERBOSE_MODE" = "YES" ]]; then
@@ -1350,14 +1354,10 @@ rpi_microsd_check() {
 # If the user is using a Raspberry Pi, show some microSD warnings
 rpi_microsd_warning() {
 
-# If this is a Raspberry Pi, booting from a microSD, explain the need for booting from a SSD
+# If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
 
-    if whiptail --backtitle "" --title "WARNING: Raspberry Pi is booting from microSD" --yesno "You are currently booting your Raspberry Pi from a microSD card. It is strongly recommended to use an external SSD drive connected via USB to boot your DigiNode. (NOTE: An HDD will also work, but an SSD is preferred.) MicroSD cards are prone to corruption and perform significantly slower than an SSD. For advice on what equipment to get, visit:
-
-$DGBH_URL_HARDWARE
-
-    Choose yes to indicate that you have understood this message, and wish to continue anyway." --defaultno "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "WARNING: Raspberry Pi is booting from microSD" --yesno "You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use an external SSD connected via USB for your DigiNode.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD.\\n\\nNOTE: A USB HDD (Hard Disk Drive) will also work, but an SSD (Solid State Drive) is preferred.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose yes to indicate that you have understood this message, and wish to continue anyway." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
@@ -1371,7 +1371,7 @@ fi
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove the microSD card from the Raspberry Pi." "\\Before continuing, it is recommended to make sure you have removed the microSD card from the slot in the Raspberry Pi, since you won't be using it.\\n\\nThis is to ensure that there won't be any accidental data loss during the install." 10 "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "Before continuing, make sure the microSD card slot on the Raspberry Pi is empty. If there is a microSD card in the slot, please remove it now.\\n\\nThis is to avoid any accidental data loss during the install." 11 "${c}"
 fi
 
 }
@@ -2416,7 +2416,7 @@ if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 fi
 
 # Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address. Needed" --yesno "Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\n. This devices current IP address is: $IPV4_ADDRESS.\\n\\nIf you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nFor help, please visit: $DGBH_URL_STATICIP\\n\\nChoose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address. Needed" --yesno "Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\\nThis devices IP address is currently: $IP4_ADDRESS.\\n\\nIf you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nFor help, please visit: $DGBH_URL_STATICIP\\n\\nChoose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
 #Nothing to do, continue
   echo
 else
