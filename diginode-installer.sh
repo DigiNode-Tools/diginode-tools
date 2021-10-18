@@ -1662,22 +1662,22 @@ checkSelinux() {
         DEFAULT_SELINUX=$(awk -F= '/^SELINUX=/ {print $2}' /etc/selinux/config)
         case "${DEFAULT_SELINUX,,}" in
             enforcing)
-                printf "%b %bDefault SELinux: %s%b\\n" "${CROSS}" "${COL_RED}" "${DEFAULT_SELINUX}" "${COL_NC}"
+                printf "%b %bDefault SELinux: %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${DEFAULT_SELINUX}" "${COL_NC}"
                 SELINUX_ENFORCING=1
                 ;;
             *)  # 'permissive' and 'disabled'
-                printf "%b %bDefault SELinux: %s%b\\n" "${TICK}" "${COL_GREEN}" "${DEFAULT_SELINUX}" "${COL_NC}"
+                printf "%b %bDefault SELinux: %s%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${DEFAULT_SELINUX}" "${COL_NC}"
                 ;;
         esac
         # Check the current state of SELinux
         CURRENT_SELINUX=$(getenforce)
         case "${CURRENT_SELINUX,,}" in
             enforcing)
-                printf "%b %bCurrent SELinux: %s%b\\n" "${CROSS}" "${COL_RED}" "${CURRENT_SELINUX}" "${COL_NC}"
+                printf "%b %bCurrent SELinux: %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${CURRENT_SELINUX}" "${COL_NC}"
                 SELINUX_ENFORCING=1
                 ;;
             *)  # 'permissive' and 'disabled'
-                printf "%b %bCurrent SELinux: %s%b\\n" "${TICK}" "${COL_GREEN}" "${CURRENT_SELINUX}" "${COL_NC}"
+                printf "%b %bCurrent SELinux: %s%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${CURRENT_SELINUX}" "${COL_NC}"
                 ;;
         esac
     else
@@ -1772,7 +1772,7 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 fi
 }
 
-# Function to check if the user account 'digibyte is currently in use, and if it is not, check if it already exists
+# Function to check if the user account 'digibyte' is currently in use, and if it is not, check if it already exists
 user_check() {
 
 # First let's make sure the whoami command is vailable
@@ -1783,16 +1783,16 @@ USER_CURRENT=$(whoami)
     # Only do this check if DigiByte Core is not currently installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
-        if [[ $USER_CURRENT == "digibyte" ]]; then
+        if [[ "$USER_CURRENT" == "digibyte" ]]; then
             printf "%b %bCurrent user is: digibyte%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
             # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
             if id "digibyte" &>/dev/null; then
                 printf "%b User account '%bdigibyte%b' already exists.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-                printf "%b You are not currently logged in as the 'digibyte user'. It is recommended to switch to\\n"  "${INDENT}"
+                printf "%b You are not currently logged in as the 'digibyte' user. It is recommended to switch to\\n"  "${INDENT}"
                 printf "%b that user before running the installer. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
-                printf "%b DigiByte wallet etc. its own user account. For more information visit:\\n"  "${INDENT}"
+                printf "%b DigiByte wallet in its own user account. For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
                 USER_ASK_SWITCH="YES"
