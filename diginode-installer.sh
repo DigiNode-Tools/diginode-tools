@@ -2416,7 +2416,7 @@ if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 fi
 
 # Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address. Needed" --yesno "Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\\nThis devices IP address is currently: $IP4_ADDRESS.\\n\\nIf you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nFor help, please visit: $DGBH_URL_STATICIP\\n\\nChoose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address. Needed" --yesno "Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nThe internal IP address of this device is currently: $IP4_INTERNAL\\n\\nIf you have not already done so, you must ensure that this device has a static IP. Either through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nFor help, please visit: $DGBH_URL_STATICIP\\n\\nChoose yes to indicate that you have understood this message, and wish to continue" "${r}" "${c}"; then
 #Nothing to do, continue
   echo
 else
