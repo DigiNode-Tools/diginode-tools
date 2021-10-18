@@ -2363,7 +2363,7 @@ welcomeDialogs() {
     To learn more, visit https://www.digibyte.help/diginode" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
-whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find this tool useful, donations in DGB are much appreciated:
+whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
