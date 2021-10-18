@@ -827,7 +827,6 @@ EOF
 # A simple function that just the installer title in a box
 installer_title_box() {
      clear -x
-     echo ""
      echo " ╔════════════════════════════════════════════════════════╗"
      echo " ║                                                        ║"
      echo " ║         ${txtbld}D I G I N O D E   I N S T A L L E R${txtrst}            ║ "
