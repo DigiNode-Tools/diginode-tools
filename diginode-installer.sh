@@ -1258,23 +1258,26 @@ fi
 
 # This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
 rpi_check_usb_drive() {
-    # Only display this message if running this install script directly (not when running digimon.sh)
+    # Only display this message if running this install script directly (not when running diginode.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+
+        printf "%b Checking if Raspberry Pi is booting from SSD or microSD...\\n" "${INFO}"
 
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
+            
+            printf "%b %bRaspberry Pi is booting from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b %bRaspberry Pi is running from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b   Note: While an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
         fi
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
                 printf "\\n"
-                printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bERROR: Raspberry Pi is booting from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
                 printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
                 printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
@@ -1285,12 +1288,13 @@ rpi_check_usb_drive() {
                 exit 1
             else
                 printf "\\n"
-                printf "%b %bRaspberry Pi is running from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: Raspberry Pi is booting from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
                 printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
                 printf "%b For help on what equipment to get, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
+                printf "\\n"
                 WARN_MICROSD="yes"
                 STARTPAUSE="yes"
             fi
@@ -1334,7 +1338,7 @@ if is_command apt-get ; then
     fi
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(grep dnsutils)
+    SYS_CHECK_DEPS=(df grep dnsutils)
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
@@ -1705,7 +1709,7 @@ swap_check() {
     else
       swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
     fi
-
+    printf "%b Checking system RAM and swap file requirements...\\n"  "${INFO}"
     printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     # insert a single line gap if this is the installer
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
@@ -1737,10 +1741,14 @@ swap_check() {
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="3Gb"
         SWAP_REC_SIZE_MB=3000
-    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
+    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "1953125" ];  then
         SWAP_TOO_SMALL="YES"
-        SWAP_REC_SIZE_HR="2Gb"
+        SWAP_REC_SIZE_HR="3Gb"
         SWAP_REC_SIZE_MB=2000
+    elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
+        SWAP_TOO_SMALL="YES"
+        SWAP_REC_SIZE_HR="1Gb"
+        SWAP_REC_SIZE_MB=1000
 
     # If there is no swap file present, calculate recomended swap file size
     elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
@@ -1794,6 +1802,15 @@ swap_check() {
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
             printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
+        printf "\\n"
+    fi
+    if [ $RAMTOTAL_KB -gt 8000000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
+        printf "%b %The system has at least 8Gb RAM so no swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    fi
+    TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
+    if [ $TOTALMEM_KB -gt 8000000 ]; then
+        printf "%b %Your system RAM and SWAP size combined exceeds 8Gb, so no change to your swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -1883,30 +1900,37 @@ swap_do_change() {
 
 #check there is sufficient space on the drive to download the blockchain
 disk_space_check() {
-    # Only run disk space check if the default location is used
-    if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$USER_HOME/.digibyte/" ]]; then
-        if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            printf "\\n"
-            printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
-            printf "%b This drive only has $DISKFREE_HR free. You can move the data folder to another driver\\n" "${INDENT}"
-            printf "%b by editing the location in the diginode.conf file.\\n" "${INDENT}"
-            # Only display this line when using digimon.sh
-            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
-                printf "%b Unattended Mode: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
-                print "\\n"
-            elif [[ "$runUnattended" = true ]]; then
-                printf "%b Unattended Mode: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
-                print "\\n"
-                exit 1
+    # Only run the check if DigiByte Core is not yet installed
+    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+
+        DGB_DATA_DISKFREE_KB=
+
+        # Only run disk space check if the default location is used
+        if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$USER_HOME/.digibyte/" ]]; then
+            if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
+                printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
+                printf "%b This drive only has $DISKFREE_HR free. You can have DigiByte Core store the data folder\\n" "${INDENT}"
+                printf "%b on an external drive by editing the location in the diginode.settings file.\\n" "${INDENT}"
+                # Only display this line when using digimon.sh
+                if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
+                    printf "%b Unattended Mode: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
+                    print "\\n"
+                elif [[ "$runUnattended" = true ]]; then
+                    printf "%b Unattended Mode: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
+                    print "\\n"
+                    exit 1
+                else
+                    QUERY_LOWDISK_SPACE="YES"
+                    printf "\\n"
+                fi      
             else
-                QUERY_LOWDISK_SPACE="YES"
-                printf "\\n"
-            fi      
+                printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+            fi
+        else
+            printf "%b Skipping disk space check as data location has been set manually in diginode.settings\\n" "${INFO}"
+            printf "\\n"
         fi
-    else
-        printf "%b Skipping disk space check as data location has been set manually in diginode.settings\\n" "${INFO}"
-        print "\\n"
     fi
 }
 
@@ -2629,17 +2653,23 @@ main() {
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
+    # import diginode settings
+    import_diginode_settings
+
     # Set the system variables once we know we are on linux
     set_sys_variables
 
     # Check for Raspberry Pi hardware
     rpi_check
 
+    # Check swap requirements
+    swap_check
+
+    # Check disk space to ensure there is enough space to download the blockchain
+    disk_space_check
+
     # Create the diginode.settings file if this is the first run
     create_diginode_settings
-
-    # import diginode settings
-    import_diginode_settings
 
     # Check if the Raspberry Pi
     hostname_check
@@ -2650,12 +2680,6 @@ main() {
 
     # Check if SELinux is Enforcing
     checkSelinux
-
-    # Check disk space to ensure there is enough space to download the blockchain
-    disk_space_check
-
-    # Check swap requirements
-    swap_check
 
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_FOLDER}/.officialdiginode" ]]; then
