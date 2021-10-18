@@ -90,6 +90,8 @@ DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 # DigiByte.Help URLs
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
+DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
+DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -305,7 +307,7 @@ UI_SETUP_SWAP="YES"
 # Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
 UI_SETUP_SWAP_SIZE_MB=
 
-# Will install regardless of available disk space on the drive. Use with caution.
+# Will install regardless of available disk space on the data drive. Use with caution.
 UI_DISKSPACE_OVERRIDE="NO"
 
 # Choose whether to setup Tor [NOT WORKING YET]
@@ -371,10 +373,17 @@ savedtime1day=
 savedtime1week=
 
 # Disk usage variables (updated every 15 seconds)
-DISKFREE_HR=
-DISKFREE_MB=
-DISKUSED_HR=
-DISKUSED_PERC=
+BOOT_DISKFREE_HR=
+BOOT_DISKFREE_MB=
+BOOT_DISKUSED_HR=
+BOOT_DISKUSED_MB=
+BOOT_DISKUSED_PERC=
+DGB_DATA_DISKFREE_HR=
+DGB_DATA_DISKFREE_MB=
+DGB_DATA_DISKUSED_HR=
+DGB_DATA_DISKUSED_MB=
+DGB_DATA_DISKUSED_PERC=
+
 
 # IP addresses (only rechecked once every 15 minutes)
 IP4_INTERNAL=
@@ -540,32 +549,61 @@ set_sys_variables() {
         printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
     fi
 
-    DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-    DISKTOTAL_KB=$(df . -BKB --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    BOOT_DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    BOOT_DISKTOTAL_KB=$(df . -BKB --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
-        printf "%b   Total Disk Space: ${DISKTOTAL_HR}b ( KB: ${DISKTOTAL_KB} )\\n" "${INDENT}"
+        printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
     # No need to update the disk usage variables if running the status monitor, as it does it itself
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
 
         # Update current disk usage variables
-        DISKUSED_HR=$(df . -h --output=used | tail -n +2)
-        DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
-        DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
-        DISKFREE_KB=$(df . --output=avail | tail -n +2)
+        BOOT_DISKUSED_HR=$(df . -h --output=used | tail -n +2)
+        BOOT_DISKUSED_KB=$(df . --output=used | tail -n +2)
+        BOOT_DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
+        BOOT_DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
+        BOOT_DISKFREE_KB=$(df . --output=avail | tail -n +2)
+
+        # Update current data disk usage variables
+        DGB_DATA_DISKUSED_HR=$(df $DGB_DATA_LOCATION -h --output=used | tail -n +2)
+        DGB_DATA_DISKUSED_KB=$(df $DGB_DATA_LOCATION --output=used | tail -n +2)
+        DGB_DATA_DISKUSED_PERC=$(df $DGB_DATA_LOCATION --output=pcent | tail -n +2)
+        DGB_DATA_DISKFREE_HR=$(df $DGB_DATA_LOCATION -h --si --output=avail | tail -n +2)
+        DGB_DATA_DISKFREE_KB=$(df $DGB_DATA_LOCATION --output=avail | tail -n +2)
 
         # Trim white space from disk variables
-        DISKUSED_HR=$(echo -e " \t $DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-        DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-        DISKFREE_HR=$(echo -e " \t $DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-        DISKFREE_KB=$(echo -e " \t $DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        BOOT_DISKUSED_HR=$(echo -e " \t $BOOT_DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        BOOT_DISKUSED_KB=$(echo -e " \t $BOOT_DISKUSED_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        BOOT_DISKUSED_PERC=$(echo -e " \t $BOOT_DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        BOOT_DISKFREE_HR=$(echo -e " \t $BOOT_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        BOOT_DISKFREE_KB=$(echo -e " \t $BOOT_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DGB_DATA_DISKUSED_HR=$(echo -e " \t $DGB_DATA_DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DGB_DATA_DISKUSED_KB=$(echo -e " \t $DGB_DATA_DISKUSED_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DGB_DATA_DISKUSED_PERC=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DGB_DATA_DISKFREE_HR=$(echo -e " \t $DGB_DATA_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+        DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+        # Update diginode.settings file it it exists
+        if [ -f "$DGN_SETTINGS_FILE" ]; then
+            sed -i -e '/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"|' $DGN_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"|' $DGN_SETTINGS_FILE
+        fi
 
         if [[ "$VERBOSE_MODE" = "YES" ]]; then
-            printf "%b   Used Disk Space: ${DISKUSED_HR}b ( ${DISKUSED_PERC}% )\\n" "${INDENT}"
-            printf "%b   Free Disk Space: ${DISKFREE_HR}b ( KB: ${DISKFREE_KB} )\\n" "${INDENT}"
+            printf "%b   Used Boot Disk Space: ${BOOT_DISKUSED_HR}b ( ${BOOT_DISKUSED_PERC}% )\\n" "${INDENT}"
+            printf "%b   Free Boot Disk Space: ${BOOT_DISKFREE_HR}b ( KB: ${BOOT_DISKFREE_KB} )\\n" "${INDENT}"
+            printf "%b   Used Data Disk Space: ${DGB_DATA_DISKUSED_HR}b ( ${DGB_DATA_DISKUSED_PERC}% )\\n" "${INDENT}"
+            printf "%b   Free Data Disk Space: ${DGB_DATA_DISKFREE_HR}b ( KB: ${DGB_DATA_DISKFREE_KB} )\\n" "${INDENT}"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -819,7 +857,7 @@ echo -e "${txtblu}
    ƊƊƊƊƊƊƊƊƊƊ#       ƊƊƊƊ          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ 
     ƊƊƊƊƊƊƊƊ.                   ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
      ƊƊƊƊƊƊ              ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
-       ƊƊƊƊƊƊƊ    ƊƊ   *ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
+       ƊƊƊƊƊƊƊ    ƊƊ   ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
             ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
                 ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txtrst}${txtbld}"
@@ -835,23 +873,23 @@ echo    ""
 diginode_logo_v2() {
 echo ""
 echo -e "${txtblu}
-                          ƊƊ                       
-                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ              
-            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
+                       ƊƊƊƊƊƊƊ
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
-       ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}####${txtblu}Ɗ${txtrst}####${txtblu}ƊƊƊƊƊƊƊƊƊƊƊ     
-     ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}####${txtblu}Ɗ${txtrst}####${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
-    ƊƊƊƊƊƊƊƊƊ${txtrst}###########################${txtblu}ƊƊƊƊƊƊƊƊƊ  
-   ƊƊƊƊƊƊƊƊ${txtrst}###############################${txtblu}ƊƊƊƊƊƊƊƊ 
-  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊ
+       ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}####${txtblu}Ɗ${txtrst}####${txtblu}ƊƊƊƊƊƊƊƊƊƊ     
+     ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}####${txtblu}Ɗ${txtrst}####${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊ   
+    ƊƊƊƊƊƊƊƊƊƊ${txtrst}###########################${txtblu}ƊƊƊƊƊƊƊƊ  
+   ƊƊƊƊƊƊƊƊƊ${txtrst}###############################${txtblu}ƊƊƊƊƊƊƊ 
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊ
   ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊ
   ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊ
-  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊ
-  ƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊ
-   ƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊ${txtrst}##########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ 
-    ƊƊƊƊƊƊƊƊ${txtrst}#####################${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
-     ƊƊƊƊƊƊ${txtrst}##############${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
-       ƊƊƊƊƊƊƊ${txtrst}####${txtblu}ƊƊ${txtrst}###${txtblu}*ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊƊƊƊƊ${txtrst}########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊ
+   ƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}#######${txtblu}ƊƊƊƊ${txtrst}##########${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ 
+    ƊƊƊƊƊƊƊƊƊ${txtrst}#####################${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ  
+     ƊƊƊƊƊƊƊ${txtrst}##############${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   
+       ƊƊƊƊƊƊƊƊ${txtrst}####${txtblu}ƊƊ${txtrst}###${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ     
          ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ       
             ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ          
                 ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txtrst}${txtbld}"
@@ -1185,7 +1223,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_check_usb_drive
+            rpi_microsd_check
         fi
         printf "\\n"
     elif [ "$pitype" = "pi4" ]; then
@@ -1193,7 +1231,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-            rpi_check_usb_drive
+            rpi_microsd_check
         fi
         printf "\\n"
     elif [ "$pitype" = "pi4_lowmem" ]; then
@@ -1207,7 +1245,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_check_usb_drive
+            rpi_microsd_check
         fi
         printf "\\n"
     elif [ "$pitype" = "pi3" ]; then
@@ -1221,7 +1259,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            rpi_check_usb_drive     
+            rpi_microsd_check     
         fi
         printf "\\n"
     elif [ "$pitype" = "piold" ]; then
@@ -1257,7 +1295,7 @@ fi
 }
 
 # This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
-rpi_check_usb_drive() {
+rpi_microsd_check() {
     # Only display this message if running this install script directly (not when running diginode.sh)
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
 
@@ -1272,6 +1310,7 @@ rpi_check_usb_drive() {
             printf "%b %bRaspberry Pi is booting from an external USB drive%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
+            IS_MICROSD="NO"
         fi
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
@@ -1295,11 +1334,40 @@ rpi_check_usb_drive() {
                 printf "%b For help on what equipment to get, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
-                WARN_MICROSD="yes"
-                STARTPAUSE="yes"
+                IS_MICROSD="YES"
+                STARTPAUSE="YES"
             fi
         fi
     fi
+}
+
+# If the user is using a Raspberry Pi, show some microSD warnings
+rpi_microsd_warning() {
+
+# If this is a Raspberry Pi, booting from a microSD, explain the need for booting from a SSD
+if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
+
+    if whiptail --backtitle "" --title "WARNING: Raspberry Pi is booting from microSD" --yesno "You are currently booting your Raspberry Pi from a microSD card. It is strongly recommended to use an external SSD drive connected via USB to boot your DigiNode. (NOTE: An HDD will also work, but an SSD is preferred.) MicroSD cards are prone to corruption and perform significantly slower than an SSD. For advice on what equipment to get, visit:
+
+$DGBH_URL_HARDWARE
+
+    Choose yes to indicate that you have understood this message, and wish to continue anyway." --defaultno "${r}" "${c}"; then
+    #Nothing to do, continue
+      echo
+    else
+      printf "\\n"
+      printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
+      printf "\\n"
+      exit
+    fi
+fi
+
+# If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
+if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
+        
+        whiptail --msgbox --backtitle "" --title "Raspberry Pi Detected" "\\n\\nBefore proceeding, please remove the microSD card from the Raspberry Pi, if there is one." "${r}" "${c}"
+fi
+
 }
 
 # Compatibility
@@ -1338,7 +1406,7 @@ if is_command apt-get ; then
     fi
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(df grep dnsutils)
+    SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
     # Packages required to run DigiNode (stored as an array)
@@ -1699,6 +1767,148 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 fi
 }
 
+# Function to check if the user account 'digibyte is currently in use, and if it is not, check if it already exists
+user_check() {
+
+# First let's make sure the whoami command is vailable
+if is_command whoami ; then
+
+USER_CURRENT=$(whoami)
+
+    # Only do this check if DigiByte Core is not currently installed
+    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+
+        if [[ $USER_CURRENT == "digibyte" ]]; then
+            printf "%b %bCurrent user is: digibyte%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+        else
+            # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
+            if id "digibyte" &>/dev/null; then
+                printf "%b User account '%bdigibyte%b' already exists.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b You are not currently logged in as the 'digibyte user'. It is recommended to switch to\\n"  "${INDENT}"
+                printf "%b that user before running the installer. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
+                printf "%b DigiByte wallet etc. its own user account. For more information visit:\\n"  "${INDENT}"
+                printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
+                printf "\\n"
+                USER_ASK_SWITCH="YES"
+            else
+                printf "%b %bWARNING: User 'digibyte' does not exist.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b The current user is '$USER_CURRENT'. It is suggested to create a new 'digibyte' user account\\n"  "${INDENT}"
+                printf "%b to use to set up your DigiNode. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
+                printf "%b DigiByte wallet its own user account. For more information visit:\\n"  "${INDENT}"
+                printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
+                printf "\\n"
+                USER_ASK_CREATE="YES"
+            fi
+        fi
+
+    else
+        printf "\\n"
+        printf "%b %bUnable to check current user - whoami command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
+        printf "%b current user with the whoami command. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
+        printf "%b If you are seeing this, please contact @saltedlolly on Twitter and let me know so I can work on\\n" "${INDENT}"
+        printf "%b a workaround for your linux system.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+    fi
+
+fi
+
+}
+
+# As we are not in the 'digibyte' user account, let's ask if we can switch to it, or create it if it does not exist
+user_ask_change() {
+
+# Display a request to change the user, if needed
+if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
+
+    # Only ask to change the user if DigiByte Core is not yet installed
+    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+
+    if whiptail  --backtitle "" --title "Switching to the 'digibyte' user account is recommended." --yesno "\\n\\nIt is recommended that you switch to the 'digibyte' use account before running this installer. This is optional but recommended, since it will isolate your DigiByte wallet etc. its own user account. For more information visit:\\n  
+      $DGBH_URL_USERCHANGE\\n
+
+Would you like to switch to the 'digibyte' user now?
+
+Choose NO to continue installation as the current user."  --yes-button "Switch to 'digibyte' (Recommended)" --no-button "Continue as '$USER_CURRENT'" "${r}" "${c}"; then
+
+      USER_DO_SWITCH="YES"
+        user_do_change
+    else
+      printf "%b Current user '$USER_CURRENT' will be used for the installation.\\n" "${INFO}"
+    fi
+fi
+
+# Display a request to create the 'digibyte' user, if needed
+if [[ "$USER_ASK_CREATE" = "YES" ]]; then
+
+    # Only ask to create the user if DigiByte Core is not yet installed
+    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+
+    if whiptail  --backtitle "" --title "Creating a 'digibyte' user account is recommended." --yesno "\\n\\nIt is recommended that you create a 'digibyte' use account to run your DigiNode. This is optional but recommended, since it will isolate your DigiByte wallet etc. its own user account. For more information visit:\\n  
+      $DGBH_URL_USERCHANGE\\n
+
+Would you like to create 'digibyte' user now?
+
+Choose NO to continue installation as the current user."  --yes-button "Create 'digibyte' user (Recommended)" --no-button "Continue as '$USER_CURRENT'" "${r}" "${c}"; then
+
+      USER_DO_SWITCH="YES"
+      printf "%b User selected option to create 'digibyte' user.\\n" "${INFO}"
+      user_do_change
+    else
+      printf "%b Current user '$USER_CURRENT' will be used for the DigiNode.\\n" "${INFO}"
+    fi
+fi
+
+}
+
+# If a swap file is needed, this function will create one or change the size of an existing one
+user_do_change() {
+
+    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
+    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
+        SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
+        SWAP_DO_CHANGE="YES"
+        printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
+
+    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
+        printf "%b %bUnattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
+        SWAP_DO_CHANGE="YES"
+    fi
+
+    #create local variable
+    local str
+
+    # Go ahead and create/change the swap if requested
+    if [[ $SWAP_DO_CHANGE = "YES" ]]; then
+
+        if [ "$SWAP_NEEDED" = "YES" ]; then
+            # Local, named variables
+            str="Creating $SWAP_TARG_SIZE_MB MB swap file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+
+            sleep 3
+
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
+
+        if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+            str="Changing swap file size to $SWAP_TARG_SIZE_MB..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+
+            sleep 3
+
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
+    fi
+
+}
+
 # This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
 swap_check() {
 
@@ -1898,40 +2108,66 @@ swap_do_change() {
 
 }
 
-#check there is sufficient space on the drive to download the blockchain
-disk_space_check() {
+#check there is sufficient space on the chosen drive to download the blockchain
+disk_check() {
     # Only run the check if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
-        DGB_DATA_DISKFREE_KB=
-
-        # Only run disk space check if the default location is used
-        if [[ $DGB_DATA_LOCATION = "~/.digibyte" ]] || [[ $DGB_DATA_LOCATION = "$USER_HOME/.digibyte/" ]]; then
-            if [[ "$DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-                printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
-                printf "%b This drive only has $DISKFREE_HR free. You can have DigiByte Core store the data folder\\n" "${INDENT}"
-                printf "%b on an external drive by editing the location in the diginode.settings file.\\n" "${INDENT}"
-                # Only display this line when using digimon.sh
-                if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
-                    printf "%b Unattended Mode: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
-                    print "\\n"
-                elif [[ "$runUnattended" = true ]]; then
-                    printf "%b Unattended Mode: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
-                    print "\\n"
-                    exit 1
-                else
-                    QUERY_LOWDISK_SPACE="YES"
-                    printf "\\n"
-                fi      
+        if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
+            printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
+            printf "%b This current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
+            printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
+            # Only display this line when using digimon.sh
+            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]  ; then
+                printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
+                print "\\n"
+            elif [[ "$runUnattended" = true ]]; then
+                if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]  ; then
+                printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
+                print "\\n"
+                exit 1
             else
-                printf "%b %bWARNING: Not enough space to download DigiByte blockchain%b\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-            fi
+                QUERY_LOWDISK_SPACE="YES"
+                printf "\\n"
+            fi      
         else
-            printf "%b Skipping disk space check as data location has been set manually in diginode.settings\\n" "${INFO}"
-            printf "\\n"
+            printf "%b %bDisk Space Check: The current location has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b    Space Required: $DGB_DATA_REQUIRED_GB  Space Free: ${DGB_DATA_DISKFREE_HR}b" "${INDENT}"
+        fi
+    else
+        printf "%b Skipping disk space check since DigiByte Core is already installed.\\n" "${INFO}"
+        printf "\\n"
+    fi
+}
+
+# If this is the first time installing DigiByte Core, warn if the data drive does not have enough space
+disk_lowspace() {
+
+if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+
+    # If low disk space is detected on in the default install location, ask the user if they want to continue
+    if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
+        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space to download a full copy of the DigiByte blockchain. If you want to use this drive, you will need to enable the setting to prune the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file. Do you wish to continue with the install now?
+
+        Choose yes to indicate that you have understood this message, and wish to continue." --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
+
+          printf "%b User selected not to continue with install.\\n" "${INFO}"
+          exit
+
+        else
+          printf "\\n"
+          printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${WARN}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b You can do this by editing the digibyte.conf file:\\n" "${INDENT}"
+          printf "\\n"
+          printf "%b   nano $DGN_SETTINGS_FILE\\n" "${INDENT}"
+          printf "\\n"
+          printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
         fi
     fi
+
+fi
+
 }
 
 
@@ -2179,29 +2415,6 @@ if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 
 fi
 
-# If this is a Raspberry Pi, explain the need for booting from a SSD
-if [[ "${IS_RPI}" = "YES" ]]; then
-if whiptail --backtitle "" --title "Raspberry Pi Detected" --yesno "Are you booting your Raspberry Pi from an external SSD or a microSD card?
-   
-For this installer to work correctly, you must be booting your Raspberry Pi from an external SSD* connected via USB. 
-
-Booting from a microSD card is not supported. 
-
-If using a Pi 4 or newer, make sure your drive is connected to a USB3 port (i.e. a blue one).
-
-(*NOTE: An HDD will also work, but an SSD is recommended.) " --no-button "microSD card" --yes-button "External SSD" "${r}" "${c}"; then
-#Nothing to do, continue
-  echo
-else
-  printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
-  exit 1
-fi
-
-    # Warn user to unplug the microSD card (just to double check that they are booting from SSD!)
-    whiptail --msgbox --backtitle "" --title "Raspberry Pi Detected" "\\n\\nBefore proceeding, please remove the microSD card from the Raspberry Pi, if there is one." "${r}" "${c}"
-
-    fi
-
 # Explain the need for a static address
 if whiptail --defaultno --backtitle "" --title "Static IP Needed" --yesno "\\n\\nYour DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.
 
@@ -2213,20 +2426,6 @@ Choose yes to indicate that you have understood this message, and wish to contin
 else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
   exit
-fi
-
-# If low disk space is detected on in the default install location, ask the user if they want to continue
-if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
-if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space on this drive to download a full copy of the DigiByte blockchain. If you want to use this drive, you will need to enable the setting to prune the blockchain so that it will fit. You can do this by editing the digibyte.conf settings file.
-
-Would you like to install on this drive anyway?" --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
-
-  printf "%b User selected not to continue with install.\\n" "${INFO}"
-  exit
-
-else
-  printf "%b User selected to proceed with installation regardless.\\n" "${INFO}"
-fi
 fi
 
 }
@@ -2653,6 +2852,9 @@ main() {
     # Check that the installed OS is officially supported - display warning if not
     os_check
 
+    # Check if SELinux is Enforcing
+    checkSelinux
+
     # import diginode settings
     import_diginode_settings
 
@@ -2662,28 +2864,29 @@ main() {
     # Check for Raspberry Pi hardware
     rpi_check
 
-    # Check swap requirements
-    swap_check
-
-    # Check disk space to ensure there is enough space to download the blockchain
-    disk_space_check
+    # Check if the current user is 'digibyte'
+    user_check
 
     # Create the diginode.settings file if this is the first run
     create_diginode_settings
 
-    # Check if the Raspberry Pi
+    # Check swap requirements
+    swap_check
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_check
+
+    # Check if the hostname if set to 'diginode'
     hostname_check
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
     install_dependent_packages "${INSTALLER_DEPS[@]}"
 
-    # Check if SELinux is Enforcing
-    checkSelinux
-
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_FOLDER}/.officialdiginode" ]]; then
         NewInstall=false
+        printf "%b Existing DigiNode install detected...\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
         if [[ "$uninstall" == "yes" ]]; then
@@ -2692,14 +2895,14 @@ main() {
 
         # if it's running unattended,
         if [[ "${runUnattended}" == true ]]; then
-            printf "%b Unattended Mode: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "%b Unattended Upgrade: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
             # Perform unattended upgrade
             UnattendedUpgrade=true
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
             # If running attended, show the available options (upgrade/reset/uninstall)
-            printf "%b Interactive Mode: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
+            printf "%b Interactive Upgrade: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
             UnattendedUpgrade=false
             update_dialogs
         fi
@@ -2739,6 +2942,9 @@ main() {
         # Display welcome dialogs
         welcomeDialogs
 
+        # Show microSD card warnings if this is a Raspberry Pi
+        rpi_microsd_warning
+
     fi
 
     # Change the hostname
@@ -2746,6 +2952,9 @@ main() {
 
     # Do swap setup
     swap_setup
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_lowspace
 
     # Install DigiByte Core
     install_digibyte_core
