@@ -1906,8 +1906,7 @@ swap_check() {
     else
       swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
     fi
-    printf "%b Checking system RAM and swap file requirements...\\n"  "${INFO}"
-    printf "%b System Memory:     Total RAM: %b${RAMTOTAL_HR}b%b     Total SWAP: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b System Memory Check:     System RAM: %b${RAMTOTAL_HR}b%b     SWAP size: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     # insert a single line gap if this is the installer
     if [[ "$RUN_INSTALLER" != "NO" ]] ; then
         printf "\\n"
@@ -2120,7 +2119,7 @@ disk_check() {
                 printf "\\n"
             fi      
         else
-            printf "%b %bDisk Space Check: The drive has sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDisk Space Check: There is sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
