@@ -2182,6 +2182,7 @@ disk_check() {
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
             printf "%b Alternatively, you can edit you digibyte.conf file to prune the blockchain data\\n" "${INDENT}"
             printf "%b automatically when it gets too large.\\n" "${INDENT}"
+            printf "\\n"
             # Only display this line when using digimon.sh
             if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]; then
                 printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
@@ -3034,11 +3035,23 @@ main() {
 
     fi
 
+    # Ask to change the user
+    user_ask_change
+
+    # Change the user
+    user_do_change
+
+    # Ask to change the hostname
+    hostname_ask_change
+
     # Change the hostname
     hostname_do_change
 
+    # Ask to change the swap
+    swap_ask_change
+
     # Do swap setup
-    swap_setup
+    swap_do_change
 
     # Check data drive disk space to ensure there is enough space to download the entire blockchain
     disk_lowspace
