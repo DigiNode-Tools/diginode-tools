@@ -1313,12 +1313,12 @@ rpi_microsd_check() {
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
-        str="Is Raspberry Pi booting from microSD or an external USB drive?..."
+        str="Checking Raspberry Pi boot device..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
-            printf "%b%b %s External USB!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s  External USB Drive\\n" "${OVER}" "${TICK}" "${str}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
@@ -1326,7 +1326,7 @@ rpi_microsd_check() {
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
-                printf "%b%b %s microSD!\\n" "${OVER}" "${CROSS}" "${str}"
+                printf "%b%b %s  microSD card!\\n" "${OVER}" "${CROSS}" "${str}"
                 printf "\\n"
                 printf "%b %bERROR: Raspberry Pi is booting from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
@@ -1338,7 +1338,7 @@ rpi_microsd_check() {
                 printf "\\n"
                 exit 1
             else
-                printf "%b%b %s microSD!\\n" "${OVER}" "${INFO}" "${str}"
+                printf "%b%b %s microSD card!\\n" "${OVER}" "${INFO}" "${str}"
                 printf "\\n"
                 printf "%b %bWARNING: Raspberry Pi is booting from a microSD card%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
@@ -1360,7 +1360,7 @@ rpi_microsd_warning() {
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
 
-    if whiptail --backtitle "" --title "WARNING: Raspberry Pi is booting from microSD" --yesno "You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use an external SSD connected via USB for your DigiNode.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD.\\n\\nNOTE: A USB HDD (Hard Disk Drive) will also work, but an SSD (Solid State Drive) is preferred.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose yes to indicate that you have understood this message, and wish to continue anyway." --defaultno "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "WARNING: Raspberry Pi is booting from microSD" --yesno "You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD.\\n\\nNOTE: A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose yes to indicate that you have understood this message, and wish to continue anyway." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
@@ -1374,7 +1374,7 @@ fi
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "Before continuing, make sure the microSD card slot on the Raspberry Pi is empty. If there is a microSD card in the slot, please remove it now. It is not required.\\n\\nThis is to avoid any accidental data loss during the install." 11 "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove the microSD card from the Raspberry Pi." "Before continuing, make sure the microSD card slot on the Raspberry Pi is empty. If there is a microSD card in the slot, please remove it now. It will not be required." 10 "${c}"
 fi
 
 }
