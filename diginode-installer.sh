@@ -45,7 +45,7 @@ else
  fi
 
  # Store the user's account (this works the same regardless of whether we are root or not)
- USER_CURRENT=$(echo $USER_HOME | cut -d'/' -f3)
+ USER_ACCOUNT=$(echo $USER_HOME | cut -d'/' -f3)
 
 
 ######## VARIABLES START HERE #########
@@ -1782,7 +1782,7 @@ user_check() {
     # Only do this check if DigiByte Core is not currently installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
-        if [[ "$USER_CURRENT" == "digibyte" ]]; then
+        if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
             printf "%b %bCurrent user is: digibyte%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
@@ -1797,7 +1797,7 @@ user_check() {
                 USER_ASK_SWITCH="YES"
             else
                 printf "%b %bWARNING: User 'digibyte' does not exist.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b The current user is '$USER_CURRENT'. It is suggested to create a new 'digibyte' user account\\n"  "${INDENT}"
+                printf "%b The current user is '$USER_ACCOUNT'. It is suggested to create a new 'digibyte' user account\\n"  "${INDENT}"
                 printf "%b to use to set up your DigiNode. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
                 printf "%b DigiByte wallet its own user account. For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
@@ -1820,12 +1820,12 @@ if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
     # Only ask to change the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_CURRENT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_CURRENT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+      if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_SWITCH="YES"
           user_do_change
       else
-        printf "%b Current user '$USER_CURRENT' will be used for the installation.\\n" "${INFO}"
+        printf "%b Current user '$USER_ACCOUNT' will be used for the installation.\\n" "${INFO}"
       fi
   fi
 fi
@@ -1836,13 +1836,13 @@ if [[ "$USER_ASK_CREATE" = "YES" ]]; then
     # Only ask to create the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_CURRENT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_CURRENT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+      if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_SWITCH="YES"
         printf "%b User selected option to create 'digibyte' user.\\n" "${INFO}"
         user_do_change
       else
-        printf "%b Current user ''$USER_CURRENT' will be used for the DigiNode.\\n" "${INFO}"
+        printf "%b Current user '$USER_ACCOUNT' will be used for the DigiNode.\\n" "${INFO}"
       fi
   fi
 fi
