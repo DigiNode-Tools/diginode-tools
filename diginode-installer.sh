@@ -1852,19 +1852,19 @@ user_check() {
         else
             # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
             if id "digibyte" &>/dev/null; then
-                printf "%b User Account Check: %bCurrent user is NOT 'digibyte'%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bUser is NOT 'digibyte'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b WARNING: You are NOT currently logged in as user 'digibyte'\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b A '%bdigibyte%b' user account already exists, but you are logged in as '$USER_ACCOUNT'. It is \\n"  "${INDENT}"
-                printf "%b advisable to use the 'digibyte' account for your DigiNode. This is optional but recommended, since it\\n"  "${INDENT}"
+                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b A 'digibyte' user account already exists, but you are currently logged in as '$USER_ACCOUNT'.\\n"  "${INDENT}"
+                printf "%b It is advisable to use the 'digibyte' account for your DigiNode. This is optional but recommended, since it\\n"  "${INDENT}"
                 printf "%b will isolate your DigiByte wallet in its own user account.  For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
                 USER_ASK_SWITCH="YES"
             else
-                printf "%b User Account Check: %bCurrent user is NOT 'digibyte'%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bUser is NOT 'digibyte'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b WARNING: You are NOT currently logged in as user 'digibyte'\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is advisable to create a new 'digibyte' user account for your DigiNode.\\n"  "${INDENT}"
                 printf "%b This is optional but recommended, since it will isolate your DigiByte wallet\\n"  "${INDENT}"
                 printf "%b its own user account. For more information visit:\\n"  "${INDENT}"
