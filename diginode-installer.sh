@@ -1386,7 +1386,7 @@ rpi_microsd_check() {
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
-            printf "%b%b %s %bPASSED%b Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_%REEN}" "${COL_NC}"
+            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_%REEN}" "${COL_NC}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
@@ -1394,7 +1394,7 @@ rpi_microsd_check() {
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
-                printf "%b%b %s %bFAILED%b Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bERROR: Running a DigiNode from a microSD card is not supported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
@@ -1406,7 +1406,7 @@ rpi_microsd_check() {
                 printf "\\n"
                 exit 1
             else
-                printf "%b%b %s %bFAILED%b Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
@@ -1850,12 +1850,12 @@ user_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
-            printf "%b User Account Check: %bPASSED%b Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b User Account Check: %bPASSED%b   Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
             # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
             if id "digibyte" &>/dev/null; then
-                printf "%b User Account Check: %bFAILED%b Current user is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bFAILED%b   Current user is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b A 'digibyte' user account already exists, but you are currently logged in as '$USER_ACCOUNT'.\\n"  "${INDENT}"
@@ -1865,7 +1865,7 @@ user_check() {
                 printf "\\n"
                 USER_ASK_SWITCH="YES"
             else
-                printf "%b User Account Check: %bFAILED%b User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bFAILED%b   User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is advisable to create a new 'digibyte' user account for your DigiNode.\\n"  "${INDENT}"
@@ -2048,7 +2048,7 @@ swap_check() {
     fi
 
     if [ "$SWAP_NEEDED" = "YES" ]; then
-        printf "%b Swap Check: %bFAILED%b Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bWARNING: You need to create a swap file.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INFO}"
@@ -2062,7 +2062,7 @@ swap_check() {
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        printf "%b Swap Check: %bFAILED%b Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bWARNING: Your swap file is too small%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
@@ -2075,12 +2075,12 @@ swap_check() {
         printf "\\n"
     fi
     if [ $RAMTOTAL_KB -gt 8000000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b Your system has at least 8Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system has at least 8Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
     if [ $TOTALMEM_KB -gt 8000000 ]; then
-        printf "%b Swap Check: %bPASSED%b Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -2174,10 +2174,14 @@ disk_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            printf "%b Disk Space Check: %bWARNING: Not enough disk space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            print "\\n"
+            printf "%b %bWARNING: DigiByte blockchain data will not fit on this drive%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
-            printf "%b This current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
+            printf "%b The current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
+            printf "%b Alternatively, you can edit you digibyte.conf file to prune the blockchain data\\n" "${INDENT}"
+            printf "%b automatically when it gets too large.\\n" "${INDENT}"
             # Only display this line when using digimon.sh
             if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]; then
                 printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
@@ -2193,12 +2197,12 @@ disk_check() {
                 printf "\\n"
             fi      
         else
-            printf "%b Disk Space Check: %bPASSED.%b There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b Disk Space Check: %bPASSED%b   There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
     else
-        printf "%b Disk Space Check: Skipped - DigiByte Core is already installed.\\n" "${INFO}"
+        printf "%b Disk Space Check: SKIPPED   DigiByte Core is already installed.\\n" "${INFO}"
         printf "\\n"
     fi
 }
