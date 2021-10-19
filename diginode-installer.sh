@@ -1381,7 +1381,7 @@ rpi_microsd_check() {
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
-        str="Boot Device Check: "
+        str="Boot Check: "
         printf "%b %s" "${INFO}" "${str}"
 
         # Check for hdd/ssd boot drive
@@ -2174,8 +2174,8 @@ disk_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            print "\\n"
+            printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
             printf "%b %bWARNING: DigiByte blockchain data will not fit on this drive%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b The current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
@@ -2185,11 +2185,11 @@ disk_check() {
             # Only display this line when using digimon.sh
             if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]; then
                 printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
-                print "\\n"
+                printf "\\n"
             elif [[ "$runUnattended" = true ]]; then
                 if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]; then
                   printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
-                  print "\\n"
+                  printf "\\n"
                   exit 1
                 fi
             else
