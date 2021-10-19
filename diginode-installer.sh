@@ -42,10 +42,10 @@ if [[ "${EUID}" -eq 0 ]]; then
      USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 else
      USER_HOME=$(getent passwd $USER | cut -d: -f6)
- fi
+fi
 
- # Store the user's account (this works the same regardless of whether we are root or not)
- USER_ACCOUNT=$(echo $USER_HOME | cut -d'/' -f3)
+# Store the user's account (this works the same regardless of whether we are root or not)
+USER_ACCOUNT=$(echo $USER_HOME | cut -d'/' -f3)
 
 
 ######## VARIABLES START HERE #########
@@ -111,18 +111,16 @@ c=70
 # The runUnattended flag is one example of this
 reset=false
 runUnattended=false
-DGN_TOOLS_BRANCH="main"
+DGN_TOOLS_BRANCH="release"
 uninstall=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
     case "$var" in
-        "-r" ) reset=true;;
         "--reset" ) reset=true;;
-        "-u" ) runUnattended=true;;
         "--unattended" ) runUnattended=true;;
-        "-d" ) DGN_TOOLS_BRANCH="develop";;
-        "--dgndev" ) DGN_TOOLS_BRANCH="develop";; 
+        "--devmode" ) DGN_TOOLS_BRANCH="develop";; 
+        "--mainmode" ) DGN_TOOLS_BRANCH="main";; 
         "--uninstall" ) uninstall=true;;
     esac
 done
@@ -411,6 +409,25 @@ EOF
         printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
     else
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
+    if [ "$runUnattended" = true ]; then
+        printf "\\n"
+        printf "%b %bIMPORTANT: Customize your Unattended Install before running this again!!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Since this is the first time running the DigiNode Installer, a settings file used for\\n" "${INDENT}"
+        printf "%b customizing an Unattended Install has just been created at: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b If you want to customize the Unattended Install from using the defaults, you must edit this file\\n" "${INDENT}"
+        printf "%b before running the Installer again.\\n" "${INDENT}"
+        printf "\\n"
+        if [ "$TEXTEDITOR" != "" ]; then
+            printf "%b You can edit it by entering:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE $\\n" "${INDENT}"
+            printf "\\n"
+        fi
+        exit
     fi
 
     # The settings file exists, so source it
@@ -1706,11 +1723,11 @@ checkSelinux() {
 hostname_check() {
 
 if [[ "$HOSTNAME" == "diginode" ]]; then
-    printf "%b %bHostname is set to: diginode%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b Hostname Check: %bHostname is set to 'diginode'%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
 elif [[ "$HOSTNAME" == "" ]]; then
-    printf "%b %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
     printf "%b If you have, please contact @saltedlolly on Twitter and let me know so I can work on\\n" "${INDENT}"
@@ -1718,7 +1735,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 else
-    printf "%b %bHostname is not set to 'diginode'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bHostname is not set to 'diginode'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
@@ -2100,7 +2117,7 @@ disk_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
-            printf "%b %bWARNING: Not enough disk space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b Disk Space Check: %bWARNING: Not enough disk space to download DigiByte blockchain%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b This current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
@@ -2119,7 +2136,7 @@ disk_check() {
                 printf "\\n"
             fi      
         else
-            printf "%b %bDisk Space Check: There is sufficient space to download the DigiByte blockchain.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b Disk Space Check: %bPASSED.%b There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
@@ -2146,11 +2163,15 @@ if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
         else
           printf "\\n"
           printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${WARN}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          printf "%b You can do this by editing the digibyte.conf file:\\n" "${INDENT}"
-          printf "\\n"
-          printf "%b   nano $DGN_SETTINGS_FILE\\n" "${INDENT}"
-          printf "\\n"
-          printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+          
+          if [ "$TEXTEDITOR" != "" ]; then
+                printf "%b You can do this by editing the digibyte.conf file:\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b   $TEXTEDITOR $DGB_CONF_FILE\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+                printf "\\n"
+          fi
         fi
     fi
 
@@ -2381,23 +2402,20 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 # ask the user if they want to EXIT to customize their install settings.
 if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 
-    if whiptail --defaultno --backtitle "" --title "diginode.settings has been created" --yesno "\\n\\nProceed with default installation settings? (Y/N) 
-
-    Before continuing, if you would like to customize your install, such as to change the default location of the data folder, you can edit the diginode.settings file that has just been created in the ~/.digibyte folder. For most people, there should be no reason to change anything, and you can safely continue with the defaults.
-
-      To continue with default settings, press:  CONTINUE  (Recommended)
-
-      To exit and customize your installation:   EXIT" --no-button "EXIT" --yes-button "CONTINUE (Recommended)" "${r}" "${c}"; then
+    if whiptail --defaultno --backtitle "" --title "Do you want to customize your DigiNode install?" --yesno "Before proceeding, you may wish to customize your DigiNode installation by editing the diginode.settings file that has just been created in the ~/.digibyte folder. For example, to change the default location of the DigiByte blockchain data.\\n\\nFor most people, there should be no reason to change anything, and you can safely continue with the defaults.\\n\\nTo proceed with default installation settings, choose:  Continue\\n\\nTo exit and customize your installation, choose:   Exit" --no-button "Exit" --yes-button "Continue (Recommended)" "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
       printf "\\n"
-      printf "%b %bPlease edit the diginode.settings file to customize your installation%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-      printf "%b You can edit the settings file by entering:\\n" "${INDENT}"
-      printf "\\n"
-      printf "%b   nano $DGN_SETTINGS_FILE\\n" "${INDENT}"
-      printf "\\n"
-      printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+      printf "%b %bPlease edit the diginode.settings file to customize your installation.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      if [ "$TEXTEDITOR" != "" ]; then
+            printf "%b You can do this by entering:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+            printf "\\n"
+      fi
       exit
     fi
 
@@ -2746,6 +2764,25 @@ uninstall_everything() {
 
 }
 
+#Simple function to find an installed text editor
+set_text_editor() {
+
+# Set default system text editor
+if is_command nano ; then
+    TEXTEDITOR=nano
+elif is_command vim ; then
+    TEXTEDITOR=vim
+elif is_command vi ; then
+    TEXTEDITOR=vi
+fi
+
+if [ "$VERBOSE_MODE" = "YES" ]; then
+    printf "%b Text Editor: %b$TEXTEDITOR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+fi
+
+}
+
 
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
@@ -2838,6 +2875,9 @@ main() {
 
     # Check if SELinux is Enforcing
     checkSelinux
+
+    # Set the system text editor
+    set_text_editor
 
     # import diginode settings
     import_diginode_settings
