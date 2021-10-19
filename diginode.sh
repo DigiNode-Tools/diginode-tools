@@ -19,7 +19,7 @@
 #          ~/diginode/diginode
 #
 #
-# Updated: October 13 2021 11:33pm GMT
+# Updated: October 19 2021 2:33pm GMT
 #
 # -------------------------------------------------------
 
@@ -49,18 +49,24 @@
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
+# This variable stores the version number of this release of 'DigiNode Tools' on GitHub.
+# When a new release is made, this number will be updated to match the release number on GitHub.
+# The version number should be three numbers seperated by a period
+# Do not change this version number on your local installaion or automatic upgrades may not work.
+DGN_VER_THIS=0.0.0
+
 # Set this to YES to get more verbose feedback. Very useful for debugging.
 VERBOSE_MODE="YES"
 
 # This is the command people will enter to run the install script.
 DGN_INSTALLER_OFFICIAL_CMD="curl http://diginode-installer.digibyte.help | bash"
 
-#################################################
-#### UPDATE THESE VALUES FROM THE INSTALLER #####
-#################################################
+#######################################################
+#### UPDATE THESE VALUES FROM THE INSTALLER FIRST #####
+#######################################################
 
-# These variables are included in both files since they are required before the installer-script is loaded.
-# Changes to these variables should be first made in the installer script and then copied here.
+# These colour and text formatting variables are included in both scripts since they are required before installer-script.sh is sourced into this one.
+# Changes to these variables should be first made in the installer script and then copied here, to help ensure the settings remain identical in both scripts.
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -76,7 +82,6 @@ INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
 OVER="\\r\\033[K"
-
 
 ## Set variables for colors and formatting
 
@@ -1116,22 +1121,8 @@ if [ $timedif15sec -gt 15 ]; then
 
     fi
 
-
-    # Update current disk usage variables
-    DISKUSED_HR=$(df /dev/sda2 -h --output=used | tail -n +2)
-    DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
-    DISKUSED_PERC=$(df /dev/sda2 --output=pcent | tail -n +2)
-
-    # Trim white space from disk variables
-    DISKUSED_HR=$(echo -e " \t $DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-    DISKFREE_HR=$(echo -e " \t $DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-    DISKUSED_PERC=$(echo -e " \t $DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
-
-    # Write disk variables to diginode.settings
-    sed -i -e '/^DISKUSED_HR=/s|.*|DISKUSED_HR="$DISKUSED_HR"|' $DGN_SETTINGS_FILE
-    sed -i -e '/^DISKFREE_HR=/s|.*|DISKFREE_HR="$DISKFREE_HR"|' $DGN_SETTINGS_FILE
-    sed -i -e '/^DISKUSED_PERC_HR=/s|.*|DISKUSED_PERC_HR="$DISKUSED_PERC"|' $DGN_SETTINGS_FILE
-
+    # Lookup disk usage, and store in diginode.settings if present
+    update_disk_usage
 
     savedtime15sec="$timenow"
 fi
@@ -1326,6 +1317,8 @@ fi
 echo " ║   SOFTWARE      ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "IPFS daemon v$IPFS_VER_LOCAL"
 echo " ║               ╠═════════════════════════════════════════════════════╣"
+printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGN_VER_THIS"
+echo " ║               ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Metadata Server v$DGA_VER_LOCAL"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
 if [ $digibyted_status = 'stopped' ]; then # Only display if digibyted is NOT running
@@ -1358,7 +1351,7 @@ echo ""
 echo " ╔═══════════════╦════════════════════════════════════════════════════╗"
 printf " ║ DEVICE      ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "${}DISKUSED_HR}b of ${DISKTOTAL_HR}b ($DISKUSED_PERC)" "[ ${DISKFREE_HR}b free ]  ║"
+printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ($DGB_DATA_DISKUSED_PERC)" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$ramused of $RAMTOTAL_HR" "[ $ramavail free ]  ║"
 if [ $swaptotal != '0B' ]; then # only display the swap file status if there is one
