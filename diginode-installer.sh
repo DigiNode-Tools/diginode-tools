@@ -1864,7 +1864,7 @@ user_check() {
             else
                 printf "%b User Account Check: %bCurrent user is NOT 'digibyte'%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b WARNING: You are NOT currently logged in as user 'digibyte'\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC
+                printf "%b WARNING: You are NOT currently logged in as user 'digibyte'\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is advisable to create a new 'digibyte' user account for your DigiNode.\\n"  "${INDENT}"
                 printf "%b This is optional but recommended, since it will isolate your DigiByte wallet\\n"  "${INDENT}"
                 printf "%b its own user account. For more information visit:\\n"  "${INDENT}"
