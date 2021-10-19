@@ -414,9 +414,6 @@ EOF
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Make sure the user can edit diginode.settings (not just root)
-    $DGN_SETTINGS_FILE
-
     # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
     if [ "$runUnattended" = true ]; then
         printf "\\n"
