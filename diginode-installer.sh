@@ -215,7 +215,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
   fi
 
   # Make sure the user owns this folder
-  chown user:$USER_ACCOUNT $DGN_SETTINGS_LOCATION
+  # chown $USER_ACCOUNT $DGN_SETTINGS_LOCATION
 
   # create diginode.settings file
   str="Creating diginode.settings file..."
