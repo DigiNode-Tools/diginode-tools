@@ -95,7 +95,7 @@ DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching 
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Help on how to set a static IP
+DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Advice on how to set a static IP
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -207,9 +207,9 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
         printf "%b   Folder location: $DGN_SETTINGS_LOCATION\\n" "${INDENT}"
-        mkdir $DGN_SETTINGS_LOCATION
+        sudo -u $USER_ACCOUNT mkdir $DGN_SETTINGS_LOCATION
     else
-        mkdir $DGN_SETTINGS_LOCATION
+        sudo -u $USER_ACCOUNT mkdir $DGN_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
   fi
@@ -676,7 +676,7 @@ create_digibyte_conf() {
     # create .digibyte settings folder if it does not already exist
     if [ ! -d $DGB_SETTINGS_LOCATION ]; then
         printf "%b Creating ~/.digibyte folder" "${INFO}"
-        mkdir $DGB_SETTINGS_LOCATION
+        sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
     fi
 
     # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
