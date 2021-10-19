@@ -2080,7 +2080,7 @@ swap_check() {
     fi
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
     if [ $TOTALMEM_KB -gt 8000000 ]; then
-        printf "%b Swap Check: %bPASSED%b Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" ${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
