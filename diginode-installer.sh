@@ -1381,12 +1381,12 @@ rpi_microsd_check() {
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
-        str="Checking Raspberry Pi boot device..."
+        str="Boot Device Check: "
         printf "%b %s" "${INFO}" "${str}"
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
-            printf "%b%b %s  %bExternal USB Drive%b\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_%REEN}" "${COL_NC}"
+            printf "%b%b %s  %bPASSED&b Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_%REEN}" "${COL_NC}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
@@ -1394,9 +1394,9 @@ rpi_microsd_check() {
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
-                printf "%b%b %s  %bmicroSD card!%b\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b%b %s  %bFAILED&b Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bERROR: Raspberry Pi is booting from a microSD card%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bERROR: Running a DigiNode from a microSD card is not supported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
                 printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
                 printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
@@ -1406,9 +1406,9 @@ rpi_microsd_check() {
                 printf "\\n"
                 exit 1
             else
-                printf "%b%b %s %bmicroSD card!%b\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b%b %s  %bFAILED&b Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bWARNING: Raspberry Pi is booting from a microSD card%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
                 printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
@@ -1850,12 +1850,12 @@ user_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
-            printf "%b User Account Check: %bCurrent user is 'digibyte'%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b User Account Check: %bPASSED%b Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
             # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
             if id "digibyte" &>/dev/null; then
-                printf "%b User Account Check: %bUser is NOT 'digibyte'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bFAILED%b Current user is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b A 'digibyte' user account already exists, but you are currently logged in as '$USER_ACCOUNT'.\\n"  "${INDENT}"
@@ -1865,7 +1865,7 @@ user_check() {
                 printf "\\n"
                 USER_ASK_SWITCH="YES"
             else
-                printf "%b User Account Check: %bUser is NOT 'digibyte'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b User Account Check: %bFAILED%b User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
                 printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is advisable to create a new 'digibyte' user account for your DigiNode.\\n"  "${INDENT}"
