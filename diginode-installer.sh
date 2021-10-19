@@ -202,7 +202,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
   if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
-    str="Creating DigiNode settings folder..."
+    str="Creating ~/.diginode folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
@@ -218,7 +218,7 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
   # chown $USER_ACCOUNT $DGN_SETTINGS_LOCATION
 
   # create diginode.settings file
-  str="Creating diginode.settings file..."
+  str="Creating ~/.diginode/diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
   sudo -u $USER_ACCOUNT touch $DGN_SETTINGS_FILE
   cat <<EOF > $DGN_SETTINGS_FILE
@@ -270,7 +270,7 @@ DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 
 # THis will set the max connections in the digibyte.conf file on the first install
 # This value set here is also used when performing an unattended install
-# (Note: If the digibyte.conf file already exists, the value here will be ignored)
+# (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=300
 
 # Stop 'DigiNode Satus Monitor' automatically if left running
@@ -798,7 +798,8 @@ create_digibyte_conf() {
 
     else
         # Create a new digibyte.conf file
-        echo "$INFO Creating digibyte.conf file"
+        str="Creating ~/.diginode/digibyte.conf file..."
+        printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_CONF_FILE
 # This config should be placed in following path:
@@ -858,6 +859,7 @@ rpcallowip=127.0.0.1
 # Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
 disablewallet=0
 EOF
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
 }
 
