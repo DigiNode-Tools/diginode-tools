@@ -2048,8 +2048,10 @@ swap_check() {
     fi
 
     if [ "$SWAP_NEEDED" = "YES" ]; then
-        printf "%b %bWARNING: No Swap file detected%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
+        printf "%b Swap Check: %bFAILED%b Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bWARNING: You need to create a swap file.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INFO}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
@@ -2060,7 +2062,9 @@ swap_check() {
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Swap Check: %bFAILED%b Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bWARNING: Your swap file is too small%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
@@ -2071,12 +2075,12 @@ swap_check() {
         printf "\\n"
     fi
     if [ $RAMTOTAL_KB -gt 8000000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b %The system has at least 8Gb RAM so no swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b Your system has at least 8Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
     if [ $TOTALMEM_KB -gt 8000000 ]; then
-        printf "%b %bYour system RAM and SWAP size combined exceeds 8Gb, so no change to your swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" ${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -2455,7 +2459,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 # ask the user if they want to EXIT to customize their install settings.
 if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
 
-    if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored, for example.\\n\\nFor normal users, there should be no reason to change anything, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored, for example.\\n\\nIn most cases, there should be no need to change anything, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
