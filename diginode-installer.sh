@@ -232,36 +232,23 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
 # DEFAULT FOLDER AND FILE LOCATIONS
 # If you want to change the default location of folders you can edit them here
-
-# DIGINODE TOOLS:
- # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_TOOLS_LOCATION=$USER_HOME/diginode
+# Important: Use the USER_HOME variable to identify your home folder location.
 
 # DGN_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
 # DGN_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
 
-# DIGIBYTE NODE:
-# This references a symbolic link that points at the actual install folder. There should be no need to change this.
-# If you really want to change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
-# called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder
-# It is not advisable 
-DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
-DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
-
+# DIGIBYTE CORE BLOCKCHAIN DATA LOCATION:
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
 # The value set below will be used by the normal install and the unattended install
-# Note - changing this after the DigiByte Node has already been installed will cause
-# the blockchain to be be re-downloaded in the new location, unless you move the data manually
-# first. Follow these recommended steps to change the location:
+# Note - changing this after the DigiByte Node has already been running will cause
+# the blockchain to be be re-downloaded in the new location. The old data will need to be deleted manually
+# or moved to the new location first. Follow these recommended steps to change the location:
 # 1) Stop the digibyted service
-# 2) Manually move the blockchain data to the new location
-# 3) Update this file with the new location
+# 2) Manually move the blockchain data from the old to the new location
+# 3) Update this file with the new location below
 # 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
 # 5) Restart the digibyted service 
 DGB_DATA_LOCATION=$USER_HOME/.digibyte/
-
-# DIGIASSETS NODE:
-DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 
 
 #####################################
@@ -325,18 +312,35 @@ UI_SETUP_TOR="YES"
 
 # IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
 
-# DigiNode Tools file locations:
-DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
-DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
-DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
+# DIGIBYTE NODE LOCATION:
+# This references a symbolic link that points at the actual install folder. Please do not change this.
+# If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
+# called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
+# Be aware that DigiNode Installer upgrades will likely not work if you do this.
+DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
 
-# DigiByte Core file locations:
+# Do not change this. You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
+DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
+
+# DIGIBYTE NODE FILES:
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
 DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 
-# DigiAsset Node file locations:
+# DIGIASSETS NODE LOCATION:
+DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
+
+# DIGINODE TOOLS LOCATION:
+ # This is the default location where the scripts get installed to. There should be no need to change this.
+DGN_TOOLS_LOCATION=$USER_HOME/diginode
+
+# DIGINODE TOOLS FILES:
+DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
+DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
+DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
+
+# DIGIASSETS NODE FILES
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 # Store DigiByte Core Installation details:
