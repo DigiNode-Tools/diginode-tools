@@ -1364,7 +1364,6 @@ if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
     #Nothing to do, continue
       echo
     else
-      printf "\\n"
       printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
       printf "\\n"
       exit
@@ -1783,22 +1782,22 @@ user_check() {
     if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
-            printf "%b %bCurrent user is: digibyte%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bCurrent user is: digibyte%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
             # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
             if id "digibyte" &>/dev/null; then
-                printf "%b User account '%bdigibyte%b' already exists.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-                printf "%b You are not currently logged in as the 'digibyte' user. It is recommended to switch to\\n"  "${INDENT}"
-                printf "%b that user before running the installer. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
-                printf "%b DigiByte wallet in its own user account. For more information visit:\\n"  "${INDENT}"
+                printf "%b WARNING: You are NOT currently logged in as user 'digibyte'\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b A '%bdigibyte%b' user account already exists, but you are logged in as '$USER_ACCOUNT'. It is \\n"  "${INDENT}"
+                printf "%b advisable to use the 'digibyte' account for your DigiNode. This is optional but recommended, since it\\n"  "${INDENT}"
+                printf "%b will isolate your DigiByte wallet in its own user account.  For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
                 USER_ASK_SWITCH="YES"
             else
-                printf "%b %bWARNING: User 'digibyte' does not exist.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b The current user is '$USER_ACCOUNT'. It is suggested to create a new 'digibyte' user account\\n"  "${INDENT}"
-                printf "%b to use to set up your DigiNode. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
+                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b The current user is '$USER_ACCOUNT'. It is advisable to create a new 'digibyte' user account\\n"  "${INDENT}"
+                printf "%b for your DigiNode. This is optional but recommended, since it will isolate your\\n"  "${INDENT}"
                 printf "%b DigiByte wallet its own user account. For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
