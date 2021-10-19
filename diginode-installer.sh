@@ -1920,11 +1920,13 @@ fi
 
 }
 
-# If a swap file is needed, this function will create one or change the size of an existing one
+# If the user is currently not 'digibyte' we need to create the account, or sign in as it
 user_do_change() {
 
+if [ "$USER_DO_SWITCH" = "YES" ]; then
+
     # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
+    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_CHANGE_USER_OVERRIDE" != "" ]]; then
         SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
         SWAP_DO_CHANGE="YES"
         printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1963,6 +1965,13 @@ user_do_change() {
             printf "\\n"
         fi
     fi
+
+fi
+
+if [ "$USER_DO_CHANGE" = "YES" ]; then
+
+
+fi
 
 }
 
@@ -2646,12 +2655,12 @@ install_digibyte_core() {
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
         digibyted_status="installed"
-        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
         digibyted_status="not_detected"
     fi
 
-    # Just to be sure, let's try another way to check if DigiByte Core installed is running, by looking for the digibyted binary
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyted binary
     if [ $digibyted_status = "not_detected" ] && [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ]; then
         digibyted_status="installed"
         printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -2678,7 +2687,7 @@ install_digibyte_core() {
     if [ $digibyted_status = "running" ]; then
         str="Is DigiByte Core in the process of starting up?..."
         printf "%b %s" "${INFO}" "${str}"
-        blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+        blockcount_local=$($DGB_CLI getblockcount)
 
         if [ "$blockcount_local" != ^[0-9]+$ ]; then
           printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -2697,7 +2706,7 @@ install_digibyte_core() {
         printf "%b %s" "${INFO}" "${str}"
         while [ $digibyted_status = "running" ]; do
             if [ "$every15secs" -gt 15 ]; then
-              blockcount_local=$(~/digibyte/bin/digibyte-cli getblockcount)
+              blockcount_local=$($DGB_CLI getblockcount)
               if [ "$blockcount_local" = ^[0-9]+$ ]; then
                 digibyted_status = "running"
                 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -2719,7 +2728,7 @@ install_digibyte_core() {
 
     # Get the version number of the current DigiByte Core and write it to to the settings file
     if [ $digibyted_status = "running" ]; then
-        DGB_VER_LOCAL=$(~/digibyte/bin/digibyte-cli getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
         printf "%b Current Version: DigiByte Core v${DGB_VER_LOCAL}\\n" "${INFO}" 
     fi
@@ -2728,20 +2737,25 @@ install_digibyte_core() {
     # Check Github repo to find the version number of the latest DigiByte Core release
     DGB_VER_GITHUB=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
-    printf "%b Latest Release: DigiByte Core v${DGB_VER_GITHUB}\\n" "${INFO}"
+    printf "%b DigiByte Core Latest Release is v${DGB_VER_GITHUB}\\n" "${INFO}"
 
 
     # If a local version already exists.... (i.e. we have a local version number)
-    if [ $DGB_VER_GITHUB != "" ]; then
+    if [ $DGB_VER_LOCAL != "" ]; then
       # ....then check if a DigiByte Core upgrade is required
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
           dgb_install=="current"
           printf "%b DigiByte Core is already running the latest version\\n" "${INFO}"
-          UPDATE_AVAILABLE_DGB="no"
-          return
+          if [ $reset = true ]; then
+            printf "%b Reset Mode is Enabled. The latest version will be reinstalled.\\n" "${INFO}"
+            dgb_install="reset"
+          else
+            UPDATE_AVAILABLE_DGB="no"
+            return
+          fi
       else
           printf "%b DigiByte Core will be upgraded to the latest version\\n" "${INFO}"
-          dgb_install=="upgrade"
+          dgb_install="upgrade"
       fi
     fi 
 
@@ -2751,8 +2765,10 @@ install_digibyte_core() {
       dgb_install=="new"
     fi
 
-    # Stop DigiByte Core if it is running, as we need to upgrade it
+    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
     if [ $digibyted_status = "running" ] && [ $dgb_install = "upgrade" ]; then
+       stop_service digibyted
+    if [ $digibyted_status = "running" ] && [ $dgb_install = "reset" ]; then
        stop_service digibyted
     fi
     
@@ -2763,18 +2779,25 @@ install_digibyte_core() {
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Downloading latest DigiByte Core binary from GitHub
-    printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
-    str="Downloading DigiByte Core v${DGB_VER_GITHUB}..."
+    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If an there is an existing version version, move it it to a backup version
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Extracting DigiByte Core binary
     str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
     printf "%b %s" "${INFO}" "${str}"
-    tar -xf digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT tar -xf digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    ln -s digibyte-$DGB_VER_GITHUB digibyte
+    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_GITHUB digibyte
     rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
 
     # Delete old ~/digibyte symbolic link
@@ -2788,14 +2811,16 @@ install_digibyte_core() {
     # Create new symbolic link
     str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
     printf "%b %s" "${INFO}" "${str}"
-    ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Delete previous version of DigiByte Core
-    str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -rf $USER_HOME/digibyte-{DGB_VER_LOCAL}
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    # Delete the backup version, now the new version has been installed
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
+        str="Deleting old version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
     
     # Delete DigiByte Core tar.gz file
     str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
