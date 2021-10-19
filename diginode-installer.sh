@@ -2921,7 +2921,7 @@ main() {
     if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
 
         # pause for a moment beofe displaying menu
-        sleep 3
+        sleep 2
 
         # Display welcome dialogs
         welcomeDialogs
