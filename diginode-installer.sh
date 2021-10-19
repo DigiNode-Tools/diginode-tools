@@ -2076,7 +2076,7 @@ swap_check() {
     fi
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
     if [ $TOTALMEM_KB -gt 8000000 ]; then
-        printf "%b %Your system RAM and SWAP size combined exceeds 8Gb, so no change to your swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bYour system RAM and SWAP size combined exceeds 8Gb, so no change to your swap file is required.%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
