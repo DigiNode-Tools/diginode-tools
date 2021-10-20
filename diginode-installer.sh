@@ -436,13 +436,13 @@ EOF
         printf "%b Since this is the first time running the DigiNode Installer, a settings file used for\\n" "${INDENT}"
         printf "%b customizing an Unattended Install has just been created at: $DGN_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
-        printf "%b If you want to customize the Unattended Install from using the defaults, you must edit this file\\n" "${INDENT}"
-        printf "%b before running the Installer again.\\n" "${INDENT}"
+        printf "%b If you want to customize your Unattended Install of DigiNode, you need to edit\\n" "${INDENT}"
+        printf "%b this file before running the Installer again with the --unattended flag.\\n" "${INDENT}"
         printf "\\n"
         if [ "$TEXTEDITOR" != "" ]; then
             printf "%b You can edit it by entering:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE $\\n" "${INDENT}"
+            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
         fi
         exit
@@ -1427,7 +1427,7 @@ rpi_microsd_check() {
                 printf "\\n"
                 printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
-                printf "%b to run your DigiNode - using a microSD card is inadvisable.\\n" "${INDENT}"
+                printf "%b to run a DigiNode on a Raspberry Pi - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
                 printf "%b For help on what hardware you need, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
