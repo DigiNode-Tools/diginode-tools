@@ -2040,7 +2040,6 @@ user_create_digibyte() {
         fi
     fi
 }
-}
 
 
 
