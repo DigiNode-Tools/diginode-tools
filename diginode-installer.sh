@@ -197,7 +197,13 @@ create_diginode_settings() {
 
 local str
 
-# check if diginode.settings file exists
+# If we are in reset mode, delete the diginode.settings file, if it already exists
+  if [ $reset = true ] && [ -f "$DGN_SETTINGS_FILE" ]; then
+    printf "%b Reset Mode is Enabled. Deleting existing diginode.settings file.\\n" "${INFO}"
+    rm -f $DGN_SETTINGS_FILE
+  fi
+
+# If the diginode.settings file does not already exist, then create it
 if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
@@ -277,6 +283,11 @@ DGN_TOOLS_DEV_BRANCH="yes"
 # INSTRUCTIONS: 
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run the installer with the --unattended flag set.
+
+# Decide whether to have the script enforce using a 'digibyte' user (Set to YES/NO)
+# If set to YES the Installer will create the user 'digibyte' (if it doesn't exist) and try to install as that user
+# If set to NO the Installer will install as the current user
+UI_ENFORCE_DIGIBYTE_USER=YES
 
 # Choose whether to change the system hostname to: diginode (Set to YES/NO)
 # If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
@@ -657,6 +668,12 @@ update_disk_usage() {
 # Create digibyte.config file if it does not already exist
 create_digibyte_conf() {
 
+    # If we are in reset mode, delete the diginode.settings file, if it already exists
+    if [ $reset = true ] && [ -f "$DGB_CONF_FILE" ]; then
+        printf "%b Reset Mode is Enabled. Deleting existing digibyte.conf file.\\n" "${INFO}"
+        rm -f $DGB_CONF_FILE
+    fi
+
    # Max connections are set from the diginode.settings file
     set_maxconnections=$DGB_MAX_CONNECTIONS
 
@@ -680,8 +697,8 @@ create_digibyte_conf() {
         sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
     fi
 
-    # If digibyte.conf settings file already exists, append any missing values. Otherwise create it.
-    if test -f "$DGB_SETTINGS_FILE"; then
+    # If digibyte.conf file already exists, append any missing values. Otherwise create it.
+    if test -f "$DGB_CONF_FILE"; then
         # Import variables from diginode.conf settings file
         printf "%b Importing digibyte.conf file" "${INFO}"
         source $DGB_CONF_FILE
@@ -1423,7 +1440,7 @@ rpi_microsd_check() {
 }
 
 # If the user is using a Raspberry Pi, show some microSD warnings
-rpi_microsd_warning() {
+rpi_microsd_ask() {
 
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
@@ -1792,6 +1809,8 @@ else
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
+    printf "%b Interactive Install: Do you want to change the hostname to 'digibyte'?\\n" "${INFO}"
+    printf "\\n"
 fi
 
 }
@@ -1806,9 +1825,12 @@ This is optional but recommended, since it will make the DigiAssets website avai
 Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
       HOSTNAME_DO_CHANGE="YES"
-        hostname_do_change
+
+      printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
+      printf "\\n"
     else
-      printf "%b Hostname will not be changed.\\n" "${INFO}"
+      printf "%b Interactive Install: No - Hostname will not be changed.\\n" "${INFO}"
+      printf "\\n"
     fi
 fi
 
@@ -1853,7 +1875,7 @@ user_check() {
             printf "%b User Account Check: %bPASSED%b   Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
         else
-            # The current user is not 'digibyte', so let's check if the 'digibyte' user already exists on the system
+            # If we doing an unattended install, and the setting filee forces using user 'digibyte', then
             if id "digibyte" &>/dev/null; then
                 printf "%b User Account Check: %bFAILED%b   Current user is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
@@ -1863,7 +1885,19 @@ user_check() {
                 printf "%b will isolate your DigiByte wallet in its own user account.  For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
-                USER_ASK_SWITCH="YES"
+                if [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
+                    USER_DO_SWITCH="YES"
+                    printf "%b Unattended Install: 'digibyte' user will be used.\\n" "${INFO}"
+                    printf "\\n"
+                elif [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
+                    USER_DO_SWITCH="NO"
+                    printf "%b Unattended Install: Skipping using 'digibyte' user - user '$USER_ACCOUNT' will be used\\n" "${INFO}"
+                    printf "\\n"
+                else
+                    USER_ASK_SWITCH="YES"
+                    printf "%b Interactive Install: Do you want to use 'digibyte' user?\\n" "${INFO}"
+                    printf "\\n"
+                fi
             else
                 printf "%b User Account Check: %bFAILED%b   User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
@@ -1873,7 +1907,19 @@ user_check() {
                 printf "%b its own user account. For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
-                USER_ASK_CREATE="YES"
+                 if [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
+                    USER_DO_CREATE="YES"
+                    printf "%b Unattended Install: Enforcing creating 'digibyte' user from diginode.settings file\\n" "${INFO}"
+                    printf "\\n"
+                elif [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
+                    USER_DO_CREATE="NO"
+                    printf "\\n"
+                    printf "%b Unattended Install: Skipping creating 'digibyte' user - using user '$USER_ACCOUNT'\\n" "${INFO}"
+                else
+                    USER_ASK_CREATE="YES"
+                    printf "%b Interactive Install: Do you want to create user 'digibyte'?\\n" "${INFO}"
+                    printf "\\n"
+                fi
             fi
         fi
 
@@ -1894,9 +1940,11 @@ if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
       if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_SWITCH="YES"
-          user_do_change
+        printf "%b Interactive Install: Yes - user 'digibyte' will be used for the install.\\n" "${INFO}"
+        printf "\\n"
       else
-        printf "%b Current user '$USER_ACCOUNT' will be used for the installation.\\n" "${INFO}"
+        printf "%b Interactive Install: No - user '$USER_ACCOUNT' will be used for the installation.\\n" "${INFO}"
+        printf "\\n"
       fi
   fi
 fi
@@ -1909,11 +1957,12 @@ if [[ "$USER_ASK_CREATE" = "YES" ]]; then
 
       if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
-        USER_DO_SWITCH="YES"
-        printf "%b User selected option to create 'digibyte' user.\\n" "${INFO}"
-        user_do_change
+        USER_DO_CREATE="YES"
+        printf "%b Interactive Install: Yes - user 'digibyte' will be created for the install.\\n" "${INFO}"
+        printf "\\n"
       else
-        printf "%b Current user '$USER_ACCOUNT' will be used for the DigiNode.\\n" "${INFO}"
+        printf "%b Interactive Install: No - user '$USER_ACCOUNT' will not be created for the installation.\\n" "${INFO}"
+        printf "\\n"
       fi
   fi
 fi
@@ -1924,56 +1973,76 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
-
-    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_CHANGE_USER_OVERRIDE" != "" ]]; then
-        SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
-        SWAP_DO_CHANGE="YES"
-        printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    fi
-
-    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
-        printf "%b %bUnattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
-        SWAP_DO_CHANGE="YES"
-    fi
-
-    #create local variable
-    local str
-
-    # Go ahead and create/change the swap if requested
-    if [[ $SWAP_DO_CHANGE = "YES" ]]; then
-
-        if [ "$SWAP_NEEDED" = "YES" ]; then
-            # Local, named variables
-            str="Creating $SWAP_TARG_SIZE_MB MB swap file..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
-
-            sleep 3
-
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
-        fi
-
-        if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-            str="Changing swap file size to $SWAP_TARG_SIZE_MB..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
-
-            sleep 3
-
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
-        fi
-    fi
+    printf "%b Deleting No - user '$USER_ACCOUNT' will not be created for the installation.\\n" "${INFO}"
 
 fi
 
 if [ "$USER_DO_CHANGE" = "YES" ]; then
 
+    user_create_digibyte
 
+    echo "Created user" 
+    exit
 fi
 
 }
+
+# Check if the 'digibyte' user exists and create if it does not
+user_create_digibyte() {
+
+    local str="Checking for user 'digibyte'"
+    printf "  %b %s..." "${INFO}" "${str}"
+    # If the digibyte user exists,
+    if id -u digibyte &> /dev/null; then
+        # and if the digibyte group exists,
+        if getent group digibyte > /dev/null 2>&1; then
+            # succeed
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            local str="Checking for group 'digibyte'"
+            printf "  %b %s..." "${INFO}" "${str}"
+            local str="Creating group 'digibyte'"
+            # if group can be created
+            if groupadd digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                local str="Adding user 'digibyte' to group 'digibyte'"
+                printf "  %b %s..." "${INFO}" "${str}"
+                # if digibyte user can be added to group pihole
+                if usermod -g digibyte digibyte; then
+                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                fi
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        fi
+    else
+        # If the digibyte user doesn't exist,
+        printf "%b  %b %s" "${OVER}" "${CROSS}" "${str}"
+        local str="Creating user 'digibyte'"
+        printf "%b  %b %s..." "${OVER}" "${INFO}" "${str}"
+        # create her with the useradd command,
+        if getent group digibyte > /dev/null 2>&1; then
+            # then add her to the digibyte group (as it already exists)
+            if useradd -r --no-user-group -g digibyte -s /usr/sbin/nologin digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        else
+            # add user digibyte with default group settings
+            if useradd -r -s /usr/sbin/nologin digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        fi
+    fi
+}
+}
+
+
 
 # This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
 swap_check() {
@@ -2218,7 +2287,7 @@ disk_check() {
 }
 
 # If this is the first time installing DigiByte Core, warn if the data drive does not have enough space
-disk_lowspace() {
+disk_ask_lowspace() {
 
 if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
 
@@ -2258,7 +2327,7 @@ update_dialogs() {
     strAdd="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
     
     opt2a="Reset"
-    opt2b="Resets all DigiNode configuration. DigiByte wallet will be untouched."
+    opt2b="Resets all settings and reinstalls DigiNode . DigiByte wallet will be untouched."
 
 
     # Display the information to the user
@@ -2977,20 +3046,8 @@ main() {
     # Check for Raspberry Pi hardware
     rpi_check
 
-    # Check if the current user is 'digibyte'
-    user_check
-
     # Create the diginode.settings file if this is the first run
     create_diginode_settings
-
-    # Check swap requirements
-    swap_check
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_check
-
-    # Check if the hostname if set to 'diginode'
-    hostname_check
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
@@ -3056,9 +3113,12 @@ main() {
         welcomeDialogs
 
         # Show microSD card warnings if this is a Raspberry Pi
-        rpi_microsd_warning
+        rpi_microsd_ask
 
     fi
+
+    # Check if the current user is 'digibyte'
+    user_check
 
     # Ask to change the user
     user_ask_change
@@ -3066,11 +3126,17 @@ main() {
     # Change the user
     user_do_change
 
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
     # Ask to change the hostname
     hostname_ask_change
 
     # Change the hostname
     hostname_do_change
+
+    # Check if a swap file is needed
+    swap_check
 
     # Ask to change the swap
     swap_ask_change
@@ -3078,14 +3144,17 @@ main() {
     # Do swap setup
     swap_do_change
 
+    # Create DigiByte.conf file
+    create_digibyte_conf
+
     # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_lowspace
+    disk_check
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_ask_lowspace
 
     # Install DigiByte Core
     install_digibyte_core
-
-    # Create DigiByte.conf file
-    create_digibyte_conf
 
     # Create DigiByte.conf file
     create_digibyted_service
