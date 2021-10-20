@@ -2836,7 +2836,7 @@ install_digibyte_core() {
     # Stop DigiByte Core if it is running, as we need to upgrade or reset it
     if [ $digibyted_status = "running" ] && [ $dgb_install = "upgrade" ]; then
        stop_service digibyted
-    if [ $digibyted_status = "running" ] && [ $dgb_install = "reset" ]; then
+    elif [ $digibyted_status = "running" ] && [ $dgb_install = "reset" ]; then
        stop_service digibyted
     fi
     
