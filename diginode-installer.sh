@@ -668,44 +668,63 @@ update_disk_usage() {
 # Create digibyte.config file if it does not already exist
 create_digibyte_conf() {
 
+    local str
+
     # If we are in reset mode, delete the diginode.settings file, if it already exists
     if [ $reset = true ] && [ -f "$DGB_CONF_FILE" ]; then
-        printf "%b Reset Mode is Enabled. Deleting existing digibyte.conf file.\\n" "${INFO}"
+        str="Reset Mode is Enabled. Deleting existing digibyte.conf file..."
+        printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-   # Max connections are set from the diginode.settings file
-    set_maxconnections=$DGB_MAX_CONNECTIONS
+    # Do some intial setup before creating the digibyte.conf file for the first time
+    if [ ! -f "$DGB_CONF_FILE" ]; then
 
-    # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
-    # Initial sync times are significantly faster with a larger dbcache.
-    local set_dbcache
-    if [ $RAMTOTAL_KB -ge "7340032" ]; then
-        set_dbcache=2048
-    else
-        set_dbcache=450
+        # Max connections are set from the diginode.settings file
+        set_maxconnections=$DGB_MAX_CONNECTIONS
+
+
+        # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
+        # Initial sync times are significantly faster with a larger dbcache.
+        local set_dbcache
+        if [ $RAMTOTAL_KB -ge "7340032" ]; then
+            str="System RAM exceeds 7GB. Setting dbcache to 2Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=2048
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            set_dbcache=450
+        fi
+
+        # generate a random rpc password, if the digibyte.conf file does not exist
+ 
+        local set_rpcpassword
+        str="Generating random RPC password..."
+        printf "%b %s" "${INFO}" "${str}"
+        set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
-
-    # generate a random rpc password
-    local set_rpcpassword
-    echo "$INFO Generating random RPC password"
-    set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 
     # create .digibyte settings folder if it does not already exist
     if [ ! -d $DGB_SETTINGS_LOCATION ]; then
-        printf "%b Creating ~/.digibyte folder" "${INFO}"
+        str="Creating ~/.digibyte folder..."
+        printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
+
         # Import variables from diginode.conf settings file
-        printf "%b Importing digibyte.conf file" "${INFO}"
+        str="Located digibyte.conf file. Importing..."
+        printf "%b %s" "${INFO}" "${str}"
         source $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b Verifying existing digibyte.conf settings..." "${INFO}"
+        printf "%b Checking digibyte.conf settings...\\n" "${INFO}"
         
-
         #Update daemon variable in settings if it exists and is blank, otherwise append it
         if grep -q "daemon=" $DGB_CONF_FILE; then
             if [ "$daemon" = "" ] || [ "$daemon" = "0" ]; then
@@ -815,7 +834,7 @@ create_digibyte_conf() {
             echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
             echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
         fi
-
+        printf "%b Completed digibyte.conf checks.\\n\\n" "${TICK}"
 
     else
         # Create a new digibyte.conf file
@@ -823,7 +842,7 @@ create_digibyte_conf() {
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_CONF_FILE
-# This config should be placed in following path:
+# This config should be placed in the following path:
 # ~/.digibyte/digibyte.conf
 
 # [core]
@@ -3131,9 +3150,6 @@ main() {
     # Ask to change the hostname
     hostname_ask_change
 
-    # Change the hostname
-    hostname_do_change
-
     # Check if a swap file is needed
     swap_check
 
@@ -3157,6 +3173,15 @@ main() {
 
     # Create DigiByte.conf file
     create_digibyted_service
+
+
+
+    exit
+
+    # This stuff requires a reboot after changing
+
+    # Change the hostname
+    hostname_do_change
 
 
 
