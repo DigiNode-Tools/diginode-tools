@@ -3010,9 +3010,8 @@ digiassets_ask_install() {
 # Provided we are not in unnatteneded mode, ask the user if they want to install DigiAssets
 if [ "$UNATTENDED_MODE" == false ] && [ "$DGA_ASK_INSTALL" = "YES" ]; then
 
-        if whiptail --backtitle "" --title "Install DigiAssets Node" --yesno "Would you like.\\n\\n\\n\\nWould you like to install a DigiAssets Node?\\n\\nRunning a DigiAssets Node helps to decentralize DigiAssets and supports the network. IT also gives you the ability to create your DigiAssets from your own node." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "Install DigiAssets Node?" --yesno "Running a DigiAssets Node helps to decentralize the DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets from your own node. You can also earn DigiByte for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAssets Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
-          echo
           DGA_DO_INSTALL=YES
         else
           DGA_DO_INSTALL=NO
@@ -3022,7 +3021,7 @@ fi
 
 }
 
-# Create digibyte.config file if it does not already exist
+# Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
 digiassets_create_settings()) {
 
     local str
