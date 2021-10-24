@@ -1848,10 +1848,7 @@ fi
 # Display a request to change the hostname, if needed
 hostname_ask_change() {
 
-if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
-
-    # Don't ask if we are running unattended
-    if [ ! "$UNATTENDED_MODE" == true ]; then
+if [ ! "$UNATTENDED_MODE" == true ]; then
 
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
@@ -1870,8 +1867,8 @@ if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
           printf "\\n"
         fi
     fi
-
 fi
+
 
 }
 
