@@ -92,7 +92,8 @@ DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
 # DigiByte.Help URLs
-DGBH_URL_INTRO==https://www.digibyte.help/diginode/       # Link to introduction what a DigiNode is. Shwon in welcome box.
+DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shwon in welcome box.
+DGBH_URL_CUSTOM=https://www.digibyte.help/diginode/       # Information on customizing your install by editing diginode.settings
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
@@ -2556,7 +2557,7 @@ diginode_tools_check() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure your own personal DigiByte Node and a DigiAssets Node on this device.\\n\\nTo learn more, visit $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure your own personal DigiByte Node and a DigiAssets Node on this device.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -2589,9 +2590,9 @@ if [ "$IS_DGN_SETTINGS_FILE_NEW" = "YES" ]; then
       echo
     else
       printf "\\n"
-      printf "%b %bPlease edit the diginode.settings file to customize your installation.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bTo customize your install, please edit the diginode.settings file.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       if [ "$TEXTEDITOR" != "" ]; then
-            printf "%b You can do this by entering:\\n" "${INDENT}"
+            printf "%b Do this by entering:\\n" "${INDENT}"
             printf "\\n"
             printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
