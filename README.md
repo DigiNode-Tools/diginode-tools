@@ -73,7 +73,7 @@ This will reset and reinstall your current installation. Do not run this with a 
 
 This use use the develop branch of the installer from Github, and install the develop version of DigiNode Tools. For testing purposes only. Expect this to break things. At times it likely won't even run.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --develop```
+```curl -sSL diginode-installer.digibyte.help | bash -s -- --devmode```
 
 - Skip OS Check
 
