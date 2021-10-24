@@ -1850,8 +1850,8 @@ hostname_ask_change() {
 
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
-
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
+
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
 
     This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
@@ -1868,7 +1868,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         fi
     fi
 fi
-
 
 }
 
