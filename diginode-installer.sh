@@ -11,7 +11,7 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: October 19 2021 2:33pm GMT
+# Updated: Updated: October 24 2021 10:12am GMT
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -25,7 +25,8 @@ trap error_beep exit 1
 
 # Function to beep on an exit 1
 error_beep() {
-    echo -en "\007"   
+    echo -en "\007"  
+    tput cnorm 
 }
 
 # Append common folders to the PATH to ensure that all basic commands are available.
@@ -91,11 +92,13 @@ DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
 DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
 
 # DigiByte.Help URLs
+DGBH_URL_INTRO==https://www.digibyte.help/diginode/       # Link to introduction what a DigiNode is. Shwon in welcome box.
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
 DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://www.digibyte.help/diginode/      # Advice on how to forward ports with your router
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -108,20 +111,22 @@ c=70
 
 ######## Undocumented Flags. Shhh ########
 # These are undocumented flags; some of which we can use when repairing an installation
-# The runUnattended flag is one example of this
-reset=false
-runUnattended=false
+# The UNATTENDED_MODE flag is one example of this
+RESET_MODE=false
+UNATTENDED_MODE=false
 DGN_TOOLS_BRANCH="release"
-uninstall=false
+UNINSTALL=false
+DIGINODE_SKIP_OS_CHECK=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
     case "$var" in
-        "--reset" ) reset=true;;
-        "--unattended" ) runUnattended=true;;
+        "--reset" ) RESET_MODE=true;;
+        "--unattended" ) UNATTENDED_MODE=true;;
         "--devmode" ) DGN_TOOLS_BRANCH="develop";; 
         "--mainmode" ) DGN_TOOLS_BRANCH="main";; 
-        "--uninstall" ) uninstall=true;;
+        "--uninstall" ) UNINSTALL=true;;
+        "--skiposcheck" ) DIGINODE_SKIP_OS_CHECK=true;;
     esac
 done
 
@@ -172,7 +177,7 @@ txtbld=$(tput bold) # Set bold mode
 #####################################################################################################
 
 # Inform user if Verbose Mode is enabled
-verbose_mode() {
+is_verbose_mode() {
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
@@ -180,8 +185,8 @@ verbose_mode() {
 }
 
 # Inform user if Verbose Mode is enabled
-unnattended_mode() {
-    if [ "$runUnattended" = true ]; then
+is_unnattended_mode() {
+    if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         if test -f "$DGN_SETTINGS_FILE"; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
@@ -198,7 +203,7 @@ create_diginode_settings() {
 local str
 
 # If we are in reset mode, delete the diginode.settings file, if it already exists
-  if [ $reset = true ] && [ -f "$DGN_SETTINGS_FILE" ]; then
+  if [ $RESET_MODE = true ] && [ -f "$DGN_SETTINGS_FILE" ]; then
     printf "%b Reset Mode is Enabled. Deleting existing diginode.settings file.\\n" "${INFO}"
     rm -f $DGN_SETTINGS_FILE
   fi
@@ -271,9 +276,12 @@ DGB_MAX_CONNECTIONS=300
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=43200
 
-# Install the develop branch of DigiNode Tools (Specify either 'yes' or 'no')
+# Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If 'no', it will install the latest release version
-DGN_TOOLS_DEV_BRANCH="yes"
+DGN_TOOLS_DEV_BRANCH=YES
+
+# This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
+INSTALL_SYS_UPGRADES=NO
 
 
 #####################################
@@ -408,6 +416,9 @@ DGB_DATA_DISKUSED_PERC=
 IP4_INTERNAL=
 IP4_EXTERNAL=
 
+# This records when the wallet was last backed up
+WALLET_BACKUP_DATE=
+
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
 SYSTEM_SECURITY_UPDATES=
@@ -430,7 +441,7 @@ EOF
     fi
 
     # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
-    if [ "$runUnattended" = true ]; then
+    if [ "$UNATTENDED_MODE" = true ]; then
         printf "\\n"
         printf "%b %bIMPORTANT: Customize your Unattended Install before running this again!!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Since this is the first time running the DigiNode Installer, a settings file used for\\n" "${INDENT}"
@@ -666,12 +677,12 @@ update_disk_usage() {
 }
 
 # Create digibyte.config file if it does not already exist
-create_digibyte_conf() {
+digibyte_create_conf() {
 
     local str
 
     # If we are in reset mode, delete the diginode.settings file, if it already exists
-    if [ $reset = true ] && [ -f "$DGB_CONF_FILE" ]; then
+    if [ $RESET_MODE = true ] && [ -f "$DGB_CONF_FILE" ]; then
         str="Reset Mode is Enabled. Deleting existing digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_CONF_FILE
@@ -1081,8 +1092,8 @@ sys_check() {
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Installer requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-        printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
-        printf "%b know the OS type: $OSTYPE\\n" "${INDENT}"
+        printf "%b should be supported please contact @digibytehelp on Twitter including\\n" "${INDENT}"
+        printf "%b the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -1128,7 +1139,7 @@ sys_check() {
             printf "%b %bERROR: 32-bit OS detected - 64-bit required%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Installer requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
+            printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             # If it's linux running on ARM and...
@@ -1150,7 +1161,7 @@ sys_check() {
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact @saltedlolly on Twitter letting me\\n" "${INDENT}"
+            printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             exit 1
@@ -1391,7 +1402,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Please contact @saltedlolly on Twitter including the following information\\n" "${INDENT}"
+        printf "%b Please contact @digibytehelp on Twitter including the following information\\n" "${INDENT}"
         printf "%b so that support for it can be added:\\n" "${INDENT}"
         printf "\\n"
         printf "%b Model: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1734,7 +1745,7 @@ os_check() {
                 printf "%b  - Other internet connectivity issues\\n" "${INDENT}"
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
-                printf "%b If you are seeing this message and you believe your OS should be supported, please contact @saltedlolly on Twitter.\\n" "${INDENT}" 
+                printf "%b If you are seeing this message and you believe your OS should be supported, please contact @digibytehelp on Twitter.\\n" "${INDENT}" 
             fi
             printf "\\n"
             printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1745,7 +1756,7 @@ os_check() {
             printf "%b   %bcurl -sSL $DGN_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
-            printf "%b %bIf that is the case, feel free to ask @saltedlolly on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
 
@@ -1817,7 +1828,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
-    printf "%b If you have, please contact @saltedlolly on Twitter and let me know so I can work on\\n" "${INDENT}"
+    printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
     exit 1
@@ -1834,23 +1845,32 @@ fi
 
 }
 
-hostname_ask_change() {
 # Display a request to change the hostname, if needed
-if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
-    if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
+hostname_ask_change() {
 
-This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
+if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] 
 
-Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+    # Don't ask if we are running unattended
+    if [ ! "$UNATTENDED_MODE" == true ]; then
 
-      HOSTNAME_DO_CHANGE="YES"
 
-      printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
-      printf "\\n"
-    else
-      printf "%b Interactive Install: No - Hostname will not be changed.\\n" "${INFO}"
-      printf "\\n"
+    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
+
+    This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
+
+    Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+          HOSTNAME_DO_CHANGE="YES"
+
+          printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
+          printf "\\n"
+        else
+          printf "%b Interactive Install: No - Hostname will not be changed.\\n" "${INFO}"
+          printf "\\n"
+        fi
     fi
+
 fi
 
 }
@@ -1859,7 +1879,7 @@ fi
 hostname_do_change() {
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = "yes" ]] && [[ "$runUnattended" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
+if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -1888,7 +1908,7 @@ fi
 user_check() {
 
     # Only do this check if DigiByte Core is not currently installed
-    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
             printf "%b User Account Check: %bPASSED%b   Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1904,11 +1924,11 @@ user_check() {
                 printf "%b will isolate your DigiByte wallet in its own user account.  For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
-                if [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
+                if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     USER_DO_SWITCH="YES"
                     printf "%b Unattended Install: 'digibyte' user will be used.\\n" "${INFO}"
                     printf "\\n"
-                elif [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
+                elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_SWITCH="NO"
                     printf "%b Unattended Install: Skipping using 'digibyte' user - user '$USER_ACCOUNT' will be used\\n" "${INFO}"
                     printf "\\n"
@@ -1926,11 +1946,11 @@ user_check() {
                 printf "%b its own user account. For more information visit:\\n"  "${INDENT}"
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
-                 if [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
+                 if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     USER_DO_CREATE="YES"
                     printf "%b Unattended Install: Enforcing creating 'digibyte' user from diginode.settings file\\n" "${INFO}"
                     printf "\\n"
-                elif [[ "$runUnattended" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
+                elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_CREATE="NO"
                     printf "\\n"
                     printf "%b Unattended Install: Skipping creating 'digibyte' user - using user '$USER_ACCOUNT'\\n" "${INFO}"
@@ -1954,7 +1974,7 @@ user_ask_change() {
 if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
 
     # Only ask to change the user if DigiByte Core is not yet installed
-    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
       if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
@@ -1972,7 +1992,7 @@ fi
 if [[ "$USER_ASK_CREATE" = "YES" ]]; then
 
     # Only ask to create the user if DigiByte Core is not yet installed
-    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
       if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
@@ -2185,7 +2205,9 @@ swap_check() {
 swap_ask_change() {
 # Display a request to change the hostname, if needed
 if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
+
     local str_swap_needed
+
     if [ "$SWAP_NEEDED" = "YES" ]; then
         str_swap_needed="\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
@@ -2222,13 +2244,13 @@ fi
 swap_do_change() {
 
     # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
+    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
         SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
         SWAP_DO_CHANGE="YES"
         printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
-    if [[ $NewInstall = "yes" ]] && [[ "$runUnattended" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
+    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
         printf "%b %bUnattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
         SWAP_DO_CHANGE="YES"
@@ -2267,7 +2289,7 @@ swap_do_change() {
 #check there is sufficient space on the chosen drive to download the blockchain
 disk_check() {
     # Only run the check if DigiByte Core is not yet installed
-    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2280,10 +2302,10 @@ disk_check() {
             printf "%b automatically when it gets too large.\\n" "${INDENT}"
             printf "\\n"
             # Only display this line when using digimon.sh
-            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$runUnattended" = true ]]; then
+            if [[ "$UI_DISKSPACE_OVERRIDE" = "YES" && "$UNATTENDED_MODE" = true ]]; then
                 printf "%b Unattended Install: Disk Space Check Override ENABLED. Continuing...\\n" "${INFO}"
                 printf "\\n"
-            elif [[ "$runUnattended" = true ]]; then
+            elif [[ "$UNATTENDED_MODE" = true ]]; then
                 if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]; then
                   printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
                   printf "\\n"
@@ -2307,7 +2329,7 @@ disk_check() {
 # If this is the first time installing DigiByte Core, warn if the data drive does not have enough space
 disk_ask_lowspace() {
 
-if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
     # If low disk space is detected on in the default install location, ask the user if they want to continue
     if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
@@ -2338,22 +2360,23 @@ fi
 }
 
 
-update_dialogs() {
+upgrade_menu() {
 
-    opt1a="Update"
-    opt1b="This will retain existing settings."
-    strAdd="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
+    opt1a="Upgrade"
+    opt1b="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
     
     opt2a="Reset"
-    opt2b="Resets all settings and reinstalls DigiNode . DigiByte wallet will be untouched."
+    opt2b="Resets all settings and reinstalls DigiNode software. DigiByte wallet will be untouched."
+
+    opt2a="Uninstall"
+    opt2b="Removes all software. DigiByte wallet will be untouched."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing DigiNode install.\\n\\nPlease choose from the following options: \\n($strAdd)
-
-        Note: Your existing DigiByte Core wallet.dat file will not be touched." "${r}" "${c}" 2 \
+    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing DigiNode install.\\n\\nPlease choose from the following options: \\n" "${r}" "${c}" 2 \
     "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
@@ -2366,7 +2389,12 @@ update_dialogs() {
         # Reset,
         ${opt2a})
             printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
-            UnattendedReset=true
+            RESET_MODE=true
+            ;;
+        # Uninstall,
+        ${opt3a})
+            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
+            uninstall_everything
             ;;
     esac
 }
@@ -2376,7 +2404,7 @@ update_dialogs() {
 # is the develop version or an older release version, it will be upgraded to the latest release version.
 # If the --dgn_dev_branch flag is used at launch it will always replace the local version
 # with the latest develop branch version from Github.
-install_diginode_tools() {
+diginode_tools_check() {
 
     local dgn_tools_install_now
     local dgn_github_rel_ver
@@ -2532,9 +2560,7 @@ install_diginode_tools() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "DigiNode Installer" "\\n\\nDigiNode Installer will install and configure a DigiByte and DigiAsset Node on this device!
-
-    To learn more, visit https://www.digibyte.help/diginode" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure your own personal DigiByte Node and a DigiAssets Node on this device.\\n\\nTo learn more, visit $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -2556,9 +2582,11 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
 
+
 # If this is the first time running the installer, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
-if [ $IS_DGN_SETTINGS_FILE_NEW = "YES" ]; then
+
+if [ "$IS_DGN_SETTINGS_FILE_NEW" = "YES" ]; then
 
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored, for example.\\n\\nIn most cases, there should be no need to change anything, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
@@ -2593,20 +2621,22 @@ fi
 }
 
 # Create digibyted.service file if it does not already exist
-create_digibyted_service() {
+digibyte_create_service() {
 
     # If digibyte.service settings file already exists, delete it, since we will update it
     if test -f "$DGB_DAEMON_SERVICE_FILE"; then
 
-        str="Deleting DigiByte daemon service file..."
+        str="Deleting digibyted.service file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_DAEMON_SERVICE_FILE
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     
     # Create a new DigiByte service file
-    echo "$INFO Creating digibyted.service file"
-    cat <<EOF > $DGB_DAEMON_SERVICE_FILE
+    str="Creating digibyted.service file..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $DGB_DAEMON_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_DAEMON_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
 
@@ -2629,11 +2659,12 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 }
 
 donation_qrcode() {       
-    echo "If you find DigiNode $1 useful,"
+    echo "   If you find DigiNode Tools useful,"
     echo " donations in DGB are much appreciated:"             
     echo "     ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "     █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -2719,7 +2750,7 @@ check_service_active() {
     # If systemctl exists,
     if is_command systemctl ; then
         # use that to check the status of the service
-        systemctl is-enabled "${1}" &> /dev/null
+        systemctl is-active "${1}" &> /dev/null
     else
         # Otherwise, fall back to service command
         service "${1}" status &> /dev/null
@@ -2730,133 +2761,262 @@ check_service_active() {
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
 
 
-# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
-# Note: It does not (re)start the digibyted.service automatically when done
-install_digibyte_core() {
 
-    # Create local variable to store if we need to do a new install, an upgrade,
-    local dgb_install
+# This function will check if DigiByte Core is installed, and if it is, check if there is an update available
 
+digibyte_check() {
+
+
+ 
     # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
-    if [ -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
-        digibyted_status="installed"
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        DGB_STATUS="installed"
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
-        digibyted_status="not_detected"
+        DGB_STATUS="not_detected"
     fi
 
-    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyted binary
-    if [ $digibyted_status = "not_detected" ] && [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ]; then
-        digibyted_status="installed"
-        printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
+    if [ "$DGB_STATUS" = "not_detected" ] && [ -f "$DGB_CLI" ]; then
+        DGB_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
-        digibyted_status="not_detected"
-        printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+        DGB_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     fi
 
 
     # Next let's check if DigiByte daemon is running
-    if [ $digibyted_status = "installed" ]; then
-      str="Is DigiByte Core already running?..."
+    if [ "$DGB_STATUS" = "installed" ]; then
+      str="Is DigiByte Core running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "digibyted"; then
-          digibyted_status="running"
-          printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
+          DGB_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
       else
-          digibyted_status="not_running"
-          printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB_STATUS="notrunning"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
       fi
     fi
 
     # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
-    if [ $digibyted_status = "running" ]; then
-        str="Is DigiByte Core in the process of starting up?..."
+    if [ "$DGB_STATUS" = "running" ]; then
+        str="Is DigiByte Core finished starting up?..."
         printf "%b %s" "${INFO}" "${str}"
-        blockcount_local=$($DGB_CLI getblockcount)
+        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
 
-        if [ "$blockcount_local" != ^[0-9]+$ ]; then
-          printf "%b%b %s YES!\\n\\n" "${OVER}" "${TICK}" "${str}"
-          digibyted_status = "startingup"
+        # Check if the value returned is an integer (we we know digibyted is responding)
+ #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
+        if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB_STATUS="startingup"
         else
-          printf "%b%b %s NO!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
 
     # If DigiByte Core is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
-    if [ $digibyted_status = "startingup" ]; then
-        local every15secs=0
-        local countdown
+    if [ "$DGB_STATUS" = "startingup" ]; then
+        every15secs=0
+        progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         str="DigiByte Core is in the process of starting up. This can take up to 10 minutes. Please wait..."
         printf "%b %s" "${INFO}" "${str}"
-        while [ $digibyted_status = "running" ]; do
-            if [ "$every15secs" -gt 15 ]; then
-              blockcount_local=$($DGB_CLI getblockcount)
-              if [ "$blockcount_local" = ^[0-9]+$ ]; then
-                digibyted_status = "running"
-                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-              else
-                countdown=$((16 - every15secs))
-                printf "%b%b %s $countdown\\n\\n" "${OVER}" "${INFO}" "${str}"
+        tput civis
+        while [ $DGB_STATUS = "startingup" ]; do
+
+            # Show Spinner while waiting
+            if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+            fi 
+
+            if [ "$every15secs" -ge 30 ]; then
+              BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount  2>/dev/null)
+              if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+                printf "%b%b %s $progress Querying..." "${OVER}" "${INFO}" "${str}"
                 every15secs=0
-                sleep 1
+                sleep 0.5
+              else
+                DGB_STATUS="running"
+                printf "%b%b %s Done!\\n" "${OVER}" "${INFO}" "${str}"
+                tput cnorm
               fi
             else
                 every15secs=$((every15secs + 1))
-                countdown=$((16 - every15secs))
-                printf "%b%b %s $countdown\\n\\n" "${OVER}" "${INFO}" "${str}"
-                sleep 1
+                printf "%b%b %s $progress" "${OVER}" "${INFO}" "${str}"
+                sleep 0.5
             fi
         done
 
     fi
 
-    # Get the version number of the current DigiByte Core and write it to to the settings file
-    if [ $digibyted_status = "running" ]; then
-        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b Current Version: DigiByte Core v${DGB_VER_LOCAL}\\n" "${INFO}" 
+        # Get the version number of the current DigiByte Core and write it to to the settings file
+    if [ "$DGB_STATUS" = "running" ]; then
+        str="Checking Current Version... "
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+      # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
+    if [ "$DGB_STATUS" = "notrunning" ]; then
+      # Double check by looking for the folder name in the home folder
+      str="Looking for current version number in diginode.settings file..."
+      printf "%b %s" "${INFO}" "${str}"
+
+        # If the local version number is not stored
+        if [ "$DGB_VER_LOCAL" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to find version number of current DigiByte Core install.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+            printf "\\n"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            return     
+        else
+            printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
 
     # Check Github repo to find the version number of the latest DigiByte Core release
-    DGB_VER_GITHUB=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
-    printf "%b DigiByte Core Latest Release is v${DGB_VER_GITHUB}\\n" "${INFO}"
+    str="Checking GitHub repository for the latest release..."
+    printf "%b %s" "${INFO}" "${str}"
+    DGB_VER_GITHUB=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+
+    # If can't get Github version number
+    if [ "$DGB_VER_GITHUB" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return     
+    else
+        printf "%b%b %s Found: v${DGB_VER_GITHUB}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+    fi
 
 
     # If a local version already exists.... (i.e. we have a local version number)
-    if [ $DGB_VER_LOCAL != "" ]; then
+    if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
-          dgb_install=="current"
-          printf "%b DigiByte Core is already running the latest version\\n" "${INFO}"
-          if [ $reset = true ]; then
-            printf "%b Reset Mode is Enabled. The latest version will be reinstalled.\\n" "${INFO}"
-            dgb_install="reset"
+          printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_GITHUB} will be re-installed.\\n" "${INFO}"
+            DGB_INSTALL_TYPE="reset"
+            DGB_DO_INSTALL=YES
           else
-            UPDATE_AVAILABLE_DGB="no"
+            printf "%b DigiByte Core upgrade is not required. Skipping...\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
             return
           fi
       else
-          printf "%b DigiByte Core will be upgraded to the latest version\\n" "${INFO}"
-          dgb_install="upgrade"
+          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}\\n" "${INFO}"
+          DGB_INSTALL_TYPE="upgrade"
+          DGB_ASK_UPGRADE=YES
       fi
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $digibyted_status = "not_detected" ]; then
+    if [ $DGB_STATUS = "not_detected" ]; then
       printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
-      dgb_install=="new"
+      DGB_INSTALL_TYPE="new"
+      DGB_DO_INSTALL=YES
     fi
 
+}
+
+
+# This function will ask the user if they want to install the system upgrades that have been found
+upgrades_ask_install() {
+
+# If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, ask the user if they wan to install them
+if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
+
+    # Don't ask if we are running unattended
+    if [ ! "$UNATTENDED_MODE" == true ]; then
+
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode.\\n\\n\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        #Nothing to do, continue
+          echo
+          if [ $DGB_ASK_UPGRADE = "YES" ]; then
+            DGB_DO_INSTALL=YES
+          fi
+          if [ $DGA_ASK_UPGRADE = "YES" ]; then
+            DGA_DO_INSTALL=YES
+          fi
+          if [ $DGN_ASK_UPGRADE = "YES" ]; then
+            DGN_DO_INSTALL=YES
+          fi
+        else
+          printf "%b Installer exited at Upgrade Request message.\\n" "${INFO}"
+          printf "\\n"
+          exit
+        fi
+
+    fi
+
+fi
+
+}
+
+# This function will ask the user if they want to install DigiAssets Node
+digiassets_ask_install() {
+
+# Provided we are not in unnatteneded mode, ask the user if they want to install DigiAssets
+if [ "$UNATTENDED_MODE" == false ] && [ "$DGA_ASK_INSTALL" = "YES" ]; then
+
+        if whiptail --backtitle "" --title "Install DigiAssets Node" --yesno "Would you like.\\n\\n\\n\\nWould you like to install a DigiAssets Node?\\n\\nRunning a DigiAssets Node helps to decentralize DigiAssets and supports the network. IT also gives you the ability to create your DigiAssets from your own node." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        #Nothing to do, continue
+          echo
+          DGA_DO_INSTALL=YES
+        else
+          DGA_DO_INSTALL=NO
+        fi
+
+    fi
+
+fi
+
+}
+
+
+# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
+# Note: It does not (re)start the digibyted.service automatically when done
+digibyte_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+    DGB_DO_INSTALL=YES
+fi
+
+
+if [ "$DGB_DO_INSTALL" = "YES" ]; then
+
     # Stop DigiByte Core if it is running, as we need to upgrade or reset it
-    if [ $digibyted_status = "running" ] && [ $dgb_install = "upgrade" ]; then
+    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
-    elif [ $digibyted_status = "running" ] && [ $dgb_install = "reset" ]; then
+       DGB_STATUS = "stopped"
+    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
        stop_service digibyted
+       DGB_STATUS = "stopped"
     fi
     
    # Delete any old DigiByte Core tar files
@@ -2903,7 +3063,7 @@ install_digibyte_core() {
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
-        str="Deleting old version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -2918,17 +3078,23 @@ install_digibyte_core() {
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-    if [ $dgb_install = "install" ]; then
+    if [ $DGB_INSTALL_TYPE = "install" ]; then
         sed -i -e "/^DGB_INSTALL_DATE==/s|.*|DGB_INSTALL_DATE==$(date)|" $DGN_SETTINGS_FILE
-    elif [ $dgb_install = "upgrade" ]; then
+    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE==/s|.*|DGB_UPGRADE_DATE==$(date)|" $DGN_SETTINGS_FILE
     fi
-    UPDATE_AVAILABLE_DGB="no"
+
+    # Reset DGB Install and Upgrade Variables
+    DGB_INSTALL_TYPE=""
+    DGB_UPDATE_AVAILABLE=NO
+    DGB_POSTUPDATE_CLEANUP=YES
 
     # Create hidden file to denote this version was installed with the official installer
-    if [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
-        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_FOLDER/.officialdiginode
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
     fi
+
+fi
 
 }
 
@@ -2940,7 +3106,7 @@ uninstall_everything() {
 
 }
 
-#Simple function to find an installed text editor
+# Simple function to find an installed text editor
 set_text_editor() {
 
 # Set default system text editor
@@ -3028,10 +3194,10 @@ main() {
 
 
     # Display a message if Verbose Mode is enabled
-    verbose_mode
+    is_verbose_mode
 
     # Display a message if Unnattended Mode is enabled
-    unnattended_mode
+    is_unnattended_mode
 
     # Perform basic system check and lookup hardware architecture
     sys_check
@@ -3072,17 +3238,17 @@ main() {
     install_dependent_packages "${INSTALLER_DEPS[@]}"
 
     # Check if there is an existing install of DigiByte Core, installed with this script
-    if [[ -f "${DGB_INSTALL_FOLDER}/.officialdiginode" ]]; then
+    if [[ -f "${DGB_INSTALL_LOCATION}/.officialdiginode" ]]; then
         NewInstall=false
         printf "%b Existing DigiNode install detected...\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
-        if [[ "$uninstall" == "yes" ]]; then
+        if [[ "$UNINSTALL" == "yes" ]]; then
             uninstall_everything
         fi
 
         # if it's running unattended,
-        if [[ "${runUnattended}" == true ]]; then
+        if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Upgrade: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
             # Perform unattended upgrade
             UnattendedUpgrade=true
@@ -3092,12 +3258,12 @@ main() {
             # If running attended, show the available options (upgrade/reset/uninstall)
             printf "%b Interactive Upgrade: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
             UnattendedUpgrade=false
-            update_dialogs
+            upgrade_menu
         fi
         printf "\\n"
     else
         NewInstall=true
-        if [[ "${runUnattended}" == true ]]; then
+        if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Install: Using diginode.settings file - no whiptail dialogs will be displayed\\n" "${INFO}"
             # Perform unattended upgrade
             UnattendedInstall=true
@@ -3113,7 +3279,7 @@ main() {
 
 
     # If there is an existing install of DigiByte Core, but it was not installed by this script, then exit
-    if [ -f "$DGB_INSTALL_FOLDER/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         printf "%b %bUnable to upgrade DigiByte Coree%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
         printf "%b using this Installer and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
@@ -3159,20 +3325,61 @@ main() {
     # Do swap setup
     swap_do_change
 
-    # Create DigiByte.conf file
-    create_digibyte_conf
-
     # Check data drive disk space to ensure there is enough space to download the entire blockchain
     disk_check
 
     # Check data drive disk space to ensure there is enough space to download the entire blockchain
     disk_ask_lowspace
 
-    # Install DigiByte Core
-    install_digibyte_core
+
+
+    ### CHECK FOR UPDATES ###
+
+    # Check if DigiByte Core is installed, and if there is an upgrade available
+    digibyte_check
+
+    # Check if IPFS installed, and if there is an upgrade available
+    ipfs_check
+
+    # Check if DigiAssets Nods is installed, and if there is an upgrade available
+    digiassets_check
+
+    # Check if DigiAssets Nods is installed, and if there is an upgrade available
+    diginode_tools_check
+
+     # Ask to install any upgrades, if in interactive mode
+    upgrades_ask
+
+
+
+    ### INSTALL DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
-    create_digibyted_service
+    digibyte_create_conf
+
+    # Install DigiByte Core
+    digibyte_install
+
+    # Create digibyted.service
+    digibyte_create_service
+
+
+  
+
+    ### INSTALL DIGINODE TOOLS ###
+
+    # Install DigiNode Tools
+    diginode_tools_install
+
+
+
+    ### CLEAN UP ###
+
+    # Change the hostname
+    hostname_do_change
+
+    # Display donation QR Code
+    donation_qrcode
 
 
 
@@ -3180,8 +3387,7 @@ main() {
 
     # This stuff requires a reboot after changing
 
-    # Change the hostname
-    hostname_do_change
+
 
 
 

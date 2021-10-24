@@ -174,6 +174,7 @@ import_installer_functions() {
 # A simple function that clears the sreen and displays the status monitor title in a box
 digimon_title_box() {
     clear -x
+    tput civis
     echo ""
     echo " ╔════════════════════════════════════════════════════════╗"
     echo " ║                                                        ║"
@@ -293,7 +294,7 @@ is_dgbnode_installed() {
         printf "  %b %bERROR: .digibyted data folder not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b The DigiByte Core data folder contains your wallet and digibyte.conf\\n" "${INDENT}"
         printf "  %b in addition to the blockchain data itself. The folder was not found in\\n" "${INDENT}"
-        printf "  %b the expected location here: $DGB_DATA_FOLDER\\n" "${INDENT}"
+        printf "  %b the expected location here: $DGB_DATA_LOCATION\\n" "${INDENT}"
         printf "\\n"
         printf "\\n"
         exit 1
@@ -326,7 +327,7 @@ is_dgbnode_installed() {
        if [ "$VERBOSE_MODE" = "YES" ]; then
           printf "%b DigiByte daemon is running as a service\\n" "${TICK}"
        fi
-       digibyted_status="running"
+       DGB_STATUS="running"
     else
       # Check if digibyted is running (but not as a service).
       if [ "" = "$(ps aux | grep digibyted)" ]; then
@@ -343,14 +344,14 @@ is_dgbnode_installed() {
               printf "\\n"
             fi
           fi
-          digibyted_status="running"
+          DGB_STATUS="running"
       else
         # Finally, check if digibyte-qt
         if [ "" = "$(ps aux | grep digibyte-qt)" ]; then
             if [ "$VERBOSE_MODE" = "YES" ]; then
               printf "%b digibyte-qt is running\\n" "${TICK}"
             fi
-            digibyted_status="running"
+            DGB_STATUS="running"
         # Exit if digibyted is not running
         else
           printf "\\n"
@@ -367,7 +368,7 @@ is_dgbnode_installed() {
 
     # Display message if the DigiByte Node is running okay
 
-    if [ "$find_dgb_folder" = "YES" ] && [ "$find_dgb_binaries" = "YES" ] && [ "$find_dgb_settings_folder" = "YES" ] && [ "$find_dgb_conf_file" = "YES" ] && [ "$digibyted_status" = "running" ]; then
+    if [ "$find_dgb_folder" = "YES" ] && [ "$find_dgb_binaries" = "YES" ] && [ "$find_dgb_settings_folder" = "YES" ] && [ "$find_dgb_conf_file" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
         printf "  %b %bDigiByte Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
@@ -438,7 +439,7 @@ update_dga_config() {
 # (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
 check_official() {
 
-    if [ -f "$DGB_INSTALL_FOLDER/.officialdiginode" ] && [ -f "$DGA_INSTALL_FOLDER/.officialdiginode" ]; then
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
         printf "%b Official DigiNode detected\\n" "${TICK}"
         officialdgbinstall="yes"
     else
@@ -688,7 +689,7 @@ install_required_pkgs() {
 # Quit message
 quit_message() {
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$UPDATE_AVAILABLE_DGB" = "yes" ] || [ "$UPDATE_AVAILABLE_DGA" = "yes" ] || [ "$UPDATE_AVAILABLE_DGN" = "yes" ] || [ "$UPDATE_AVAILABLE_IPFS" = "yes" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "YES" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
 
       # Install updates now
       clear -x
@@ -700,17 +701,17 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        if [ "$UPDATE_AVAILABLE_DGB" = "yes" ]; then
-          install_digibyte_core
+        if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
+          digibyte_do_install
         fi
-        if [ "$UPDATE_AVAILABLE_IPFS" = "yes" ]; then
-          install_ipfs
+        if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
+          ipfs_do_install
         fi
-        if [ "$UPDATE_AVAILABLE_DGA" = "yes" ]; then
-          install_digiassets_node
+        if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
+          dga_do_install
         fi
-        if [ "$UPDATE_AVAILABLE_DGN" = "yes" ]; then
-          install_diginode_tools
+        if [ "$DGNTOOLS_UPDATE_AVAILABLE" = "YES" ]; then
+          dgntools_do_install
         fi
       fi
 
@@ -735,6 +736,9 @@ quit_message() {
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
   fi
+
+  # Display cursor again
+  tput cnorm
 }
 
 startup_waitpause() {
@@ -1035,21 +1039,21 @@ tempf=$(((9/5) * $tempc + 32))
 # ------------------------------------------------------------------------------
 
 # Is digibyted running?
-systemctl is-active --quiet digibyted && digibyted_status="running" || digibyted_status="stopped"
+systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="stopped"
 
 # Is digibyted in the process of starting up, and not ready to respond to requests?
-if [ $digibyted_status = "running" ]; then
+if [ $DGB_STATUS = "running" ]; then
     blockcount_local=$($DGB_CLI getblockcount)
 
     if [ "$blockcount_local" != ^[0-9]+$ ]; then
-      digibyted_status = "startingup"
+      DGB_STATUS="startingup"
     fi
 fi
 
 
 # THE REST OF THIS ONLY RUNS NOTE IF DIGIBYED IS RUNNING
 
-if [ $digibyted_status = "running" ]; then
+if [ $DGB_STATUS = "running" ]; then
 
   # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
   if [ $blocksync_progress != "synced" ]; then
@@ -1092,19 +1096,19 @@ timedif15sec=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$saved
 if [ $timedif15sec -gt 15 ]; then 
 
     # Check if digibyted is successfully responding to requests up yet after starting up
-    if [ $digibyted_status = "startingup" ]; then
+    if [ $DGB_STATUS = "startingup" ]; then
         if [[ "$blockcount_local" = ^[0-9]+$ ]]
-          digibyted_status = "running"
+          DGB_STATUS="running"
         fi
     fi
 
     # Update local block count every 15 seconds (approx once per block)
-    if [ $digibyted_status = "running" ]; then
+    if [ $DGB_STATUS = "running" ]; then
           blockcount_local=$($DGB_CLI getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
-    if [ $digibyted_status = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "15secs" ]; then
+    if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "15secs" ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
@@ -1114,9 +1118,9 @@ if [ $timedif15sec -gt 15 ]; then
         if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
-          UPDATE_AVAILABLE_DGB="no"
+          DGB_UPDATE_AVAILABLE=NO
         else
-          UPDATE_AVAILABLE_DGB="yes"
+          DGB_UPDATE_AVAILABLE=YES
         fi
 
     fi
@@ -1136,7 +1140,7 @@ fi
 timedif1min=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedtime1min" "+%s") )))
 
 # Update DigiByte Core sync progress every minute, if it is running
-if [ $digibyted_status = "running" ]; then
+if [ $DGB_STATUS = "running" ]; then
 
     # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
       blocksync_value_saved=$(blocksync_value)
@@ -1232,7 +1236,7 @@ if [ $timedif24hrs -gt 86400 ]; then
     sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
-    if [ $digibyted_status = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
+    if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
@@ -1242,9 +1246,9 @@ if [ $timedif24hrs -gt 86400 ]; then
         if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_GITHUB) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
-          UPDATE_AVAILABLE_DGB="yes"
+          DGB_UPDATE_AVAILABLE=YES
         else
-          UPDATE_AVAILABLE_DGB="no"
+          DGB_UPDATE_AVAILABLE=NO
         fi
     fi
 
@@ -1283,7 +1287,7 @@ echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${txtrst}╚══
 echo -e "              /____/                                 ${txtrst}"                         
 echo '
  ╔═══════════════╦════════════════════════════════════════════════════╗'
-if [ $digibyted_status = 'running' ]; then # Only display if digibyted is running
+if [ $DGB_STATUS = 'running' ]; then # Only display if digibyted is running
   printf " ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $connectionsmsg" "]  ║"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
   printf " ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$blocklocal Blocks" "[ Synced: $blocksyncpercent %" "]  ║"
@@ -1291,11 +1295,11 @@ if [ $digibyted_status = 'running' ]; then # Only display if digibyted is runnin
   printf " ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi # end check to see of digibyted is running
-if [ $digibyted_status = 'stopped' ]; then # Only display if digibyted is NOT running
+if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
   printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon service is stopped. ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
-if [ $digibyted_status = 'startingup' ]; then # Only display if digibyted is NOT running
+if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT running
   printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon is starting... ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
@@ -1309,7 +1313,7 @@ fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $UPDATE_AVAILABLE_DGB = "yes" ];then
+if [ $DGB_UPDATE_AVAILABLE = "YES" ];then
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_GITHUB${txtrst}" "]  ║"
 else
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
@@ -1321,15 +1325,15 @@ printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGN
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Metadata Server v$DGA_VER_LOCAL"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
-if [ $digibyted_status = 'stopped' ]; then # Only display if digibyted is NOT running
+if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
 echo "WARNING: Your DigiByte daemon service is not currently running."
 echo "         To start it enter: sudo systemctl start digibyted"
 fi
-if [ $digibyted_status = 'startingup' ]; then # Only display if digibyted is NOT running
+if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT running
 echo "IMPORTANT: DigiByte Core is currently in the process of starting up."
 echo "           This can take up to 10 minutes. Please wait..."
 fi
-if [ $digibyted_status = 'running' ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
+if [ $DGB_STATUS = 'running' ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 echo ""
 echo "  IMPORTANT: You need to forward port 12024 on your router so that"
 echo "  your DigiByte node can be discovered by other nodes on the internet."
