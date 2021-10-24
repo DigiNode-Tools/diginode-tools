@@ -3022,7 +3022,7 @@ fi
 }
 
 # Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
-digiassets_create_settings()) {
+digiassets_create_settings() {
 
     local str
 
