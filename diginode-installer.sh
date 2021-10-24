@@ -1860,6 +1860,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
+          INSTALL_AVAHI="YES"
 
           printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
           printf "\\n"
@@ -1880,23 +1881,42 @@ if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_SE
     HOSTNAME_DO_CHANGE="YES"
 fi
 
-# Only change the hostname if the user has agreed to do so (either via prompt or via settings)
+# Only change the hostname if the user has agreed to do so (either via prompt or via UI setting)
 if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
-    # change the hostname if not set to 'diginode' then go ahead
+    # if the current hostname if not 'diginode' then go ahead and change it
     if [[ ! "$HOSTNAME" == "diginode" ]]; then
 
+        # Save current and new hostnames to a variable
+        CUR_HOSTNAME=$HOSTNAME
+        NEW_HOSTNAME="diginode"
+
+        str="Current hostname is '$CUR_HOSTNAME'. Changing to '$NEW_HOSTNAME'..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+
+        # Change hostname in /etc/hosts file
+        sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hosts
+
+        # Change hostname using hostnamectl
         if is_command hostnamectl ; then
-            str="Changing hostname from '$HOSTNAME' to 'diginode'..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
-            sudo hostnamectl set-hostname diginode
+            sudo hostnamectl set-hostname diginode 2>/dev/null
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
-            INSTALL_AVAHI="YES"
         else
-            printf "%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             exit 1
         fi
+
+        printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
+        printf "%b You can do that now by entering:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   sudo reboot\\n" "${INDENT}"
+        printf "\\n"
+
+        if [[ "$UNATTENDED_MODE" == true ]]; then
+            sudo reboot
+        fi
+
     fi
 fi
 }

@@ -19,7 +19,7 @@
 #          ~/diginode/diginode
 #
 #
-# Updated: October 19 2021 2:33pm GMT
+# Updated: October 24 2021 10:12am GMT
 #
 # -------------------------------------------------------
 
@@ -802,7 +802,7 @@ if [ $DGN_MONITOR_LAST_RUN="" ]; then
     echo "    Storing DigiByte Core current version number in settings file..."  
 
     # check for current version number of DigiByte Core and save to settings file
-    DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+    DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
     echo "    Detected: DigiByte Core v${DGB_VER_LOCAL}" 
 
@@ -1043,7 +1043,7 @@ systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="sto
 
 # Is digibyted in the process of starting up, and not ready to respond to requests?
 if [ $DGB_STATUS = "running" ]; then
-    blockcount_local=$($DGB_CLI getblockcount)
+    BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
 
     if [ "$blockcount_local" != ^[0-9]+$ ]; then
       DGB_STATUS="startingup"
@@ -1066,7 +1066,7 @@ if [ $DGB_STATUS = "running" ]; then
   fi
 
   # Get DigiByted Uptime
-  uptime_seconds=$($DGB_CLI uptime)
+  uptime_seconds=$($DGB_CLI uptime 2>/dev/null)
   uptime=$(eval "echo $(date -ud "@$uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Detect if the block chain is fully synced
@@ -1076,7 +1076,7 @@ if [ $DGB_STATUS = "running" ]; then
   fi
 
   # Show port warning if connections are less than or equal to 7
-  connections=$($DGB_CLI getconnectioncount)
+  connections=$($DGB_CLI getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
     connectionsmsg="${txtred}Low Connections Warning!${txtrst}"
   fi
@@ -1104,14 +1104,14 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Update local block count every 15 seconds (approx once per block)
     if [ $DGB_STATUS = "running" ]; then
-          blockcount_local=$($DGB_CLI getblockchaininfo | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+          blockcount_local=$($DGB_CLI getblockchaininfo 2>/dev/null | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "15secs" ]; then
 
         # Get current software version, and write to diginode.settings
-        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
@@ -1239,7 +1239,7 @@ if [ $timedif24hrs -gt 86400 ]; then
     if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
 
         # Get current software version, and write to diginode.settings
-        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
 
         # Compare current DigiByte Core version with Github version to know if there is a new version available
