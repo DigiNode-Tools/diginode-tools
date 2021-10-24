@@ -2369,10 +2369,10 @@ upgrade_menu() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing Install Detected!" --menu "\\n\\nWe have detected an existing DigiNode install.\\n\\nPlease choose from the following options: \\n" "${r}" "${c}" 2 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose from the following options: \\n\\n(Note: For all options below, your DigiByte wallet will not be touched. That said, a backup is highly recommended.)\\n\\n"" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
+    "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
@@ -3239,7 +3239,7 @@ main() {
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_LOCATION}/.officialdiginode" ]]; then
         NewInstall=false
-        printf "%b Existing DigiNode install detected...\\n" "${INFO}"
+        printf "%b Existing DigiNode detected...\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
         if [[ "$UNINSTALL" == "yes" ]]; then
