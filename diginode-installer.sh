@@ -350,6 +350,8 @@ DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 
 # DIGIASSETS NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
+DGA_SETTINGS_LOCATION=$DGB_SETTINGS_LOCATION/assetnode_config
+DGA_SETTINGS_FILE=$DGA_SETTINGS_LOCATION/main.json
 
 # DIGINODE TOOLS LOCATION:
  # This is the default location where the scripts get installed to. There should be no need to change this.
@@ -800,7 +802,7 @@ digibyte_create_conf() {
             fi
         else
             echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
-            echo "rpcuser=$set_rpcpassword" >> $DGB_CONF_FILE
+            echo "rpcpassword=$set_rpcpassword" >> $DGB_CONF_FILE
         fi
 
         #Update server variable in settings if it exists and is blank, otherwise append it
@@ -1891,8 +1893,8 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
         CUR_HOSTNAME=$HOSTNAME
         NEW_HOSTNAME="diginode"
 
-        str="Current hostname is '$CUR_HOSTNAME'. Changing to '$NEW_HOSTNAME'..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        str="Changing Hostname from '$CUR_HOSTNAME' to '$NEW_HOSTNAME'..."
+        printf "\\n%b %s" "${INFO}" "${str}"
 
         # Change hostname in /etc/hosts file
         sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hosts
@@ -1902,20 +1904,28 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             sudo hostnamectl set-hostname diginode 2>/dev/null
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
-            printf "\\n%b %bUnable to change hostname - hostnamectl command not present%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            exit 1
+            printf "\\n%b %bUnable to change hostname using hostnamectl (command not present). Trying manual method...%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            hostname $NEW_HOSTNAME 2>/dev/null
+            sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hostname 2>/dev/null
         fi
 
-        printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
-        printf "%b You can do that now by entering:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   sudo reboot\\n" "${INDENT}"
-        printf "\\n"
 
         if [[ "$UNATTENDED_MODE" == true ]]; then
+            printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+            printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+            sleep 5
             sudo reboot
+        else
+            printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
+            printf "%b You can do that now by entering:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   sudo reboot\\n" "${INDENT}"
+            printf "\\n"
+            exit
         fi
+
+        exit
 
     fi
 fi
@@ -3012,6 +3022,119 @@ fi
 
 }
 
+# Create digibyte.config file if it does not already exist
+digiassets_create_settings()) {
+
+    local str
+
+    # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
+    if [ $RESET_MODE = true ] && [ -d "$DGA_SETTINGS_FOLDER" ]; then
+        str="Reset Mode is Enabled. Deleting existing DigiAssets settings..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f -r $DGA_SETTINGS_FOLDER
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
+    # create .digibyte settings folder if it does not already exist
+    if [ ! -d $DGB_SETTINGS_LOCATION ]; then
+        str="Creating ~/.digibyte/ folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # create assetnode_config folder if it does not already exist
+    if [ ! -d $DGA_SETTINGS_LOCATION ]; then
+        str="Creating ~/.digibyte/assetnode_config/ folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If main.json file already exists, update the rpc user and password if they have changed
+    if test -f "$DGA_SETTINGS_FILE"; then
+
+        local rpcuser_json_cur
+        local rpcpass_json_cur
+        local rpcpass_json_cur
+        local update_rpc_now
+
+        # Let's first get the values from digibyte.conf
+
+        source $DGB_CONF_FILE
+
+        # Let's get the current rpcuser and rpcpassword from the main.json file
+
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
+            update_rpc_now=yes
+        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
+            update_rpc_now=yes
+        elif [ "$rpcport" != "$rpcport_json_cur" ]; then
+            update_rpc_now=yes
+        fi
+
+        # If credentials have changed, let's update the main.json file
+
+        if [ "$update_rpc_now" = "yes" ]; then
+
+            str="Updated RPC credentials found in digibyte.conf - updating DigiAssets settings file..."
+            printf "%b %s" "${INFO}" "${str}"
+
+            tmpfile=($mktemp)
+
+            cp $DGA_SETTINGS_FILE "$tmpfile" &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
+              "$tmpfile" >$DGA_SETTINGS_FILE &&
+            mv "$tmpfile" $DGA_SETTINGS_FILE &&
+            rm -f "$tmpfile"
+
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+    else
+        # Create a new main.json settings file
+        str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
+        cat <<EOF > $DGA_SETTINGS_FILE
+{
+    "ignoreList": [
+        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
+    ],
+    "quiet":          true,
+    "includeMedia":   {
+        "maxSize":    1000000,
+        "names":      ["icon"],
+        "mimeTypes":  ["image/png","image/jpg","image/gif"],
+        "paid":       "always"
+    },
+    "timeout":        6000000,
+    "errorDelay":     600000,
+    "port":           8090,
+    "scanDelay":      600000,
+    "sessionLife":    86400000,
+    "users":          false,
+    "publish":        false,
+    "wallet":         {
+      "user":         "$rpcuser",
+      "pass":         "$rpcpassword",
+      "host":         "127.0.0.1",
+      "port":         $rpcport
+    }
+}
+EOF
+printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+}
+
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
 # Note: It does not (re)start the digibyted.service automatically when done
@@ -3383,6 +3506,17 @@ main() {
     digibyte_create_service
 
 
+    ### INSTALL DIGIASSETS NODE ###
+
+    digiassets_ask_install
+
+    # Create assetnode_config script PLUS main.json file (if they don't yet exist)
+    digiassets_create_settings
+
+    # Install DigiAssets along with IPFS
+    digiassets_do_install
+
+    digibyte_
   
 
     ### INSTALL DIGINODE TOOLS ###
@@ -3399,6 +3533,8 @@ main() {
 
     # Display donation QR Code
     donation_qrcode
+
+
 
 
 
