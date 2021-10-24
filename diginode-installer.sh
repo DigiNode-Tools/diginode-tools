@@ -2987,8 +2987,6 @@ if [ "$UNATTENDED_MODE" == false ] && [ "$DGA_ASK_INSTALL" = "YES" ]; then
           DGA_DO_INSTALL=NO
         fi
 
-    fi
-
 fi
 
 }
