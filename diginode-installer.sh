@@ -2369,7 +2369,7 @@ upgrade_menu() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose from the following options: \\n\\n(Note: For all options below, your DigiByte wallet will not be touched. That said, a backup is highly recommended.)\\n\\n"" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose from the following options: \\n\\n(Note: For all options below, your DigiByte wallet will not be touched. That said, a backup is highly recommended.)\\n\\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
