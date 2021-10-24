@@ -2359,13 +2359,13 @@ fi
 upgrade_menu() {
 
     opt1a="Upgrade"
-    opt1b="Upgrades DigiNode software to the latest versions. DigiByte wallet will be untouched."
+    opt1b="Upgrades DigiNode software to the latest versions."
     
     opt2a="Reset"
-    opt2b="Resets all settings and reinstalls DigiNode software. DigiByte wallet will be untouched."
+    opt2b="Resets all settings and reinstalls DigiNode software."
 
-    opt2a="Uninstall"
-    opt2b="Removes all software. DigiByte wallet will be untouched."
+    opt3a="Uninstall"
+    opt3b="Removes DigiNode from your systems."
 
 
     # Display the information to the user
@@ -2389,7 +2389,7 @@ upgrade_menu() {
             ;;
         # Uninstall,
         ${opt3a})
-            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
+            printf "  %b %s option selected\\n" "${INFO}" "${opt3a}"
             uninstall_everything
             ;;
     esac
@@ -3279,7 +3279,7 @@ main() {
 
     # If there is an existing install of DigiByte Core, but it was not installed by this script, then exit
     if [ -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b %bUnable to upgrade DigiByte Coree%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bUnable to upgrade this installation of DigiByte Core%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
         printf "%b using this Installer and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
