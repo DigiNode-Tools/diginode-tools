@@ -3169,10 +3169,14 @@ main() {
                 if [ ! $# -eq 0 ]; then
                     local add_args="-s --"
                 fi
+
+                printf "%b Re-running DigiNode Installer URL as root...\\n" "${INFO}"
+
                 # Download the install script and run it with admin rights
                 exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s $add_args "$@"
             else
                 # when run via calling local bash script
+                printf "%b Re-running DigiNode Installer as root...\\n" "${INFO}"
                 exec sudo bash "$0" "$@"
             fi
 
