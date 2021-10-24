@@ -731,7 +731,7 @@ digibyte_create_conf() {
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
 
-        # Import variables from diginode.conf settings file
+        # Import variables from digibyte.conf settings file
         str="Located digibyte.conf file. Importing..."
         printf "%b %s" "${INFO}" "${str}"
         source $DGB_CONF_FILE
