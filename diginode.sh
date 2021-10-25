@@ -460,41 +460,16 @@ is_dganode_installed() {
       # Perform initial checks for required DigiAsset Node packages #
       ###############################################################
 
-      # Check if snapd is installed
 
-      REQUIRED_PKG="snapd"
-      PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-      if [ "" = "$PKG_OK" ]; then
-          snapd_installed="no"
-          startwait=yes
-      else
-          snapd_installed="yes"
-          dga_status="snapdinstalled"
-      fi
 
-      # Check if snap core is installed
 
-      PKG_OK=$(snap list | grep "core")
-      if [ "" = "$PKG_OK" ]; then
-          snapcore_installed="no"
-          startwait=yes
-      else
-          snapcore_installed="no"
-          if [ $dga_status = "snapdinstalled" ]; then
-            dga_status="snapcoreinstalled"
-          fi
-      fi
-
-      # Check if ipfs is installed
-
-      PKG_OK=$(snap list | grep "ipfs")
-      if [ "" = "$PKG_OK" ]; then
+      # Let's check if Go-IPFS is already installed
+      IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+      if [ "$IPFS_VER_LOCAL" = "" ]; then
           ipfs_installed="no"
           startwait=yes
       else
-          if [ $dga_status = "snapcoreinstalled" ]; then
-            dga_status="ipfsinstalled"
-          fi
+          dga_status="ipfsinstalled"
           ipfs_installed="yes"
       fi
 
@@ -516,23 +491,11 @@ is_dganode_installed() {
 
 
       if [ "$nodejs_installed" = "yes" ]; then 
-        echo "[${txtgrn}✓${txtrst}] Required \'DigiAsset Metadata Server\' packages are installed."
-        echo "    Found: [${txtgrn}✓${txtrst}] snapd   [${txtgrn}✓${txtrst}] snap core   [${txtgrn}✓${txtrst}] ipfs   [${txtgrn}✓${txtrst}] nodejs" 
+        echo "[${txtgrn}✓${txtrst}] Required \'DigiAssets Node\' packages are installed."
+        echo "    Found: [${txtgrn}✓${txtrst}] go-ipfs   [${txtgrn}✓${txtrst}] nodejs" 
       else
         echo "[${txtred}x${txtrst}] Required \'DigiAsset Metadata Server\' pacakages are NOT installed:"
         printf "    Found: ["
-        if [ $snapd_installed = "yes" ]; then
-          printf "${txtgrn}✓${txtrst}"
-        else
-          printf "${txtred}x${txtrst}"
-        fi
-        printf "] snapd   ["
-        if [ $snapcore_installed = "yes" ]; then
-          printf "${txtgrn}✓${txtrst}"
-        else
-          printf "${txtred}x${txtrst}"
-        fi
-        printf "] snap core   ["
         if [ $ipfs_installed = "yes" ]; then
           printf "${txtgrn}✓${txtrst}"
         else
@@ -816,7 +779,7 @@ if [ $DGN_MONITOR_LAST_RUN="" ]; then
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
       sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGN_SETTINGS_FILE
-      IPFS_VER_LOCAL=$(ipfs version | cut -d ' ' -f 3)
+      IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGN_SETTINGS_FILE
       DGA_FIRST_RUN=$(date)
       sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
@@ -833,7 +796,7 @@ firstrun_dga_configs() {
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
       sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGN_SETTINGS_FILE
-      IPFS_VER_LOCAL=$(ipfs version | cut -d ' ' -f 3)
+      IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGN_SETTINGS_FILE
       DGA_FIRST_RUN=$(date)
       sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
@@ -1201,7 +1164,7 @@ if [ $timedif15min -gt 300 ]; then
 
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
       sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGN_SETTINGS_FILE
-      IPFS_VER_LOCAL=$(ipfs version | cut -d ' ' -f 3)
+      IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGN_SETTINGS_FILE
     fi
 
@@ -1260,9 +1223,27 @@ if [ $timedif24hrs -gt 86400 ]; then
  #   DGA_VER_GITHUB=
  #   sed -i -e "/^DGA_VER_GITHUB=/s|.*|DGA_VER_GITHUB=\"$DGA_VER_GITHUB\"|" $DGN_SETTINGS_FILE
 
-    # Check for new release of IPFS
- #   IPFS_VER_RELEASE=
- #   sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+    # Check for new release of Go-IPFS
+    IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
+    sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+
+    # Check if there is an update for Go-IPFS
+    if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+      IPFS_UPDATE_AVAILABLE=NO
+    else
+      IPFS_UPDATE_AVAILABLE=YES
+    fi
+
+    # Check for new release of IPFS Updater
+    IPFS_UPDATER_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+    sed -i -e "/^IPFS_UPDATER_VER_RELEASE=/s|.*|IPFS_UPDATER_VER_RELEASE=\"$IPFS_UPDATER_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+
+    # Check if there is an update for IPFS Updater
+    if [ $(version $IPFS_UPDATER_VER_LOCAL) -ge $(version $IPFS_UPDATER_VER_RELEASE) ]; then
+      IPFS_UPDATER_UPDATE_AVAILABLE=NO
+    else
+      IPFS_UPDATER_UPDATE_AVAILABLE=YES
+    fi
 
     # reset 24 hour timer
     savedtime24hrs="$timenow"
@@ -1318,12 +1299,16 @@ printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB
 else
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
 fi
-echo " ║   SOFTWARE      ╠═════════════════════════════════════════════════════╣"
-printf " ║               ║  " && printf "%-49s ║ \n" "IPFS daemon v$IPFS_VER_LOCAL"
+echo " ║   SOFTWARE    ╠═════════════════════════════════════════════════════╣"
+if [ $IPFS_UPDATE_AVAILABLE = "YES" ];then
+printf " ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
+else
+printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGN_VER_THIS"
 echo " ║               ╠═════════════════════════════════════════════════════╣"
-printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Metadata Server v$DGA_VER_LOCAL"
+printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
 if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
 echo "WARNING: Your DigiByte daemon service is not currently running."

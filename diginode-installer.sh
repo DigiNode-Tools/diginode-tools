@@ -198,6 +198,28 @@ is_unnattended_mode() {
     fi
 }
 
+# Inform user if Reset Mode is enabled
+is_reset_mode() {
+    # Exit if the user tries to run Reset Mode with Unattended mode at the same time - this is not supported.
+    if [ "$UNATTENDED_MODE" = true ] && [ "$RESET_MODE" = true ]; then
+        printf "%b %bERROR: Unattended Mode & Reset Mode cannot be used together.\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Reset Mode can only be used interactively. Please run again\\n" "${INDENT}"
+        printf "%b without the --unattended flag.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+    fi
+
+    # Inform user if Reset Mode is enabled
+    if [ "$RESET_MODE" = true ]; then
+        printf "%b Reset Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Your DigiNode will be reset. All settings and configuration files\\n" "${INDENT}"
+        printf "%b will be deleted and recreated. DigiByte and DigiAssets\\n" "${INDENT}"
+        printf "%b software will be reinstalled. Any DigiByte blockchain data or\\n" "${INDENT}"
+        printf "%b DigiAsset metadata will also be optionally deleted.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+}
+
 # Load variables from diginode.settings file. Create the file first if it does not exit.
 create_diginode_settings() {
 
@@ -393,8 +415,18 @@ DGA_INSTALL_DATE=
 DGA_UPGRADE_DATE=
 DGA_VER_LOCAL=
 DGA_VER_GITHUB=
+
+# Store IPFS Updater installation details:
+IPFS_UPDATER_VER_LOCAL=
+IPFS_UPDATER_VER_RELEASE=
+IPFS_UPDATER_INSTALL_DATE
+IPFS_UPDATER_UPGRADE_DATE
+
+# Store GoIPFS installation details:
 IPFS_VER_LOCAL=
 IPFS_VER_RELEASE=
+IPFS_INSTALL_DATE
+IPFS_UPGRADE_DATE
 
 # Timer variables (these control the timers in the Status Monitor loop)
 savedtime15sec=
@@ -2386,21 +2418,58 @@ fi
 
 }
 
+# The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAssets Node
+first_install_menu() {
 
+    opt1a="Install DigiByte + DigiAssets Node"
+    opt1b="Install a Full DigiNode (Recommended)."
+    
+    opt2a="Install DigiByte Core ONLY"
+    opt2b="DigiAssets Node will NOT be installed."
+
+
+    # Display the information to the user
+    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to only install DigiByte Core. Running both is recommended. The DigiAssets Node helps to decentralize DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets, and let’s you earn \$DGB for hosting other people's metadata.\\n\\nPlease choose one of the options below:\\n\\n" "${r}" "${c}" 3 \
+    "${opt1a}"  "${opt1b}" \
+    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+
+    # Set the variable based on if the user chooses
+    case ${UpdateCmd} in
+        # Install Full DigiNode
+        ${opt1a})
+            DGA_ASK_INSTALL=NO
+            DGA_DO_INSTALL=YES
+            DGB_ASK_INSTALL=NO
+            DGB_DO_INSTALL=YES
+            printf "  %b %s option selected\\n" "${INFO}" "${opt1a}"
+            ;;
+        # Install DigiByte Core ONLY
+        ${opt2a})
+            DGA_ASK_INSTALL=NO
+            DGA_DO_INSTALL=NO
+            DGB_ASK_INSTALL=NO
+            DGB_DO_INSTALL=YES
+            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
+            ;;
+    esac
+}
+
+# Function to display the upgrade menu when a previous install has been detected
 upgrade_menu() {
 
     opt1a="Upgrade"
     opt1b="Upgrades DigiNode software to the latest versions."
     
     opt2a="Reset"
-    opt2b="Resets all settings and reinstalls DigiNode software."
+    opt2b="Resets all settings and reinstalls DigiNode software. Use with caution."
 
     opt3a="Uninstall"
     opt3b="Removes DigiNode from your systems."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose one of the options below. \\n\\n(Note: For each option, your DigiByte wallet will not be harmed. That said, a backup is highly recommended.)\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is highly recommended.)\\n\\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
@@ -2520,23 +2589,23 @@ diginode_tools_check() {
             str="Installing DigiNode Tools develop branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==develop|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=develop|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==main|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=main|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
             str="Installing DigiNode Tools v${dgn_github_rel_ver}..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH==/s|.*|DGN_TOOLS_LOCAL_BRANCH==release|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER==/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER==$dgn_github_rel_ver|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=release|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=$dgn_github_rel_ver|" $DGN_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -2793,8 +2862,6 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 digibyte_check() {
 
-
- 
     # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
@@ -2971,10 +3038,273 @@ digibyte_check() {
 }
 
 
-# This function will ask the user if they want to install the system upgrades that have been found
-upgrades_ask_install() {
+# This function will check if IPFS is installed, and if it is, check if there is an update available
 
-# If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, ask the user if they wan to install them
+ipfs_check() {
+
+    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+    IPFS_UPDATER_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+
+    # Let's check if Go-IPFS is already installed
+    str="Is Go-IPFS already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        IPFS_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the version number of the current Go-IPFS and write it to to the settings file
+    if [ "$IPFS_STATUS" = "installed" ]; then
+        str="Checking Current Version... "
+        printf "%b %s" "${INFO}" "${str}"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Let's check if IPFS Updater is already installed
+    str="Is IPFS Updater already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$IPFS_UPDATER_VER_LOCAL" = "" ]; then
+        IPFS_UPDATER_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        IPFS_UPDATER_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the version number of the current IPFS Updater and write it to to the settings file
+    if [ "$IPFS_UPDATER_STATUS" = "installed" ]; then
+        str="Checking Current Version... "
+        printf "%b %s" "${INFO}" "${str}"
+        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
+    # Check for latest Go-IPFS release online
+    str="Checking IPFS distributions website for the latest Go-IPFS release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+    IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
+
+    # If can't get Github version number
+    if [ "$IPFS_VER_RELEASE" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of Go-IPFS. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b Go-IPFS cannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        IPFS_DO_INSTALL=NO
+        IPFS_INSTALL_TYPE="none"
+        IPFS_UPDATE_AVAILABLE=NO
+        return     
+    else
+        printf "%b%b %s Found: Gov${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+    fi
+
+    # Check for latest IPFS Updater release online
+    str="Checking IPFS distributions website for the latest IPFS Updater release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
+    IPFS_UPDATER_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+
+    # If can't get Github version number
+    if [ "$IPFS_VER_RELEASE" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b IPFS Updatercannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        IPFS_UPDATER_DO_INSTALL=NO
+        IPFS_UPDATER_INSTALL_TYPE="none"
+        IPFS_UPDATER_UPDATE_AVAILABLE=NO
+        return     
+    else
+        printf "%b%b %s Found: Gov${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^IPFS_UPDATER_VER_RELEASE=/s|.*|IPFS_UPDATER_VER_RELEASE=\"$IPFS_UPDATER_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+    fi
+
+
+    # If a Go-IPFS local version already exists.... (i.e. we have a local version number)
+    if [ ! $IPFS_VER_LOCAL = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+          printf "%b Go-IPFS is already the latest version.\\n" "${INFO}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. Go-IPFS v${IPFS_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            IPFS_INSTALL_TYPE="reset"
+            IPFS_DO_INSTALL=YES
+          else
+            printf "%b Go-IPFS upgrade is not required. Skipping...\\n" "${INFO}"
+            IPFS_DO_INSTALL=NO
+            IPFS_INSTALL_TYPE="none"
+            IPFS_UPDATE_AVAILABLE=NO
+            return
+          fi
+      else
+          printf "%b Go-IPFS will be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}\\n" "${INFO}"
+          IPFS_INSTALL_TYPE="upgrade"
+          IPFS_ASK_UPGRADE=YES
+      fi
+    fi 
+
+        # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
+    if [ ! $IPFS_UPDATER_VER_LOCAL = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $IPFS_UPDATER_VER_LOCAL) -ge $(version $IPFS_UPDATER_VER_RELEASE) ]; then
+          printf "%b IPFS Updater is already the latest version.\\n" "${INFO}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. IPFS Updater v${IPFS_UPDATER_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            IPFS_UPDATER_INSTALL_TYPE="reset"
+            IPFS_UPDATER_DO_INSTALL=YES
+          else
+            printf "%b IPFS Updater upgrade is not required. Skipping...\\n" "${INFO}"
+            IPFS_UPDATER_DO_INSTALL=NO
+            IPFS_UPDATER_INSTALL_TYPE="none"
+            IPFS_UPDATER_UPDATE_AVAILABLE=NO
+          fi
+      else
+          printf "%b IPFS Updater will be upgraded from v${IPFS_UPDATER_VER_LOCAL} to v${IPFS_VER_UPDATER_RELEASE}\\n" "${INFO}"
+          IPFS_UPDATER_INSTALL_TYPE="upgrade"
+          IPFS_UPDATER_DO_UPGRADE=YES
+      fi
+    fi 
+
+    # If no current version is installed, then do a clean install
+    if [ $IPFS_STATUS = "not_detected" ]; then
+      printf "%b Go-IPFS v${IPFS_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      IPFS_INSTALL_TYPE="new"
+      IPFS_DO_INSTALL=YES
+    fi
+
+    # If no current version is installed, then do a clean install
+    if [ $IPFS_UPDATER_STATUS = "not_detected" ]; then
+      printf "%b IPFS Updater v${IPFS_UPDATER_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      IPFS_UPDATER_INSTALL_TYPE="new"
+      IPFS_UPDATER_DO_INSTALL=YES
+    fi
+
+}
+
+# This function will install Go-IPFS if it not yet installed, and if it is, upgrade it to the latest release
+ipfs_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
+    IPFS_DO_INSTALL=YES
+fi
+
+
+if [ "$IPFS_DO_INSTALL" = "YES" ]; then
+
+    # Let's find the correct file type to download based on the current architecture
+    if [ "$ARCH" = "aarch64" ]; then
+        ipfsarch="arm64"
+    elif [ "$ARCH" = "X86_64" ]; then
+        ipfsarch="amd64"
+    fi
+
+    # First, Upgrade IPFS Updater if there is an update
+
+    if [ "$IPFS_UPDATER_DO_INSTALL" = "YES" ]; then
+
+        # Delete any old IPFS Updater tar files
+        str="Deleting any old IPFS Updater tar.gz files from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/ipfs-update*.tar.gz
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Downloading latest IPFS Updater tar.gz from IPFS distributions website
+        str="Downloading IPFS Updater v${IPFS_UPDATER_VER_RELEASE} from IPFS distributions website..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFS_UPDATER_VER_RELEASE}/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # If an there is an existing IPFS Updater version, move it it to a backup version
+        if [ -d "$USER_HOME/ipfs-update" ]; then
+            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-oldversion..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update_oldversion
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Extracting IPFS Updator tar.gz
+        str="Extracting IPFS Updator v${IPFS_UPDATER_VER_RELEASE} ..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Install IPFS Updater
+        printf "%b Installing IPFS Updater v${IPFS_UPDATER_VER_RELEASE} ...\\n" "${INFO}"
+        cd $USER_HOME/ipfs-update
+        sudo -u $USER_ACCOUNT bash install.sh
+
+        # Delete the IPFS Updater backup version, now the new version has been installed
+        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
+            str="Deleting previous version of Go-IPFS: $USER_HOME/ipfs-update-oldversion ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $USER_HOME/ipfs-update-oldversion
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete IPFS Updater tar.gz installer file
+        str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Get the new version number of the local IPFS Updater install
+        IPFS_UPDATER_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+
+        # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
+        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        if [ $IPFS_UPDATER_INSTALL_TYPE = "install" ]; then
+            sed -i -e "/^IPFS_UPDATER_INSTALL_DATE=/s|.*|IPFS_UPDATER_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+        elif [ $IPFS_UPDATER_INSTALL_TYPE = "upgrade" ]; then
+            sed -i -e "/^IPFS_UPDATER_UPGRADE_DATE=/s|.*|IPFS_UPDATER_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+        fi
+
+        # Reset IPFS Updater Install and Upgrade Variables
+        IPFS_UPDATER_INSTALL_TYPE=""
+        IPFS_UPDATER_UPDATE_AVAILABLE=NO
+        IPFS_UPDATER_POSTUPDATE_CLEANUP=YES
+
+    fi
+
+    # Install latest version of GoIPFS
+    printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
+    ipfs-update install latest
+
+    # Get the new version number of the local Go-IPFS install
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Update diginode.settings with new Go local version number and the install/upgrade date
+    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    if [ $DGB_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+    fi
+
+    # Reset GoIPFS Install and Upgrade Variables
+    IPFS_INSTALL_TYPE=""
+    IPFS_UPDATE_AVAILABLE=NO
+    IPFS_POSTUPDATE_CLEANUP=YES
+
+fi
+
+}
+
+
+# This function will ask the user if they want to install the system upgrades that have been found
+upgrade_ask_install() {
+
+# If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
@@ -2985,6 +3315,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           echo
           if [ $DGB_ASK_UPGRADE = "YES" ]; then
             DGB_DO_INSTALL=YES
+          fi
           fi
           if [ $DGA_ASK_UPGRADE = "YES" ]; then
             DGA_DO_INSTALL=YES
@@ -3007,10 +3338,10 @@ fi
 # This function will ask the user if they want to install DigiAssets Node
 digiassets_ask_install() {
 
-# Provided we are not in unnatteneded mode, ask the user if they want to install DigiAssets
-if [ "$UNATTENDED_MODE" == false ] && [ "$DGA_ASK_INSTALL" = "YES" ]; then
+# Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install DigiAssets
+if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if whiptail --backtitle "" --title "Install DigiAssets Node?" --yesno "Running a DigiAssets Node helps to decentralize the DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets from your own node. You can also earn DigiByte for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAssets Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "Install DigiAssets Node?" --yesno "You do not currently have the DigiAssets Node Installed. Running a DigiAssets Node helps to decentralize the DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets from your own node. You can also earn DigiByte for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAssets Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           DGA_DO_INSTALL=YES
         else
@@ -3179,7 +3510,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Extracting DigiByte Core binary
     str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_GITHUB digibyte
     rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
@@ -3214,11 +3545,11 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
-    sed -i -e "/^DGB_VER_LOCAL==/s|.*|DGB_VER_LOCAL==$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
     if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE==/s|.*|DGB_INSTALL_DATE==$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
     elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE==/s|.*|DGB_UPGRADE_DATE==$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
     fi
 
     # Reset DGB Install and Upgrade Variables
@@ -3339,6 +3670,9 @@ main() {
 
     # Display a message if Unnattended Mode is enabled
     is_unnattended_mode
+
+    # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
+    is_reset_mode
 
     # Perform basic system check and lookup hardware architecture
     sys_check
@@ -3473,8 +3807,7 @@ main() {
     disk_ask_lowspace
 
 
-
-    ### CHECK FOR UPDATES ###
+    ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
     # Check if DigiByte Core is installed, and if there is an upgrade available
     digibyte_check
@@ -3485,40 +3818,60 @@ main() {
     # Check if DigiAssets Nods is installed, and if there is an upgrade available
     digiassets_check
 
-    # Check if DigiAssets Nods is installed, and if there is an upgrade available
+    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
 
-     # Ask to install any upgrades, if in interactive mode
-    upgrades_ask
+
+    ### FIRST INSTALL MENU ###
+
+    # If this is a new interaactive Install, display the first insall menu
+    if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
+
+        # Ask whther to install only DigiByte Core, or DigiAssets Node as well
+        first_install_menu
+
+    fi
 
 
+    ### UPGRADE MENU ###
 
-    ### INSTALL DIGIBYTE CORE ###
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${NewInstall}" == false ]] && [[ "${UnattendedUpgrade}" == false ]]; then
+
+        # Ask to install any upgrades, if there are any
+        upgrades_ask
+
+        # Ask to install DigiAssets Node, it is not already installed
+        digiassets_ask_install
+
+    fi
+
+
+    ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
     digibyte_create_conf
 
     # Install DigiByte Core
-    digibyte_install
+    digibyte_do_install
 
     # Create digibyted.service
     digibyte_create_service
 
 
-    ### INSTALL DIGIASSETS NODE ###
-
-    digiassets_ask_install
+    ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
     # Create assetnode_config script PLUS main.json file (if they don't yet exist)
     digiassets_create_settings
 
+    # Install/upgrade IPFS
+    ipfs_do_install
+
     # Install DigiAssets along with IPFS
     digiassets_do_install
-
-    digibyte_
   
 
-    ### INSTALL DIGINODE TOOLS ###
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install DigiNode Tools
     diginode_tools_install
@@ -3527,13 +3880,11 @@ main() {
 
     ### CLEAN UP ###
 
-    # Change the hostname
-    hostname_do_change
-
     # Display donation QR Code
     donation_qrcode
 
-
+    # Change the hostname
+    hostname_do_change
 
 
 
