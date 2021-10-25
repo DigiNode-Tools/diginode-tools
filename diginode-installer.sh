@@ -3169,7 +3169,7 @@ ipfs_check() {
             IPFS_UPDATER_UPDATE_AVAILABLE=NO
           fi
       else
-          printf "%b IPFS Updater will be upgraded from v${IPFS_UPDATER_VER_LOCAL} to v${IPFS_VER_UPDATER_RELEASE}\\n" "${INFO}"
+          printf "%b IPFS Updater will be upgraded from v${IPFS_UPDATER_VER_LOCAL} to v${IPFS_UPDATER_VER_RELEASE}\\n" "${INFO}"
           IPFS_UPDATER_INSTALL_TYPE="upgrade"
           IPFS_UPDATER_DO_UPGRADE=YES
       fi
@@ -3305,17 +3305,33 @@ fi
 upgrade_ask_install() {
 
 # If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
-if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
+if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode.\\n\\n\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_dgb="- DigiByte Core v$DGB_VER_GITHUB\\n"
+        fi
+        if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_ipfs="- Go-IPFS v$IPFS_VER_RELEASE\\n"
+        fi
+        if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_dga="- DigiAsset Node v$DGA_VER_RELEASE\\n"
+        fi
+        if [ "$DGN_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_dgn="- DigiNode Tools v$DGN_VER_GITHUB\\n"
+        fi
+
+
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           echo
           if [ $DGB_ASK_UPGRADE = "YES" ]; then
             DGB_DO_INSTALL=YES
           fi
+          if [ $IPFS_ASK_UPGRADE = "YES" ]; then
+            IPFS_DO_INSTALL=YES
           fi
           if [ $DGA_ASK_UPGRADE = "YES" ]; then
             DGA_DO_INSTALL=YES
