@@ -2954,11 +2954,11 @@ digibyte_check() {
 
         # Get the version number of the current DigiByte Core and write it to to the settings file
     if [ "$DGB_STATUS" = "running" ]; then
-        str="Checking Current Version... "
+        str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
       # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
@@ -3059,10 +3059,10 @@ ipfs_check() {
 
     # Get the version number of the current Go-IPFS and write it to to the settings file
     if [ "$IPFS_STATUS" = "installed" ]; then
-        str="Checking Current Version... "
+        str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s Found: v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Let's check if IPFS Updater is already installed
@@ -3078,15 +3078,15 @@ ipfs_check() {
 
     # Get the version number of the current IPFS Updater and write it to to the settings file
     if [ "$IPFS_UPDATER_STATUS" = "installed" ]; then
-        str="Checking Current Version... "
+        str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s Found: v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$IPFS_VER_UPDATER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s IPFS Updater v${IPFS_VER_UPDATER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
 
     # Check for latest Go-IPFS release online
-    str="Checking IPFS distributions website for the latest Go-IPFS release..."
+    str="Checking IPFS website for the latest Go-IPFS release..."
     printf "%b %s" "${INFO}" "${str}"
     # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
     IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
@@ -3096,36 +3096,36 @@ ipfs_check() {
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of Go-IPFS. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b Go-IPFS cannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "%b Go-IPFS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: Gov${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
     fi
 
     # Check for latest IPFS Updater release online
-    str="Checking IPFS distributions website for the latest IPFS Updater release..."
+    str="Checking IPFS website for the latest IPFS Updater release..."
     printf "%b %s" "${INFO}" "${str}"
     # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
     IPFS_UPDATER_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
 
     # If can't get Github version number
-    if [ "$IPFS_VER_RELEASE" = "" ]; then
+    if [ "$IPFS_UPDATER_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b IPFS Updatercannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "%b IPFS Updater cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_UPDATER_DO_INSTALL=NO
         IPFS_UPDATER_INSTALL_TYPE="none"
         IPFS_UPDATER_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: Gov${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: v${IPFS_UPDATER_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_UPDATER_VER_RELEASE=/s|.*|IPFS_UPDATER_VER_RELEASE=\"$IPFS_UPDATER_VER_RELEASE\"|" $DGN_SETTINGS_FILE
     fi
 
@@ -3134,13 +3134,13 @@ ipfs_check() {
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Go-IPFS is already the latest version.\\n" "${INFO}"
+          printf "%b Go-IPFS is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. Go-IPFS v${IPFS_VER_RELEASE} will be re-installed.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="reset"
             IPFS_DO_INSTALL=YES
           else
-            printf "%b Go-IPFS upgrade is not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
             IPFS_DO_INSTALL=NO
             IPFS_INSTALL_TYPE="none"
             IPFS_UPDATE_AVAILABLE=NO
@@ -3157,13 +3157,13 @@ ipfs_check() {
     if [ ! $IPFS_UPDATER_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_UPDATER_VER_LOCAL) -ge $(version $IPFS_UPDATER_VER_RELEASE) ]; then
-          printf "%b IPFS Updater is already the latest version.\\n" "${INFO}"
+          printf "%b IPFS Updater is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. IPFS Updater v${IPFS_UPDATER_VER_RELEASE} will be re-installed.\\n" "${INFO}"
             IPFS_UPDATER_INSTALL_TYPE="reset"
             IPFS_UPDATER_DO_INSTALL=YES
           else
-            printf "%b IPFS Updater upgrade is not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
             IPFS_UPDATER_DO_INSTALL=NO
             IPFS_UPDATER_INSTALL_TYPE="none"
             IPFS_UPDATER_UPDATE_AVAILABLE=NO
@@ -3831,8 +3831,8 @@ main() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
-    # Check if DigiAssets Nods is installed, and if there is an upgrade available
-    digiassets_check
+    # Check if DigiAssets Node is installed, and if there is an upgrade available
+ #   digiassets_check
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
