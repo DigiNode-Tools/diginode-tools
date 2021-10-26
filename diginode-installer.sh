@@ -2958,7 +2958,7 @@ digibyte_check() {
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
       # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
@@ -3062,7 +3062,7 @@ ipfs_check() {
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
     # Let's check if IPFS Updater is already installed
@@ -3081,7 +3081,7 @@ ipfs_check() {
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$IPFS_VER_UPDATER_LOCAL|" $DGN_SETTINGS_FILE
-        printf "%b%b %s IPFS Updater v${IPFS_VER_UPDATER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s IPFS Updater v${IPFS_VER_UPDATER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
 
