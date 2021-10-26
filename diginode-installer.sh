@@ -38,15 +38,14 @@ if [ -z "${USER}" ]; then
   USER="$(id -un)"
 fi
 
-# Store the user's home folder in a variable (varies depending on whether the user is running asroot or not)
+# Store the user's account name amd home folder in a variable (this works regardless of whether the user is running as root or not)
 if [[ "${EUID}" -eq 0 ]]; then
      USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+     USER_ACCOUNT=$SUDO_USER
 else
      USER_HOME=$(getent passwd $USER | cut -d: -f6)
+     USER_ACCOUNT=$USER
 fi
-
-# Store the user's account (this works the same regardless of whether we are root or not)
-USER_ACCOUNT=$(echo $USER_HOME | cut -d'/' -f3)
 
 
 ######## VARIABLES START HERE #########
@@ -366,9 +365,11 @@ DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
 
 # DIGIBYTE NODE FILES:
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
-DGB_DAEMON_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
 DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
+
+# IPFS NODE LOCATION
+IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSETS NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
@@ -386,6 +387,12 @@ DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
 
 # DIGIASSETS NODE FILES
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
+
+# SYSTEM SERVICE FILES:
+DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
+DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
+IPFS_SYSTEMD_SERVICE_FILE=$USER_HOME/.config/systemd/user/ipfs.service
+IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
 
 # Store DigiByte Core Installation details:
 DGB_INSTALL_DATE=
@@ -2716,34 +2723,102 @@ fi
 
 }
 
-# Create digibyted.service file if it does not already exist
+
+# Create service so that DigiByte daemon will run at boot
 digibyte_create_service() {
 
-    # If digibyte.service settings file already exists, delete it, since we will update it
-    if test -f "$DGB_DAEMON_SERVICE_FILE"; then
+# If you want to make changes to how DigiByte daemon services are created/managed for diferent systems, refer to this website:
+# 
 
-        str="Deleting digibyted.service file..."
+# If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+
+    # Stop the service now
+    sudo systemctl stop digibyted
+
+    # Disable the service now
+    sudo systemctl disable digibyted
+
+    str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $DGB_SYSTEMD_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+# If DigiByte daemon upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
+if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+
+    # Stop the service now
+    sudo service digibyted stop
+
+    # Disable the service now
+    sudo service digibyted disable
+
+    str="Deleting DigiByte daemon upstart service file..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $DGB_UPSTART_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+# Which init system are we using?
+if [[ `/sbin/init --version` =~ upstart ]]; then
+    init_system="upstart"
+    printf "%b Init System: upstart\\n" "${INFO}"
+elif [[ `systemctl` =~ -\.mount ]]; then
+    init_system="systemd"
+    printf "%b Init System: systemd\\n" "${INFO}"
+elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
+    init_system="sysv-init"
+    printf "%b Init System: sysv-init\\n" "${INFO}"
+else; then
+    init_system="unknown"
+    printf "%b Init System: Unknown\\n" "${INFO}"
+fi
+
+
+# If using systemd and the DigiByte daemon service file does not exist yet, let's create it
+if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $init_system = "systemd" ]; then
+
+    printf "\\n" 
+    printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
+
+    # First create the folders it lives in if they don't already exist
+
+    if [ ! -d $USER_HOME/.config ]; then
+        str="Creating ~/.config folder..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f $DGB_DAEMON_SERVICE_FILE
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ ! -d $USER_HOME/.config/systemd ]; then
+        str="Creating ~/.config/systemd folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ ! -d $USER_HOME/.config/systemd/user ]; then
+        str="Creating ~/.config/systemd/user folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     
-    # Create a new DigiByte service file
-    str="Creating digibyted.service file..."
+    # Create a new DigiByte daemon service file
+
+    str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $DGB_DAEMON_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_DAEMON_SERVICE_FILE
+    sudo -u $USER_ACCOUNT touch $DGB_SYSTEMD_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
 
 [Service]
-User=digibyte
-Group=digibyte
+User=$USER_ACCOUNT
+Group=$USER_ACCOUNT
 
 Type=forking
 PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
-ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
--conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
+ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid
 
 Restart=always
 PrivateTmp=true
@@ -2755,7 +2830,58 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
-printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Enable the service to run at boot
+    printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
+    systemctl enable digibyted
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Start the service now
+    str="Starting DigiByte daemon systemd service..."
+    printf "%b %s" "${INFO}" "${str}"
+    systemctl start digibyted
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using upstart and the DigiByte daemon service file does not exist yet, let's create it
+if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $init_system = "upstart" ]; then
+
+    printf "\\n" 
+    printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
+
+    # Create a new DigiByte daemon upstart service file
+
+    str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $DGB_UPSTART_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
+description "digibyte daemon"
+
+################################
+DGB UPSTART SERVICE WILL GO HERE
+################################ 
+
+EOF
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+
+    # Start the service now
+    str="Starting DigiByte daemon upstart service..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo service digibyted start
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
+if [ $init_system = "sysv-init" ] || $init_system = "unknown" ]; then
+
+    printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    exit 1
+
+fi
 
 }
 
@@ -3291,10 +3417,172 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
     fi
 
+    # Initialize IPFS, if it has not already been done so
+    if [ -d "$USER_HOME/.ipfs" ]; then
+        ipfs init
+        ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+    fi
+
     # Reset GoIPFS Install and Upgrade Variables
     IPFS_INSTALL_TYPE=""
     IPFS_UPDATE_AVAILABLE=NO
     IPFS_POSTUPDATE_CLEANUP=YES
+
+fi
+
+}
+
+# Create service so that IPFS will run at boot
+ipfs_create_service() {
+
+# If you want to make changes to how IPFS services are created/managed for diferent systems, refer to this website:
+# https://github.com/ipfs/go-ipfs/tree/master/misc 
+
+# If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+
+    # Stop the service now
+    systemctl --user stop ipfs
+
+    # Disable the service now
+    systemctl --user disable ipfs
+
+    # Disable linger
+    loginctl disable-linger $USER_ACCOUNT
+
+    str="Deleting IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $IPFS_SYSTEMD_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+# If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
+if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+
+    str="Deleting IPFS upstart service file..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $IPFS_UPSTART_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+# Which init system are we using?
+if [[ `/sbin/init --version` =~ upstart ]]; then
+    init_system="upstart"
+    printf "%b Init System: upstart\\n" "${INFO}"
+elif [[ `systemctl` =~ -\.mount ]]; then
+    init_system="systemd"
+    printf "%b Init System: systemd\\n" "${INFO}"
+elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
+    init_system="sysv-init"
+    printf "%b Init System: sysv-init\\n" "${INFO}"
+else; then
+    init_system="unknown"
+    printf "%b Init System: Unknown\\n" "${INFO}"
+fi
+
+
+# If using systemd and the IPFS service file does not exist yet, let's create it
+if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $init_system = "systemd" ]; then
+
+    printf "\\n" 
+    printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
+
+    # First create the folders it lives in if they don't already exist
+
+    if [ ! -d $USER_HOME/.config ]; then
+        str="Creating ~/.config folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ ! -d $USER_HOME/.config/systemd ]; then
+        str="Creating ~/.config/systemd folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ ! -d $USER_HOME/.config/systemd/user ]; then
+        str="Creating ~/.config/systemd/user folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    
+    # Create a new IPFS service file
+
+    str="Creating IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ... "
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $IPFS_SYSTEMD_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
+[Unit]
+Description=IPFS daemon
+
+[Service]
+# Environment="IPFS_PATH=/data/ipfs"  # optional path to ipfs init directory if not default (\$HOME/.ipfs)
+ExecStart=/usr/bin/ipfs daemon
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Enable linger so IPFS can run at boot
+    str="Enable lingering for user $USER_ACCOUNT..."
+    printf "%b %s" "${INFO}" "${str}"
+    loginctl enable-linger $USER_ACCOUNT
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Enable the service to run at boot
+    printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
+    systemctl --user enable ipfs
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Start the service now
+    str="Starting IPFS systemd service..."
+    printf "%b %s" "${INFO}" "${str}"
+    systemctl --user start ipfs
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using upstart and the IPFS service file does not exist yet, let's create it
+if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $init_system = "upstart" ]; then
+
+    # Create a new IPFS upstart service file
+
+    str="Creating IPFS upstart service file: $IPFS_UPSTART_SERVICE_FILE ... "
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $IPFS_UPSTART_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_UPSTART_SERVICE_FILE
+description "ipfs: interplanetary filesystem"
+
+start on (local-filesystems and net-device-up IFACE!=lo)
+stop on runlevel [!2345]
+
+limit nofile 524288 1048576
+limit nproc 524288 1048576
+setuid $USER_ACCOUNT
+chdir $USER_HOME
+respawn
+exec ipfs daemon
+EOF
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+
+    # Start the service now
+    str="Starting IPFS upstart service..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo service ipfs start
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using upstart and the IPFS service file does not exist yet, let's create it
+if [ $init_system = "sysv-init" ] || $init_system = "unknown" ]; then
+
+    printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    exit 1
 
 fi
 
@@ -3374,10 +3662,10 @@ digiassets_create_settings() {
     local str
 
     # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
-    if [ $RESET_MODE = true ] && [ -d "$DGA_SETTINGS_FOLDER" ]; then
+    if [ $RESET_MODE = true ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
         str="Reset Mode is Enabled. Deleting existing DigiAssets settings..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f -r $DGA_SETTINGS_FOLDER
+        rm -f -r $DGA_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -3882,6 +4170,9 @@ main() {
 
     # Install/upgrade IPFS
     ipfs_do_install
+
+    # Create IPFS service
+    ipfs_create_service
 
     # Install DigiAssets along with IPFS
     digiassets_do_install
