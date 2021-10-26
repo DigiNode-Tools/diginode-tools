@@ -2781,27 +2781,6 @@ if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $init_system = "systemd" ]; then
 
     printf "\\n" 
     printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
-
-    # First create the folders it lives in if they don't already exist
-
-    if [ ! -d $USER_HOME/.config ]; then
-        str="Creating ~/.config folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    if [ ! -d $USER_HOME/.config/systemd ]; then
-        str="Creating ~/.config/systemd folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    if [ ! -d $USER_HOME/.config/systemd/user ]; then
-        str="Creating ~/.config/systemd/user folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
     
     # Create a new DigiByte daemon service file
 
