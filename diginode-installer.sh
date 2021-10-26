@@ -2797,7 +2797,8 @@ Group=$USER_ACCOUNT
 
 Type=forking
 PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
-ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid
+ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
+-conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
 
 Restart=always
 PrivateTmp=true
@@ -2836,11 +2837,33 @@ if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $init_system = "upstart" ]; then
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT touch $DGB_UPSTART_SERVICE_FILE
     sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
-description "digibyte daemon"
+description "DigiByte Core Daemon"
 
-################################
-DGB UPSTART SERVICE WILL GO HERE
-################################ 
+start on runlevel [2345]
+stop on starting rc RUNLEVEL=[016]
+
+env DIGBYTED_BIN="$DGB_DAEMON"
+env DIGIBYTED_USER="$USER_ACCOUNT"
+env DIGIBYTED_GROUP="$USER_ACCOUNT"
+env DIGIBYTED_PIDFILE="$DGB_SETTINGS_LOCATION/digibyted.pid"
+env DIGIBYTED_CONFIGFILE="$DGB_CONF_FILE"
+env DIGIBYTED_DATADIR="$DGB_DATA_LOCATION"
+
+expect fork
+
+respawn
+respawn limit 5 120
+kill timeout 600
+
+exec start-stop-daemon \
+    --start \
+    --pidfile "\$DIGIBYTED_PIDFILE" \
+    --chuid \$DIGIBYTED_USER:\$DIGIBYTED_GROUP \
+    --exec "\$DIGIBYTED_BIN" \
+    -- \
+    -pid="\$DIGIBYTED_PIDFILE" \
+    -conf="\$DIGIBYTED_CONFIGFILE" \
+    -datadir="\$DIGIBYTED_DATADIR"
 
 EOF
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
