@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Name:    DigiNode Status Monitor
-# Purpose: Monitor the status of your DigiByte Node and DigiAsset Metadata server.
+# Purpose: Monitor the status of your DigiByte Node and DigiAsset Node.
 #          Includes stats for the Raspberry Pi when used.
 #
 # Author:  Olly Stedall @saltedlolly <digibyte.help> 
@@ -56,7 +56,7 @@ DGN_VER_THIS=0.0.0
 VERBOSE_MODE="YES"
 
 # This is the command people will enter to run the install script.
-DGN_INSTALLER_OFFICIAL_CMD="curl http://diginode-installer.digibyte.help | bash"
+DGNT_INSTALLER_OFFICIAL_CMD="curl http://diginode-installer.digibyte.help | bash"
 
 #######################################################
 #### UPDATE THESE VALUES FROM THE INSTALLER FIRST #####
@@ -119,12 +119,12 @@ get_script_location() {
     SOURCE="$(readlink "$SOURCE")"
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
-  DGN_TOOLS_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGN_INSTALLER_SCRIPT_NOW=$DGN_TOOLS_LOCATION_NOW/diginode-installer.sh
+  DGNT_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  DGNT_INSTALLER_SCRIPT_NOW=$DGNT_LOCATION_NOW/diginode-installer.sh
 
   if [ "$VERBOSE_MODE" = "YES" ]; then
-    printf "%b Monitor Script Location: $DGN_TOOLS_LOCATION_NOW\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGN_INSTALLER_SCRIPT_NOW\\n" "${INFO}"
+    printf "%b Monitor Script Location: $DGNT_LOCATION_NOW\\n" "${INFO}"
+    printf "%b Install Script Location (presumed): $DGNT_INSTALLER_SCRIPT_NOW\\n" "${INFO}"
   fi
 }
 
@@ -133,13 +133,13 @@ import_installer_functions() {
     # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
     RUN_INSTALLER="NO"
     # If the installer file exists,
-    if [[ -f "$DGN_INSTALLER_SCRIPT_NOW" ]]; then
+    if [[ -f "$DGNT_INSTALLER_SCRIPT_NOW" ]]; then
         # source it
         if [ $VERBOSE_MODE = "YES" ]; then
           printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
           printf "\\n"
         fi
-        source "$DGN_INSTALLER_SCRIPT_NOW"
+        source "$DGNT_INSTALLER_SCRIPT_NOW"
     # Otherwise,
     else
         printf "\\n"
@@ -151,7 +151,7 @@ import_installer_functions() {
         printf "%b If you have not already setup your DigiNode, please use\\n" "${INDENT}"
         printf "%b the official DigiNode installer:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   $DGN_INSTALLER_OFFICIAL_CMD\\n" "${INDENT}"
+        printf "%b   $DGNT_INSTALLER_OFFICIAL_CMD\\n" "${INDENT}"
         printf "\\n"
         printf "%b Alternatively, to use 'DigiNode Status Monitor' with your existing\\n" "${INDENT}"
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
@@ -458,8 +458,6 @@ is_dganode_installed() {
       ###############################################################
 
 
-
-
       # Let's check if Go-IPFS is already installed
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       if [ "$IPFS_VER_LOCAL" = "" ]; then
@@ -491,7 +489,7 @@ is_dganode_installed() {
         echo "[${txtgrn}✓${txtrst}] Required \'DigiAssets Node\' packages are installed."
         echo "    Found: [${txtgrn}✓${txtrst}] go-ipfs   [${txtgrn}✓${txtrst}] nodejs" 
       else
-        echo "[${txtred}x${txtrst}] Required \'DigiAsset Metadata Server\' pacakages are NOT installed:"
+        echo "[${txtred}x${txtrst}] Required \'DigiAsset Node\' pacakages are NOT installed:"
         printf "    Found: ["
         if [ $ipfs_installed = "yes" ]; then
           printf "${txtgrn}✓${txtrst}"
@@ -506,7 +504,7 @@ is_dganode_installed() {
         fi
           printf "] nodejs"
           echo ""
-          echo "     Some packages required to run the DigiAsset Metadata Server are not"
+          echo "     Some packages required to run the DigiAsset Node are not"
           echo "     currently installed."
           echo ""
           echo "     You can install them using the DigiNode Installer."
@@ -521,7 +519,7 @@ is_dganode_installed() {
       if [ "" = "$(ps aux | grep ipfs)" ]; then
           echo "[${txtred}x${txtrst}] IPFS daemon is NOT running."
           echo ""
-          echo "The IPFS daemon is required to run the DigiAsset Metadata Server."
+          echo "The IPFS daemon is required to run the DigiAsset Node."
           echo ""
           echo "You can set it up using the DigiNode Installer."
           echo ""
@@ -541,9 +539,9 @@ is_dganode_installed() {
         if [ $dga_status = "nodejsinstalled" ]; then
            dga_status="installed" 
         fi
-        echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is installed - index.js located."
+        echo "[${txtgrn}✓${txtrst}] DigiAsset Node is installed - index.js located."
       else
-          echo "[${txtred}x${txtrst}] DigiAsset Metadata Server NOT found."
+          echo "[${txtred}x${txtrst}] DigiAsset Node NOT found."
           echo ""
           echo "   DigiAssets Metadata Server is not currently installed. You can install"
           echo "   it using the DigiNode Installer."
@@ -556,10 +554,10 @@ is_dganode_installed() {
       if [ $dga_status = "installed" ]; then
         if [! $(pgrep -f index.js) -eq "" ]; then
             dga_status="running"
-            echo "[${txtgrn}✓${txtrst}] DigiAsset Metadata Server is running."
+            echo "[${txtgrn}✓${txtrst}] DigiAsset Node is running."
         else
             dga_status="stopped"
-            echo "[${txtred}x${txtrst}] DigiAsset Metadata Server is NOT running.."
+            echo "[${txtred}x${txtrst}] DigiAsset Node is NOT running.."
             echo ""
             startwait=yes
         fi
@@ -570,10 +568,10 @@ is_dganode_installed() {
 # Load the diginode.settings file if it exists. Create it if it doesn't. 
 load_diginode_settings() {
     # Get saved variables from diginode.settings. Create settings file if it does not exist.
-    if test -f $DGN_SETTINGS_FILE; then
+    if test -f $DGNT_SETTINGS_FILE; then
       # import saved variables from settings file
       echo "[i] Importing diginode.settings file..."
-      source $DGN_SETTINGS_FILE
+      source $DGNT_SETTINGS_FILE
     else
       # create diginode.settings file
       create_diginode_settings
@@ -605,7 +603,7 @@ is_jq_installed() {
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
       echo "$CROSS jq package is required and will be installed. "
-      echo "    Required to retrieve data from the DigiAsset Metadata server."
+      echo "    Required to retrieve data from the DigiAsset Node."
       echo ""
       install_jq='yes'
     else
@@ -724,62 +722,62 @@ fi
 firstrun_sm_configs() {
 
 # If this is the first time running the status monitor, set the variables that update periodically
-if [ $DGN_MONITOR_LAST_RUN="" ]; then
+if [ $DGNT_MONITOR_LAST_RUN="" ]; then
 
     echo "[i] First time running DigiMon - performing initial setup."
     echo "    Storing external and internal IP in settings file..."
 
     # update external IP address and save to settings file
     IP4_EXTERNAL=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
 
     # update internal IP address and save to settings file
     IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
-    sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
 
     echo "    Storing timer variables in settings file..."
 
     # set 15 sec timer and save to settings file
     savedtime15sec="$(date)"
-    sed -i -e "/^savedtime15sec=/s|.*|savedtime15sec=\"$(date)\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^savedtime15sec=/s|.*|savedtime15sec=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
     savedtime1min="$(date)"
-    sed -i -e "/^savedtime1min=/s|.*|savedtime1min=\"$(date)\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^savedtime1min=/s|.*|savedtime1min=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 15 min timer and save to settings file
     savedtime15min="$(date)"
-    sed -i -e "/^savedtime15min=/s|.*|savedtime15min=\"$(date)\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^savedtime15min=/s|.*|savedtime15min=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set daily timer and save to settings file
     savedtime1day="$(date)"
-    sed -i -e "/^savedtime1day=/s|.*|savedtime1day=\"$(date)\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^savedtime1day=/s|.*|savedtime1day=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set weekly timer and save to settings file
     savedtime1week="$(date)"
-    sed -i -e "/^savedtime1week=/s|.*|savedtime1week=\"$(date)\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^savedtime1week=/s|.*|savedtime1week=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     echo "    Storing DigiByte Core current version number in settings file..."  
 
     # check for current version number of DigiByte Core and save to settings file
     DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     echo "    Detected: DigiByte Core v${DGB_VER_LOCAL}" 
 
     # Log date of Status Monitor first run to diginode.settings
-    DGN_MONITOR_FIRST_RUN=$(date)
-    sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
+    DGNT_MONITOR_FIRST_RUN=$(date)
+    sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGNT_SETTINGS_FILE
 
 
     # if digiassets server is installed, set variables
     if [ $dga_status = "running" ]; then
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
-      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-      sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGNT_SETTINGS_FILE
       DGA_FIRST_RUN=$(date)
-      sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGNT_SETTINGS_FILE
     fi
 fi
 
@@ -792,11 +790,11 @@ firstrun_dga_configs() {
       echo "[i] First time running DigiAssets Node - performing initial setup."
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
-      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-      sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGNT_SETTINGS_FILE
       DGA_FIRST_RUN=$(date)
-      sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGNT_SETTINGS_FILE
   fi
 
 }
@@ -1072,12 +1070,12 @@ if [ $timedif15sec -gt 15 ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
-        if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+        if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
-          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE=NO
         else
           DGB_UPDATE_AVAILABLE=YES
@@ -1128,12 +1126,12 @@ fi
 IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
 if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
   IP4_INTERNAL = $IP4_INTERNAL_NEW
-  sed -i -e '/^IP4_INTERNAL=/s|.*|IP4_INTERNAL="$IP4_INTERNAL_NEW"|' $DGN_SETTINGS_FILE
+  sed -i -e '/^IP4_INTERNAL=/s|.*|IP4_INTERNAL="$IP4_INTERNAL_NEW"|' $DGNT_SETTINGS_FILE
 fi
 
 # Update diginode.settings with when Status Monitor last ran
-DGN_MONITOR_LAST_RUN=$(date)
-sed -i -e '/^DGN_MONITOR_LAST_RUN=/s|.*|DGN_MONITOR_LAST_RUN="$DGN_MONITOR_LAST_RUN"|' $DGN_SETTINGS_FILE
+DGNT_MONITOR_LAST_RUN=$(date)
+sed -i -e '/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN="$DGNT_MONITOR_LAST_RUN"|' $DGNT_SETTINGS_FILE
 
 savedtime1min="$timenow"
 
@@ -1151,7 +1149,7 @@ if [ $timedif15min -gt 300 ]; then
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
     if [ $IP4_EXTERNAL_NEW != $IP4_EXTERNAL ]; then
       IP4_EXTERNAL = $IP4_EXTERNAL_NEW
-      sed -i -e '/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL="$IP4_EXTERNAL_NEW"|' $DGN_SETTINGS_FILE
+      sed -i -e '/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL="$IP4_EXTERNAL_NEW"|' $DGNT_SETTINGS_FILE
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -1160,9 +1158,9 @@ if [ $timedif15min -gt 300 ]; then
       echo "need to add check for change of DGA version number" 
 
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
-      sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+      sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-      sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+      sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
@@ -1187,25 +1185,25 @@ if [ $timedif24hrs -gt 86400 ]; then
     # check for system updates
     SYSTEM_SECURITY_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1)
     SYSTEM_REGULAR_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2)
-    sed -i -e "/^SYSTEM_SECURITY_UPDATES=/s|.*|SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"|" $DGN_SETTINGS_FILE
-    sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGN_SETTINGS_FILE
+    sed -i -e "/^SYSTEM_SECURITY_UPDATES=/s|.*|SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGNT_SETTINGS_FILE
 
 
     # Check for new release of DigiByte Core on Github
-    DGB_VER_GITHUB=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+    DGB_VER_RELEASE=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
         # Compare current DigiByte Core version with Github version to know if there is a new version available
-        if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_GITHUB) ]; then
+        if [ $(version $DGB_VER_LOCAL) -lt $(version $DGB_VER_RELEASE) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
-          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGN_SETTINGS_FILE
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE=YES
         else
           DGB_UPDATE_AVAILABLE=NO
@@ -1213,33 +1211,45 @@ if [ $timedif24hrs -gt 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
- #   DGN_VER_GITHUB=
- #   sed -i -e "/^DGN_VER_GITHUB=/s|.*|DGN_VER_GITHUB=\"$DGN_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+ #   DGNT_VER_RELEASE=
+ #   sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     
-    # Check for new release of DigiAsset Node on Github
- #   DGA_VER_GITHUB=
- #   sed -i -e "/^DGA_VER_GITHUB=/s|.*|DGA_VER_GITHUB=\"$DGA_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+
+
+    # Check for new release of DigiAsset Node
+    DGA_VER_RELEASE=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
+    if [ "$DGA_VER_RELEASE" != "" ]; then
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        # Check if there is an update for Go-IPFS
+        if [ $(version $DGA_VER_LOCAL) -ge $(version $DGA_VER_RELEASE) ]; then
+          DGA_UPDATE_AVAILABLE=NO
+        else
+          DGA_UPDATE_AVAILABLE=YES
+        fi
+    fi
 
     # Check for new release of Go-IPFS
     IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
-    sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
-
-    # Check if there is an update for Go-IPFS
-    if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-      IPFS_UPDATE_AVAILABLE=NO
-    else
-      IPFS_UPDATE_AVAILABLE=YES
+    if [ "$IPFS_VER_RELEASE" != "" ]; then
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        # Check if there is an update for Go-IPFS
+        if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+          IPFS_UPDATE_AVAILABLE=NO
+        else
+          IPFS_UPDATE_AVAILABLE=YES
+        fi
     fi
 
     # Check for new release of IPFS Updater
-    IPFS_UPDATER_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
-    sed -i -e "/^IPFS_UPDATER_VER_RELEASE=/s|.*|IPFS_UPDATER_VER_RELEASE=\"$IPFS_UPDATER_VER_RELEASE\"|" $DGN_SETTINGS_FILE
-
-    # Check if there is an update for IPFS Updater
-    if [ $(version $IPFS_UPDATER_VER_LOCAL) -ge $(version $IPFS_UPDATER_VER_RELEASE) ]; then
-      IPFS_UPDATER_UPDATE_AVAILABLE=NO
-    else
-      IPFS_UPDATER_UPDATE_AVAILABLE=YES
+    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+    if [ "$IPFSU_VER_RELEASE" != "" ]; then
+      sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+      # Check if there is an update for IPFS Updater
+      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
+        IPFSU_UPDATE_AVAILABLE=NO
+      else
+        IPFSU_UPDATE_AVAILABLE=YES
+      fi
     fi
 
     # reset 24 hour timer
@@ -1292,7 +1302,7 @@ echo " ╠═══════════════╬═══════�
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 if [ $DGB_UPDATE_AVAILABLE = "YES" ];then
-printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_GITHUB${txtrst}" "]  ║"
+printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
 fi
@@ -1303,9 +1313,13 @@ else
 printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
-printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGN_VER_THIS"
-echo " ║               ╠═════════════════════════════════════════════════════╣"
+if [ $DGA_UPDATE_AVAILABLE = "YES" ];then
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+else
+printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
+fi
+echo " ║               ╠═════════════════════════════════════════════════════╣"
+printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGNT_VER_LOCAL"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
 if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
 echo "WARNING: Your DigiByte daemon service is not currently running."

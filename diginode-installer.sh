@@ -67,8 +67,8 @@ fi
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
-DGN_SETTINGS_LOCATION=$USER_HOME/.digibyte
-DGN_SETTINGS_FILE=$DGN_SETTINGS_LOCATION/diginode.settings
+DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
+DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size increases
@@ -76,17 +76,17 @@ DGB_DATA_REQUIRED_HR="28Gb"
 DGB_DATA_REQUIRED_KB="28000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
-DGN_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
-DGN_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGN_INSTALLER_GITHUB_LATEST_RELEASE_URL=
-DGN_INSTALLER_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
-DGN_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+DGNT_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
+DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL=
+DGNT_INSTALLER_GIHTUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
+DGNT_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
 # These are the commands that the use pastes into the terminal to run the installer
-DGN_INSTALLER_OFFICIAL_CMD="curl $DGN_INSTALLER_OFFICIAL_URL | bash"
+DGNT_INSTALLER_OFFICIAL_CMD="curl $DGNT_INSTALLER_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
-DGN_GITHUB_URL="https://github.com/saltedlolly/diginode.git"
+DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode.git"
 
 # DigiByte.Help URLs
 DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shwon in welcome box.
@@ -112,7 +112,7 @@ c=70
 # The UNATTENDED_MODE flag is one example of this
 RESET_MODE=false
 UNATTENDED_MODE=false
-DGN_TOOLS_BRANCH="release"
+DGNT_BRANCH="release"
 UNINSTALL=false
 DIGINODE_SKIP_OS_CHECK=false
 # Check arguments for the undocumented flags
@@ -121,10 +121,10 @@ for var in "$@"; do
     case "$var" in
         "--reset" ) RESET_MODE=true;;
         "--unattended" ) UNATTENDED_MODE=true;;
-        "--devmode" ) DGN_TOOLS_BRANCH="develop";; 
-        "--mainmode" ) DGN_TOOLS_BRANCH="main";; 
+        "--devmode" ) DGNT_BRANCH="develop";; 
+        "--mainmode" ) DGNT_BRANCH="main";; 
         "--uninstall" ) UNINSTALL=true;;
-        "--skiposcheck" ) DIGINODE_SKIP_OS_CHECK=true;;
+        "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
     esac
 done
 
@@ -186,7 +186,7 @@ is_verbose_mode() {
 is_unnattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        if test -f "$DGN_SETTINGS_FILE"; then
+        if test -f "$DGNT_SETTINGS_FILE"; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
         else
             printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
@@ -223,36 +223,36 @@ create_diginode_settings() {
 local str
 
 # If we are in reset mode, delete the diginode.settings file, if it already exists
-  if [ $RESET_MODE = true ] && [ -f "$DGN_SETTINGS_FILE" ]; then
+  if [ $RESET_MODE = true ] && [ -f "$DGNT_SETTINGS_FILE" ]; then
     printf "%b Reset Mode is Enabled. Deleting existing diginode.settings file.\\n" "${INFO}"
-    rm -f $DGN_SETTINGS_FILE
+    rm -f $DGNT_SETTINGS_FILE
   fi
 
 # If the diginode.settings file does not already exist, then create it
-if [ ! -f "$DGN_SETTINGS_FILE" ]; then
+if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
   # create .diginode settings folder if it does not exist
-  if [ ! -d "$DGN_SETTINGS_LOCATION" ]; then
+  if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
     str="Creating ~/.diginode folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
-        printf "%b   Folder location: $DGN_SETTINGS_LOCATION\\n" "${INDENT}"
-        sudo -u $USER_ACCOUNT mkdir $DGN_SETTINGS_LOCATION
+        printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
     else
-        sudo -u $USER_ACCOUNT mkdir $DGN_SETTINGS_LOCATION
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
   fi
 
   # Make sure the user owns this folder
-  # chown $USER_ACCOUNT $DGN_SETTINGS_LOCATION
+  # chown $USER_ACCOUNT $DGNT_SETTINGS_LOCATION
 
   # create diginode.settings file
   str="Creating ~/.diginode/diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
-  sudo -u $USER_ACCOUNT touch $DGN_SETTINGS_FILE
-  cat <<EOF > $DGN_SETTINGS_FILE
+  sudo -u $USER_ACCOUNT touch $DGNT_SETTINGS_FILE
+  cat <<EOF > $DGNT_SETTINGS_FILE
 #!/bin/bash
 # This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
 
@@ -265,8 +265,8 @@ if [ ! -f "$DGN_SETTINGS_FILE" ]; then
 # If you want to change the default location of folders you can edit them here
 # Important: Use the USER_HOME variable to identify your home folder location.
 
-# DGN_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
-# DGN_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
+# DGNT_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
+# DGNT_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
 
 # DIGIBYTE CORE BLOCKCHAIN DATA LOCATION:
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
@@ -366,24 +366,19 @@ DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
 DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 
+# DIGIBYTE SYSTEM SERVICE FILES:
+DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
+DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
+
 # IPFS NODE LOCATION
 IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
-# DIGIASSETS NODE LOCATION:
+# DIGIASSET NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 DGA_SETTINGS_LOCATION=$DGB_SETTINGS_LOCATION/assetnode_config
 DGA_SETTINGS_FILE=$DGA_SETTINGS_LOCATION/main.json
 
-# DIGINODE TOOLS LOCATION:
- # This is the default location where the scripts get installed to. There should be no need to change this.
-DGN_TOOLS_LOCATION=$USER_HOME/diginode
-
-# DIGINODE TOOLS FILES:
-DGN_INSTALLER_SCRIPT=\$DGN_TOOLS_LOCATION/diginode-installer.sh
-DGN_INSTALLER_LOG=\$DGN_TOOLS_LOCATION/diginode.log
-DGN_MONITOR_SCRIPT=\$DGN_TOOLS_LOCATION/diginode.sh
-
-# DIGIASSETS NODE FILES
+# DIGIASSET NODE FILES
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 
 # SYSTEM SERVICE FILES:
@@ -395,19 +390,27 @@ IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
 # Store DigiByte Core Installation details:
 DGB_INSTALL_DATE=
 DGB_UPGRADE_DATE=
-DGB_VER_GITHUB=
+DGB_VER_RELEASE=
 DGB_VER_LOCAL=
 DGB_VER_LOCAL_CHECK_FREQ=daily
 
-# Store DigiNode Tools installation details
+# DIGINODE TOOLS LOCATION:
+# This is the default location where the scripts get installed to. There should be no need to change this.
+DGNT_LOCATION=$USER_HOME/diginode
+
+# DIGINODE TOOLS FILES:
+DGNT_INSTALLER_SCRIPT=\$DGNT_LOCATION/diginode-installer.sh
+DGNT_INSTALLER_LOG=\$DGNT_LOCATION/diginode.log
+DGNT_MONITOR_SCRIPT=\$DGNT_LOCATION/diginode.sh
+
+# DIGINODE TOOLS INSTALLATION DETAILS:
 # Release/Github versions are queried once a day and stored here. Local version number are queried every minute.
-DGN_INSTALL_DATE=
-DGN_UPGRADE_DATE=
-DGN_MONITOR_FIRST_RUN=
-DGN_MONITOR_LAST_RUN=
-DGN_VER_LOCAL=
-DGN_VER_GITHUB=
-DGA_FIRST_RUN=
+DGNT_INSTALL_DATE=
+DGNT_UPGRADE_DATE=
+DGNT_MONITOR_FIRST_RUN=
+DGNT_MONITOR_LAST_RUN=
+DGNT_VER_LOCAL=
+DGNT_VER_RELEASE=
 
 # THese are updated automatically every time DigiNode Tools is installed/upgraded. 
 # Stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
@@ -415,17 +418,18 @@ DGN_TOOLS_LOCAL_BRANCH=
 # Stores the version number of the release branch (if currently installed)
 DGN_TOOLS_LOCAL_RELEASE_VER=
 
-# Store DigiAssets Node installation details:
+# Store DigiAsset Node installation details:
 DGA_INSTALL_DATE=
 DGA_UPGRADE_DATE=
+DGA_FIRST_RUN=
 DGA_VER_LOCAL=
-DGA_VER_GITHUB=
+DGA_VER_RELEASE=
 
 # Store IPFS Updater installation details:
-IPFS_UPDATER_VER_LOCAL=
-IPFS_UPDATER_VER_RELEASE=
-IPFS_UPDATER_INSTALL_DATE=
-IPFS_UPDATER_UPGRADE_DATE=
+IPFSU_VER_LOCAL=
+IPFSU_VER_RELEASE=
+IPFSU_INSTALL_DATE=
+IPFSU_UPGRADE_DATE=
 
 # Store GoIPFS installation details:
 IPFS_VER_LOCAL=
@@ -472,17 +476,17 @@ SYSTEM_SECURITY_UPDATES=
 
 # Store when an open port test last ran successfully
 # Note: If you want to run a port test again, remove the status and date from here
-ipfs_port_test_status=
-ipfs_port_test_date=
-dgb_port_test_status=
-dgb_port_test_date=
+# If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
+IPFS_PORT_TEST_STATUS=
+IPFS_PORT_TEST_DATE_date=
+
 
 
 EOF
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
-        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
     else
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
@@ -492,7 +496,7 @@ EOF
         printf "\\n"
         printf "%b %bIMPORTANT: Customize your Unattended Install before running this again!!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Since this is the first time running the DigiNode Installer, a settings file used for\\n" "${INDENT}"
-        printf "%b customizing an Unattended Install has just been created at: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "%b customizing an Unattended Install has just been created at: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you want to customize your Unattended Install of DigiNode, you need to edit\\n" "${INDENT}"
         printf "%b this file before running the Installer again with the --unattended flag.\\n" "${INDENT}"
@@ -500,7 +504,7 @@ EOF
         if [ "$TEXTEDITOR" != "" ]; then
             printf "%b You can edit it by entering:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE\\n" "${INDENT}"
+            printf "%b   $TEXTEDITOR $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
         fi
         exit
@@ -509,11 +513,11 @@ EOF
     # The settings file exists, so source it
     str="Importing diginode.settings file..."
     printf "%b %s" "${INFO}" "${str}"
-    source $DGN_SETTINGS_FILE
+    source $DGNT_SETTINGS_FILE
 
     if [ "$VERBOSE_MODE" = "YES" ]; then
         printf "\\n"
-        printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+        printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
     else
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -521,7 +525,7 @@ EOF
     fi
 
     # Sets a variable to know that the diginode.settings file has been created for the first time
-    IS_DGN_SETTINGS_FILE_NEW="YES"
+    IS_DGNT_SETTINGS_FILE_NEW="YES"
 
 fi
 
@@ -531,7 +535,7 @@ fi
 # check if diginode.settings file exists
 import_diginode_settings() {
 
-if [ -f "$DGN_SETTINGS_FILE" ]; then
+if [ -f "$DGNT_SETTINGS_FILE" ]; then
 
     # The settings file exists, so source it
     if [[ "${EUID}" -eq 0 ]]; then
@@ -539,12 +543,12 @@ if [ -f "$DGN_SETTINGS_FILE" ]; then
         printf "%b %s" "${INFO}" "${str}"
     fi
 
-    source $DGN_SETTINGS_FILE
+    source $DGNT_SETTINGS_FILE
     
     if [[ "${EUID}" -eq 0 ]]; then
         if [ "$VERBOSE_MODE" = "YES" ]; then
             printf "\\n"
-            printf "%b   File location: $DGN_SETTINGS_FILE\\n" "${INDENT}"
+            printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -657,8 +661,8 @@ set_sys_variables() {
 
         # Get internal IP address
         IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
-        if [ -f "$DGN_SETTINGS_FILE" ]; then
-            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGN_SETTINGS_FILE
+        if [ -f "$DGNT_SETTINGS_FILE" ]; then
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Lookup disk usage, and update diginode.settings if present
@@ -708,17 +712,17 @@ update_disk_usage() {
         DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
         # Update diginode.settings file it it exists
-        if [ -f "$DGN_SETTINGS_FILE" ]; then
-            sed -i -e '/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"|' $DGN_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"|' $DGN_SETTINGS_FILE
+        if [ -f "$DGNT_SETTINGS_FILE" ]; then
+            sed -i -e '/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"|' $DGNT_SETTINGS_FILE
+            sed -i -e '/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"|' $DGNT_SETTINGS_FILE
         fi
 
 }
@@ -2430,18 +2434,18 @@ fi
 
 }
 
-# The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAssets Node
+# The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 first_install_menu() {
 
-    opt1a="Install DigiByte + DigiAssets Node"
-    opt1b="Install a Full DigiNode (Recommended)."
+    opt1a="Install DigiByte Core + DigiAsset Node"
+    opt1b="Run a Full DigiNode. (Recommended)"
     
     opt2a="Install DigiByte Core ONLY"
-    opt2b="DigiAssets Node will NOT be installed."
+    opt2b="DigiAsset Node will NOT be installed."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to only install DigiByte Core. Running both is recommended. The DigiAssets Node helps to decentralize DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets, and let’s you earn \$DGB for hosting other people's metadata.\\n\\nPlease choose one of the options below:\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to only install DigiByte Core. Running both is recommended. The DigiAsset Node helps to decentralize DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets, and let’s you earn \$DGB for hosting other people's metadata.\\n\\nPlease choose one of the options below:\\n\\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
@@ -2587,10 +2591,10 @@ diginode_tools_check() {
     if [ "$dgn_tools_install_now" = "YES" ]; then
 
         # first delete the current installed version of DigiNode Tools (if it exists)
-        if [[ -d $DGN_TOOLS_LOCATION ]]; then
+        if [[ -d $DGNT_LOCATION ]]; then
             str="Removing DigiNode Tools current version..."
             printf "\\n%b %s" "${INFO}" "${str}"
-            rm -rf d $DGN_TOOLS_LOCATION
+            rm -rf d $DGNT_LOCATION
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -2601,31 +2605,31 @@ diginode_tools_check() {
             str="Installing DigiNode Tools develop branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=develop|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=main|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         elif [ $DGN_TOOLS_LOCAL_BRANCH = "release" ]; then
             str="Installing DigiNode Tools v${dgn_github_rel_ver}..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=release|" $DGN_SETTINGS_FILE
-            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=$dgn_github_rel_ver|" $DGN_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_BRANCH=/s|.*|DGN_TOOLS_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGN_TOOLS_LOCAL_RELEASE_VER=/s|.*|DGN_TOOLS_LOCAL_RELEASE_VER=$dgn_github_rel_ver|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Make downloads executable
         str="Making DigiNode scripts executable..."
         printf "\\n%b %s" "${INFO}" "${str}"
-        chmod +x $DGN_INSTALLER_SCRIPT
-        chmod +x $DGN_MONITOR_SCRIPT
+        chmod +x $DGNT_INSTALLER_SCRIPT
+        chmod +x $DGNT_MONITOR_SCRIPT
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Add alias so entering 'diginode' works from any folder
@@ -2635,13 +2639,13 @@ diginode_tools_check() {
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode='$DGN_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
+            echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Updating 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGN_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -2652,13 +2656,13 @@ diginode_tools_check() {
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode-installer='$DGN_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
+            echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Updating 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGN_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -2668,7 +2672,7 @@ diginode_tools_check() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure your own personal DigiByte Node and a DigiAssets Node on this device.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure DigiByte Core and DigiAsset Node on this device.\\n\\nRunning DigiByte Core means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to earn DGB for hosting others data, as well as being able to create your own DigiAssets on your own node.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -2694,7 +2698,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 # If this is the first time running the installer, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
 
-if [ "$IS_DGN_SETTINGS_FILE_NEW" = "YES" ]; then
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored, for example.\\n\\nIn most cases, there should be no need to change anything, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
@@ -2705,7 +2709,7 @@ if [ "$IS_DGN_SETTINGS_FILE_NEW" = "YES" ]; then
       if [ "$TEXTEDITOR" != "" ]; then
             printf "%b Do this by entering:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   $TEXTEDITOR $DGN_SETTINGS_FILE\\n" "${INDENT}"
+            printf "%b   $TEXTEDITOR $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
             printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
             printf "\\n"
@@ -3090,7 +3094,7 @@ digibyte_check() {
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -3119,10 +3123,10 @@ digibyte_check() {
     # Check Github repo to find the version number of the latest DigiByte Core release
     str="Checking GitHub repository for the latest release..."
     printf "%b %s" "${INFO}" "${str}"
-    DGB_VER_GITHUB=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
     # If can't get Github version number
-    if [ "$DGB_VER_GITHUB" = "" ]; then
+    if [ "$DGB_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
@@ -3133,18 +3137,18 @@ digibyte_check() {
         DGB_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: v${DGB_VER_GITHUB}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
 
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
-      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_GITHUB} will be re-installed.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_RELEASE} will be re-installed.\\n" "${INFO}"
             DGB_INSTALL_TYPE="reset"
             DGB_DO_INSTALL=YES
           else
@@ -3155,7 +3159,7 @@ digibyte_check() {
             return
           fi
       else
-          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}\\n" "${INFO}"
+          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}\\n" "${INFO}"
           DGB_INSTALL_TYPE="upgrade"
           DGB_ASK_UPGRADE=YES
       fi
@@ -3163,7 +3167,7 @@ digibyte_check() {
 
     # If no current version is installed, then do a clean install
     if [ $DGB_STATUS = "not_detected" ]; then
-      printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
+      printf "%b DigiByte Core v${DGB_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
@@ -3177,7 +3181,7 @@ ipfs_check() {
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-    IPFS_UPDATER_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
     # Let's check if Go-IPFS is already installed
     str="Is Go-IPFS already installed?..."
@@ -3194,26 +3198,26 @@ ipfs_check() {
     if [ "$IPFS_STATUS" = "installed" ]; then
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
     # Let's check if IPFS Updater is already installed
     str="Is IPFS Updater already installed?..."
     printf "%b %s" "${INFO}" "${str}"
-    if [ "$IPFS_UPDATER_VER_LOCAL" = "" ]; then
-        IPFS_UPDATER_STATUS="not_detected"
+    if [ "$IPFSU_VER_LOCAL" = "" ]; then
+        IPFSU_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     else
-        IPFS_UPDATER_STATUS="installed"
+        IPFSU_STATUS="installed"
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Get the version number of the current IPFS Updater and write it to to the settings file
-    if [ "$IPFS_UPDATER_STATUS" = "installed" ]; then
+    if [ "$IPFSU_STATUS" = "installed" ]; then
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$IPFS_VER_UPDATER_LOCAL|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s IPFS Updater v${IPFS_VER_UPDATER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -3237,29 +3241,29 @@ ipfs_check() {
         return     
     else
         printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Check for latest IPFS Updater release online
     str="Checking IPFS website for the latest IPFS Updater release..."
     printf "%b %s" "${INFO}" "${str}"
     # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
-    IPFS_UPDATER_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
 
     # If can't get Github version number
-    if [ "$IPFS_UPDATER_VER_RELEASE" = "" ]; then
+    if [ "$IPFSU_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
         printf "%b IPFS Updater cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
-        IPFS_UPDATER_DO_INSTALL=NO
-        IPFS_UPDATER_INSTALL_TYPE="none"
-        IPFS_UPDATER_UPDATE_AVAILABLE=NO
+        IPFSU_DO_INSTALL=NO
+        IPFSU_INSTALL_TYPE="none"
+        IPFSU_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: v${IPFS_UPDATER_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFS_UPDATER_VER_RELEASE=/s|.*|IPFS_UPDATER_VER_RELEASE=\"$IPFS_UPDATER_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -3287,24 +3291,24 @@ ipfs_check() {
     fi 
 
         # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
-    if [ ! $IPFS_UPDATER_VER_LOCAL = "" ]; then
+    if [ ! $IPFSU_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
-      if [ $(version $IPFS_UPDATER_VER_LOCAL) -ge $(version $IPFS_UPDATER_VER_RELEASE) ]; then
+      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
           printf "%b IPFS Updater is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. IPFS Updater v${IPFS_UPDATER_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            IPFS_UPDATER_INSTALL_TYPE="reset"
-            IPFS_UPDATER_DO_INSTALL=YES
+            printf "%b Reset Mode is Enabled. IPFS Updater v${IPFSU_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            IPFSU_INSTALL_TYPE="reset"
+            IPFSU_DO_INSTALL=YES
           else
             printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
-            IPFS_UPDATER_DO_INSTALL=NO
-            IPFS_UPDATER_INSTALL_TYPE="none"
-            IPFS_UPDATER_UPDATE_AVAILABLE=NO
+            IPFSU_DO_INSTALL=NO
+            IPFSU_INSTALL_TYPE="none"
+            IPFSU_UPDATE_AVAILABLE=NO
           fi
       else
-          printf "%b IPFS Updater will be upgraded from v${IPFS_UPDATER_VER_LOCAL} to v${IPFS_UPDATER_VER_RELEASE}\\n" "${INFO}"
-          IPFS_UPDATER_INSTALL_TYPE="upgrade"
-          IPFS_UPDATER_DO_UPGRADE=YES
+          printf "%b IPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}\\n" "${INFO}"
+          IPFSU_INSTALL_TYPE="upgrade"
+          IPFSU_DO_UPGRADE=YES
       fi
     fi 
 
@@ -3316,10 +3320,10 @@ ipfs_check() {
     fi
 
     # If no current version is installed, then do a clean install
-    if [ $IPFS_UPDATER_STATUS = "not_detected" ]; then
-      printf "%b IPFS Updater v${IPFS_UPDATER_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
-      IPFS_UPDATER_INSTALL_TYPE="new"
-      IPFS_UPDATER_DO_INSTALL=YES
+    if [ $IPFSU_STATUS = "not_detected" ]; then
+      printf "%b IPFS Updater v${IPFSU_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      IPFSU_INSTALL_TYPE="new"
+      IPFSU_DO_INSTALL=YES
     fi
 
     printf "\\n"
@@ -3346,7 +3350,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # First, Upgrade IPFS Updater if there is an update
 
-    if [ "$IPFS_UPDATER_DO_INSTALL" = "YES" ]; then
+    if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
 
         # Delete any old IPFS Updater tar files
         str="Deleting any old IPFS Updater tar.gz files from home folder..."
@@ -3355,9 +3359,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Downloading latest IPFS Updater tar.gz from IPFS distributions website
-        str="Downloading IPFS Updater v${IPFS_UPDATER_VER_RELEASE} from IPFS distributions website..."
+        str="Downloading IPFS Updater v${IPFSU_VER_RELEASE} from IPFS distributions website..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFS_UPDATER_VER_RELEASE}/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+        sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # If an there is an existing IPFS Updater version, move it it to a backup version
@@ -3369,13 +3373,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         # Extracting IPFS Updator tar.gz
-        str="Extracting IPFS Updator v${IPFS_UPDATER_VER_RELEASE} ..."
+        str="Extracting IPFS Updator v${IPFSU_VER_RELEASE} ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Install IPFS Updater
-        printf "%b Installing IPFS Updater v${IPFS_UPDATER_VER_RELEASE} ...\\n" "${INFO}"
+        printf "%b Installing IPFS Updater v${IPFSU_VER_RELEASE} ...\\n" "${INFO}"
         cd $USER_HOME/ipfs-update
         sudo -u $USER_ACCOUNT bash install.sh
 
@@ -3388,26 +3392,26 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         # Delete IPFS Updater tar.gz installer file
-        str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
+        str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f $USER_HOME/ipfs-update_v${IPFS_UPDATER_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        rm -f $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Get the new version number of the local IPFS Updater install
-        IPFS_UPDATER_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
-        sed -i -e "/^IPFS_UPDATER_VER_LOCAL=/s|.*|IPFS_UPDATER_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-        if [ $IPFS_UPDATER_INSTALL_TYPE = "install" ]; then
-            sed -i -e "/^IPFS_UPDATER_INSTALL_DATE=/s|.*|IPFS_UPDATER_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
-        elif [ $IPFS_UPDATER_INSTALL_TYPE = "upgrade" ]; then
-            sed -i -e "/^IPFS_UPDATER_UPGRADE_DATE=/s|.*|IPFS_UPDATER_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        if [ $IPFSU_INSTALL_TYPE = "install" ]; then
+            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
         fi
 
         # Reset IPFS Updater Install and Upgrade Variables
-        IPFS_UPDATER_INSTALL_TYPE=""
-        IPFS_UPDATER_UPDATE_AVAILABLE=NO
-        IPFS_UPDATER_POSTUPDATE_CLEANUP=YES
+        IPFSU_INSTALL_TYPE=""
+        IPFSU_UPDATE_AVAILABLE=NO
+        IPFSU_POSTUPDATE_CLEANUP=YES
 
         printf "\\n"
 
@@ -3422,11 +3426,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
-    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
     elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
     fi
 
     # Initialize IPFS, if it has not already been done so
@@ -3632,7 +3636,7 @@ nodejs_check() {
     if [ "$NODEJS_STATUS" = "installed" ]; then
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGN_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -3656,7 +3660,7 @@ nodejs_check() {
 
         # Update variable in diginode.settings so this does not run again
         NODEJS_PPA_ADDED=YES
-        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGN_SETTINGS_FILE
+        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
     fi
 
     # Look up the latest candidate release
@@ -3677,7 +3681,7 @@ nodejs_check() {
         return
     else
         printf "%b%b %s Found: v${NODEJS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
@@ -3780,11 +3784,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
-    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGN_SETTINGS_FILE
+    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]]; then
-        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -3796,16 +3800,16 @@ fi
 
 }
 
-# This function will check if DigiAssets Node is installed, and if it is, check if there is an update available
+# This function will check if DigiAsset Node is installed, and if it is, check if there is an update available
 
-digiassets_check() {
+dganode_check() {
 
-    # Let's check if DigiByte Core is already installed
-    str="Is DigiAssets Node already installed?..."
+    # Let's check if this is an Official DigiAsset Node is already installed
+    str="Is DigiAsset Node already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
         DGA_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES! [ Offical DigiAsset Node Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
     else
         DGA_STATUS="not_detected"
     fi
@@ -3818,6 +3822,8 @@ digiassets_check() {
         DGB_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     fi
+
+
 
 
     # Next let's check if DigiByte daemon is running
@@ -3895,7 +3901,7 @@ digiassets_check() {
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -3922,34 +3928,34 @@ digiassets_check() {
 
 
     # Check Github repo to find the version number of the latest DigiByte Core release
-    str="Checking GitHub repository for the latest release..."
+    str="Checking DigiAssetX website for the latest release..."
     printf "%b %s" "${INFO}" "${str}"
-    DGB_VER_GITHUB=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    DGA_VER_RELEASE=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
 
     # If can't get Github version number
-    if [ "$DGB_VER_GITHUB" = "" ]; then
+    if [ "$DGA_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
+        printf "%b Unable to check for new version of DigiAsset Node. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "%b DigiAsset Node cannot be upgraded. Skipping...\\n" "${INFO}"
         printf "\\n"
-        DGB_DO_INSTALL=NO
-        DGB_INSTALL_TYPE="none"
-        DGB_UPDATE_AVAILABLE=NO
+        DGA_DO_INSTALL=NO
+        DGA_INSTALL_TYPE="none"
+        DGA_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: v${DGB_VER_GITHUB}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+        printf "%b%b %s Found: DigiAsset Node v${DGA_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
 
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
-      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_GITHUB} will be re-installed.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_RELEASE} will be re-installed.\\n" "${INFO}"
             DGB_INSTALL_TYPE="reset"
             DGB_DO_INSTALL=YES
           else
@@ -3960,7 +3966,7 @@ digiassets_check() {
             return
           fi
       else
-          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}\\n" "${INFO}"
+          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}\\n" "${INFO}"
           DGB_INSTALL_TYPE="upgrade"
           DGB_ASK_UPGRADE=YES
       fi
@@ -3968,15 +3974,15 @@ digiassets_check() {
 
     # If no current version is installed, then do a clean install
     if [ $DGB_STATUS = "not_detected" ]; then
-      printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
+      printf "%b DigiByte Core v${DGB_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
 
 }
 
-# This function will install DigiAssets Node if it not yet installed, and if it is, upgrade it to the latest release
-digiassets_do_install() {
+# This function will install DigiAsset Node if it not yet installed, and if it is, upgrade it to the latest release
+dganode_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
@@ -4002,7 +4008,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiAsset Node v${DGA_VER_GITHUB} from Github repository..."
+    str="Downloading DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     cd $USER_HOME
     sudo -u $USER_ACCOUNT git clone --depth 1 --branch apiV3 https://github.com/digiassetX/digiasset_node.git
@@ -4017,12 +4023,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
     # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
+    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_GITHUB digibyte
-    rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
+    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
 
     # Delete old ~/digibyte symbolic link
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
@@ -4033,9 +4039,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
@@ -4047,28 +4053,28 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
-    DGB_VER_LOCAL=$DGB_VER_GITHUB
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
-    if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
-    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+    # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
+    DGA_VER_LOCAL=$DGA_VER_RELEASE
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    if [ $DGA_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset DGB Install and Upgrade Variables
-    DGB_INSTALL_TYPE=""
-    DGB_UPDATE_AVAILABLE=NO
-    DGB_POSTUPDATE_CLEANUP=YES
+    DGA_INSTALL_TYPE=""
+    DGA_UPDATE_AVAILABLE=NO
+    DGA_POSTUPDATE_CLEANUP=YES
 
-    # Create hidden file to denote this version was installed with the official installer
-    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
+    # Create hidden file in the 'digiasset_node' folder to denote this version was installed with the official installer
+    if [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        sudo -u $USER_ACCOUNT touch $DGA_INSTALL_LOCATION/.officialdiginode
     fi
 
     printf "\\n"
@@ -4080,14 +4086,14 @@ fi
 # This function will ask the user if they want to install the system upgrades that have been found
 upgrade_ask_install() {
 
-# If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
-if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
+# If there is an upgrade available for DigiByte Core, DigiAsset Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
+if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="- DigiByte Core v$DGB_VER_GITHUB\\n"
+            local upgrade_msg_dgb="- DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_ipfs="- Go-IPFS v$IPFS_VER_RELEASE\\n"
@@ -4098,8 +4104,8 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dga="- DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
-        if [ "$DGN_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgn="- DigiNode Tools v$DGN_VER_GITHUB\\n"
+        if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_dgn="- DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
@@ -4118,8 +4124,8 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           if [ $DGA_ASK_UPGRADE = "YES" ]; then
             DGA_DO_INSTALL=YES
           fi
-          if [ $DGN_ASK_UPGRADE = "YES" ]; then
-            DGN_DO_INSTALL=YES
+          if [ $DGNT_ASK_UPGRADE = "YES" ]; then
+            DGNT_DO_INSTALL=YES
           fi
         else
           printf "%b Installer exited at Upgrade Request message.\\n" "${INFO}"
@@ -4134,7 +4140,7 @@ fi
 }
 
 # This function will ask the user if they want to install DigiAssets Node
-digiassets_ask_install() {
+dganode_ask_install() {
 
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install DigiAssets
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
@@ -4151,7 +4157,7 @@ fi
 }
 
 # Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
-digiassets_create_settings() {
+dganode_create_settings() {
 
     local str
 
@@ -4294,9 +4300,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repository..."
+    str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # If an there is an existing version version, move it it to a backup version
@@ -4308,12 +4314,12 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
+    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_GITHUB digibyte
-    rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
+    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
 
     # Delete old ~/digibyte symbolic link
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
@@ -4324,9 +4330,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
@@ -4338,18 +4344,18 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
-    DGB_VER_LOCAL=$DGB_VER_GITHUB
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    DGB_VER_LOCAL=$DGB_VER_RELEASE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
     elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset DGB Install and Upgrade Variables
@@ -4621,10 +4627,10 @@ main() {
     nodejs_check
 
     # Check if DigiAssets Node is installed, and if there is an upgrade available
- #   digiassets_check
+ #   dganode_check
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
-    diginode_tools_check
+    dgntools_check
 
 
     ### FIRST INSTALL MENU ###
@@ -4667,7 +4673,7 @@ main() {
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
     # Create assetnode_config script PLUS main.json file (if they don't yet exist)
-    digiassets_create_settings
+    dganode_create_settings
 
     # Install/upgrade IPFS
     ipfs_do_install
@@ -4679,13 +4685,13 @@ main() {
     nodejs_do_install
 
     # Install DigiAssets along with IPFS
-    digiassets_do_install
+    dganode_do_install
   
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install DigiNode Tools
-    diginode_tools_install
+    dgntools_do_install
 
 
 
