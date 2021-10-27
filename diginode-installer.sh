@@ -11,8 +11,6 @@
 #
 #          curl http://diginode-installer.digibyte.help | bash 
 #
-# Updated: Updated: October 24 2021 10:12am GMT
-#
 # -----------------------------------------------------------------------------------------------------
 
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
@@ -426,14 +424,21 @@ DGA_VER_GITHUB=
 # Store IPFS Updater installation details:
 IPFS_UPDATER_VER_LOCAL=
 IPFS_UPDATER_VER_RELEASE=
-IPFS_UPDATER_INSTALL_DATE
-IPFS_UPDATER_UPGRADE_DATE
+IPFS_UPDATER_INSTALL_DATE=
+IPFS_UPDATER_UPGRADE_DATE=
 
 # Store GoIPFS installation details:
 IPFS_VER_LOCAL=
 IPFS_VER_RELEASE=
-IPFS_INSTALL_DATE
-IPFS_UPGRADE_DATE
+IPFS_INSTALL_DATE=
+IPFS_UPGRADE_DATE=
+
+# Store NodeJS installation details:
+NODEJS_VER_LOCAL=
+NODEJS_VER_RELEASE=
+NODEJS_INSTALL_DATE=
+NODEJS_UPGRADE_DATE=
+NODEJS_PPA_ADDED=
 
 # Timer variables (these control the timers in the Status Monitor loop)
 savedtime15sec=
@@ -3317,6 +3322,8 @@ ipfs_check() {
       IPFS_UPDATER_DO_INSTALL=YES
     fi
 
+    printf "\\n"
+
 }
 
 # This function will install Go-IPFS if it not yet installed, and if it is, upgrade it to the latest release
@@ -3402,11 +3409,14 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         IPFS_UPDATER_UPDATE_AVAILABLE=NO
         IPFS_UPDATER_POSTUPDATE_CLEANUP=YES
 
+        printf "\\n"
+
     fi
 
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     ipfs-update install latest
+    printf "\\n"
 
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -3431,6 +3441,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_POSTUPDATE_CLEANUP=YES
 
 fi
+
+printf "\\n"
 
 }
 
@@ -3588,14 +3600,488 @@ if [ $init_system = "sysv-init" ] || $init_system = "unknown" ]; then
 
 fi
 
+printf "\\n"
+
 }
 
+# This function will check if NodeJS is installed, and if it is, check if there is an update available
+# LAtest distrbutions can be checked here: https://github.com/nodesource/distributions 
+
+nodejs_check() {
+
+    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    if [ $NODEJS_VER_LOCAL = "" ]; then
+        NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
+    fi
+
+    # Let's check if NodeJS is already installed
+    str="Is NodeJS already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
+        NODEJS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        NODEJS_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the version number of the current NodeJS and write it to to the settings file
+    if [ "$NODEJS_STATUS" = "installed" ]; then
+        str="Current Version: "
+        printf "%b %s" "${INFO}" "${str}"
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+    fi
+
+    # If this is the first time running the NodeJS check, let's add the official repositories to ensure we get the latest version
+    if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
+
+        # Is this Debian or Ubuntu?
+        local is_debian=$(cat /etc/issue | grep -Eo "Debian" 2>/dev/null)
+        local is_ubuntu=$(cat /etc/issue | grep -Eo "Ubuntu" 2>/dev/null)
+
+        # Set correct PPA repository
+        if [ "$is_debian" = "Debian" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+        fi
+        if [ "$is_ubuntu" = "Ubuntu" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+        fi
+
+
+        # Update variable in diginode.settings so this does not run again
+        NODEJS_PPA_ADDED=YES
+        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGN_SETTINGS_FILE
+    fi
+
+    # Look up the latest candidate release
+    str="Checking for the latest NodeJS LTS release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+    NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+
+    if [ "$NODEJS_VER_RELEASE" != "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for release version of NodeJS.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b NodeJS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        NODEJS_DO_INSTALL=NO
+        NODEJS_INSTALL_TYPE="none"
+        NODEJS_UPDATE_AVAILABLE=NO
+        return
+    else
+        printf "%b%b %s Found: v${NODEJS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGN_SETTINGS_FILE
+    fi
+
+    # If a NodeJS local version already exists.... (i.e. we have a local version number)
+    if [ ! $NODEJS_VER_LOCAL = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
+          printf "%b NodeJS is already the latest version.\\n" "${TICK}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. NodeJS v${NODEJS_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            NODEJS_INSTALL_TYPE="reset"
+            NODEJS_DO_INSTALL=YES
+          else
+            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
+            NODEJS_DO_INSTALL=NO
+            NODEJS_INSTALL_TYPE="none"
+            NODEJS_UPDATE_AVAILABLE=NO
+            return
+          fi
+      else
+          printf "%b NodeJS will be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}\\n" "${INFO}"
+          NODEJS_INSTALL_TYPE="upgrade"
+          NODEJS_ASK_UPGRADE=YES
+      fi
+    fi
+
+    # If a NodeJS needs to be upgraded...
+    if [ NODEJS_INSTALL_TYPE = "upgrade" ]; then
+      # ....does it require a major upgrade? (e.g. from before v14)
+      if [ $(version $NODEJS_VER_LOCAL) -lt $(version 14.0.0) ]; then
+            NODEJS_INSTALL_TYPE="majorupgrade"
+            NODEJS_ASK_UPGRADE=YES
+      fi
+    fi 
+
+    # If no current version is installed, then do a clean install
+    if [ $NODEJS_STATUS = "not_detected" ]; then
+      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      NODEJS_INSTALL_TYPE="new"
+      NODEJS_DO_INSTALL=YES
+    fi
+
+    printf "\\n"
+
+}
+
+# This function will install NodeJS if it not yet installed, and if it is, upgrade it to the latest release
+nodejs_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
+    NODEJS_DO_INSTALL=YES
+fi
+
+
+if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
+
+    # Install NodeJS if it does not exist
+    if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
+        printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+        sudo apt-get install nodejs -y -q
+        printf "\\n"
+    fi
+
+    # If NodeJS 14 exists, upgrade it
+    if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
+        printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+        sudo apt-get install nodejs -y -q
+        printf "\\n"
+    fi
+
+    # If NodeJS exists, but needs a major upgrade, remove the old versions first as there can be conflicts
+    if [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
+        printf "%b Since this is a major upgrade, the old versions of NodeJS will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
+        printf "%b Purging old versions of NodeJS v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
+        sudo apt-get purge nodejs-legacy nodejs -y -q
+        sudo apt-get autoremove -y -q
+        printf "\\n"
+        printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+        sudo apt-get install nodejs -y -q
+        printf "\\n"
+    fi
+
+    # If we are in Reset Mode, remove and re-install
+    if [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
+        printf "%b Reset Mode is ENABLED. Removing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+        sudo apt-get purge nodejs-legacy nodejs -y -q
+        sudo apt-get autoremove -y -q
+        printf "\\n"
+        printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+        sudo apt-get install nodejs -y -q
+        printf "\\n"
+    fi
+
+    # Get the new version number of the NodeJS install
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    if [ $NODEJS_VER_LOCAL = "" ]; then
+        NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
+    fi
+
+    # Update diginode.settings with new NodeJS local version number and the install/upgrade date
+    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGN_SETTINGS_FILE
+    if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+    elif [ $NODEJS_INSTALL_TYPE = "upgrade" || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]]; then
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+    fi
+
+    # Reset NodeJS Install and Upgrade Variables
+    NODEJS_INSTALL_TYPE=""
+    NODEJS_UPDATE_AVAILABLE=NO
+    NODEJS_POSTUPDATE_CLEANUP=YES
+
+fi
+
+}
+
+# This function will check if DigiAssets Node is installed, and if it is, check if there is an update available
+
+digiassets_check() {
+
+    # Let's check if DigiByte Core is already installed
+    str="Is DigiAssets Node already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        DGA_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        DGA_STATUS="not_detected"
+    fi
+
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
+    if [ "$DGA_STATUS" = "not_detected" ] && [ -f "$DGB_CLI" ]; then
+        DGB_STATUS="installed"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        DGB_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+
+    # Next let's check if DigiByte daemon is running
+    if [ "$DGB_STATUS" = "installed" ]; then
+      str="Is DigiByte Core running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted"; then
+          DGB_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          DGB_STATUS="notrunning"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
+    if [ "$DGB_STATUS" = "running" ]; then
+        str="Is DigiByte Core finished starting up?..."
+        printf "%b %s" "${INFO}" "${str}"
+        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+
+        # Check if the value returned is an integer (we we know digibyted is responding)
+ #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
+        if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB_STATUS="startingup"
+        else
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+    # If DigiByte Core is currently in the process of starting up, we need to wait until it
+    # can actually respond to requests so we can get the current version number from digibyte-cli
+    if [ "$DGB_STATUS" = "startingup" ]; then
+        every15secs=0
+        progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        str="DigiByte Core is in the process of starting up. This can take up to 10 minutes. Please wait..."
+        printf "%b %s" "${INFO}" "${str}"
+        tput civis
+        while [ $DGB_STATUS = "startingup" ]; do
+
+            # Show Spinner while waiting
+            if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+            fi 
+
+            if [ "$every15secs" -ge 30 ]; then
+              BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount  2>/dev/null)
+              if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+                printf "%b%b %s $progress Querying..." "${OVER}" "${INFO}" "${str}"
+                every15secs=0
+                sleep 0.5
+              else
+                DGB_STATUS="running"
+                printf "%b%b %s Done!\\n" "${OVER}" "${INFO}" "${str}"
+                tput cnorm
+              fi
+            else
+                every15secs=$((every15secs + 1))
+                printf "%b%b %s $progress" "${OVER}" "${INFO}" "${str}"
+                sleep 0.5
+            fi
+        done
+
+    fi
+
+        # Get the version number of the current DigiByte Core and write it to to the settings file
+    if [ "$DGB_STATUS" = "running" ]; then
+        str="Current Version:"
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+        printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+    fi
+
+      # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
+    if [ "$DGB_STATUS" = "notrunning" ]; then
+      # Double check by looking for the folder name in the home folder
+      str="Looking for current version number in diginode.settings file..."
+      printf "%b %s" "${INFO}" "${str}"
+
+        # If the local version number is not stored
+        if [ "$DGB_VER_LOCAL" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to find version number of current DigiByte Core install.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+            printf "\\n"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            return     
+        else
+            printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+
+    # Check Github repo to find the version number of the latest DigiByte Core release
+    str="Checking GitHub repository for the latest release..."
+    printf "%b %s" "${INFO}" "${str}"
+    DGB_VER_GITHUB=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+
+    # If can't get Github version number
+    if [ "$DGB_VER_GITHUB" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return     
+    else
+        printf "%b%b %s Found: v${DGB_VER_GITHUB}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^DGB_VER_GITHUB=/s|.*|DGB_VER_GITHUB=\"$DGB_VER_GITHUB\"|" $DGN_SETTINGS_FILE
+    fi
+
+
+    # If a local version already exists.... (i.e. we have a local version number)
+    if [ ! $DGB_VER_LOCAL = "" ]; then
+      # ....then check if a DigiByte Core upgrade is required
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_GITHUB) ]; then
+          printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_GITHUB} will be re-installed.\\n" "${INFO}"
+            DGB_INSTALL_TYPE="reset"
+            DGB_DO_INSTALL=YES
+          else
+            printf "%b DigiByte Core upgrade is not required. Skipping...\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
+            return
+          fi
+      else
+          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}\\n" "${INFO}"
+          DGB_INSTALL_TYPE="upgrade"
+          DGB_ASK_UPGRADE=YES
+      fi
+    fi 
+
+    # If no current version is installed, then do a clean install
+    if [ $DGB_STATUS = "not_detected" ]; then
+      printf "%b DigiByte Core v${DGB_VER_GITHUB} will be installed for the first time.\\n" "${INFO}"
+      DGB_INSTALL_TYPE="new"
+      DGB_DO_INSTALL=YES
+    fi
+
+}
+
+# This function will install DigiAssets Node if it not yet installed, and if it is, upgrade it to the latest release
+digiassets_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
+    DGA_DO_INSTALL=YES
+fi
+
+
+if [ "$DGA_DO_INSTALL" = "YES" ]; then
+
+    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
+    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+       stop_service digibyted
+       DGB_STATUS = "stopped"
+    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
+       stop_service digibyted
+       DGB_STATUS = "stopped"
+    fi
+    
+   # Delete any old DigiByte Core tar files
+    str="Deleting any old DigiByte Core tar.gz files from home folder..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Downloading latest DigiByte Core binary from GitHub
+    str="Downloading DigiAsset Node v${DGA_VER_GITHUB} from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    cd $USER_HOME
+    sudo -u $USER_ACCOUNT git clone --depth 1 --branch apiV3 https://github.com/digiassetX/digiasset_node.git
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If an there is an existing version version, move it it to a backup version
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Extracting DigiByte Core binary
+    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_GITHUB digibyte
+    rm digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz
+
+    # Delete old ~/digibyte symbolic link
+    if [ -h "$DGB_INSTALL_LOCATION" ]; then
+        str="Deleting old 'digibyte' symbolic link from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $DGB_INSTALL_LOCATION
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Create new symbolic link
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete the backup version, now the new version has been installed
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
+        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    
+    # Delete DigiByte Core tar.gz file
+    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
+    DGB_VER_LOCAL=$DGB_VER_GITHUB
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGN_SETTINGS_FILE
+    if [ $DGB_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGN_SETTINGS_FILE
+    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGN_SETTINGS_FILE
+    fi
+
+    # Reset DGB Install and Upgrade Variables
+    DGB_INSTALL_TYPE=""
+    DGB_UPDATE_AVAILABLE=NO
+    DGB_POSTUPDATE_CLEANUP=YES
+
+    # Create hidden file to denote this version was installed with the official installer
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
+    fi
+
+    printf "\\n"
+
+fi
+
+}
 
 # This function will ask the user if they want to install the system upgrades that have been found
 upgrade_ask_install() {
 
 # If there is an upgrade available for DigiByte Core, DigiAssets Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
-if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
+if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGN_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
@@ -3606,6 +4092,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_ipfs="- Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
+        if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_nodejs="- NodeJS LTS v$NODEJS_VER_RELEASE\\n"
+        fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dga="- DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
@@ -3614,7 +4103,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           echo
           if [ $DGB_ASK_UPGRADE = "YES" ]; then
@@ -3622,6 +4111,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           fi
           if [ $IPFS_ASK_UPGRADE = "YES" ]; then
             IPFS_DO_INSTALL=YES
+          fi
+          if [ $NODEJS_ASK_UPGRADE = "YES" ]; then
+            NODEJS_DO_INSTALL=YES
           fi
           if [ $DGA_ASK_UPGRADE = "YES" ]; then
             DGA_DO_INSTALL=YES
@@ -3769,6 +4261,8 @@ digiassets_create_settings() {
 EOF
 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+    printf "\\n"
 }
 
 
@@ -3867,6 +4361,8 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
     fi
+
+    printf "\\n"
 
 fi
 
@@ -4121,6 +4617,9 @@ main() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
+    # Check if NodeJS is installed
+    nodejs_check
+
     # Check if DigiAssets Node is installed, and if there is an upgrade available
  #   digiassets_check
 
@@ -4175,6 +4674,9 @@ main() {
 
     # Create IPFS service
     ipfs_create_service
+
+    # Install/upgrade NodeJS
+    nodejs_do_install
 
     # Install DigiAssets along with IPFS
     digiassets_do_install
