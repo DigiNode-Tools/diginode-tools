@@ -46,11 +46,11 @@
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
-# This variable stores the version number of this release of 'DigiNode Tools' on GitHub.
+# This variable stores the version number of this release of 'DigiNode Tools.
 # When a new release is made, this number will be updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this version number on your local installaion or automatic upgrades may not work.
-DGN_VER_THIS=0.0.0
+DGNT_VER_LOCAL=0.0.1
 
 # Set this to YES to get more verbose feedback. Very useful for debugging.
 VERBOSE_MODE="YES"
@@ -464,7 +464,7 @@ is_dganode_installed() {
           ipfs_installed="no"
           startwait=yes
       else
-          dga_status="ipfsinstalled"
+          DGA_STATUS="ipfsinstalled"
           ipfs_installed="yes"
       fi
 
@@ -476,8 +476,8 @@ is_dganode_installed() {
           nodejs_installed="no"
           startwait=yes
       else
-          if [ $dga_status = "ipfsinstalled" ]; then
-            dga_status="nodejsinstalled"
+          if [ $DGA_STATUS = "ipfsinstalled" ]; then
+            DGA_STATUS="nodejsinstalled"
           fi
            nodejs_installed="yes"
       fi
@@ -526,18 +526,18 @@ is_dganode_installed() {
           ipfs_running="no"
       else
           echo "[${txtgrn}✓${txtrst}] IPFS daemon is running."
-          if [ $dga_status = "nodejsinstalled" ]; then
-            dga_status="ipfsrunning"
+          if [ $DGA_STATUS = "nodejsinstalled" ]; then
+            DGA_STATUS="ipfsrunning"
           fi
           ipfs_running="yes"
       fi
 
 
-      # Check for 'digiasset_ipfs_metadata_server' index.js file
+      # Check for 'digiasset_node' index.js file
 
-      if [ -f "$HOME/digiasset_ipfs_metadata_server/index.js" ]; then
-        if [ $dga_status = "nodejsinstalled" ]; then
-           dga_status="installed" 
+      if [ -f "$DGA_INSTALL_LOCATION/index.js" ]; then
+        if [ $DGA_STATUS = "nodejsinstalled" ]; then
+           DGA_STATUS="installed" 
         fi
         echo "[${txtgrn}✓${txtrst}] DigiAsset Node is installed - index.js located."
       else
@@ -549,15 +549,15 @@ is_dganode_installed() {
           startwait="yes"
       fi
 
-      # Check if 'digiasset_ipfs_metadata_server' is running
+      # Check if 'digiasset_node' is running
 
-      if [ $dga_status = "installed" ]; then
+      if [ $DGA_STATUS = "installed" ]; then
         if [! $(pgrep -f index.js) -eq "" ]; then
-            dga_status="running"
+            DGA_STATUS="running"
             echo "[${txtgrn}✓${txtrst}] DigiAsset Node is running."
         else
-            dga_status="stopped"
-            echo "[${txtred}x${txtrst}] DigiAsset Node is NOT running.."
+            DGA_STATUS="stopped"
+            echo "[${txtred}x${txtrst}] DigiAsset Node is NOT running."
             echo ""
             startwait=yes
         fi
@@ -614,7 +614,7 @@ is_jq_installed() {
 
 # Check if digibyte core wallet is enabled
 is_wallet_enabled() {
-if [ $dga_status = "running" ]; then
+if [ $DGA_STATUS = "running" ]; then
     if [ -f "$HOME/.digibyte/digibyte.conf" ]; then
       walletstatus=$(cat ~/.digibyte/digibyte.conf | grep disablewallet | cut -d'=' -f 2)
       if [ walletstatus = "1" ]; then
@@ -770,7 +770,7 @@ if [ $DGNT_MONITOR_LAST_RUN="" ]; then
 
 
     # if digiassets server is installed, set variables
-    if [ $dga_status = "running" ]; then
+    if [ $DGA_STATUS = "running" ]; then
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
       sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
@@ -786,7 +786,7 @@ fi
 firstrun_dga_configs() {
 
   # Set DigiAssets Node version veriables (if it is has just been installed)
-  if [ $dga_status = "running" ] && [ $DGA_FIRST_RUN = ""  ]; then
+  if [ $DGA_STATUS = "running" ] && [ $DGA_FIRST_RUN = ""  ]; then
       echo "[i] First time running DigiAssets Node - performing initial setup."
       echo "    Storing DigiAsset Node version number in settings file..."
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
@@ -1153,7 +1153,7 @@ if [ $timedif15min -gt 300 ]; then
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
-    if [ $dga_status = "running" ]; then
+    if [ $DGA_STATUS = "running" ]; then
 
       echo "need to add check for change of DGA version number" 
 
@@ -1218,10 +1218,12 @@ if [ $timedif24hrs -gt 86400 ]; then
 
     # Check for new release of DigiAsset Node
     DGA_VER_RELEASE=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
+    DGA_VER_MAJ_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
+    DGA_VER_MAJ_LOCAL=$(echo $DGA_VER_LOCAL | cut -d'.' -f1)
     if [ "$DGA_VER_RELEASE" != "" ]; then
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         # Check if there is an update for Go-IPFS
-        if [ $(version $DGA_VER_LOCAL) -ge $(version $DGA_VER_RELEASE) ]; then
+        if [ $(version $DGA_VER_MAJ_LOCAL) -ge $(version $DGA_VER_MAJ_RELEASE) ]; then
           DGA_UPDATE_AVAILABLE=NO
         else
           DGA_UPDATE_AVAILABLE=YES
@@ -1293,9 +1295,9 @@ if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT runni
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $avahi = 'installed' ] && [ dga_status = 'running' ]; then # Use .local domain if available, otherwise use the IP address
+if [ $avahi = 'installed' ] && [ DGA_STATUS = 'running' ]; then # Use .local domain if available, otherwise use the IP address
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$hostname.local:8090" "║"
-elif [ dga_status = 'running' ]; then
+elif [ DGA_STATUS = 'running' ]; then
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"

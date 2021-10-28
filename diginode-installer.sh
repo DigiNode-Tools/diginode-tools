@@ -82,6 +82,12 @@ DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL=
 DGNT_INSTALLER_GIHTUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
 DGNT_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
 
+# This is the Github repo for the DigiAsset Node (this only needs to be changed if you with to test a new version.)
+# The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
+DGA_GITHUB_REPO_MAIN="--depth 1 https://github.com/digiassetX/digiasset_node.git"
+DGA_GITHUB_REPO_DEV="--depth 1 --branch apiV3 https://github.com/digiassetX/digiasset_node.git"
+
+
 # These are the commands that the use pastes into the terminal to run the installer
 DGNT_INSTALLER_OFFICIAL_CMD="curl $DGNT_INSTALLER_OFFICIAL_URL | bash"
 
@@ -115,18 +121,27 @@ UNATTENDED_MODE=false
 DGNT_BRANCH="release"
 UNINSTALL=false
 DIGINODE_SKIP_OS_CHECK=false
+DGA_DEV_MODE=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
     case "$var" in
         "--reset" ) RESET_MODE=true;;
         "--unattended" ) UNATTENDED_MODE=true;;
-        "--devmode" ) DGNT_BRANCH="develop";; 
-        "--mainmode" ) DGNT_BRANCH="main";; 
+        "--dgnt-dev" ) DGNT_BRANCH="develop";; 
+        "--dga-dev" ) DGA_DEV_MODE=true;; 
+        "--dgntmain" ) DGNT_BRANCH="main";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
     esac
 done
+
+# Set the DigiAsset Node Github repo to use, based on whether the --dga-dev flag is included or not
+if [ $DGA_DEV_MODE = true ]; then
+    DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
+else
+    DGA_GITHUB_REPO=$DGA_GITHUB_REPO_MAIN
+fi
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -3148,9 +3163,8 @@ digibyte_check() {
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. DigiByte Core v${DGB_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            DGB_INSTALL_TYPE="reset"
-            DGB_DO_INSTALL=YES
+            printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
+            DGB_INSTALL_TYPE="askreset"
           else
             printf "%b DigiByte Core upgrade is not required. Skipping...\\n" "${INFO}"
             DGB_DO_INSTALL=NO
@@ -3171,6 +3185,124 @@ digibyte_check() {
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
+
+}
+
+# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
+# Note: It does not (re)start the digibyted.service automatically when done
+digibyte_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+    DGB_DO_INSTALL=YES
+fi
+
+# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+if [ $DGB_INSTALL_TYPE = "askreset" ]; then
+
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        DGB_DO_INSTALL=YES
+        DGB_INSTALL_TYPE="reset"
+    else
+            printf "%b Reset Mode: User skipped re-installing DigiByte Core.\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
+            return
+    fi
+
+fi
+
+
+if [ "$DGB_DO_INSTALL" = "YES" ]; then
+
+    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
+    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+       stop_service digibyted
+       DGB_STATUS = "stopped"
+    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
+       stop_service digibyted
+       DGB_STATUS = "stopped"
+    fi
+    
+   # Delete any old DigiByte Core tar files
+    str="Deleting any old DigiByte Core tar.gz files from home folder..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Downloading latest DigiByte Core binary from GitHub
+    str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If an there is an existing version version, move it it to a backup version
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Extracting DigiByte Core binary
+    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
+    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
+
+    # Delete old ~/digibyte symbolic link
+    if [ -h "$DGB_INSTALL_LOCATION" ]; then
+        str="Deleting old 'digibyte' symbolic link from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $DGB_INSTALL_LOCATION
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Create new symbolic link
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete the backup version, now the new version has been installed
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
+        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    
+    # Delete DigiByte Core tar.gz file
+    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
+    DGB_VER_LOCAL=$DGB_VER_RELEASE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    if [ $DGB_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Reset DGB Install and Upgrade Variables
+    DGB_INSTALL_TYPE=""
+    DGB_UPDATE_AVAILABLE=NO
+    DGB_POSTUPDATE_CLEANUP=YES
+
+    # Create hidden file to denote this version was installed with the official installer
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
+    fi
+
+    printf "\\n"
+
+fi
 
 }
 
@@ -3273,8 +3405,8 @@ ipfs_check() {
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
           printf "%b Go-IPFS is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. Go-IPFS v${IPFS_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            IPFS_INSTALL_TYPE="reset"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Go-IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
             printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
@@ -3296,8 +3428,8 @@ ipfs_check() {
       if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
           printf "%b IPFS Updater is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. IPFS Updater v${IPFSU_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            IPFSU_INSTALL_TYPE="reset"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
+            IPFSU_INSTALL_TYPE="askreset"
             IPFSU_DO_INSTALL=YES
           else
             printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
@@ -3338,6 +3470,32 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
     IPFS_DO_INSTALL=YES
 fi
 
+# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
+
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS?\\n\\nNote: This will delete Go-IPFS re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        IPFS_DO_INSTALL=YES
+        IPFS_INSTALL_TYPE="reset"
+        # Reset IPFS Updater as well, if needed
+        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+            IPFSU_DO_INSTALL=YES
+            IPFSU_INSTALL_TYPE="reset"
+        fi
+    else
+        printf "%b Reset Mode: User skipped re-installing DGo-IPFS.\\n" "${INFO}"
+        IPFS_DO_INSTALL=NO
+        IPFS_INSTALL_TYPE="none"
+        IPFS_UPDATE_AVAILABLE=NO
+        # Don't reset IPFS Updater, if we are not resetting Go-IPFS (no point)
+        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+            IPFSU_DO_INSTALL=NO
+            IPFSU_INSTALL_TYPE="none"
+        fi
+        return
+    fi
+
+fi
+
 
 if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
@@ -3351,6 +3509,14 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # First, Upgrade IPFS Updater if there is an update
 
     if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
+
+        # If we are re-installing the current version of IPFS Updater, delete the existing binary
+        if [ $IPFSU_INSTALL_TYPE = "reset" ]; then
+            str="Reset Mode: Deleting current IPFS Updater binary..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /usr/local/bin/ipfs-update
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
         # Delete any old IPFS Updater tar files
         str="Deleting any old IPFS Updater tar.gz files from home folder..."
@@ -3415,6 +3581,14 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         printf "\\n"
 
+    fi
+
+    # If we are re-installing the current version of Go-IPFS, delete the existing binary
+    if [ $IPFS_INSTALL_TYPE = "reset" ]; then
+        str="Reset Mode: Deleting current Go-IPFS binary..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f /usr/local/bin/ipfs
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install latest version of GoIPFS
@@ -3690,8 +3864,8 @@ nodejs_check() {
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
           printf "%b NodeJS is already the latest version.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. NodeJS v${NODEJS_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            NODEJS_INSTALL_TYPE="reset"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install NodeJS v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
+            NODEJS_INSTALL_TYPE="askreset"
             NODEJS_DO_INSTALL=YES
           else
             printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
@@ -3733,6 +3907,22 @@ nodejs_do_install() {
 # If we are in unattended mode and an upgrade has been requested, do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
     NODEJS_DO_INSTALL=YES
+fi
+
+# If we are in reset mode, ask the user if they want to re-install NodeJS
+if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
+
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        NODEJS_DO_INSTALL=YES
+        NODEJS_INSTALL_TYPE="reset"
+    else
+        printf "%b Reset Mode: User skipped re-installing NodeJS.\\n" "${INFO}"
+        NODEJS_DO_INSTALL=NO
+        NODEJS_INSTALL_TYPE="none"
+        NODEJS_UPDATE_AVAILABLE=NO
+        return
+    fi
+
 fi
 
 
@@ -3822,6 +4012,43 @@ dganode_check() {
         DGB_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     fi
+
+
+
+      # Check for 'digiasset_node' index.js file
+
+      if [ -f "$DGA_INSTALL_LOCATION/index.js" ]; then
+        if [ $DGA_STATUS = "nodejsinstalled" ]; then
+           DGA_STATUS="installed" 
+        fi
+        echo "[${txtgrn}✓${txtrst}] DigiAsset Node is installed - index.js located."
+      else
+          echo "[${txtred}x${txtrst}] DigiAsset Node NOT found."
+          echo ""
+          echo "   DigiAsset Node is not currently installed. You can install"
+          echo "   it using the DigiNode Installer."
+          echo ""
+          startwait="yes"
+      fi
+
+      # Check if 'digiasset_ipfs_metadata_server' is running
+
+      if [ $DGA_STATUS = "installed" ]; then
+        if [! $(pgrep -f index.js) -eq "" ]; then
+            DGA_STATUS="running"
+            echo "[${txtgrn}✓${txtrst}] DigiAsset Node is running."
+        else
+            DGA_STATUS="stopped"
+            echo "[${txtred}x${txtrst}] DigiAsset Node is NOT running.."
+            echo ""
+            startwait=yes
+        fi
+      fi
+
+
+
+
+
 
 
 
@@ -3984,7 +4211,7 @@ dganode_check() {
 # This function will install DigiAsset Node if it not yet installed, and if it is, upgrade it to the latest release
 dganode_do_install() {
 
-# If we are in unattended mode and an upgrade has been requested, do the install
+# If we are in unattended mode and there is an upgrade to do, then go ahead and do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
     DGA_DO_INSTALL=YES
 fi
@@ -3992,71 +4219,33 @@ fi
 
 if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
-    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
-    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-       stop_service digibyted
-       DGB_STATUS = "stopped"
-    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
-       stop_service digibyted
-       DGB_STATUS = "stopped"
+    # We are in Reset Mode, If PM2 is running let's st
+    if [ $DGA_STATUS = "running" ] && [ $DGA_INSTALL_TYPE = "reset" ]; then
+       printf "%b Reset Mode: Stopping PM2 digiasset service...\\n" "${INFO}"
+       pm2 stop digiasset
+       DGA_STATUS = "stopped"
     fi
-    
-   # Delete any old DigiByte Core tar files
-    str="Deleting any old DigiByte Core tar.gz files from home folder..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+    if [ $DGA_INSTALL_TYPE = "reset" ]; then
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Reset Mode: Deleting current '~/digiasset_node' folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Cloning DigiAsset Node from Github Node (will use dev branch set in header if the --dga-dav flaf was include)
+    str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     cd $USER_HOME
-    sudo -u $USER_ACCOUNT git clone --depth 1 --branch apiV3 https://github.com/digiassetX/digiasset_node.git
+    sudo -u $USER_ACCOUNT git clone $DGA_GITHUB_REPO
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # If an there is an existing version version, move it it to a backup version
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
-        printf "%b %s" "${INFO}" "${str}"
-        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
 
-    # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
-    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
+    # Install PM2 if it is not already installed
 
-    # Delete old ~/digibyte symbolic link
-    if [ -h "$DGB_INSTALL_LOCATION" ]; then
-        str="Deleting old 'digibyte' symbolic link from home folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm $DGB_INSTALL_LOCATION
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Delete the backup version, now the new version has been installed
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
-        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    
-    # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
@@ -4086,7 +4275,7 @@ fi
 # This function will ask the user if they want to install the system upgrades that have been found
 upgrade_ask_install() {
 
-# If there is an upgrade available for DigiByte Core, DigiAsset Node or DigiNode Tools, or if DigiAssets Node is not yet installed, ask the user if they wan to install them
+# If there is an upgrade available for DigiByte Core, IPFS, NodeJS, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
@@ -4142,7 +4331,7 @@ fi
 # This function will ask the user if they want to install DigiAssets Node
 dganode_ask_install() {
 
-# Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install DigiAssets
+# Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if whiptail --backtitle "" --title "Install DigiAssets Node?" --yesno "You do not currently have the DigiAssets Node Installed. Running a DigiAssets Node helps to decentralize the DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets from your own node. You can also earn DigiByte for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAssets Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
@@ -4163,10 +4352,21 @@ dganode_create_settings() {
 
     # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
     if [ $RESET_MODE = true ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
-        str="Reset Mode is Enabled. Deleting existing DigiAssets settings..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -f -r $DGA_SETTINGS_LOCATION
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nNode: This will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        #Nothing to do, continue
+          local reset_dga_settings=true
+        else
+          local reset_dga_setting=false
+        fi
+
+
+        if [ reset_dga_settings = true ]; then
+            str="Reset Mode is Enabled. Deleting existing DigiAssets settings..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
 
@@ -4271,108 +4471,6 @@ printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     printf "\\n"
 }
 
-
-# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
-# Note: It does not (re)start the digibyted.service automatically when done
-digibyte_do_install() {
-
-# If we are in unattended mode and an upgrade has been requested, do the install
-if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-    DGB_DO_INSTALL=YES
-fi
-
-
-if [ "$DGB_DO_INSTALL" = "YES" ]; then
-
-    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
-    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-       stop_service digibyted
-       DGB_STATUS = "stopped"
-    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
-       stop_service digibyted
-       DGB_STATUS = "stopped"
-    fi
-    
-   # Delete any old DigiByte Core tar files
-    str="Deleting any old DigiByte Core tar.gz files from home folder..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # If an there is an existing version version, move it it to a backup version
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
-        printf "%b %s" "${INFO}" "${str}"
-        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
-    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
-
-    # Delete old ~/digibyte symbolic link
-    if [ -h "$DGB_INSTALL_LOCATION" ]; then
-        str="Deleting old 'digibyte' symbolic link from home folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm $DGB_INSTALL_LOCATION
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Delete the backup version, now the new version has been installed
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
-        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    
-    # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
-    DGB_VER_LOCAL=$DGB_VER_RELEASE
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
-    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
-    fi
-
-    # Reset DGB Install and Upgrade Variables
-    DGB_INSTALL_TYPE=""
-    DGB_UPDATE_AVAILABLE=NO
-    DGB_POSTUPDATE_CLEANUP=YES
-
-    # Create hidden file to denote this version was installed with the official installer
-    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
-    fi
-
-    printf "\\n"
-
-fi
-
-}
 
 # Perform uninstall if requested
 uninstall_everything() {
