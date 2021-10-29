@@ -719,7 +719,7 @@ fi
 
 }
 
-firstrun_sm_configs() {
+firstrun_monitor_configs() {
 
 # If this is the first time running the status monitor, set the variables that update periodically
 if [ $DGNT_MONITOR_LAST_RUN="" ]; then
@@ -783,7 +783,7 @@ fi
 
 }
 
-firstrun_dga_configs() {
+firstrun_dganode_configs() {
 
   # Set DigiAssets Node version veriables (if it is has just been installed)
   if [ $DGA_STATUS = "running" ] && [ $DGA_FIRST_RUN = ""  ]; then
@@ -795,6 +795,8 @@ firstrun_dga_configs() {
       sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGNT_SETTINGS_FILE
       DGA_FIRST_RUN=$(date)
       sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGNT_SETTINGS_FILE
+
+      
   fi
 
 }
@@ -855,8 +857,8 @@ startup_checks() {
   is_avahi_installed         # Check if avahi-daemon is installed
   is_jq_installed            # Check if jq is installed
   install_required_pkgs      # Install jq
-  firstrun_sm_configs        # Do some configuration if this is the first time running the DigiNode Status Monitor
-  firstrun_dga_configs       # Do some configuration if this is the first time running the DigiAssets Node
+  firstrun_monitor_configs        # Do some configuration if this is the first time running the DigiNode Status Monitor
+  firstrun_dganode_configs       # Do some configuration if this is the first time running the DigiAssets Node
   startup_waitpause          # Wait for key press or pause for a few seconds 
 }
 
@@ -1159,6 +1161,7 @@ if [ $timedif15min -gt 300 ]; then
 
       DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
       sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
@@ -1183,15 +1186,18 @@ if [ $timedif24hrs -gt 86400 ]; then
     # items to repeat every 24 hours go here
 
     # check for system updates
-    SYSTEM_SECURITY_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1)
-    SYSTEM_REGULAR_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2)
-    sed -i -e "/^SYSTEM_SECURITY_UPDATES=/s|.*|SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"|" $DGNT_SETTINGS_FILE
-    sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGNT_SETTINGS_FILE
+  #  SYSTEM_SECURITY_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 1)
+  #  SYSTEM_REGULAR_UPDATES=$(/usr/lib/update-notifier/apt-check 2>&1 | cut -d ';' -f 2)
+  #  sed -i -e "/^SYSTEM_SECURITY_UPDATES=/s|.*|SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"|" $DGNT_SETTINGS_FILE
+  #  sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGNT_SETTINGS_FILE
 
 
     # Check for new release of DigiByte Core on Github
-    DGB_VER_RELEASE=$(curl -sL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+    DGB_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    if [ $DGB_VER_RELEASE_QUERY != "" ]
+      DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+      sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+    fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
@@ -1211,19 +1217,36 @@ if [ $timedif24hrs -gt 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
- #   DGNT_VER_RELEASE=
- #   sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+    DGNT_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+      if [ "$DGNT_VER_RELEASE_QUERY" != "" ]; then
+        DGNT_VER_RELEASE=$DGNT_VER_RELEASE_QUERY
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        # Check if there is an update for Go-IPFS
+        if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+          DGNT_UPDATE_AVAILABLE=NO
+        else
+          DGNT_UPDATE_AVAILABLE=YES
+        fi
+    fi
     
 
-
     # Check for new release of DigiAsset Node
-    DGA_VER_RELEASE=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
-    DGA_VER_MAJ_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
-    DGA_VER_MAJ_LOCAL=$(echo $DGA_VER_LOCAL | cut -d'.' -f1)
+    DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
+    if [ $DGA_VER_RELEASE_QUERY != "" ]
+      DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
+      DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
+      sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If installed, get the major release directly from the api.js file
+    if test -f $DGA_INSTALL_LOCATION/lib/api.js; then
+      DGA_VER_MJR_LOCAL=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
+    fi
     if [ "$DGA_VER_RELEASE" != "" ]; then
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         # Check if there is an update for Go-IPFS
-        if [ $(version $DGA_VER_MAJ_LOCAL) -ge $(version $DGA_VER_MAJ_RELEASE) ]; then
+        if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
           DGA_UPDATE_AVAILABLE=NO
         else
           DGA_UPDATE_AVAILABLE=YES
@@ -1231,8 +1254,9 @@ if [ $timedif24hrs -gt 86400 ]; then
     fi
 
     # Check for new release of Go-IPFS
-    IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
-    if [ "$IPFS_VER_RELEASE" != "" ]; then
+    IPFS_VER_RELEASE_QUERY=$(curl -sfL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
+    if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
+        IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         # Check if there is an update for Go-IPFS
         if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
@@ -1243,8 +1267,9 @@ if [ $timedif24hrs -gt 86400 ]; then
     fi
 
     # Check for new release of IPFS Updater
-    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
-    if [ "$IPFSU_VER_RELEASE" != "" ]; then
+    IPFSU_VER_RELEASE_QUERY=$(curl -sfL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+    if [ "$IPFSU_VER_RELEASE_QUERY" != "" ]; then
+      IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE_QUERY
       sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
       # Check if there is an update for IPFS Updater
       if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then

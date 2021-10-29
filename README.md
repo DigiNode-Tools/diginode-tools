@@ -6,6 +6,10 @@ These tools have been designed to make it as easy as possible to setup and monit
 
 * WARNING: This script is still under development and should only be used for testing purposes at this time.
 
+## Disclaimer
+
+These tools are provided as is. Make sure you have a backup of your wallet file.
+
 
 ## DigiNode Installer
 
@@ -53,6 +57,7 @@ Let's you monitor your DigiNode from the terminal.
 # curl -sSL diginode-installer.digibyte.help | bash
 
 
+
 ## Advanced Users Only
 
 These features are for advanced users and should be used with caution:
@@ -65,15 +70,9 @@ Run this only having customized the settings in the ~/.digibyte/diginode.setting
 
 - Reset Mode
 
-This will reset and reinstall your current installation. Do not run this with a custom install or it will break things.
+This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version.
 
 ```curl -sSL diginode-installer.digibyte.help | bash -s -- --reset```
-
-- Developer Mode
-
-This use use the develop branch of the installer from Github, and install the develop version of DigiNode Tools. For testing purposes only. Expect this to break things. At times it likely won't even run.
-
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --devmode```
 
 - Skip OS Check
 
@@ -86,6 +85,18 @@ This will skip the OS check at startup in case you are having problems with your
 Running this will uninstall your DigiNode. Your wallet file will be kept.
 
 ```curl -sSL diginode-installer.digibyte.help | bash -s -- --uninstall```
+
+- Developer Mode: DigiNode Tools
+
+This use use the develop branch of the installer from Github, and install the develop version of DigiNode Tools. For testing purposes only. Expect this to break things. At times it likely won't even run.
+
+```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgnt-dev```
+
+- Developer Mode: DigiAsset Node
+
+This installs the development branch of DigiAsset Node. For developers only.
+
+```curl -sSL diginode-installer.digibyte.help | bash -s -- --dga-dev```
 
 
 
