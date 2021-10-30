@@ -3897,7 +3897,7 @@ nodejs_check() {
     # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
     NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
 
-    if [ "$NODEJS_VER_RELEASE" != "" ]; then
+    if [ "$NODEJS_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for release version of NodeJS.\\n" "${CROSS}"
         printf "\\n"
@@ -3913,7 +3913,7 @@ nodejs_check() {
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
-    if [ ! $NODEJS_VER_LOCAL = "" ]; then
+    if [ $NODEJS_VER_LOCAL != "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
           printf "%b NodeJS is already the latest version.\\n" "${TICK}"
