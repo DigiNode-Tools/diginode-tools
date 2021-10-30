@@ -233,7 +233,7 @@ is_reset_mode() {
 }
 
 # Load variables from diginode.settings file. Create the file first if it does not exit.
-create_diginode_settings() {
+diginode_tools_create_settings() {
 
 local str
 
@@ -552,7 +552,7 @@ fi
 
 # Import the diginode.settings file it it exists
 # check if diginode.settings file exists
-import_diginode_settings() {
+diginode_tools_import_settings() {
 
 if [ -f "$DGNT_SETTINGS_FILE" ]; then
 
@@ -2927,6 +2927,7 @@ fi
 if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
     exit 1
 
 fi
@@ -3781,6 +3782,7 @@ fi
 if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
     exit 1
 
 fi
@@ -3995,11 +3997,13 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
 fi
 
+printf "\\n"
+
 }
 
 # This function will check if DigiAsset Node is installed, and if it is, check if there is an update available
 
-dganode_check() {
+digiasset_node_check() {
 
     # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with this installer.
     str="Is DigiAsset Node already installed?..."
@@ -4194,10 +4198,12 @@ dganode_check() {
         DGA_DO_INSTALL=YES
     fi
 
+    printf "\\n"
+
 }
 
 # This function will install DigiAsset Node if it not yet installed, and if it is, upgrade it to the latest release
-dganode_do_install() {
+digiasset_node_do_install() {
 
 # If we are in unattended mode and there is an upgrade to do, then go ahead and do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
@@ -4239,11 +4245,11 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
     # Install the latest version of NPM
-    printf "%b Install latest version of npm...\\n" "${INDENT}"
-    sudo npm install -g npm
+    printf "%b Install latest version of npm...\\n" "${INFO}"
+    npm install npm@latest -g
 
     # Install the latest version of PM2
-    printf "%b Install latest version of PM2...\\n" "${INDENT}"
+    printf "%b Install latest version of PM2...\\n" "${INFO}"
     npm install pm2@latest -g
 
     # Cloning DigiAsset Node from Github (will use dev branch set in header if the --dga-dav flaf was include)
@@ -4259,7 +4265,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
 
     # Start DigiAsset Node
-    pm2 start index.js "DigiAsset Node" --watch
+    pm2 start index.js --name digiasset --watch --log
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
@@ -4289,7 +4295,7 @@ fi
 
 
 # Create pm2 service so that DigiAsset Node will run at boot
-dganode_create_pm2_service() {
+digiasset_node_create_pm2_service() {
 
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
@@ -4297,10 +4303,10 @@ dganode_create_pm2_service() {
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service
 if [ $RESET_MODE = true ]; then
 
-    # Only ask if a service file has previously been created
+    # Only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nNote: The service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="reset"
         else
@@ -4312,20 +4318,20 @@ if [ $RESET_MODE = true ]; then
     fi
 fi
 
-# If the service files do not yet exist, then assume this is a new install
+# If the SYSTEMD service files do not yet exist, then assume this is a new install
 if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="new"
 fi
 
-# If the service files do not yet exist, then assume this is a new install
+# If the UPSTART service files do not yet exist, then assume this is a new install
 if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="new"
 fi
 
 
-# If PM2 systemd service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+# If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
 if [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
 
     # Stop the service now
@@ -4340,7 +4346,7 @@ if [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; t
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
-# If PM2 upstart service file already exists, and we are doing a Reset, delete it, since we will re-create it
+# If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
 if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
 
     # Stop the service now
@@ -4355,109 +4361,31 @@ if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; t
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
-######
+# If this system uses SYSTEMD and the service file does not yet exist, then set it it up
+if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
+    # start digiasset node
+    pm2 start index.js --name digiasset --log
 
+    # Generate the PM2 service file
+    pm2 startup
 
-
-# If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
-
-    printf "\\n" 
-    printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
-    
-    # Create a new DigiByte daemon service file
-
-    str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $DGB_SYSTEMD_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
-Description=DigiByte's distributed currency daemon
-After=network.target
-
-[Service]
-User=$USER_ACCOUNT
-Group=$USER_ACCOUNT
-
-Type=forking
-PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
-ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
--conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
-
-Restart=always
-PrivateTmp=true
-TimeoutStopSec=60s
-TimeoutStartSec=2s
-StartLimitInterval=120s
-StartLimitBurst=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Enable the service to run at boot
-    printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
-    systemctl enable digibyted
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-    # Start the service now
-    str="Starting DigiByte daemon systemd service..."
-    printf "%b %s" "${INFO}" "${str}"
-    systemctl start digibyted
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # Save current running PM2 services, so they restart at boot
+    pm2 save --force
 
 fi
 
-# If using upstart and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+# If this system uses UPSTART and the service file does not yet exist, then set it it up
+if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
-    printf "\\n" 
-    printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
+    # start digiasset node
+    pm2 start index.js --name digiasset --log
 
-    # Create a new DigiByte daemon upstart service file
+    # Generate the PM2 service file
+    pm2 startup
 
-    str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $DGB_UPSTART_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
-description "DigiByte Core Daemon"
-
-start on runlevel [2345]
-stop on starting rc RUNLEVEL=[016]
-
-env DIGBYTED_BIN="$DGB_DAEMON"
-env DIGIBYTED_USER="$USER_ACCOUNT"
-env DIGIBYTED_GROUP="$USER_ACCOUNT"
-env DIGIBYTED_PIDFILE="$DGB_SETTINGS_LOCATION/digibyted.pid"
-env DIGIBYTED_CONFIGFILE="$DGB_CONF_FILE"
-env DIGIBYTED_DATADIR="$DGB_DATA_LOCATION"
-
-expect fork
-
-respawn
-respawn limit 5 120
-kill timeout 600
-
-exec start-stop-daemon \
-    --start \
-    --pidfile "\$DIGIBYTED_PIDFILE" \
-    --chuid \$DIGIBYTED_USER:\$DIGIBYTED_GROUP \
-    --exec "\$DIGIBYTED_BIN" \
-    -- \
-    -pid="\$DIGIBYTED_PIDFILE" \
-    -conf="\$DIGIBYTED_CONFIGFILE" \
-    -datadir="\$DIGIBYTED_DATADIR"
-
-EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-
-    # Start the service now
-    str="Starting DigiByte daemon upstart service..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo service digibyted start
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # Save current running PM2 services, so they restart at boot
+    pm2 save --force
 
 fi
 
@@ -4465,6 +4393,7 @@ fi
 if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
     exit 1
 
 fi
@@ -4529,7 +4458,7 @@ fi
 }
 
 # This function will ask the user if they want to install DigiAssets Node
-dganode_ask_install() {
+digiasset_node_ask_install() {
 
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
@@ -4546,7 +4475,7 @@ fi
 }
 
 # Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
-dganode_create_settings() {
+digiasset_node_create_settings() {
 
     local str
 
@@ -4807,7 +4736,7 @@ main() {
     get_system_init
 
     # import diginode settings
-    import_diginode_settings
+    diginode_tools_import_settings
 
     # Set the system variables once we know we are on linux
     set_sys_variables
@@ -4816,7 +4745,7 @@ main() {
     rpi_check
 
     # Create the diginode.settings file if this is the first run
-    create_diginode_settings
+    diginode_tools_create_settings
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
@@ -4929,10 +4858,10 @@ main() {
     nodejs_check
 
     # Check if DigiAssets Node is installed, and if there is an upgrade available
- #   dganode_check
+ #   digiasset_node_check
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
-    dgntools_check
+    diginode_tools_check
 
 
     ### FIRST INSTALL MENU ###
@@ -4975,7 +4904,7 @@ main() {
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
     # Create assetnode_config script PLUS main.json file (if they don't yet exist)
-    dganode_create_settings
+    digiasset_node_create_settings
 
     # Install/upgrade IPFS
     ipfs_do_install
@@ -4987,7 +4916,7 @@ main() {
     nodejs_do_install
 
     # Install DigiAssets along with IPFS
-    dganode_do_install
+    digiasset_node_do_install
   
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
