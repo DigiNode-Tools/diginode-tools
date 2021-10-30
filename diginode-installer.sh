@@ -2568,7 +2568,8 @@ upgrade_menu() {
 # with the latest develop branch version from Github.
 diginode_tools_check() {
 
-    printf "=============== Checking: DigiNode Tools ===============\\n\\n"
+printf " =============== Checking: DigiNode Tools ==============================\\n\\n"
+# ==============================================================================
 
     local dgnt_install_now
     local str
@@ -3041,7 +3042,8 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 digibyte_check() {
 
-    printf "=============== Checking: DigiByte Core ===============\\n\\n"
+    printf "=============== Checking: DigiByte Core ================================\\n\\n"
+    # ==============================================================================
 
     # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
@@ -3242,6 +3244,18 @@ if [ $DGB_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
+# Display section break
+if [ $DGB_INSTALL_TYPE = "new" ]; then
+    printf "\n=============== Installing: DigiByte Core ============================\\n\\n"
+    # ==============================================================================
+elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+    printf "\n=============== Upgrading: DigiByte Core =============================\\n\\n"
+    # ==============================================================================
+elif [ $DGB_INSTALL_TYPE = "reset" ]; then
+    printf "\n=============== Resetting: DigiByte Core =============================\\n\\n"
+    # ==============================================================================
+fi
+
 
 if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
@@ -3340,7 +3354,8 @@ fi
 
 ipfs_check() {
 
-    printf "=============== Checking: IPFS daemon ===============\\n\\n"
+    printf "=============== Checking: IPFS daemon ==================================\\n\\n"
+    # ==============================================================================
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -3529,6 +3544,18 @@ fi
 
 
 if [ "$IPFS_DO_INSTALL" = "YES" ]; then
+
+    # Display section break
+    if [ $IPFS_INSTALL_TYPE = "new" ]; then
+        printf "\n=============== Installing: IPFS =====================================\\n\\n"
+        # ==============================================================================
+    elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+        printf "\n=============== Upgrading: IPFS ======================================\\n\\n"
+        # ==============================================================================
+    elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
+        printf "\n=============== Resetting: IPFS ======================================\\n\\n"
+        # ==============================================================================
+    fi
 
     # Let's find the correct file type to download based on the current architecture
     if [ "$ARCH" = "aarch64" ]; then
@@ -3804,7 +3831,8 @@ printf "\\n"
 
 nodejs_check() {
 
-    printf "=============== Checking: NodeJS ===============\\n\\n"
+    printf "=============== Checking: NodeJS =======================================\\n\\n"
+    # ==============================================================================
 
     # Get the local version number of NodeJS (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
@@ -3944,6 +3972,18 @@ if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
+# Display section break
+if [ $NODEJS_INSTALL_TYPE = "new" ]; then
+    printf "\n=============== Installing: NodeJS ===================================\\n\\n"
+    # ==============================================================================
+elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
+    printf "\n=============== Upgrading: NodeJS ====================================\\n\\n"
+    # ==============================================================================
+elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    printf "\n=============== Resetting: NodeJS ====================================\\n\\n"
+    # ==============================================================================
+fi
+
 
 if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
@@ -4015,7 +4055,8 @@ printf "\\n"
 
 digiasset_node_check() {
 
-    printf "=============== Checking: DigiAsset Node ===============\\n\\n"
+    printf "=============== Checking: DigiAsset Node ===============================\\n\\n"
+    # ==============================================================================
 
     # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with this installer.
     str="Is DigiAsset Node already installed?..."
@@ -4237,6 +4278,18 @@ if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
+# Display section break
+if [ $DGA_INSTALL_TYPE = "new" ]; then
+    printf "\n=============== Installing: DigiAsset Node ===========================\\n\\n"
+    # ==============================================================================
+elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+    printf "\n=============== Upgrading: DigiAsset Node ============================\\n\\n"
+    # ==============================================================================
+elif [ $DGA_INSTALL_TYPE = "reset" ]; then
+    printf "\n=============== Resetting: DigiAsset Node ============================\\n\\n"
+    # ==============================================================================
+fi
+
 
 if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
@@ -4329,6 +4382,18 @@ if [ $RESET_MODE = true ]; then
             return
         fi
     fi
+fi
+
+# Display section break
+if [ $PM2_INSTALL_TYPE = "new" ]; then
+    printf "\n=============== Installing: NodeJS PM2 Service =======================\\n\\n"
+    # ==============================================================================
+elif [ $PM2_INSTALL_TYPE = "upgrade" ]; then
+    printf "\n=============== Upgrading: NodeJS PM2 Service ========================\\n\\n"
+    # ==============================================================================
+elif [ $PM2_INSTALL_TYPE = "reset" ]; then
+    printf "\n=============== Resetting: NodeJS PM2 Service ========================\\n\\n"
+    # ==============================================================================
 fi
 
 # If the SYSTEMD service files do not yet exist, then assume this is a new install
