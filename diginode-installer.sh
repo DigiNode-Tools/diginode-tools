@@ -2129,10 +2129,12 @@ fi
 
 
 # This function looks up which init system this Linux distro uses
+# Reference: https://unix.stackexchange.com/questions/18209/detect-init-system-using-the-shell 
+
 get_system_init() {
 
 # Which init system are we using?
-if [[ `/sbin/init --version` =~ upstart ]]; then
+if [[ `/sbin/init --version 2>/dev/null` =~ upstart ]]; then
     INIT_SYSTEM="upstart"
     printf "%b Init System: upstart\\n" "${INFO}"
 elif [[ `systemctl` =~ -\.mount ]]; then
@@ -3042,15 +3044,15 @@ digibyte_check() {
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         DGB_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
     else
         DGB_STATUS="not_detected"
     fi
 
     # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
-    if [ "$DGB_STATUS" = "not_detected" ] && [ -f "$DGB_CLI" ]; then
+    if [ "$DGB_STATUS" = "not_detected" ] && [ -f $DGB_CLI ]; then
         DGB_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
     else
         DGB_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
