@@ -3058,12 +3058,14 @@ digibyte_check() {
     fi
 
     # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
-    if [ "$DGB_STATUS" = "not_detected" ] && [ -f $DGB_CLI ]; then
-        DGB_STATUS="installed"
-        printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
-    else
-        DGB_STATUS="not_detected"
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        if [ -f $DGB_CLI ]; then
+            DGB_STATUS="installed"
+            printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_STATUS="not_detected"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
     fi
 
 
@@ -4394,14 +4396,15 @@ if [ $RESET_MODE = true ]; then
 fi
 
 # Display section break
+printf "\\n"
 if [ $PM2_INSTALL_TYPE = "new" ]; then
-    printf "\n=============== Installing: NodeJS PM2 Service =======================\\n\\n"
+    printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
     # ==============================================================================
 elif [ $PM2_INSTALL_TYPE = "upgrade" ]; then
-    printf "\n=============== Upgrading: NodeJS PM2 Service ========================\\n\\n"
+    printf " =============== Upgrading: NodeJS PM2 Service =========================\\n\\n"
     # ==============================================================================
 elif [ $PM2_INSTALL_TYPE = "reset" ]; then
-    printf "\n=============== Resetting: NodeJS PM2 Service ========================\\n\\n"
+    printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
     # ==============================================================================
 fi
 
