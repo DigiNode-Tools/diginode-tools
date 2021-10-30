@@ -3085,7 +3085,7 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "running" ]; then
         str="Is DigiByte Core finished starting up?..."
         printf "%b %s" "${INFO}" "${str}"
-        BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount)
+        BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
 
         # Check if the value returned is an integer (we we know digibyted is responding)
  #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
@@ -3119,7 +3119,7 @@ digibyte_check() {
             fi 
 
             if [ "$every15secs" -ge 30 ]; then
-              BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount  2>/dev/null)
+              BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
               if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
                 printf "%b%b %s $progress Querying..." "${OVER}" "${INFO}" "${str}"
                 every15secs=0
@@ -3142,7 +3142,7 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "running" ]; then
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
-        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
