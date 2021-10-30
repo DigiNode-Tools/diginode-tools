@@ -2568,6 +2568,8 @@ upgrade_menu() {
 # with the latest develop branch version from Github.
 diginode_tools_check() {
 
+    printf "=============== Checking: DigiNode Tools ===============\\n\\n"
+
     local dgnt_install_now
     local str
 
@@ -3039,6 +3041,8 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 digibyte_check() {
 
+    printf "=============== Checking: DigiByte Core ===============\\n\\n"
+
     # Let's check if DigiByte Core is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
@@ -3335,6 +3339,8 @@ fi
 # This function will check if IPFS is installed, and if it is, check if there is an update available
 
 ipfs_check() {
+
+    printf "=============== Checking: IPFS daemon ===============\\n\\n"
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -3798,6 +3804,8 @@ printf "\\n"
 
 nodejs_check() {
 
+    printf "=============== Checking: NodeJS ===============\\n\\n"
+
     # Get the local version number of NodeJS (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
 
@@ -4006,6 +4014,8 @@ printf "\\n"
 # This function will check if DigiAsset Node is installed, and if it is, check if there is an update available
 
 digiasset_node_check() {
+
+    printf "=============== Checking: DigiAsset Node ===============\\n\\n"
 
     # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with this installer.
     str="Is DigiAsset Node already installed?..."
