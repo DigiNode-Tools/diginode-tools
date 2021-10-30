@@ -133,6 +133,7 @@ for var in "$@"; do
         "--dga-dev" ) DGA_DEV_MODE=true;; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
+        "--verbose" ) VERBOSE_MODE=true;;
     esac
 done
 
@@ -3043,7 +3044,6 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 digibyte_check() {
 
-    printf "\\n"
     printf " =============== Checking: DigiByte Core ===============================\\n\\n"
     # ==============================================================================
 
@@ -3090,7 +3090,7 @@ digibyte_check() {
         # Check if the value returned is an integer (we we know digibyted is responding)
  #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          printf "%b%b %s NOT YET...\\n" "${OVER}" "${CROSS}" "${str}"
           DGB_STATUS="startingup"
         else
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3220,6 +3220,8 @@ digibyte_check() {
       DGB_DO_INSTALL=YES
     fi
 
+    printf "\\n"
+
 }
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
@@ -3248,7 +3250,6 @@ if [ $DGB_INSTALL_TYPE = "askreset" ]; then
 fi
 
 # Display section break
-printf "\\n"
 if [ $DGB_INSTALL_TYPE = "new" ]; then
     printf " =============== Installing: DigiByte Core =============================\\n\\n"
     # ==============================================================================
@@ -3401,7 +3402,7 @@ ipfs_check() {
         str="Current Version: "
         printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s IPFS Updater v${IPFS_VER_UPDATER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+        printf "%b%b %s IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
 
