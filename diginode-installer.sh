@@ -2568,6 +2568,7 @@ upgrade_menu() {
 # with the latest develop branch version from Github.
 diginode_tools_check() {
 
+printf "\\n"
 printf " =============== Checking: DigiNode Tools ==============================\\n\\n"
 # ==============================================================================
 
@@ -3042,7 +3043,8 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 digibyte_check() {
 
-    printf "=============== Checking: DigiByte Core ================================\\n\\n"
+    printf "\\n"
+    printf " =============== Checking: DigiByte Core ===============================\\n\\n"
     # ==============================================================================
 
     # Let's check if DigiByte Core is already installed
@@ -3245,14 +3247,15 @@ if [ $DGB_INSTALL_TYPE = "askreset" ]; then
 fi
 
 # Display section break
+printf "\\n"
 if [ $DGB_INSTALL_TYPE = "new" ]; then
-    printf "\n=============== Installing: DigiByte Core ============================\\n\\n"
+    printf " =============== Installing: DigiByte Core =============================\\n\\n"
     # ==============================================================================
 elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-    printf "\n=============== Upgrading: DigiByte Core =============================\\n\\n"
+    printf " =============== Upgrading: DigiByte Core ==============================\\n\\n"
     # ==============================================================================
 elif [ $DGB_INSTALL_TYPE = "reset" ]; then
-    printf "\n=============== Resetting: DigiByte Core =============================\\n\\n"
+    printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
     # ==============================================================================
 fi
 
@@ -3354,7 +3357,8 @@ fi
 
 ipfs_check() {
 
-    printf "=============== Checking: IPFS daemon ==================================\\n\\n"
+    printf "\\n"
+    printf " =============== Checking: IPFS daemon =================================\\n\\n"
     # ==============================================================================
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
@@ -3546,14 +3550,15 @@ fi
 if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
+    printf "\\n"
     if [ $IPFS_INSTALL_TYPE = "new" ]; then
-        printf "\n=============== Installing: IPFS =====================================\\n\\n"
+        printf " =============== Installing: IPFS ======================================\\n\\n"
         # ==============================================================================
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
-        printf "\n=============== Upgrading: IPFS ======================================\\n\\n"
+        printf " =============== Upgrading: IPFS =======================================\\n\\n"
         # ==============================================================================
     elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
-        printf "\n=============== Resetting: IPFS ======================================\\n\\n"
+        printf " =============== Resetting: IPFS =======================================\\n\\n"
         # ==============================================================================
     fi
 
@@ -3831,7 +3836,8 @@ printf "\\n"
 
 nodejs_check() {
 
-    printf "=============== Checking: NodeJS =======================================\\n\\n"
+    printf "\\n"
+    printf " =============== Checking: NodeJS ======================================\\n\\n"
     # ==============================================================================
 
     # Get the local version number of NodeJS (this will also tell us if it is installed)
@@ -3973,14 +3979,15 @@ if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 fi
 
 # Display section break
+printf "\\n"
 if [ $NODEJS_INSTALL_TYPE = "new" ]; then
-    printf "\n=============== Installing: NodeJS ===================================\\n\\n"
+    printf " =============== Installing: NodeJS ====================================\\n\\n"
     # ==============================================================================
 elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
-    printf "\n=============== Upgrading: NodeJS ====================================\\n\\n"
+    printf " =============== Upgrading: NodeJS =====================================\\n\\n"
     # ==============================================================================
 elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-    printf "\n=============== Resetting: NodeJS ====================================\\n\\n"
+    printf " =============== Resetting: NodeJS =====================================\\n\\n"
     # ==============================================================================
 fi
 
@@ -4055,7 +4062,8 @@ printf "\\n"
 
 digiasset_node_check() {
 
-    printf "=============== Checking: DigiAsset Node ===============================\\n\\n"
+    printf "\\n"
+    printf " =============== Checking: DigiAsset Node ==============================\\n\\n"
     # ==============================================================================
 
     # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with this installer.
@@ -4279,14 +4287,15 @@ if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 fi
 
 # Display section break
+printf "\\n"
 if [ $DGA_INSTALL_TYPE = "new" ]; then
-    printf "\n=============== Installing: DigiAsset Node ===========================\\n\\n"
+    printf " =============== Installing: DigiAsset Node ============================\\n\\n"
     # ==============================================================================
 elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
-    printf "\n=============== Upgrading: DigiAsset Node ============================\\n\\n"
+    printf " =============== Upgrading: DigiAsset Node =============================\\n\\n"
     # ==============================================================================
 elif [ $DGA_INSTALL_TYPE = "reset" ]; then
-    printf "\n=============== Resetting: DigiAsset Node ============================\\n\\n"
+    printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
     # ==============================================================================
 fi
 
