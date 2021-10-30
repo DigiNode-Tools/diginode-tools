@@ -16,7 +16,7 @@
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
 # We do not want users to end up with a pagrtially working install, so we exit the script
 # instead of continuing the installation with something broken
- set -e
+# set -e
 
 # Play an error beep if it exits with an error
 trap error_beep exit 1
@@ -3068,7 +3068,6 @@ digibyte_check() {
         fi
     fi
 
-
     # Next let's check if DigiByte daemon is running
     if [ "$DGB_STATUS" = "installed" ]; then
       str="Is DigiByte Core running?..."
@@ -3086,7 +3085,7 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "running" ]; then
         str="Is DigiByte Core finished starting up?..."
         printf "%b %s" "${INFO}" "${str}"
-        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+        BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount)
 
         # Check if the value returned is an integer (we we know digibyted is responding)
  #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
