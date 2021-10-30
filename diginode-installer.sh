@@ -1223,7 +1223,7 @@ sys_check() {
             if [[ "$sysarch" == "arm"* ]] && [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 # ...if it's Raspbian buster, show the instructions to upgrade the kernel to 64-bit.
                 if [[ $(lsb_release -is) = "Raspbian" ]] && [[ $(lsb_release -cs) = "buster" ]]; then
-                    printf "%b Since you are running 'Raspberry Pi OS', you can install the 64-bit kernel\\n" "${INFO}"
+                    printf "%b Since you are running Raspberry Pi OS, you can install the 64-bit kernel\\n" "${INFO}"
                     printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
                     printf "%b Your Pi will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
                     printf "%b For more information, visit: $DGBH_URL_RPIOS64\\n" "${INDENT}"
@@ -4056,7 +4056,7 @@ digiasset_node_check() {
     # If an existing DigiAsset Node is installed, get the current major release number directly from the api.js file
     # The advantage of this method is that it will work even if DigiAsset Node is not running
     if test -f $DGA_INSTALL_LOCATION/lib/api.js; then
-      DGA_VER_MJR_LOCAL_QUERY=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
+      DGA_VER_MJR_LOCAL_QUERY=$(cat $DGA_INSTALL_LOCATION/lib/api.js 2>/dev/null | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
 
       # If we actually get a valid response, update DGA_VER_MJR_LOCAL variable with a new major version 
       if [ "$DGA_VER_MJR_LOCAL_QUERY" != "" ]; then
@@ -4155,7 +4155,6 @@ digiasset_node_check() {
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
         sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
-    fi
     fi
 
 
@@ -4282,6 +4281,8 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     DGA_UPDATE_AVAILABLE=NO
     DGA_POSTUPDATE_CLEANUP=YES
 
+    # Create DigiAsset Node PM2
+
     # Create hidden file in the 'digiasset_node' folder to denote this version was installed with the official installer
     if [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
         sudo -u $USER_ACCOUNT touch $DGA_INSTALL_LOCATION/.officialdiginode
@@ -4300,10 +4301,10 @@ digiasset_node_create_pm2_service() {
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
 
-# If we are in reset mode, ask the user if they want to re-create the DigiNode Service
+# If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
 if [ $RESET_MODE = true ]; then
 
-    # Only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
+    # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
@@ -4866,7 +4867,7 @@ main() {
 
     ### FIRST INSTALL MENU ###
 
-    # If this is a new interaactive Install, display the first insall menu
+    # If this is a new interaactive Install, display the first install menu
     if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
 
         # Ask whther to install only DigiByte Core, or DigiAssets Node as well
@@ -4917,12 +4918,15 @@ main() {
 
     # Install DigiAssets along with IPFS
     digiasset_node_do_install
+
+    # Setup PM2 init service
+    digiasset_node_create_pm2_service
   
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install DigiNode Tools
-    dgntools_do_install
+    # dgntools_do_install
 
 
 
