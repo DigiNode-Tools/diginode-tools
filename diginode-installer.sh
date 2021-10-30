@@ -2569,7 +2569,6 @@ upgrade_menu() {
 # with the latest develop branch version from Github.
 diginode_tools_check() {
 
-printf "\\n"
 printf " =============== Checking: DigiNode Tools ==============================\\n\\n"
 # ==============================================================================
 
@@ -3200,10 +3199,11 @@ digibyte_check() {
             printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
-            printf "%b Upgrade is not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
             DGB_DO_INSTALL=NO
             DGB_INSTALL_TYPE="none"
             DGB_UPDATE_AVAILABLE=NO
+            printf "\\n"
             return
           fi
       else
@@ -3359,7 +3359,6 @@ fi
 
 ipfs_check() {
 
-    printf "\\n"
     printf " =============== Checking: IPFS daemon =================================\\n\\n"
     # ==============================================================================
 
@@ -3465,6 +3464,7 @@ ipfs_check() {
             IPFS_DO_INSTALL=NO
             IPFS_INSTALL_TYPE="none"
             IPFS_UPDATE_AVAILABLE=NO
+            printf "\\n"
             return
           fi
       else
@@ -4063,7 +4063,6 @@ printf "\\n"
 
 digiasset_node_check() {
 
-    printf "\\n"
     printf " =============== Checking: DigiAsset Node ==============================\\n\\n"
     # ==============================================================================
 
@@ -4210,6 +4209,7 @@ digiasset_node_check() {
         DGA_DO_INSTALL=NO
         DGA_INSTALL_TYPE="none"
         DGA_UPDATE_AVAILABLE=NO
+        printf "\\n"
         return     
     else
         DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
@@ -4231,10 +4231,11 @@ digiasset_node_check() {
             DGA_INSTALL_TYPE="askreset"
             DGA_DO_INSTALL=YES
           else
-            printf "%b DigiAsset Node upgrade is not required. Skipping...\\n" "${INFO}"
+            printf "%b DigiAsset Node upgrade not required. Skipping...\\n" "${INFO}"
             DGA_DO_INSTALL=NO
             DGA_INSTALL_TYPE="none"
             DGA_UPDATE_AVAILABLE=NO
+            printf "\\n"
             return
           fi
       else
@@ -4279,6 +4280,7 @@ if [ $DGA_INSTALL_TYPE = "askreset" ]; then
         DGA_INSTALL_TYPE="reset"
     else
         printf "%b Reset Mode: User skipped re-installing DigiAsset Node.\\n" "${INFO}"
+        printf "\\n"
         DGA_DO_INSTALL=NO
         DGA_INSTALL_TYPE="none"
         DGA_UPDATE_AVAILABLE=NO
