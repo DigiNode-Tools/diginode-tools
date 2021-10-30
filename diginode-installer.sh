@@ -2141,7 +2141,7 @@ elif [[ `systemctl` =~ -\.mount ]]; then
 elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
     INIT_SYSTEM="sysv-init"
     printf "%b Init System: sysv-init\\n" "${INFO}"
-else; then
+else
     INIT_SYSTEM="unknown"
     printf "%b Init System: Unknown\\n" "${INFO}"
 fi
@@ -2169,7 +2169,7 @@ user_create_digibyte() {
                 printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
                 local str="Adding user 'digibyte' to group 'digibyte'"
                 printf "  %b %s..." "${INFO}" "${str}"
-                # if digibyte user can be added to group pihole
+                # if digibyte user can be added to group digibyte
                 if usermod -g digibyte digibyte; then
                     printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
                 else
