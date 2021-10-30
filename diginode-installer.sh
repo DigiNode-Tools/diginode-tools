@@ -4305,7 +4305,7 @@ digiasset_node_create_pm2_service() {
 if [ $RESET_MODE = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
-    if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]
+    if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
             PM2_DO_INSTALL=YES
