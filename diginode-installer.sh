@@ -381,10 +381,6 @@ DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
 DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
 DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 
-# DIGIBYTE SYSTEM SERVICE FILES:
-DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
-DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
-
 # IPFS NODE LOCATION
 IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
@@ -401,6 +397,8 @@ DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
 IPFS_SYSTEMD_SERVICE_FILE=$USER_HOME/.config/systemd/user/ipfs.service
 IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
+PM2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/pm2-root.service
+PM2_UPSTART_SERVICE_FILE=/etc/init/pm2-root.service
 
 # Store DigiByte Core Installation details:
 DGB_INSTALL_DATE=
@@ -2129,6 +2127,28 @@ fi
 
 }
 
+
+# This function looks up which init system this Linux distro uses
+get_system_init() {
+
+# Which init system are we using?
+if [[ `/sbin/init --version` =~ upstart ]]; then
+    INIT_SYSTEM="upstart"
+    printf "%b Init System: upstart\\n" "${INFO}"
+elif [[ `systemctl` =~ -\.mount ]]; then
+    INIT_SYSTEM="systemd"
+    printf "%b Init System: systemd\\n" "${INFO}"
+elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
+    INIT_SYSTEM="sysv-init"
+    printf "%b Init System: sysv-init\\n" "${INFO}"
+else; then
+    INIT_SYSTEM="unknown"
+    printf "%b Init System: Unknown\\n" "${INFO}"
+fi
+
+}
+
+
 # Check if the 'digibyte' user exists and create if it does not
 user_create_digibyte() {
 
@@ -2801,24 +2821,9 @@ if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
-# Which init system are we using?
-if [[ `/sbin/init --version` =~ upstart ]]; then
-    init_system="upstart"
-    printf "%b Init System: upstart\\n" "${INFO}"
-elif [[ `systemctl` =~ -\.mount ]]; then
-    init_system="systemd"
-    printf "%b Init System: systemd\\n" "${INFO}"
-elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
-    init_system="sysv-init"
-    printf "%b Init System: sysv-init\\n" "${INFO}"
-else; then
-    init_system="unknown"
-    printf "%b Init System: Unknown\\n" "${INFO}"
-fi
-
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $init_system = "systemd" ]; then
+if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
 
     printf "\\n" 
     printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
@@ -2867,7 +2872,7 @@ EOF
 fi
 
 # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $init_system = "upstart" ]; then
+if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
 
     printf "\\n" 
     printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
@@ -2919,7 +2924,7 @@ EOF
 fi
 
 # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
-if [ $init_system = "sysv-init" ] || $init_system = "unknown" ]; then
+if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
     exit 1
@@ -3674,24 +3679,9 @@ if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
-# Which init system are we using?
-if [[ `/sbin/init --version` =~ upstart ]]; then
-    init_system="upstart"
-    printf "%b Init System: upstart\\n" "${INFO}"
-elif [[ `systemctl` =~ -\.mount ]]; then
-    init_system="systemd"
-    printf "%b Init System: systemd\\n" "${INFO}"
-elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
-    init_system="sysv-init"
-    printf "%b Init System: sysv-init\\n" "${INFO}"
-else; then
-    init_system="unknown"
-    printf "%b Init System: Unknown\\n" "${INFO}"
-fi
-
 
 # If using systemd and the IPFS service file does not exist yet, let's create it
-if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $init_system = "systemd" ]; then
+if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
 
     printf "\\n" 
     printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
@@ -3756,7 +3746,7 @@ EOF
 fi
 
 # If using upstart and the IPFS service file does not exist yet, let's create it
-if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $init_system = "upstart" ]; then
+if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
 
     # Create a new IPFS upstart service file
 
@@ -3788,7 +3778,7 @@ EOF
 fi
 
 # If using upstart and the IPFS service file does not exist yet, let's create it
-if [ $init_system = "sysv-init" ] || $init_system = "unknown" ]; then
+if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
     exit 1
@@ -4297,6 +4287,191 @@ fi
 
 }
 
+
+# Create pm2 service so that DigiAsset Node will run at boot
+dganode_create_pm2_service() {
+
+# If you want to make changes to how PM2 services are created/managed, refer to this website:
+# https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
+
+# If we are in reset mode, ask the user if they want to re-create the DigiNode Service
+if [ $RESET_MODE = true ]; then
+
+    # Only ask if a service file has previously been created
+    if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nNote: The service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
+            PM2_DO_INSTALL=YES
+            PM2_INSTALL_TYPE="reset"
+        else
+            printf "%b Reset Mode: User skipped re-creating DigiAsset Node PM2 service.\\n" "${INFO}"
+            PM2_DO_INSTALL=NO
+            PM2_INSTALL_TYPE="none"
+            return
+        fi
+    fi
+fi
+
+# If the service files do not yet exist, then assume this is a new install
+if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+            PM2_DO_INSTALL=YES
+            PM2_INSTALL_TYPE="new"
+fi
+
+# If the service files do not yet exist, then assume this is a new install
+if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+            PM2_DO_INSTALL=YES
+            PM2_INSTALL_TYPE="new"
+fi
+
+
+# If PM2 systemd service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+if [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
+
+    # Stop the service now
+    sudo systemctl stop pm2-root
+
+    # Disable the service now
+    sudo systemctl disable pm2-root
+
+    str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $PM2_SYSTEMD_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+# If PM2 upstart service file already exists, and we are doing a Reset, delete it, since we will re-create it
+if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
+
+    # Stop the service now
+    sudo service pm2-root stop
+
+    # Disable the service now
+    sudo service pm2-root disable
+
+    str="Deleting PM2 upstart service file..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $PM2_UPSTART_SERVICE_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
+######
+
+
+
+
+# If using systemd and the DigiByte daemon service file does not exist yet, let's create it
+if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
+
+    printf "\\n" 
+    printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
+    
+    # Create a new DigiByte daemon service file
+
+    str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $DGB_SYSTEMD_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
+Description=DigiByte's distributed currency daemon
+After=network.target
+
+[Service]
+User=$USER_ACCOUNT
+Group=$USER_ACCOUNT
+
+Type=forking
+PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
+ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
+-conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Enable the service to run at boot
+    printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
+    systemctl enable digibyted
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Start the service now
+    str="Starting DigiByte daemon systemd service..."
+    printf "%b %s" "${INFO}" "${str}"
+    systemctl start digibyted
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using upstart and the DigiByte daemon service file does not exist yet, let's create it
+if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+
+    printf "\\n" 
+    printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
+
+    # Create a new DigiByte daemon upstart service file
+
+    str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $DGB_UPSTART_SERVICE_FILE
+    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
+description "DigiByte Core Daemon"
+
+start on runlevel [2345]
+stop on starting rc RUNLEVEL=[016]
+
+env DIGBYTED_BIN="$DGB_DAEMON"
+env DIGIBYTED_USER="$USER_ACCOUNT"
+env DIGIBYTED_GROUP="$USER_ACCOUNT"
+env DIGIBYTED_PIDFILE="$DGB_SETTINGS_LOCATION/digibyted.pid"
+env DIGIBYTED_CONFIGFILE="$DGB_CONF_FILE"
+env DIGIBYTED_DATADIR="$DGB_DATA_LOCATION"
+
+expect fork
+
+respawn
+respawn limit 5 120
+kill timeout 600
+
+exec start-stop-daemon \
+    --start \
+    --pidfile "\$DIGIBYTED_PIDFILE" \
+    --chuid \$DIGIBYTED_USER:\$DIGIBYTED_GROUP \
+    --exec "\$DIGIBYTED_BIN" \
+    -- \
+    -pid="\$DIGIBYTED_PIDFILE" \
+    -conf="\$DIGIBYTED_CONFIGFILE" \
+    -datadir="\$DIGIBYTED_DATADIR"
+
+EOF
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+
+    # Start the service now
+    str="Starting DigiByte daemon upstart service..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo service digibyted start
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+fi
+
+# If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
+if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
+
+    printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
+    exit 1
+
+fi
+
+}
+
+
 # This function will ask the user if they want to install the system upgrades that have been found
 upgrade_ask_install() {
 
@@ -4627,6 +4802,9 @@ main() {
 
     # Set the system text editor
     set_text_editor
+
+    # Get the init system used by this Linux distro
+    get_system_init
 
     # import diginode settings
     import_diginode_settings
