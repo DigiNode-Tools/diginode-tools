@@ -2562,7 +2562,7 @@ upgrade_menu() {
 # This function will install or upgrade the local version of the 'DigiNode Tools' scripts.
 # By default, it will always install the latest release version from GitHub. If the existing installed version
 # is the develop version or an older release version, it will be upgraded to the latest release version.
-# If the --dgn_dev_branch flag is used at launch it will always replace the local version
+# If the --dgnt_dev_branch flag is used at launch it will always replace the local version
 # with the latest develop branch version from Github.
 diginode_tools_check() {
 
@@ -4684,7 +4684,7 @@ main() {
                 printf "%b Re-running DigiNode Installer URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGN_INSTALLER_URL | sudo bash -s $add_args "$@"
+                exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
             else
                 # when run via calling local bash script
                 printf "%b Re-running DigiNode Installer as root...\\n" "${INFO}"
