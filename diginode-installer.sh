@@ -3200,7 +3200,7 @@ digibyte_check() {
             printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
-            printf "%b DigiByte Core upgrade is not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade is not required. Skipping...\\n" "${INFO}"
             DGB_DO_INSTALL=NO
             DGB_INSTALL_TYPE="none"
             DGB_UPDATE_AVAILABLE=NO
@@ -3838,16 +3838,15 @@ printf "\\n"
 
 nodejs_check() {
 
-    printf "\\n"
     printf " =============== Checking: NodeJS ======================================\\n\\n"
     # ==============================================================================
 
     # Get the local version number of NodeJS (this will also tell us if it is installed)
-    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
     # Later versions use purely the 'node --version' command, (rather than nodejs)
-    if [ $NODEJS_VER_LOCAL = "" ]; then
-        NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
+        NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
     # Let's check if NodeJS is already installed
