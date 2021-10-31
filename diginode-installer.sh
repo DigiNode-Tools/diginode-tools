@@ -3199,7 +3199,7 @@ digibyte_check() {
             printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
-            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required.\\n" "${INFO}"
             DGB_DO_INSTALL=NO
             DGB_INSTALL_TYPE="none"
             DGB_UPDATE_AVAILABLE=NO
@@ -3460,7 +3460,7 @@ ipfs_check() {
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
-            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required.\\n" "${INFO}"
             IPFS_DO_INSTALL=NO
             IPFS_INSTALL_TYPE="none"
             IPFS_UPDATE_AVAILABLE=NO
@@ -3484,7 +3484,7 @@ ipfs_check() {
             IPFSU_INSTALL_TYPE="askreset"
             IPFSU_DO_INSTALL=YES
           else
-            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required for IPFS Updater tool.\\n" "${INFO}"
             IPFSU_DO_INSTALL=NO
             IPFSU_INSTALL_TYPE="none"
             IPFSU_UPDATE_AVAILABLE=NO
@@ -3926,7 +3926,8 @@ nodejs_check() {
             NODEJS_INSTALL_TYPE="askreset"
             NODEJS_DO_INSTALL=YES
           else
-            printf "%b Upgrade not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required.\\n" "${INFO}"
+            printf "\\n"
             NODEJS_DO_INSTALL=NO
             NODEJS_INSTALL_TYPE="none"
             NODEJS_UPDATE_AVAILABLE=NO
@@ -4953,11 +4954,12 @@ main() {
     nodejs_check
 
     # Check if DigiAssets Node is installed, and if there is an upgrade available
- #   digiasset_node_check
+    digiasset_node_check
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
 
+exit
 
     ### FIRST INSTALL MENU ###
 
