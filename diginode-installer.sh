@@ -53,8 +53,9 @@ fi
 # Local variables will be in lowercase and will exist only within functions
 
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
-# (Note: This condition ensures that this VERBOSE_MODE setting is ignored if running
-# the Status Monitor script - it has its own VERBOSE_MODE setting.
+# This can be overridden when needed by the --verboseon or --verboseoff flags.
+# (Note: The RUN_INSTALLER condition ensures that the VERBOSE_MODE setting only applies to this installer
+# and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
     VERBOSE_MODE="NO"
 fi
@@ -133,7 +134,8 @@ for var in "$@"; do
         "--dga-dev" ) DGA_DEV_MODE=true;; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
-        "--verbose" ) VERBOSE_MODE=true;;
+        "--verboseon" ) VERBOSE_MODE=true;;
+        "--verboseoff" ) VERBOSE_MODE=false;;
     esac
 done
 
@@ -3890,9 +3892,10 @@ nodejs_check() {
         NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
     else
-        printf "%b NodeSource PPA repository located - it has previously been added by this installer.\\n" "${TICK}"
-        printf "%b You can have this script add it again, by editing the diginode.settings file\\n" "${INDENT}"
-        printf "%b and setting the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
+        printf "%b NodeSource PPA repository has already been added.\\n" "${TICK}"
+        printf "%b It was previously added by this installer. This should only need to be done once.\\n" "${INDENT}"
+        printf "%b If nneded, you can have this script add it again, by editing the diginode.settings\\n" "${INDENT}"
+        printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
     fi
 
     # Look up the latest candidate release
@@ -4082,22 +4085,26 @@ digiasset_node_check() {
     fi
 
     # Just to be sure, let's try another way to check if DigiAsset Node is installed by looking for the 'digiasset_node' api.js file
-    if [ "$DGA_STATUS" = "not_detected" ] && [ -f "$DGA_INSTALL_LOCATION/lib/api.js" ]; then
-        DGA_STATUS="installed"
-        printf "%b%b %s YES! [ Located ~/digiasset_node/lib/api.js file]\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        DGA_STATUS="not_detected"
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    if [ "$DGA_STATUS" = "not_detected" ]; then
+        if [ -f "$DGA_INSTALL_LOCATION/lib/api.js" ]; then
+            DGA_STATUS="installed"
+            printf "%b%b %s YES! [ Located: ~/digiasset_node/lib/api.js ]\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGA_STATUS="not_detected"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
     fi
 
 
     # If we know DigiAsset Node is installed, let's check if it is actually running
     # First we'll see if it is running using the command: node index.js
-    if [ $DGA_STATUS = "installed" ]; then
+    if [ "$DGA_STATUS" = "installed" ]; then
         str="Is DigiAsset Node currently running?..."
+        IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
         printf "%b %s" "${INFO}" "${str}"
-        if [! $(pgrep -f "node index.js") -eq "" ]; then
+        if [ "$IS_DGANODE_RUNNING" != "" ]; then
             DGA_STATUS="running"
+            IS_DGANODE_RUNNING="YES"
             printf "%b%b %s YES! [ Using: node index.js ]\\n" "${OVER}" "${TICK}" "${str}"
         else
             # If that didn't work, check if it is running using PM2
@@ -4141,18 +4148,18 @@ digiasset_node_check() {
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
             sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s DigiByte Core v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
             sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s DigiByte Core v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            printf "%b%b %s DigiByte Core v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         fi
     fi
 
@@ -4171,7 +4178,7 @@ digiasset_node_check() {
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
             sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s DigiByte Core v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         # If we actually get a version number then we can use it
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
@@ -4345,8 +4352,8 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
-    # Start DigiAsset Node
-    pm2 start index.js --name digiasset --watch --log
+    # Start DigiAsset Node, and tell it to save the current setup, then restart as as a service
+    pm2 start index.js  --watch --name digiasset -- --log
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
@@ -4460,28 +4467,22 @@ fi
 # If this system uses SYSTEMD and the service file does not yet exist, then set it it up
 if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
-    # start digiasset node
-    pm2 start index.js --name digiasset --log
-
     # Generate the PM2 service file
     pm2 startup
 
-    # Save current running PM2 services, so they restart at boot
-    pm2 save --force
+    # Restart the PM2 service
+    restart_service pm2-root
 
 fi
 
 # If this system uses UPSTART and the service file does not yet exist, then set it it up
 if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
-    # start digiasset node
-    pm2 start index.js --name digiasset --log
-
     # Generate the PM2 service file
     pm2 startup
 
-    # Save current running PM2 services, so they restart at boot
-    pm2 save --force
+    # Restart the PM2 service
+    restart_service pm2-root
 
 fi
 
