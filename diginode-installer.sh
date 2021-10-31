@@ -2542,23 +2542,23 @@ upgrade_menu() {
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+    { printf "%b %bCancel was selected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
         # Update, or
         ${opt1a})
-            printf "  %b %s option selected\\n" "${INFO}" "${opt1a}"
+            printf "%b %s option selected\\n" "${INDENT}" "${opt1a}"
             UnattendedUpgrade=true
             ;;
         # Reset,
         ${opt2a})
-            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
+            printf "%b %s option selected\\n" "${INDENT}" "${opt2a}"
             RESET_MODE=true
             ;;
         # Uninstall,
         ${opt3a})
-            printf "  %b %s option selected\\n" "${INFO}" "${opt3a}"
+            printf "%b %s option selected\\n" "${INDENT}" "${opt3a}"
             uninstall_everything
             ;;
     esac
