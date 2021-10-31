@@ -3889,6 +3889,10 @@ nodejs_check() {
         # Update variable in diginode.settings so this does not run again
         NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
+    else
+        printf "%b NodeSource PPA repository located - it has previously been added by this installer.\\n" "${TICK}"
+        printf "%b You can have this script add it again, by editing the diginode.settings file\\n" "${INDENT}"
+        printf "%b and setting the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
     fi
 
     # Look up the latest candidate release
