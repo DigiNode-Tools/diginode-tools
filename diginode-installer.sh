@@ -2528,13 +2528,13 @@ first_install_menu() {
 upgrade_menu() {
 
     opt1a="Upgrade"
-    opt1b="Upgrades DigiNode software to the latest versions."
+    opt1b="Upgrade DigiNode software to the latest versions."
     
     opt2a="Reset"
-    opt2b="Resets all settings and reinstalls DigiNode software. Use with caution."
+    opt2b="Reset all settings and reinstall DigiNode software."
 
     opt3a="Uninstall"
-    opt3b="Removes DigiNode from your systems."
+    opt3b="Remove DigiNode from your systems."
 
 
     # Display the information to the user
