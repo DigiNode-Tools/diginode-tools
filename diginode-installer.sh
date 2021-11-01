@@ -3262,9 +3262,6 @@ printf " =============== Checking: DigiNode Tools ==============================
         printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
-    #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
-    if [ "$DGNT_BRANCH" = "release" ]; then
-
     # If there is no release version (i.e. it returns 'null'), use the main version
     if [ "$DGNT_VER_RELEASE" = "null" ]; then
         printf "%b DigiNode Tools release branch requested.\\n" "${INFO}"
