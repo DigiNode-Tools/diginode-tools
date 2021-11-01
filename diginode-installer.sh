@@ -2564,170 +2564,6 @@ upgrade_menu() {
     esac
 }
 
-# This function will install or upgrade the local version of the 'DigiNode Tools' scripts.
-# By default, it will always install the latest release version from GitHub. If the existing installed version
-# is the develop version or an older release version, it will be upgraded to the latest release version.
-# If the --dgnt_dev_branch flag is used at launch it will always replace the local version
-# with the latest develop branch version from Github.
-diginode_tools_check() {
-
-printf " =============== Checking: DigiNode Tools ==============================\\n\\n"
-# ==============================================================================
-
-    local dgnt_install_now
-    local str
-
-    #lookup latest release version on Github (need jq installed for this query)
-    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
-
-    # If we get a response, update the stored release version
-    if [ "$dgnt_ver_release_query" != "" ]; then
-        DGNT_VER_RELEASE=$dgnt_ver_release_query
-    fi
-
-     #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
-
-    # If there is no release version, use the main version
-    if [ "$DGNT_VER_RELEASE" = "null" ]; then
-        printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        DGNT_LOCAL_BRANCH="main"
-        dgnt_install_now = "YES"
-    fi
-
-   
-
-    # Upgrade to release branch
-    if [ "$DGNT_BRANCH" = "release" ]; then
-        # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
-
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ] && [ $DGNT_LOCAL_RELEASE_VER -gt $DGNT_VER_RELEASE ]; then
-            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} is available and will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"}
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        else 
-            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        fi
-
-    # Upgrade to develop branch
-    elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
-            printf "%b %bDigiNode Tools v${DGNT_LOCAL_RELEASE_VER} replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"}
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        else
-            printf "%b %bDigiNode Tools develop branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        fi
-    
-    # Upgrade to main branch
-    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
-            printf "%b %bDigiNode Tools v${DGNT_LOCAL_RELEASE_VER} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"}
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        else
-            printf "%b %bDigiNode Tools main branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            dgnt_install_now = "YES"
-        fi
-    fi
-
-    # If a new version needs to be installed, do it now
-    if [ "$dgnt_install_now" = "YES" ]; then
-
-        # first delete the current installed version of DigiNode Tools (if it exists)
-        if [[ -d $DGNT_LOCATION ]]; then
-            str="Removing DigiNode Tools current version..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            rm -rf d $DGNT_LOCATION
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Next install the newest version
-        cd $USER_HOME
-        # Clone the develop version if develop flag is set
-        if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            str="Installing DigiNode Tools develop branch..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        # Clone the develop version if develop flag is set
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            str="Installing DigiNode Tools main branch..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
-            str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Make downloads executable
-        str="Making DigiNode scripts executable..."
-        printf "\\n%b %s" "${INFO}" "${str}"
-        chmod +x $DGNT_INSTALLER_SCRIPT
-        chmod +x $DGNT_MONITOR_SCRIPT
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-
-        # Add alias so entering 'diginode' works from any folder
-        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
-            str="Adding 'diginode' alias to .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Add alias so entering 'diginode-installer' works from any folder
-        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
-            str="Adding 'diginode-installer' alias to .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    fi
-}
 
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
@@ -3354,6 +3190,204 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
 fi
 
+}
+
+
+# This function will install or upgrade the local version of the 'DigiNode Tools' scripts.
+# By default, it will always install the latest release version from GitHub. If the existing installed version
+# is the develop version or an older release version, it will be upgraded to the latest release version.
+# If the --dgnt_dev_branch flag is used at launch it will always replace the local version
+# with the latest develop branch version from Github.
+
+diginode_tools_check() {
+
+printf " =============== Checking: DigiNode Tools ==============================\\n\\n"
+# ==============================================================================
+
+    local str
+
+    #lookup latest release version on Github (need jq installed for this query)
+    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+
+    # If we get a response, update the stored release version
+    if [ "$dgnt_ver_release_query" != "" ]; then
+        DGNT_VER_RELEASE=$dgnt_ver_release_query
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+    fi
+
+     #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
+
+    # If there is no release version (i.e. it returns 'null'), use the main version
+    if [ "$DGNT_VER_RELEASE" = "null" ]; then
+        printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        DGNT_BRANCH="main"
+    fi
+
+    # Get the current local version, if any
+    if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+        local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+    fi
+
+    # If we get a valid response, update the stored local version
+    if [ "$dgnt_ver_local_query" != "" ]; then
+        DGNT_VER_LOCAL=$dgnt_ver_local_query
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+   
+
+    # Upgrade to release branch
+    if [ "$DGNT_BRANCH" = "release" ]; then
+        # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
+
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ] && [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+            printf "%b %bDigiNode Tools can be upgraded from v{$DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="askupgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+            printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        else 
+            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="new"
+            DGNT_DO_INSTALL=YES
+        fi
+
+    # Upgrade to develop branch
+    elif [ "$DGNT_BRANCH" = "develop" ]; then
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+            printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+            printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+            printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        else
+            printf "%b %bDigiNode Tools develop branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="new"
+            DGNT_DO_INSTALL=YES
+        fi
+    
+    # Upgrade to main branch
+    elif [ "$DGNT_BRANCH" = "main" ]; then
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+            printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+            printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
+        else
+            printf "%b %bDigiNode Tools main branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="new"
+            DGNT_DO_INSTALL=YES
+        fi
+    fi
+
+}
+
+
+
+diginode_tools_do_install() {
+
+printf " =============== Installing: DigiNode Tools ============================\\n\\n"
+# ==============================================================================
+
+    # If a new version needs to be installed, do it now
+    if [ "$DGNT_DO_INSTALL" = "YES" ]; then
+
+        # first delete the current installed version of DigiNode Tools (if it exists)
+        if [[ -d $DGNT_LOCATION ]]; then
+            str="Removing DigiNode Tools current version..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            rm -rf d $DGNT_LOCATION
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Next install the newest version
+        cd $USER_HOME
+        # Clone the develop version if develop flag is set
+        if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+            str="Installing DigiNode Tools develop branch..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        # Clone the develop version if develop flag is set
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+            str="Installing DigiNode Tools main branch..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+            str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Make downloads executable
+        str="Making DigiNode scripts executable..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        chmod +x $DGNT_INSTALLER_SCRIPT
+        chmod +x $DGNT_MONITOR_SCRIPT
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Add alias so entering 'diginode' works from any folder
+        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+            str="Adding 'diginode' alias to .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Append alias to .bashrc file
+            echo "" >> $USER_HOME/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
+            echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Add alias so entering 'diginode-installer' works from any folder
+        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+            str="Adding 'diginode-installer' alias to .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Append alias to .bashrc file
+            echo "" >> $USER_HOME/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
+            echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    fi
 }
 
 
