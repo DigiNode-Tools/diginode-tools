@@ -2445,7 +2445,7 @@ disk_check() {
             fi      
         else
             printf "%b Disk Space Check: %bPASSED%b   There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}b  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
+            printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
     else
@@ -2581,14 +2581,14 @@ printf " =============== Checking: DigiNode Tools ==============================
     local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
     # If we get a response, update the stored release version
-    if [ $dgnt_ver_release_query != "" ]; then
+    if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
     fi
 
      #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
 
     # If there is no release version, use the main version
-    if [ $dgnt_github_rel_ver = "null" ]; then
+    if [ "$DGNT_VER_RELEASE" = "null" ]; then
         printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         DGNT_LOCAL_BRANCH="main"
         dgnt_install_now = "YES"
@@ -2597,32 +2597,32 @@ printf " =============== Checking: DigiNode Tools ==============================
    
 
     # Upgrade to release branch
-    if [ $DGNT_BRANCH = "release" ]; then
+    if [ "$DGNT_BRANCH" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-        if [ $DGNT_LOCAL_BRANCH = "release" ] && [ $DGNT_LOCAL_RELEASE_VER -gt $DGNT_VER_RELEASE ]; then
-            printf "%b %bDigiNode Tools v${dgnt_github_rel_ver} is available and will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ] && [ $DGNT_LOCAL_RELEASE_VER -gt $DGNT_VER_RELEASE ]; then
+            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} is available and will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
-        elif [ $DGNT_LOCAL_BRANCH = "main" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"}
-        elif [ $DGNT_LOCAL_BRANCH = "develop" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
         else 
-            printf "%b %bDigiNode Tools v${dgnt_github_rel_ver} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
         fi
 
     # Upgrade to develop branch
-    elif [ $DGNT_LOCAL_BRANCH = "develop" ]; then
-        if [ $DGNT_LOCAL_BRANCH = "release" ]; then
+    elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_LOCAL_RELEASE_VER} replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
-        elif [ $DGNT_LOCAL_BRANCH = "main" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"}
-        elif [ $DGNT_LOCAL_BRANCH = "develop" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
         else
@@ -2631,14 +2631,14 @@ printf " =============== Checking: DigiNode Tools ==============================
         fi
     
     # Upgrade to main branch
-    elif [ $DGNT_LOCAL_BRANCH = "main" ]; then
-        if [ $DGNT_LOCAL_BRANCH = "release" ]; then
+    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_LOCAL_RELEASE_VER} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
-        elif [ $DGNT_LOCAL_BRANCH = "main" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"}
-        elif [ $DGNT_LOCAL_BRANCH = "develop" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             dgnt_install_now = "YES"
         else
@@ -2659,9 +2659,9 @@ printf " =============== Checking: DigiNode Tools ==============================
         fi
 
         # Next install the newest version
-        cd ~
+        cd $USER_HOME
         # Clone the develop version if develop flag is set
-        if [ $DGNT_LOCAL_BRANCH = "develop" ]; then
+        if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
@@ -2669,19 +2669,19 @@ printf " =============== Checking: DigiNode Tools ==============================
             sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
-        elif [ $DGNT_LOCAL_BRANCH = "main" ]; then
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ $DGNT_LOCAL_BRANCH = "release" ]; then
-            str="Installing DigiNode Tools v${dgnt_github_rel_ver}..."
+        elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+            str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=$dgnt_github_rel_ver|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -3196,7 +3196,7 @@ digibyte_check() {
     if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-          printf "%b DigiByte Core is already the latest version.\\n" "${INFO}"
+          printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
@@ -3456,7 +3456,7 @@ ipfs_check() {
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Go-IPFS is already the latest version.\\n" "${TICK}"
+          printf "%b Go-IPFS is already up to date.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Go-IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
@@ -3480,7 +3480,7 @@ ipfs_check() {
     if [ ! $IPFSU_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
-          printf "%b IPFS Updater is already the latest version.\\n" "${TICK}"
+          printf "%b IPFS Updater is already up to date.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
             IPFSU_INSTALL_TYPE="askreset"
@@ -3923,7 +3923,7 @@ nodejs_check() {
     if [ $NODEJS_VER_LOCAL != "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-          printf "%b NodeJS is already the latest version.\\n" "${TICK}"
+          printf "%b NodeJS is already up to date.\\n" "${TICK}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install NodeJS v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
             NODEJS_INSTALL_TYPE="askreset"
@@ -4242,13 +4242,13 @@ digiasset_node_check() {
     if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
       # ....then 
       if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-          printf "%b DigiAsset Node is already the latest version.\\n" "${INFO}"
+          printf "%b DigiAsset Node is already up to date.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiAsset Node v${DGA_VER_RELEASE}.\\n" "${INFO}"
             DGA_INSTALL_TYPE="askreset"
             DGA_DO_INSTALL=YES
           else
-            printf "%b DigiAsset Node upgrade not required. Skipping...\\n" "${INFO}"
+            printf "%b Upgrade not required.\\n" "${INFO}"
             DGA_DO_INSTALL=NO
             DGA_INSTALL_TYPE="none"
             DGA_UPDATE_AVAILABLE=NO
