@@ -4174,7 +4174,7 @@ digiasset_node_check() {
 
         # If the result is 'null', set it to actually null
         if [ "$DGA_VER_MNR_LOCAL_QUERY" = "null" ]; then
-            DGA_VER_MNR_LOCAL_QUERY=""
+            DGA_VER_MNR_LOCAL_QUERY="NA"
         fi
 
         # This is a beta so the minor version doesn't exist
