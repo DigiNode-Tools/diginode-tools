@@ -672,7 +672,11 @@ set_sys_variables() {
 
     if [ $VERBOSE_MODE = true ]; then
         printf "%b   Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
-        printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
+        if [ $SWAPTOTAL_HR = "0B" ]; then
+            printf "%b   Total SWAP: none\\n" "${INDENT}"
+        else
+            printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
+        fi
     fi
 
     BOOT_DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -682,8 +686,8 @@ set_sys_variables() {
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
-    # No need to update the disk usage variables if running the status monitor, as it does it itself
-    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+ #   # No need to update the disk usage variables if running the status monitor, as it does it itself
+ #   if [[ "$RUN_INSTALLER" != "NO" ]] ; then
 
         # Get internal IP address
         IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
@@ -703,7 +707,7 @@ set_sys_variables() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-    fi
+ #   fi
     printf "\\n"
 
 }
@@ -2728,7 +2732,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure DigiByte Core and DigiAsset Node on this device.\\n\\nRunning DigiByte Core means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to earn DGB for hosting others data, as well as being able to create your own DigiAssets on your own node.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure DigiByte Core and DigiAsset Node on this device.\\n\\nRunning DigiByte Core means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to earn DGB for hosting others data, as well as being able to create your own DigiAssets on your own node.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -2756,7 +2760,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
-    if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored, for example.\\n\\nIn most cases, there should be no need to change anything, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
