@@ -4172,6 +4172,11 @@ digiasset_node_check() {
             DGA_VER_MNR_LOCAL_QUERY=$(cat $DGA_SETTINGS_FILE | jq .templateVersion | sed 's/"//g')
         fi
 
+        # If the result is 'null', set it to actually null
+        if [ "$DGA_VER_MNR_LOCAL_QUERY" = "null" ]; then
+            DGA_VER_MNR_LOCAL_QUERY=""
+        fi
+
         # This is a beta so the minor version doesn't exist
         if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
             DGA_VER_MNR_LOCAL="beta"
@@ -4185,12 +4190,12 @@ digiasset_node_check() {
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
             sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s DigiByte Core v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            printf "%b%b %s DigiByte Core v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         fi
     fi
 
