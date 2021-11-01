@@ -3215,14 +3215,6 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
-     #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
-
-    # If there is no release version (i.e. it returns 'null'), use the main version
-    if [ "$DGNT_VER_RELEASE" = "null" ]; then
-        printf "%b %bDigiNode Tools release branch is unavailable. main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        DGNT_BRANCH="main"
-    fi
-
     # Get the current local version, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
@@ -3232,6 +3224,52 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ "$dgnt_ver_local_query" != "" ]; then
         DGNT_VER_LOCAL=$dgnt_ver_local_query
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Let's check if DigiNode Tools already installed
+    str="Are DigiNode Tools already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ ! -f "$DGNT_MONITOR_SCRIPT" ]; then
+        DGNT_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        DGNT_STATUS="installed"
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+            printf "%b%b %s YES!  Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+            printf "%b%b %s YES!  Go-IPFS develop branch\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+            printf "%b%b %s YES!  Go-IPFS main branch\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+    # Requested branch
+    if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
+    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
+    else
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the version number of the current Go-IPFS and write it to to the settings file
+    if [ "$IPFS_STATUS" = "installed" ]; then
+        str="Current Version: "
+        printf "%b %s" "${INFO}" "${str}"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+    fi
+
+    #Set which DigiNode Tools Github repo to upgrade to based on the argument provided
+    if [ "$DGNT_BRANCH" = "release" ]; then
+
+    # If there is no release version (i.e. it returns 'null'), use the main version
+    if [ "$DGNT_VER_RELEASE" = "null" ]; then
+        printf "%b DigiNode Tools release branch requested.\\n" "${INFO}"
+        printf "%b ERROR: Release branch is unavailable. main branch will be installed.\\n" "${CROSS}"
+        DGNT_BRANCH="main"
     fi
 
    
@@ -3293,7 +3331,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else
-            printf "%b %bDigiNode Tools main branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b DigiNode Tools main branch will be installed.\\n" "${INFO}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
         fi
