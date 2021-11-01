@@ -57,7 +57,7 @@ fi
 # (Note: The RUN_INSTALLER condition ensures that the VERBOSE_MODE setting only applies to this installer
 # and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
-    VERBOSE_MODE="NO"
+    VERBOSE_MODE=false
 fi
 
 ######### IMPORTANT NOTE ###########
@@ -194,7 +194,7 @@ txtbld=$(tput bold) # Set bold mode
 
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
@@ -253,7 +253,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
   if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
     str="Creating ~/.diginode folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "\\n"
         printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
@@ -309,13 +309,13 @@ DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=300
 
-# Stop 'DigiNode Satus Monitor' automatically if left running
+# Stop the DigiNode Status Monitor automatically if it is left running
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=43200
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
-# If 'no', it will install the latest release version
+# If NO, it will install the latest release version
 DGNT_DEV_BRANCH=YES
 
 # This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
@@ -338,17 +338,17 @@ UI_ENFORCE_DIGIBYTE_USER=YES
 # Choose whether to change the system hostname to: diginode (Set to YES/NO)
 # If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
 # If it is running on a Linux box with a load of other stuff, then probably not.
-UI_SET_HOSTNAME="YES"
+UI_SET_HOSTNAME=YES
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
-UI_SETUP_FIREWALL="YES"
+UI_SETUP_FIREWALL=YES
 
 # Choose whether to create or change the swap file size
 # The optimal swap size will be calculated to ensure there is 8Gb total memory.
 # e.g. If the system has 2Gb RAM, it will create a 6Gb swap file. Total: 8Gb.
 # If there is more than 8Gb RAM available, no swap will be created.
 # You can override this by manually entering the desired size in UI_SETUP_SWAP_SIZE_MB below.
-UI_SETUP_SWAP="YES"
+UI_SETUP_SWAP=YES
 
 # You can optionally manually enter a desired swap file size here in MB.
 # The UI_SETUP_SWAP variable above must be set to YES for this to be used.
@@ -357,10 +357,10 @@ UI_SETUP_SWAP="YES"
 UI_SETUP_SWAP_SIZE_MB=
 
 # Will install regardless of available disk space on the data drive. Use with caution.
-UI_DISKSPACE_OVERRIDE="NO"
+UI_DISKSPACE_OVERRIDE=NO
 
 # Choose whether to setup Tor [NOT WORKING YET]
-UI_SETUP_TOR="YES"
+UI_SETUP_TOR=YES
 
 
 #############################################
@@ -491,6 +491,7 @@ IP4_EXTERNAL=
 
 # This records when the wallet was last backed up
 WALLET_BACKUP_DATE=
+WALLET_BACKUP_ID=
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
@@ -506,7 +507,7 @@ IPFS_PORT_TEST_DATE_date=
 
 EOF
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
     else
@@ -537,7 +538,7 @@ EOF
     printf "%b %s" "${INFO}" "${str}"
     source $DGNT_SETTINGS_FILE
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
@@ -560,26 +561,22 @@ diginode_tools_import_settings() {
 if [ -f "$DGNT_SETTINGS_FILE" ]; then
 
     # The settings file exists, so source it
-    if [[ "${EUID}" -eq 0 ]]; then
-        str="Importing diginode.settings file..."
-        printf "%b %s" "${INFO}" "${str}"
-    fi
+    str="Importing diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
 
     source $DGNT_SETTINGS_FILE
     
-    if [[ "${EUID}" -eq 0 ]]; then
-        if [ "$VERBOSE_MODE" = "YES" ]; then
-            printf "\\n"
-            printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
-            printf "\\n"
-        else
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
-        fi
+    if [ $VERBOSE_MODE = true ]; then
+        printf "\\n"
+        printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
+        printf "\\n"
+    else
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
     fi
 
 else
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b diginode.settings file not found\\n" "${INDENT}"
         printf "\\n"
     fi
@@ -608,13 +605,13 @@ set_dgnt_branch() {
     else
         # If latest release branch does not exist, use main branch
             if [ "$DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL" = "" ]; then
-                if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
+                if [[ "${EUID}" -eq 0 ]] && [ $VERBOSE_MODE = true ]; then
                     printf "%b %bDigiNode Tools release branch is unavailable - main branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
                 DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_MAIN_URL
             else
-                if [[ "${EUID}" -eq 0 ]] && [ "$VERBOSE_MODE" = "YES" ]; then
+                if [[ "${EUID}" -eq 0 ]] && [ $VERBOSE_MODE = true ]; then
                     printf "%b %bDigiNode Tools latest release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
@@ -628,7 +625,7 @@ set_sys_variables() {
 
     local str
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b Looking up system variables...\\n" "${INFO}"
     else
         str="Looking up system variables..."
@@ -673,7 +670,7 @@ set_sys_variables() {
     SWAPTOTAL_KB=$(cat /proc/meminfo | grep SwapTotal: | tr -s ' ' | cut -d' ' -f2)
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b   Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
         printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
     fi
@@ -681,7 +678,7 @@ set_sys_variables() {
     BOOT_DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     BOOT_DISKTOTAL_KB=$(df . -BKB --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
@@ -691,13 +688,13 @@ set_sys_variables() {
         # Get internal IP address
         IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=$IP4_INTERNAL|" $DGNT_SETTINGS_FILE
         fi
 
         # Lookup disk usage, and update diginode.settings if present
         update_disk_usage
 
-        if [[ "$VERBOSE_MODE" = "YES" ]]; then
+        if [[ $VERBOSE_MODE = true ]]; then
             printf "%b   Used Boot Disk Space: ${BOOT_DISKUSED_HR}b ( ${BOOT_DISKUSED_PERC}% )\\n" "${INDENT}"
             printf "%b   Free Boot Disk Space: ${BOOT_DISKFREE_HR}b ( KB: ${BOOT_DISKFREE_KB} )\\n" "${INDENT}"
             printf "%b   Used Data Disk Space: ${DGB_DATA_DISKUSED_HR}b ( ${DGB_DATA_DISKUSED_PERC}% )\\n" "${INDENT}"
@@ -742,16 +739,16 @@ update_disk_usage() {
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e '/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"|' $DGNT_SETTINGS_FILE
-            sed -i -e '/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"|' $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=$BOOT_DISKUSED_HR|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=$BOOT_DISKUSED_KB|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=$BOOT_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=$BOOT_DISKFREE_HR|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=$BOOT_DISKFREE_KB|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=$DGB_DATA_DISKUSED_HR|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=$DGB_DATA_DISKUSED_KB|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=$DGB_DATA_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=$DGB_DATA_DISKFREE_HR|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=$DGB_DATA_DISKFREE_KB|" $DGNT_SETTINGS_FILE
         fi
 
 }
@@ -1492,7 +1489,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         exit 1
     fi
 else
-    if [ "$VERBOSE_MODE" = "YES" ]; then
+    if [ $VERBOSE_MODE = true ]; then
         printf "%b Raspberry Pi NOT Detected - no ARM processor found\\n" "${INFO}"
         printf "\\n"
     fi
@@ -2302,7 +2299,6 @@ swap_check() {
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
             printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
-        printf "\\n"
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
@@ -2316,17 +2312,17 @@ swap_check() {
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
             printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
-        printf "\\n"
     fi
-    if [ $RAMTOTAL_KB -gt 8000000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system has at least 8Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-    fi
+
+    # Calculate total memory available
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
-    if [ $TOTALMEM_KB -gt 8000000 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 8Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
+
+    if [ $RAMTOTAL_KB -gt 7800000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
+        printf "%b Swap Check: %bPASSED%b   Your system has more than 7Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    elif [ $TOTALMEM_KB -gt 7800000 ]; then
+        printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 7Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
+    printf "\\n"
 }
 
 # If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
@@ -3188,7 +3184,7 @@ digibyte_check() {
         return     
     else
         printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=$DGB_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -3335,9 +3331,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     DGB_VER_LOCAL=$DGB_VER_RELEASE
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset DGB Install and Upgrade Variables
@@ -3426,7 +3422,7 @@ ipfs_check() {
         return     
     else
         printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
     # Check for latest IPFS Updater release online
@@ -3448,7 +3444,7 @@ ipfs_check() {
         return     
     else
         printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -3634,11 +3630,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
         if [ $IPFSU_INSTALL_TYPE = "install" ]; then
-            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
-            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Reset IPFS Updater Install and Upgrade Variables
@@ -3667,11 +3663,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
-    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $DGB_INSTALL_TYPE = "install" ]; then
-        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
-    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    if [ $IPFS_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Initialize IPFS, if it has not already been done so
@@ -3893,8 +3889,8 @@ nodejs_check() {
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
     else
         printf "%b NodeSource PPA repository has already been added.\\n" "${TICK}"
-        printf "%b It was previously added by this installer. This should only need to be done once.\\n" "${INDENT}"
-        printf "%b If nneded, you can have this script add it again, by editing the diginode.settings\\n" "${INDENT}"
+        printf "%b The repository was previously added by this installer. It should only need to be done once.\\n" "${INDENT}"
+        printf "%b If needed, you can have this script add it again, by editing the diginode.settings\\n" "${INDENT}"
         printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
     fi
 
@@ -3916,7 +3912,7 @@ nodejs_check() {
         return
     else
         printf "%b%b %s Found: v${NODEJS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
@@ -4051,9 +4047,9 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]]; then
-        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -4226,9 +4222,9 @@ digiasset_node_check() {
     else
         DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
         printf "%b%b %s Found: DigiAsset Node v${DGA_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
-        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -4328,6 +4324,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         # Delete existing 'digiasset_node' folder (if it exists)
         str="Reset Mode: Deleting current '~/digiasset_node' folder..."
         printf "%b %s" "${INFO}" "${str}"
+        pm2 delete digiasset
         rm -r -f $USER_HOME/digiasset_node
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
@@ -4352,17 +4349,19 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
-    # Start DigiAsset Node, and tell it to save the current setup, then restart as as a service
-    pm2 start index.js  --watch --name digiasset -- --log
+    # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+    cd $DGA_INSTALL_LOCATION
+    sudo -u $USER_ACCOUNT pm2 start index.js --name digiasset -- --log
+    sudo -u $USER_ACCOUNT pm2 save -force
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
-    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $DGA_INSTALL_TYPE = "install" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
-        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=$(date)|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset DGA Install and Upgrade Variables
@@ -4719,7 +4718,7 @@ elif is_command vi ; then
     TEXTEDITOR=vi
 fi
 
-if [ "$VERBOSE_MODE" = "YES" ]; then
+if [ $VERBOSE_MODE = true ]; then
     printf "%b Text Editor: %b$TEXTEDITOR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
 fi
