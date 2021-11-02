@@ -3250,8 +3250,6 @@ printf " =============== Checking: DigiNode Tools ==============================
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
     elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
-    else
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Get the version number of the current Go-IPFS and write it to to the settings file
@@ -3324,7 +3322,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools develop branch will be replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else
@@ -5036,8 +5034,7 @@ main() {
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
-
-exit
+    
 
     ### FIRST INSTALL MENU ###
 
