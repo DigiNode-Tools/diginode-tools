@@ -2659,7 +2659,7 @@ digibyte_create_service() {
 # 
 
 # If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
         printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
@@ -2678,7 +2678,7 @@ if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 fi
 
 # If DigiByte daemon upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
         printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
@@ -2699,7 +2699,7 @@ fi
 
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ ! test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $"INIT_SYSTEM" = "systemd" ]; then
+if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $"INIT_SYSTEM" = "systemd" ]; then
 
     if [ "$RESET_MODE" = false ]; then
         printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
@@ -2752,7 +2752,7 @@ EOF
 fi
 
 # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
-if [ ! test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+if [ ! -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
     if [ "$RESET_MODE" = false ]; then
         printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
