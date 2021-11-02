@@ -2662,7 +2662,7 @@ digibyte_create_service() {
 if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
-        printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
+        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
         # Stop the service now
         sudo systemctl stop digibyted
@@ -2681,7 +2681,7 @@ fi
 if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
-        printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
+        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
         # Stop the service now
         sudo service digibyted stop
@@ -2697,22 +2697,23 @@ if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
 fi
 
+echo "Init System: $INIT_SYSTEM" 
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
 if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
     if [ "$RESET_MODE" = false ]; then
-        printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
+        printf " =============== Creating: DigiByte daemon service =====================\\n\\n"
         # ==============================================================================
     fi
 
-    printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
+    printf "%b systemd service will be created for DigiByte daemon.\\n" "${INFO}"
     
     # Create a new DigiByte daemon service file
 
     str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $DGB_SYSTEMD_SERVICE_FILE
+    touch $DGB_SYSTEMD_SERVICE_FILE
     sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
@@ -2755,17 +2756,17 @@ fi
 if [ ! -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
     if [ "$RESET_MODE" = false ]; then
-        printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
+        printf " =============== Creating: DigiByte daemon service =====================\\n\\n"
         # ==============================================================================
     fi
 
-    printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
+    printf "%b upstart service will be created for DigiByte daemon.\\n" "${INFO}"
 
     # Create a new DigiByte daemon upstart service file
 
     str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $DGB_UPSTART_SERVICE_FILE
+    touch $DGB_UPSTART_SERVICE_FILE
     sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
 description "DigiByte Core Daemon"
 
@@ -2802,7 +2803,7 @@ EOF
     # Start the service now
     str="Starting DigiByte daemon upstart service..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo service digibyted start
+    service digibyted start
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
 fi
