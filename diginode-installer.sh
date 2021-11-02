@@ -3264,15 +3264,22 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
-    # Get the current local version, if any
+    # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+
+        DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
-    # If we get a valid response, update the stored local version
+    # If we get a valid version number, update the stored local version
     if [ "$dgnt_ver_local_query" != "" ]; then
         DGNT_VER_LOCAL=$dgnt_ver_local_query
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If we get a valid local branch, update the stored local branch
+    if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
+        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=$DGNT_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
     fi
 
     # Let's check if DigiNode Tools already installed
@@ -3404,7 +3411,7 @@ printf " =============== Installing: DigiNode Tools ============================
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
@@ -3412,14 +3419,14 @@ printf " =============== Installing: DigiNode Tools ============================
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGNT_LOCAL_RELEASE_VER=/s|.*|DGNT_LOCAL_RELEASE_VER=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -3431,7 +3438,7 @@ printf " =============== Installing: DigiNode Tools ============================
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Add alias so entering 'diginode' works from any folder
-        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+        if [ cat $USER_HOME/.bashrc | grep "alias diginode" || echo "" ]; then
             str="Adding 'diginode' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
@@ -3448,7 +3455,7 @@ printf " =============== Installing: DigiNode Tools ============================
         fi
 
         # Add alias so entering 'diginode-installer' works from any folder
-        if [ cat .bashrc | grep "alias diginode" || echo "" ]; then
+        if [ cat $USER_HOME/.bashrc | grep "alias diginode" || echo "" ]; then
             str="Adding 'diginode-installer' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
