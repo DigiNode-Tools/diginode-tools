@@ -762,16 +762,27 @@ digibyte_create_conf() {
 
     local str
 
-    # If we are in reset mode, delete the diginode.settings file, if it already exists
+    # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ $RESET_MODE = true ] && [ -f "$DGB_CONF_FILE" ]; then
-        str="Reset Mode is Enabled. Deleting existing digibyte.conf file..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -f $DGB_CONF_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            printf " =============== Resetting: digibyte.conf =============================\\n\\n"
+            # ==============================================================================
+            str="Reset requested. Deleting existing digibyte.conf file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB_CONF_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
     # Do some intial setup before creating the digibyte.conf file for the first time
     if [ ! -f "$DGB_CONF_FILE" ]; then
+
+        # Display section break (except if this is a Reset)
+        if [ $RESET_MODE = false ]; then
+            printf " =============== Creating: digibyte.conf ===============================\\n\\n"
+            # ==============================================================================
+        fi
 
         # Max connections are set from the diginode.settings file
         set_maxconnections=$DGB_MAX_CONNECTIONS
@@ -2490,11 +2501,11 @@ fi
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 first_install_menu() {
 
-    opt1a="Full DigiNode  "
-    opt1b="Install DigiByte Core & DigiAsset Node (Recommended)"
+    opt1a="Full DigiNode "
+    opt1b=" Install DigiByte Core & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Core ONLY  "
-    opt2b="DigiAsset Node will NOT be installed."
+    opt2a="DigiByte Core ONLY "
+    opt2b=" DigiAsset Node will NOT be installed."
 
 
     # Display the information to the user
@@ -2511,7 +2522,7 @@ first_install_menu() {
             DGA_DO_INSTALL=YES
             DGB_ASK_INSTALL=NO
             DGB_DO_INSTALL=YES
-            printf "  %b %s option selected\\n" "${INFO}" "${opt1a}"
+            printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
             ;;
         # Install DigiByte Core ONLY
         ${opt2a})
@@ -2519,9 +2530,10 @@ first_install_menu() {
             DGA_DO_INSTALL=NO
             DGB_ASK_INSTALL=NO
             DGB_DO_INSTALL=YES
-            printf "  %b %s option selected\\n" "${INFO}" "${opt2a}"
+            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             ;;
     esac
+    printf "\\n"
 }
 
 # Function to display the upgrade menu when a previous install has been detected
@@ -3115,57 +3127,55 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     str="Deleting any old DigiByte Core tar.gz files from home folder..."
     printf "%b %s" "${INFO}" "${str}"
     rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Downloading latest DigiByte Core binary from GitHub
     str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # If an there is an existing version version, move it it to a backup version
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
         str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
         printf "%b %s" "${INFO}" "${str}"
         mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Extracting DigiByte Core binary
     str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s digibyte-$DGB_VER_RELEASE digibyte
-    rm digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete old ~/digibyte symbolic link
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
         str="Deleting old 'digibyte' symbolic link from home folder..."
         printf "%b %s" "${INFO}" "${str}"
         rm $DGB_INSTALL_LOCATION
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Create new symbolic link
     str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
         str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
     rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_RELEASE
@@ -3183,7 +3193,11 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Create hidden file to denote this version was installed with the official installer
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
+        str="Labeling as official DigiNode install..."
+        printf "%b %s" "${INFO}" "${str}"
+        cd $DGB_INSTALL_LOCATION
+        sudo -u $USER_ACCOUNT touch .officialdiginode
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     printf "\\n"
@@ -3331,6 +3345,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_DO_INSTALL=YES
         fi
     fi
+    printf "\\n"
 
 }
 
