@@ -3806,7 +3806,7 @@ ipfs_create_service() {
 # https://github.com/ipfs/go-ipfs/tree/master/misc 
 
 # If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
 
     # Stop the service now
     systemctl --user stop ipfs
@@ -3834,7 +3834,7 @@ fi
 
 
 # If using systemd and the IPFS service file does not exist yet, let's create it
-if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
+if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
 
     printf "\\n" 
     printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
@@ -3899,7 +3899,7 @@ EOF
 fi
 
 # If using upstart and the IPFS service file does not exist yet, let's create it
-if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
 
     # Create a new IPFS upstart service file
 
@@ -4520,32 +4520,32 @@ fi
 
 # Display section break
 printf "\\n"
-if [ $PM2_INSTALL_TYPE = "new" ]; then
+if [ "$PM2_INSTALL_TYPE" = "new" ]; then
     printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
     # ==============================================================================
-elif [ $PM2_INSTALL_TYPE = "upgrade" ]; then
+elif [ "$PM2_INSTALL_TYPE" = "upgrade" ]; then
     printf " =============== Upgrading: NodeJS PM2 Service =========================\\n\\n"
     # ==============================================================================
-elif [ $PM2_INSTALL_TYPE = "reset" ]; then
+elif [ "$PM2_INSTALL_TYPE" = "reset" ]; then
     printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
     # ==============================================================================
 fi
 
 # If the SYSTEMD service files do not yet exist, then assume this is a new install
-if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="new"
 fi
 
 # If the UPSTART service files do not yet exist, then assume this is a new install
-if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="new"
 fi
 
 
 # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-if [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
+if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
     # Stop the service now
     sudo systemctl stop pm2-root
@@ -4560,7 +4560,7 @@ if [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; t
 fi
 
 # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; then
+if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
     # Stop the service now
     sudo service pm2-root stop
@@ -4575,7 +4575,7 @@ if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ $PM2_INSTALL_TYPE = "reset" ]; t
 fi
 
 # If this system uses SYSTEMD and the service file does not yet exist, then set it it up
-if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
     # Generate the PM2 service file
     pm2 startup
@@ -4586,7 +4586,7 @@ if [! test -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; t
 fi
 
 # If this system uses UPSTART and the service file does not yet exist, then set it it up
-if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
     # Generate the PM2 service file
     pm2 startup
@@ -4597,7 +4597,7 @@ if [! test -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; t
 fi
 
 # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
-if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
+if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
 
     printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
     printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
