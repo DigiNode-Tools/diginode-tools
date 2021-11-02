@@ -2490,10 +2490,10 @@ fi
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 first_install_menu() {
 
-    opt1a="Full DigiNode"
+    opt1a="Full DigiNode  "
     opt1b="Install DigiByte Core & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Core ONLY"
+    opt2a="DigiByte Core ONLY  "
     opt2b="DigiAsset Node will NOT be installed."
 
 
