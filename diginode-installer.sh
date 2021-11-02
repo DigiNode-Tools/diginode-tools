@@ -2490,15 +2490,15 @@ fi
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 first_install_menu() {
 
-    opt1a="DigiByte + DigiAssets"
-    opt1b="Run a Full DigiNode.\\n(Recommended)"
+    opt1a="Full DigiNode"
+    opt1b="Install DigiByte Core & DigiAsset Node (Recommended)"
     
     opt2a="DigiByte Core ONLY"
     opt2b="DigiAsset Node will NOT be installed."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to only install DigiByte Core. Running both is recommended. The DigiAsset Node helps to decentralize DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets, and let’s you earn \$DGB for hosting other people's metadata.\\n\\nPlease choose one of the options below:\\n\\n" "${r}" 80 3 \
+    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a Full DigiNode install, or to only install DigiByte Core. Running both is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose one of the options below:\\n\\n" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
