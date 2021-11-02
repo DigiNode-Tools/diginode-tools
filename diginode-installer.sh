@@ -2658,8 +2658,6 @@ digibyte_create_service() {
 # If you want to make changes to how DigiByte daemon services are created/managed for diferent systems, refer to this website:
 # 
 
-echo "DigiByte Systemd Service File: $DGB_SYSTEMD_SERVICE_FILE"
-
 # If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
 if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
@@ -2701,7 +2699,7 @@ fi
 
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $"INIT_SYSTEM" = "systemd" ]; then
+if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
     if [ "$RESET_MODE" = false ]; then
         printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
