@@ -3286,33 +3286,25 @@ printf " =============== Checking: DigiNode Tools ==============================
     else
         DGNT_STATUS="installed"
         if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
-            printf "%b%b %s YES!  Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b%b %s YES!  Go-IPFS develop branch\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s YES!  DigiNode Tools develop branch\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            printf "%b%b %s YES!  Go-IPFS main branch\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s YES!  DigiNode Tools main branch\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
 
     # Requested branch
-    if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+    if [ "$DGNT_BRANCH" = "develop" ]; then
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
-    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+    elif [ "$DGNT_BRANCH" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
-    # Get the version number of the current Go-IPFS and write it to to the settings file
-    if [ "$IPFS_STATUS" = "installed" ]; then
-        str="Current Version: "
-        printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
-    fi
-
     # If there is no release version (i.e. it returns 'null'), use the main version
-    if [ "$DGNT_VER_RELEASE" = "null" ]; then
+    if [ "$DGNT_BRANCH" = "release" ] && [ "$DGNT_VER_RELEASE" = "null" ]; then
         printf "%b DigiNode Tools release branch requested.\\n" "${INFO}"
         printf "%b ERROR: Release branch is unavailable. main branch will be installed.\\n" "${CROSS}"
         DGNT_BRANCH="main"
