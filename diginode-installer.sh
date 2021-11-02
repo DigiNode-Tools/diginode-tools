@@ -3280,15 +3280,15 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="askupgrade"
             DGNT_DO_INSTALL=YES
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else 
-            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools v${DGNT_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
         fi
@@ -3304,11 +3304,11 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else
-            printf "%b %bDigiNode Tools develop branch will be installed.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools develop branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
         fi
@@ -3324,11 +3324,11 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiNode Tools develop branch will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else
-            printf "%b DigiNode Tools main branch will be installed.\\n" "${INFO}"
+            printf "%b %bDigiNode Tools main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
         fi
