@@ -2925,6 +2925,8 @@ digibyte_check() {
         else
             DGB_STATUS="not_detected"
             printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
         fi
     fi
 
@@ -2938,8 +2940,6 @@ digibyte_check() {
       else
           DGB_STATUS="notrunning"
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-          DGB_VER_LOCAL=""
-          sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
       fi
     fi
 
