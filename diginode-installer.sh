@@ -1530,7 +1530,7 @@ rpi_microsd_check() {
 
         # Check for hdd/ssd boot drive
         if [[ "$usb_drive" == "sda" ]]; then
-            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_%REEN}" "${COL_NC}"
+            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
@@ -1918,11 +1918,11 @@ checkSelinux() {
 hostname_check() {
 
 if [[ "$HOSTNAME" == "diginode" ]]; then
-    printf "%b Hostname Check: %bHostname is set to 'diginode'%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
 elif [[ "$HOSTNAME" == "" ]]; then
-    printf "%b Hostname Check: %bUnable to check hostname%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
     printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
@@ -1930,7 +1930,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 else
-    printf "%b Hostname Check: %bHostname is not set to 'diginode'%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
@@ -4815,8 +4815,7 @@ elif is_command vi ; then
 fi
 
 if [ $VERBOSE_MODE = true ]; then
-    printf "%b Text Editor: %b$TEXTEDITOR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
+    printf "%b Text Editor: $TEXTEDITOR\\n" "${INFO}"
 fi
 
 }
