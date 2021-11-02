@@ -3059,7 +3059,7 @@ digibyte_check() {
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
           if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. User will be asked if they want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
             printf "%b Upgrade not required.\\n" "${INFO}"
@@ -3070,7 +3070,7 @@ digibyte_check() {
             return
           fi
       else
-          printf "%b DigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}\\n" "${INFO}"
+          printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           DGB_INSTALL_TYPE="upgrade"
           DGB_ASK_UPGRADE=YES
       fi
@@ -3078,7 +3078,7 @@ digibyte_check() {
 
     # If no current version is installed, then do a clean install
     if [ $DGB_STATUS = "not_detected" ]; then
-      printf "%b DigiByte Core v${DGB_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      printf "%b %bDigiByte Core v${DGB_VER_RELEASE} will be installed for.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
@@ -3259,6 +3259,8 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ ! -f "$DGNT_MONITOR_SCRIPT" ]; then
         DGNT_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        DGNT_VER_LOCAL=""
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         DGNT_STATUS="installed"
         if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
@@ -3463,44 +3465,70 @@ ipfs_check() {
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
     IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
-    # Let's check if Go-IPFS is already installed
-    str="Is Go-IPFS already installed?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if [ "$IPFS_VER_LOCAL" = "" ]; then
-        IPFS_STATUS="not_detected"
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-    else
-        IPFS_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Get the version number of the current Go-IPFS and write it to to the settings file
-    if [ "$IPFS_STATUS" = "installed" ]; then
-        str="Current Version: "
-        printf "%b %s" "${INFO}" "${str}"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
-    fi
-
     # Let's check if IPFS Updater is already installed
     str="Is IPFS Updater already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFSU_VER_LOCAL" = "" ]; then
         IPFSU_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        IPFSU_VER_LOCAL=""
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFSU_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Get the version number of the current IPFS Updater and write it to to the settings file
-    if [ "$IPFSU_STATUS" = "installed" ]; then
-        str="Current Version: "
-        printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+        printf "%b%b %s YES!   Found: IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Check for latest IPFS Updater release online
+    str="Checking IPFS website for the latest IPFS Updater release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
+    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
+
+    # If can't get Github version number
+    if [ "$IPFSU_VER_RELEASE" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b IPFS Updater cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "\\n"
+        IPFSU_DO_INSTALL=NO
+        IPFSU_INSTALL_TYPE="none"
+        IPFSU_UPDATE_AVAILABLE=NO
+        return     
+    else
+        printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
+    if [ ! $IPFSU_VER_LOCAL = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
+          printf "%b IPFS Updater is already up to date.\\n" "${TICK}"
+          if [ $RESET_MODE = true ]; then
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
+            IPFSU_INSTALL_TYPE="askreset"
+            IPFSU_DO_INSTALL=YES
+          else
+            printf "%b Upgrade not required for IPFS Updater tool.\\n" "${INFO}"
+            IPFSU_DO_INSTALL=NO
+            IPFSU_INSTALL_TYPE="none"
+            IPFSU_UPDATE_AVAILABLE=NO
+          fi
+      else
+          printf "%b IPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}\\n" "${INFO}"
+          IPFSU_INSTALL_TYPE="upgrade"
+          IPFSU_DO_UPGRADE=YES
+      fi
+    fi 
+
+    # If no current version is installed, then do a clean install
+    if [ $IPFSU_STATUS = "not_detected" ]; then
+      printf "%b IPFS Updater v${IPFSU_VER_RELEASE} will be installed.\\n" "${INFO}"
+      IPFSU_INSTALL_TYPE="new"
+      IPFSU_DO_INSTALL=YES
+    fi
 
     # Check for latest Go-IPFS release online
     str="Checking IPFS website for the latest Go-IPFS release..."
@@ -3524,26 +3552,18 @@ ipfs_check() {
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
-    # Check for latest IPFS Updater release online
-    str="Checking IPFS website for the latest IPFS Updater release..."
+    # Let's check if Go-IPFS is already installed
+    str="Is Go-IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
-    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
-
-    # If can't get Github version number
-    if [ "$IPFSU_VER_RELEASE" = "" ]; then
-        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
-        printf "\\n"
-        printf "%b IPFS Updater cannot be upgraded at this time. Skipping...\\n" "${INFO}"
-        printf "\\n"
-        IPFSU_DO_INSTALL=NO
-        IPFSU_INSTALL_TYPE="none"
-        IPFSU_UPDATE_AVAILABLE=NO
-        return     
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
-        printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
 
@@ -3571,40 +3591,11 @@ ipfs_check() {
       fi
     fi 
 
-        # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
-    if [ ! $IPFSU_VER_LOCAL = "" ]; then
-      # ....then check if an upgrade is required
-      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
-          printf "%b IPFS Updater is already up to date.\\n" "${TICK}"
-          if [ $RESET_MODE = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
-            IPFSU_INSTALL_TYPE="askreset"
-            IPFSU_DO_INSTALL=YES
-          else
-            printf "%b Upgrade not required for IPFS Updater tool.\\n" "${INFO}"
-            IPFSU_DO_INSTALL=NO
-            IPFSU_INSTALL_TYPE="none"
-            IPFSU_UPDATE_AVAILABLE=NO
-          fi
-      else
-          printf "%b IPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}\\n" "${INFO}"
-          IPFSU_INSTALL_TYPE="upgrade"
-          IPFSU_DO_UPGRADE=YES
-      fi
-    fi 
-
     # If no current version is installed, then do a clean install
     if [ $IPFS_STATUS = "not_detected" ]; then
-      printf "%b Go-IPFS v${IPFS_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL=YES
-    fi
-
-    # If no current version is installed, then do a clean install
-    if [ $IPFSU_STATUS = "not_detected" ]; then
-      printf "%b IPFS Updater v${IPFSU_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
-      IPFSU_INSTALL_TYPE="new"
-      IPFSU_DO_INSTALL=YES
     fi
 
     printf "\\n"
@@ -3952,17 +3943,11 @@ nodejs_check() {
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         NODEJS_STATUS="installed"
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Get the version number of the current NodeJS and write it to to the settings file
-    if [ "$NODEJS_STATUS" = "installed" ]; then
-        str="Current Version: "
-        printf "%b %s" "${INFO}" "${str}"
         sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+        printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # If this is the first time running the NodeJS check, let's add the official repositories to ensure we get the latest version
@@ -4049,7 +4034,7 @@ nodejs_check() {
 
     # If no current version is installed, then do a clean install
     if [ $NODEJS_STATUS = "not_detected" ]; then
-      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed for the first time.\\n" "${INFO}"
+      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed\\n" "${INFO}"
       NODEJS_INSTALL_TYPE="new"
       NODEJS_DO_INSTALL=YES
     fi
@@ -4352,9 +4337,9 @@ digiasset_node_check() {
           fi
       else
           if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b DigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to v${DGA_VER_RELEASE}\\n" "${INFO}"
+            printf "%b %bDigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to v${DGA_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         else
-            printf "%b DigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to the latest development version.\\n" "${INFO}"
+            printf "%b %bDigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to the latest development version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
           DGA_INSTALL_TYPE="upgrade"
           DGA_ASK_UPGRADE=YES
@@ -4364,9 +4349,9 @@ digiasset_node_check() {
     # If no current version is installed, then do a clean install
     if [ $DGA_STATUS = "not_detected" ]; then
         if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b DigiAsset Node develop branch will be installed.\\n" "${INFO}"
+            printf "%b %bDigiAsset Node develop branch will be installed.%b\\n" "${INFO}"
         else
-            printf "%b DigiAsset Node v${DGA_VER_RELEASE} will be installed.\\n" "${INFO}"
+            printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
         DGA_INSTALL_TYPE="new"
         DGA_DO_INSTALL=YES
