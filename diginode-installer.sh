@@ -2659,40 +2659,53 @@ digibyte_create_service() {
 # 
 
 # If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
-    # Stop the service now
-    sudo systemctl stop digibyted
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+        printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
+        # ==============================================================================
+        # Stop the service now
+        sudo systemctl stop digibyted
 
-    # Disable the service now
-    sudo systemctl disable digibyted
+        # Disable the service now
+        sudo systemctl disable digibyted
 
-    str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $DGB_SYSTEMD_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGB_SYSTEMD_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 fi
 
 # If DigiByte daemon upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
-    # Stop the service now
-    sudo service digibyted stop
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+        printf " =============== Resetting: DigiByte Daemon service ====================\\n\\n"
+        # ==============================================================================
+        # Stop the service now
+        sudo service digibyted stop
 
-    # Disable the service now
-    sudo service digibyted disable
+        # Disable the service now
+        sudo service digibyted disable
 
-    str="Deleting DigiByte daemon upstart service file..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $DGB_UPSTART_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        str="Deleting DigiByte daemon upstart service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGB_UPSTART_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
 fi
 
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
+if [ ! test -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ $"INIT_SYSTEM" = "systemd" ]; then
 
-    printf "\\n" 
+    if [ "$RESET_MODE" = false ]; then
+        printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
+        # ==============================================================================
+    fi
+
     printf "%b DigiByte daemon systemd service will now be created.\\n" "${INFO}"
     
     # Create a new DigiByte daemon service file
@@ -2739,9 +2752,13 @@ EOF
 fi
 
 # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
-if [ test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+if [ ! test -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
-    printf "\\n" 
+    if [ "$RESET_MODE" = false ]; then
+        printf " =============== Creating: DigiByte Daemon service =====================\\n\\n"
+        # ==============================================================================
+    fi
+
     printf "%b DigiByte daemon upstart service will now be created.\\n" "${INFO}"
 
     # Create a new DigiByte daemon upstart service file
@@ -2791,7 +2808,12 @@ EOF
 fi
 
 # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
-if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
+if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
+
+    if [ "$RESET_MODE" = false ]; then
+        printf " =============== Creating: DigiByte Daemon service ====================\\n\\n"
+        # ==============================================================================
+    fi
 
     printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
     printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
@@ -3078,7 +3100,7 @@ digibyte_check() {
 
     # If no current version is installed, then do a clean install
     if [ $DGB_STATUS = "not_detected" ]; then
-      printf "%b %bDigiByte Core v${DGB_VER_RELEASE} will be installed for.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bDigiByte Core v${DGB_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
@@ -3517,7 +3539,7 @@ ipfs_check() {
             IPFSU_UPDATE_AVAILABLE=NO
           fi
       else
-          printf "%b IPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}\\n" "${INFO}"
+          printf "%b %bIPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           IPFSU_INSTALL_TYPE="upgrade"
           IPFSU_DO_UPGRADE=YES
       fi
@@ -3525,7 +3547,7 @@ ipfs_check() {
 
     # If no current version is installed, then do a clean install
     if [ $IPFSU_STATUS = "not_detected" ]; then
-      printf "%b IPFS Updater v${IPFSU_VER_RELEASE} will be installed.\\n" "${INFO}"
+      printf "%b %bIPFS Updater v${IPFSU_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFSU_INSTALL_TYPE="new"
       IPFSU_DO_INSTALL=YES
     fi
