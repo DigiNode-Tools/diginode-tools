@@ -2506,6 +2506,9 @@ fi
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 first_install_menu() {
 
+    printf " =============== INSTALL MENU ==========================================\\n\\n"
+    # ==============================================================================
+
     opt1a="Full DigiNode "
     opt1b=" Install DigiByte Core & DigiAsset Node (Recommended)"
     
@@ -2514,7 +2517,7 @@ first_install_menu() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. Running both is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" "${r}" 80 3 \
+    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
     { printf "  %bCancel was selected, exiting installer%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
@@ -2543,6 +2546,9 @@ first_install_menu() {
 
 # Function to display the upgrade menu when a previous install has been detected
 upgrade_menu() {
+
+    printf " =============== UPGRADE MENU ==========================================\\n\\n"
+    # ==============================================================================
 
     opt1a="Upgrade"
     opt1b="Upgrade DigiNode software to the latest versions."
@@ -2932,6 +2938,8 @@ digibyte_check() {
       else
           DGB_STATUS="notrunning"
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB_VER_LOCAL=""
+          sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
       fi
     fi
 
