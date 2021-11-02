@@ -763,7 +763,7 @@ digibyte_create_conf() {
     local str
 
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
-    if [ $RESET_MODE = true ] && [ -f "$DGB_CONF_FILE" ]; then
+    if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
             printf " =============== Resetting: digibyte.conf =============================\\n\\n"
@@ -779,7 +779,7 @@ digibyte_create_conf() {
     if [ ! -f "$DGB_CONF_FILE" ]; then
 
         # Display section break (except if this is a Reset)
-        if [ $RESET_MODE = false ]; then
+        if [ "$RESET_MODE" = false ]; then
             printf " =============== Creating: digibyte.conf ===============================\\n\\n"
             # ==============================================================================
         fi
@@ -819,6 +819,9 @@ digibyte_create_conf() {
 
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
+
+        printf " =============== Checking: digibyte.conf ===============================\\n\\n"
+        # ==============================================================================
 
         # Import variables from digibyte.conf settings file
         str="Located digibyte.conf file. Importing..."
@@ -937,7 +940,7 @@ digibyte_create_conf() {
             echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
             echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
         fi
-        printf "%b Completed digibyte.conf checks.\\n\\n" "${TICK}"
+        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
     else
         # Create a new digibyte.conf file
@@ -1002,8 +1005,10 @@ rpcallowip=127.0.0.1
 # Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
 disablewallet=0
 EOF
-printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+    printf "\\n"
 }
 
 
@@ -3084,7 +3089,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
 fi
 
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
-if [ $DGB_INSTALL_TYPE = "askreset" ]; then
+if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         DGB_DO_INSTALL=YES
@@ -3100,13 +3105,13 @@ if [ $DGB_INSTALL_TYPE = "askreset" ]; then
 fi
 
 # Display section break
-if [ $DGB_INSTALL_TYPE = "new" ]; then
+if [ "$DGB_INSTALL_TYPE" = "new" ]; then
     printf " =============== Installing: DigiByte Core =============================\\n\\n"
     # ==============================================================================
-elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
     printf " =============== Upgrading: DigiByte Core ==============================\\n\\n"
     # ==============================================================================
-elif [ $DGB_INSTALL_TYPE = "reset" ]; then
+elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
     printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
     # ==============================================================================
 fi
@@ -3115,10 +3120,10 @@ fi
 if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Stop DigiByte Core if it is running, as we need to upgrade or reset it
-    if [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+    if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
        DGB_STATUS = "stopped"
-    elif [ $DGB_STATUS = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
+    elif [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
        stop_service digibyted
        DGB_STATUS = "stopped"
     fi
