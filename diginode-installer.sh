@@ -2569,16 +2569,20 @@ menu_existing_install() {
     case ${UpdateCmd} in
         # Update, or
         ${opt1a})
-            printf "%b %s option selected\\n" "${INDENT}" "${opt1a}"
+            printf "%b You selected the UPGRADE option.\\n" "${INFO}"
+            printf "\\n"
+
             ;;
         # Reset,
         ${opt2a})
-            printf "%b %s option selected\\n" "${INDENT}" "${opt2a}"
+            printf "%b You selected the RESET option.\\n" "${INFO}"
+            printf "\\n"
             RESET_MODE=true
             ;;
         # Uninstall,
         ${opt3a})
-            printf "%b %s option selected\\n" "${INDENT}" "${opt3a}"
+            printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
+            printf "\\n"
             uninstall_everything
             ;;
     esac
@@ -4778,14 +4782,15 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-         printf " =============== INSTALL DIGIASSET NODE MENU ===========================\\n\\n"
-         # ==============================================================================
-
         if whiptail --backtitle "" --title "Install a DigiAsset Node?" --yesno "You do not currently have a DigiAsset Node installed. Running a DigiAsset Node helps support the network by decentralizing the DigiAsset metadata. It also gives you the ability to create your own DigiAssets from your own Node. You can also earn DGB for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAsset Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
+            printf "%b You choose the option to install the DigiAsset Node.\\n" "${INFO}"
+            printf "\\n"
         else
           DO_FULL_INSTALL=NO
+          printf "%b You choose the option to NOT install the DigiAsset Node.\\n" "${INFO}"
+          printf "\\n"
         fi
 
 fi
