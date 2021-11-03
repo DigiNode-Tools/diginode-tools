@@ -201,7 +201,7 @@ is_verbose_mode() {
 }
 
 # Inform user if Verbose Mode is enabled
-is_unnattended_mode() {
+is_unattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         if test -f "$DGNT_SETTINGS_FILE"; then
@@ -361,6 +361,10 @@ UI_DISKSPACE_OVERRIDE=NO
 
 # Choose whether to setup Tor [NOT WORKING YET]
 UI_SETUP_TOR=YES
+
+# Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
+# Choose NO to install DigiByte Core only
+UI_DO_FULL_INSTALL=YES
 
 
 #############################################
@@ -2504,7 +2508,7 @@ fi
 }
 
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
-first_install_menu() {
+menu_first_install() {
 
     printf " =============== INSTALL MENU ==========================================\\n\\n"
     # ==============================================================================
@@ -2526,18 +2530,12 @@ first_install_menu() {
     case ${UpdateCmd} in
         # Install Full DigiNode
         ${opt1a})
-            DGA_ASK_INSTALL=NO
-            DGA_DO_INSTALL=YES
-            DGB_ASK_INSTALL=NO
-            DGB_DO_INSTALL=YES
+            DO_FULL_INSTALL=YES
             printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
             ;;
         # Install DigiByte Core ONLY
         ${opt2a})
-            DGA_ASK_INSTALL=NO
-            DGA_DO_INSTALL=NO
-            DGB_ASK_INSTALL=NO
-            DGB_DO_INSTALL=YES
+            DO_FULL_INSTALL=NO
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             ;;
     esac
@@ -2545,7 +2543,7 @@ first_install_menu() {
 }
 
 # Function to display the upgrade menu when a previous install has been detected
-upgrade_menu() {
+menu_existing_install() {
 
     printf " =============== UPGRADE MENU ==========================================\\n\\n"
     # ==============================================================================
@@ -2572,7 +2570,6 @@ upgrade_menu() {
         # Update, or
         ${opt1a})
             printf "%b %s option selected\\n" "${INDENT}" "${opt1a}"
-            UnattendedUpgrade=true
             ;;
         # Reset,
         ${opt2a})
@@ -3135,20 +3132,20 @@ if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
 fi
 
-# Display section break
-if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-    printf " =============== Installing: DigiByte Core =============================\\n\\n"
-    # ==============================================================================
-elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-    printf " =============== Upgrading: DigiByte Core ==============================\\n\\n"
-    # ==============================================================================
-elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-    printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
-    # ==============================================================================
-fi
-
-
 if [ "$DGB_DO_INSTALL" = "YES" ]; then
+
+    # Display section break
+    if [ "$DGB_INSTALL_TYPE" = "new" ]; then
+        printf " =============== Installing: DigiByte Core =============================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        printf " =============== Upgrading: DigiByte Core ==============================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
+        # ==============================================================================
+    fi
+
 
     # Stop DigiByte Core if it is running, as we need to upgrade or reset it
     if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
@@ -3324,10 +3321,24 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ "$DGNT_BRANCH" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ] && [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
-            printf "%b %bDigiNode Tools can be upgraded from v{$DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            DGNT_INSTALL_TYPE="askupgrade"
-            DGNT_DO_INSTALL=YES
+        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+
+            if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+
+                if [ $RESET_MODE = true ]; then
+                    printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
+                    DGB_INSTALL_TYPE="askreset"
+                else
+                    printf "%b DigiNode Tools are up to date.\\n" "${INFO}"
+                    DGB_INSTALL_TYPE="none"
+                fi
+
+            else        
+                printf "%b %bDigiNode Tools can be upgraded from v{$DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                DGNT_INSTALL_TYPE="upgrade"
+                DGNT_ASK_UPGRADE=YES
+            fi
+
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
@@ -3392,6 +3403,28 @@ diginode_tools_do_install() {
 
 printf " =============== Installing: DigiNode Tools ============================\\n\\n"
 # ==============================================================================
+
+# If we are in unattended mode and there is an upgrade to do, then go ahead and do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+    DGNT_DO_INSTALL=YES
+fi
+
+# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
+
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
+        printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
+        DGNT_DO_INSTALL=YES
+        DGNT_INSTALL_TYPE="reset"
+    else
+        printf "%b Reset Mode: User skipped re-installing DigiNode Tools\\n" "${INFO}"
+        printf "\\n"
+        DGNT_DO_INSTALL=NO
+        DGNT_INSTALL_TYPE="none"
+        return
+    fi
+
+fi
 
     # If a new version needs to be installed, do it now
     if [ "$DGNT_DO_INSTALL" = "YES" ]; then
@@ -3607,7 +3640,7 @@ ipfs_check() {
             return
           fi
       else
-          printf "%b Go-IPFS will be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}\\n" "${INFO}"
+          printf "%b Go-IPFS can be be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}\\n" "${INFO}"
           IPFS_INSTALL_TYPE="upgrade"
           IPFS_ASK_UPGRADE=YES
       fi
@@ -3615,8 +3648,8 @@ ipfs_check() {
 
     # If no current version is installed, then do a clean install
     if [ $IPFS_STATUS = "not_detected" ]; then
-      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-      IPFS_INSTALL_TYPE="new"
+      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed, if doing a full install.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      IPFS_INSTALL_TYPE="if_doing_full_install"
       IPFS_DO_INSTALL=YES
     fi
 
@@ -3656,6 +3689,11 @@ if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
         return
     fi
 
+fi
+
+# If this is a new install of IPFS, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
+if  [ "$IPFS_INSTALL_TYPE" = "new" ] && [ "$IPFS_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    IPFS_DO_INSTALL=YES
 fi
 
 
@@ -3805,67 +3843,118 @@ ipfs_create_service() {
 # If you want to make changes to how IPFS services are created/managed for diferent systems, refer to this website:
 # https://github.com/ipfs/go-ipfs/tree/master/misc 
 
-# If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
 
-    # Stop the service now
-    systemctl --user stop ipfs
+# If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
+if [ $RESET_MODE = true ]; then
 
-    # Disable the service now
-    systemctl --user disable ipfs
+    # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
+    if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] || [ test -f "$IPFS_UPSTART_SERVICE_FILE" ]; then
 
-    # Disable linger
-    loginctl disable-linger $USER_ACCOUNT
-
-    str="Deleting IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $IPFS_SYSTEMD_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the IPFS service?\\n\\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." "${r}" "${c}"; then
+            printf "%b Reset Mode: You choose to re-configure the IPFS service.\\n" "${INFO}"
+            IPFS_CREATE_SERVICE=YES
+            IPFS_SERVICE_INSTALL_TYPE="reset"
+        else
+            printf "%b Reset Mode: User skipped re-configuring the IPFS service.\\n" "${INFO}"
+            IPFS_CREATE_SERVICE=NO
+            IPFS_SERVICE_INSTALL_TYPE="none"
+            return
+        fi
+    fi
 fi
 
-# If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $RESET_MODE = true ]; then
+# If the SYSTEMD service files do not yet exist, then assume this is a new install
+if [ ! -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+            IPFS_CREATE_SERVICE="if_doing_full_install"
+            IPFS_SERVICE_INSTALL_TYPE="new"
+fi
 
-    str="Deleting IPFS upstart service file..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $IPFS_UPSTART_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+# If the UPSTART service files do not yet exist, then assume this is a new install
+if [ ! -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+            IPFS_CREATE_SERVICE="if_doing_full_install"
+            IPFS_SERVICE_INSTALL_TYPE="new"
+fi
+
+# If this is a new install of DigiAsset Node, and the user has opted to do a full DigiNode install, then proceed
+if  [ "$IPFS_SERVICE_INSTALL_TYPE" = "new" ] && [ "$IPFS_CREATE_SERVICE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    IPFS_CREATE_SERVICE=YES
 fi
 
 
-# If using systemd and the IPFS service file does not exist yet, let's create it
-if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
+if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
-    printf "\\n" 
-    printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
+    # Display section break
+    printf "\\n"
+    if [ "$IPFS_SERVICE_INSTALL_TYPE" = "new" ]; then
+        printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
+        # ==============================================================================
+    elif [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
+        printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+        # ==============================================================================
+    fi
 
-    # First create the folders it lives in if they don't already exist
 
-    if [ ! -d $USER_HOME/.config ]; then
-        str="Creating ~/.config folder..."
+    # If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+    if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+
+        # Stop the service now
+        systemctl --user stop ipfs
+
+        # Disable the service now
+        systemctl --user disable ipfs
+
+        # Disable linger
+        loginctl disable-linger $USER_ACCOUNT
+
+        str="Deleting IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
+        rm -f $IPFS_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
-    if [ ! -d $USER_HOME/.config/systemd ]; then
-        str="Creating ~/.config/systemd folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    if [ ! -d $USER_HOME/.config/systemd/user ]; then
-        str="Creating ~/.config/systemd/user folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-    
-    # Create a new IPFS service file
 
-    str="Creating IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $IPFS_SYSTEMD_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
+    # If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
+    if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+
+        str="Deleting IPFS upstart service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $IPFS_UPSTART_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
+    # If using systemd and the IPFS service file does not exist yet, let's create it
+    if [ ! -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
+
+        printf "\\n" 
+        printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
+
+        # First create the folders it lives in if they don't already exist
+
+        if [ ! -d $USER_HOME/.config ]; then
+            str="Creating ~/.config folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+        if [ ! -d $USER_HOME/.config/systemd ]; then
+            str="Creating ~/.config/systemd folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+        if [ ! -d $USER_HOME/.config/systemd/user ]; then
+            str="Creating ~/.config/systemd/user folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+        
+        # Create a new IPFS service file
+
+        str="Creating IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ... "
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $IPFS_SYSTEMD_SERVICE_FILE
+        sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
 [Unit]
 Description=IPFS daemon
 
@@ -3877,36 +3966,36 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Enable linger so IPFS can run at boot
-    str="Enable lingering for user $USER_ACCOUNT..."
-    printf "%b %s" "${INFO}" "${str}"
-    loginctl enable-linger $USER_ACCOUNT
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Enable linger so IPFS can run at boot
+        str="Enable lingering for user $USER_ACCOUNT..."
+        printf "%b %s" "${INFO}" "${str}"
+        loginctl enable-linger $USER_ACCOUNT
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Enable the service to run at boot
-    printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-    systemctl --user enable ipfs
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Enable the service to run at boot
+        printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
+        systemctl --user enable ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Start the service now
-    str="Starting IPFS systemd service..."
-    printf "%b %s" "${INFO}" "${str}"
-    systemctl --user start ipfs
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Start the service now
+        str="Starting IPFS systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl --user start ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-fi
+    fi
 
-# If using upstart and the IPFS service file does not exist yet, let's create it
-if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+    # If using upstart and the IPFS service file does not exist yet, let's create it
+    if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
 
-    # Create a new IPFS upstart service file
+        # Create a new IPFS upstart service file
 
-    str="Creating IPFS upstart service file: $IPFS_UPSTART_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT touch $IPFS_UPSTART_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_UPSTART_SERVICE_FILE
+        str="Creating IPFS upstart service file: $IPFS_UPSTART_SERVICE_FILE ... "
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $IPFS_UPSTART_SERVICE_FILE
+        sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_UPSTART_SERVICE_FILE
 description "ipfs: interplanetary filesystem"
 
 start on (local-filesystems and net-device-up IFACE!=lo)
@@ -3919,18 +4008,20 @@ chdir $USER_HOME
 respawn
 exec ipfs daemon
 EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
-    # Start the service now
-    str="Starting IPFS upstart service..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo service ipfs start
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Start the service now
+        str="Starting IPFS upstart service..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo service ipfs start
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
 
 fi
 
-# If using upstart and the IPFS service file does not exist yet, let's create it
+# If the system is not using upstart or systemd then quit since others are not yet supported
 if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
     printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
@@ -3994,8 +4085,7 @@ nodejs_check() {
         NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
     else
-        printf "%b NodeSource PPA repository has already been added.\\n" "${TICK}"
-        printf "%b The repository was previously added by this installer. It should only need to be done once.\\n" "${INDENT}"
+        printf "%b NodeSource PPA repository has already been added. It should only need to be done once.\\n" "${TICK}"
         printf "%b If needed, you can have this script add it again, by editing the diginode.settings\\n" "${INDENT}"
         printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
     fi
@@ -4039,7 +4129,7 @@ nodejs_check() {
             return
           fi
       else
-          printf "%b NodeJS will be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}\\n" "${INFO}"
+          printf "%b NodeJS can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}\\n" "${INFO}"
           NODEJS_INSTALL_TYPE="upgrade"
           NODEJS_ASK_UPGRADE=YES
       fi
@@ -4050,15 +4140,14 @@ nodejs_check() {
       # ....does it require a major upgrade? (e.g. from before v14)
       if [ $(version $NODEJS_VER_LOCAL) -lt $(version 14.0.0) ]; then
             NODEJS_INSTALL_TYPE="majorupgrade"
-            NODEJS_ASK_UPGRADE=YES
       fi
     fi 
 
     # If no current version is installed, then do a clean install
     if [ $NODEJS_STATUS = "not_detected" ]; then
-      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed\\n" "${INFO}"
+      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed, if doing a full DigiNode install.\\n" "${INFO}"
       NODEJS_INSTALL_TYPE="new"
-      NODEJS_DO_INSTALL=YES
+      NODEJS_DO_INSTALL="if_doing_full_install"
     fi
 
     printf "\\n"
@@ -4089,21 +4178,26 @@ if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
-# Display section break
-printf "\\n"
-if [ $NODEJS_INSTALL_TYPE = "new" ]; then
-    printf " =============== Installing: NodeJS ====================================\\n\\n"
-    # ==============================================================================
-elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
-    printf " =============== Upgrading: NodeJS =====================================\\n\\n"
-    # ==============================================================================
-elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-    printf " =============== Resetting: NodeJS =====================================\\n\\n"
-    # ==============================================================================
+# If this is a new install of NodeJS, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
+if  [ "$NODEJS_INSTALL_TYPE" = "new" ] && [ "$NODEJS_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    NODEJS_DO_INSTALL=YES
 fi
 
-
 if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
+
+    # Display section break
+    printf "\\n"
+    if [ $NODEJS_INSTALL_TYPE = "new" ]; then
+        printf " =============== Installing: NodeJS ====================================\\n\\n"
+        # ==============================================================================
+    elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
+        printf " =============== Upgrading: NodeJS =====================================\\n\\n"
+        # ==============================================================================
+    elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+        printf " =============== Resetting: NodeJS =====================================\\n\\n"
+        # ==============================================================================
+    fi
+
 
     # Install NodeJS if it does not exist
     if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
@@ -4359,9 +4453,9 @@ digiasset_node_check() {
           fi
       else
           if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b %bDigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to v${DGA_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node can be upgraded from v${DGA_VER_LOCAL} to v${DGA_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         else
-            printf "%b %bDigiAsset Node will be upgraded from v${DGA_VER_LOCAL} to the latest development version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node can be upgraded from v${DGA_VER_LOCAL} to the latest development version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
           DGA_INSTALL_TYPE="upgrade"
           DGA_ASK_UPGRADE=YES
@@ -4371,12 +4465,12 @@ digiasset_node_check() {
     # If no current version is installed, then do a clean install
     if [ $DGA_STATUS = "not_detected" ]; then
         if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b %bDigiAsset Node develop branch will be installed.%b\\n" "${INFO}"
+            printf "%b %bDigiAsset Node develop branch will be installed, if doing a full DigiNode install.%b\\n" "${INFO}"
         else
-            printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed, if doing a full DigiNode install%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
         DGA_INSTALL_TYPE="new"
-        DGA_DO_INSTALL=YES
+        DGA_DO_INSTALL="if_doing_full_install"
     fi
 
     printf "\\n"
@@ -4408,21 +4502,26 @@ if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
-# Display section break
-printf "\\n"
-if [ $DGA_INSTALL_TYPE = "new" ]; then
-    printf " =============== Installing: DigiAsset Node ============================\\n\\n"
-    # ==============================================================================
-elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
-    printf " =============== Upgrading: DigiAsset Node =============================\\n\\n"
-    # ==============================================================================
-elif [ $DGA_INSTALL_TYPE = "reset" ]; then
-    printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
-    # ==============================================================================
+# If this is a new install of DigiAsset Node, and the user has opted to do a full DigiNode install, then proceed
+if  [ "$DGA_INSTALL_TYPE" = "new" ] && [ "$DGA_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    DGA_DO_INSTALL=YES
 fi
 
 
 if [ "$DGA_DO_INSTALL" = "YES" ]; then
+
+    # Display section break
+    printf "\\n"
+    if [ $DGA_INSTALL_TYPE = "new" ]; then
+        printf " =============== Installing: DigiAsset Node ============================\\n\\n"
+        # ==============================================================================
+    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+        printf " =============== Upgrading: DigiAsset Node =============================\\n\\n"
+        # ==============================================================================
+    elif [ $DGA_INSTALL_TYPE = "reset" ]; then
+        printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
+        # ==============================================================================
+    fi
 
     # If we are in Reset Mode and PM2 is running let's stop it
     if [ $DGA_STATUS = "running" ] && [ $IS_PM2_RUNNING = "YES" ] && [ $DGA_INSTALL_TYPE = "reset" ]; then
@@ -4518,81 +4617,90 @@ if [ $RESET_MODE = true ]; then
     fi
 fi
 
-# Display section break
-printf "\\n"
-if [ "$PM2_INSTALL_TYPE" = "new" ]; then
-    printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
-    # ==============================================================================
-elif [ "$PM2_INSTALL_TYPE" = "upgrade" ]; then
-    printf " =============== Upgrading: NodeJS PM2 Service =========================\\n\\n"
-    # ==============================================================================
-elif [ "$PM2_INSTALL_TYPE" = "reset" ]; then
-    printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
-    # ==============================================================================
-fi
-
 # If the SYSTEMD service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-            PM2_DO_INSTALL=YES
+            PM2_DO_INSTALL="if_doing_full_install"
             PM2_INSTALL_TYPE="new"
 fi
 
 # If the UPSTART service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-            PM2_DO_INSTALL=YES
+            PM2_DO_INSTALL="if_doing_full_install"
             PM2_INSTALL_TYPE="new"
 fi
 
-
-# If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
-
-    # Stop the service now
-    sudo systemctl stop pm2-root
-
-    # Disable the service now
-    sudo systemctl disable pm2-root
-
-    str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $PM2_SYSTEMD_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+# If this is a new install of NodeJS PM2 service file, and the user has opted to do a full DigiNode install, then proceed
+if  [ "$PM2_INSTALL_TYPE" = "new" ] && [ "$PM2_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    PM2_DO_INSTALL=YES
 fi
 
-# If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
-    # Stop the service now
-    sudo service pm2-root stop
+if [ "$PM2_DO_INSTALL" = "YES" ]; then
 
-    # Disable the service now
-    sudo service pm2-root disable
+    # Display section break
+    printf "\\n"
+    if [ "$PM2_INSTALL_TYPE" = "new" ]; then
+        printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
+        # ==============================================================================
+    elif [ "$PM2_INSTALL_TYPE" = "upgrade" ]; then
+        printf " =============== Upgrading: NodeJS PM2 Service =========================\\n\\n"
+        # ==============================================================================
+    elif [ "$PM2_INSTALL_TYPE" = "reset" ]; then
+        printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+        # ==============================================================================
+    fi
 
-    str="Deleting PM2 upstart service file..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $PM2_UPSTART_SERVICE_FILE
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-fi
+    # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+    if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
-# If this system uses SYSTEMD and the service file does not yet exist, then set it it up
-if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        # Stop the service now
+        sudo systemctl stop pm2-root
 
-    # Generate the PM2 service file
-    pm2 startup
+        # Disable the service now
+        sudo systemctl disable pm2-root
 
-    # Restart the PM2 service
-    restart_service pm2-root
+        str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $PM2_SYSTEMD_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
-fi
+    # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+    if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
-# If this system uses UPSTART and the service file does not yet exist, then set it it up
-if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+        # Stop the service now
+        sudo service pm2-root stop
 
-    # Generate the PM2 service file
-    pm2 startup
+        # Disable the service now
+        sudo service pm2-root disable
 
-    # Restart the PM2 service
-    restart_service pm2-root
+        str="Deleting PM2 upstart service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $PM2_UPSTART_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If this system uses SYSTEMD and the service file does not yet exist, then set it it up
+    if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+
+        # Generate the PM2 service file
+        pm2 startup
+
+        # Restart the PM2 service
+        restart_service pm2-root
+
+    fi
+
+    # If this system uses UPSTART and the service file does not yet exist, then set it it up
+    if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+
+        # Generate the PM2 service file
+        pm2 startup
+
+        # Restart the PM2 service
+        restart_service pm2-root
+
+    fi
 
 fi
 
@@ -4609,7 +4717,7 @@ fi
 
 
 # This function will ask the user if they want to install the system upgrades that have been found
-upgrade_ask_install() {
+menu_ask_install_updates() {
 
 # If there is an upgrade available for DigiByte Core, IPFS, NodeJS, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
@@ -4665,16 +4773,19 @@ fi
 }
 
 # This function will ask the user if they want to install DigiAssets Node
-digiasset_node_ask_install() {
+menu_ask_install_digiasset_node() {
 
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if whiptail --backtitle "" --title "Install DigiAssets Node?" --yesno "You do not currently have the DigiAssets Node Installed. Running a DigiAssets Node helps to decentralize the DigiAsset metadata and supports the network. It also gives you the ability to create your own DigiAssets from your own node. You can also earn DigiByte for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAssets Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+         printf " =============== INSTALL DIGIASSET NODE MENU ===========================\\n\\n"
+         # ==============================================================================
+
+        if whiptail --backtitle "" --title "Install a DigiAsset Node?" --yesno "You do not currently have a DigiAsset Node installed. Running a DigiAsset Node helps support the network by decentralizing the DigiAsset metadata. It also gives you the ability to create your own DigiAssets from your own Node. You can also earn DGB for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAsset Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
-          DGA_DO_INSTALL=YES
+          DO_FULL_INSTALL=YES
         else
-          DGA_DO_INSTALL=NO
+          DO_FULL_INSTALL=NO
         fi
 
 fi
@@ -4910,8 +5021,8 @@ main() {
     # Display a message if Verbose Mode is enabled
     is_verbose_mode
 
-    # Display a message if Unnattended Mode is enabled
-    is_unnattended_mode
+    # Display a message if Unattended Mode is enabled
+    is_unattended_mode
 
     # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
     is_reset_mode
@@ -4978,7 +5089,6 @@ main() {
             # If running attended, show the available options (upgrade/reset/uninstall)
             printf "%b Interactive Upgrade: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
             UnattendedUpgrade=false
-            upgrade_menu
         fi
         printf "\\n"
     else
@@ -5052,6 +5162,49 @@ main() {
     disk_ask_lowspace
 
 
+    ### UNATTENDED INSTALL - SET FULL DIGINODE VS DGB ONLY  ###
+
+    # If this is an unattended install, refer to the diginode.settings file to know if we are doing a full or partial install
+    if [[ "${UnattendedInstall}" == true ]]; then
+        DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
+    fi
+
+    ### UNATTENDED UPGRADE - SET FULL DIGINODE VS DGB ONLY  ###
+
+    # If we are doing an unattended upgrade, check whether DigiAsset Node exists to decide whther it needs to be upgraded
+    if [[ "${UnattendedUpgrade}" == false ]]; then
+        if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+            DO_FULL_INSTALL=YES
+        else
+            DO_FULL_INSTALL=NO
+        fi
+    fi
+
+    ### FIRST INSTALL MENU ###
+
+    # If this is a new interaactive Install, display the first install menu
+    if [[ "${UnattendedInstall}" == false ]]; then
+
+        # Ask whther to install only DigiByte Core, or DigiAssets Node as well
+        menu_first_install
+
+    fi
+
+    ### UPGRADE MENU ###
+
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${UnattendedUpgrade}" == false ]]; then
+
+        # Display the existing install menu
+        menu_existing_install
+
+        # Ask to install DigiAssets Node, it is not already installed
+        menu_ask_install_digiasset_node
+
+    fi
+
+
+
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
     # Check if DigiByte Core is installed, and if there is an upgrade available
@@ -5070,29 +5223,10 @@ main() {
     diginode_tools_check
 
 
-    ### FIRST INSTALL MENU ###
+    ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
 
-    # If this is a new interaactive Install, display the first install menu
-    if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
-
-        # Ask whther to install only DigiByte Core, or DigiAssets Node as well
-        first_install_menu
-
-    fi
-
-
-    ### UPGRADE MENU ###
-
-    # If DigiByte Core is already install, display the update menu
-    if [[ "${NewInstall}" == false ]] && [[ "${UnattendedUpgrade}" == false ]]; then
-
-        # Ask to install any upgrades, if there are any
-        upgrades_ask
-
-        # Ask to install DigiAssets Node, it is not already installed
-        digiassets_ask_install
-
-    fi
+    # Ask to install any upgrades, if there are any
+    menu_ask_install_updates
 
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
