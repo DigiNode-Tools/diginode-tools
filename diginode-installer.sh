@@ -769,7 +769,7 @@ digibyte_create_conf() {
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." "${r}" "${c}"; then
             printf " =============== Resetting: digibyte.conf =============================\\n\\n"
             # ==============================================================================
 
@@ -2666,7 +2666,7 @@ digibyte_create_service() {
 # If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
 if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
         printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
         
@@ -3133,7 +3133,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." "${r}" "${c}"; then
         printf "%b Reset Mode: You chose to reinstall DigiByte Core.\\n" "${INFO}"
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
@@ -3427,7 +3427,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
@@ -3683,7 +3683,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS?\\n\\nNote: This will delete Go-IPFS re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
         printf "%b Reset Mode: You chose re-install Go-IPFS.\\n" "${INFO}"
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
@@ -4181,7 +4181,7 @@ fi
 # If we are in reset mode, ask the user if they want to re-install NodeJS
 if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it." "${r}" "${c}"; then
         printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
@@ -4505,7 +4505,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
