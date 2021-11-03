@@ -772,10 +772,14 @@ digibyte_create_conf() {
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
             printf " =============== Resetting: digibyte.conf =============================\\n\\n"
             # ==============================================================================
-            str="Reset requested. Deleting existing digibyte.conf file..."
+
+            printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
+            str="Deleting existing digibyte.conf file..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB_CONF_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b Reset Mode: You chose NOT to re-configure the digibyte.conf file.\\n" "${INFO}"
         fi
     fi
 
@@ -2665,6 +2669,8 @@ if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
         printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
+        
+        printf "%b Reset Mode: You chose to recreate the digibyted systemd service file.\\n" "${INFO}"
         # Stop the service now
         sudo systemctl stop digibyted
 
@@ -2675,6 +2681,8 @@ if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b Reset Mode: You chose not to recreate the digibyted systemd service file.\\n" "${INFO}"
     fi
 fi
 
@@ -2684,6 +2692,8 @@ if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
         printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
+
+        printf "%b Reset Mode: You chose to recreate the digibyted upstart service file.\\n" "${INFO}"
         # Stop the service now
         sudo service digibyted stop
 
@@ -2694,11 +2704,11 @@ if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_UPSTART_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b Reset Mode: You chose not to recreate the digibyted upstart service file.\\n" "${INFO}"
     fi
 
 fi
-
-echo "Init System: $INIT_SYSTEM" 
 
 # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
 if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
@@ -3124,14 +3134,15 @@ fi
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        printf "%b Reset Mode: You chose to reinstall DigiByte Core.\\n" "${INFO}"
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
     else
-            printf "%b Reset Mode: User skipped re-installing DigiByte Core.\\n" "${INFO}"
-            DGB_DO_INSTALL=NO
-            DGB_INSTALL_TYPE="none"
-            DGB_UPDATE_AVAILABLE=NO
-            return
+        printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return
     fi
 
 fi
@@ -3421,7 +3432,7 @@ if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
     else
-        printf "%b Reset Mode: User skipped re-installing DigiNode Tools\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing DigiNode Tools\\n" "${INFO}"
         printf "\\n"
         DGNT_DO_INSTALL=NO
         DGNT_INSTALL_TYPE="none"
@@ -3673,6 +3684,7 @@ fi
 if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS?\\n\\nNote: This will delete Go-IPFS re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        printf "%b Reset Mode: You chose re-install Go-IPFS.\\n" "${INFO}"
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
         # Reset IPFS Updater as well, if needed
@@ -3681,7 +3693,7 @@ if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
             IPFSU_INSTALL_TYPE="reset"
         fi
     else
-        printf "%b Reset Mode: User skipped re-installing DGo-IPFS.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing Go-IPFS.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
@@ -4170,10 +4182,11 @@ fi
 if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
-        printf "%b Reset Mode: User skipped re-installing NodeJS.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing NodeJS.\\n" "${INFO}"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
         NODEJS_UPDATE_AVAILABLE=NO
@@ -4493,10 +4506,11 @@ fi
 if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
-        printf "%b Reset Mode: User skipped re-installing DigiAsset Node.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing DigiAsset Node.\\n" "${INFO}"
         printf "\\n"
         DGA_DO_INSTALL=NO
         DGA_INSTALL_TYPE="none"
@@ -4610,10 +4624,11 @@ if [ $RESET_MODE = true ]; then
     if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
+            printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="reset"
         else
-            printf "%b Reset Mode: User skipped re-creating DigiAsset Node PM2 service.\\n" "${INFO}"
+            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_DO_INSTALL=NO
             PM2_INSTALL_TYPE="none"
             return
@@ -4747,6 +4762,8 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
 
 
         if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n" "${INFO}"
+            printf "\\n"
         #Nothing to do, continue
           echo
           if [ $DGB_ASK_UPGRADE = "YES" ]; then
@@ -4765,7 +4782,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             DGNT_DO_INSTALL=YES
           fi
         else
-          printf "%b Installer exited at Upgrade Request message.\\n" "${INFO}"
+          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n" "${INFO}"
           printf "\\n"
           exit
         fi
@@ -4782,14 +4799,14 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if whiptail --backtitle "" --title "Install a DigiAsset Node?" --yesno "You do not currently have a DigiAsset Node installed. Running a DigiAsset Node helps support the network by decentralizing the DigiAsset metadata. It also gives you the ability to create your own DigiAssets from your own Node. You can also earn DGB for hosting other people's metadata.\\n\\n\\nWould you like to install a DigiAsset Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "Install DigiAsset Node?" --yesno "You do not currently have the DigiAsset Node installed. Running the DigiAsset Node helps to support the network by decentralizing the DigiAsset metadata. It also gives you the ability to create your own DigiAssets and lets you earn DGB for hosting other people's metadata.\\n\\n\\nWould you like to install the DigiAsset Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
-            printf "%b You choose the option to install the DigiAsset Node.\\n" "${INFO}"
+            printf "%b You choose to install the DigiAsset Node.\\n" "${INFO}"
             printf "\\n"
         else
           DO_FULL_INSTALL=NO
-          printf "%b You choose the option to NOT install the DigiAsset Node.\\n" "${INFO}"
+          printf "%b You choose NOT to install the DigiAsset Node.\\n" "${INFO}"
           printf "\\n"
         fi
 
