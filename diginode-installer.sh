@@ -5328,7 +5328,6 @@ main() {
     # Ask to install any upgrades, if there are any
     menu_ask_install_updates
 
-    set -x
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
@@ -5340,6 +5339,8 @@ main() {
 
     # Create digibyted.service
     digibyte_create_service
+
+    set -x
 
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
