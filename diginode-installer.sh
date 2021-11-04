@@ -5309,13 +5309,12 @@ main() {
     # Ask to install any upgrades, if there are any
     menu_ask_install_updates
 
+    set -x
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
     digibyte_create_conf
-
-    set -x
 
     # Install DigiByte Core
     digibyte_do_install
@@ -5361,7 +5360,8 @@ main() {
     hostname_do_change
 
 
-set +x
+    set +x
+
     exit
 
     # This stuff requires a reboot after changing
