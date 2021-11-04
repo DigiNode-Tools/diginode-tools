@@ -3229,7 +3229,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"cd .
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
@@ -3887,10 +3887,11 @@ if [ $RESET_MODE = true ]; then
     if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] || [ test -f "$IPFS_UPSTART_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the IPFS service?\\n\\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." "${r}" "${c}"; then
-            printf "%b Reset Mode: You choose to re-configure the IPFS service.\\n" "${INFO}"
             IPFS_CREATE_SERVICE=YES
             IPFS_SERVICE_INSTALL_TYPE="reset"
         else
+            printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
+            # ==============================================================================
             printf "%b Reset Mode: User skipped re-configuring the IPFS service.\\n" "${INFO}"
             IPFS_CREATE_SERVICE=NO
             IPFS_SERVICE_INSTALL_TYPE="none"
@@ -3922,16 +3923,17 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$IPFS_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
+        printf " =============== Installing: IPFS Daemon Service =======================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+        printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
         # ==============================================================================
+        printf "%b Reset Mode: You choose to re-configure the IPFS service.\\n" "${INFO}"
     fi
 
 
     # If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-    if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+    if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
         systemctl --user stop ipfs
@@ -3949,7 +3951,7 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     fi
 
     # If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-    if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+    if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
         str="Deleting IPFS upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -4644,10 +4646,11 @@ if [ $RESET_MODE = true ]; then
     if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
-            printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_DO_INSTALL=YES
             PM2_INSTALL_TYPE="reset"
         else
+            printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+            # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_DO_INSTALL=NO
             PM2_INSTALL_TYPE="none"
@@ -4681,11 +4684,9 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ "$PM2_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
         # ==============================================================================
-    elif [ "$PM2_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrading: NodeJS PM2 Service =========================\\n\\n"
-        # ==============================================================================
     elif [ "$PM2_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+        printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
         # ==============================================================================
     fi
 
@@ -4839,53 +4840,45 @@ digiasset_node_create_settings() {
 
     local str
 
-    # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
-    if [ $RESET_MODE = true ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
+    # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
+    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nNode: This will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-        #Nothing to do, continue
-          local reset_dga_settings=true
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings." "${r}" "${c}"; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="reset"
         else
-          local reset_dga_setting=false
-        fi
-
-
-        if [ reset_dga_settings = true ]; then
-            str="Reset Mode is Enabled. Deleting existing DigiAssets settings..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f -r $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            # ==============================================================================
+            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
+            DGA_SETTINGS_CREATE=NO
+            DGA_SETTINGS_CREATE_TYPE="none"
+            return
         fi
     fi
 
-
-    # create .digibyte settings folder if it does not already exist
-    if [ ! -d $DGB_SETTINGS_LOCATION ]; then
-        str="Creating ~/.digibyte/ folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # If DigiAsset Node settings do not yet exist, then assume this is a new install
+    if [ ! -f "$DGA_SETTINGS_FILE" ]; then
+                DGA_SETTINGS_CREATE="if_doing_full_install"
+                DGA_SETTINGS_CREATE_TYPE="new"
     fi
 
-    # create assetnode_config folder if it does not already exist
-    if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-        str="Creating ~/.digibyte/assetnode_config/ folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
+    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        DGA_SETTINGS_CREATE=YES
     fi
 
-    # If main.json file already exists, update the rpc user and password if they have changed
-    if test -f "$DGA_SETTINGS_FILE"; then
+    # Let's get the latest RPC credentials from digibyte.conf if it exists
+    if [ -f $DGB_CONF_FILE ]; then
+        source $DGB_CONF_FILE
+    fi
+
+
+    # If main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
 
         local rpcuser_json_cur
         local rpcpass_json_cur
         local rpcpass_json_cur
-        local update_rpc_now
-
-        # Let's first get the values from digibyte.conf
-
-        source $DGB_CONF_FILE
 
         # Let's get the current rpcuser and rpcpassword from the main.json file
 
@@ -4896,18 +4889,46 @@ digiasset_node_create_settings() {
         # Compare them with the digibyte.conf values to see if they need updating
 
         if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
-            update_rpc_now=yes
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
         elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
-            update_rpc_now=yes
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
         elif [ "$rpcport" != "$rpcport_json_cur" ]; then
-            update_rpc_now=yes
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+        fi
+    fi
+
+
+    if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
+
+         # Display section break
+        printf "\\n"
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
+            printf " =============== Installing: DigiAsset Node settings ===================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
+            printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
+            # ==============================================================================
         fi
 
-        # If credentials have changed, let's update the main.json file
+        # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
+        if [ $DGA_SETTINGS_CREATE_TYPE = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
+            str="Deleting existing DigiAssets settings..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
-        if [ "$update_rpc_now" = "yes" ]; then
+        # If main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
 
-            str="Updated RPC credentials found in digibyte.conf - updating DigiAssets settings file..."
+            str="Updating RPC credentials in main.json..."
             printf "%b %s" "${INFO}" "${str}"
 
             tmpfile=($mktemp)
@@ -4922,13 +4943,29 @@ digiasset_node_create_settings() {
 
         fi
 
-    else
-        # Create a new main.json settings file
-        str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT touch 
+        # create .digibyte settings folder if it does not already exist
+        if [ ! -d $DGB_SETTINGS_LOCATION ]; then
+            str="Creating ~/.digibyte/ folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
-        cat <<EOF > $DGA_SETTINGS_FILE
+        # create assetnode_config folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_LOCATION ]; then
+            str="Creating ~/.digibyte/assetnode_config/ folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        if [ ! -f $DGA_SETTINGS_FILE ]; then
+            # Create a new main.json settings file
+            str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT touch 
+
+            cat <<EOF > $DGA_SETTINGS_FILE
 {
     "ignoreList": [
         "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
@@ -4955,10 +4992,12 @@ digiasset_node_create_settings() {
     }
 }
 EOF
-printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
-    printf "\\n"
+        printf "\\n"
+
+    fi
 }
 
 
