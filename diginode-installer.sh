@@ -2593,7 +2593,7 @@ menu_existing_install() {
         ${opt3a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
-            uninstall
+            uninstall_do_now
             ;;
     esac
 }
@@ -5037,7 +5037,7 @@ EOF
 
 
 # Perform uninstall if requested
-uninstall() {
+uninstall_do_now() {
 
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will be untouched.\\n" "${INFO}"
 
