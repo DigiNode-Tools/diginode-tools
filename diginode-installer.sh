@@ -3237,7 +3237,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Extracting DigiByte Core binary
     str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete old ~/digibyte symbolic link
