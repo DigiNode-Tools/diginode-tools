@@ -5315,6 +5315,8 @@ main() {
     # Create DigiByte.conf file
     digibyte_create_conf
 
+    set -x
+
     # Install DigiByte Core
     digibyte_do_install
 
@@ -5359,7 +5361,7 @@ main() {
     hostname_do_change
 
 
-
+set +x
     exit
 
     # This stuff requires a reboot after changing
