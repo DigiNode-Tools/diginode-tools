@@ -2705,7 +2705,6 @@ fi
 if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
     # Display section break
-    printf "\\n"
     if [ "$DGB_SERVICE_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: DigiByte daemon service ===================\\n\\n"
         # ==============================================================================
@@ -2773,8 +2772,8 @@ User=$USER_ACCOUNT
 Group=$USER_ACCOUNT
 
 Type=forking
-PIDFile=$DGB_SETTINGS_LOCATION/digibyted.pid
-ExecStart=$DGB_INSTALL_LOCATION/bin/digibyted -daemon -pid=$DGB_SETTINGS_LOCATION/digibyted.pid \
+PIDFile=${DGB_SETTINGS_LOCATION}digibyted.pid
+ExecStart=$DGB_DAEMON -daemon -pid=${DGB_SETTINGS_LOCATION}digibyted.pid \
 -conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
 
 Restart=always
@@ -2787,7 +2786,7 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Enable the service to run at boot
         printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
@@ -2862,6 +2861,8 @@ EOF
         exit 1
 
     fi
+
+printf "\\n"
 
 fi
 
@@ -5340,8 +5341,8 @@ main() {
     # Create digibyted.service
     digibyte_create_service
 
-    set -x
-
+    echo "== BREAK HERE =="
+    exit
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
