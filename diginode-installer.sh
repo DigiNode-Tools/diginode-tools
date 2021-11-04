@@ -490,7 +490,7 @@ DGB_DATA_DISKUSED_MB=
 DGB_DATA_DISKUSED_PERC=
 
 # IP addresses (only rechecked once every 15 minutes)
-IP4_INTERNAL=
+IP4_INTERNAL=$IP4_INTERNAL
 IP4_EXTERNAL=
 
 # This records when the wallet was last backed up
