@@ -2673,7 +2673,7 @@ digibyte_create_service() {
 if [ $RESET_MODE = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
-    if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ test -f "$DGB_UPSTART_SERVICE_FILE" ]; then
+    if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
             DGB_SERVICE_CREATE=YES
