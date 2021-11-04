@@ -2667,43 +2667,81 @@ fi
 digibyte_create_service() {
 
 # If you want to make changes to how DigiByte daemon services are created/managed for diferent systems, refer to this website:
-# 
+#
 
-# If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
-if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+# If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
+if [ $RESET_MODE = true ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+    # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
+    if [ test -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ test -f "$DGB_UPSTART_SERVICE_FILE" ]; then
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+            DGB_SERVICE_CREATE=YES
+            DGB_SERVICE_INSTALL_TYPE="reset"
+        else
+            printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
+            # ==============================================================================
+            printf "%b Reset Mode: You skipped re-configuring the DigiByte daemon service.\\n" "${INFO}"
+            DGB_SERVICE_CREATE=NO
+            DGB_SERVICE_INSTALL_TYPE="none"
+            return
+        fi
+    fi
+fi
+
+# If the SYSTEMD service files do not yet exist, then assume this is a new install
+if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+            DGB_SERVICE_CREATE="YES"
+            DGB_SERVICE_INSTALL_TYPE="new"
+fi
+
+# If the UPSTART service files do not yet exist, then assume this is a new install
+if [ ! -f "$DGB_DAEMON_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+            DGB_SERVICE_CREATE="YES"
+            DGB_SERVICE_INSTALL_TYPE="new"
+fi
+
+
+if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
+
+    # Display section break
+    printf "\\n"
+    if [ "$DGB_SERVICE_INSTALL_TYPE" = "new" ]; then
+        printf " =============== Installing: DigiByte daemon service ===================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_SERVICE_INSTALL_TYPE" = "update" ]; then
+        printf " =============== Updating: DigiByte daemon service =====================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_SERVICE_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
         # ==============================================================================
-        
-        printf "%b Reset Mode: You chose to recreate the digibyted systemd service file.\\n" "${INFO}"
+    fi
+
+    # If DigiByte daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+    if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$DGB_SERVICE_INSTALL_TYPE" = "reset" ]; then
+
+        printf "%b Reset Mode: You chose to re-create the digibyted systemd service file.\\n" "${INFO}"
+
         # Stop the service now
-        sudo systemctl stop digibyted
+        systemctl stop digibyted
 
         # Disable the service now
         sudo systemctl disable digibyted
+
+        # Disable linger
+        loginctl disable-linger $USER_ACCOUNT
 
         str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
-        # ==============================================================================
-        printf "%b Reset Mode: You skipped re-creating the digibyted systemd service file.\\n" "${INFO}"
-        printf "\\n"
-        return
     fi
-fi
 
-# If DigiByte daemon upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
+    # If DigiByte daemon upstart service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+    if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$DGB_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd seervice file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that DigiByte starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
-        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
-        # ==============================================================================
+        printf "%b Reset Mode: You chose to re-create the digibyted upstart service file.\\n" "${INFO}"
 
-        printf "%b Reset Mode: You chose to recreate the digibyted upstart service file.\\n" "${INFO}"
         # Stop the service now
         sudo service digibyted stop
 
@@ -2714,32 +2752,19 @@ if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_UPSTART_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
-        # ==============================================================================
-        printf "%b Reset Mode: You skipped re-creating the digibyted upstart service file.\\n" "${INFO}"
-        printf "\\n"
-        return
     fi
 
-fi
+    # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
+    if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
-# If using systemd and the DigiByte daemon service file does not exist yet, let's create it
-if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        printf "%b systemd service will be created for DigiByte daemon.\\n" "${INFO}"
+        
+        # Create a new DigiByte daemon service file
 
-    if [ "$RESET_MODE" = false ]; then
-        printf " =============== Creating: DigiByte daemon service =====================\\n\\n"
-        # ==============================================================================
-    fi
-
-    printf "%b systemd service will be created for DigiByte daemon.\\n" "${INFO}"
-    
-    # Create a new DigiByte daemon service file
-
-    str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    touch $DGB_SYSTEMD_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
+        str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
+        printf "%b %s" "${INFO}" "${str}"
+        touch $DGB_SYSTEMD_SERVICE_FILE
+        sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
 
@@ -2762,37 +2787,33 @@ StartLimitBurst=5
 [Install]
 WantedBy=multi-user.target
 EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Enable the service to run at boot
-    printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
-    systemctl enable digibyted
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Enable the service to run at boot
+        printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
+        systemctl enable digibyted
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Start the service now
-    str="Starting DigiByte daemon systemd service..."
-    printf "%b %s" "${INFO}" "${str}"
-    systemctl start digibyted
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Start the service now
+        str="Starting DigiByte daemon systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl start digibyted
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-fi
-
-# If using upstart and the DigiByte daemon service file does not exist yet, let's create it
-if [ ! -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-
-    if [ "$RESET_MODE" = false ]; then
-        printf " =============== Creating: DigiByte daemon service =====================\\n\\n"
-        # ==============================================================================
     fi
 
-    printf "%b upstart service will be created for DigiByte daemon.\\n" "${INFO}"
 
-    # Create a new DigiByte daemon upstart service file
+    # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
+    if [ ! -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
 
-    str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
-    printf "%b %s" "${INFO}" "${str}"
-    touch $DGB_UPSTART_SERVICE_FILE
-    sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
+        printf "%b upstart service will be created for DigiByte daemon.\\n" "${INFO}"
+
+        # Create a new DigiByte daemon upstart service file
+
+        str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
+        printf "%b %s" "${INFO}" "${str}"
+        touch $DGB_UPSTART_SERVICE_FILE
+        sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
 description "DigiByte Core Daemon"
 
 start on runlevel [2345]
@@ -2822,32 +2843,30 @@ exec start-stop-daemon \
     -datadir="\$DIGIBYTED_DATADIR"
 
 EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
-    # Start the service now
-    str="Starting DigiByte daemon upstart service..."
-    printf "%b %s" "${INFO}" "${str}"
-    service digibyted start
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Start the service now
+        str="Starting DigiByte daemon upstart service..."
+        printf "%b %s" "${INFO}" "${str}"
+        service digibyted start
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-fi
-
-# If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
-if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
-
-    if [ "$RESET_MODE" = false ]; then
-        printf " =============== Creating: DigiByte Daemon service ====================\\n\\n"
-        # ==============================================================================
     fi
 
-    printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
-    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
-    exit 1
+    # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
+    if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
+
+        printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
+        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        exit 1
+
+    fi
 
 fi
 
 }
+
 
 donation_qrcode() {       
     echo "   If you find DigiNode Tools useful,"
@@ -4634,7 +4653,7 @@ fi
 
 
 # Create pm2 service so that DigiAsset Node will run at boot
-digiasset_node_create_pm2_service() {
+digiasset_node_pm2_create_service() {
 
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
@@ -5341,7 +5360,7 @@ main() {
     digiasset_node_do_install
 
     # Setup PM2 init service
-    digiasset_node_create_pm2_service
+    digiasset_node_pm2_create_service
   
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
