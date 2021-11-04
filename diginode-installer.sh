@@ -2721,16 +2721,17 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
         printf "%b Reset Mode: You chose to re-create the digibyted systemd service file.\\n" "${INFO}"
 
+        printf "%b Reset Mode: Stopping DigiByte daemon systemd service...\\n" "${INFO}"
+
         # Stop the service now
         systemctl stop digibyted
+
+        printf "%b Reset Mode: Disabling DigiByte daemon systemd service...\\n" "${INFO}"
 
         # Disable the service now
         sudo systemctl disable digibyted
 
-        # Disable linger
-        loginctl disable-linger $USER_ACCOUNT
-
-        str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+        str="Reset Mode: Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -2741,8 +2742,12 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
         printf "%b Reset Mode: You chose to re-create the digibyted upstart service file.\\n" "${INFO}"
 
+        printf "%b Reset Mode: Stopping DigiByte daemon upstart service...\\n" "${INFO}"
+
         # Stop the service now
         sudo service digibyted stop
+
+        printf "%b Reset Mode: Disabling DigiByte daemon upstart service...\\n" "${INFO}"
 
         # Disable the service now
         sudo service digibyted disable
@@ -2756,8 +2761,6 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
     # If using systemd and the DigiByte daemon service file does not exist yet, let's create it
     if [ ! -f "$DGB_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
-        printf "%b systemd service will be created for DigiByte daemon.\\n" "${INFO}"
-        
         # Create a new DigiByte daemon service file
 
         str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
@@ -2804,8 +2807,6 @@ EOF
 
     # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
     if [ ! -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-
-        printf "%b upstart service will be created for DigiByte daemon.\\n" "${INFO}"
 
         # Create a new DigiByte daemon upstart service file
 
