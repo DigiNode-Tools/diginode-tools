@@ -5036,9 +5036,114 @@ EOF
 
 
 # Perform uninstall if requested
-uninstall_everything() {
+uninstall() {
 
-    printf "%b Your entire DigiByte Node will now be uninstalled. Your DigiByte wallet file will be untouched.\\n" "${INFO}"
+    printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will be untouched.\\n" "${INFO}"
+
+
+    # Uninstall DigiByte Core
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour settings file and blockchain will not be affected." "${r}" "${c}"; then
+
+        printf "%b DigiByte Core will now be uninstalled.\\n" "${INFO}"
+
+        printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
+        sudo service digibyted stop
+        sudo service digibyted disable
+        DGB_STATUS = "stopped"
+
+        # Delete systemd service file
+        if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
+            str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB_SYSTEMD_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delte upstart service file
+        if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
+            str="Deleting DigiByte daemon upstart service file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB_UPSTART_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+       # Delete old DigiByte Core tar files, if present
+        if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
+            str="Deleting old DigiByte Core tar.gz files from home folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete DigiByte Core
+        if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+            str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete ~/digibyte symbolic link
+        if [ -h "$USER_HOME/digibyte" ]; then
+            str="Deleting digibyte symbolic link in home folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm $USER_HOME/digibyte
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+        
+    else
+        printf "%b DigiByte Core will not be uninstalled.\\n" "${INFO}"
+    fi
+
+
+    # Delete digibyte.conf
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
+
+        # Delete systemd service file
+        if [ -f "$DGB_CONF_FILE" ]; then
+            str="Deleting digibyte.conf file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB_CONF_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+        printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
+    fi
+
+    # Delete DigiByte blockchain data
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data??\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
+
+        # Delete systemd service file
+        if [ -f "$DGB_DATA_LOCATION" ]; then
+            str="Deleting DigiByte Core blockchain data..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $DGB_DATA_LOCATION/indexes
+            rm -rf $DGB_DATA_LOCATION/chainstate
+            rm -rf $DGB_DATA_LOCATION/blocks
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+        printf "%b You chose not to delete the DigiByte blockchain data.\\n" "${INFO}"
+    fi
+
+    # Delete diginode.settings
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+
+        # Delete systemd service file
+        if [ -f "$DGNT_SETTINGS_FILE" ]; then
+            str="Deleting diginode.settings file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+        printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
+    fi
+
+
     exit
 
 }
@@ -5190,7 +5295,7 @@ main() {
 
         # If uninstall is requested, then do it now
         if [[ "$UNINSTALL" == "yes" ]]; then
-            uninstall_everything
+            uninstall
         fi
 
         # if it's running unattended,
