@@ -4123,8 +4123,8 @@ nodejs_check() {
         printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If this is the first time running the NodeJS check, let's add the official repositories to ensure we get the latest version
-    if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
+    # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
+    if [ "$NODEJS_PPA_ADDED" = "" || "$NODEJS_PPA_ADDED" = "NO" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
 
         # Is this Debian or Ubuntu?
         local is_debian=$(cat /etc/issue | grep -Eo "Debian" 2>/dev/null)
