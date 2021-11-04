@@ -3570,6 +3570,8 @@ fi
 
 ipfs_check() {
 
+if [ "$DO_FULL_INSTALL" = "YES" ]; then
+
     printf " =============== Checking: IPFS daemon =================================\\n\\n"
     # ==============================================================================
 
@@ -3711,6 +3713,8 @@ ipfs_check() {
     fi
 
     printf "\\n"
+
+fi
 
 }
 
@@ -4099,6 +4103,8 @@ printf "\\n"
 
 nodejs_check() {
 
+if [ "$DO_FULL_INSTALL" = "YES" ]; then
+
     printf " =============== Checking: NodeJS ======================================\\n\\n"
     # ==============================================================================
 
@@ -4124,7 +4130,7 @@ nodejs_check() {
     fi
 
     # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
-    if [ "$NODEJS_PPA_ADDED" = "" || "$NODEJS_PPA_ADDED" = "NO" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
 
         # Is this Debian or Ubuntu?
         local is_debian=$(cat /etc/issue | grep -Eo "Debian" 2>/dev/null)
@@ -4211,6 +4217,8 @@ nodejs_check() {
     fi
 
     printf "\\n"
+
+fi
 
 }
 
@@ -4327,6 +4335,8 @@ printf "\\n"
 # This function will check if DigiAsset Node is installed, and if it is, check if there is an update available
 
 digiasset_node_check() {
+
+if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     printf " =============== Checking: DigiAsset Node ==============================\\n\\n"
     # ==============================================================================
@@ -4535,6 +4545,8 @@ digiasset_node_check() {
     fi
 
     printf "\\n"
+
+fi
 
 }
 
