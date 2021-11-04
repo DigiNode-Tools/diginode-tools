@@ -2491,12 +2491,9 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
     # If low disk space is detected on in the default install location, ask the user if they want to continue
     if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
-        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space to download a full copy of the DigiByte blockchain. If you want to use this drive, you will need to enable the setting to prune the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file. Do you wish to continue with the install now?
+        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space on this drive to download a full copy of the DigiByte blockchain. If you continue, you will need to enable the setting to prune the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\\n\\nDo you wish to continue with the install now?\\n\\nChoose YES to indicate that you have understood this message, and wish to continue." --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
 
-        Choose yes to indicate that you have understood this message, and wish to continue." --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
-
-          printf "%b User selected not to continue with install.\\n" "${INFO}"
-          exit
+            printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${WARN}" "${COL_LIGHT_GREEN}" "${COL_NC}"
 
         else
           printf "\\n"
@@ -2767,6 +2764,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_SYSTEMD_SERVICE_FILE
         cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
+[Unit]
 Description=DigiByte's distributed currency daemon
 After=network.target
 
