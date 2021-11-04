@@ -3178,7 +3178,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You chose to reinstall DigiByte Core.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose to re-install DigiByte Core.\\n" "${INFO}"
     fi
 
 
@@ -3218,10 +3218,10 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete old ~/digibyte symbolic link
-    if [ -h "$DGB_INSTALL_LOCATION" ]; then
+    if [ -h "$USER_HOME/digibyte" ]; then
         str="Deleting old 'digibyte' symbolic link from home folder..."
         printf "%b %s" "${INFO}" "${str}"
-        rm $DGB_INSTALL_LOCATION
+        rm $USER_HOME/digibyte
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
