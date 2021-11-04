@@ -3140,17 +3140,22 @@ fi
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." "${r}" "${c}"; then
-        printf "%b Reset Mode: You chose to reinstall DigiByte Core.\\n" "${INFO}"
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
-    else
-        printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
+    else 
         DGB_DO_INSTALL=NO
-        DGB_INSTALL_TYPE="none"
+        DGB_INSTALL_TYPE="skipreset"
         DGB_UPDATE_AVAILABLE=NO
-        return
     fi
 
+fi
+
+if [ "$DGB_INSTALL_TYPE" = "skipreset" ]; then
+    printf " =============== Resetting: DigiByte Core =============================\\n\\n"
+    # ==============================================================================
+    printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
+    printf "\\n"
+    return
 fi
 
 if [ "$DGB_DO_INSTALL" = "YES" ]; then
@@ -3165,6 +3170,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
         # ==============================================================================
+        printf "%b Reset Mode: You chose to reinstall DigiByte Core.\\n" "${INFO}"
     fi
 
 
