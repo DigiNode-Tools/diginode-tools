@@ -2729,7 +2729,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         printf "%b Reset Mode: Disabling DigiByte daemon systemd service...\\n" "${INFO}"
 
         # Disable the service now
-        sudo systemctl disable digibyted
+        systemctl disable digibyted
 
         str="Reset Mode: Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
@@ -2745,12 +2745,12 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         printf "%b Reset Mode: Stopping DigiByte daemon upstart service...\\n" "${INFO}"
 
         # Stop the service now
-        sudo service digibyted stop
+        service digibyted stop
 
         printf "%b Reset Mode: Disabling DigiByte daemon upstart service...\\n" "${INFO}"
 
         # Disable the service now
-        sudo service digibyted disable
+        service digibyted disable
 
         str="Deleting DigiByte daemon upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -2766,7 +2766,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_SYSTEMD_SERVICE_FILE
-        sudo -u $USER_ACCOUNT cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
+        cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 Description=DigiByte's distributed currency daemon
 After=network.target
 
@@ -2813,7 +2813,7 @@ EOF
         str="Creating DigiByte daemon upstart service file: $DGB_UPSTART_SERVICE_FILE ... "
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_UPSTART_SERVICE_FILE
-        sudo -u $USER_ACCOUNT cat <<EOF > $DGB_UPSTART_SERVICE_FILE
+        cat <<EOF > $DGB_UPSTART_SERVICE_FILE
 description "DigiByte Core Daemon"
 
 start on runlevel [2345]
@@ -5050,7 +5050,7 @@ uninstall_do_now() {
         printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
         sudo service digibyted stop
         sudo service digibyted disable
-        DGB_STATUS = "stopped"
+        DGB_STATUS="stopped"
 
         # Delete systemd service file
         if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
