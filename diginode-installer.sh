@@ -2593,7 +2593,7 @@ menu_existing_install() {
         ${opt3a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
-            uninstall_everything
+            uninstall
             ;;
     esac
 }
