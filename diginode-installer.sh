@@ -2711,7 +2711,11 @@ if [ -f "$DGB_UPSTART_SERVICE_FILE" ] && [ "$RESET_MODE" = true ]; then
         rm -f $DGB_UPSTART_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
+        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
+        # ==============================================================================
         printf "%b Reset Mode: You chose not to recreate the digibyted upstart service file.\\n" "${INFO}"
+        printf "\\n"
+        return
     fi
 
 fi
