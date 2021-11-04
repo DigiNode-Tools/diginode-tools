@@ -765,36 +765,45 @@ update_disk_usage() {
 digibyte_create_conf() {
 
     local str
+    local reset_digibyte_conf
+
 
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." "${r}" "${c}"; then
-            printf " =============== Resetting: digibyte.conf =============================\\n\\n"
-            # ==============================================================================
-
-            printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
-            str="Deleting existing digibyte.conf file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_CONF_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            reset_digibyte_conf=true
         else
-            printf "%b Reset Mode: You chose NOT to re-configure the digibyte.conf file.\\n" "${INFO}"
+            reset_digibyte_conf=false
         fi
+    fi
+
+    #Display section header
+    if [ -f "$DGB_CONF_FILE" ] && [ "$RESET_MODE" = true ] && [ "$reset_digibyte_conf" = true ]; then
+        printf " =============== Resetting: digibyte.conf ==============================\\n\\n"
+        # ==============================================================================
+        printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
+        str="Deleting existing digibyte.conf file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    elif [ -f "$DGB_CONF_FILE" ] && [ "$RESET_MODE" = true ] && [ "$reset_digibyte_conf" = false ]; then
+        printf " =============== Checking: digibyte.conf ===============================\\n\\n"
+        # ==============================================================================
+        printf "%b Reset Mode: You chose NOT to re-configure the digibyte.conf file.\\n" "${INFO}"
+    elif [ -f "$DGB_CONF_FILE" ] && [ "$RESET_MODE" = false ]; then
+        printf " =============== Checking: digibyte.conf ===============================\\n\\n"
+        # ==============================================================================
+    else
+        printf " =============== Creating: digibyte.conf ===============================\\n\\n"
+        # ==============================================================================
     fi
 
     # Do some intial setup before creating the digibyte.conf file for the first time
     if [ ! -f "$DGB_CONF_FILE" ]; then
 
-        # Display section break (except if this is a Reset)
-        if [ "$RESET_MODE" = false ]; then
-            printf " =============== Creating: digibyte.conf ===============================\\n\\n"
-            # ==============================================================================
-        fi
-
         # Max connections are set from the diginode.settings file
         set_maxconnections=$DGB_MAX_CONNECTIONS
-
 
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
@@ -827,9 +836,6 @@ digibyte_create_conf() {
 
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
-
-        printf " =============== Checking: digibyte.conf ===============================\\n\\n"
-        # ==============================================================================
 
         # Import variables from digibyte.conf settings file
         str="Located digibyte.conf file. Importing..."
