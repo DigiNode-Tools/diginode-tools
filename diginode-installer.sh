@@ -684,7 +684,7 @@ set_sys_variables() {
     fi
 
     BOOT_DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-    BOOT_DISKTOTAL_KB=$(df . -BKB --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    BOOT_DISKTOTAL_KB=$(df . --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ $VERBOSE_MODE = true ]; then
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
@@ -3211,11 +3211,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
        DGB_STATUS = "stopped"
     fi
     
-   # Delete any old DigiByte Core tar files
-    str="Deleting any old DigiByte Core tar.gz files from home folder..."
-    printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+   # Delete old DigiByte Core tar files, if present
+    if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
+        str="Deleting old DigiByte Core tar.gz files from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Downloading latest DigiByte Core binary from GitHub
     str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
@@ -3249,7 +3251,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"cd .
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
@@ -4764,7 +4766,7 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
 
 fi
 
-# If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
+# If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
 if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
 
     printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
@@ -5153,6 +5155,9 @@ main() {
     # Get the init system used by this Linux distro
     get_system_init
 
+    # Create the diginode.settings file if this is the first run
+    diginode_tools_create_settings
+
     # import diginode settings
     diginode_tools_import_settings
 
@@ -5161,9 +5166,6 @@ main() {
 
     # Check for Raspberry Pi hardware
     rpi_check
-
-    # Create the diginode.settings file if this is the first run
-    diginode_tools_create_settings
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
