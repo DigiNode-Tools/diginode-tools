@@ -2494,9 +2494,9 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\n\\nThere is not enough free space on this drive to download a full copy of the DigiByte blockchain. If you continue, you will need to enable the setting to prune the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\\n\\nDo you wish to continue with the install now?\\n\\nChoose YES to indicate that you have understood this message, and wish to continue." --defaultno --no-button "No (Recommended)" "${r}" "${c}"; then
 
             printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${WARN}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
 
         else
-          printf "\\n"
           printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${WARN}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           
           if [ "$TEXTEDITOR" != "" ]; then
