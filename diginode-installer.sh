@@ -2861,26 +2861,31 @@ fi
 }
 
 
-donation_qrcode() {       
-    echo "   If you find DigiNode Tools useful,"
-    echo " donations in DGB are much appreciated:"             
-    echo "     ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
-    echo "     █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
-    echo "     █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
-    echo "     █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
-    echo "     ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
-    echo "     █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
-    echo "      ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
-    echo "      █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
-    echo "     ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
-    echo "     █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
-    echo "     █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
-    echo "     ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
-    echo "     █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
-    echo "     █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
-    echo "     █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
+donation_qrcode() {  
+
+    printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
+    # ==============================================================================
+
+    echo " Countless hours have gone in to developing DigiNode Tools."
+    echo " If you find them useful, and want to support me, donations in"
+    echo " DGB are much appreciated. Many thanks -- Olly @saltedlolly"             
+    echo "             ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
+    echo "             █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
+    echo "             █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
+    echo "             █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
+    echo "             ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
+    echo "             █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
+    echo "              ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
+    echo "              █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
+    echo "             ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
+    echo "             █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
+    echo "             █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
+    echo "             ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
+    echo "             █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
+    echo "             █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
+    echo "             █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
     echo ""  
-    echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    echo "      dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
     echo ""
 }
 
