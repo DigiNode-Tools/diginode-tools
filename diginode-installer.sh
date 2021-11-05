@@ -5516,10 +5516,7 @@ main() {
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install DigiNode Tools
-    # dgntools_do_install
-
-    echo "== BREAK HERE =="
-    exit
+    dgntools_do_install
 
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
