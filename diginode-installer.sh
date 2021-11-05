@@ -5209,13 +5209,13 @@ uninstall_do_now() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Delete 'diginode-installer' alias
+        # Delete 'diginode' alias
         if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
             str="Deleting 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Delete existing alias for 'diginode'
             sed -i -e "/^# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/s|.*||" $USER_HOME/.bashrc
-            sed -i -e "/^alias diginode-installer=/s|.*||" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode=/s|.*||" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
