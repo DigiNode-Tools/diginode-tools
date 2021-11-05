@@ -2761,8 +2761,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         # Create a new DigiByte daemon service file
 
         str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
-        printf "%b %s" "${INFO}" "${str}"
-        touch $DGB_SYSTEMD_SERVICE_FILE
+        printf "%b %s" "${INFO}" "${str}"nano /etc/systemd/system/digibyted.servicetouch $DGB_SYSTEMD_SERVICE_FILE
         cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 [Unit]
 Description=DigiByte's distributed currency daemon
@@ -2774,8 +2773,8 @@ Group=$USER_ACCOUNT
 
 Type=forking
 PIDFile=${DGB_SETTINGS_LOCATION}digibyted.pid
-ExecStart=$DGB_DAEMON -daemon -pid=${DGB_SETTINGS_LOCATION}digibyted.pid \
--conf=$DGB_CONF_FILE -datadir=$DGB_DATA_LOCATION
+ExecStart=${DGB_DAEMON} -daemon -pid=${DGB_SETTINGS_LOCATION}digibyted.pid \
+-conf=${DGB_CONF_FILE} -datadir=${DGB_DATA_LOCATION}
 
 Restart=always
 PrivateTmp=true
@@ -5460,8 +5459,12 @@ main() {
     # Install DigiByte Core
     digibyte_do_install
 
+    set -x
+
     # Create digibyted.service
     digibyte_create_service
+
+    set +x
 
     echo "== BREAK HERE =="
     exit
@@ -5496,14 +5499,14 @@ main() {
 
     ### CLEAN UP ###
 
-    # Display donation QR Code
-    donation_qrcode
-
     # Change the hostname
     hostname_do_change
 
+    # Display donation QR Code
+    donation_qrcode
 
-    set +x
+
+
 
     exit
 
