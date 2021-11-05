@@ -5224,6 +5224,15 @@ main() {
         # set the DigiNode Tools branch to use for the installer
         set_dgnt_branch
 
+        # Display a message if Verbose Mode is enabled
+        is_verbose_mode
+
+        # Display a message if Unattended Mode is enabled
+        is_unattended_mode
+
+        # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
+        is_reset_mode 
+
         # Show the DigiNode logo
         diginode_logo_v3
         make_temporary_log
@@ -5273,16 +5282,6 @@ main() {
             exit 1
         fi
     fi
-
-
-    # Display a message if Verbose Mode is enabled
-    is_verbose_mode
-
-    # Display a message if Unattended Mode is enabled
-    is_unattended_mode
-
-    # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
-    is_reset_mode 
 
     # Perform basic system check and lookup hardware architecture
     sys_check
