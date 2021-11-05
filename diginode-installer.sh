@@ -2882,6 +2882,7 @@ donation_qrcode() {
     echo "     █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
     echo ""  
     echo "dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    echo ""
 }
 
 stop_service() {
