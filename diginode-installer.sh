@@ -637,7 +637,7 @@ set_sys_variables() {
 
     # check the 'cat' command is available
     if ! is_command cat ; then
-        if [ "$VERBOSE_MODE" != "YES" ]; then
+        if [ $VERBOSE_MODE = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -647,7 +647,7 @@ set_sys_variables() {
 
     # check the 'free' command is available
     if ! is_command free ; then
-        if [ "$VERBOSE_MODE" != "YES" ]; then
+        if [ $VERBOSE_MODE = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -657,7 +657,7 @@ set_sys_variables() {
 
     # check the 'df' command is available
     if ! is_command df ; then
-        if [ "$VERBOSE_MODE" != "YES" ]; then
+        if [ $VERBOSE_MODE = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2169,16 +2169,24 @@ get_system_init() {
 # Which init system are we using?
 if [[ `/sbin/init --version 2>/dev/null` =~ upstart ]]; then
     INIT_SYSTEM="upstart"
-    printf "%b Init System: upstart\\n" "${INFO}"
+    if [ $VERBOSE_MODE = true ]; then
+        printf "%b Init System: upstart\\n" "${INFO}"
+    fi
 elif [[ `systemctl` =~ -\.mount ]]; then
     INIT_SYSTEM="systemd"
-    printf "%b Init System: systemd\\n" "${INFO}"
+    if [ $VERBOSE_MODE = true ]; then
+        printf "%b Init System: systemd\\n" "${INFO}"
+    fi
 elif [[ -f /etc/init.d/cron && ! -h /etc/init.d/cron ]]; then
     INIT_SYSTEM="sysv-init"
-    printf "%b Init System: sysv-init\\n" "${INFO}"
+    if [ $VERBOSE_MODE = true ]; then
+        printf "%b Init System: sysv-init\\n" "${INFO}"
+    fi
 else
     INIT_SYSTEM="unknown"
-    printf "%b Init System: Unknown\\n" "${INFO}"
+    if [ $VERBOSE_MODE = true ]; then
+        printf "%b Init System: Unknown\\n" "${INFO}"
+    fi
 fi
 
 }
@@ -2774,7 +2782,7 @@ Group=$USER_ACCOUNT
 
 Type=forking
 PIDFile=${DGB_SETTINGS_LOCATION}/digibyted.pid
-ExecStart=${DGB_DAEMON} -daemon -pid=${DGB_SETTINGS_LOCATION}/digibyted.pid \
+ExecStart=${DGB_DAEMON} -daemon -pid=${DGB_SETTINGS_LOCATION}/digibyted.pid \\
 -conf=${DGB_CONF_FILE} -datadir=${DGB_DATA_LOCATION}
 
 Restart=always
@@ -3231,6 +3239,11 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Dispaly the download URL
+    if [ $VERBOSE_MODE = true ]; then
+        echo "DigiByte Download URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz"
     fi
 
     # Downloading latest DigiByte Core binary from GitHub
