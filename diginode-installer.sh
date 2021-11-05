@@ -5134,7 +5134,7 @@ uninstall_do_now() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Delete DigiByte Core
+        # Delete DigiByte Core folder
         if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
             str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
             printf "%b %s" "${INFO}" "${str}"
@@ -5174,7 +5174,7 @@ uninstall_do_now() {
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
 
         # Delete systemd service file
-        if [ -f "$DGB_DATA_LOCATION" ]; then
+        if [ -d "$DGB_DATA_LOCATION" ]; then
             str="Deleting DigiByte Core blockchain data..."
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $DGB_DATA_LOCATION/indexes
@@ -5182,17 +5182,22 @@ uninstall_do_now() {
             rm -rf $DGB_DATA_LOCATION/blocks
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+        printf "\\n"
 
     else
         printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
+        printf "\\n"
     fi
 
 
     # Delete DigiNode Tools
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
 
+        printf " =============== Uninstalling: DigiNode Tools ==========================\\n\\n"
+        # ==============================================================================
+
         # Delete ~/diginode folder and its contents
-        if [ -f "$DGNT_LOCATION" ]; then
+        if [ -d "$DGNT_LOCATION" ]; then
             str="Deleting DigiNode Tools..."
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $DGNT_LOCATION
@@ -5236,8 +5241,13 @@ uninstall_do_now() {
         fi
 
     else
-        printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
+        printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
     fi
+
+        printf " =======================================================================\\n"
+        printf " ================== ${txtgrn}Your DigiNode has been uninstalled!${txtrst} ==================\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
 
     printf "\\n"
     donation_qrcode
