@@ -417,7 +417,7 @@ DGB_VER_LOCAL_CHECK_FREQ=daily
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. There should be no need to change this.
-DGNT_LOCATION=$USER_HOME/diginode
+DGNT_LOCATION=$USER_HOME/diginode-tools
 
 # DIGINODE TOOLS FILES:
 DGNT_INSTALLER_SCRIPT=\$DGNT_LOCATION/diginode-installer.sh
