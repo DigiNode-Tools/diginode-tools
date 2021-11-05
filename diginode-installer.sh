@@ -2792,13 +2792,10 @@ EOF
         # Enable the service to run at boot
         printf "%b Enabling DigiByte daemon systemd service...\\n" "${INFO}"
         systemctl enable digibyted
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Start the service now
-        str="Starting DigiByte daemon systemd service..."
-        printf "%b %s" "${INFO}" "${str}"
+        printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
         systemctl start digibyted
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -2839,16 +2836,13 @@ exec start-stop-daemon \
     -pid="\$DIGIBYTED_PIDFILE" \
     -conf="\$DIGIBYTED_CONFIGFILE" \
     -datadir="\$DIGIBYTED_DATADIR"
-
 EOF
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
 
         # Start the service now
-        str="Starting DigiByte daemon upstart service..."
-        printf "%b %s" "${INFO}" "${str}"
+        printf "%b Starting DigiByte daemon upstart service...\\n" "${INFO}"
         service digibyted start
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
