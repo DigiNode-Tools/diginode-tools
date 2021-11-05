@@ -2703,6 +2703,7 @@ if [ $RESET_MODE = true ]; then
             printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiByte daemon service.\\n" "${INFO}"
+            printf "\\n"
             DGB_SERVICE_CREATE=NO
             DGB_SERVICE_INSTALL_TYPE="none"
             return
@@ -3598,7 +3599,7 @@ fi
 
         # Add alias so entering 'diginode-installer' works from any folder
         if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode' alias in .bashrc file..."
+            str="Updating 'diginode-installer' alias in .bashrc file..."
             printf "%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
             sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
@@ -3781,7 +3782,6 @@ fi
 if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
-        printf "%b Reset Mode: You chose re-install Go-IPFS.\\n" "${INFO}"
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
         # Reset IPFS Updater as well, if needed
@@ -3789,7 +3789,9 @@ if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
             IPFSU_DO_INSTALL=YES
             IPFSU_INSTALL_TYPE="reset"
         fi
-    else
+    else        
+        printf " =============== Resetting: IPFS =======================================\\n\\n"
+        # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Go-IPFS.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
@@ -3823,6 +3825,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
         printf " =============== Resetting: IPFS =======================================\\n\\n"
         # ==============================================================================
+        printf "%b Reset Mode: You chose re-install Go-IPFS.\\n" "${INFO}"
     fi
 
     # Let's find the correct file type to download based on the current architecture
@@ -3841,53 +3844,52 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             str="Reset Mode: Deleting current IPFS Updater binary..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f /usr/local/bin/ipfs-update
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Delete any old IPFS Updater tar files
         str="Deleting any old IPFS Updater tar.gz files from home folder..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/ipfs-update*.tar.gz
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Downloading latest IPFS Updater tar.gz from IPFS distributions website
         str="Downloading IPFS Updater v${IPFSU_VER_RELEASE} from IPFS distributions website..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # If an there is an existing IPFS Updater version, move it it to a backup version
         if [ -d "$USER_HOME/ipfs-update" ]; then
             str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-oldversion..."
             printf "%b %s" "${INFO}" "${str}"
             mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update_oldversion
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Extracting IPFS Updator tar.gz
         str="Extracting IPFS Updator v${IPFSU_VER_RELEASE} ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Install IPFS Updater
         printf "%b Installing IPFS Updater v${IPFSU_VER_RELEASE} ...\\n" "${INFO}"
-        cd $USER_HOME/ipfs-update
-        sudo -u $USER_ACCOUNT bash install.sh
+        sudo -u $USER_ACCOUNT bash $USER_HOME/ipfs-update/install.sh
 
         # Delete the IPFS Updater backup version, now the new version has been installed
         if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
             str="Deleting previous version of Go-IPFS: $USER_HOME/ipfs-update-oldversion ..."
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $USER_HOME/ipfs-update-oldversion
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Delete IPFS Updater tar.gz installer file
         str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Get the new version number of the local IPFS Updater install
         IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
@@ -3905,8 +3907,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         IPFSU_UPDATE_AVAILABLE=NO
         IPFSU_POSTUPDATE_CLEANUP=YES
 
-        printf "\\n"
-
     fi
 
     # If we are re-installing the current version of Go-IPFS, delete the existing binary
@@ -3919,8 +3919,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    ipfs-update install latest
-    printf "\\n"
+    $USER_HOME/ipfs-update/ipfs-update install latest
 
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -4287,11 +4286,13 @@ fi
 if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it." "${r}" "${c}"; then
-        printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
+        printf " =============== Resetting: NodeJS =====================================\\n\\n"
+        # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing NodeJS.\\n" "${INFO}"
+        printf "\\n"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
         NODEJS_UPDATE_AVAILABLE=NO
@@ -4318,6 +4319,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
         printf " =============== Resetting: NodeJS =====================================\\n\\n"
         # ==============================================================================
+        printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
     fi
 
 
