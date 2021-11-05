@@ -3968,7 +3968,7 @@ if [ $RESET_MODE = true ]; then
         else
             printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
             # ==============================================================================
-            printf "%b Reset Mode: User skipped re-configuring the IPFS service.\\n" "${INFO}"
+            printf "%b Reset Mode: You skipped re-configuring the IPFS service.\\n" "${INFO}"
             IPFS_CREATE_SERVICE=NO
             IPFS_SERVICE_INSTALL_TYPE="none"
             return
@@ -4004,7 +4004,7 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     elif [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You choose to re-configure the IPFS service.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose to re-configure the IPFS service.\\n" "${INFO}"
     fi
 
 
@@ -4422,7 +4422,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # First we'll see if it is running using the command: node index.js
     if [ "$DGA_STATUS" = "installed" ]; then
         str="Is DigiAsset Node currently running?..."
-        IS_DGANODE_RUNNING=$(sudo -u $USER_ACCOUNT pgrep -f "node index.js")
+        IS_DGANODE_RUNNING=$(sudo -u $USER_ACCOUNT pgrep -f "node index.js" 2>/dev/null)
         printf "%b %s" "${INFO}" "${str}"
         if [ "$IS_DGANODE_RUNNING" != "" ]; then
             DGA_STATUS="running"
