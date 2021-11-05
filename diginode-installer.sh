@@ -2883,9 +2883,8 @@ donation_qrcode() {
     printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
     # ==============================================================================
 
-    echo " Countless hours have already gone in to developing DigiNode Tools."
-    echo " If you find them useful, and want to support future development, donations"
-    echo " in DGB are much appreciated. Many thanks -- Olly @saltedlolly"             
+    echo " If you find DigiNode Tools useful, and want to support future development,"
+    echo " donations in DGB are much appreciated. Many thanks -- Olly @saltedlolly"             
     echo "             ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "             █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "             █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
