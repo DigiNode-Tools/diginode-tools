@@ -5043,6 +5043,9 @@ uninstall_do_now() {
     # Uninstall DigiByte Core
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour settings file and blockchain will not be affected." "${r}" "${c}"; then
 
+        printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
+        # ==============================================================================
+
         printf "%b DigiByte Core will now be uninstalled.\\n" "${INFO}"
 
         printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
@@ -5142,8 +5145,10 @@ uninstall_do_now() {
         printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
     fi
 
-
+    printf "\\n"
+    donation_qrcode
     exit
+    printf "\\n"
 
 }
 
