@@ -964,51 +964,67 @@ digibyte_create_conf() {
 # This config should be placed in the following path:
 # ~/.digibyte/digibyte.conf
 
+
 # [core]
 # Run in the background as a daemon and accept commands.
 daemon=1
+
 # Set database cache size in megabytes; machines sync faster with a larger cache.
 # Recommend setting as high as possible based upon machine's available RAM. (default: 450)
 dbcache=$set_dbcache
+
 # Reduce storage requirements by only storing most recent N MiB of block. This mode is 
 # incompatible with -txindex and -coinstatsindex. WARNING: Reverting this setting requires
 # re-downloading the entire blockchain. (default: 0 = disable pruning blocks, 1 = allow manual
 # pruning via RPC, greater than 550 = automatically prune blocks to stay under target size in MiB).
 prune=0
-# Keep at most <n> unconnectable transactions in memory.
-maxorphantx=
-# Keep the transaction memory pool below <n> megabytes.
-maxmempool=
+
+# Keep at most <n> unconnectable transactions in memory. (default: 100)
+maxorphantx=100
+
+# Keep the transaction memory pool below <n> megabytes. (default: 300)
+maxmempool=300
+
 # Specify a non-default location to store blockchain and other data.
 datadir=$DGB_DATA_LOCATION
+
 
 # [network]
 # Maintain at most N connections to peers. (default: 125)
 maxconnections=$set_maxconnections
-# Tries to keep outbound traffic under the given target (in MiB per 24h), 0 = no limit.
-maxuploadtarget=
+
+# Tries to keep outbound traffic under the given target (in MiB per 24h), 0 = no limit (default: 0)   
+maxuploadtarget=0
+
 # Whitelist peers connecting from the given IP address (e.g. 1.2.3.4) or CIDR notated network
 # (e.g. 1.2.3.0/24). Use [permissions]address for permissions. Uses same permissions as
 # Whitelist Bound IP Address. Can be specified multiple times. Whitelisted peers cannot be
 # DoS banned and their transactions are always relayed, even if they are already in the mempool.
 # Useful for a gateway node.
 whitelist=127.0.0.1
+
 # Accept incoming connections from peers.
 listen=1
+
 
 # [rpc]
 # RPC user
 rpcuser=digibyte
+
 # RPC password
 rpcpassword=$set_rpcpassword
+
 # Accept command line and JSON-RPC commands.
 server=1
+
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
 # -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 rpcbind=127.0.0.1
+
 # Listen for JSON-RPC connections on this port
 rpcport=14022
+
 # Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
 # a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
 # can be specified multiple times.
