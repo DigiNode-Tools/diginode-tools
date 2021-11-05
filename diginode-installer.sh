@@ -2653,6 +2653,7 @@ if whiptail --defaultno --backtitle "" --title "IMPORTANT: Your DigiNode needs a
   echo
 else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
+  printf "\\n"
   exit
 fi
 
