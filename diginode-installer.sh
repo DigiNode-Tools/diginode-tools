@@ -96,7 +96,7 @@ DGNT_INSTALLER_OFFICIAL_CMD="curl $DGNT_INSTALLER_OFFICIAL_URL | bash"
 DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode.git"
 
 # DigiByte.Help URLs
-DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shwon in welcome box.
+DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shown in welcome box.
 DGBH_URL_CUSTOM=https://www.digibyte.help/diginode/       # Information on customizing your install by editing diginode.settings
 DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
 DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
@@ -104,6 +104,7 @@ DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you sh
 DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
 DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Advice on how to set a static IP
 DGBH_URL_PORTFWD=https://www.digibyte.help/diginode/      # Advice on how to forward ports with your router
+DGBH_URL_TWEET=https://www.digibyte.help/diginode/        # URL included in sample tweet.
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -506,8 +507,6 @@ SYSTEM_SECURITY_UPDATES=
 # If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
 IPFS_PORT_TEST_STATUS=
 IPFS_PORT_TEST_DATE_date=
-
-
 
 EOF
 
@@ -2860,15 +2859,31 @@ fi
 
 }
 
+request_social_media () {  
+
+    printf " ======== CONGRATULATIONS - YOU ARE NOW RUNNING A DIGINODE =============\\n\\n"
+    # ==============================================================================
+
+    echo "Thanks for supporting DigiByte!"
+    echo ""
+    echo " Please let everyone know what you are helping support the DigiByte network"
+    echo " by posting on social media with the hash tag #DigiNode."
+    echo ""
+    echo " Here's a sample Tweet you can use:"
+    echo "\"I just set up a #DigiNode to help support the decentralization of the #DigiByte network!"
+    echo "If you want to help too, you can learn more at $DGBH_URL_TWEET \""
+    echo ""
+}
+
 
 donation_qrcode() {  
 
     printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
     # ==============================================================================
 
-    echo " Countless hours have gone in to developing DigiNode Tools."
-    echo " If you find them useful, and want to support me, donations in"
-    echo " DGB are much appreciated. Many thanks -- Olly @saltedlolly"             
+    echo " Countless hours have already gone in to the development of DigiNode Tools."
+    echo " If you find them useful, and want to support my work, donations in DGB are"
+    echo " much appreciated. Many thanks -- Olly Stedall @saltedlolly"             
     echo "             ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "             █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "             █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -5476,7 +5491,7 @@ main() {
 
     echo "== BREAK HERE =="
     exit
-    
+
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
@@ -5504,6 +5519,9 @@ main() {
 
     # Change the hostname
     hostname_do_change
+
+    # Request social media post
+    request_social_media
 
     # Display donation QR Code
     donation_qrcode
