@@ -815,14 +815,14 @@ startup_waitpause() {
 
 echo ""
 if [ "$STARTPAUSE" = "yes" ]; then
-  read -n 1 -s -r -p "      < Press any key to continue >\\n"
+  read -n 1 -s -r -p "      < Press any key to continue >"
 else
 
   if [ "$STARTWAIT" = "yes" ]; then
-    echo "               < Wait for 5 seconds >\\n"
+    echo "               < Wait for 7 seconds >"
     sleep 5
   else 
-    echo "               < Wait for 3 seconds >\\n"
+    echo "               < Wait for 4 seconds >"
     sleep 3
   fi
 fi
@@ -990,69 +990,6 @@ startup_checks() {
 startup_checks              # Performs all necessary startup checks
 pre_loop                    # Run this just before starting the loop
 
-exit
-
-##############################
-## OLDER NON FUNCTION CODE ###
-###############################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###################################################################################
-##################  INSTALL MISSING PACKAGES ######################################
-###################################################################################
-
-
-
-
-
-
-
-###################################################################################
-##################  SET STARTUP VARIABLES    ######################################
-###################################################################################
-
-
-
-
-
-
-
-
-
-
-
-echo " ------- BEFORE ------"
-
-# Get latest software versions and check for online updates
-DGA_VER_LOCAL=$(curl localhost:8090/api/status.json)
-
-
-echo " ------- AFTER ------"
 
 
 ######################################################################################
