@@ -5031,11 +5031,15 @@ EOF
 # Perform uninstall if requested
 uninstall_do_now() {
 
-    printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will be untouched.\\n" "${INFO}"
+    printf " =============== UNINSTALLING DIGINODE =================================\\n\\n"
+    # ==============================================================================
+
+    printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
+    printf "\\n"
 
 
     # Uninstall DigiByte Core
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour settings file and blockchain will not be affected." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour settings file and blockchain data will not be affected.\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
 
         printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
         # ==============================================================================
