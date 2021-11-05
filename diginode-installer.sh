@@ -2760,7 +2760,8 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         # Create a new DigiByte daemon service file
 
         str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
-        printf "%b %s" "${INFO}" "${str}"nano /etc/systemd/system/digibyted.servicetouch $DGB_SYSTEMD_SERVICE_FILE
+        printf "%b %s" "${INFO}" "${str}"
+        touch $DGB_SYSTEMD_SERVICE_FILE
         cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
 [Unit]
 Description=DigiByte's distributed currency daemon
@@ -5060,7 +5061,7 @@ uninstall_do_now() {
 
 
     # Uninstall DigiByte Core
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour settings file and blockchain data will not be affected.\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
         printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
         # ==============================================================================
@@ -5118,7 +5119,7 @@ uninstall_do_now() {
 
 
     # Delete digibyte.conf
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nTheis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
 
         # Delete systemd service file
         if [ -f "$DGB_CONF_FILE" ]; then
@@ -5133,7 +5134,7 @@ uninstall_do_now() {
     fi
 
     # Delete DigiByte blockchain data
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data??\\n\\nNote: Your DigiByte Core wallet will not be harmed." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
 
         # Delete systemd service file
         if [ -f "$DGB_DATA_LOCATION" ]; then
@@ -5146,7 +5147,7 @@ uninstall_do_now() {
         fi
 
     else
-        printf "%b You chose not to delete the DigiByte blockchain data.\\n" "${INFO}"
+        printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
     fi
 
     # Delete diginode.settings
