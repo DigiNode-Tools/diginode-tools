@@ -1585,7 +1585,7 @@ rpi_microsd_ask() {
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
 
-    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "${txtred}WARNING: You are currently booting your Raspberry Pi from a microSD card.${txtrst}\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
@@ -2366,7 +2366,7 @@ if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
     local str_swap_needed
 
     if [ "$SWAP_NEEDED" = "YES" ]; then
-        str_swap_needed="\\nWARNING: You need to create a swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+        str_swap_needed="WARNING: You need to create a swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
         SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "No swap file detected!" 3>&1 1>&2 2>&3) 
 
@@ -2380,7 +2380,7 @@ if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        str="\\n\\nWARNING: You need a larger swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+        str="WARNING: You need a larger swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
         SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Swap file size is too small!" 3>&1 1>&2 2>&3) 
 
@@ -2490,7 +2490,7 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
     # If low disk space is detected on in the default install location, ask the user if they want to continue
     if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
-        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "\\nWARNING: There is not enough free space on this drive to download a full copy of the DigiByte blockchain.\\n\\nIf you continue, you will need to enable pruning the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\\n\\nDo you wish to continue with the install now?\\n\\nChoose YES to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "WARNING: There is not enough free space on this drive to download a full copy of the DigiByte blockchain.\\n\\nIf you continue, you will need to enable pruning the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\\n\\nDo you wish to continue with the install now?\\n\\nChoose YES to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
 
             printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
