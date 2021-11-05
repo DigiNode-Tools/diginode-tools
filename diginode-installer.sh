@@ -2846,7 +2846,7 @@ EOF
     fi
 
     # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
-    if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
+    if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
         printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
@@ -4081,16 +4081,18 @@ EOF
 
     fi
 
+    # If the system is not using upstart or systemd then quit since others are not yet supported
+    if [ $INIT_SYSTEM = "sysv-init" ] || [ $INIT_SYSTEM = "unknown" ]; then
+
+        printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
+        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        exit 1
+
+    fi
+
 fi
 
-# If the system is not using upstart or systemd then quit since others are not yet supported
-if [ $INIT_SYSTEM = "sysv-init" ] || $INIT_SYSTEM = "unknown" ]; then
 
-    printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
-    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
-    exit 1
-
-fi
 
 printf "\\n"
 
@@ -4771,19 +4773,18 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
 
         # Restart the PM2 service
         restart_service pm2-root
+    fi
 
+    # If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
+    if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
+        printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
+        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        exit 1
     fi
 
 fi
 
-# If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
-if [ "$INIT_SYSTEM" = "sysv-init" ] || "$INIT_SYSTEM" = "unknown" ]; then
 
-    printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
-    printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
-    exit 1
-
-fi
 
 }
 
