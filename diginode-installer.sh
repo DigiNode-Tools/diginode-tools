@@ -379,10 +379,10 @@ UI_DO_FULL_INSTALL=YES
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
 # Be aware that DigiNode Installer upgrades will likely not work if you do this.
-DGB_INSTALL_LOCATION=$USER_HOME/digibyte/
+DGB_INSTALL_LOCATION=$USER_HOME/digibyte
 
 # Do not change this. You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
-DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte/
+DGB_SETTINGS_LOCATION=$USER_HOME/.digibyte
 
 # DIGIBYTE NODE FILES:
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf
