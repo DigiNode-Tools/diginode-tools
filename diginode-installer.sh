@@ -2887,18 +2887,26 @@ fi
 
 request_social_media () {  
 
-    printf " ======== CONGRATULATIONS - YOU ARE NOW RUNNING A DIGINODE =============\\n\\n"
-    # ==============================================================================
-
-    echo "Thanks for supporting DigiByte!"
-    echo ""
-    echo " Please let everyone know what you are helping support the DigiByte network"
-    echo " by posting on social media with the hash tag #DigiNode."
-    echo ""
-    echo " Here's a sample Tweet you can use:"
-    echo "\"I just set up a #DigiNode to help support the decentralization of the #DigiByte network!"
-    echo "If you want to help too, you can learn more at $DGBH_URL_TWEET \""
-    echo ""
+    if [ $NewInstall = true ]; then
+        printf " =======================================================================\\n"
+        printf " ======== ${txtgrn}Congratulations - You are now running a DigiNode!${txtrst} ============\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
+        echo "Thanks for supporting DigiByte!"
+        echo ""
+        echo " Please let everyone know what you are helping support the DigiByte network"
+        echo " by sharing on social media using the hashtag #DigiNode."
+        echo ""
+        echo " Here's a sample Tweet you can use:"
+        echo "\"I just set up a #DigiNode to help support the decentralization of the #DigiByte network!"
+        echo "If you want to help too, you can learn more at $DGBH_URL_TWEET \""
+        echo ""
+    else
+        printf " =======================================================================\\n"
+        printf " ======== ${txtgrn}You're DigiNode has been upgraded!${txtrst} ===========================\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
+    fi
 }
 
 
@@ -5516,7 +5524,7 @@ main() {
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install DigiNode Tools
-    dgntools_do_install
+    diginode_tools_do_install
 
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
