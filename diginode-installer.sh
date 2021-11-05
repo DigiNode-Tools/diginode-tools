@@ -1213,7 +1213,7 @@ sys_check() {
         is_linux="no"
     fi
 
-    if [ $is_linux = "no" ]; then 
+    if [ "$is_linux" = "no" ]; then 
         printf "\\n"
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Installer requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
@@ -2888,9 +2888,9 @@ fi
 
 request_social_media () {  
 
-    if [ $NewInstall = true ]; then
+    if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
-        printf " ======== ${txtgrn}Congratulations - You are now running a DigiNode!${txtrst} ============\\n"
+        printf " ======== ${txtgrn}Congratulations - Your DigiNode has been installed!${txtrst} ==========\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
         echo "Thanks for supporting DigiByte!"
@@ -2899,12 +2899,40 @@ request_social_media () {
         echo " by sharing on social media using the hashtag #DigiNode."
         echo ""
         echo " Here's a sample Tweet you can use:"
-        echo "\"I just set up a #DigiNode to help support the decentralization of the #DigiByte network!"
-        echo "If you want to help too, you can learn more at $DGBH_URL_TWEET \""
+        echo "\"I just set up a #DigiNode to help support the decentralization of #DigiByte network!"
+        echo "If you want to help, you can learn more at $DGBH_URL_TWEET \""
         echo ""
-    else
+    elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}Your DigiNode has been upgraded!${txtrst} ==================\\n"
+        printf " ======== ${txtgrn}DigiByte Core has been installed!${txtrst} ============================\\n"
+        printf " =======================================================================\\n\\n"
+        # ================================================================================================
+        echo " Thanks for supporting DigiByte by running a DigiByte full node!"
+        echo ""
+        echo " If you want to help even more, please consider also running a DigiAsset Node"
+        echo " as well. You can run this installer again at any time to upgrade to a full"
+        echo " DigiNode."
+        echo ""
+    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        printf " =======================================================================\\n"
+        printf " ================== ${txtgrn}Your DigiNode has been Reset!${txtrst} ======================\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
+        echo ""
+    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+        printf " =======================================================================\\n"
+        printf " ================== ${txtgrn}DigiByte Core has been Reset!${txtrst} ======================\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
+        echo ""
+    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
+        printf " =======================================================================\\n"
+        printf " ================== ${txtgrn}Your DigiNode has been Upgraded!${txtrst} ===================\\n"
+        printf " =======================================================================\\n\\n"
+        # ==============================================================================
+    else [ "$DO_FULL_INSTALL" = "NO" ]; then
+        printf " =======================================================================\\n"
+        printf " ================== ${txtgrn}DigiByte Core has been Upgraded!${txtrst} ===================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
     fi
@@ -2942,7 +2970,7 @@ stop_service() {
     # Stop service passed in as argument.
     # Can softfail, as process may not be installed when this is called
     local str="Stopping ${1} service"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "%b %s..." "${INFO}" "${str}"
     if is_command systemctl ; then
         systemctl stop "${1}" &> /dev/null || true
     else
@@ -2955,7 +2983,7 @@ stop_service() {
 restart_service() {
     # Local, named variables
     local str="Restarting ${1} service"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "%b %s..." "${INFO}" "${str}"
     # If systemctl exists,
     if is_command systemctl ; then
         # use that to restart the service
@@ -2971,7 +2999,7 @@ restart_service() {
 enable_service() {
     # Local, named variables
     local str="Enabling ${1} service to start on reboot"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "%b %s..." "${INFO}" "${str}"
     # If systemctl exists,
     if is_command systemctl ; then
         # use that to enable the service
@@ -2987,7 +3015,7 @@ enable_service() {
 disable_service() {
     # Local, named variables
     local str="Disabling ${1} service"
-    printf "  %b %s..." "${INFO}" "${str}"
+    printf "%b %s..." "${INFO}" "${str}"
     # If systemctl exists,
     if is_command systemctl ; then
         # use that to disable the service
@@ -3252,10 +3280,10 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Stop DigiByte Core if it is running, as we need to upgrade or reset it
     if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
-       DGB_STATUS = "stopped"
+       DGB_STATUS="stopped"
     elif [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
        stop_service digibyted
-       DGB_STATUS = "stopped"
+       DGB_STATUS="stopped"
     fi
     
    # Delete old DigiByte Core tar files, if present
@@ -3779,7 +3807,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
 fi
 
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
-if [ $IPFS_INSTALL_TYPE = "askreset" ]; then
+if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
         IPFS_DO_INSTALL=YES
@@ -4364,7 +4392,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
 
     # Later versions use purely the 'node --version' command, (rather than nodejs)
-    if [ $NODEJS_VER_LOCAL = "" ]; then
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
     fi
 
@@ -4617,10 +4645,11 @@ fi
 if [ $DGA_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
-        printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
+        printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
+        # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing DigiAsset Node.\\n" "${INFO}"
         printf "\\n"
         DGA_DO_INSTALL=NO
@@ -4650,10 +4679,11 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     elif [ $DGA_INSTALL_TYPE = "reset" ]; then
         printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
         # ==============================================================================
+        printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
     fi
 
     # If we are in Reset Mode and PM2 is running let's stop it
-    if [ $DGA_STATUS = "running" ] && [ $IS_PM2_RUNNING = "YES" ] && [ $DGA_INSTALL_TYPE = "reset" ]; then
+    if [ "$DGA_STATUS" = "running" ] && [ "$IS_PM2_RUNNING" = "YES" ] && [ "$DGA_INSTALL_TYPE" = "reset" ]; then
        printf "%b Reset Mode: Stopping PM2 digiasset service...\\n" "${INFO}"
        pm2 stop index
        DGA_STATUS="stopped"
@@ -4732,7 +4762,7 @@ digiasset_node_pm2_create_service() {
 if [ $RESET_MODE = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
-    if [ test -f "$PM2_UPSTART_SERVICE_FILE" ] || [ test -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
+    if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
             PM2_DO_INSTALL=YES
@@ -4929,7 +4959,7 @@ digiasset_node_create_settings() {
     local str
 
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
-    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]]; then
+    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings." "${r}" "${c}"; then
             DGA_SETTINGS_CREATE=YES
