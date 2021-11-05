@@ -2903,7 +2903,7 @@ request_social_media () {
         echo ""
     else
         printf " =======================================================================\\n"
-        printf " ======== ${txtgrn}You're DigiNode has been upgraded!${txtrst} ===========================\\n"
+        printf " ================== ${txtgrn}Your DigiNode has been upgraded!${txtrst} ==================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
     fi
@@ -3542,7 +3542,7 @@ fi
             str="Removing DigiNode Tools current version..."
             printf "\\n%b %s" "${INFO}" "${str}"
             rm -rf d $DGNT_LOCATION
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Next install the newest version
@@ -3554,7 +3554,7 @@ fi
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
@@ -3562,14 +3562,14 @@ fi
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "\\n%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Make downloads executable
@@ -3580,37 +3580,37 @@ fi
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Add alias so entering 'diginode' works from any folder
-        if [ cat $USER_HOME/.bashrc | grep "alias diginode" || echo "" ]; then
+        if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
             str="Adding 'diginode' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
             echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Add alias so entering 'diginode-installer' works from any folder
-        if [ cat $USER_HOME/.bashrc | grep "alias diginode" || echo "" ]; then
+        if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
+            str="Updating 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Update existing alias for 'diginode'
+            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
             str="Adding 'diginode-installer' alias to .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
             echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -3758,7 +3758,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ $IPFS_STATUS = "not_detected" ]; then
-      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed, if doing a full install.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="if_doing_full_install"
       IPFS_DO_INSTALL=YES
     fi
@@ -4231,7 +4231,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
-    if [ $NODEJS_VER_LOCAL != "" ]; then
+    if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
           printf "%b NodeJS is already up to date.\\n" "${TICK}"
@@ -4255,7 +4255,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # If a NodeJS needs to be upgraded...
-    if [ NODEJS_INSTALL_TYPE = "upgrade" ]; then
+    if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
       # ....does it require a major upgrade? (e.g. from before v14)
       if [ $(version $NODEJS_VER_LOCAL) -lt $(version 14.0.0) ]; then
             NODEJS_INSTALL_TYPE="majorupgrade"
@@ -4263,8 +4263,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $NODEJS_STATUS = "not_detected" ]; then
-      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed, if doing a full DigiNode install.\\n" "${INFO}"
+    if [ "$NODEJS_STATUS" = "not_detected" ]; then
+      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed.\\n" "${INFO}"
       NODEJS_INSTALL_TYPE="new"
       NODEJS_DO_INSTALL="if_doing_full_install"
     fi
@@ -4420,7 +4420,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # First we'll see if it is running using the command: node index.js
     if [ "$DGA_STATUS" = "installed" ]; then
         str="Is DigiAsset Node currently running?..."
-        IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
+        IS_DGANODE_RUNNING=$(sudo -u $USER_ACCOUNT pgrep -f "node index.js")
         printf "%b %s" "${INFO}" "${str}"
         if [ "$IS_DGANODE_RUNNING" != "" ]; then
             DGA_STATUS="running"
@@ -4429,11 +4429,11 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         else
             # If that didn't work, check if it is running using PM2
             IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
-            if [ "$(pm2 pid index)" = "" ]; then
+            if [ "$IS_PM2_RUNNING" = "" ]; then
                 DGA_STATUS="stopped"
                 IS_PM2_RUNNING="NO"
                 printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-            elif [ "$(pm2 pid index)" = "0" ]; then
+            elif [ "$IS_PM2_RUNNING" = "0" ]; then
                 DGA_STATUS="stopped"
                 IS_PM2_RUNNING="NO"
                 printf "%b%b %s NO! [ PM2: index.js is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
@@ -4589,9 +4589,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # If no current version is installed, then do a clean install
     if [ $DGA_STATUS = "not_detected" ]; then
         if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b %bDigiAsset Node develop branch will be installed, if doing a full DigiNode install.%b\\n" "${INFO}"
+            printf "%b %bDigiAsset Node develop branch will be installed.%b\\n" "${INFO}"
         else
-            printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed, if doing a full DigiNode install%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         fi
         DGA_INSTALL_TYPE="new"
         DGA_DO_INSTALL="if_doing_full_install"
@@ -5186,6 +5186,43 @@ uninstall_do_now() {
     else
         printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
     fi
+
+
+    # Delete DigiNode Tools
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
+
+        # Delete ~/diginode folder and its contents
+        if [ -f "$DGNT_LOCATION" ]; then
+            str="Deleting DigiNode Tools..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $DGNT_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete 'diginode-installer' alias
+        if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
+            str="Deleting 'diginode-installer' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Delete existing alias for 'diginode'
+            sed -i -e "/^# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/s|.*||" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode-installer=/s|.*||" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete 'diginode-installer' alias
+        if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+            str="Deleting 'diginode' alias in .bashrc file..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            # Delete existing alias for 'diginode'
+            sed -i -e "/^# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/s|.*||" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode-installer=/s|.*||" $USER_HOME/.bashrc
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+        printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
+    fi
+
 
     # Delete diginode.settings
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
