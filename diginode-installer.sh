@@ -5253,7 +5253,7 @@ main() {
     is_unattended_mode
 
     # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
-    is_reset_mode
+    is_reset_mode 
 
     # Perform basic system check and lookup hardware architecture
     sys_check
@@ -5462,18 +5462,21 @@ main() {
     # Create DigiByte.conf file
     digibyte_create_conf
 
-    # Install DigiByte Core
+    # Install/upgrade DigiByte Core
     digibyte_do_install
-
-    set -x
 
     # Create digibyted.service
     digibyte_create_service
 
-    set +x
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
+
+    # Install DigiNode Tools
+    # dgntools_do_install
 
     echo "== BREAK HERE =="
     exit
+    
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
@@ -5494,12 +5497,6 @@ main() {
 
     # Setup PM2 init service
     digiasset_node_pm2_create_service
-  
-
-    ### INSTALL/UPGRADE DIGINODE TOOLS ###
-
-    # Install DigiNode Tools
-    # dgntools_do_install
 
 
 
