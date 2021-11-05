@@ -1585,7 +1585,7 @@ rpi_microsd_ask() {
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
 
-    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "${COL_LIGHT_RED}WARNING: You are currently booting your Raspberry Pi from a microSD card.${COL_NC}\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "${txtred}WARNING: You are currently booting your Raspberry Pi from a microSD card.${txtrst}\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
       echo
     else
