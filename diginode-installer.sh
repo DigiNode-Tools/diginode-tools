@@ -3540,7 +3540,7 @@ fi
         # first delete the current installed version of DigiNode Tools (if it exists)
         if [[ -d $DGNT_LOCATION ]]; then
             str="Removing DigiNode Tools current version..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             rm -rf d $DGNT_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -3550,7 +3550,7 @@ fi
         # Clone the develop version if develop flag is set
         if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
@@ -3558,14 +3558,14 @@ fi
         # Clone the develop version if develop flag is set
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
@@ -3574,21 +3574,21 @@ fi
 
         # Make downloads executable
         str="Making DigiNode scripts executable..."
-        printf "\\n%b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         chmod +x $DGNT_INSTALLER_SCRIPT
         chmod +x $DGNT_MONITOR_SCRIPT
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Add alias so entering 'diginode' works from any folder
         if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
             str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
             sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Adding 'diginode' alias to .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
@@ -3599,20 +3599,20 @@ fi
         # Add alias so entering 'diginode-installer' works from any folder
         if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
             str="Updating 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
             sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
             str="Adding 'diginode-installer' alias to .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
+            printf "%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
             echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
             echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-
+        printf "\\n"
     fi
 }
 
