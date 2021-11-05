@@ -2630,19 +2630,19 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
     #Nothing to do, continue
       echo
     else
-      printf "\\n"
-      printf "%b %bTo customize your install, please edit the diginode.settings file.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-      if [ "$TEXTEDITOR" != "" ]; then
+        printf "%b You exited the installler at the customization message.\\n" "${INFO}"
+        printf "\\n"
+        printf "%b %bTo customize your DigiNode install, please edit the diginode.settings file.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$TEXTEDITOR" != "" ]; then
             printf "%b Do this by entering:\\n" "${INDENT}"
             printf "\\n"
             printf "%b   $TEXTEDITOR $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
             printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
-            printf "\\n"
-      fi
-      printf "%b For help go to: $DGBH_URL_CUSTOM"  "${INDENT}"
-      printf "\\n"
-      exit
+        fi
+        printf "%b For more help go to: $DGBH_URL_CUSTOM\\n"  "${INDENT}"
+        printf "\\n"
+        exit
     fi
 
 fi
