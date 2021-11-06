@@ -5361,7 +5361,6 @@ uninstall_do_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
-
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
         fi
@@ -5386,11 +5385,14 @@ uninstall_do_now() {
         else
             printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
         fi
-
+        printf "\\n"
+    else
+        # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
+        printf "\\n"
     fi
 
 
-    printf " =============== Uninstalling: IPFS ====================================\\n\\n"
+    printf " =============== Uninstall: IPFS ====================================\\n\\n"
     # ==============================================================================
 
     # Delete IPFS
@@ -5432,6 +5434,7 @@ uninstall_do_now() {
         printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
     fi
 
+    printf "\\n"
 
     printf " =======================================================================\\n"
     printf " ================== ${txtgrn}Your DigiNode has been uninstalled!${txtrst} ==================\\n"
