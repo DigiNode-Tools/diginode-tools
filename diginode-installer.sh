@@ -5276,7 +5276,7 @@ uninstall_do_now() {
             rm $USER_HOME/digibyte
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        
+
     else
         printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
     fi
@@ -5432,6 +5432,27 @@ uninstall_do_now() {
 
     else
         printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
+    fi
+
+
+    printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
+    # ==============================================================================
+
+
+    # Ask to delete digibyte.conf if it exists
+    if [ -f "$DGA_SETTINGS_FILE" ]; then
+
+        # Do you want to delete digibyte.conf?
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your DigiAsset Node settings folder: ~/.digibyte/asset_settings ?" "${r}" "${c}"; then
+
+            # Delete asset_settings folder
+            str="Deleting DigiAssets settings folder: asset_settings.."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
+        fi
     fi
 
     printf "\\n"
