@@ -3658,7 +3658,7 @@ fi
         if [[ -d $DGNT_LOCATION ]]; then
             str="Removing DigiNode Tools current version..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -rf d $DGNT_LOCATION
+            rm -rf $DGNT_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -3668,7 +3668,7 @@ fi
         if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3676,14 +3676,14 @@ fi
         elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3976,18 +3976,18 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Delete old IPFS Updater backup, if it exists
-        if [ -d "$USER_HOME/ipfs-update-backup" ]; then
+        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
             str="Deleting old backup of IPFS Updater..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -f $USER_HOME/ipfs-update-backup
+            rm -f $USER_HOME/ipfs-update-oldversion
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If an there is an existing IPFS Update version, move it it to a backup version
         if [ -d "$USER_HOME/ipfs-update" ]; then
-            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-backup..."
+            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-oldversion..."
             printf "%b %s" "${INFO}" "${str}"
-            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update-backup
+            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update-oldversion
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -3999,13 +3999,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         # Install IPFS Updater
         printf "%b Installing IPFS Updater v${IPFSU_VER_RELEASE} ...\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT bash $USER_HOME/ipfs-update/install.sh
+        bash $USER_HOME/ipfs-update/install.sh
 
         # Delete the IPFS Updater backup version, now the new version has been installed
         if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
             str="Deleting previous version of Go-IPFS: $USER_HOME/ipfs-update-oldversion ..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/ipfs-update-backup
+            rm -rf $USER_HOME/ipfs-update-oldversion
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -5223,14 +5223,14 @@ uninstall_do_now() {
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
     printf "\\n"
 
+    printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
+    # ==============================================================================
+
 
     # Uninstall DigiByte Core
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
-        printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
-        # ==============================================================================
-
-        printf "%b DigiByte Core will now be uninstalled.\\n" "${INFO}"
+        printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
         printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
         sudo service digibyted stop
@@ -5278,7 +5278,7 @@ uninstall_do_now() {
         fi
         
     else
-        printf "%b DigiByte Core will not be uninstalled.\\n" "${INFO}"
+        printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
     fi
 
 
@@ -5317,11 +5317,13 @@ uninstall_do_now() {
     fi
 
 
+    printf " =============== Uninstalling: DigiNode Tools ==========================\\n\\n"
+    # ==============================================================================
+
     # Delete DigiNode Tools
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
 
-        printf " =============== Uninstalling: DigiNode Tools ==========================\\n\\n"
-        # ==============================================================================
+        printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
         # Delete ~/diginode folder and its contents
         if [ -d "$DGNT_LOCATION" ]; then
@@ -5336,8 +5338,8 @@ uninstall_do_now() {
             str="Deleting 'diginode-installer' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Delete existing alias for 'diginode'
-            sed -i -e "/^# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/s|.*||" $USER_HOME/.bashrc
-            sed -i -e "/^alias diginode-installer=/s|.*||" $USER_HOME/.bashrc
+            sed -i "/# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/d" $USER_HOME/.bashrc
+            sed -i '/alias diginode-installer=/d' $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -5346,8 +5348,8 @@ uninstall_do_now() {
             str="Deleting 'diginode' alias in .bashrc file..."
             printf "\\n%b %s" "${INFO}" "${str}"
             # Delete existing alias for 'diginode'
-            sed -i -e "/^# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/s|.*||" $USER_HOME/.bashrc
-            sed -i -e "/^alias diginode=/s|.*||" $USER_HOME/.bashrc
+            sed -i "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" $USER_HOME/.bashrc
+            sed -i '/alias diginode=/d' $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -5358,6 +5360,8 @@ uninstall_do_now() {
 
     # Delete diginode.settings
     if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+
+        printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
 
         # Delete systemd service file
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
@@ -5371,10 +5375,54 @@ uninstall_do_now() {
         printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
     fi
 
-        printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}Your DigiNode has been uninstalled!${txtrst} ==================\\n"
-        printf " =======================================================================\\n\\n"
-        # ==============================================================================
+
+    printf " =============== Uninstalling: IPFS ====================================\\n\\n"
+    # ==============================================================================
+
+    # Delete IPFS
+    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstalled both the IPFS Updater utility and GoIPFS." "${r}" "${c}"; then
+
+        printf "%b You chose to uninstall IPFS.\\n" "${INFO}"
+
+        # Delete IPFS Updater binary
+        if [ -f /usr/local/bin/ipfs-update ]; then
+            str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /usr/local/bin/ipfs-update
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete IPFS Updater installer
+        if [ -d $USER_HOME/ipfs-update ]; then
+            str="Deleting current IPFS Updater installer: ~/ipfs-update..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/ipfs-update
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Remove IPFS updater from PATH
+        str="Deleting ipfs-update entry from PATH..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        sudo sed -i.bak '/swap/d' /etc/fstab
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete Go-IPFS binary
+        if [ -f /usr/local/bin/ipfs ]; then
+            str="Deleting current Go-IPFS binary..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /usr/local/bin/ipfs
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+        printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
+    fi
+
+
+    printf " =======================================================================\\n"
+    printf " ================== ${txtgrn}Your DigiNode has been uninstalled!${txtrst} ==================\\n"
+    printf " =======================================================================\\n\\n"
+    # ==============================================================================
 
     printf "\\n"
     donation_qrcode
