@@ -3372,11 +3372,19 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+    # If there is an old backup of DigiByte Core, delete it
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backuo" ]; then
+        str="Deleting old backup of DigiByte Core v${DGB_VER_LOCAL}..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
     # If an there is an existing version version, move it it to a backup version
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
         str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
         printf "%b %s" "${INFO}" "${str}"
-        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -3914,7 +3922,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
 fi
 
-# If this is a new install of IPFS, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
+# If this is a new install of IPFS, and the user has opted to do a full DigiNode install, then proceed
 if  [ "$IPFS_INSTALL_TYPE" = "new" ] && [ "$IPFS_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
     IPFS_DO_INSTALL=YES
 fi
@@ -3933,7 +3941,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
         printf " =============== Resetting: IPFS =======================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You chose re-install Go-IPFS.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose to re-install Go-IPFS.\\n" "${INFO}"
     fi
 
     # Let's find the correct file type to download based on the current architecture
@@ -3967,11 +3975,19 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # If an there is an existing IPFS Updater version, move it it to a backup version
-        if [ -d "$USER_HOME/ipfs-update" ]; then
-            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-oldversion..."
+        # Delete old IPFS Updater backup, if it exists
+        if [ -d "$USER_HOME/ipfs-update-backup" ]; then
+            str="Deleting old backup of IPFS Updater..."
             printf "%b %s" "${INFO}" "${str}"
-            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update_oldversion
+            rm -f $USER_HOME/ipfs-update-backup
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If an there is an existing IPFS Update version, move it it to a backup version
+        if [ -d "$USER_HOME/ipfs-update" ]; then
+            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-backup..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update-backup
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -3989,7 +4005,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
             str="Deleting previous version of Go-IPFS: $USER_HOME/ipfs-update-oldversion ..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/ipfs-update-oldversion
+            rm -rf $USER_HOME/ipfs-update-backup
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -5102,7 +5118,6 @@ digiasset_node_create_settings() {
     if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
 
          # Display section break
-        printf "\\n"
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
             printf " =============== Installing: DigiAsset Node settings ===================\\n\\n"
             # ==============================================================================
