@@ -339,29 +339,33 @@ UI_ENFORCE_DIGIBYTE_USER=YES
 # Choose whether to change the system hostname to: diginode (Set to YES/NO)
 # If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
 # If it is running on a Linux box with a load of other stuff, then probably not.
-UI_SET_HOSTNAME=YES
+UI_HOSTNAME_SET=YES
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
-UI_SETUP_FIREWALL=YES
+UI_FIREWALL_SETUP=YES
 
 # Choose whether to create or change the swap file size
 # The optimal swap size will be calculated to ensure there is 8Gb total memory.
 # e.g. If the system has 2Gb RAM, it will create a 6Gb swap file. Total: 8Gb.
 # If there is more than 8Gb RAM available, no swap will be created.
-# You can override this by manually entering the desired size in UI_SETUP_SWAP_SIZE_MB below.
-UI_SETUP_SWAP=YES
+# You can override this by manually entering the desired size in UI_SWAP_SIZE_MB below.
+UI_SWAP_SETUP=YES
 
 # You can optionally manually enter a desired swap file size here in MB.
-# The UI_SETUP_SWAP variable above must be set to YES for this to be used.
+# The UI_SWAP_SETUP variable above must be set to YES for this to be used.
 # If you leave this value empty, the optimal swap file size will calculated by the installer.
 # Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
-UI_SETUP_SWAP_SIZE_MB=
+UI_SWAP_SIZE_MB=
+
+# This is where the swap file will be located. You can change this to store it on an external drive
+# if desired.
+UI_SWAP_FILE=/swapfile
 
 # Will install regardless of available disk space on the data drive. Use with caution.
 UI_DISKSPACE_OVERRIDE=NO
 
 # Choose whether to setup Tor [NOT WORKING YET]
-UI_SETUP_TOR=YES
+UI_TOR_SETUP=YES
 
 # Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
 # Choose NO to install DigiByte Core only
@@ -2002,7 +2006,7 @@ fi
 hostname_do_change() {
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_SET_HOSTNAME" = "YES" ]]; then
+if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -2401,6 +2405,8 @@ if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
             swap_ask_change
         fi
 
+        SWAP_FILE_LOCATION=/swapfile
+
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
@@ -2415,6 +2421,8 @@ if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
             swap_ask_change
         fi
 
+        SWAP_FILE_LOCATION=/swapfile
+
     fi
 
 fi
@@ -2424,45 +2432,104 @@ fi
 # If a swap file is needed, this function will create one or change the size of an existing one
 swap_do_change() {
 
-    # If in Unattended mode, and a manual swap size has been specified in the diginode.settings file, use this value as the swap size
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" != "" ]]; then
-        SWAP_TARG_SIZE_MB=$UI_SETUP_SWAP_SIZE_MB
-        SWAP_DO_CHANGE="YES"
-        printf "%b %bUnattended Install: Using swap size from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    fi
-
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SETUP_SWAP_SIZE_MB" = "" ]]; then
-        printf "%b %bUnattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
+    # If in Unattended mode, and a swap file is needed, then proceed
+    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_NEEDED" = "YES" ]; then
         SWAP_DO_CHANGE="YES"
     fi
 
-    #create local variable
-    local str
+    # If in Unattended mode, and the existing swap file is to small, then proceed
+    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_TOO_SMALL" = "YES" ]; then
+        SWAP_DO_CHANGE="YES"
+    fi
 
     # Go ahead and create/change the swap if requested
     if [[ $SWAP_DO_CHANGE = "YES" ]]; then
 
+        #create local variable
+        local str
+
+        # Display section break
         if [ "$SWAP_NEEDED" = "YES" ]; then
-            # Local, named variables
-            str="Creating $SWAP_TARG_SIZE_MB MB swap file..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
-
-            sleep 3
-
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
+            printf " =============== Creating: SWAP file ===================================\\n\\n"
+            # ==============================================================================
+        elif [ "$SWAP_TOO_SMALL" = "YES" ]; then
+            printf " =============== Modifying: SWAP file ==================================\\n\\n"
+            # ==============================================================================
         fi
 
+        # Display message if we are doing a unattended install using a manual swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_SIZE_MB" != "" ]]; then
+            SWAP_TARG_SIZE_MB=$UI_SWAP_SIZE_MB
+            printf "%b Unattended Install: Using manual swap file size from diginode.settings\\n" "${INFO}"
+        fi
+
+         # Display message if we are doing a unattended install using a reccomended swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_SIZE_MB" = "" ]]; then
+            SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
+            printf "%b Unattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR\\n" "${INFO}" 
+        fi
+
+        # If unattended install, and no swap file location is specified, use the dafault
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_FILE" = "" ]]; then
+            SWAP_FILE=/swapfile
+            printf "%b Unattended Install: Using default SWAP file location: /swapfile\\n" "${INFO}"
+        fi
+
+        # Display message if we are doing a unattended install using a manual swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_FILE" != "" ]]; then
+            SWAP_FILE=$UI_SWAP_FILE
+            printf "%b %bUnattended Install: Using manual swap file size from diginode.settings: $UI_SWAP_FILE%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        fi
+
+        # Append M units to target swap file size
+        SWAP_TARG_SIZE_MB="${SWAP_TARG_SIZE_MB}M"
+
+        # If the swap file already exists, but is too small
         if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-            str="Changing swap file size to $SWAP_TARG_SIZE_MB..."
+
+            # Disable existing swap file
+            str="Disable existing swap file..."
             printf "\\n%b %s..." "${INFO}" "${str}"
+            swapoff -a
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-            sleep 3
+            # Remove swap file entry from fstab file
+            str="Deleting swap entry from fstab file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            printf "\\n"
         fi
+
+       # Allocate space for new swap file
+        str="Allocate $SWAP_TARG_SIZE_MB MB for new swap file..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        fallocate -l "$SWAP_TARG_SIZE_MB" "$SWAP_FILE"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Mark new file as swap
+        printf "%b Mark as new swap file...\\n" "${INFO}"
+        mkswap "$SWAP_FILE"       
+        
+        # Secure swap file
+        str="Secure swap file..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        chown root:root $SWAP_FILE
+        chmod 0600 $SWAP_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Activate new swap file
+        str="Activate new swap file..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        swapon "$SWAP_FILE"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        # Make new swap file available at boot
+        str="Make new swap file available at boot..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
     fi
 
 }
@@ -3538,9 +3605,6 @@ printf " =============== Checking: DigiNode Tools ==============================
 
 diginode_tools_do_install() {
 
-printf " =============== Installing: DigiNode Tools ============================\\n\\n"
-# ==============================================================================
-
 # If we are in unattended mode and there is an upgrade to do, then go ahead and do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
     DGNT_DO_INSTALL=YES
@@ -3554,6 +3618,8 @@ if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
     else
+        printf " =============== Resetting: DigNode Tools ==============================\\n\\n"
+        # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing DigiNode Tools\\n" "${INFO}"
         printf "\\n"
         DGNT_DO_INSTALL=NO
@@ -3563,8 +3629,22 @@ if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
 fi
 
+
     # If a new version needs to be installed, do it now
     if [ "$DGNT_DO_INSTALL" = "YES" ]; then
+
+                # Display section break
+        if [ "$DGB_INSTALL_TYPE" = "new" ]; then
+            printf " =============== Installing: DigNode Tools =============================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf " =============== Upgrading: DigNode Tools ==============================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf " =============== Resetting: DigNode Tools ==============================\\n\\n"
+            # ==============================================================================
+            printf "%b Reset Mode: You chose to re-install DigNode Tools.\\n" "${INFO}"
+        fi
 
         # first delete the current installed version of DigiNode Tools (if it exists)
         if [[ -d $DGNT_LOCATION ]]; then
