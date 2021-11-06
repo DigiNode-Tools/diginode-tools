@@ -5282,19 +5282,20 @@ uninstall_do_now() {
     fi
 
 
-    # Delete digibyte.conf
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nTheis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
+    # Ask to delete digibyte.conf if it exists
+    if [ -f "$DGB_CONF_FILE" ]; then
 
-        # Delete systemd service file
-        if [ -f "$DGB_CONF_FILE" ]; then
+        # Do you want to delete digibyte.conf?
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
+
+            # Delete digibyte.conf
             str="Deleting digibyte.conf file..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB_CONF_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
         fi
-
-    else
-        printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
     fi
 
     # Delete DigiByte blockchain data
@@ -5317,62 +5318,75 @@ uninstall_do_now() {
     fi
 
 
+    # Show DigiNode Tools uninstall title if it exists
+    if [ -d "$DGNT_LOCATION" ] || [ -f "$DGNT_SETTINGS_FILE" ]; then
+
     printf " =============== Uninstalling: DigiNode Tools ==========================\\n\\n"
     # ==============================================================================
 
-    # Delete DigiNode Tools
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
-
-        printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
-
-        # Delete ~/diginode folder and its contents
-        if [ -d "$DGNT_LOCATION" ]; then
-            str="Deleting DigiNode Tools..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $DGNT_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete 'diginode-installer' alias
-        if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
-            str="Deleting 'diginode-installer' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Delete existing alias for 'diginode'
-            sed -i "/# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/d" $USER_HOME/.bashrc
-            sed -i '/alias diginode-installer=/d' $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete 'diginode' alias
-        if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
-            str="Deleting 'diginode' alias in .bashrc file..."
-            printf "\\n%b %s" "${INFO}" "${str}"
-            # Delete existing alias for 'diginode'
-            sed -i "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" $USER_HOME/.bashrc
-            sed -i '/alias diginode=/d' $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    else
-        printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
     fi
 
+    # Ask to uninstall DigiNode Tools if the install folder exists
+    if [ -d "$DGNT_LOCATION" ]; then
 
-    # Delete diginode.settings
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+        # Delete DigiNode Tools
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
 
-        printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
+            printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
-        # Delete systemd service file
-        if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            str="Deleting diginode.settings file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            # Delete ~/diginode folder and its contents
+            if [ -d "$DGNT_LOCATION" ]; then
+                str="Deleting DigiNode Tools..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf $DGNT_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete 'diginode-installer' alias
+            if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
+                str="Deleting 'diginode-installer' alias in .bashrc file..."
+                printf "\\n%b %s" "${INFO}" "${str}"
+                # Delete existing alias for 'diginode'
+                sed -i "/# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/d" $USER_HOME/.bashrc
+                sed -i '/alias diginode-installer=/d' $USER_HOME/.bashrc
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete 'diginode' alias
+            if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+                str="Deleting 'diginode' alias in .bashrc file..."
+                printf "\\n%b %s" "${INFO}" "${str}"
+                # Delete existing alias for 'diginode'
+                sed -i "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" $USER_HOME/.bashrc
+                sed -i '/alias diginode=/d' $USER_HOME/.bashrc
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        else
+            printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
+        fi
+    fi
+
+    # Ask to delete diginode.settings if it exists
+    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+
+        # Delete diginode.settings
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+
+            printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
+
+            # Delete systemd service file
+            if [ -f "$DGNT_SETTINGS_FILE" ]; then
+                str="Deleting diginode.settings file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        else
+            printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
         fi
 
-    else
-        printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
     fi
 
 
