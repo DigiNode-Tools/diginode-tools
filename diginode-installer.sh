@@ -80,8 +80,8 @@ DGB_DATA_REQUIRED_KB="28000000"
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
 DGNT_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
 DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL=
-DGNT_INSTALLER_GIHTUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode/main/diginode-installer.sh
-DGNT_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode/develop/diginode-installer.sh
+DGNT_INSTALLER_GIHTUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-installer.sh
+DGNT_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-installer.sh
 
 # This is the Github repo for the DigiAsset Node (this only needs to be changed if you with to test a new version.)
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
@@ -93,7 +93,7 @@ DGA_GITHUB_REPO_DEV="--branch apiV3 https://github.com/digiassetX/digiasset_node
 DGNT_INSTALLER_OFFICIAL_CMD="curl $DGNT_INSTALLER_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
-DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode.git"
+DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
 
 # DigiByte.Help URLs
 DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shown in welcome box.
@@ -398,8 +398,8 @@ IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSET NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
-DGA_SETTINGS_LOCATION=$DGB_SETTINGS_LOCATION/assetnode_config
-DGA_SETTINGS_FILE=$DGA_SETTINGS_LOCATION/main.json
+DGA_SETTINGS_LOCATION=\$DGB_SETTINGS_LOCATION/assetnode_config
+DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
 
 # DIGIASSET NODE FILES
 DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
@@ -3466,7 +3466,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     local str
 
     #lookup latest release version on Github (need jq installed for this query)
-    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
     # If we get a response, update the stored release version
     if [ "$dgnt_ver_release_query" != "" ]; then
