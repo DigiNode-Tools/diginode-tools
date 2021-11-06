@@ -3539,10 +3539,10 @@ printf " =============== Checking: DigiNode Tools ==============================
 
                 if [ $RESET_MODE = true ]; then
                     printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
-                    DGB_INSTALL_TYPE="askreset"
+                    DGNT_INSTALL_TYPE="askreset"
                 else
                     printf "%b DigiNode Tools are up to date.\\n" "${INFO}"
-                    DGB_INSTALL_TYPE="none"
+                    DGNT_INSTALL_TYPE="none"
                 fi
 
             else        
@@ -3642,13 +3642,13 @@ fi
     if [ "$DGNT_DO_INSTALL" = "YES" ]; then
 
                 # Display section break
-        if [ "$DGB_INSTALL_TYPE" = "new" ]; then
+        if [ "$DGNT_INSTALL_TYPE" = "new" ]; then
             printf " =============== Installing: DigNode Tools =============================\\n\\n"
             # ==============================================================================
-        elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
             printf " =============== Upgrading: DigNode Tools ==============================\\n\\n"
             # ==============================================================================
-        elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        elif [ "$DGNT_INSTALL_TYPE" = "reset" ]; then
             printf " =============== Resetting: DigNode Tools ==============================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You chose to re-install DigNode Tools.\\n" "${INFO}"
@@ -3665,7 +3665,7 @@ fi
         # Next install the newest version
         cd $USER_HOME
         # Clone the develop version if develop flag is set
-        if [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        if [ "$DGNT_BRANCH" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode/
@@ -3673,14 +3673,14 @@ fi
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/saltedlolly/diginode/
@@ -5223,7 +5223,7 @@ uninstall_do_now() {
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
     printf "\\n"
 
-    printf " =============== Uninstalling: DigiByte Core ===========================\\n\\n"
+    printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
     # ==============================================================================
 
 
@@ -5321,7 +5321,7 @@ uninstall_do_now() {
     # Show DigiNode Tools uninstall title if it exists
     if [ -d "$DGNT_LOCATION" ] || [ -f "$DGNT_SETTINGS_FILE" ]; then
 
-    printf " =============== Uninstalling: DigiNode Tools ==========================\\n\\n"
+    printf " =============== Uninstall: DigiNode Tools =============================\\n\\n"
     # ==============================================================================
 
     fi
@@ -5345,7 +5345,7 @@ uninstall_do_now() {
             # Delete 'diginode-installer' alias
             if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
                 str="Deleting 'diginode-installer' alias in .bashrc file..."
-                printf "\\n%b %s" "${INFO}" "${str}"
+                printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
                 sed -i "/# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/d" $USER_HOME/.bashrc
                 sed -i '/alias diginode-installer=/d' $USER_HOME/.bashrc
@@ -5355,7 +5355,7 @@ uninstall_do_now() {
             # Delete 'diginode' alias
             if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
                 str="Deleting 'diginode' alias in .bashrc file..."
-                printf "\\n%b %s" "${INFO}" "${str}"
+                printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
                 sed -i "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" $USER_HOME/.bashrc
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
