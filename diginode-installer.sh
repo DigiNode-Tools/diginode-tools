@@ -3932,13 +3932,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     printf "\\n"
-    if [ $IPFS_INSTALL_TYPE = "new" ]; then
+    if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: IPFS ======================================\\n\\n"
         # ==============================================================================
-    elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
         printf " =============== Upgrading: IPFS =======================================\\n\\n"
         # ==============================================================================
-    elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
+    elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: IPFS =======================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install Go-IPFS.\\n" "${INFO}"
@@ -5119,7 +5119,7 @@ digiasset_node_create_settings() {
 
          # Display section break
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
-            printf " =============== Installing: DigiAsset Node settings ===================\\n\\n"
+            printf " =============== Creating: DigiAsset Node settings ===================\\n\\n"
             # ==============================================================================
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
             printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
@@ -5176,8 +5176,7 @@ digiasset_node_create_settings() {
             # Create a new main.json settings file
             str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT touch 
-
+            sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
             cat <<EOF > $DGA_SETTINGS_FILE
 {
     "ignoreList": [
@@ -5418,7 +5417,7 @@ uninstall_do_now() {
 
         # Remove IPFS updater from PATH
         str="Deleting ipfs-update entry from PATH..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         sudo sed -i.bak '/swap/d' /etc/fstab
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
