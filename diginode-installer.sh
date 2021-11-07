@@ -5303,6 +5303,7 @@ uninstall_do_now() {
 
         printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
         # ==============================================================================
+        local uninstall_dga=yes
     fi
 
     # Ask to delete DigiAsset Node if it exists
@@ -5316,14 +5317,13 @@ uninstall_do_now() {
             printf "%b %s" "${INFO}" "${str}"
             pm2 delete digiasset
             rm -r -f $USER_HOME/digiasset_node
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b You chose not to uninstall DigiAsset Node v${DGA_VER_LOCAL}.\\n" "${INFO}"
         fi
     fi
 
-
-    # Ask to delete digibyte.conf if it exists
+    # Ask to delete DigiAsset Node settings (main.json) if it exists
     if [ -f "$DGA_SETTINGS_FILE" ]; then
 
         # Do you want to delete digibyte.conf?
@@ -5340,7 +5340,7 @@ uninstall_do_now() {
     fi
 
     # Insert a line break if either of these were present
-    if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
+    if [ "$uninstall_dga" = "yes" ]; then
         printf "\\n\\n"
     fi
 
