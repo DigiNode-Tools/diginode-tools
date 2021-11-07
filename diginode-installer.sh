@@ -3432,6 +3432,19 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # Re-enable and re-start DigiByte daemon service after reset/upgrade
+    if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        printf "%b Upgrade Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        enable_service digibyted
+        start_service digibyted
+        DGB_STATUS="running"
+    elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        printf "%b Reset Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        enable_service digibyted
+        start_service digibyted
+        DGB_STATUS="running"
+    fi
+
     # Reset DGB Install and Upgrade Variables
     DGB_INSTALL_TYPE=""
     DGB_UPDATE_AVAILABLE=NO
@@ -3441,8 +3454,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         str="Labeling as official DigiNode install..."
         printf "%b %s" "${INFO}" "${str}"
-        cd $DGB_INSTALL_LOCATION
-        sudo -u $USER_ACCOUNT touch .officialdiginode
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -3849,6 +3861,19 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Next let's check if IPFS daemon is running
+    if [ "$IPFS_STATUS" = "installed" ]; then
+      str="Is GoIPFS daemon service running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          IPFS_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
 
     # If a Go-IPFS local version already exists.... (i.e. we have a local version number)
     if [ ! $IPFS_VER_LOCAL = "" ]; then
@@ -3956,13 +3981,22 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
 
-        # If we are re-installing the current version of IPFS Updater, delete the existing binary
+        # If we are re-installing the current version of IPFS Updater, delete the existing install folder
         if [ $IPFSU_INSTALL_TYPE = "reset" ]; then
-            str="Reset Mode: Deleting current IPFS Updater binary..."
+            str="Reset Mode: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -f /usr/local/bin/ipfs-update
+            rm -r /usr/local/bin/ipfs-update
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        # If we are updating the current version of IPFS Updater, delete the existing install folder
+        if [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+            str="Preparing Upgrade: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r /usr/local/bin/ipfs-update
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
 
         # Delete any old IPFS Updater tar files
         str="Deleting any old IPFS Updater tar.gz files from home folder..."
@@ -3995,18 +4029,28 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         # Extracting IPFS Updator tar.gz
         str="Extracting IPFS Updator v${IPFSU_VER_RELEASE} ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xvzf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
+        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Install IPFS Updater
         printf "%b Installing IPFS Updater v${IPFSU_VER_RELEASE} ...\\n" "${INFO}"
-        bash $USER_HOME/ipfs-update/install.sh
+        cd $USER_HOME/ipfs-update/
+        bash install.sh
+        cd $USER_HOME
 
         # Delete the IPFS Updater backup version, now the new version has been installed
         if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
-            str="Deleting previous version of Go-IPFS: $USER_HOME/ipfs-update-oldversion ..."
+            str="Deleting previous version of IPFS Updater: $USER_HOME/ipfs-update-oldversion ..."
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $USER_HOME/ipfs-update-oldversion
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete the IPFS Updater backup version, now the new version has been installed
+        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
+            str="Deleting IPFS Updater install folder: $USER_HOME/ipfs-update-oldversion ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $USER_HOME/ipfs-update
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -4034,9 +4078,20 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     fi
 
+    # Stop IPFS service if it is running, as we need to upgrade or reset it
+    if [ "$IPFS_STATUS" = "running" ] && [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+       printf "%b Preparing Upgrade: Stopping IPFS service ...\\n" "${INFO}"
+       stop_service digibyted
+       IPFS_STATUS="stopped"
+    elif [ "$IPFS_STATUS" = "running" ] && [ $IPFSINSTALL_TYPE = "reset" ]; then
+        printf "%b Preparing Upgrade: Stopping IPFS service ...\\n" "${INFO}"
+       stop_service digibyted
+       IPFS_STATUS="stopped"
+    fi
+
     # If we are re-installing the current version of Go-IPFS, delete the existing binary
     if [ $IPFS_INSTALL_TYPE = "reset" ]; then
-        str="Reset Mode: Deleting current Go-IPFS binary..."
+        str="Reset Mode: Deleting Go-IPFS v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -4061,6 +4116,19 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ -d "$USER_HOME/.ipfs" ]; then
         ipfs init
         ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+    fi
+
+    # Re-enable and re-start IPFS service after reset/upgrade
+    if [ "$IPFS_STATUS" = "stopped" ] && [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
+        printf "%b Upgrade Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+        enable_service ipfs
+        start_service ipfs
+        IPFS_STATUS="running"
+    elif [ "$IPFS_STATUS" = "stopped" ] && [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
+        printf "%b Reset Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+        enable_service ipfs
+        start_service ipfs
+        IPFS_STATUS="running"
     fi
 
     # Reset GoIPFS Install and Upgrade Variables
@@ -4138,6 +4206,7 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
         # Stop the service now
         systemctl --user stop ipfs
+        IPFS_STATUS="stopped"
 
         # Disable the service now
         systemctl --user disable ipfs
@@ -4222,6 +4291,7 @@ EOF
         str="Starting IPFS systemd service..."
         printf "%b %s" "${INFO}" "${str}"
         systemctl --user start ipfs
+        IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
@@ -4254,6 +4324,7 @@ EOF
         str="Starting IPFS upstart service..."
         printf "%b %s" "${INFO}" "${str}"
         sudo service ipfs start
+        IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
@@ -4268,8 +4339,6 @@ EOF
     fi
 
 fi
-
-
 
 printf "\\n"
 
