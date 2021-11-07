@@ -2168,7 +2168,7 @@ if [ "$USER_DO_SWITCH" = "YES" ]; then
     USER_ACCOUNT=digibyte
 fi
 
-if [ "$USER_DO_CHANGE" = "YES" ]; then
+if [ "$USER_DO_CREATE" = "YES" ]; then
 
     printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
     user_create_digibyte
@@ -2710,8 +2710,6 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
-
-printf "%b %bPlease donate if you find DigiNode Installer useful: dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
 
 # If this is the first time running the installer, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
@@ -3959,7 +3957,6 @@ fi
 if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
-    printf "\\n"
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: IPFS ======================================\\n\\n"
         # ==============================================================================
@@ -4001,10 +3998,12 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
 
         # Delete any old IPFS Updater tar files
-        str="Deleting any old IPFS Updater tar.gz files from home folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -f $USER_HOME/ipfs-update*.tar.gz
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if compgen -G "$USER_HOME/ipfs-update*.tar.gz" > /dev/null; then
+            str="Deleting any old IPFS Updater tar.gz files from home folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $USER_HOME/ipfs-update*.tar.gz
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
         # Downloading latest IPFS Updater tar.gz from IPFS distributions website
         str="Downloading IPFS Updater v${IPFSU_VER_RELEASE} from IPFS distributions website..."
@@ -4127,16 +4126,20 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         # Delete IPFS settings
         if [ -d "$USER_HOME/.ipfs" ]; then
-            str="Reset Mode: Deleting ~/.ipfs settings folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r $USER_HOME/.ipfs
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            if whiptail --backtitle "" --title "RESET MODE" --yesno "Would you like to reset your IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs" "${r}" "${c}"; then
+                str="Reset Mode: Deleting ~/.ipfs settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -r $USER_HOME/.ipfs
+                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b Reset Mode: You chose not to reset the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
+            fi
         fi
     fi
 
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    ipfs-update install latest
+    sudo ipfs-update install latest
 
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -4150,7 +4153,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Initialize IPFS, if it has not already been done so
-    if [ -d "$USER_HOME/.ipfs" ]; then
+    if [ ! -d "$USER_HOME/.ipfs" ]; then
         ipfs init
         ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
@@ -4174,7 +4177,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             # Start the service now
             str="Starting IPFS systemd service..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT systemctl --user start ipfs
+            sudo -u $USER_ACCOUNT sudo
             IPFS_STATUS="running"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -5345,7 +5348,7 @@ digiasset_node_create_settings() {
     }
 }
 EOF
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         printf "\\n"
@@ -5485,18 +5488,21 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete IPFS settings
-            if [ -d "$USER_HOME/.ipfs" ]; then
-                str="Deleting ~/.ipfs settings folder..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -r $USER_HOME/.ipfs
-                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
         else
             printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
         fi
 
+        # Delete IPFS settings
+        if [ -d "$USER_HOME/.ipfs" ]; then
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs" "${r}" "${c}"; then
+                str="Deleting ~/.ipfs settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -r $USER_HOME/.ipfs
+                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b You chose not to delete the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
+            fi
+        fi
     fi
 
     ################## UNINSTALL DIGIBYTE CORE #################################################
