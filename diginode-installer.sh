@@ -4101,7 +4101,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    $USER_HOME/ipfs-update/ipfs-update install latest
+    ipfs-update install latest
 
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
