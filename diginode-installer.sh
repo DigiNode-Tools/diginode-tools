@@ -3756,8 +3756,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     printf " =============== Checking: IPFS daemon =================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
-    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+    # Get the local version number of IPFS Updater (this will also tell us if it is installed)
     IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
     # Let's check if IPFS Updater is already installed
@@ -3847,6 +3846,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
+    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
     # Let's check if Go-IPFS is already installed
     str="Is Go-IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
@@ -3863,7 +3865,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running
     if [ "$IPFS_STATUS" = "installed" ]; then
-      str="Is GoIPFS daemon service running?..."
+      str="Is Go-IPFS daemon service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -5292,6 +5294,127 @@ uninstall_do_now() {
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
     printf "\\n"
 
+
+    # Display the uninstall DigiNode title if it needs to be uninstalled
+    if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
+
+        printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
+        # ==============================================================================
+    fi
+
+    # Ask to delete DigiAsset Node if it exists
+    if [ -d "$DGA_INSTALL_LOCATION" ]; then
+
+        # Do you want to uninstall your DigiAsset Node?
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" "${r}" "${c}"; then
+
+            # Delete existing 'digiasset_node' folder (if it exists)
+            str="Uninstalling DigiAsset Node software..."
+            printf "%b %s" "${INFO}" "${str}"
+            pm2 delete digiasset
+            rm -r -f $USER_HOME/digiasset_node
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to uninstall DigiAsset Node v${DGA_VER_LOCAL}.\\n" "${INFO}"
+        fi
+    fi
+
+
+    # Ask to delete digibyte.conf if it exists
+    if [ -f "$DGA_SETTINGS_FILE" ]; then
+
+        # Do you want to delete digibyte.conf?
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your DigiAsset Node settings folder: ~/.digibyte/asset_settings ?" "${r}" "${c}"; then
+
+            # Delete asset_settings folder
+            str="Deleting DigiAssets settings folder: asset_settings.."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
+        fi
+    fi
+
+
+    ################## Let's check if IPFS is installed ###############################
+
+    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Next let's check if IPFS daemon is running
+    if [ "$IPFS_STATUS" = "installed" ]; then
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+      else
+          IPFS_STATUS="stopped"
+      fi
+    fi
+
+    # Ask to uninstall GoIPFS
+    if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
+
+    printf " =============== Uninstall: Go-IPFS ====================================\\n\\n"
+    # ==============================================================================
+
+        # Delete IPFS
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstalled both the IPFS Updater utility and GoIPFS." "${r}" "${c}"; then
+
+            printf "%b You chose to uninstall Go-IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
+
+            # Stop IPFS service if it is running, as we need to upgrade or reset it
+            if [ "$IPFS_STATUS" = "running" ]; then
+               printf "%b Preparing Uninstall: Stopping IPFS service ...\\n" "${INFO}"
+               stop_service digibyted
+               IPFS_STATUS="stopped"
+            fi
+
+            # Delete IPFS Updater binary
+            if [ -f /usr/local/bin/ipfs-update ]; then
+                str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f /usr/local/bin/ipfs-update
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete IPFS Updater installer
+            if [ -d $USER_HOME/ipfs-update ]; then
+                str="Deleting current IPFS Updater installer: ~/ipfs-update..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -r $USER_HOME/ipfs-update
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Remove IPFS updater from PATH
+            str="Deleting ipfs-update entry from PATH..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Delete Go-IPFS binary
+            if [ -f /usr/local/bin/ipfs ]; then
+                str="Deleting current Go-IPFS binary..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f /usr/local/bin/ipfs
+                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        else
+            printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
+        fi
+
+    fi
+
+
     printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
     # ==============================================================================
 
@@ -5458,70 +5581,6 @@ uninstall_do_now() {
     else
         # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
         printf "\\n"
-    fi
-
-
-    printf " =============== Uninstall: IPFS ====================================\\n\\n"
-    # ==============================================================================
-
-    # Delete IPFS
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstalled both the IPFS Updater utility and GoIPFS." "${r}" "${c}"; then
-
-        printf "%b You chose to uninstall IPFS.\\n" "${INFO}"
-
-        # Delete IPFS Updater binary
-        if [ -f /usr/local/bin/ipfs-update ]; then
-            str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /usr/local/bin/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete IPFS Updater installer
-        if [ -d $USER_HOME/ipfs-update ]; then
-            str="Deleting current IPFS Updater installer: ~/ipfs-update..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r $USER_HOME/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Remove IPFS updater from PATH
-        str="Deleting ipfs-update entry from PATH..."
-        printf "%b %s..." "${INFO}" "${str}"
-        sudo sed -i.bak '/swap/d' /etc/fstab
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-        # Delete Go-IPFS binary
-        if [ -f /usr/local/bin/ipfs ]; then
-            str="Deleting current Go-IPFS binary..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /usr/local/bin/ipfs
-            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    else
-        printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
-    fi
-
-
-    printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
-    # ==============================================================================
-
-
-    # Ask to delete digibyte.conf if it exists
-    if [ -f "$DGA_SETTINGS_FILE" ]; then
-
-        # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your DigiAsset Node settings folder: ~/.digibyte/asset_settings ?" "${r}" "${c}"; then
-
-            # Delete asset_settings folder
-            str="Deleting DigiAssets settings folder: asset_settings.."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f -r $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
-        fi
     fi
 
     printf "\\n"
