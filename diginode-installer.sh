@@ -1034,6 +1034,7 @@ rpcport=14022
 # can be specified multiple times.
 rpcallowip=127.0.0.1
 
+
 # [wallet]
 # Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
 disablewallet=0
@@ -2088,8 +2089,6 @@ user_check() {
                     printf "\\n"
                 else
                     USER_ASK_SWITCH="YES"
-                    printf "%b Interactive Install: Do you want to use 'digibyte' user?\\n" "${INFO}"
-                    printf "\\n"
                 fi
             else
                 printf "%b User Account Check: %bFAILED%b   User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2110,8 +2109,6 @@ user_check() {
                     printf "%b Unattended Install: Skipping creating 'digibyte' user - using user '$USER_ACCOUNT'\\n" "${INFO}"
                 else
                     USER_ASK_CREATE="YES"
-                    printf "%b Interactive Install: Do you want to create user 'digibyte'?\\n" "${INFO}"
-                    printf "\\n"
                 fi
             fi
         fi
@@ -2133,10 +2130,10 @@ if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
       if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_SWITCH="YES"
-        printf "%b Interactive Install: Yes - user 'digibyte' will be used for the install.\\n" "${INFO}"
+        printf "%b User Account: You chose to install as user: 'digibyte' (This account already exists.).\\n" "${INFO}"
         printf "\\n"
       else
-        printf "%b Interactive Install: No - user '$USER_ACCOUNT' will be used for the installation.\\n" "${INFO}"
+        printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'. (The existing 'digibyte' user will not be used).\\n" "${INFO}"
         printf "\\n"
       fi
   fi
@@ -2151,10 +2148,10 @@ if [[ "$USER_ASK_CREATE" = "YES" ]]; then
       if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_CREATE="YES"
-        printf "%b Interactive Install: Yes - user 'digibyte' will be created for the install.\\n" "${INFO}"
+        printf "%b User Account: You chose to install as user: 'digibyte'. (This account will be created.)\\n" "${INFO}"
         printf "\\n"
       else
-        printf "%b Interactive Install: No - user '$USER_ACCOUNT' will not be created for the installation.\\n" "${INFO}"
+        printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'.\\n" "${INFO}"
         printf "\\n"
       fi
   fi
@@ -2166,16 +2163,20 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
-    printf "%b Deleting No - user '$USER_ACCOUNT' will not be created for the installation.\\n" "${INFO}"
-
+    printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
+    USER_HOME=/home/digibyte
+    USER_ACCOUNT=digibyte
 fi
 
 if [ "$USER_DO_CHANGE" = "YES" ]; then
 
+    printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
     user_create_digibyte
 
-    echo "Created user" 
-    exit
+    printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
+    USER_HOME=/home/digibyte
+    USER_ACCOUNT=digibyte
+
 fi
 
 }
@@ -2561,7 +2562,6 @@ disk_check() {
                 fi
             else
                 QUERY_LOWDISK_SPACE="YES"
-                printf "\\n"
             fi      
         else
             printf "%b Disk Space Check: %bPASSED%b   There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2711,6 +2711,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
 
+printf "%b %bPlease donate if you find DigiNode Installer useful: dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
 
 # If this is the first time running the installer, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
@@ -2719,7 +2720,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
-      echo
+      printf "%bInteractive Install: You chose to proceed without customizing your install.\\n" "${INFO}"
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -2741,7 +2742,7 @@ fi
 # Explain the need for a static address
 if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 #Nothing to do, continue
-  echo
+  printf "%bInteractive Install: You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
 else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
   printf "\\n"
@@ -3363,7 +3364,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Dispaly the download URL
     if [ $VERBOSE_MODE = true ]; then
-        echo "DigiByte Download URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz"
+        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
     fi
 
     # Downloading latest DigiByte Core binary from GitHub
@@ -3876,8 +3877,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # If no current version is installed, then do a clean install
     if [ $IPFS_STATUS = "not_detected" ]; then
       printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-      IPFS_INSTALL_TYPE="if_doing_full_install"
-      IPFS_DO_INSTALL=YES
+      IPFS_INSTALL_TYPE="new"
+      IPFS_DO_INSTALL="if_doing_full_install"
     fi
 
     printf "\\n"
@@ -4151,7 +4152,7 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     fi
 
     # If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
-    if [ test -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
+    if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
         str="Deleting IPFS upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -4204,7 +4205,7 @@ Restart=on-failure
 [Install]
 WantedBy=default.target
 EOF
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Enable linger so IPFS can run at boot
         str="Enable lingering for user $USER_ACCOUNT..."
