@@ -4080,16 +4080,43 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     fi
 
-    # Stop IPFS service if it is running, as we need to upgrade or reset it
-    if [ "$IPFS_STATUS" = "running" ] && [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
-       printf "%b Preparing Upgrade: Stopping IPFS service ...\\n" "${INFO}"
-       stop_service digibyted
-       IPFS_STATUS="stopped"
-    elif [ "$IPFS_STATUS" = "running" ] && [ $IPFSINSTALL_TYPE = "reset" ]; then
-        printf "%b Preparing Upgrade: Stopping IPFS service ...\\n" "${INFO}"
-       stop_service digibyted
-       IPFS_STATUS="stopped"
+
+     # Stop IPFS service if it is running, as we need to upgrade or reset it
+    if [ "$IPFS_STATUS" = "running" ]; then
+
+        if [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Preparing Upgrade: Stopping IPFS service ...\\n" "${INFO}"
+        elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Preparing Reset: Stopping IPFS service ...\\n" "${INFO}"
+        fi
+
+        if [ "$INIT_SYSTEM" = "systemd" ]; then
+
+            # Disable the service from running at boot
+            printf "%b Disabling IPFS systemd service...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user disable ipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Stop the service now
+            str="Stopping IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT systemctl --user stop ipfs
+            IPFS_STATUS="stopped"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        if [ "$INIT_SYSTEM" = "upstart" ]; then
+
+            # Enable the service to run at boot
+            printf "%b Stopping IPFS upstart service...\\n" "${INFO}"
+            service ipfs stop
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IPFS_STATUS="stopped"
+
+        fi
     fi
+
 
     # If we are re-installing the current version of Go-IPFS, delete the existing binary
     if [ $IPFS_INSTALL_TYPE = "reset" ]; then
@@ -4097,6 +4124,14 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete IPFS settings
+        if [ -d "$USER_HOME/.ipfs" ]; then
+            str="Reset Mode: Deleting ~/.ipfs settings folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/.ipfs
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
     # Install latest version of GoIPFS
@@ -4121,16 +4156,39 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Re-enable and re-start IPFS service after reset/upgrade
-    if [ "$IPFS_STATUS" = "stopped" ] && [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf "%b Upgrade Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
-        enable_service ipfs
-        start_service ipfs
-        IPFS_STATUS="running"
-    elif [ "$IPFS_STATUS" = "stopped" ] && [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf "%b Reset Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
-        enable_service ipfs
-        start_service ipfs
-        IPFS_STATUS="running"
+    if [ "$IPFS_STATUS" = "stopped" ]; then
+
+        if [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+        elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+        fi
+
+        if [ "$INIT_SYSTEM" = "systemd" ]; then
+
+            # Enable the service to run at boot
+            printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user enable ipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Start the service now
+            str="Starting IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT systemctl --user start ipfs
+            IPFS_STATUS="running"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        if [ "$INIT_SYSTEM" = "upstart" ]; then
+
+            # Enable the service to run at boot
+            printf "%b Starting IPFS upstart service...\\n" "${INFO}"
+            service ipfs start
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IPFS_STATUS="running"
+
+        fi
+
     fi
 
     # Reset GoIPFS Install and Upgrade Variables
@@ -4206,12 +4264,14 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     # If IPFS systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
     if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
+        printf "%b Preparing Reset: Stopping and disabling IPFS service ...\\n" "${INFO}"
+
         # Stop the service now
-        systemctl --user stop ipfs
+        sudo -u $USER_ACCOUNT systemctl --user stop ipfs
         IPFS_STATUS="stopped"
 
         # Disable the service now
-        systemctl --user disable ipfs
+        sudo -u $USER_ACCOUNT systemctl --user disable ipfs
 
         # Disable linger
         loginctl disable-linger $USER_ACCOUNT
@@ -4224,6 +4284,15 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
     # If IPFS upstart service file already exists, and we are in Reset Mode, delete it, since we will update it
     if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
+
+        printf "%b Preparing Reset: Stopping IPFS service ...\\n" "${INFO}"
+
+        # Start the service now
+        str="Stopping IPFS upstart service..."
+        printf "%b %s" "${INFO}" "${str}"
+        service ipfs stop
+        IPFS_STATUS="stopped"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         str="Deleting IPFS upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -4270,7 +4339,7 @@ Description=IPFS daemon
 
 [Service]
 # Environment="IPFS_PATH=/data/ipfs"  # optional path to ipfs init directory if not default (\$HOME/.ipfs)
-ExecStart=/usr/bin/ipfs daemon
+ExecStart=/usr/local/bin/ipfs daemon
 Restart=on-failure
 
 [Install]
@@ -4286,13 +4355,13 @@ EOF
 
         # Enable the service to run at boot
         printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-        systemctl --user enable ipfs
+        sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user enable ipfs
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Start the service now
         str="Starting IPFS systemd service..."
         printf "%b %s" "${INFO}" "${str}"
-        systemctl --user start ipfs
+        sudo -u $USER_ACCOUNT systemctl --user start ipfs
         IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -4325,7 +4394,7 @@ EOF
         # Start the service now
         str="Starting IPFS upstart service..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo service ipfs start
+        service ipfs start
         IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -5413,6 +5482,14 @@ uninstall_do_now() {
                 str="Deleting current Go-IPFS binary..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
+                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete IPFS settings
+            if [ -d "$USER_HOME/.ipfs" ]; then
+                str="Deleting ~/.ipfs settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -r $USER_HOME/.ipfs
                 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
