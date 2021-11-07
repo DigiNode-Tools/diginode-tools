@@ -5295,6 +5295,9 @@ uninstall_do_now() {
     printf "\\n"
 
 
+    ################## UNINSTALL DIGIASSET NODE ##########################################
+
+
     # Display the uninstall DigiNode title if it needs to be uninstalled
     if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
 
@@ -5336,8 +5339,13 @@ uninstall_do_now() {
         fi
     fi
 
+    # Insert a line break if either of these were present
+    if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
+        printf "\\n\\n"
+    fi
 
-    ################## Let's check if IPFS is installed ###############################
+
+    ################## UNINSTALL IPFS #################################################
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -5414,6 +5422,7 @@ uninstall_do_now() {
 
     fi
 
+    ################## UNINSTALL DIGIBYTE CORE #################################################
 
     printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
     # ==============================================================================
@@ -5509,12 +5518,13 @@ uninstall_do_now() {
         printf "\\n"
     fi
 
+    ################## UNINSTALL DIGINODE TOOLS #################################################
 
     # Show DigiNode Tools uninstall title if it exists
     if [ -d "$DGNT_LOCATION" ] || [ -f "$DGNT_SETTINGS_FILE" ]; then
 
-    printf " =============== Uninstall: DigiNode Tools =============================\\n\\n"
-    # ==============================================================================
+        printf " =============== Uninstall: DigiNode Tools =============================\\n\\n"
+        # ==============================================================================
 
     fi
 
