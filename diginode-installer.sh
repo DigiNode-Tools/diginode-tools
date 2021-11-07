@@ -4253,7 +4253,6 @@ fi
 if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
     # Display section break
-    printf "\\n"
     if [ "$IPFS_SERVICE_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: IPFS Daemon Service =======================\\n\\n"
         # ==============================================================================
@@ -5485,7 +5484,7 @@ uninstall_do_now() {
                 str="Deleting current Go-IPFS binary..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
-                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
         else
@@ -5503,6 +5502,7 @@ uninstall_do_now() {
                 printf "%b You chose not to delete the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
             fi
         fi
+        printf "\\n"
     fi
 
     ################## UNINSTALL DIGIBYTE CORE #################################################
