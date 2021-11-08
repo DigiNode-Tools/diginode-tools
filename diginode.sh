@@ -1047,7 +1047,7 @@ pre_loop                    # Run this just before starting the loop
 # do
 
 # Optional loop counter - useful for debugging
-echo "Loop Count: $loopcounter"
+# echo "Loop Count: $loopcounter"
 
 # Quit status monitor automatically based on the time set in diginode.settings
 # Status Monitor will run indefinitely if the value is set to 0
@@ -1461,7 +1461,7 @@ if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT runni
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $IS_AVAHI_INSTALLED = 'YES' ] && [ DGA_STATUS = 'running' ]; then # Use .local domain if available, otherwise use the IP address
+if [ $IS_AVAHI_INSTALLED = 'YES' ] && [ $DGA_STATUS = 'running' ]; then # Use .local domain if available, otherwise use the IP address
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$hostname.local:8090" "║"
 elif [ DGA_STATUS = 'running' ]; then
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
@@ -1469,19 +1469,19 @@ fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $DGB_UPDATE_AVAILABLE = "YES" ];then
+if [ $DGB_UPDATE_AVAILABLE = "YES" ]; then
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
 fi
 echo " ║   SOFTWARE    ╠═════════════════════════════════════════════════════╣"
-if [ $IPFS_UPDATE_AVAILABLE = "YES" ];then
+if [ $IPFS_UPDATE_AVAILABLE = "YES" ]; then
 printf " ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
 else
 printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
-if [ $DGA_UPDATE_AVAILABLE = "YES" ];then
+if [ $DGA_UPDATE_AVAILABLE = "YES" ]; then
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 else
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
@@ -1517,12 +1517,12 @@ echo "  disappear when the total connections exceeds 10."
 fi
 echo ""
 echo " ╔═══════════════╦════════════════════════════════════════════════════╗"
-printf " ║ DEVICE      ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
+printf " ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ($DGB_DATA_DISKUSED_PERC)" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$ramused of $RAMTOTAL_HR" "[ $ramavail free ]  ║"
-if [ $swaptotal != '0B' ]; then # only display the swap file status if there is one
+if [ "$swaptotal" != "0B" ]; then # only display the swap file status if there is one
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "$swapused of $swaptotal"  "  ║"
 fi 
