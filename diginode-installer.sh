@@ -4652,7 +4652,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
 fi
 
 # If we are in reset mode, ask the user if they want to re-install NodeJS
-if [ $NODEJS_INSTALL_TYPE = "askreset" ]; then
+if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it." "${r}" "${c}"; then
         NODEJS_DO_INSTALL=YES
@@ -4983,7 +4983,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
 fi
 
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
-if [ $DGA_INSTALL_TYPE = "askreset" ]; then
+if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
         DGA_DO_INSTALL=YES
