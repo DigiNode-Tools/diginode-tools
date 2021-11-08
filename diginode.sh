@@ -1456,7 +1456,7 @@ if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT runnin
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "     [ DigiByte daemon is starting up... ]"
+  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "  [ DigiByte daemon is starting up. Please wait... ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
@@ -1471,15 +1471,15 @@ fi
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-printf " ║   DIGINODE    ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
+printf " ║ DIGINODE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
-printf " ║   DIGINODE    ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL" "   ║"
+printf " ║ DIGINODE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 echo " ║   SOFTWARE    ╠═════════════════════════════════════════════════════╣"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
 printf " ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
 else
-printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+printf " ║               ║  " && printf "%-50s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
@@ -1495,7 +1495,8 @@ echo "WARNING: Your DigiByte daemon service is not currently running."
 echo "         To start it enter: sudo systemctl start digibyted"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-echo "IMPORTANT: DigiByte Core is currently in the process of starting up."
+echo ""
+echo "IMPORTANT: DigiByte daemon is currently in the process of starting up."
 echo "           This can take up to 10 minutes. Please wait..."
 fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
