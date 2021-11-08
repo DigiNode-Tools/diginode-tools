@@ -1060,18 +1060,6 @@ if [ $SM_AUTO_QUIT -gt 0 ]; then
   fi
 fi
 
-# Display the quit message on exit
-# trap quit_message EXIT
-
-# read -rsn1 input
-# if [ "$input" = "q" ]; then
-#     echo ""
-#    printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
-#    echo ""
-#    exit
-# fi
-
-
 
 # ------------------------------------------------------------------------------
 #    UPDATE EVERY 1 SECOND - HARDWARE
@@ -1543,4 +1531,16 @@ printf "\\n"
 
 echo "$output"
 sleep 1
+
+# Display the quit message on exit
+trap quit_message EXIT
+
+read -rsn1 input
+if [ "$input" = "q" ]; then
+  echo ""
+  printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
+  echo ""
+  exit
+fi
+
 done
