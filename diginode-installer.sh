@@ -5514,7 +5514,7 @@ uninstall_do_now() {
 
     # Insert a line break if either of these were present
     if [ "$uninstall_dga" = "yes" ]; then
-        printf "\\n\\n"
+        printf "\\n"
     fi
 
 
