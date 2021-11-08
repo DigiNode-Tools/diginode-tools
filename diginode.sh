@@ -1371,7 +1371,7 @@ if [ $timedif24hrs -gt 86400 ]; then
 
     # Check for new release of DigiAsset Node
     DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
-    if [ $DGA_VER_RELEASE_QUERY != "" ]
+    if [ $DGA_VER_RELEASE_QUERY != "" ]; then
       DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
       DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
       sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
