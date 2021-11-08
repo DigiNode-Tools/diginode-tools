@@ -5805,7 +5805,7 @@ uninstall_do_now() {
     printf "\\n"
     donation_qrcode
     printf "\\n"
-    printf "%b %bIt is highly recommended to restart your device having performed an uninstall.b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
     printf "\\n"
