@@ -902,6 +902,9 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     sed -i -e "/^DGNT_MONITOR_FIRST_RUN=/s|.*|DGNT_MONITOR_FIRST_RUN=\"$DGNT_MONITOR_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+    # When the user quits, enable showing a donation plea
+    DONATION_PLEA="yes"
+
 fi
 
 }

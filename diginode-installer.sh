@@ -331,8 +331,8 @@ INSTALL_SYS_UPGRADES=NO
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run the installer with the --unattended flag set.
 
-# Decide whether to have the script enforce using a 'digibyte' user (Set to YES/NO)
-# If set to YES the Installer will create the user 'digibyte' (if it doesn't exist) and try to install as that user
+# Decide whether to have the script enforce using user: digibyte (Set to YES/NO)
+# If set to YES the Installer will only proceed if the the user is: digibyte
 # If set to NO the Installer will install as the current user
 UI_ENFORCE_DIGIBYTE_USER=YES
 
