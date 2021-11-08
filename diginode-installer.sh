@@ -2081,7 +2081,7 @@ user_check() {
                 printf "\\n"
                 if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     USER_DO_SWITCH="YES"
-                    printf "%b Unattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                    printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
@@ -2101,7 +2101,7 @@ user_check() {
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
                  if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
-                    printf "%b Unattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                    printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
