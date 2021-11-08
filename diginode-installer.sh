@@ -3110,7 +3110,7 @@ donation_qrcode() {
     # ==============================================================================
 
     echo " If you find DigiNode Tools useful, and want to support future development,"
-    echo " donations in DGB are much appreciated. Many thanks -- Olly @saltedlolly"             
+    echo "donations in DGB are much appreciated. Thanks for your support. - Olly @saltedlolly"             
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -3138,30 +3138,30 @@ request_reboot () {
         printf "\\n"
         printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bAfter performing an upgrade, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bTo run 'DigiNode Status Monitor' enter: 'diginode'%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
