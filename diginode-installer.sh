@@ -5959,7 +5959,7 @@ main() {
 
         # If uninstall is requested, then do it now
         if [[ "$UNINSTALL" == "yes" ]]; then
-            uninstall
+            uninstall_do_now
         fi
 
         # if it's running unattended,
