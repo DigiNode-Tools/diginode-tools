@@ -6056,7 +6056,7 @@ main() {
     ### UNATTENDED UPGRADE - SET FULL DIGINODE VS DGB ONLY  ###
 
     # If we are doing an unattended upgrade, check whether DigiAsset Node exists to decide whther it needs to be upgraded
-    if [[ "${UnattendedUpgrade}" == false ]]; then
+    if [[ "${UnattendedUpgrade}" == true ]]; then
         if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
             DO_FULL_INSTALL=YES
         else
