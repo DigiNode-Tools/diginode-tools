@@ -1061,7 +1061,7 @@ if [ $SM_AUTO_QUIT -gt 0 ]; then
 fi
 
 # Display the quit message on exit
-trap quit_message EXIT
+# trap quit_message EXIT
 
 # read -rsn1 input
 # if [ "$input" = "q" ]; then
