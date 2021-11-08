@@ -2197,51 +2197,51 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
     if [ $exitstatus == 0 ]; then
 
         # Encrypt CLEARTEXT password
-        str="Encrypting CLEARTEXT password "
+        local str="Encrypting CLEARTEXT password ... "
         printf "%b %s..." "${INFO}" "${str}"
         DGB_USER_PASS_ENCR=$(perl -e 'print crypt($ARGV[0], "password")' $DGB_USER_PASS)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         
         # Create digibyte user
-        str="Creating user 'digibyte' "
+        local str="Creating user 'digibyte' ... "
         printf "%b %s..." "${INFO}" "${str}"
         useradd -m -p "$DGB_USER_PASS_ENCR" digibyte
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the digibyte group exists
-        local str="Checking for group 'digibyte'"
+        local str="Checking for group 'digibyte' ... "
         printf "%b %s..." "${INFO}" "${str}"
         if getent group digibyte > /dev/null 2>&1; then
             # succeed
-            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b %s..." "${INFO}" "${str}"
-            local str="Creating group 'digibyte'"
+            local str="Creating group 'digibyte ... '"
             # if group can be created
             if groupadd digibyte; then
                 printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                local str="Adding user 'digibyte' to group 'digibyte'"
+                local str="Adding user 'digibyte' to group 'digibyte' ... "
                 printf "%b %s..." "${INFO}" "${str}"
                 # if digibyte user can be added to group digibyte
                 if usermod -aG digibyte digibyte; then
-                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
-                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
                 fi
             else
-                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
             fi
         fi
 
         # Add digibyte user to sudo group
         str="Add digibyte user to sudo group..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         sudo usermod -aG sudo digibyte
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
         printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
-        print "\\n"
+        printf "\\n"
         su digibyte
         printf "\\n"
 
@@ -2253,7 +2253,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
             printf "%b %bERROR: Unable to switch to user: digibyte%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b Please sign as user 'digibyte' and run this installer again: \\n" "${INFO}"
-            prinff "\\n"
+            printf "\\n"
             printf "%b   su digibyte\\n" "${INDENT}"
             printf "\\n"
             exit 1
@@ -2816,7 +2816,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
-      printf "%bInteractive Install: You chose to proceed without customizing your install.\\n" "${INFO}"
+      printf "%b You chose to proceed without customizing your install.\\n" "${INFO}"
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -2838,7 +2838,8 @@ fi
 # Explain the need for a static address
 if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 #Nothing to do, continue
-  printf "%bInteractive Install: You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+  printf "\\n"
 else
   printf "%b Installer exited at static IP message.\\n" "${INFO}"
   printf "\\n"
@@ -4238,6 +4239,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     sudo ipfs-update install latest
+    if [ "$IPFS_STATUS" = "not_detected" ];then
+        IPFS_STATUS="installed"
+    fi
 
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -4252,8 +4256,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Initialize IPFS, if it has not already been done so
     if [ ! -d "$USER_HOME/.ipfs" ]; then
-        ipfs init
-        ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+        sudo -u $USER_ACCOUNT ipfs init
+        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
 
     # Re-enable and re-start IPFS service after reset/upgrade
@@ -4275,7 +4279,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             # Start the service now
             str="Starting IPFS systemd service..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT sudo
+            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user start ipfs
             IPFS_STATUS="running"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -5555,6 +5559,22 @@ uninstall_do_now() {
                IPFS_STATUS="stopped"
             fi
 
+            # Delete the SYSTEMD service file if it exists
+            if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+                str="Deleting IPFS systemd service file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $IPFS_SYSTEMD_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete the UPSTART service file if it exists
+            if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+                str="Deleting IPFS upstart service file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $IPFS_UPSTART_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
             # Delete IPFS Updater binary
             if [ -f /usr/local/bin/ipfs-update ]; then
                 str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
@@ -5582,6 +5602,7 @@ uninstall_do_now() {
                 str="Deleting current Go-IPFS binary..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
+                IPFS_STATUS="not_detected"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
