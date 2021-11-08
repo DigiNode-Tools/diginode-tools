@@ -140,12 +140,6 @@ for var in "$@"; do
     esac
 done
 
-# Set the DigiAsset Node Github repo to use, based on whether the --dga-dev flag is included or not
-if [ $DGA_DEV_MODE = true ]; then
-    DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
-else
-    DGA_GITHUB_REPO=$DGA_GITHUB_REPO_MAIN
-fi
 
 # Set these values so the installer can still run in color
 COL_NC='\e[0m' # No Color
@@ -211,6 +205,18 @@ is_unattended_mode() {
             printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
         fi
         printf "\\n"
+    fi
+}
+
+# Inform user if DigiAsset Dev Mode is enable
+is_dgadev_mode() {
+    if [ "$DGA_DEV_MODE" = true ]; then
+        printf "%b DigiAsset Node Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   The developer version of DigiAsset Node will be installed.\\n" "${INDENT}"
+        printf "\\n"
+        DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
+    else
+        DGA_GITHUB_REPO=$DGA_GITHUB_REPO_MAIN
     fi
 }
 
@@ -4006,11 +4012,24 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Next let's check if IPFS daemon is running
-    if [ "$IPFS_STATUS" = "installed" ]; then
+    # Next let's check if IPFS daemon is running with upstart
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
       str="Is Go-IPFS daemon service running?..."
       printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "ipfs"; then
+      if check_service_active "ipfs"; then # BANANA
+          IPFS_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          IPFS_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    # Next let's check if IPFS daemon is running
+    if [ systemctl is-active --quiet --user ipfs ]; then
+      str="Is Go-IPFS daemon service running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "ipfs"; then # BANANA
           IPFS_STATUS="running"
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
       else
@@ -5077,21 +5096,27 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
     if [ $DGA_INSTALL_TYPE = "reset" ]; then
+
+        str="Reset Mode: Delete DigiAsset Node pm2 instance..."
+        printf "%b %s" "${INFO}" "${str}"
+        pm2 delete digiasset
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+
         # Delete existing 'digiasset_node' folder (if it exists)
         str="Reset Mode: Deleting current '~/digiasset_node' folder..."
         printf "%b %s" "${INFO}" "${str}"
-        pm2 delete digiasset
         rm -r -f $USER_HOME/digiasset_node
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install the latest version of NPM
     printf "%b Install latest version of npm...\\n" "${INFO}"
-    npm install npm@latest -g
+    npm install --quiet npm@latest -g
 
     # Install the latest version of PM2
     printf "%b Install latest version of PM2...\\n" "${INFO}"
-    npm install pm2@latest -g
+    npm install --quiet pm2@latest -g
 
     # Cloning DigiAsset Node from Github (will use dev branch set in header if the --dga-dav flaf was include)
     if [ $DGA_DEV_MODE = true ]; then 
@@ -5906,6 +5931,9 @@ main() {
 
         # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
         is_reset_mode 
+
+        # Display a message if DigiAsset Node developer mode is enabled
+        is_dgadev_mode
 
         # Show the DigiNode logo
         diginode_logo_v3
