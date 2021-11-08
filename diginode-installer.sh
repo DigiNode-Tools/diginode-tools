@@ -4459,7 +4459,7 @@ EOF
 
         # Enable the service to run at boot
         printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user enable ipfs
+        sudo -u $USER_ACCOUNT systemctl --user enable ipfs
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Start the service now
@@ -5804,8 +5804,12 @@ uninstall_do_now() {
 
     printf "\\n"
     donation_qrcode
-    exit
     printf "\\n"
+    printf "%b %bIt is highly recommended to restart your device having performed an uninstall.b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+    printf "\\n"
+    exit
 
 }
 

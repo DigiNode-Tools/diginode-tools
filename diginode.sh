@@ -909,16 +909,60 @@ fi
 firstrun_dganode_configs() {
 
   # Set DigiAssets Node version veriables (if it is has just been installed)
-  if [ $DGA_STATUS = "running" ] && [ $DGA_FIRST_RUN = ""  ]; then
-      echo "[i] First time running DigiAssets Node - performing initial setup."
-      echo "    Storing DigiAsset Node version number in settings file..."
-      DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
+  if [ "$DGA_STATUS" = "running" ] && [ "$DGA_FIRST_RUN" = ""  ]; then
+      printf "%b First time running DigiAssets Node. Performing initial setup...\\n" "${INFO}"
+
+    # Next let's try and get the minor version, which may or may not be available yet
+    # If DigiAsset Node is running we can get it directly from the web server
+
+      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
+          # This is a beta so the minor version doesn't exist
+          DGA_VER_MNR_LOCAL="beta"
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+      elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
+          DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+      else
+          DGA_VER_MNR_LOCAL=""
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+      fi
+
+      # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
+      if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+      elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+      elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
+      fi
+
+      str="Storing DigiAsset Node variables in settings file..."
+      printf "  %b %s" "${INFO}" "${str}"
       sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
+
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e '/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL="$IPFS_VER_LOCAL"|' $DGNT_SETTINGS_FILE
+
+      # Get the local version number of NodeJS (this will also tell us if it is installed)
+      NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+      # Later versions use purely the 'node --version' command, (rather than nodejs)
+      if [ "$NODEJS_VER_LOCAL" = "" ]; then
+          NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
+      fi
+      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+
       DGA_FIRST_RUN=$(date)
       sed -i -e '/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN="$DGA_FIRST_RUN"|' $DGNT_SETTINGS_FILE
-
+      printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
   fi
 
@@ -1071,10 +1115,10 @@ fi
 if [ $DGB_STATUS = "running" ]; then
 
   # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
-  if [ $blocksync_progress != "synced" ]; then
+  if [ "$blocksync_progress" != "synced" ]; then
     blocksync_value_saved=$(blocksync_value)
     blocksync_value=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
-    if [ $blocksync_value -eq "" ]; then
+    if [ "$blocksync_value" -eq "" ]; then
        blocksync_value=$(blocksync_value_saved)
     fi
     echo "scale=2 ;$blocksync_percent*100"|bc
@@ -1085,7 +1129,7 @@ if [ $DGB_STATUS = "running" ]; then
   uptime=$(eval "echo $(date -ud "@$uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Detect if the block chain is fully synced
-  if [ $blocksync_percent -eq 100.00 ]; then
+  if [ "$blocksync_percent" -eq 100.00 ]; then
     blocksync_percent="100"
     blocksync_progress="synced"
   fi
@@ -1214,8 +1258,48 @@ if [ $timedif15min -gt 300 ]; then
 
       echo "need to add check for change of DGA version number" 
 
-      DGA_VER_LOCAL=$(curl localhost:8090/api/version/list.json)
-      sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    # Next let's try and get the minor version, which may or may not be available yet
+    # If DigiAsset Node is running we can get it directly from the web server
+
+      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
+          # This is a beta so the minor version doesn't exist
+          DGA_VER_MNR_LOCAL="beta"
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+      elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
+          DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+      else
+          DGA_VER_MNR_LOCAL=""
+          str="Current Version:"
+          printf "%b %s" "${INFO}" "${str}"
+          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+      fi
+
+      # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
+      if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+      elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+      elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
+          DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
+      fi
+
+      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
+
+      # Get the local version number of NodeJS (this will also tell us if it is installed)
+      NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+      # Later versions use purely the 'node --version' command, (rather than nodejs)
+      if [ "$NODEJS_VER_LOCAL" = "" ]; then
+          NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
+      fi
+      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
 
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
