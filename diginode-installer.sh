@@ -3131,6 +3131,41 @@ donation_qrcode() {
     echo ""
 }
 
+request_reboot () {  
+
+    if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        printf "%b %bTo complete your install you need to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
+        printf "%b %bAfter performing an upgrade, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b %bAfter rebooting you can run 'DigiNode Status Monitor' by entering: diginode\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    elif [ "$DO_FULL_INSTALL" = "NO" ]; then
+        printf "%b %bYou can run 'DigiNode Status Monitor' by entering: 'diginode'\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    fi
+}
+
 stop_service() {
     # Stop service passed in as argument.
     # Can softfail, as process may not be installed when this is called
@@ -6163,6 +6198,9 @@ main() {
 
     # Display donation QR Code
     donation_qrcode
+
+    # Display reboot message (and how to run Status Monitor)
+    request_reboot
 
 
 
