@@ -997,7 +997,7 @@ startup_checks() {
   # Note: Some of these functions are found in the diginode-installer.sh file
   
   digimon_title_box                # Clear screen and display title box
-  digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
+# digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_installer_functions       # Import diginode-installer.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
