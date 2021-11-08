@@ -2081,8 +2081,9 @@ user_check() {
                 printf "\\n"
                 if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     USER_DO_SWITCH="YES"
-                    printf "%b Unattended Install: 'digibyte' user will be used.\\n" "${INFO}"
+                    printf "%b Unattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_SWITCH="NO"
                     printf "%b Unattended Install: Skipping using 'digibyte' user - user '$USER_ACCOUNT' will be used\\n" "${INFO}"
@@ -2100,9 +2101,9 @@ user_check() {
                 printf "%b  $DGBH_URL_USERCHANGE\\n"  "${INDENT}"
                 printf "\\n"
                  if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
-                    USER_DO_CREATE="YES"
-                    printf "%b Unattended Install: Enforcing creating 'digibyte' user from diginode.settings file\\n" "${INFO}"
+                    printf "%b Unattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_CREATE="NO"
                     printf "\\n"
@@ -2164,21 +2165,174 @@ user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
     printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
-    USER_HOME=/home/digibyte
-    USER_ACCOUNT=digibyte
+    print "\\n"
+    printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
+    printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
+    print "\\n"
+    su digibyte
+    printf "\\n"
+    if [ "$(id -u -n)" = "digibyte" ]; then
+        printf "%b Re-running installer as user: digbyte ... \\n" "${INFO}"
+        sleep 3
+        exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
+    else
+        printf "%b %bERROR: Unable to switch to user: digibyte%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b Please sign as user 'digibyte' and run this installer again: \\n" "${INFO}"
+        prinff "\\n"
+        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+    fi
 fi
 
 if [ "$USER_DO_CREATE" = "YES" ]; then
 
     printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
-    user_create_digibyte
+    
+    DGB_USER_PASS=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nDon't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
+                                                                        # A trick to swap stdout and stderr.
+    # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+    exitstatus=$?
+    if [ $exitstatus == 0 ]; then
 
-    printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
-    USER_HOME=/home/digibyte
-    USER_ACCOUNT=digibyte
+        # Encrypt CLEARTEXT password
+        str="Encrypting CLEARTEXT password "
+        printf "%b %s..." "${INFO}" "${str}"
+        DGB_USER_PASS_ENCR=$(perl -e 'print crypt($ARGV[0], "password")' $DGB_USER_PASS)
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        
+        # Create digibyte user
+        str="Creating user 'digibyte' "
+        printf "%b %s..." "${INFO}" "${str}"
+        useradd -m -p "$DGB_USER_PASS_ENCR" digibyte
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Check if the digibyte group exists
+        local str="Checking for group 'digibyte'"
+        printf "%b %s..." "${INFO}" "${str}"
+        if getent group digibyte > /dev/null 2>&1; then
+            # succeed
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b %s..." "${INFO}" "${str}"
+            local str="Creating group 'digibyte'"
+            # if group can be created
+            if groupadd digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                local str="Adding user 'digibyte' to group 'digibyte'"
+                printf "%b %s..." "${INFO}" "${str}"
+                # if digibyte user can be added to group digibyte
+                if usermod -aG digibyte digibyte; then
+                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                fi
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        fi
+
+        # Add digibyte user to sudo group
+        str="Add digibyte user to sudo group..."
+        printf "\\n%b %s..." "${INFO}" "${str}"
+        sudo usermod -aG sudo digibyte
+        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
+        printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
+        print "\\n"
+        su digibyte
+        printf "\\n"
+
+        if [ "$(id -u -n)" = "digibyte" ]; then
+            printf "%b Re-running installer as user: digbyte ... \\n" "${INFO}"
+            sleep 3
+            exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
+        else
+            printf "%b %bERROR: Unable to switch to user: digibyte%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b Please sign as user 'digibyte' and run this installer again: \\n" "${INFO}"
+            prinff "\\n"
+            printf "%b   su digibyte\\n" "${INDENT}"
+            printf "\\n"
+            exit 1
+        fi
+
+    else
+        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b   sudo adduser digibyte\\n" "${INDENT}"
+        printf "%b   sudo passwd digibyte\\n" "${INDENT}"
+        printf "%b   sudo usermod -aG sudo digibyte\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Then login as the new user:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Once you are logged in as digibyte, run this installer again.\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
 
 fi
 
+}
+
+# Check if the 'digibyte' user exists and create if it does not
+user_create_digibyte() {
+
+    local str="Checking for user 'digibyte'"
+    printf "%b %s..." "${INFO}" "${str}"
+    # If the digibyte user exists,
+    if id -u digibyte &> /dev/null; then
+        # and if the digibyte group exists,
+        if getent group digibyte > /dev/null 2>&1; then
+            # succeed
+            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            local str="Checking for group 'digibyte'"
+            printf "  %b %s..." "${INFO}" "${str}"
+            local str="Creating group 'digibyte'"
+            # if group can be created
+            if groupadd digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                local str="Adding user 'digibyte' to group 'digibyte'"
+                printf "  %b %s..." "${INFO}" "${str}"
+                # if digibyte user can be added to group digibyte
+                if usermod -g digibyte digibyte; then
+                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+                fi
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        fi
+    else
+        # If the digibyte user doesn't exist,
+        printf "%b  %b %s" "${OVER}" "${CROSS}" "${str}"
+        local str="Creating user 'digibyte'"
+        printf "%b %b %s..." "${OVER}" "${INFO}" "${str}"
+        # create her with the useradd command,
+        if getent group digibyte > /dev/null 2>&1; then
+            # then add her to the digibyte group (as it already exists)
+            if useradd -r --no-user-group -g digibyte -s /usr/sbin/nologin digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        else
+            # add user digibyte with default group settings
+            if useradd -r -s /usr/sbin/nologin digibyte; then
+                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
+        fi
+    fi
 }
 
 
@@ -2211,62 +2365,6 @@ else
 fi
 
 }
-
-
-# Check if the 'digibyte' user exists and create if it does not
-user_create_digibyte() {
-
-    local str="Checking for user 'digibyte'"
-    printf "  %b %s..." "${INFO}" "${str}"
-    # If the digibyte user exists,
-    if id -u digibyte &> /dev/null; then
-        # and if the digibyte group exists,
-        if getent group digibyte > /dev/null 2>&1; then
-            # succeed
-            printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            local str="Checking for group 'digibyte'"
-            printf "  %b %s..." "${INFO}" "${str}"
-            local str="Creating group 'digibyte'"
-            # if group can be created
-            if groupadd digibyte; then
-                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                local str="Adding user 'digibyte' to group 'digibyte'"
-                printf "  %b %s..." "${INFO}" "${str}"
-                # if digibyte user can be added to group digibyte
-                if usermod -g digibyte digibyte; then
-                    printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-                else
-                    printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-                fi
-            else
-                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            fi
-        fi
-    else
-        # If the digibyte user doesn't exist,
-        printf "%b  %b %s" "${OVER}" "${CROSS}" "${str}"
-        local str="Creating user 'digibyte'"
-        printf "%b  %b %s..." "${OVER}" "${INFO}" "${str}"
-        # create her with the useradd command,
-        if getent group digibyte > /dev/null 2>&1; then
-            # then add her to the digibyte group (as it already exists)
-            if useradd -r --no-user-group -g digibyte -s /usr/sbin/nologin digibyte; then
-                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            fi
-        else
-            # add user digibyte with default group settings
-            if useradd -r -s /usr/sbin/nologin digibyte; then
-                printf "%b  %b %s\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                printf "%b  %b %s\\n" "${OVER}" "${CROSS}" "${str}"
-            fi
-        fi
-    fi
-}
-
 
 
 # This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
