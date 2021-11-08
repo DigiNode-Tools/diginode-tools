@@ -5958,7 +5958,7 @@ main() {
         printf "%b Existing DigiNode detected...\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
-        if [[ "$UNINSTALL" == "yes" ]]; then
+        if [[ "$UNINSTALL" == true ]]; then
             uninstall_do_now
         fi
 
