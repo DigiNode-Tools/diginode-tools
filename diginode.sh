@@ -1333,13 +1333,13 @@ if [ $timedif24hrs -gt 86400 ]; then
 
     # Check for new release of DigiByte Core on Github
     DGB_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    if [ $DGB_VER_RELEASE_QUERY != "" ]
+    if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
       DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
       sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=$DGB_VER_RELEASE|" $DGNT_SETTINGS_FILE
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
-    if [ $DGB_STATUS = "running" ] && [ DGB_VER_LOCAL_CHECK_FREQ = "daily" ]; then
+    if [ "$DGB_STATUS" = "running" ] && [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
