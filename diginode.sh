@@ -104,7 +104,7 @@ txtbld=$(tput bold) # Set bold mode
 
 ######## Undocumented Flags. Shhh ########
 # These are undocumented flags; 
-VERBOSE_MODE=true       # Set this to true to get more verbose feedback. Very useful for debugging.
+VERBOSE_MODE=false       # Set this to true to get more verbose feedback. Very useful for debugging.
 UNINSTALL=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
@@ -794,7 +794,7 @@ quit_message() {
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
-      donation_qrcode "Status Monitor"
+      donation_qrcode
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
       DONATION_PLEA="no"
@@ -1044,7 +1044,7 @@ while :
 do
 
 # Optional loop counter - useful for debugging
-# echo "Loop Count: $loopcounter"
+echo "Loop Count: $loopcounter"
 
 # Quit status monitor automatically based on the time set in diginode.settings
 # Status Monitor will run indefinitely if the value is set to 0
@@ -1422,7 +1422,7 @@ if [ $timedif24hrs -gt 86400 ]; then
     savedtime24hrs="$timenow"
 fi
 
-
+echo "HELLO"
 
 
 ###################################################################
@@ -1430,7 +1430,7 @@ fi
 ###################################################################
 
 # Double buffer output to reduce display flickering
-# (output=$(clear -x;
+output=$(clear -x;
 
 echo -e "${txtbld}"
 echo -e "       ____   _         _   _   __            __     "             
@@ -1533,8 +1533,10 @@ echo ""
 echo "              Press Q to quit and stop monitoring"
 echo ""
 
+)
+
 # end output double buffer
 
-# echo "$output"
+echo "$output"
 sleep 1
 done
