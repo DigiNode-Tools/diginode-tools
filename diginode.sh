@@ -1156,7 +1156,7 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Check if digibyted is successfully responding to requests up yet after starting up
     if [ $DGB_STATUS = "startingup" ]; then
-        if [[ "$blockcount_local" = ^[0-9]+$ ]]
+        if [[ "$blockcount_local" = ^[0-9]+$ ]]; then
           DGB_STATUS="running"
         fi
     fi
