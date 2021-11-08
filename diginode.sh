@@ -691,12 +691,12 @@ is_avahi_installed() {
       printf "\\n"
       printf "  %b Installing avahi-daemon is recommended if you are using a dedicated\\n" "${INFO}"
       printf "  %b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
-      printf "  %b you can you can access it at the address $(hostname).local\\n" "${INDENT}"
+      printf "  %b you can you can access it at the address ${HOSTNAME}.local\\n" "${INDENT}"
       printf "  %b instead of having to remember the IP address. DigiNode Installer\\n" "${INDENT}"
       printf "  %b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
-      printf "  %b avahi-daemon is installed. DigiNode URL: https://$(hostname).local:8090\\n"  "${TICK}"
+      printf "  %b avahi-daemon is installed. DigiNode URL: https://${HOSTNAME}.local:8090\\n"  "${TICK}"
       IS_AVAHI_INSTALLED="YES"
     fi
 }
@@ -819,10 +819,10 @@ if [ "$STARTPAUSE" = "yes" ]; then
 else
 
   if [ "$STARTWAIT" = "yes" ]; then
-    echo "               < Wait for 7 seconds >"
+    echo "               < Wait for 5 seconds >"
     sleep 5
   else 
-    echo "               < Wait for 4 seconds >"
+    echo "               < Wait for 3 seconds >"
     sleep 3
   fi
 fi
@@ -1043,8 +1043,8 @@ pre_loop                    # Run this just before starting the loop
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
 ######################################################################################
 
-# while :
-# do
+while :
+do
 
 # Optional loop counter - useful for debugging
 # echo "Loop Count: $loopcounter"
@@ -1082,18 +1082,18 @@ timenow=$(date)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
-ramused=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3 | sed 's/.$//')
-ramavail=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.$//')
-swapused=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
+RAMUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3 | sed 's/.$//')
+RAMAVAIL_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.$//')
+SWAPUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
 
 # Get current system temp
 temperature=$(cat </sys/class/thermal/thermal_zone0/temp)
 
 # Convert temperature to Degrees C
-tempc=$((temperature/1000))
+TEMP_C=$((temperature/1000))
 
 # Convert temperature to Degrees F
-tempf=$(((9/5) * $tempc + 32))
+TEMP_F=$(((9/5) * $tempc + 32))
 
 
 # ------------------------------------------------------------------------------
@@ -1432,7 +1432,7 @@ fi
 ###################################################################
 
 # Double buffer output to reduce display flickering
-# output=$(clear -x;
+output=$(clear -x;
 
 echo -e "${txtbld}"
 echo -e "       ____   _         _   _   __            __     "             
@@ -1443,7 +1443,7 @@ echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${txtrst}╚══
 echo -e "              /____/                                 ${txtrst}"                         
 echo '
  ╔═══════════════╦════════════════════════════════════════════════════╗'
-if [ $DGB_STATUS = 'running' ]; then # Only display if digibyted is running
+if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
   printf " ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $connectionsmsg" "]  ║"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
   printf " ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$blocklocal Blocks" "[ Synced: $blocksyncpercent %" "]  ║"
@@ -1451,37 +1451,37 @@ if [ $DGB_STATUS = 'running' ]; then # Only display if digibyted is running
   printf " ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi # end check to see of digibyted is running
-if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
+if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
   printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon service is stopped. ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
-if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT running
+if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
   printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon is starting... ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $IS_AVAHI_INSTALLED = 'YES' ] && [ $DGA_STATUS = 'running' ]; then # Use .local domain if available, otherwise use the IP address
-printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$hostname.local:8090" "║"
-elif [ DGA_STATUS = 'running' ]; then
+if [ "$IS_AVAHI_INSTALLED" = "YES" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
+printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
+elif [ "$DGA_STATUS" = "running" ]; then
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-if [ $DGB_UPDATE_AVAILABLE = "YES" ]; then
+if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
 printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
 fi
 echo " ║   SOFTWARE    ╠═════════════════════════════════════════════════════╣"
-if [ $IPFS_UPDATE_AVAILABLE = "YES" ]; then
+if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
 printf " ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
 else
 printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
-if [ $DGA_UPDATE_AVAILABLE = "YES" ]; then
+if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 else
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
@@ -1489,15 +1489,15 @@ fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGNT_VER_LOCAL"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
-if [ $DGB_STATUS = 'stopped' ]; then # Only display if digibyted is NOT running
+if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 echo "WARNING: Your DigiByte daemon service is not currently running."
 echo "         To start it enter: sudo systemctl start digibyted"
 fi
-if [ $DGB_STATUS = 'startingup' ]; then # Only display if digibyted is NOT running
+if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 echo "IMPORTANT: DigiByte Core is currently in the process of starting up."
 echo "           This can take up to 10 minutes. Please wait..."
 fi
-if [ $DGB_STATUS = 'running' ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 echo ""
 echo "  IMPORTANT: You need to forward port 12024 on your router so that"
 echo "  your DigiByte node can be discovered by other nodes on the internet."
@@ -1517,17 +1517,17 @@ echo "  disappear when the total connections exceeds 10."
 fi
 echo ""
 echo " ╔═══════════════╦════════════════════════════════════════════════════╗"
-printf " ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$model" "[ $modelmem RAM" "]  ║"
+printf " ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ DISK USAGE    ║  " && printf "%-34s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ($DGB_DATA_DISKUSED_PERC)" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$ramused of $RAMTOTAL_HR" "[ $ramavail free ]  ║"
-if [ "$swaptotal" != "0B" ]; then # only display the swap file status if there is one
+printf " ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$RAMUSED_HR of $RAMTOTAL_HR" "[ $RAMAVAIL_HR free ]  ║"
+if [ "$SWAPTOTAL_HR" != "0B" ]; then # only display the swap file status if there is one
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "$swapused of $swaptotal"  "  ║"
+printf " ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "$SWAPUSED_HR of $SWAPTOTAL_HR"  "  ║"
 fi 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
-printf " ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$tempc °C  /  $tempf °F" "  ║"
+printf " ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C  /  $TEMP_F °F" "  ║"
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 printf " ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$timenow" "  ║"
 echo " ╚═══════════════╩════════════════════════════════════════════════════╝"
@@ -1535,10 +1535,10 @@ echo ""
 echo "              Press Q to quit and stop monitoring"
 echo ""
 
-
+)
 
 # end output double buffer
 
-# echo "$output"
-# sleep 1
-# done
+echo "$output"
+sleep 1
+done
