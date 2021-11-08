@@ -1452,27 +1452,28 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon service is stopped. ]"
+  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "    [ DigiByte daemon service is stopped. ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" " [ DigiByte daemon is starting... ]"
+  printf " ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "     [ DigiByte daemon is starting up... ]"
   echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 fi
 printf " ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 if [ "$IS_AVAHI_INSTALLED" = "YES" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
+echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 elif [ "$DGA_STATUS" = "running" ]; then
 printf " ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
-fi
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
+fi
 printf " ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 echo " ╠═══════════════╬════════════════════════════════════════════════════╣"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
+printf " ║   DIGINODE    ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
-printf " ║ DIGINODE  ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "]  ║"
+printf " ║   DIGINODE    ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL" "   ║"
 fi
 echo " ║   SOFTWARE    ╠═════════════════════════════════════════════════════╣"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
@@ -1482,9 +1483,9 @@ printf " ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_L
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
-printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+printf " ║               ║  " && printf "%-26s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
 else
-printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
+printf " ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL" "  ║"
 fi
 echo " ║               ╠═════════════════════════════════════════════════════╣"
 printf " ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGNT_VER_LOCAL"
