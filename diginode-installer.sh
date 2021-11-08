@@ -694,6 +694,8 @@ set_sys_variables() {
 
     BOOT_DISKTOTAL_HR=$(df . -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     BOOT_DISKTOTAL_KB=$(df . --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DGB_DATA_DISKTOTAL_HR=$(df $DGB_DATA_LOCATION -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DGB_DATA_DISKTOTAL_KB=$(df $DGB_DATA_LOCATION --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ $VERBOSE_MODE = true ]; then
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
