@@ -1043,8 +1043,8 @@ pre_loop                    # Run this just before starting the loop
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
 ######################################################################################
 
-while :
-do
+# while :
+# do
 
 # Optional loop counter - useful for debugging
 echo "Loop Count: $loopcounter"
@@ -1425,7 +1425,6 @@ if [ $timedif24hrs -gt 86400 ]; then
     savedtime24hrs="$timenow"
 fi
 
-echo "HELLO"
 
 
 ###################################################################
@@ -1433,7 +1432,7 @@ echo "HELLO"
 ###################################################################
 
 # Double buffer output to reduce display flickering
-output=$(clear -x;
+# output=$(clear -x;
 
 echo -e "${txtbld}"
 echo -e "       ____   _         _   _   __            __     "             
@@ -1536,10 +1535,10 @@ echo ""
 echo "              Press Q to quit and stop monitoring"
 echo ""
 
-)
+
 
 # end output double buffer
 
-echo "$output"
-sleep 1
-done
+# echo "$output"
+# sleep 1
+# done
