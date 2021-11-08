@@ -1931,7 +1931,6 @@ checkSelinux() {
         esac
     else
         echo -e "${INFO} ${COL_GREEN}SELinux not detected${COL_NC}\\n";
-        printf "\\n"
     fi
     # Exit the installer if any SELinux checks toggled the flag
     if [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -z "${DIGINODE_SELINUX}" ]]; then
