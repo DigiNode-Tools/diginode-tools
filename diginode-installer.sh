@@ -443,6 +443,7 @@ DGNT_UPGRADE_DATE=
 DGNT_MONITOR_FIRST_RUN=
 DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
+DGNT_VER_LOCAL_DISPLAY=
 DGNT_VER_RELEASE=
 DGNT_LOCAL_BRANCH=
 DGNT_LOCAL_RELEASE=
@@ -2782,6 +2783,11 @@ menu_existing_install() {
             printf "%b You selected the UPGRADE option.\\n" "${INFO}"
             printf "\\n"
 
+            # If DigiAssets Node is installed, we already know this is a full install
+            if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+                DO_FULL_INSTALL=YES
+            fi
+
             ;;
         # Reset,
         ${opt2a})
@@ -3068,7 +3074,7 @@ fi
 
 request_social_media () {  
 
-    if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    if [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
         printf " ======== ${txtgrn}Congratulations - Your DigiNode has been installed!${txtrst} ==========\\n"
         printf " =======================================================================\\n\\n"
@@ -3082,7 +3088,7 @@ request_social_media () {
         echo "\"I just set up a #DigiNode to help support the decentralization of #DigiByte network!"
         echo "If you want to help, you can learn more at $DGBH_URL_TWEET \""
         echo ""
-    elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+    elif [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
         printf " ======== ${txtgrn}DigiByte Core has been installed!${txtrst} ============================\\n"
         printf " =======================================================================\\n\\n"
@@ -6158,6 +6164,7 @@ main() {
             DO_FULL_INSTALL=NO
         fi
     fi
+
 
     ### FIRST INSTALL MENU ###
 
