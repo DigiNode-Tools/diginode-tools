@@ -1405,7 +1405,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-        DGNT_VER_LOCAL_DISPLAY="develop branch"
+        DGNT_VER_LOCAL_DISPLAY="dev branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main branch"
@@ -1531,6 +1531,7 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
+"${COL_LIGHT_GREEN}" "${COL_NC}"
 
 
 ###################################################################
@@ -1558,11 +1559,11 @@ printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is not running."
+printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "${COL_LIGHT_RED}DigiByte daemon is not running.${COL_NC}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is starting up. Please wait... "
+printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "${COL_LIGHT_RED}DigiByte daemon is starting up. Please wait...${COL_NC}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
@@ -1574,34 +1575,38 @@ elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "DigiAsset Node is not running."
+printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "${COL_LIGHT_RED}DigiAsset Node is not running.${COL_NC}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "DigiAsset Node is not installed."
+printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "${COL_LIGHT_RED}DigiAsset Node is not installed.${COL_NC}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER  Port: $RPC_PORT" "║" 
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Password: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${COL_LIGHT_GREEN}Update: v$DGB_VER_RELEASE${COL_NC}" "]  ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${COL_LIGHT_GREEN}Update: v$IPFS_VER_RELEASE${COL_NC}" "]  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
 printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGA_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${COL_LIGHT_GREEN}Update: v$DGA_VER_RELEASE${COL_NC}" "]  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 fi
 printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+if [ "$DGNT_UPDATE_AVAILABLE" = "YES" ]; then
+  printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${COL_LIGHT_GREEN}Update: v$DGNT_VER_RELEASE${COL_NC}" "]  ║"
+else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+fi
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
