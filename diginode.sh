@@ -1105,8 +1105,25 @@ TEMP_F=$(((9/5) * $tempc + 32))
 #    UPDATE EVERY 1 SECOND - DIGIBYTE CORE 
 # ------------------------------------------------------------------------------
 
-# Is digibyted running?
-systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="stopped"
+# Is digibyted running as a service?
+systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="checkagain"
+
+# If it is not running as a service, check if digibyted is running via the command line
+if [ "$DGB_STATUS" = "checkagain" ]; then
+  if [ "" != "$(pgrep digibyted)" ]; then
+    DGB_STATUS="running"
+  fi
+fi
+
+# If digibyted is not running via the command line, check if digibyte-qt is running
+if [ "$DGB_STATUS" = "checkagain" ]; then
+  if [ "" != "$(pgrep digibyte-qt)" ]; then
+    DGB_STATUS="running"
+  else
+    DGB_STATUS="stopped"
+  fi
+fi
+
 
 # Is digibyted in the process of starting up, and not ready to respond to requests?
 if [ "$DGB_STATUS" = "running" ]; then
@@ -1552,12 +1569,12 @@ sleep 1
 # Display the quit message on exit
 trap quit_message EXIT
 
-read -rsn1 input
-if [ "$input" = "q" ]; then
-  echo ""
-  printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
-  echo ""
-  exit
-fi
+# read -rsn1 input
+# if [ "$input" = "q" ]; then
+#  echo ""
+#  printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
+#  echo ""
+#  exit
+# fi
 
 done
