@@ -1428,7 +1428,7 @@ fi
 
 TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
 
-# if [ $TIME_DIF_1DAY -gt 86400 ]; then
+if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
     # items to repeat every 24 hours go here
 
@@ -1529,7 +1529,7 @@ TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAV
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date)"
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
-# fi
+fi
 
 
 
