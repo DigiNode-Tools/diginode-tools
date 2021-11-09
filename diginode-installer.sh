@@ -4030,7 +4030,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Go-IPFS daemon service running?..."
+      str="Is Go-IPFS daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then # BANANA
           IPFS_STATUS="running"
@@ -4041,17 +4041,19 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       fi
     fi
 
-    # Next let's check if IPFS daemon is running
-    if [ systemctl is-active --quiet --user ipfs ]; then
-      str="Is Go-IPFS daemon service running?..."
-      printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "ipfs"; then # BANANA
-          IPFS_STATUS="running"
+    # Next let's check if IPFS daemon is running with systemd
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        str="Is Go-IPFS daemon systemd service running?..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Check if it is running or not #CHECKLATER
+        systemctl is-active --quiet --user ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
+
+        if [ "$IPFS_STATUS" = "running" ]; then
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-      else
-          IPFS_STATUS="stopped"
+        elif [ "$IPFS_STATUS" = "stopped" ]; then
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-      fi
+        fi
     fi
 
 
