@@ -484,11 +484,11 @@ NODEJS_UPGRADE_DATE=
 NODEJS_PPA_ADDED=
 
 # Timer variables (these control the timers in the Status Monitor loop)
-savedtime15sec=
-savedtime1min=
-savedtime15min=
-savedtime1day=
-savedtime1week=
+SAVED_TIME_15SEC=
+SAVED_TIME_1MIN=
+SAVED_TIME_15MIN=
+SAVED_TIME_1DAY=
+SAVED_TIME_1WEEK=
 
 # Disk usage variables (updated every 15 seconds)
 BOOT_DISKFREE_HR=
@@ -522,6 +522,9 @@ IPFS_PORT_TEST_DATE_date=
 
 # Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
 DONATION_PLEA=yes
+
+# Store DigiByte blockchain sync progress
+BLOCKSYNC_VALUE=
 
 EOF
 
