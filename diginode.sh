@@ -399,28 +399,28 @@ is_dgbnode_installed() {
 # Get RPC CREDENTIALS from digibyte.conf
 get_dgb_rpc_credentials() {
     if [ -f "$DGB_CONF_FILE" ]; then
-      RPCUSER=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
-      RPCPASSWORD=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
-      RPCPORT=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
+      RPC_USER=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
+      RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
+      RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
       if [ "$RPCUSER" != "" ] && [ "$RPCPASSWORD" != "" ] && [ "$RPCPORT" != "" ]; then
         RPC_CREDENTIALS_OK="YES"
         printf "  %b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n" "${TICK}"
       else
         RPC_CREDENTIALS_OK="NO"
         printf "  %b %bERROR: DigiByte RPC credentials are missing:%b" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        if [ "$RPCUSER" != "" ]; then
+        if [ "$RPC_USER" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
         printf " Username     "
-        if [ "$RPCPASSWORD" != "" ]; then
+        if [ "$RPC_PASS" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
         printf " Password     "
-        if [ "$RPCPORT" != "" ]; then
+        if [ "$RPC_PORT" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
@@ -1335,8 +1335,8 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
       echo "need to add check for change of DGA version number" 
 
-    # Next let's try and get the minor version, which may or may not be available yet
-    # If DigiAsset Node is running we can get it directly from the web server
+      # Next let's try and get the minor version, which may or may not be available yet
+      # If DigiAsset Node is running we can get it directly from the web server
 
       DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
@@ -1380,6 +1380,36 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+
+    # Lookup DigiNode Tools local version and branch, if any
+    if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+        local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+        DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+    fi
+
+    # If we get a valid version number, update the stored local version
+    if [ "$dgnt_ver_local_query" != "" ]; then
+        DGNT_VER_LOCAL=$dgnt_ver_local_query
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If we get a valid local branch, update the stored local branch
+    if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
+        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=$DGNT_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Let's check if DigiNode Tools already installed
+    if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        DGNT_VER_LOCAL_DISPLAY="develop branch"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        DGNT_VER_LOCAL_DISPLAY="main branch"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     fi
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
@@ -1522,20 +1552,20 @@ printf "  ╔═══════════════╦══════�
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
 printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_LOCAL Blocks" "[ Synced: $BLOCKSYNC_PERC %" "]  ║"
+printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_LOCAL Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is not running."
+printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is not running."
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is starting up. Please wait... "
+printf "  ║ DGB STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is starting up. Please wait... "
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
+printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$IS_AVAHI_INSTALLED" = "YES" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
@@ -1543,13 +1573,19 @@ printf "  ╠═══════════════╬══════�
 elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+elif [ "$DGA_STATUS" = "stopped" ]; then
+printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "DigiAsset Node is not running."
+printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+elif [ "$DGA_STATUS" = "not_detected" ]; then
+printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "DigiAsset Node is not installed."
+printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
+printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER  Pass: $RPC_PASS  Port: $RPC_PORT" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
 printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
-printf "  ║               ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
@@ -1564,7 +1600,7 @@ else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 fi
 printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGNT_VER_LOCAL"
+printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
@@ -1618,7 +1654,7 @@ printf "\\n"
 # end output double buffer
 
 echo "$output"
-sleep 1
+sleep 0.5
 
 # Display the quit message on exit
 trap quit_message EXIT

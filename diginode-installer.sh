@@ -841,7 +841,7 @@ digibyte_create_conf() {
         local set_rpcpassword
         str="Generating random RPC password..."
         printf "%b %s" "${INFO}" "${str}"
-        set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
