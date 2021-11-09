@@ -997,12 +997,22 @@ pre_loop() {
   # Set timenow variable with the current time
   TIME_NOW=$(date)
 
-  # Log date of Status Monitor first run to diginode.settings
+  # Log date of this Status Monitor run to diginode.settings
   str="Logging date of this run to diginode.settings file..."
   printf "  %b %s" "${INFO}" "${str}"
   DGNT_MONITOR_LAST_RUN=$(date)
   sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$DGNT_MONITOR_LAST_RUN\"|" $DGNT_SETTINGS_FILE
   printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+  # Is DigiByte daemon starting up?
+  if [ "$DGB_STATUS" = "running" ]; then
+    BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
+    if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+      DGB_STATUS="startingup"
+    else
+      BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
+    fi
+  fi
 
 }
 
@@ -1124,12 +1134,17 @@ if [ "$DGB_STATUS" = "checkagain" ]; then
   fi
 fi
 
-
-# Is digibyted in the process of starting up, and not ready to respond to requests?
+# If we think the blockchain is running, check the blockcount
 if [ "$DGB_STATUS" = "running" ]; then
-    BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
-    if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-      DGB_STATUS="startingup"
+
+    # If the blockchain is not yet synced, get blockcount
+    if [ "$BLOCKSYNC_PROGRESS" = "" ] || [ "$BLOCKSYNC_PROGRESS" = "notsynced" ]; then
+      BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+
+      # If we don't get a response, assume it is starting up
+      if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+        DGB_STATUS="startingup"
+      fi
     fi
 fi
 
@@ -1139,7 +1154,7 @@ fi
 if [ "$DGB_STATUS" = "running" ]; then
 
   # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
-  if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] && [ "$BLOCKSYNC_PROGRESS" = "" ]; then
+  if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Query debug.log for the blockchain syn progress
     BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
@@ -1196,14 +1211,19 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
 
     # Check if digibyted is successfully responding to requests up yet after starting up
     if [ $DGB_STATUS = "startingup" ]; then
+        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
         if [[ "$BLOCKCOUNT_LOCAL" != "" ]]; then
           DGB_STATUS="running"
         fi
     fi
 
     # Update local block count every 15 seconds (approx once per block)
-    if [ $DGB_STATUS = "running" ]; then
-          BLOCKCOUNT_LOCAL=$($DGB_CLI getblockchaininfo 2>/dev/null | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+    # Is digibyted in the process of starting up, and not ready to respond to requests?
+    if [ "$DGB_STATUS" = "running" ] && [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
+        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+        if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+          DGB_STATUS="startingup"
+        fi
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
@@ -1242,7 +1262,7 @@ TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAV
 if [ $TIME_DIF_1MIN -gt 60 ]; then
 
   # Update DigiByte Core sync progress every minute, if it is running
-  if [ $DGB_STATUS = "running" ]; then
+  if [ "$DGB_STATUS" = "running" ]; then
 
     # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
     if [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
@@ -1492,11 +1512,11 @@ output=$(clear -x;
 
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
-echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___  ${txtrst}╔═════════╗${txtbld}"
-echo -e "       / / / // // __ '// / /  |/ // __ \ / __  // _ \ ${txtrst}║ STATUS  ║${txtbld}"
-echo -e "      / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ ${txtrst}║ MONITOR ║${txtbld}"
-echo -e "     /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  ${txtrst}╚═════════╝${txtbld}"
-echo -e "                /____/                                 ${txtrst}"                         
+echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
+echo -e "       / / / // // __ '// / /  |/ // __ \ / __  // _ \  ${txtrst}║ STATUS  ║${txtbld}"
+echo -e "      / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}║ MONITOR ║${txtbld}"
+echo -e "     /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}╚═════════╝${txtbld}"
+echo -e "                /____/                                  ${txtrst}"                         
 echo ""  
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
@@ -1527,11 +1547,11 @@ fi
 printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $rpcusername  Pass: $rpcpassword  Port: $rpcport" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║ DIGINODE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtgrn}Update Available: v$DGB_VER_RELEASE${txtrst}" "]  ║"
 else
-printf "  ║ DIGINODE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+printf "  ║               ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
-printf "  ║   SOFTWARE    ╠════════════════════════════════════════════════════╣\\n"
+printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
 printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update Available: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
 else
@@ -1590,7 +1610,7 @@ printf "  ╠═══════════════╬══════�
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
-printf "                 Press Q to quit and stop monitoring\\n"
+printf "                 Press Ctrl-C to quit and stop monitoring\\n"
 printf "\\n"
 
 )
