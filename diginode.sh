@@ -1095,7 +1095,7 @@ systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="sto
 if [ $DGB_STATUS = "running" ]; then
     BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
 
-    if [ "$blockcount_local" != ^[0-9]+$ ]; then
+    if [ "$BLOCKCOUNT_LOCAL" != ^[0-9]+$ ]; then
       DGB_STATUS="startingup"
     fi
 fi
@@ -1147,14 +1147,14 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Check if digibyted is successfully responding to requests up yet after starting up
     if [ $DGB_STATUS = "startingup" ]; then
-        if [[ "$blockcount_local" = ^[0-9]+$ ]]; then
+        if [[ "$BLOCKCOUNT_LOCAL" = ^[0-9]+$ ]]; then
           DGB_STATUS="running"
         fi
     fi
 
     # Update local block count every 15 seconds (approx once per block)
     if [ $DGB_STATUS = "running" ]; then
-          blockcount_local=$($DGB_CLI getblockchaininfo 2>/dev/null | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
+          BLOCKCOUNT_LOCAL=$($DGB_CLI getblockchaininfo 2>/dev/null | grep headers | cut -d':' -f2 | sed 's/^.//;s/.$//')
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
