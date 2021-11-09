@@ -1259,7 +1259,7 @@ fi
 
 TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1MIN" "+%s") )))
 
-if [ $TIME_DIF_1MIN -gt 60 ]; then
+# if [ $TIME_DIF_1MIN -gt 60 ]; then
 
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
@@ -1311,7 +1311,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
   SAVED_TIME_1MIN="$(date)"
   sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
-fi
+# fi
 
 
 # ------------------------------------------------------------------------------
