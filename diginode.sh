@@ -1321,7 +1321,7 @@ fi
 
 TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15MIN" "+%s") )))
 
-# if [ $TIME_DIF_15MIN -gt 300 ]; then
+if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
@@ -1385,7 +1385,7 @@ TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SA
 
     # Lookup DigiNode Tools local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
-        local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
         DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
@@ -1418,7 +1418,7 @@ TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SA
 
     SAVED_TIME_15MIN="$(date)"
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-# fi
+fi
 
 
 # ------------------------------------------------------------------------------
@@ -1428,7 +1428,7 @@ TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SA
 
 TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
 
-if [ $TIME_DIF_1DAY -gt 86400 ]; then
+# if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
     # items to repeat every 24 hours go here
 
@@ -1529,7 +1529,7 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date)"
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
-fi
+# fi
 
 
 
