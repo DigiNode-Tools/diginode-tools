@@ -1259,7 +1259,7 @@ fi
 
 TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1MIN" "+%s") )))
 
-# if [ $TIME_DIF_1MIN -gt 60 ]; then
+if [ $TIME_DIF_1MIN -gt 60 ]; then
 
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
@@ -1311,7 +1311,7 @@ TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAV
   SAVED_TIME_1MIN="$(date)"
   sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
-# fi
+fi
 
 
 # ------------------------------------------------------------------------------
@@ -1321,7 +1321,7 @@ TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAV
 
 TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15MIN" "+%s") )))
 
-if [ $TIME_DIF_15MIN -gt 300 ]; then
+# if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
@@ -1418,7 +1418,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     SAVED_TIME_15MIN="$(date)"
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-fi
+# fi
 
 
 # ------------------------------------------------------------------------------
