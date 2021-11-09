@@ -131,9 +131,9 @@ for var in "$@"; do
     case "$var" in
         "--reset" ) RESET_MODE=true;;
         "--unattended" ) UNATTENDED_MODE=true;;
-        "--dgnt-dev" ) DGNT_BRANCH="develop";; 
-        "--dgnt-main" ) DGNT_BRANCH="main";; 
-        "--dga-dev" ) DGA_DEV_MODE=true;; 
+        "--dgntdev" ) DGNT_BRANCH="develop";; 
+        "--dgntmain" ) DGNT_BRANCH="main";; 
+        "--dgadev" ) DGA_DEV_MODE=true;; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
