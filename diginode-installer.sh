@@ -124,6 +124,7 @@ DGNT_BRANCH="release"
 UNINSTALL=false
 DIGINODE_SKIP_OS_CHECK=false
 DGA_DEV_MODE=false
+STATUS_MONITOR=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -137,6 +138,7 @@ for var in "$@"; do
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
+        "--statusmonitor" ) STATUS_MONITOR=true;;
     esac
 done
 
@@ -5904,6 +5906,17 @@ fi
 
 }
 
+# This will launch the Status Monitor again after installing updates
+launch_status_monitor() {
+
+    if [ "$STATUS_MONITOR" = true ]; then
+        printf "\\n"
+        printf "%b DigiNode Status Monitor will launch in 10 seconds...\\n" "${INFO}"
+        sleep 10
+        exec diginode
+    fi
+}
+
 
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
@@ -6242,6 +6255,9 @@ main() {
 
     # Display reboot message (and how to run Status Monitor)
     request_reboot
+
+    # Launch Status Monitor if requested
+    launch_status_monitor
 
 
 

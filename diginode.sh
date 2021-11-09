@@ -1440,11 +1440,11 @@ printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "  DigiByte daemon is not running."
+printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is not running."
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "  DigiByte daemon is starting up. Please wait... "
+printf "  ║ NODE STATUS   ║  " && printf "%-49s ║ \n" "DigiByte daemon is starting up. Please wait... "
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESSES  ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
@@ -1479,31 +1479,31 @@ printf "  ║               ╠════════════════�
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools v$DGNT_VER_LOCAL"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "   WARNING: Your DigiByte daemon service is not currently running."
-printf "            To start it enter: sudo systemctl start digibyted"
+printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
+printf "            To start it enter: sudo systemctl start digibyted\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
-printf "   IMPORTANT: DigiByte daemon is currently in the process of starting up."
-printf "              This can take up to 10 minutes. Please wait..."
+printf "   IMPORTANT: DigiByte daemon is currently in the process of starting up.\\n"
+printf "              This can take up to 10 minutes. Please wait...\\n"
 fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
-printf "   IMPORTANT: You need to forward port 12024 on your router so that"
-printf "   your DigiByte node can be discovered by other nodes on the internet."
-printf "   Otherwise the number of potential inbound connections is limited to 7."
-printf ".  For help on how to do this, visit [ https://portforward.com/ ]"
+printf "   IMPORTANT: You need to forward port 12024 on your router so that\\n"
+printf "   your DigiByte node can be discovered by other nodes on the internet.\\n"
+printf "   Otherwise the number of potential inbound connections is limited to 7.\\n"
+printf ".  For help on how to do this, visit [ https://portforward.com/ ]\\n"
 printf "\\n"
-printf "   You can verify that port 12024 is being forwarded correctly by"
-printf "   visiting [ https://opennodes.digibyte.link ] and entering your"
-printf "   external IP address in the form at the bottom of the page. If the"
-printf "   port is open, it should find your node and display your DigiByte"
-printf "   version number and approximate location."
+printf "   You can verify that port 12024 is being forwarded correctly by\\n"
+printf "   visiting [ https://opennodes.digibyte.link ] and entering your\\n"
+printf "   external IP address in the form at the bottom of the page. If the\\n"
+printf "   port is open, it should find your node and display your DigiByte\\n"
+printf "   version number and approximate location.\\n"
 printf "\\n"
-printf "   If you have already forwarded port 12024, monitor the connection"
-printf "   count above - it should start increasing. If the number is above 8,"
-printf "   this indicates that things are working correctly. This message will"
-printf "   disappear when the total connections exceeds 10."
+printf "   If you have already forwarded port 12024, monitor the connection\\n"
+printf "   count above - it should start increasing. If the number is above 8,\\n"
+printf "   this indicates that things are working correctly. This message will\\n"
+printf "   disappear when the total connections exceeds 10.\\n"
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
@@ -1522,7 +1522,7 @@ printf "  ╠═══════════════╬══════�
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$timenow" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
-printf "                 Press Q to quit and stop monitoring"
+printf "                 Press Q to quit and stop monitoring\\n"
 printf "\\n"
 
 )
