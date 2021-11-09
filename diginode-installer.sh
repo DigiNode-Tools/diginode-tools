@@ -520,6 +520,9 @@ SYSTEM_SECURITY_UPDATES=
 IPFS_PORT_TEST_STATUS=
 IPFS_PORT_TEST_DATE_date=
 
+# Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+DONATION_PLEA=yes
+
 EOF
 
     if [ $VERBOSE_MODE = true ]; then
@@ -1672,7 +1675,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this install script (stored as an array)
-    INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail ca-certificates)
+    INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "$avahi_package" )
 

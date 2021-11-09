@@ -758,6 +758,18 @@ quit_message() {
 
       # Install updates now
       clear -x
+
+      if [ "$DONATION_PLEA" = "yes" ]; then
+        printf "\\n"
+        printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
+        printf "\\n"
+        donation_qrcode
+        printf "\\n"
+        # Don't show the donation plea again for at least 15 minutes
+        DONATION_PLEA="wait15"
+        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
+      fi
+
       printf "%b Updates are available for your DigiNode.\\n" "${INFO}"
       printf "\\n"
       read -p "Would you like to install them now? (Y/N)" -n 1 -r
@@ -767,6 +779,7 @@ quit_message() {
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
         exec curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended --statusmonitor
+      fi
  #       if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
  #         digibyte_do_install
  #       fi
@@ -785,7 +798,6 @@ quit_message() {
  #     fi
 
 
-
       # Display donation qr code
       printf "\\n"
       donation_qrcode "Status Monitor"
@@ -800,7 +812,8 @@ quit_message() {
       donation_qrcode
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
-      DONATION_PLEA="no"
+      DONATION_PLEA="wait15"
+      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
   else
       clear -x
       printf "\\n"
@@ -907,6 +920,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
 
     # When the user quits, enable showing a donation plea
     DONATION_PLEA="yes"
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -1300,6 +1314,7 @@ if [ $timedif15min -gt 300 ]; then
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
     DONATION_PLEA="yes"
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
 
     # reset 15 minute timer
     savedtime15min="$timenow"
