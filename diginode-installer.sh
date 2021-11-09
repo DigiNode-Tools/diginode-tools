@@ -250,7 +250,7 @@ diginode_tools_create_settings() {
 local str
 
 # If we are in reset mode, delete the diginode.settings file, if it already exists
-  if [ $RESET_MODE = true ] && [ -f "$DGNT_SETTINGS_FILE" ]; then
+  if [ "$RESET_MODE" = true ] && [ -f "$DGNT_SETTINGS_FILE" ]; then
     printf "%b Reset Mode is Enabled. Deleting existing diginode.settings file.\\n" "${INFO}"
     rm -f $DGNT_SETTINGS_FILE
   fi
@@ -2871,7 +2871,7 @@ digibyte_create_service() {
 #
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
-if [ $RESET_MODE = true ]; then
+if [ "$RESET_MODE" = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
@@ -3093,13 +3093,13 @@ request_social_media () {
         echo " as well. You can run this installer again at any time to upgrade to a full"
         echo " DigiNode."
         echo ""
-    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
         printf " ================== ${txtgrn}Your DigiNode has been Reset!${txtrst} ======================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
         echo ""
-    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
         printf " ================== ${txtgrn}DigiByte Core has been Reset!${txtrst} ======================\\n"
         printf " =======================================================================\\n\\n"
@@ -3162,7 +3162,7 @@ request_reboot () {
         printf "\\n"
         printf "%b To run it enter: diginode\\n" "${INDENT}"
         printf "\\n"
-    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
@@ -3171,7 +3171,7 @@ request_reboot () {
         printf "\\n"
         printf "%b To run it enter: diginode\\n" "${INDENT}"
         printf "\\n"
-    elif [ $RESET_MODE = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To run it enter: diginode\\n" "${INDENT}"
@@ -3428,7 +3428,7 @@ digibyte_check() {
       # ....then check if a DigiByte Core upgrade is required
       if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
-          if [ $RESET_MODE = true ]; then
+          if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
@@ -3709,7 +3709,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 
             if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
 
-                if [ $RESET_MODE = true ]; then
+                if [ "$RESET_MODE" = true ]; then
                     printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
                     DGNT_INSTALL_TYPE="askreset"
                 else
@@ -3959,7 +3959,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
           printf "%b IPFS Updater is already up to date.\\n" "${TICK}"
-          if [ $RESET_MODE = true ]; then
+          if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
             IPFSU_INSTALL_TYPE="askreset"
             IPFSU_DO_INSTALL=YES
@@ -4054,7 +4054,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
           printf "%b Go-IPFS is already up to date.\\n" "${TICK}"
-          if [ $RESET_MODE = true ]; then
+          if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Go-IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
@@ -4390,7 +4390,7 @@ ipfs_create_service() {
 
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
-if [ $RESET_MODE = true ]; then
+if [ "$RESET_MODE" = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] || [ test -f "$IPFS_UPSTART_SERVICE_FILE" ]; then
@@ -4678,7 +4678,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
           printf "%b NodeJS is already up to date.\\n" "${TICK}"
-          if [ $RESET_MODE = true ]; then
+          if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install NodeJS v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
             NODEJS_INSTALL_TYPE="askreset"
             NODEJS_DO_INSTALL=YES
@@ -5009,7 +5009,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # ....then 
       if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
           printf "%b DigiAsset Node is already up to date.\\n" "${INFO}"
-          if [ $RESET_MODE = true ]; then
+          if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiAsset Node v${DGA_VER_RELEASE}.\\n" "${INFO}"
             DGA_INSTALL_TYPE="askreset"
             DGA_DO_INSTALL=YES
@@ -5181,7 +5181,7 @@ digiasset_node_pm2_create_service() {
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
-if [ $RESET_MODE = true ]; then
+if [ "$RESET_MODE" = true ]; then
 
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
