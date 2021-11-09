@@ -1157,7 +1157,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Query debug.log for the blockchain syn progress
-    BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
+    BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -1268,7 +1268,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
     if [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
 
         # Query debug.log for the blockchain syn progress
-        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
      
         # Is the returned value numerical?
         re='^[0-9]+([.][0-9]+)?$'
