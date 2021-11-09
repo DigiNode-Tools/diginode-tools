@@ -402,7 +402,7 @@ get_dgb_rpc_credentials() {
       RPC_USER=$(cat $DGB_CONF_FILE | grep rpcuser | cut -d'=' -f 2)
       RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword | cut -d'=' -f 2)
       RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport | cut -d'=' -f 2)
-      if [ "$RPCUSER" != "" ] && [ "$RPCPASSWORD" != "" ] && [ "$RPCPORT" != "" ]; then
+      if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
         RPC_CREDENTIALS_OK="YES"
         printf "  %b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n" "${TICK}"
       else
