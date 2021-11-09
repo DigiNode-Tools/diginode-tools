@@ -877,24 +877,24 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     str="Setting up Status Monitor timers..."
     printf "  %b %s" "${INFO}" "${str}"
     # set 15 sec timer and save to settings file
-    savedtime15sec="$(date)"
-    sed -i -e "/^savedtime15sec=/s|.*|savedtime15sec=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15SEC="$(date)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
-    savedtime1min="$(date)"
-    sed -i -e "/^savedtime1min=/s|.*|savedtime1min=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 15 min timer and save to settings file
-    savedtime15min="$(date)"
-    sed -i -e "/^savedtime15min=/s|.*|savedtime15min=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set daily timer and save to settings file
-    savedtime1day="$(date)"
-    sed -i -e "/^savedtime1day=/s|.*|savedtime1day=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1DAY="$(date)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set weekly timer and save to settings file
-    savedtime1week="$(date)"
-    sed -i -e "/^savedtime1week=/s|.*|savedtime1week=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1WEEK="$(date)"
+    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date)\"|" $DGNT_SETTINGS_FILE
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
 
@@ -995,7 +995,7 @@ pre_loop() {
   loopcounter=0
 
   # Set timenow variable with the current time
-  timenow=$(date)
+  TIME_NOW=$(date)
 
   # Log date of Status Monitor first run to diginode.settings
   str="Logging date of this run to diginode.settings file..."
@@ -1083,7 +1083,7 @@ fi
 # ------------------------------------------------------------------------------
 
 # Update timenow variable with current time
-timenow=$(date)
+TIME_NOW=$(date)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
@@ -1139,24 +1139,40 @@ fi
 if [ "$DGB_STATUS" = "running" ]; then
 
   # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
-  if [ "$blocksync_progress" != "synced" ]; then
-    blocksync_value_saved=$(blocksync_value)
-    blocksync_value=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
-    if [ "$blocksync_value" -eq "" ]; then
-       blocksync_value=$(blocksync_value_saved)
+  if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] && [ "$BLOCKSYNC_PROGRESS" = "" ]; then
+
+    # Query debug.log for the blockchain syn progress
+    BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
+ 
+    # Is the returned value numerical?
+    re='^[0-9]+([.][0-9]+)?$'
+    if ! [[ $BLOCKSYNC_VALUE_QUERY =~ $re ]] ; then
+       BLOCKSYNC_VALUE_QUERY=""
     fi
-    echo "scale=2 ;$blocksync_percent*100"|bc
+
+    if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
+       BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE_QUERY
+       sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Calculate blockchain sync percentage
+    BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+
+    # Round blockchain sync percentage to two decimal places
+    BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
+
+    # Detect if the blockchain is fully synced
+    if [ "$BLOCKSYNC_PERC" = "100.00" ]; then
+      BLOCKSYNC_PERC="100"
+      BLOCKSYNC_PROGRESS="synced"
+    fi
+    
+
   fi
 
   # Get DigiByted Uptime
   uptime_seconds=$($DGB_CLI uptime 2>/dev/null)
   uptime=$(eval "echo $(date -ud "@$uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
-
-  # Detect if the block chain is fully synced
-  if [ "$blocksync_percent" -eq 100.00 ]; then
-    blocksync_percent="100"
-    blocksync_progress="synced"
-  fi
 
   # Show port warning if connections are less than or equal to 7
   DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
@@ -1174,9 +1190,9 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-timedif15sec=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedtime15sec" "+%s") )))
+TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15SEC" "+%s") )))
 
-if [ $timedif15sec -gt 15 ]; then 
+if [ $TIME_DIF_15SEC -gt 15 ]; then 
 
     # Check if digibyted is successfully responding to requests up yet after starting up
     if [ $DGB_STATUS = "startingup" ]; then
@@ -1211,7 +1227,8 @@ if [ $timedif15sec -gt 15 ]; then
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
-    savedtime15sec="$timenow"
+    SAVED_TIME_15SEC="$(date)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1220,45 +1237,61 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-timedif1min=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedtime1min" "+%s") )))
+TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1MIN" "+%s") )))
 
-# Update DigiByte Core sync progress every minute, if it is running
-if [ $DGB_STATUS = "running" ]; then
+if [ $TIME_DIF_1MIN -gt 60 ]; then
+
+  # Update DigiByte Core sync progress every minute, if it is running
+  if [ $DGB_STATUS = "running" ]; then
 
     # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
-      blocksync_value_saved=$(blocksync_value)
-      blocksync_value=$(tail -n 1 ~/.digibyte/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
-      if [ $blocksync_value -eq "" ]; then
-         blocksync_value=$(blocksync_value_saved)
-      fi
-      echo "scale=2 ;$blocksync_percent*100"|bc
+    if [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
 
-      # If sync progress is 100.00%, make it 100%
-      if [ $blocksync_percent -eq "100.00" ]; then
-         blocksync_percent="100"
-      fi
+        # Query debug.log for the blockchain syn progress
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2 | sed -r 's/.{3}$//')
+     
+        # Is the returned value numerical?
+        re='^[0-9]+([.][0-9]+)?$'
+        if ! [[ $BLOCKSYNC_VALUE_QUERY =~ $re ]] ; then
+           BLOCKSYNC_VALUE_QUERY=""
+        fi
 
-      # Check if sync progress is not 100%
-      if [ $blocksync_percent -eq "100" ]; then
-         blocksync_progress="synced"
-      else
-         blocksync_progress="notsynced"
-      fi
+        # Ok, we got a number back. Update the variable.
+        if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
+           BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE_QUERY
+           sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Calculate blockchain sync percentage
+        BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+
+        # Round blockchain sync percentage to two decimal places
+        BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
+
+        # Check if sync progress is not 100%
+        if [ $BLOCKSYNC_PERC -eq "100" ]; then
+           BLOCKSYNC_PROGRESS="synced"
+        else
+           BLOCKSYNC_PROGRESS="notsynced"
+        fi
+    fi
+  fi
+
+  # Update local IP address if it has changed
+  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+  if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
+    IP4_INTERNAL = $IP4_INTERNAL_NEW
+    sed -i -e '/^IP4_INTERNAL=/s|.*|IP4_INTERNAL="$IP4_INTERNAL_NEW"|' $DGNT_SETTINGS_FILE
+  fi
+
+  # Update diginode.settings with when Status Monitor last ran
+  DGNT_MONITOR_LAST_RUN=$(date)
+  sed -i -e '/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN="$DGNT_MONITOR_LAST_RUN"|' $DGNT_SETTINGS_FILE
+
+  SAVED_TIME_1MIN="$(date)"
+  sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
 fi
-
-# Update local IP address if it has changed
-IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
-if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
-  IP4_INTERNAL = $IP4_INTERNAL_NEW
-  sed -i -e '/^IP4_INTERNAL=/s|.*|IP4_INTERNAL="$IP4_INTERNAL_NEW"|' $DGNT_SETTINGS_FILE
-fi
-
-# Update diginode.settings with when Status Monitor last ran
-DGNT_MONITOR_LAST_RUN=$(date)
-sed -i -e '/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN="$DGNT_MONITOR_LAST_RUN"|' $DGNT_SETTINGS_FILE
-
-savedtime1min="$timenow"
 
 
 # ------------------------------------------------------------------------------
@@ -1266,9 +1299,9 @@ savedtime1min="$timenow"
 #    Update the Internal & External IP
 # ------------------------------------------------------------------------------
 
-timedif15min=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedtime15min" "+%s") )))
+TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15MIN" "+%s") )))
 
-if [ $timedif15min -gt 300 ]; then
+if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
@@ -1333,8 +1366,8 @@ if [ $timedif15min -gt 300 ]; then
     DONATION_PLEA="yes"
     sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
 
-    # reset 15 minute timer
-    savedtime15min="$timenow"
+    SAVED_TIME_15MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1343,9 +1376,9 @@ fi
 #    Check for new version of DigiByte Core
 # ------------------------------------------------------------------------------
 
-timedif24hrs=$(printf "%s\n" $(( $(date -d "$timenow" "+%s") - $(date -d "$savedtime24hrs" "+%s") )))
+TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
 
-if [ $timedif24hrs -gt 86400 ]; then
+if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
     # items to repeat every 24 hours go here
 
@@ -1444,7 +1477,8 @@ if [ $timedif24hrs -gt 86400 ]; then
     fi
 
     # reset 24 hour timer
-    savedtime24hrs="$timenow"
+    SAVED_TIME_1DAY="$(date)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1468,7 +1502,7 @@ printf "  ╔═══════════════╦══════�
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
 printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$blocklocal Blocks" "[ Synced: $blocksyncpercent %" "]  ║"
+printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_LOCAL Blocks" "[ Synced: $BLOCKSYNC_PERC %" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
@@ -1553,7 +1587,7 @@ fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C  /  $TEMP_F °F" "  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$timenow" "  ║"
+printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 printf "                 Press Q to quit and stop monitoring\\n"
