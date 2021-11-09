@@ -6202,6 +6202,12 @@ main() {
     menu_ask_install_updates
 
 
+    # Install packages used by the actual software
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
+
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
@@ -6336,10 +6342,7 @@ main() {
         dep_install_list+=("${PIHOLE_WEB_DEPS[@]}")
     fi
 
-    # Install packages used by the actual software
-    printf "  %b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
+
 
     # On some systems, lighttpd is not enabled on first install. We need to enable it here if the user
     # has chosen to install the web interface, else the LIGHTTPD_ENABLED check will fail

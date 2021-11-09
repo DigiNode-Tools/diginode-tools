@@ -318,7 +318,7 @@ is_dgbnode_installed() {
           printf "  %b digibyte.conf file located\\n" "${TICK}"
            # Load digibyte.conf file to get variables
           printf "  %b Importing digibyte.conf\\n" "${TICK}"
-          source "$DGB_CONF_FILE"
+          source $DGB_CONF_FILE
       fi
     else
         printf "\\n"
@@ -350,7 +350,7 @@ is_dgbnode_installed() {
        DGB_STATUS="running"
     else
       # Check if digibyted is running (but not as a service).
-      if [ "" = "$(pgrep digibyted)" ]; then
+      if [ "" != "$(pgrep digibyted)" ]; then
           if [ $VERBOSE_MODE = true ]; then
             printf "  %b DigiByte daemon is running\\n" "${TICK}"
             # Don't display service warning mesage if it has already been shown above
@@ -766,22 +766,25 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-          digibyte_do_install
-        fi
-        if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
-          ipfs_do_install
-        fi
-        if [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
-          nodejs_do_install
-        fi
-        if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
-          dga_do_install
-        fi
-        if [ "$DGNTOOLS_UPDATE_AVAILABLE" = "YES" ]; then
-          dgntools_do_install
-        fi
-      fi
+        exec curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended --statusmonitor
+ #       if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
+ #         digibyte_do_install
+ #       fi
+ #       if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
+ #         ipfs_do_install
+ #       fi
+ #       if [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
+ #         nodejs_do_install
+ #       fi
+ #       if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
+ #         dga_do_install
+ #       fi
+ #       if [ "$DGNTOOLS_UPDATE_AVAILABLE" = "YES" ]; then
+ #         dgntools_do_install
+ #       fi
+ #     fi
+
+
 
       # Display donation qr code
       printf "\\n"
@@ -1092,10 +1095,9 @@ TEMP_F=$(((9/5) * $tempc + 32))
 systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="stopped"
 
 # Is digibyted in the process of starting up, and not ready to respond to requests?
-if [ $DGB_STATUS = "running" ]; then
+if [ "$DGB_STATUS" = "running" ]; then
     BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
-
-    if [ "$BLOCKCOUNT_LOCAL" != ^[0-9]+$ ]; then
+    if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
       DGB_STATUS="startingup"
     fi
 fi
@@ -1103,7 +1105,7 @@ fi
 
 # THE REST OF THIS ONLY RUNS NOTE IF DIGIBYED IS RUNNING
 
-if [ $DGB_STATUS = "running" ]; then
+if [ "$DGB_STATUS" = "running" ]; then
 
   # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
   if [ "$blocksync_progress" != "synced" ]; then
@@ -1126,12 +1128,12 @@ if [ $DGB_STATUS = "running" ]; then
   fi
 
   # Show port warning if connections are less than or equal to 7
-  connections=$($DGB_CLI getconnectioncount 2>/dev/null)
+  DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
-    connectionsmsg="${txtred}Low Connections Warning!${txtrst}"
+    DGB_CONNECTIONS_MSG="${txtred}Low Connections Warning!${txtrst}"
   fi
   if [ $DGB_CONNECTIONS -ge 9 ]; then
-    connectionsmsg="Maximum: $maxconnections"
+    DGB_CONNECTIONS_MSG="Maximum: $maxconnections"
   fi
 fi 
 
@@ -1147,7 +1149,7 @@ if [ $timedif15sec -gt 15 ]; then
 
     # Check if digibyted is successfully responding to requests up yet after starting up
     if [ $DGB_STATUS = "startingup" ]; then
-        if [[ "$BLOCKCOUNT_LOCAL" = ^[0-9]+$ ]]; then
+        if [[ "$BLOCKCOUNT_LOCAL" != "" ]]; then
           DGB_STATUS="running"
         fi
     fi
@@ -1432,7 +1434,7 @@ echo -e "                /____/                                 ${txtrst}"
 echo ""  
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
-printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $connectionsmsg" "]  ║"
+printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$blocklocal Blocks" "[ Synced: $blocksyncpercent %" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
