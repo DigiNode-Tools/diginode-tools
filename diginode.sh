@@ -1037,6 +1037,9 @@ pre_loop() {
     fi
   fi
 
+  # Choose a random DigiFact
+  digifact_randomize
+
 }
 
 
@@ -1359,8 +1362,6 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
     if [ $DGA_STATUS = "running" ]; then
 
-      echo "need to add check for change of DGA version number" 
-
       # Next let's try and get the minor version, which may or may not be available yet
       # If DigiAsset Node is running we can get it directly from the web server
 
@@ -1368,21 +1369,12 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
-          str="Current Version:"
-          printf "%b %s" "${INFO}" "${str}"
           sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
       elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
           DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
-          str="Current Version:"
-          printf "%b %s" "${INFO}" "${str}"
           sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
-          printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
       else
           DGA_VER_MNR_LOCAL=""
-          str="Current Version:"
-          printf "%b %s" "${INFO}" "${str}"
-          printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
       fi
 
       # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
@@ -1664,7 +1656,7 @@ printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MO
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ DISK USAGE    ║  " && printf "%-33s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ MEMORY USAGE  ║  " && printf "%-34s %-19s %-3s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]" "  ║"
+printf "  ║ MEMORY USAGE  ║  " && printf "%-33s %-18s %s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]" "║"
 if [ "$SWAPTOTAL_HR" != "0B" ]; then # only display the swap file status if there is one
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"

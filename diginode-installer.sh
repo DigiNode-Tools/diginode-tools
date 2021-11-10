@@ -6000,6 +6000,67 @@ array[16]="digifact17"
 array[17]="digifact18"
 array[18]="digifact19"
 array[19]="digifact20"
+array[20]="digifact21"
+array[21]="digifact22"
+array[22]="digifact23"
+array[23]="digifact24"
+array[24]="digifact25"
+array[25]="digifact26"
+array[26]="digifact27"
+array[27]="digifact28"
+array[28]="digifact29"
+array[29]="digifact30"
+array[30]="digifact31"
+array[31]="digifact32"
+array[32]="digifact33"
+array[33]="digifact34"
+array[34]="digifact35"
+array[35]="digifact36"
+array[36]="digifact37"
+array[37]="digifact38"
+array[38]="digifact39"
+array[39]="digifact40"
+array[40]="digifact41"
+array[41]="digifact42"
+array[42]="digifact43"
+array[43]="digifact44"
+array[44]="digifact45"
+array[45]="digifact46"
+array[46]="digifact47"
+array[47]="digifact48"
+array[48]="digifact49"
+array[49]="digifact50"
+array[50]="digifact51"
+array[51]="digifact52"
+array[52]="digifact53"
+array[53]="digifact54"
+array[54]="digifact55"
+array[55]="digifact56"
+array[56]="digifact57"
+array[57]="digifact58"
+array[58]="digifact59"
+array[59]="digifact60"
+array[60]="digifact61"
+array[61]="digifact62"
+array[62]="digifact63"
+array[63]="digifact64"
+array[64]="digifact65"
+array[65]="digifact66"
+array[66]="digifact67"
+array[67]="digifact68"
+array[68]="digifact69"
+array[69]="digifact70"
+array[70]="digifact71"
+array[71]="digifact72"
+array[72]="digifact73"
+array[73]="digifact74"
+array[74]="digifact75"
+array[75]="social1"
+array[76]="social2"
+array[77]="help1"
+array[78]="help2"
+array[79]="help3"
+array[80]="help4"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -6029,7 +6090,7 @@ digifact_display() {
 #             ╔════════════════════════════════════════════════════════════════════╗
 
 if [ "$DIGIFACT" = "digifact1" ]; then
-    DIGIFACT_NUM="1"
+    DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
     DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
     DIGIFACT_L2="11 million blocks. Bitcoin will take until the next century to"
     DIGIFACT_L3="reach that many blocks."
@@ -6039,7 +6100,7 @@ if [ "$DIGIFACT" = "digifact1" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact2" ]; then
-    DIGIFACT_NUM="2"
+    DIGIFACT_TITLE="DigiFact # 2 - Did you know..."
     DIGIFACT_L1="DigiByte has upgraded the network a number of times to include"
     DIGIFACT_L2="\"Improvement milestones\". These forks were not splits that"
     DIGIFACT_L3="generated additional coins, but rather a \"reorientation of the"
@@ -6049,7 +6110,7 @@ if [ "$DIGIFACT" = "digifact2" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact3" ]; then
-    DIGIFACT_NUM="3"
+    DIGIFACT_TITLE="DigiFact # 3 - Did you know..."
     DIGIFACT_L1="DigiByte was fairly launched in 2014, long before the 2017"
     DIGIFACT_L2="Initial Coin Offering (ICO) craze of whitepaper projects."
     DIGIFACT_L3="DigiByte launched with a fully working blockchain that has been"
@@ -6059,7 +6120,7 @@ if [ "$DIGIFACT" = "digifact3" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact4" ]; then
-    DIGIFACT_NUM="4"
+    DIGIFACT_TITLE="DigiFact # 4 - Did you know..."
     DIGIFACT_L1="When DigiByte launched in 2014, a tiny DigiByte pre-mine (0.5%)"
     DIGIFACT_L2="was given away to community members within the first 30 days,"
     DIGIFACT_L3="and the details can be seen on BitcoinTalk. This was to done"
@@ -6069,7 +6130,7 @@ if [ "$DIGIFACT" = "digifact4" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact5" ]; then
-    DIGIFACT_NUM="5"
+    DIGIFACT_TITLE="DigiFact # 5 - Did you know..."
     DIGIFACT_L1="There is no founders reward in DigiByte. Nobody gets part of"
     DIGIFACT_L2="each blocks reward except whoever mined it."
     DIGIFACT_L3=""
@@ -6079,7 +6140,7 @@ if [ "$DIGIFACT" = "digifact5" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact6" ]; then
-    DIGIFACT_NUM="6"
+    DIGIFACT_TITLE="DigiFact # 6 - Did you know..."
     DIGIFACT_L1="The DigiByte founder and developers all purchased their DigiByte"
     DIGIFACT_L2="on an exchange at market rates, or mined their own DGB, just"
     DIGIFACT_L3="like you do."
@@ -6089,9 +6150,9 @@ if [ "$DIGIFACT" = "digifact6" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact7" ]; then
-    DIGIFACT_NUM="7"
+    DIGIFACT_TITLE="DigiFact # 7 - Did you know..."
     DIGIFACT_L1="Fees for DigiByte are incredibly low. In Block 7658349, a user "
-    DIGIFACT_L2="sent 342,000,000 DGB (worht \$6 million USD at the time) from the "
+    DIGIFACT_L2="sent 342,000,000 DGB (worth \$6 million USD at the time) from the "
     DIGIFACT_L3="inputs of over 200 different addresses. It cost 1/10th of a "
     DIGIFACT_L4="cent (USD) in fees and took only a few seconds to confirm."
     DIGIFACT_L5=""
@@ -6099,7 +6160,7 @@ if [ "$DIGIFACT" = "digifact7" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact8" ]; then
-    DIGIFACT_NUM="8"
+    DIGIFACT_TITLE="DigiFact # 8 - Did you know..."
     DIGIFACT_L1="DigiByte pioneered the DigiShield difficulty adjustment. It's"
     DIGIFACT_L2="used in Dogecoin, Ubiq, ZCash, Monacoin and parts of the code"
     DIGIFACT_L3="are even used in Ethereum."
@@ -6109,7 +6170,7 @@ if [ "$DIGIFACT" = "digifact8" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact9" ]; then
-    DIGIFACT_NUM="9"
+    DIGIFACT_TITLE="DigiFact # 9 - Did you know..."
     DIGIFACT_L1="DigiByte was the first non-Bitcoin blockchain to fix the major"
     DIGIFACT_L2="inflation bug in 2018. Rapid response from our rock-star"
     DIGIFACT_L3="developers!"
@@ -6119,7 +6180,7 @@ if [ "$DIGIFACT" = "digifact9" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact10" ]; then
-    DIGIFACT_NUM="10"
+    DIGIFACT_TITLE="DigiFact # 10 - Did you know..."
     DIGIFACT_L1="The DigiByte \"Genesis Block\" contained the following headline:"
     DIGIFACT_L2="\"USA Today: 10/Jan/2014, Target: Data stolen from up to"
     DIGIFACT_L3="110M customers.\" This forever cemented DigiByte's focus on"
@@ -6129,7 +6190,7 @@ if [ "$DIGIFACT" = "digifact10" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact11" ]; then
-    DIGIFACT_NUM="11"
+    DIGIFACT_TITLE="DigiFact # 11 - Did you know..."
     DIGIFACT_L1="DigiByte was the first coin to upgrade from a single mining "
     DIGIFACT_L2="algorithm to MultiAlgo, for the additional security provided by"
     DIGIFACT_L3="having 5x algorithms. This upgrade occurred in late 2014 as"
@@ -6139,7 +6200,7 @@ if [ "$DIGIFACT" = "digifact11" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact12" ]; then
-    DIGIFACT_NUM="12"
+    DIGIFACT_TITLE="DigiFact # 12 - Did you know..."
     DIGIFACT_L1="Initially DigiByte only used the Scrypt algorithm for mining."
     DIGIFACT_L2="In September 2014, the network upgraded to MultiAlgo,"
     DIGIFACT_L3="utilizing Scrypt, SHA256, Skein, Qubit & Myriad-Groestl."
@@ -6149,7 +6210,7 @@ if [ "$DIGIFACT" = "digifact12" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact13" ]; then
-    DIGIFACT_NUM="13"
+    DIGIFACT_TITLE="DigiFact # 13 - Did you know..."
     DIGIFACT_L1="In 2019, DigiByte upgraded the network, replacing the"
     DIGIFACT_L2="Myriad-Groestl algorithm for Odocrypt, to specifically target"
     DIGIFACT_L3="FPGA mining making that algorithm ASIC-resistant."
@@ -6159,7 +6220,7 @@ if [ "$DIGIFACT" = "digifact13" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact14" ]; then
-    DIGIFACT_NUM="14"
+    DIGIFACT_TITLE="DigiFact # 14 - Did you know..."
     DIGIFACT_L1="In 2018, the DigiByte community raised enough funds to supply"
     DIGIFACT_L2="Venezuelan refugees crossing the border with over a thousand"
     DIGIFACT_L3="bottles of water, feed 160 orphaned children for a month, provide"
@@ -6169,7 +6230,7 @@ if [ "$DIGIFACT" = "digifact14" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact15" ]; then
-    DIGIFACT_NUM="15"
+    DIGIFACT_TITLE="DigiFact # 15 - Did you know..."
     DIGIFACT_L1="DigiByte is not an ICO or a token launched on another network,"
     DIGIFACT_L2="but rather a pure blockchain project with it's own consensus"
     DIGIFACT_L3="rules such as Bitcoin or Vertcoin."
@@ -6179,7 +6240,7 @@ if [ "$DIGIFACT" = "digifact15" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact16" ]; then
-    DIGIFACT_NUM="16"
+    DIGIFACT_TITLE="DigiFact # 16 - Did you know..."
     DIGIFACT_L1="DigiByte was the first mobile wallet with a major focus on "
     DIGIFACT_L2="translations for worldwide accessibility, being available"
     DIGIFACT_L3="in 50+ languages on both Android & iOS."
@@ -6189,7 +6250,7 @@ if [ "$DIGIFACT" = "digifact16" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact17" ]; then
-    DIGIFACT_NUM="17"
+    DIGIFACT_TITLE="DigiFact # 17 - Did you know..."
     DIGIFACT_L1="DigiByte can be used to store tiny amounts (80-bytes) of data"
     DIGIFACT_L2="along with a transaction known as OP_RETURN. This is useful for "
     DIGIFACT_L3="document hashes for notarization / validation, dApps, scripting"
@@ -6199,7 +6260,7 @@ if [ "$DIGIFACT" = "digifact17" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact18" ]; then
-    DIGIFACT_NUM="18"
+    DIGIFACT_TITLE="DigiFact # 18 - Did you know..."
     DIGIFACT_L1="You can look up any transaction on the DigiByte Blockchain by"
     DIGIFACT_L2="inputting a transaction ID, DigiByte address, or block number"
     DIGIFACT_L3="into a \"Blockchain Explorer\". The community maintains one such"
@@ -6209,7 +6270,7 @@ if [ "$DIGIFACT" = "digifact18" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact19" ]; then
-    DIGIFACT_NUM="19"
+    DIGIFACT_TITLE="DigiFact # 19 - Did you know..."
     DIGIFACT_L1="Have you wanted to run your own DigiExplorer? Or get other data"
     DIGIFACT_L2="out of the blockchain so you can integrate it with your business? "
     DIGIFACT_L3="There are handy guides at dgbwiki.com that will help you."
@@ -6219,7 +6280,7 @@ if [ "$DIGIFACT" = "digifact19" ]; then
 fi
 
 if [ "$DIGIFACT" = "digifact20" ]; then
-    DIGIFACT_NUM="20"
+    DIGIFACT_TITLE="DigiFact # 20 - Did you know..."
     DIGIFACT_L1="In 2019, DigiByte implemented the unique algorithm Odocrypt,"
     DIGIFACT_L2="replacing the older Myriad-Groestl. This Odocrypt hashing"
     DIGIFACT_L3="algorithm is not used in any other project and was made"
@@ -6228,8 +6289,619 @@ if [ "$DIGIFACT" = "digifact20" ]; then
     DIGIFACT_L6=""
 fi
 
+if [ "$DIGIFACT" = "digifact21" ]; then
+    DIGIFACT_TITLE="DigiFact # 21 - Did you know..."
+    DIGIFACT_L1="Odocrypt was developed for DigiByte as a polymorphic algorithm"
+    DIGIFACT_L2="that resists ASICs, due to Odocrypt reprogramming itself every"
+    DIGIFACT_L3="10 days. It is only viable for FPGA mining, not ASICs."
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="Learn more about Odocrypt here: https://j.mp/3kpZKKB"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact22" ]; then
+    DIGIFACT_TITLE="DigiFact # 22 - Did you know..."
+    DIGIFACT_L1="DigiByte is available on 100+ exchanges, including many"
+    DIGIFACT_L2="different fiat pairings with local currencies, making it easier"
+    DIGIFACT_L3="than ever to buy DigiByte."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact23" ]; then
+    DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
+    DIGIFACT_L1="DigiByte has a known founder, Jared Tate. Unlike many other"
+    DIGIFACT_L2="blockchain founders who abandon their project, Jared is still"
+    DIGIFACT_L3="active after 6 years with contributions on the DigiByte code-base"
+    DIGIFACT_L4="to this day."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact24" ]; then
+    DIGIFACT_TITLE="DigiFact # 24 - Did you know..."
+    DIGIFACT_L1="DigiByte can do smart-contracts thanks to its \"script\" language"
+    DIGIFACT_L2="You can run a whole lot of powerful tools on top of DigiByte to"
+    DIGIFACT_L3="power a dApp."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact25" ]; then
+    DIGIFACT_TITLE="DigiFact # 25 - Did you know..."
+    DIGIFACT_L1="DigiByte has wallets for Windows, MacOS, Linux, Raspberry Pi,"
+    DIGIFACT_L2="Android, iOS and even Chrome OS. We are also supported on several"
+    DIGIFACT_L3="dozen other 3rd party & hardware wallets, each unique from the"
+    DIGIFACT_L4="others."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact26" ]; then
+    DIGIFACT_TITLE="DigiFact # 26 - Did you know..."
+    DIGIFACT_L1="Digi-ID by DigiByte is one of the simplest yet most secure"
+    DIGIFACT_L2="authentication methods in the world. Even Google warns against"
+    DIGIFACT_L3="using their own time-based 2FA codes or SMS-2FA, but Digi-ID"
+    DIGIFACT_L4="overcomes all the shortcomings. Digi-ID is open source, free,"
+    DIGIFACT_L5="ad-free (forever), private & secure."
+    DIGIFACT_L6="To learn more visit: https://www.digi-id.io/"
+fi
+
+if [ "$DIGIFACT" = "digifact27" ]; then
+    DIGIFACT_TITLE="DigiFact # 27 - Did you know..."
+    DIGIFACT_L1="The development of DigiByte is done by a worldwide team of"
+    DIGIFACT_L2="volunteers, who all donate their time out of a passion for the"
+    DIGIFACT_L3="project. There is no central company employing and paying"
+    DIGIFACT_L4="people, it's all given freely by our incredible developers"
+    DIGIFACT_L5="and supporting community."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact28" ]; then
+    DIGIFACT_TITLE="DigiFact # 28 - Did you know..."
+    DIGIFACT_L1="The last DigiByte will be mined by the year 2035. There is less"
+    DIGIFACT_L2="than half of all remaining \$DGB waiting to be mined by anybody"
+    DIGIFACT_L3="in the world. These are not \"owned\" by anybody, unlike an, "
+    DIGIFACT_L4="ICO and will be newly \"minted\"."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact29" ]; then
+    DIGIFACT_TITLE="DigiFact # 29 - Did you know..."
+    DIGIFACT_L1="DigiByte can be used for Atomic Swaps with other blockchains"
+    DIGIFACT_L2="safely and securely since the implementation of SegWit in "
+    DIGIFACT_L3="early 2017. There is no need for a second layer network to"
+    DIGIFACT_L4="perform this and it can instead be done directly."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact30" ]; then
+    DIGIFACT_TITLE="DigiFact # 30 - Did you know..."
+    DIGIFACT_L1="When all DigiByte have been mined, the network will continue to"
+    DIGIFACT_L2="function with the miners mining / securing the network as they"
+    DIGIFACT_L3="do at present. They will only get the transaction fees from"
+    DIGIFACT_L4="sending \$DGB."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact31" ]; then
+    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
+    DIGIFACT_L1="The most popular Core DigiByte wallet so far was our 6.14.2"
+    DIGIFACT_L2="release, with 200,000 downloads!"
+    DIGIFACT_L3=""
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact32" ]; then
+    DIGIFACT_TITLE="DigiFact # 32 - Did you know..."
+    DIGIFACT_L1="When DigiByte launched, there was a count-down to the release"
+    DIGIFACT_L2="of the code, and to the first block being mined. This was one"
+    DIGIFACT_L3="of the things done to encourage a \"fair\" distribution, right"
+    DIGIFACT_L4="from the very beginning in 2014."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact33" ]; then
+    DIGIFACT_TITLE="DigiFact # 33 - Did you know..."
+    DIGIFACT_L1="DigiByte was originally based on a fork of the Litecoin code-base"
+    DIGIFACT_L2="(Though, a 100% independent blockchain with unique Genesis"
+    DIGIFACT_L3="Block). DigiByte has since maintained closer features with"
+    DIGIFACT_L4="Bitcoin, while also significantly innovating and surpassing it!"
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="View the code at: https://github.com/digibyte-core/digibyte/"
+fi
+
+if [ "$DIGIFACT" = "digifact34" ]; then
+    DIGIFACT_TITLE="DigiFact # 34 - Did you know..."
+    DIGIFACT_L1="You can build second-layer networks on top of DigiByte such as"
+    DIGIFACT_L2="DigiAssets , Lightning Networks, ICOs, Tokens, assets and more."
+    DIGIFACT_L3=""
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact35" ]; then
+    DIGIFACT_TITLE="DigiFact # 35 - Did you know..."
+    DIGIFACT_L1="Theres a mind boggling number of possible DigiByte addresses."
+    DIGIFACT_L2="1,461,501,637,330,902,918,203,684,832,716,283,019,655,932,542,976"
+    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly   "
+    DIGIFACT_L4="generate trillions a second & never generate the same as"
+    DIGIFACT_L5="somebody else."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact36" ]; then
+    DIGIFACT_TITLE="DigiFact # 36 - Did you know..."
+    DIGIFACT_L1="You can accept DigiByte in retail scenarios just by entering"
+    DIGIFACT_L2="the desired amount in to your wallet. The QR code will"
+    DIGIFACT_L3="automatically include your address and amount when the"
+    DIGIFACT_L4=" sender scans it. Super simple, straight from your wallet."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact37" ]; then
+    DIGIFACT_TITLE="DigiFact # 37 - Did you know..."
+    DIGIFACT_L1="The Core DigiByte wallet connects to a variety of peers, not"
+    DIGIFACT_L2="just the 'closest' or 'fastest'. It finds connections from"
+    DIGIFACT_L3="all over the world, to ensure you get a broad consensus"
+    DIGIFACT_L4="on the DigiByte blockchain and protects you against sybil"
+    DIGIFACT_L5=" attacks."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact38" ]; then
+    DIGIFACT_TITLE="DigiFact # 38 - Did you know..."
+    DIGIFACT_L1="DigiByte implemented the DigiSpeed protocol in 2015. This allowed"
+    DIGIFACT_L2="allowed DigiByte to decrease from 30 second to 15 second block"
+    DIGIFACT_L3="timings. Lightning fast!"
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact39" ]; then
+    DIGIFACT_TITLE="DigiFact # 39 - Did you know..."
+    DIGIFACT_L1="Have you ever wanted to try another wallet? Are you after some"
+    DIGIFACT_L2="fancy features? Or perhaps you just want simplicity?"
+    DIGIFACT_L3="To discover the best wallet for you, visit:"
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="https://digibytewallets.com/"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact40" ]; then
+    DIGIFACT_TITLE="DigiFact # 40 - Did you know..."
+    DIGIFACT_L1="Did you know that DigiByte is permissionless? This means there"
+    DIGIFACT_L2="is no individual or company to ask if you can build a dApp"
+    DIGIFACT_L3="on top of it, use it, send it, receive it, accept it for your"
+    DIGIFACT_L4="business, advertise it, promote it. You simply \"can\"!"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact41" ]; then
+    DIGIFACT_TITLE="DigiFact # 41 - Did you know..."
+    DIGIFACT_L1="DigiByte is now working on its 8th \"protocol\" version in 6 years"
+    DIGIFACT_L2="since creation. This is what the first number in the DigiByte"
+    DIGIFACT_L3="Core Wallet version means, the protocol version. DigiByte"
+    DIGIFACT_L4="has consistently grown and improved throughout its history,"
+    DIGIFACT_L5="and continues to do-so."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact42" ]; then
+    DIGIFACT_TITLE="DigiFact # 42 - Did you know..."
+    DIGIFACT_L1="DigiBytes MultiAlgo means 5x algorithms all continuously compete"
+    DIGIFACT_L2="for every single block. Others such as X16R are very different,"
+    DIGIFACT_L3="instead rotating through each sub-algorithm with all miners"
+    DIGIFACT_L4="swapping and using that same. As such, X16R is still a \"single"
+    DIGIFACT_L5="algorithm\" compared with DigiBytes 5x MultiAlgo implementation."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact43" ]; then
+    DIGIFACT_TITLE="DigiFact # 43 - Did you know..."
+    DIGIFACT_L1="The Dandelion privacy protocol has been implemented in to"
+    DIGIFACT_L2="DigiByte Core, as well as the DigiByte Android & iOS apps."
+    DIGIFACT_L3="It helps protect your privacy, by masking the originating IP"
+    DIGIFACT_L4="address."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="To learn more about Dandelion, visit: https://j.mp/3Hag6AX"
+fi
+
+if [ "$DIGIFACT" = "digifact44" ]; then
+    DIGIFACT_TITLE="DigiFact # 44 - Did you know..."
+    DIGIFACT_L1="MultiShield is a powerful difficulty adjustment algorithm. It"
+    DIGIFACT_L2="ensures each of DigiBytes 5X algorithms all mine roughly an equal"
+    DIGIFACT_L3="amount of blocks, while maintaining a steady 15 second timing."
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="What is MultiShield? Learn more here:"
+    DIGIFACT_L6="https://j.mp/3oivy5u"
+fi
+
+if [ "$DIGIFACT" = "digifact45" ]; then
+    DIGIFACT_TITLE="DigiFact # 45 - Did you know..."
+    DIGIFACT_L1="Because of MultiShield, DigiByte has some of the most accurate"
+    DIGIFACT_L2="and stable block-timings. Where other projects usually wait"
+    DIGIFACT_L3="for 3-4 days to adjust, MultiShield tweaks. adjusts & refines"
+    DIGIFACT_L4="every single block."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="Learn more here: https://j.mp/3oivy5u"
+fi
+
+if [ "$DIGIFACT" = "digifact46" ]; then
+    DIGIFACT_TITLE="DigiFact # 46 - Did you know..."
+    DIGIFACT_L1="DigiByte was the first major blockchain project to enable the"
+    DIGIFACT_L2="Dandelion privacy protocol, to protect your IP address. You can"
+    DIGIFACT_L3="opt out of the privacy-protection it offers if you want even"
+    DIGIFACT_L4="faster transactions."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="To learn more about Dandelion, visit: https://j.mp/3Hag6AX"
+fi
+
+if [ "$DIGIFACT" = "digifact47" ]; then
+    DIGIFACT_TITLE="DigiFact # 47 - Did you know..."
+    DIGIFACT_L1="DigiByte is all about choice, and what works for you personally."
+    DIGIFACT_L2="DigiByte is available on over two dozen wallets, so there's"
+    DIGIFACT_L3="something that will fit everyone's requirements."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact48" ]; then
+    DIGIFACT_TITLE="DigiFact # 48 - Did you know..."
+    DIGIFACT_L1="DigiByte originally had 60 second block timings, however through"
+    DIGIFACT_L2="multiple network upgrades that were improved upon, first to 30,"
+    DIGIFACT_L3="and now to the 15 seconds it is today."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact49" ]; then
+    DIGIFACT_TITLE="DigiFact # 49 - Did you know..."
+    DIGIFACT_L1="DigiByte has had 100% uptime since its launch. While some people"
+    DIGIFACT_L2="restart their computers from time to time, hundreds of others"
+    DIGIFACT_L3="remain online all the time so that even in event of a major"
+    DIGIFACT_L4="nationwide internet outage, DigiByte would still continue to"
+    DIGIFACT_L5="function."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact50" ]; then
+    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
+    DIGIFACT_L1="DigiByte 1-click miner allows anybody to get started"
+    DIGIFACT_L2="participating in mining \$DGB with their graphics card in their"
+    DIGIFACT_L3="computer. Doing-so earns you DigiByte, while helping to secure"
+    DIGIFACT_L4="the network."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact51" ]; then
+    DIGIFACT_TITLE="DigiFact # 51 - Did you know..."
+    DIGIFACT_L1="Anybody is able to contribute to the DigiByte code and make"
+    DIGIFACT_L2="improvements. All submissions get reviewed by other developers"
+    DIGIFACT_L3="to ensure no malicious code is accidentally accepted."
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="Join the Gitter dev chat here:"
+    DIGIFACT_L6="https://gitter.im/DigiByte-Core/protocol"
+fi
+
+if [ "$DIGIFACT" = "digifact52" ]; then
+    DIGIFACT_TITLE="DigiFact # 52 - Did you know..."
+    DIGIFACT_L1="Have you ever wanted to see some statistics about the DigiByte"
+    DIGIFACT_L2="network? For an overview of the of the DigiByte network, visit:"
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="https://digistats.digibyteservers.io"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact53" ]; then
+    DIGIFACT_TITLE="DigiFact # 53 - Did you know..."
+    DIGIFACT_L1="Nobody knows exactly how many \"nodes\" there are on the DigiByte"
+    DIGIFACT_L2="network, because there is no central point that all computers"
+    DIGIFACT_L3="check in with. This ensures your privacy when you download"
+    DIGIFACT_L4="the wallet software."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact54" ]; then
+    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
+    DIGIFACT_L1="DigiByte has some of the most accurate and consistent block"
+    DIGIFACT_L2="timing of any UTXO project. Where others like BTC and LTC"
+    DIGIFACT_L3="regularly vary by over 8% in any given day, DigiByte maintains"
+    DIGIFACT_L4="block timings within 0.1% of their expected schedule."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact55" ]; then
+    DIGIFACT_TITLE="DigiFact # 55 - Did you know..."
+    DIGIFACT_L1="DigiByte mining is some of the most distributed in the industry."
+    DIGIFACT_L2="When a 7-day period in September 2019 was compared against"
+    DIGIFACT_L3="Bitcoin and Litecoin, DigiByte had over 10X the number of unique"
+    DIGIFACT_L4="miners. This grew to over 20X the unique miners when looking at"
+    DIGIFACT_L5="a 3-month period. View more stats here: https://j.mp/3ojzV08"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact56" ]; then
+    DIGIFACT_TITLE="DigiFact # 56 - Did you know..."
+    DIGIFACT_L1="If the biggest 5x pools from Bitcoin were to collude, they could"
+    DIGIFACT_L2="control the Bitcoin, Bitcoin Cash, and Bitcoin SV networks"
+    DIGIFACT_L3="permanently until others grew to have more hash-power than them."
+    DIGIFACT_L4="Those same pools would not be a threat to DigiByte thanks to"
+    DIGIFACT_L5="DigiBytes MultiAlgo and MultiShield aspects."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact57" ]; then
+    DIGIFACT_TITLE="DigiFact # 57 - Did you know..."
+    DIGIFACT_L1="Every month, the DigiByte that miners get as a block-reward is"
+    DIGIFACT_L2="decreased by 1%. This gives DigiByte a very smooth supply-curve"
+    DIGIFACT_L3="for new DigiByte, rather than a \"halving\" event every few years."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact58" ]; then
+    DIGIFACT_TITLE="DigiFact # 58 - Did you know..."
+    DIGIFACT_L1="Transactions on the DigiByte network are public, but"
+    DIGIFACT_L2="pseudo-anonymous. You can see them on a Blockchain explorer,"
+    DIGIFACT_L3="however there is nothing inherently that can link a new"
+    DIGIFACT_L4="transaction / address to an end-user. There are no usernames,"
+    DIGIFACT_L5="email addresses etc required to use the DigiByte network."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact59" ]; then
+    DIGIFACT_TITLE="DigiFact # 59 - Did you know..."
+    DIGIFACT_L1="DigiByte addresses can be re-used, but it's completely optional."
+    DIGIFACT_L2="The best practice is for a wallet to give you a new address"
+    DIGIFACT_L3="each time after your previous address has received a"
+    DIGIFACT_L4="transaction. This is why you get a newly generated address each"
+    DIGIFACT_L5="time in the DigiByte Android & iOS apps."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact60" ]; then
+    DIGIFACT_TITLE="DigiFact # 60 - Did you know..."
+    DIGIFACT_L1="The source code for the DigiByte blockchain is completely"
+    DIGIFACT_L2="open-source, anybody can see it, inspect it, and review it."
+    DIGIFACT_L3="The Core Wallet is available at: "
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="https://github.com/DigiByte-Core/DigiByte"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact61" ]; then
+    DIGIFACT_TITLE="DigiFact # 61 - Did you know..."
+    DIGIFACT_L1="DigiByte blocks have an expected 15 second time, which means "
+    DIGIFACT_L2="every single day there are 5,760 new blocks added to the"
+    DIGIFACT_L3="DigiByte blockchain."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact62" ]; then
+    DIGIFACT_TITLE="DigiFact # 62 - Did you know..."
+    DIGIFACT_L1="A single DigiByte can be divided up to 8 decimal places, known"
+    DIGIFACT_L2="as a digiSatoshi (or dSat for short). That's 1/100,000,000 of a"
+    DIGIFACT_L3="DigiByte."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact63" ]; then
+    DIGIFACT_TITLE="DigiFact # 63 - Did you know..."
+    DIGIFACT_L1="Each of the 5x algorithms that DigiByte uses to secure the"
+    DIGIFACT_L2="network and mine new blocks has an equal 20% chance to find every"
+    DIGIFACT_L3="single block. There is no priority given to one or another."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact64" ]; then
+    DIGIFACT_TITLE="DigiFact # 64 - Did you know..."
+    DIGIFACT_L1="DigiByte has 4x address types, each starting with a different"
+    DIGIFACT_L2="prefix. \"D\" is for legacy DigiByte addresses, and \"3\" is for"
+    DIGIFACT_L3="legacy MultiSig addresses. Support for these will always remain,"
+    DIGIFACT_L4="however more commonly people are now using the newer address"
+    DIGIFACT_L5="formats - \"S\" for SegWit (Segregated Witness) or \"dgb1\""
+    DIGIFACT_L6="for Bech32 formatted addresses."
+fi
+
+if [ "$DIGIFACT" = "digifact65" ]; then
+    DIGIFACT_TITLE="DigiFact # 65 - Did you know..."
+    DIGIFACT_L1="DigiByte addresses starting with \"dgb1\" (known as Bech32 format)"
+    DIGIFACT_L2="have multiple advantages, such as error correction in the event"
+    DIGIFACT_L3="they were incorrectly written-down, as well as being much easier"
+    DIGIFACT_L4="for both humans and computers to recognise that they are"
+    DIGIFACT_L5="DigiByte-specific addresses."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact66" ]; then
+    DIGIFACT_TITLE="DigiFact # 66 - Did you know..."
+    DIGIFACT_L1="For a protocol upgrade to take place, over 70% of the network"
+    DIGIFACT_L2="must agree and be in consensus that the upgrade will take place."
+    DIGIFACT_L3="This occurs by \"signalling\" support for it when blocks are"
+    DIGIFACT_L4="mined, over the course of a 1-week period."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact67" ]; then
+    DIGIFACT_TITLE="DigiFact # 67 - Did you know..."
+    DIGIFACT_L1="There is a maximum of 21 billion DigiByte that will ever exist."
+    DIGIFACT_L2="This was intentionally chosen as a 1000:1 ratio compared to"
+    DIGIFACT_L3="Bitcoins 21 million. No more can ever be created."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact68" ]; then
+    DIGIFACT_TITLE="DigiFact # 68 - Did you know..."
+    DIGIFACT_L1="DigiByte is available on thousands of Crypto ATMs around the"
+    DIGIFACT_L2="world! This is a great way for people new to cryptocurrency"
+    DIGIFACT_L3="to get involved through a more \"traditional\" method of currency"
+    DIGIFACT_L4="exchange."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact69" ]; then
+    DIGIFACT_TITLE="DigiFact # 69 - Did you know..."
+    DIGIFACT_L1="DigiByte can be used to verify and validate documents, music,"
+    DIGIFACT_L2="media, identity and more! Although DigiByte excels as a means of"
+    DIGIFACT_L3="exchanging value, it is not limited to just being a currency."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact70" ]; then
+    DIGIFACT_TITLE="DigiFact # 70 - Did you know..."
+    DIGIFACT_L1="You can use multiple wallets! DigiByte is not just limited to a"
+    DIGIFACT_L2="single piece of software, and the community is encouraged to find"
+    DIGIFACT_L3="an app that works best for them, so try one, try a few, and keep"
+    DIGIFACT_L4="using the ones you like the most."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact71" ]; then
+    DIGIFACT_TITLE="DigiFact # 71 - Did you know..."
+    DIGIFACT_L1="DigiByte cannot ever have a centralized \"burning\" of the maximum"
+    DIGIFACT_L2="supply as other ICO's or centrally controlled tokens can. Because"
+    DIGIFACT_L3="DigiByte is a fully decentralized proejct, it's impossible to"
+    DIGIFACT_L4="issue a large scale \"burning\" of unused DigiByte. At most, you"
+    DIGIFACT_L5="could only ever destroy your own if you willingly transferred"
+    DIGIFACT_L6="them in to the void."
+fi
+
+if [ "$DIGIFACT" = "digifact72" ]; then
+    DIGIFACT_TITLE="DigiFact # 72 - Did you know..."
+    DIGIFACT_L1="Transactions on the DigiByte blockchain cannot be undone, by"
+    DIGIFACT_L2="anybody. Once a transaction has been made, it is permanent. Did"
+    DIGIFACT_L3="you accidentally send 50 DigiByte instead of 5 DigiByte? You'll"
+    DIGIFACT_L4="need to ask the recipient to return the surplus, as there is no"
+    DIGIFACT_L5="\"Undo\" function, and no central banking authority who can"
+    DIGIFACT_L6="roll back transactions."
+fi
+
+if [ "$DIGIFACT" = "digifact73" ]; then
+    DIGIFACT_TITLE="DigiFact # 73 - Did you know..."
+    DIGIFACT_L1="Do you want to start a DigiByte podcast, or meet-up? Go for it!"
+    DIGIFACT_L2="There is nobody to ask for permission, part of DigiByte being a"
+    DIGIFACT_L3="\"permissionless\" project. It is implied that you can, so go"
+    DIGIFACT_L4="right ahead and do it."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact74" ]; then
+    DIGIFACT_TITLE="DigiFact # 74 - Did you know..."
+    DIGIFACT_L1="The name \"DigiByte\" was originally chosen as it signifies a"
+    DIGIFACT_L2="\"Digital Byte\" of data. This is because blockchain technology"
+    DIGIFACT_L3="such as DigiByte can be used for so much more than as a \"coin\""
+    DIGIFACT_L4="such as silver or gold. DigiByte is incredibly multi-purpose."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact75" ]; then
+    DIGIFACT_TITLE="DigiFact # 75 - Did you know..."
+    DIGIFACT_L1="A copy of the DigiByte blockchain open source code v7.17.2 is"
+    DIGIFACT_L2="laying in cold storage 250 meters deep in the permafrost of an"
+    DIGIFACT_L3="Arctic mountain! Thanks to the GitHub Arctic Code Vault program!"
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "social1" ]; then
+    DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
+    DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet? We have a"
+    DIGIFACT_L2="growing community of over 40,0000 members."
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="Join here: https://reddit.com/r/Digibyte"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "social2" ]; then
+    DIGIFACT_TITLE="Join the DigiByte Community on Discord!"
+    DIGIFACT_L1="Have you joined the DigiByte Community on Discord yet?"
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="Join here: https://dsc.gg/digibytediscord"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "help1" ]; then
+    DIGIFACT_TITLE="DigiFact Tip!"
+    DIGIFACT_L1="You may have noticed that many of these DigiFacts have a URL in"
+    DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
+    DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
+    DIGIFACT_L5="It should make it possible to click on them to open the website."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "help2" ]; then
+    DIGIFACT_TITLE="Need Help with DigiNode Tools?"
+    DIGIFACT_L1="You can reach out to @digibytehelp on Twitter."
+    DIGIFACT_L2=" "
+    DIGIFACT_L3="You can also join the DigiNode Tools telegram group here: "
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="https://t.me/joinchat/ked2VGZsLPAyN2Jk"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "help3" ]; then
+    DIGIFACT_TITLE="Need DigiByte Support?"
+    DIGIFACT_L1="For general DigiByte support, the best place to start is with"
+    DIGIFACT_L2="the community support tool available here:"
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="https://dgbsupport.digiassetx.com/"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "help4" ]; then
+    DIGIFACT_TITLE="DigiNode Tip!"
+    DIGIFACT_L1="Did you know that you can view your DigiNode on a map?"
+    DIGIFACT_L2=" "
+    DIGIFACT_L3=" DigiByte Node: https://nodes.digibyte.host/"
+    DIGIFACT_L4="DigiAsset Node: https://ipfs.digiassetx.com/"
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="This is also a good way to know your DigiNode is working properly."
+fi
+
+
+
+
 printf "  ╔════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-66s ║ \n" "                DigiFact # $DIGIFACT_NUM - Did you know... "
+printf "  ║ " && printf "%-66s ║ \n" "              $DIGIFACT_TITLE"
 printf "  ╠════════════════════════════════════════════════════════════════════╣\\n"
 
 if [ "$DIGIFACT_L1" != "" ]; then
