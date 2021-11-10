@@ -463,6 +463,7 @@ DGA_VER_MNR_LOCAL=
 DGA_VER_LOCAL=
 DGA_VER_MJR_RELEASE=
 DGA_VER_RELEASE=
+DGA_LOCAL_BRANCH=
 
 
 # Store IPFS Updater installation details:
@@ -4912,6 +4913,24 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       fi
     fi
 
+     # Get the current local branch, if it exists
+     if [ -f "$DGA_INSTALL_LOCATION" ]]; then
+        DGA_LOCAL_BRANCH=$(git -C $DGA_LOCAL_BRANCH rev-parse --abbrev-ref HEAD 2>/dev/null)
+    fi
+
+    # If we get a valid local branch, update the stored local branch
+    if [ "$DGA_LOCAL_BRANCH" != "" ]; then
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=$DGA_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Requested branch
+    if [ "$DGA_BRANCH" = "apiV3" ]; then
+        printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
+    elif [ "$DGNT_BRANCH" = "main" ]; then
+        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
+    fi
+
+
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
     if [ "$DGA_STATUS" = "running" ]; then
@@ -5011,47 +5030,63 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
 
-    # If a local version already exists (i.e. we have a local version number) check if a DigiAsset Node upgrade is required
-    # This will compare the major version numbers of the local with the remote
-    if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
-      # ....then 
-      if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-          printf "%b DigiAsset Node is already up to date.\\n" "${INFO}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiAsset Node v${DGA_VER_RELEASE}.\\n" "${INFO}"
-            DGA_INSTALL_TYPE="askreset"
-            DGA_DO_INSTALL=YES
-          else
-            printf "%b Upgrade not required.\\n" "${INFO}"
-            DGA_DO_INSTALL=NO
-            DGA_INSTALL_TYPE="none"
-            DGA_UPDATE_AVAILABLE=NO
-            printf "\\n"
-            return
-          fi
-      else
-          if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b %bDigiAsset Node can be upgraded from v${DGA_VER_LOCAL} to v${DGA_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        else
-            printf "%b %bDigiAsset Node can be upgraded from v${DGA_VER_LOCAL} to the latest development version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        fi
-          DGA_INSTALL_TYPE="upgrade"
-          DGA_ASK_UPGRADE=YES
-      fi
-    fi 
+    # Upgrade to release branch
+    if [ "$DGA_BRANCH" = "main" ]; then
+        # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-    # If no current version is installed, then do a clean install
-    if [ $DGA_STATUS = "not_detected" ]; then
-        if [ $DGA_DEV_MODE = true ]; then 
-            printf "%b %bDigiAsset Node develop branch will be installed.%b\\n" "${INFO}"
-        else
+        if [ "$DGA_LOCAL_BRANCH" = "main" ]; then
+
+            if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
+
+                  printf "%b DigiAsset Node is already up to date.\\n" "${INFO}"
+                  if [ "$RESET_MODE" = true ]; then
+                    printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiAsset Node v${DGA_VER_RELEASE}.\\n" "${INFO}"
+                    DGA_INSTALL_TYPE="askreset"
+                    DGA_DO_INSTALL=YES
+                  else
+                    printf "%b Upgrade not required.\\n" "${INFO}"
+                    DGA_DO_INSTALL=NO
+                    DGA_INSTALL_TYPE="none"
+                    DGA_UPDATE_AVAILABLE=NO
+                    printf "\\n"
+                    return
+                  fi
+            else        
+                printf "%b %bDigiAsset Node can be upgraded from v{$DGA_VER_LOCAL} to v${DGA_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                DGA_INSTALL_TYPE="upgrade"
+                DGA_ASK_UPGRADE=YES
+            fi
+
+        elif [ "$DGA_LOCAL_BRANCH" = "apiV3" ]; then
+            printf "%b %bDigiNode Tools will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGA_INSTALL_TYPE="upgrade"
+            DGA_DO_INSTALL=YES
+        else 
             printf "%b %bDigiAsset Node v${DGA_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGA_INSTALL_TYPE="new"
+            DGA_DO_INSTALL="if_doing_full_install"
         fi
-        DGA_INSTALL_TYPE="new"
-        DGA_DO_INSTALL="if_doing_full_install"
+
+    # Upgrade to apiV3 branch
+    elif [ "$DGA_BRANCH" = "apiV3" ]; then
+        elif [ "$DGA_LOCAL_BRANCH" = "main" ]; then
+            printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the apiV3 branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGA_INSTALL_TYPE="upgrade"
+            DGA_DO_INSTALL=YES
+        elif [ "$DGNT_LOCAL_BRANCH" = "apiV3" ]; then
+            printf "%b %bDigiAsset Node apiV3 branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGA_INSTALL_TYPE="upgrade"
+            DGA_DO_INSTALL=YES
+        else
+            printf "%b %bDigiAsset Node apiV3 branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGA_INSTALL_TYPE="new"
+            DGA_DO_INSTALL="if_doing_full_install"
+        fi
+    
     fi
 
     printf "\\n"
+
 
 fi
 
@@ -5119,14 +5154,16 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         pm2 delete digiasset
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
-
-        # Delete existing 'digiasset_node' folder (if it exists)
-        str="Reset Mode: Deleting current '~/digiasset_node' folder..."
+    # Delete existing 'digiasset_node' folder (if it exists)
+    if [[ -d $DGA_INSTALL_LOCATION ]]; then
+        str="Removing DigiAsset Node current version..."
         printf "%b %s" "${INFO}" "${str}"
         rm -r -f $USER_HOME/digiasset_node
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
+    
 
     # Install the latest version of NPM
     printf "%b Install latest version of npm...\\n" "${INFO}"
@@ -5136,17 +5173,24 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     printf "%b Install latest version of PM2...\\n" "${INFO}"
     npm install --quiet pm2@latest -g
 
-    # Cloning DigiAsset Node from Github (will use dev branch set in header if the --dga-dav flaf was include)
-    if [ $DGA_DEV_MODE = true ]; then 
-        str="Cloning DigiAsset Node develop branch from Github repository..."
-    else
-        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
-    fi
-    printf "%b %s" "${INFO}" "${str}"
-    cd $USER_HOME
-    sudo -u $USER_ACCOUNT git clone -q $DGA_GITHUB_REPO
-    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
+    # Next install the newest version
+    cd $USER_HOME
+    # Clone the develop version if develop flag is set
+    if [ "$DGNT_BRANCH" = "apiV3" ]; then
+        str="Cloning DigiAsset Node apiV3 branch from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch apiV3 https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=apiV3|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # Clone the develop version if develop flag is set
+    elif [ "$DGNT_BRANCH" = "main" ]; then
+        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     cd $DGA_INSTALL_LOCATION
