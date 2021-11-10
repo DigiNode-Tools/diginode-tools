@@ -4914,7 +4914,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
      # Get the current local branch, if it exists
-     if [ -f "$DGA_INSTALL_LOCATION" ]]; then
+     if [ -f "$DGA_INSTALL_LOCATION" ]; then
         DGA_LOCAL_BRANCH=$(git -C $DGA_LOCAL_BRANCH rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
@@ -5056,6 +5056,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 DGA_INSTALL_TYPE="upgrade"
                 DGA_ASK_UPGRADE=YES
             fi
+
 
         elif [ "$DGA_LOCAL_BRANCH" = "apiV3" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
