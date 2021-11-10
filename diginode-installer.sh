@@ -5069,7 +5069,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Upgrade to apiV3 branch
     elif [ "$DGA_BRANCH" = "apiV3" ]; then
-        elif [ "$DGA_LOCAL_BRANCH" = "main" ]; then
+        if [ "$DGA_LOCAL_BRANCH" = "main" ]; then
             printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the apiV3 branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
