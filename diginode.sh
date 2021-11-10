@@ -1267,9 +1267,6 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
 
     fi
 
-      # Choose a random DigiFact
-      digifact_randomize
-
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
@@ -1322,6 +1319,9 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
         fi
     fi
   fi
+
+  # Choose a random DigiFact
+  digifact_randomize
 
   # Update local IP address if it has changed
   IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
