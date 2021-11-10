@@ -1314,6 +1314,11 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
         # Round blockchain sync percentage to two decimal places
         BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
 
+        # If it's at 100.00, get rid of the decimal zeros
+        if [ "$BLOCKSYNC_PERC" = "100.00" ]; then
+          BLOCKSYNC_PERC="100"
+        fi
+
         # Check if sync progress is not 100%
         if [ $BLOCKSYNC_PERC -eq "100" ]; then
            BLOCKSYNC_PROGRESS="synced"
@@ -1605,19 +1610,19 @@ printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core 
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
-printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
 printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtgrn}Update: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
 fi
-printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
 printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtgrn}Update: v$DGA_VER_RELEASE${txtrst}" "]  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
 fi
-printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "YES" ]; then
   printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtgrn}Update: v$DGNT_VER_RELEASE${txtrst}" "]  ║"
 else
@@ -1632,7 +1637,7 @@ printf "\\n"
 printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
 printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 9 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
 printf "   IMPORTANT: You need to forward port 12024 on your router so that\\n"
 printf "   your DigiByte node can be discovered by other nodes on the internet.\\n"
@@ -1648,7 +1653,7 @@ printf "\\n"
 printf "   If you have already forwarded port 12024, monitor the connection\\n"
 printf "   count above - it should start increasing. If the number is above 8,\\n"
 printf "   this indicates that things are working correctly. This message will\\n"
-printf "   disappear when the total connections exceeds 9.\\n"
+printf "   disappear when the total connections exceeds 8.\\n"
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
