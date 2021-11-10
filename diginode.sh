@@ -1676,7 +1676,9 @@ printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 # Display a random DigiFact
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 10 ]; then
 digifact_display
+fi
 printf "                 Press Ctrl-C to quit and stop monitoring\\n"
 printf "\\n"
 
