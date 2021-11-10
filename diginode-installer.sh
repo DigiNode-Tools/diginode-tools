@@ -4915,7 +4915,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
      # Get the current local branch, if it exists
      if [ -f "$DGA_INSTALL_LOCATION" ]; then
-        DGA_LOCAL_BRANCH=$(git -C $DGA_LOCAL_BRANCH rev-parse --abbrev-ref HEAD 2>/dev/null)
+        DGA_LOCAL_BRANCH=$(git -C $DGA_INSTALL_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid local branch, update the stored local branch
@@ -4926,7 +4926,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # Requested branch
     if [ "$DGA_BRANCH" = "apiV3" ]; then
         printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
-    elif [ "$DGNT_BRANCH" = "main" ]; then
+    elif [ "$DGA_BRANCH" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
