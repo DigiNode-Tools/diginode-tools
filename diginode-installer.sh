@@ -5178,15 +5178,15 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Next install the newest version
     cd $USER_HOME
-    # Clone the develop version if develop flag is set
-    if [ "$DGNT_BRANCH" = "apiV3" ]; then
+    # Clone the apiV3 version if develop flag is set
+    if [ "$DGA_BRANCH" = "apiV3" ]; then
         str="Cloning DigiAsset Node apiV3 branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch apiV3 https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=apiV3|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     # Clone the develop version if develop flag is set
-    elif [ "$DGNT_BRANCH" = "main" ]; then
+    elif [ "$DGA_BRANCH" = "main" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
