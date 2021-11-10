@@ -123,7 +123,7 @@ UNATTENDED_MODE=false
 DGNT_BRANCH="release"
 UNINSTALL=false
 DIGINODE_SKIP_OS_CHECK=false
-DGA_DEV_MODE=false
+DGA_BRANCH="main"
 STATUS_MONITOR=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
@@ -133,7 +133,7 @@ for var in "$@"; do
         "--unattended" ) UNATTENDED_MODE=true;;
         "--dgntdev" ) DGNT_BRANCH="develop";; 
         "--dgntmain" ) DGNT_BRANCH="main";; 
-        "--dgadev" ) DGA_DEV_MODE=true;; 
+        "--dgadev" ) DGA_BRANCH="apiV3";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
