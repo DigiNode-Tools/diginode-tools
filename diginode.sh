@@ -1664,7 +1664,7 @@ printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MO
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ DISK USAGE    ║  " && printf "%-33s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
+printf "  ║ MEMORY USAGE  ║  " && printf "%-34s %-19s %-3s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]" "  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ]; then # only display the swap file status if there is one
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
