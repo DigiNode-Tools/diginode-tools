@@ -212,9 +212,9 @@ is_unattended_mode() {
 
 # Inform user if DigiAsset Dev Mode is enable
 is_dgadev_mode() {
-    if [ "$DGA_DEV_MODE" = true ]; then
+    if [ "$DGA_BRANCH" = "apiV3" ]; then
         printf "%b DigiAsset Node Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   The developer version of DigiAsset Node will be installed.\\n" "${INDENT}"
+        printf "%b   The apiV3 version of DigiAsset Node will be installed.\\n" "${INDENT}"
         printf "\\n"
         DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
     else
@@ -642,6 +642,7 @@ set_dgnt_branch() {
             fi
     fi
 }
+
 
 # These are only set after the intitial OS check since they cause an error on MacOS
 set_sys_variables() {
