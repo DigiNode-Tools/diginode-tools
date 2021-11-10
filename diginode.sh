@@ -763,6 +763,14 @@ quit_message() {
         printf "\\n"
         printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
         printf "\\n"
+
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+        #Display donation QR code
         donation_qrcode
         printf "\\n"
         # Don't show the donation plea again for at least 15 minutes
@@ -809,13 +817,28 @@ quit_message() {
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
+
+      # Choose a random DigiFact
+      digifact_randomize
+
+      # Display a random DigiFact
+      digifact_display
+
+      #Display donation QR code
       donation_qrcode
+
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
       DONATION_PLEA="wait15"
       sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
   else
       clear -x
+      # Choose a random DigiFact
+      digifact_randomize
+
+      # Display a random DigiFact
+      digifact_display
+
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
@@ -1244,6 +1267,9 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
 
     fi
 
+      # Choose a random DigiFact
+      digifact_randomize
+
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
@@ -1608,14 +1634,13 @@ fi
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
-printf "            To start it enter: sudo systemctl start digibyted\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
-printf "   IMPORTANT: DigiByte daemon is currently in the process of starting up.\\n"
-printf "              This can take up to 10 minutes. Please wait...\\n"
+printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
+printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 10 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 9 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
 printf "   IMPORTANT: You need to forward port 12024 on your router so that\\n"
 printf "   your DigiByte node can be discovered by other nodes on the internet.\\n"
@@ -1631,7 +1656,7 @@ printf "\\n"
 printf "   If you have already forwarded port 12024, monitor the connection\\n"
 printf "   count above - it should start increasing. If the number is above 8,\\n"
 printf "   this indicates that things are working correctly. This message will\\n"
-printf "   disappear when the total connections exceeds 10.\\n"
+printf "   disappear when the total connections exceeds 9.\\n"
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
@@ -1639,10 +1664,10 @@ printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MO
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ DISK USAGE    ║  " && printf "%-33s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "$RAMUSED_HR of $RAMTOTAL_HR" "[ $RAMAVAIL_HR free ]  ║"
+printf "  ║ MEMORY USAGE  ║  " && printf "%-34s %-19s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ]; then # only display the swap file status if there is one
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "$SWAPUSED_HR of $SWAPTOTAL_HR"  "  ║"
+printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C  /  $TEMP_F °F" "  ║"
@@ -1650,6 +1675,8 @@ printf "  ╠═══════════════╬══════�
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
+# Display a random DigiFact
+digifact_display
 printf "                 Press Ctrl-C to quit and stop monitoring\\n"
 printf "\\n"
 

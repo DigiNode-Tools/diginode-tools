@@ -5977,6 +5977,298 @@ launch_status_monitor() {
     fi
 }
 
+# Select a random DigiFact to display
+digifact_randomize() {
+
+array[0]="digifact1"
+array[1]="digifact2"
+array[2]="digifact3"
+array[3]="digifact4"
+array[4]="digifact5"
+array[5]="digifact6"
+array[6]="digifact7"
+array[7]="digifact8"
+array[8]="digifact9"
+array[9]="digifact10"
+array[10]="digifact11"
+array[11]="digifact12"
+array[12]="digifact13"
+array[13]="digifact14"
+array[14]="digifact15"
+array[15]="digifact16"
+array[16]="digifact17"
+array[17]="digifact18"
+array[18]="digifact19"
+array[19]="digifact20"
+
+size=${#array[@]}
+index=$(($RANDOM % $size))
+
+# Store previous one, so we can make sure we don't display the same one twice in a row
+DIGIFACT_PREVIOUS=$DIGIFACT
+
+# Get new random DigiFact
+DIGIFACT="${array[$index]}"
+
+# If the new DigiFact is the same as the previous one, try again until we get a diferent one
+if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
+    DIGIFACT="${array[$index]}"
+fi
+if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
+    DIGIFACT="${array[$index]}"
+fi
+if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
+    DIGIFACT="${array[$index]}"
+fi
+
+}
+
+# Display the DigiFact
+digifact_display() {
+
+#             ╔════════════════════════════════════════════════════════════════════╗
+
+if [ "$DIGIFACT" = "digifact1" ]; then
+    DIGIFACT_NUM="1"
+    DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
+    DIGIFACT_L2="11 million blocks. Bitcoin will take until the next century to"
+    DIGIFACT_L3="reach that many blocks."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact2" ]; then
+    DIGIFACT_NUM="2"
+    DIGIFACT_L1="DigiByte has upgraded the network a number of times to include"
+    DIGIFACT_L2="\"Improvement milestones\". These forks were not splits that"
+    DIGIFACT_L3="generated additional coins, but rather a \"reorientation of the"
+    DIGIFACT_L4="ship\" that everyone was onboard with."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact3" ]; then
+    DIGIFACT_NUM="3"
+    DIGIFACT_L1="DigiByte was fairly launched in 2014, long before the 2017"
+    DIGIFACT_L2="Initial Coin Offering (ICO) craze of whitepaper projects."
+    DIGIFACT_L3="DigiByte launched with a fully working blockchain that has been"
+    DIGIFACT_L4="improved upon consistently ever since."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact4" ]; then
+    DIGIFACT_NUM="4"
+    DIGIFACT_L1="When DigiByte launched in 2014, a tiny DigiByte pre-mine (0.5%)"
+    DIGIFACT_L2="was given away to community members within the first 30 days,"
+    DIGIFACT_L3="and the details can be seen on BitcoinTalk. This was to done"
+    DIGIFACT_L4="to incentivize people to download and run a full node helping to"
+    DIGIFACT_L5="distribute the blockchain. None of the pre-mine was retained"
+    DIGIFACT_L6="by the founder or developers."
+fi
+
+if [ "$DIGIFACT" = "digifact5" ]; then
+    DIGIFACT_NUM="5"
+    DIGIFACT_L1="There is no founders reward in DigiByte. Nobody gets part of"
+    DIGIFACT_L2="each blocks reward except whoever mined it."
+    DIGIFACT_L3=""
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact6" ]; then
+    DIGIFACT_NUM="6"
+    DIGIFACT_L1="The DigiByte founder and developers all purchased their DigiByte"
+    DIGIFACT_L2="on an exchange at market rates, or mined their own DGB, just"
+    DIGIFACT_L3="like you do."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact7" ]; then
+    DIGIFACT_NUM="7"
+    DIGIFACT_L1="Fees for DigiByte are incredibly low. In Block 7658349, a user "
+    DIGIFACT_L2="sent 342,000,000 DGB (worht \$6 million USD at the time) from the "
+    DIGIFACT_L3="inputs of over 200 different addresses. It cost 1/10th of a "
+    DIGIFACT_L4="cent (USD) in fees and took only a few seconds to confirm."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact8" ]; then
+    DIGIFACT_NUM="8"
+    DIGIFACT_L1="DigiByte pioneered the DigiShield difficulty adjustment. It's"
+    DIGIFACT_L2="used in Dogecoin, Ubiq, ZCash, Monacoin and parts of the code"
+    DIGIFACT_L3="are even used in Ethereum."
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="What is DigiShield (a.k.a MultiShield)? Learn more here:"
+    DIGIFACT_L6="https://j.mp/3oivy5u"
+fi
+
+if [ "$DIGIFACT" = "digifact9" ]; then
+    DIGIFACT_NUM="9"
+    DIGIFACT_L1="DigiByte was the first non-Bitcoin blockchain to fix the major"
+    DIGIFACT_L2="inflation bug in 2018. Rapid response from our rock-star"
+    DIGIFACT_L3="developers!"
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact10" ]; then
+    DIGIFACT_NUM="10"
+    DIGIFACT_L1="The DigiByte \"Genesis Block\" contained the following headline:"
+    DIGIFACT_L2="\"USA Today: 10/Jan/2014, Target: Data stolen from up to"
+    DIGIFACT_L3="110M customers.\" This forever cemented DigiByte's focus on"
+    DIGIFACT_L4="cybersecurity."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact11" ]; then
+    DIGIFACT_NUM="11"
+    DIGIFACT_L1="DigiByte was the first coin to upgrade from a single mining "
+    DIGIFACT_L2="algorithm to MultiAlgo, for the additional security provided by"
+    DIGIFACT_L3="having 5x algorithms. This upgrade occurred in late 2014 as"
+    DIGIFACT_L4="the \"MultiAlgo\" network upgrade."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="What's MultiAlgo? Learn more here: https://j.mp/3oivy5u"
+fi
+
+if [ "$DIGIFACT" = "digifact12" ]; then
+    DIGIFACT_NUM="12"
+    DIGIFACT_L1="Initially DigiByte only used the Scrypt algorithm for mining."
+    DIGIFACT_L2="In September 2014, the network upgraded to MultiAlgo,"
+    DIGIFACT_L3="utilizing Scrypt, SHA256, Skein, Qubit & Myriad-Groestl."
+    DIGIFACT_L4="This massively improved decentralization by enabling a broader"
+    DIGIFACT_L5="variety of mining hardware to be used."
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact13" ]; then
+    DIGIFACT_NUM="13"
+    DIGIFACT_L1="In 2019, DigiByte upgraded the network, replacing the"
+    DIGIFACT_L2="Myriad-Groestl algorithm for Odocrypt, to specifically target"
+    DIGIFACT_L3="FPGA mining making that algorithm ASIC-resistant."
+    DIGIFACT_L4=" "
+    DIGIFACT_L5="Learn more about Odocrypt here: https://j.mp/3kpZKKB"
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact14" ]; then
+    DIGIFACT_NUM="14"
+    DIGIFACT_L1="In 2018, the DigiByte community raised enough funds to supply"
+    DIGIFACT_L2="Venezuelan refugees crossing the border with over a thousand"
+    DIGIFACT_L3="bottles of water, feed 160 orphaned children for a month, provide"
+    DIGIFACT_L4="essential maintenance for a hospital, refurbish an Adicora "
+    DIGIFACT_L5="school kitchen, and hosting several free community lunches for"
+    DIGIFACT_L6="hundreds of people."
+fi
+
+if [ "$DIGIFACT" = "digifact15" ]; then
+    DIGIFACT_NUM="15"
+    DIGIFACT_L1="DigiByte is not an ICO or a token launched on another network,"
+    DIGIFACT_L2="but rather a pure blockchain project with it's own consensus"
+    DIGIFACT_L3="rules such as Bitcoin or Vertcoin."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact16" ]; then
+    DIGIFACT_NUM="16"
+    DIGIFACT_L1="DigiByte was the first mobile wallet with a major focus on "
+    DIGIFACT_L2="translations for worldwide accessibility, being available"
+    DIGIFACT_L3="in 50+ languages on both Android & iOS."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact17" ]; then
+    DIGIFACT_NUM="17"
+    DIGIFACT_L1="DigiByte can be used to store tiny amounts (80-bytes) of data"
+    DIGIFACT_L2="along with a transaction known as OP_RETURN. This is useful for "
+    DIGIFACT_L3="document hashes for notarization / validation, dApps, scripting"
+    DIGIFACT_L4="and more."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact18" ]; then
+    DIGIFACT_NUM="18"
+    DIGIFACT_L1="You can look up any transaction on the DigiByte Blockchain by"
+    DIGIFACT_L2="inputting a transaction ID, DigiByte address, or block number"
+    DIGIFACT_L3="into a \"Blockchain Explorer\". The community maintains one such"
+    DIGIFACT_L4="explorer you can use at: https://digiexplorer.info."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact19" ]; then
+    DIGIFACT_NUM="19"
+    DIGIFACT_L1="Have you wanted to run your own DigiExplorer? Or get other data"
+    DIGIFACT_L2="out of the blockchain so you can integrate it with your business? "
+    DIGIFACT_L3="There are handy guides at dgbwiki.com that will help you."
+    DIGIFACT_L4=""
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "digifact20" ]; then
+    DIGIFACT_NUM="20"
+    DIGIFACT_L1="In 2019, DigiByte implemented the unique algorithm Odocrypt,"
+    DIGIFACT_L2="replacing the older Myriad-Groestl. This Odocrypt hashing"
+    DIGIFACT_L3="algorithm is not used in any other project and was made"
+    DIGIFACT_L4="specifically by DigiByte Devs for DigiByte FPGA mining."
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+printf "  ╔════════════════════════════════════════════════════════════════════╗\\n"
+printf "  ║ " && printf "%-66s ║ \n" "                DigiFact # $DIGIFACT_NUM - Did you know... "
+printf "  ╠════════════════════════════════════════════════════════════════════╣\\n"
+
+if [ "$DIGIFACT_L1" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L1"
+fi
+
+if [ "$DIGIFACT_L2" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L2"
+fi
+
+if [ "$DIGIFACT_L3" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L3"
+fi
+
+if [ "$DIGIFACT_L4" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L4"
+fi
+
+if [ "$DIGIFACT_L5" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L5"
+fi
+
+if [ "$DIGIFACT_L6" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L6"
+fi
+
+if [ "$DIGIFACT_L7" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L7"
+fi
+
+if [ "$DIGIFACT_L8" != "" ]; then
+printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L8"
+fi
+
+printf "  ╚════════════════════════════════════════════════════════════════════╝\\n"
+printf "\\n"
+
+}
+
 
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
@@ -6316,6 +6608,12 @@ main() {
 
     # Request social media post
     request_social_media
+
+    # Choose a random DigiFact
+    digifact_randomize
+
+    # Display a random DigiFact
+    digifact_display
 
     # Display donation QR Code
     donation_qrcode
