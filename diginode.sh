@@ -563,7 +563,7 @@ is_dganode_installed() {
           nodejs_installed="no"
           STARTWAIT=yes
       else
-          if [ $DGA_STATUS = "ipfsinstalled" ]; then
+          if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
             DGA_STATUS="nodejsinstalled"
           fi
            nodejs_installed="yes"
@@ -608,7 +608,7 @@ is_dganode_installed() {
           DGA_STATUS="not_detected"
       else
           printf "  %b IPFS daemon is running\\n" "${TICK}"
-          if [ $DGA_STATUS = "nodejsinstalled" ]; then
+          if [ "$DGA_STATUS" = "nodejsinstalled" ]; then
             DGA_STATUS="ipfsrunning"
           fi
           ipfs_running="yes"
@@ -618,7 +618,7 @@ is_dganode_installed() {
       # Check for 'digiasset_node' index.js file
 
       if [ -f "$DGA_INSTALL_LOCATION/index.js" ]; then
-        if [ $DGA_STATUS = "ipfsrunning" ]; then
+        if [ "$DGA_STATUS" = "ipfsrunning" ]; then
            DGA_STATUS="installed" 
         fi
         printf "  %b DigiAsset Node software is installed.\\n" "${TICK}"
@@ -768,28 +768,20 @@ quit_message() {
       # Install updates now
       clear -x
 
-      if [ "$DONATION_PLEA" = "yes" ]; then
-        printf "\\n"
-        printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
-        printf "\\n"
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        digifact_display
-
-        #Display donation QR code
-        donation_qrcode
-        printf "\\n"
-        # Don't show the donation plea again for at least 15 minutes
-        DONATION_PLEA="wait15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
-      fi
-
-      printf "%b Updates are available for your DigiNode.\\n" "${INFO}"
       printf "\\n"
-      read -p "Would you like to install them now? (Y/N)" -n 1 -r
+      printf "  %b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
+      printf "\\n"
+
+      # Choose a random DigiFact
+      digifact_randomize
+
+      # Display a random DigiFact
+      digifact_display
+
+      printf "  %b %bThere are software updates available for your DigiNode.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "\\n"
+      read -p "         Would you like to install them now? (Y/N)" -n 1 -r
+      printf "\\n"
 
       if [[ $REPLY =~ ^[Yy]$ ]]; then
         echo
@@ -797,6 +789,7 @@ quit_message() {
         echo ""
         exec curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended --statusmonitor
       fi
+      printf "\\n"
  #       if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
  #         digibyte_do_install
  #       fi
@@ -814,11 +807,16 @@ quit_message() {
  #       fi
  #     fi
 
+       if [ "$DONATION_PLEA" = "yes" ]; then
 
-      # Display donation qr code
-      printf "\\n"
-      donation_qrcode "Status Monitor"
-      printf "\\n"
+        #Display donation QR code
+        donation_qrcode
+        
+        # Don't show the donation plea again for at least 15 minutes
+        DONATION_PLEA="wait15"
+        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
+      fi
+
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
@@ -1032,8 +1030,7 @@ pre_loop() {
   # Log date of this Status Monitor run to diginode.settings
   str="Logging date of this run to diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
-  DGNT_MONITOR_LAST_RUN=$(date)
-  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$DGNT_MONITOR_LAST_RUN\"|" $DGNT_SETTINGS_FILE
+  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
   printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
   # Is DigiByte daemon starting up?
@@ -1052,6 +1049,35 @@ pre_loop() {
       fi
 
     fi
+  fi
+
+  ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+
+  # Check if there is an update for DigiByte Core
+  if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+    DGB_UPDATE_AVAILABLE=NO
+  else
+    DGB_UPDATE_AVAILABLE=YES
+  fi
+
+  # If there is actually a local version of NodeJS, check for an update
+  if [ "$NODEJS_VER_LOCAL" != "" ]; then
+      # Check if there is an update for NodeJS
+      if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
+        NODEJS_UPDATE_AVAILABLE=NO
+      else
+        NODEJS_UPDATE_AVAILABLE=YES
+      fi
+  fi
+
+  # If there is actually a local version of Go-IPFS, check for an update
+  if [ "$IPFS_VER_LOCAL" != "" ]; then
+      # Check if there is an update for NodeJS
+      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+        IPFS_UPDATE_AVAILABLE=NO
+      else
+        IPFS_UPDATE_AVAILABLE=YES
+      fi
   fi
 
   # Choose a random DigiFact
@@ -1390,7 +1416,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
-    if [ $DGA_STATUS = "running" ]; then
+    if [ "$DGA_STATUS" = "running" ]; then
 
       # Next let's try and get the minor version, which may or may not be available yet
       # If DigiAsset Node is running we can get it directly from the web server
@@ -1523,7 +1549,24 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
           DGNT_UPDATE_AVAILABLE=YES
         fi
     fi
-    
+
+    # Check for the latest release of NodeJS
+    NODEJS_VER_RELEASE_QUERY=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+    if [ "$NODEJS_VER_RELEASE_QUERY" != "" ]; then
+      NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE_QUERY
+      sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If there is actually a local version of NodeJS, check for an update
+    if [ "$NODEJS_VER_LOCAL" != "" ]; then
+        # Check if there is an update for NodeJS
+        if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
+          NODEJS_UPDATE_AVAILABLE=NO
+        else
+          NODEJS_UPDATE_AVAILABLE=YES
+        fi
+    fi
+
 
     # Check for new release of DigiAsset Node
     DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
@@ -1538,14 +1581,20 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
     if test -f $DGA_INSTALL_LOCATION/lib/api.js; then
       DGA_VER_MJR_LOCAL=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
     fi
+
     if [ "$DGA_VER_RELEASE" != "" ]; then
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
-        # Check if there is an update for Go-IPFS
-        if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-          DGA_UPDATE_AVAILABLE=NO
-        else
-          DGA_UPDATE_AVAILABLE=YES
-        fi
+
+        # If there is actually a local version, then check for an update
+        if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
+
+          # Check if there is an update for Go-IPFS
+          if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
+            DGA_UPDATE_AVAILABLE=NO
+          else
+            DGA_UPDATE_AVAILABLE=YES
+          fi
+      fi
     fi
 
     # Check for new release of Go-IPFS
@@ -1553,26 +1602,20 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
-        # Check if there is an update for Go-IPFS
-        if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          IPFS_UPDATE_AVAILABLE=NO
-        else
-          IPFS_UPDATE_AVAILABLE=YES
+
+        # If there actually a local version, then check for an update
+        if [ "$IPFS_VER_LOCAL" != "" ]; then
+
+          # Check if there is an update for Go-IPFS
+          if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+            IPFS_UPDATE_AVAILABLE=NO
+          else
+            IPFS_UPDATE_AVAILABLE=YES
+          fi
         fi
     fi
 
-    # Check for new release of IPFS Updater
-    IPFSU_VER_RELEASE_QUERY=$(curl -sfL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
-    if [ "$IPFSU_VER_RELEASE_QUERY" != "" ]; then
-      IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE_QUERY
-      sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
-      # Check if there is an update for IPFS Updater
-      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
-        IPFSU_UPDATE_AVAILABLE=NO
-      else
-        IPFSU_UPDATE_AVAILABLE=YES
-      fi
-    fi
+
 
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date)"
@@ -1631,33 +1674,33 @@ printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER    
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-26s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Available: v$DGB_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" "]  ║"
-elif [ "$IPFS_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
-fi
-# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-if [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "[ ${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" "]  ║"
-elif [ "$NODEJS_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
-fi
-# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtbgrn}Update: v$DGA_VER_RELEASE${txtrst}" "]  ║"
-elif [ "$DGA_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
-fi
-# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "YES" ]; then
-  printf "  ║               ║  " && printf "%-26s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" "]  ║"
+printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Available: v$DGNT_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+fi
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+if [ "$IPFS_VER_LOCAL" != "" ]; then
+printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+elif [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
+printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Available: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+fi
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+if [ "$NODEJS_VER_LOCAL" != "" ]; then
+printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
+elif [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
+printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Available: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+fi
+# printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
+if [ "$DGA_VER_LOCAL" != "" ]; then
+printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+elif [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
+printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Available: v$DGA_VER_RELEASE${txtrst}" "  ║"
 fi
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running

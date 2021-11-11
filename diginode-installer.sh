@@ -529,7 +529,7 @@ SYSTEM_SECURITY_UPDATES=
 # Note: If you want to run a port test again, remove the status and date from here
 # If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
 IPFS_PORT_TEST_STATUS=
-IPFS_PORT_TEST_DATE_date=
+IPFS_PORT_TEST_DATE=
 
 # Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
 DONATION_PLEA=yes
@@ -3220,7 +3220,7 @@ stop_service() {
     else
         service "${1}" stop &> /dev/null || true
     fi
-    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s...\\n" "${OVER}" "${TICK}" "${str}"
 }
 
 # Start/Restart service passed in as argument
@@ -3236,7 +3236,7 @@ restart_service() {
         # Otherwise, fall back to the service command
         service "${1}" restart &> /dev/null
     fi
-    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s...\\n" "${OVER}" "${TICK}" "${str}"
 }
 
 # Enable service so that it will start with next reboot
@@ -3252,7 +3252,7 @@ enable_service() {
         #  Otherwise, use update-rc.d to accomplish this
         update-rc.d "${1}" defaults &> /dev/null
     fi
-    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s...\\n" "${OVER}" "${TICK}" "${str}"
 }
 
 # Disable service so that it will not with next reboot
@@ -3268,7 +3268,7 @@ disable_service() {
         # Otherwise, use update-rc.d to accomplish this
         update-rc.d "${1}" disable &> /dev/null
     fi
-    printf "%b  %b %s...\\n" "${OVER}" "${TICK}" "${str}"
+    printf "%b%b %s...\\n" "${OVER}" "${TICK}" "${str}"
 }
 
 check_service_active() {
@@ -3606,20 +3606,18 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Re-enable and re-start DigiByte daemon service after reset/upgrade
     if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
         printf "%b Upgrade Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
         enable_service digibyted
-        start_service digibyted
+        restart_service digibyted
         DGB_STATUS="running"
     elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
         printf "%b Reset Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
         enable_service digibyted
-        start_service digibyted
+        restart_service digibyted
         DGB_STATUS="running"
     fi
 
@@ -3885,8 +3883,6 @@ fi
         if [ "$DGNT_INSTALL_TYPE" = "new" ]; then
             sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
-            sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-         elif [ "$DGNT_INSTALL_TYPE" = "reset" ]; then
             sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
@@ -4281,8 +4277,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
             sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-        elif [ $IPFSU_INSTALL_TYPE = "reset" ]; then
-            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Reset IPFS Updater Install and Upgrade Variables
@@ -4352,7 +4346,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    sudo ipfs-update install latest
+    ipfs-update install latest
     if [ "$IPFS_STATUS" = "not_detected" ];then
         IPFS_STATUS="installed"
     fi
@@ -4365,8 +4359,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ $IPFS_INSTALL_TYPE = "install" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -5450,23 +5442,23 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
 
 
         if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n" "${INFO}"
+            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb     $upgrade_msg_ipfs     $upgrade_msg_nodejs      $upgrade_msg_dga      $upgrade_msg_dgn\\n" "${INFO}"
             printf "\\n"
         #Nothing to do, continue
           echo
-          if [ $DGB_ASK_UPGRADE = "YES" ]; then
+          if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             DGB_DO_INSTALL=YES
           fi
-          if [ $IPFS_ASK_UPGRADE = "YES" ]; then
+          if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
             IPFS_DO_INSTALL=YES
           fi
-          if [ $NODEJS_ASK_UPGRADE = "YES" ]; then
+          if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
             NODEJS_DO_INSTALL=YES
           fi
-          if [ $DGA_ASK_UPGRADE = "YES" ]; then
+          if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             DGA_DO_INSTALL=YES
           fi
-          if [ $DGNT_ASK_UPGRADE = "YES" ]; then
+          if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
             DGNT_DO_INSTALL=YES
           fi
         else
