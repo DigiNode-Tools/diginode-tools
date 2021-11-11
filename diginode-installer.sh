@@ -168,6 +168,15 @@ txtblu=$(tput setaf 4) # Blue
 txtpur=$(tput setaf 5) # Purple
 txtcyn=$(tput setaf 6) # Cyan
 txtwht=$(tput setaf 7) # White
+
+txtbred=$(tput setaf 9)  # Bright Red
+txtbgrn=$(tput setaf 10) # Bright Green
+txtbylw=$(tput setaf 11) # Bright Yellow
+txtbblu=$(tput setaf 12) # Bright Blue
+txtbpur=$(tput setaf 13) # Bright Purple
+txtbcyn=$(tput setaf 14) # Bright Cyan
+txtbwht=$(tput setaf 15) # Bright White
+
 txtrst=$(tput sgr0) # Text reset.
 
 # tput setab [1-7] : Set a background colour using ANSI escape
@@ -3132,8 +3141,8 @@ donation_qrcode() {
     printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
     # ==============================================================================
 
-    echo " If you find DigiNode Tools useful, and want to support future development,"
-    echo "donations in DGB are much appreciated. Thanks for your support. - Olly @saltedlolly"             
+    echo " If you find DigiNode Tools useful and want to support my work, donations"
+    echo "in DGB are much appreciated. Thanks for your support. - Olly @saltedlolly"             
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -3593,9 +3602,11 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_RELEASE
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $DGB_INSTALL_TYPE = "install" ]; then
+    if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -3865,8 +3876,18 @@ fi
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/saltedlolly/diginode-tools/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
+            DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Update diginode.settings with the install/upgrade date
+        if [ "$DGNT_INSTALL_TYPE" = "new" ]; then
+            sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+        elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
+            sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+         elif [ "$DGNT_INSTALL_TYPE" = "reset" ]; then
+            sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Make downloads executable
@@ -3909,6 +3930,12 @@ fi
             echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        # Reset DGNT Install and Upgrade Variables
+        DGNT_INSTALL_TYPE=""
+        DGNT_UPDATE_AVAILABLE=NO
+        DGNT_POSTUPDATE_CLEANUP=YES
+
         printf "\\n"
     fi
 }
@@ -4254,6 +4281,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
             sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+        elif [ $IPFSU_INSTALL_TYPE = "reset" ]; then
+            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Reset IPFS Updater Install and Upgrade Variables
@@ -4336,6 +4365,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ $IPFS_INSTALL_TYPE = "install" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ $IPFS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -6284,7 +6315,7 @@ if [ "$DIGIFACT" = "digifact20" ]; then
     DIGIFACT_L1="In 2019, DigiByte implemented the unique algorithm Odocrypt,"
     DIGIFACT_L2="replacing the older Myriad-Groestl. This Odocrypt hashing"
     DIGIFACT_L3="algorithm is not used in any other project and was made"
-    DIGIFACT_L4="specifically by DigiByte Devs for DigiByte FPGA mining."
+    DIGIFACT_L4="specifically by DigiByte developers for DigiByte FPGA mining."
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi
@@ -6841,8 +6872,8 @@ fi
 
 if [ "$DIGIFACT" = "social1" ]; then
     DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
-    DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet? We have a"
-    DIGIFACT_L2="growing community of over 40,0000 members."
+    DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet?"
+    DIGIFACT_L2="We have a growing community of over 40,000 members."
     DIGIFACT_L3=" "
     DIGIFACT_L4="Join here: https://reddit.com/r/Digibyte"
     DIGIFACT_L5=""
@@ -6989,8 +7020,8 @@ main() {
         printf "%b %s\\n" "${INFO}" "${str}"
         printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Installer requires elevated privileges to get started.\\n" "${INDENT}"
-        printf "%b Please review the source code on GitHub for any concerns regarding this requirement\\n" "${INDENT}"
-        printf "%b Make sure to download this script from a trusted source\\n\\n" "${INDENT}"
+        printf "%b Please review the source code on GitHub for any concerns regarding this\\n" "${INDENT}"
+        printf "%b requirement. Make sure to download this script from a trusted source.\\n\\n" "${INDENT}"
         printf "%b Sudo utility check" "${INFO}"
 
         # If the sudo command exists, try rerunning as admin
