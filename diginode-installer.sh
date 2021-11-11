@@ -4371,10 +4371,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Initialize IPFS, if it has not already been done so
-    if [ ! -d "$USER_HOME/.ipfs" ]; then
-        sudo -u $USER_ACCOUNT ipfs init
-        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
-    fi
+#    if [ ! -d "$USER_HOME/.ipfs" ]; then
+#        export IPFS_PATH=$USER_ACCOUNT/.ipfs
+#        sudo -u $USER_ACCOUNT ipfs init
+#        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+#    fi
 
     # Re-enable and re-start IPFS service after reset/upgrade
     if [ "$IPFS_STATUS" = "stopped" ]; then
@@ -4554,16 +4555,57 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT touch $IPFS_SYSTEMD_SERVICE_FILE
         sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
+# This file will be overwritten on package upgrades, avoid customizations here.
+#
+# To make persistant changes, create file in 
+# "/etc/systemd/system/ipfs.service.d/overwrite.conf" with 
+# \`systemctl edit ipfs.service\`. This file will be parsed after this 
+# file has been parsed.
+#
+# To overwrite a variable, like ExecStart you have to specify it once
+# blank and a second time with a new value, like:
+# ExecStart=
+# ExecStart=/usr/bin/ipfs daemon --flag1 --flag2
+#
+# For more info about custom unit files see systemd.unit(5).
+
 [Unit]
-Description=IPFS daemon
+Description=InterPlanetary File System (IPFS) daemon
+Documentation=https://docs.ipfs.io/
+After=network.target
 
 [Service]
-# Environment="IPFS_PATH=/data/ipfs"  # optional path to ipfs init directory if not default (\$HOME/.ipfs)
-ExecStart=/usr/local/bin/ipfs daemon
+
+# enable for 1-1024 port listening
+#AmbientCapabilities=CAP_NET_BIND_SERVICE 
+# enable to specify a custom path see docs/environment-variables.md for further documentations
+#Environment=IPFS_PATH=/custom/ipfs/path
+# enable to specify a higher limit for open files/connections
+#LimitNOFILE=1000000
+
+#don't use swap
+MemorySwapMax=0
+
+# Don't timeout on startup. Opening the IPFS repo can take a long time in some cases (e.g., when
+# badger is recovering) and migrations can delay startup.
+#
+# Ideally, we'd be a bit smarter about this but there's no good way to do that without hooking
+# systemd dependencies deeper into go-ipfs.
+TimeoutStartSec=infinity
+
+Type=notify
+User=$USER_ACCOUNT
+Group=$USER_ACCOUNT
+StateDirectory=ipfs
+Environment=IPFS_PATH=$USER_HOME/.ipfs
+ExecStart=/usr/local/bin/ipfs daemon --init --migrate
 Restart=on-failure
+KillSignal=SIGINT
 
 [Install]
 WantedBy=default.target
+
+
 EOF
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -4575,13 +4617,13 @@ EOF
 
         # Enable the service to run at boot
         printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT systemctl --user enable ipfs
+        systemctl --user enable ipfs
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Start the service now
         str="Starting IPFS systemd service..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT systemctl --user start ipfs
+        systemctl --user start ipfs
         IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
