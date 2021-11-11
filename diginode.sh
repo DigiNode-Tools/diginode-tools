@@ -811,7 +811,7 @@ quit_message() {
 
         #Display donation QR code
         donation_qrcode
-        
+
         # Don't show the donation plea again for at least 15 minutes
         DONATION_PLEA="wait15"
         sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
@@ -1648,11 +1648,11 @@ printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-49s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-49s ║ \n" "${txtbred}DigiByte daemon is starting up. Please wait...${txtrst}"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up. Please wait...${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
@@ -1664,10 +1664,10 @@ elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
+printf "  ║ DGA STATUS    ║  " && printf "%-58s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-49s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
+printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
@@ -1741,7 +1741,7 @@ printf "  ╠═══════════════╬══════�
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C  /  $TEMP_F °F" "  ║"
+printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
