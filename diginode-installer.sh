@@ -7431,10 +7431,10 @@ main() {
     nodejs_do_install
 
     # Install DigiAssets along with IPFS
-#    digiasset_node_do_install
+    digiasset_node_do_install
 
     # Setup PM2 init service
-#    digiasset_node_pm2_create_service
+    digiasset_node_pm2_create_service
 
 
 
