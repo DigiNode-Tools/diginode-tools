@@ -1262,7 +1262,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   # Show port warning if connections are less than or equal to 7
   DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
-    DGB_CONNECTIONS_MSG="${txtred}Low Connections Warning!${txtrst}"
+    DGB_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
   if [ $DGB_CONNECTIONS -ge 9 ]; then
     DGB_CONNECTIONS_MSG="Maximum: $maxconnections"
@@ -1640,7 +1640,11 @@ echo -e "                /____/                                  ${txtrst}"
 echo ""  
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
+if [ $DGB_CONNECTIONS -le 8 ]; then
+printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
+else
 printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
+fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_LOCAL Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
