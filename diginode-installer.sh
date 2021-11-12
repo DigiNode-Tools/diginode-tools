@@ -426,8 +426,8 @@ DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
 IPFS_SYSTEMD_SERVICE_FILE=/etc/systemd/system/ipfs.service
 IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
-PM2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/pm2-root.service
-PM2_UPSTART_SERVICE_FILE=/etc/init/pm2-root.service
+PM2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/pm2-$USER_ACCOUNT.service
+PM2_UPSTART_SERVICE_FILE=/etc/init/pm2-$USER_ACCOUNT.service
 
 # Store DigiByte Core Installation details:
 DGB_INSTALL_DATE=
@@ -2736,9 +2736,9 @@ menu_first_install() {
     # ==============================================================================
 
     opt1a="Full DigiNode "
-    opt1b=" Install DigiByte Core & DigiAsset Node (Recommended)"
+    opt1b=" Install DigiByte & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Core ONLY "
+    opt2a="DigiByte Node ONLY "
     opt2b=" DigiAsset Node will NOT be installed."
 
 
@@ -5460,10 +5460,10 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
-        systemctl stop pm2-root
+        systemctl stop "pm2-$USER_ACCOUNT"
 
         # Disable the service now
-        systemctl disable pm2-root
+        systemctl disable "pm2-$USER_ACCOUNT"
 
         str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5475,10 +5475,10 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
-        service pm2-root stop
+        service "pm2-$USER_ACCOUNT" stop
 
         # Disable the service now
-        service pm2-root disable
+        service "pm2-$USER_ACCOUNT" disable
 
         str="Deleting PM2 upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5508,7 +5508,7 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
         pm2 startup | grep sudo
 
         # Restart the PM2 service
-        restart_service pm2-root
+        restart_service "pm2-$USER_ACCOUNT"
     fi
 
     # If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
@@ -5821,6 +5821,24 @@ uninstall_do_now() {
             printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
         fi
     fi
+
+    # Ask to delete PM2 service, if it exists
+    if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
+
+        # Do you want to delete pm2 service?
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason." "${r}" "${c}"; then
+
+            # Delete asset_settings folder
+            str="Deleting PM2 service file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $PM2_UPSTART_SERVICE_FILE
+            rm -f -r $PM2_SYSTEMD_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete your PM2 service file.\\n" "${INFO}"
+        fi
+    fi
+
 
     # Insert a line break if either of these were present
     if [ "$uninstall_dga" = "yes" ]; then
