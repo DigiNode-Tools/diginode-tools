@@ -1479,10 +1479,10 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
-        DGNT_VER_LOCAL_DISPLAY="dev branch"
+        DGNT_VER_LOCAL_DISPLAY="dev-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
-        DGNT_VER_LOCAL_DISPLAY="main branch"
+        DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
     fi
 
