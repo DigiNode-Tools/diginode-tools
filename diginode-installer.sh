@@ -5338,6 +5338,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch apiV3 https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=apiV3|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
+        cd $DGA_INSTALL_LOCATION
+        sudo -u $USER_ACCOUNT npm install
+        cd $USER_HOME
+
     # Clone the develop version if develop flag is set
     elif [ "$DGA_BRANCH" = "main" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
@@ -5345,6 +5351,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
+        cd $DGA_INSTALL_LOCATION
+        sudo -u $USER_ACCOUNT npm install
+        cd $USER_HOME
+
     fi
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
@@ -5442,10 +5454,10 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
-        sudo systemctl stop pm2-root
+        systemctl stop pm2-root
 
         # Disable the service now
-        sudo systemctl disable pm2-root
+        systemctl disable pm2-root
 
         str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5457,10 +5469,10 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
-        sudo service pm2-root stop
+        service pm2-root stop
 
         # Disable the service now
-        sudo service pm2-root disable
+        service pm2-root disable
 
         str="Deleting PM2 upstart service file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5472,10 +5484,12 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
 
         # Generate the PM2 service file
-        pm2 startup
+        env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER_ACCOUNT --hp $USER_HOME
 
         # Restart the PM2 service
-        restart_service pm2-root
+        restart_service "pm2-$USER_ACCOUNT"
+
+        enable_service "pm2-$USER_ACCOUNT"
 
     fi
 
@@ -5484,6 +5498,8 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
 
         # Generate the PM2 service file
         pm2 startup
+
+        pm2 startup | grep sudo
 
         # Restart the PM2 service
         restart_service pm2-root
