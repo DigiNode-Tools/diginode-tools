@@ -424,7 +424,7 @@ DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
 # SYSTEM SERVICE FILES:
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
-IPFS_SYSTEMD_SERVICE_FILE=$USER_HOME/.config/systemd/user/ipfs.service
+IPFS_SYSTEMD_SERVICE_FILE=/etc/systemd/system/ipfs.service
 IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
 PM2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/pm2-root.service
 PM2_UPSTART_SERVICE_FILE=/etc/init/pm2-root.service
@@ -853,7 +853,7 @@ digibyte_create_conf() {
         local set_rpcpassword
         str="Generating random RPC password..."
         printf "%b %s" "${INFO}" "${str}"
-        set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1)
+        set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -4072,7 +4072,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
-        systemctl is-active --quiet --user ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
+        systemctl is-active --quiet ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
 
         if [ "$IPFS_STATUS" = "running" ]; then
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
@@ -4300,13 +4300,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
             # Disable the service from running at boot
             printf "%b Disabling IPFS systemd service...\\n" "${INFO}"
-            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user disable ipfs
+            systemctl disable ipfs
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Stop the service now
             str="Stopping IPFS systemd service..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT systemctl --user stop ipfs
+            systemctl stop ipfs
             IPFS_STATUS="stopped"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -4382,13 +4382,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
             # Enable the service to run at boot
             printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user enable ipfs
+            systemctl enable ipfs
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Start the service now
             str="Starting IPFS systemd service..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT sudo -u $USER_ACCOUNT systemctl --user start ipfs
+            systemctl start ipfs
             IPFS_STATUS="running"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -4480,11 +4480,11 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
         printf "%b Preparing Reset: Stopping and disabling IPFS service ...\\n" "${INFO}"
 
         # Stop the service now
-        sudo -u $USER_ACCOUNT systemctl --user stop ipfs
+        systemctl stop ipfs
         IPFS_STATUS="stopped"
 
         # Disable the service now
-        sudo -u $USER_ACCOUNT systemctl --user disable ipfs
+        systemctl disable ipfs
 
         # Disable linger
         loginctl disable-linger $USER_ACCOUNT
@@ -4522,24 +4522,24 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
         # First create the folders it lives in if they don't already exist
 
-        if [ ! -d $USER_HOME/.config ]; then
-            str="Creating ~/.config folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-        if [ ! -d $USER_HOME/.config/systemd ]; then
-            str="Creating ~/.config/systemd folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-        if [ ! -d $USER_HOME/.config/systemd/user ]; then
-            str="Creating ~/.config/systemd/user folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+ #       if [ ! -d $USER_HOME/.config ]; then
+ #           str="Creating ~/.config folder..."
+ #           printf "%b %s" "${INFO}" "${str}"
+ #           sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config
+ #           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+ #       fi
+ #       if [ ! -d $USER_HOME/.config/systemd ]; then
+ #           str="Creating ~/.config/systemd folder..."
+ #           printf "%b %s" "${INFO}" "${str}"
+ #           sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd
+ #           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+ #       fi
+ #       if [ ! -d $USER_HOME/.config/systemd/user ]; then
+ #           str="Creating ~/.config/systemd/user folder..."
+ #           printf "%b %s" "${INFO}" "${str}"
+ #           sudo -u $USER_ACCOUNT mkdir $USER_HOME/.config/systemd/user
+ #           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+ #       fi
         
         # Create a new IPFS service file
 
@@ -4602,23 +4602,25 @@ WantedBy=default.target
 EOF
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Enable linger so IPFS can run at boot
-        str="Enable lingering for user $USER_ACCOUNT..."
-        printf "%b %s" "${INFO}" "${str}"
-        loginctl enable-linger $USER_ACCOUNT
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#        # Enable linger so IPFS can run at boot
+#        str="Enable lingering for user $USER_ACCOUNT..."
+#        printf "%b %s" "${INFO}" "${str}"
+#        loginctl enable-linger $USER_ACCOUNT
+#        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#        str=""
 
         # Enable the service to run at boot
         printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
-        systemctl --user enable ipfs
+        systemctl enable ipfs
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Start the service now
         str="Starting IPFS systemd service..."
         printf "%b %s" "${INFO}" "${str}"
-        systemctl --user start ipfs
+        systemctl start ipfs
         IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        str=""
 
     fi
 
@@ -5753,10 +5755,12 @@ uninstall_do_now() {
 
             printf "%b You chose to uninstall Go-IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
+
             # Stop IPFS service if it is running, as we need to upgrade or reset it
             if [ "$IPFS_STATUS" = "running" ]; then
-               printf "%b Preparing Uninstall: Stopping IPFS service ...\\n" "${INFO}"
-               stop_service digibyted
+               printf "%b Preparing Uninstall: Stopping and disabling IPFS service ...\\n" "${INFO}"
+               stop_service ipfs
+               disable_service ipfs
                IPFS_STATUS="stopped"
             fi
 
