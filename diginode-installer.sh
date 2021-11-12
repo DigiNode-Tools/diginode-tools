@@ -5832,7 +5832,7 @@ uninstall_do_now() {
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         # Do you want to delete pm2 service?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." "${r}" "${c}"; then
 
             # Delete asset_settings folder
             str="Deleting PM2 service file..."
