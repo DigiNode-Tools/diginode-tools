@@ -5796,11 +5796,17 @@ uninstall_do_now() {
         if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" "${r}" "${c}"; then
 
             # Delete existing 'digiasset_node' folder (if it exists)
-            str="Uninstalling DigiAsset Node software..."
+            str="Stopping DigiAsset Node PM2 service..."
             printf "%b %s" "${INFO}" "${str}"
             pm2 delete digiasset
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Delete existing 'digiasset_node' folder (if it exists)
+            str="Deleting ~/digiasset_node folder..."
+            printf "%b %s" "${INFO}" "${str}"
             rm -r -f $USER_HOME/digiasset_node
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
         else
             printf "%b You chose not to uninstall DigiAsset Node v${DGA_VER_LOCAL}.\\n" "${INFO}"
         fi
