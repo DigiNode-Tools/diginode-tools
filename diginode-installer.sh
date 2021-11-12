@@ -5230,15 +5230,103 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         rm -r -f $USER_HOME/digiasset_node
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
-    
 
-    # Install the latest version of NPM
-    printf "%b Install latest version of npm...\\n" "${INFO}"
-    npm install --quiet npm@latest -g
+    # Let's check if npm is already installed
+    str="Is npm already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    NPM_VER_LOCAL=$(npm -v 2>/dev/null)
+    if [ "$NPM_VER_LOCAL" = "" ]; then
+        NPM_DO_INSTALL="YES"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        printf "%b%b %s YES!   Found: npm v${NPM_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Check for latest npm release online
+    str="Checking the latest npm release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest npm version
+    NPM_VER_RELEASE=$(npm show npm version 2>/dev/null)
+
+    # If can't get npm release version number
+    if [ "$NPM_VER_RELEASE" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of npm. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "\\n"   
+    else
+        printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If an npm local version already exists.... (i.e. we have a local version number)
+    if [ ! $NPM_VER_LOCAL = "" ] && [ ! $NPM_VER_RELEASE = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $NPM_VER_LOCAL) -ge $(version $NPM_VER_RELEASE) ]; then
+          printf "%b npm is already up to date.\\n" "${TICK}"
+          if [ "$RESET_MODE" = true ]; then
+            printf "%b Reset Mode is Enabled. npm v${NPM_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            NPM_DO_INSTALL=YES
+          else
+            printf "%b Upgrade not required for npm.\\n" "${INFO}"
+          fi
+      else
+          printf "%b %bnpm will be upgraded from v${NPM_VER_LOCAL} to v${NPM_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          NPM_DO_INSTALL="YES"
+      fi
+    fi 
+
+
+    # Let's check if pm2 is already installed
+    str="Is pm2 already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    PM2_VER_LOCAL=$(npm list -g --depth=0 pm2 2>/dev/null | grep pm2 | cut -d'@' -f2)
+    if [ "$PM2_VER_LOCAL" = "" ]; then
+        PM2_DO_INSTALL="YES"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    else
+        printf "%b%b %s YES!   Found: pm2 v${PM2_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Check for latest pm2 release online
+    str="Checking the latest pm2 release..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Gets latest PM2 version, disregarding releases candidates (they contain 'rc' in the name).
+    PM2_VER_RELEASE=$(npm show pm2 version 2>/dev/null)
+
+    # If can't get pm2 release version number
+    if [ "$PM2_VER_RELEASE" = "" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b Unable to check for new version of pm2. Is the Internet down?.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b pm2 cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "\\n"   
+    else
+        printf "%b%b %s Found: v${PM2_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If an pm2 local version already exists.... (i.e. we have a local version number)
+    if [ ! $PM2_VER_LOCAL = "" ] && [ ! $PM2_VER_RELEASE = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $PM2_VER_LOCAL) -ge $(version $PM2_VER_RELEASE) ]; then
+          printf "%b pm2 is already up to date.\\n" "${TICK}"
+          if [ "$RESET_MODE" = true ]; then
+            printf "%b Reset Mode is Enabled. pm2 v${PM2_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+            PM2_DO_INSTALL=YES
+          else
+            printf "%b Upgrade not required for pm2.\\n" "${INFO}"
+          fi
+      else
+          printf "%b %bpm2 will be upgraded from v${PM2_VER_LOCAL} to v${PM2_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          PM2_DO_INSTALL="YES"
+      fi
+    fi 
 
     # Install the latest version of PM2
-    printf "%b Install latest version of PM2...\\n" "${INFO}"
-    npm install --quiet pm2@latest -g
+    if [ "$PM2_DO_INSTALL" = "YES" ]; then
+        printf "%b Install latest version of pm2...\\n" "${INFO}"
+        npm install --quiet pm2@latest -g
+    fi
 
 
     # Next install the newest version
