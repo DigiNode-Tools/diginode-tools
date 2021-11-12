@@ -4363,11 +4363,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Initialize IPFS, if it has not already been done so
-#    if [ ! -d "$USER_HOME/.ipfs" ]; then
-#        export IPFS_PATH=$USER_ACCOUNT/.ipfs
-#        sudo -u $USER_ACCOUNT ipfs init
-#        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
-#    fi
+    if [ ! -d "$USER_HOME/.ipfs" ]; then
+        export IPFS_PATH=$USER_ACCOUNT/.ipfs
+        sudo -u $USER_ACCOUNT ipfs init
+        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+    fi
 
     # Re-enable and re-start IPFS service after reset/upgrade
     if [ "$IPFS_STATUS" = "stopped" ]; then
@@ -4590,6 +4590,7 @@ User=$USER_ACCOUNT
 Group=$USER_ACCOUNT
 StateDirectory=ipfs
 Environment=IPFS_PATH=$USER_HOME/.ipfs
+ExecStart=
 ExecStart=/usr/local/bin/ipfs daemon --init --migrate
 Restart=on-failure
 KillSignal=SIGINT
@@ -7328,13 +7329,13 @@ main() {
     ipfs_create_service
 
     # Install/upgrade NodeJS
-    nodejs_do_install
+#    nodejs_do_install
 
     # Install DigiAssets along with IPFS
-    digiasset_node_do_install
+#    digiasset_node_do_install
 
     # Setup PM2 init service
-    digiasset_node_pm2_create_service
+#    digiasset_node_pm2_create_service
 
 
 
