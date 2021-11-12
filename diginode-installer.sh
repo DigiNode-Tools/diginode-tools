@@ -2192,10 +2192,10 @@ user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
     printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
-    print "\\n"
+    printf "\\n"
     printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
     printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
-    print "\\n"
+    printf "\\n"
     su digibyte
     printf "\\n"
     if [ "$(id -u -n)" = "digibyte" ]; then
@@ -4486,9 +4486,6 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
         # Disable the service now
         systemctl disable ipfs
 
-        # Disable linger
-        loginctl disable-linger $USER_ACCOUNT
-
         str="Deleting IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $IPFS_SYSTEMD_SERVICE_FILE
@@ -4545,8 +4542,8 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
         str="Creating IPFS systemd service file: $IPFS_SYSTEMD_SERVICE_FILE ... "
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT touch $IPFS_SYSTEMD_SERVICE_FILE
-        sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
+        touch $IPFS_SYSTEMD_SERVICE_FILE
+        cat <<EOF > $IPFS_SYSTEMD_SERVICE_FILE
 # This file will be overwritten on package upgrades, avoid customizations here.
 #
 # To make persistant changes, create file in 
@@ -4631,8 +4628,8 @@ EOF
 
         str="Creating IPFS upstart service file: $IPFS_UPSTART_SERVICE_FILE ... "
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT touch $IPFS_UPSTART_SERVICE_FILE
-        sudo -u $USER_ACCOUNT cat <<EOF > $IPFS_UPSTART_SERVICE_FILE
+        touch $IPFS_UPSTART_SERVICE_FILE
+        cat <<EOF > $IPFS_UPSTART_SERVICE_FILE
 description "ipfs: interplanetary filesystem"
 
 start on (local-filesystems and net-device-up IFACE!=lo)
@@ -5841,8 +5838,8 @@ uninstall_do_now() {
         printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
         printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
-        sudo service digibyted stop
-        sudo service digibyted disable
+        stop_service digibyted
+        disable_service digibyted
         DGB_STATUS="stopped"
 
         # Delete systemd service file
