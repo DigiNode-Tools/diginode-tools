@@ -7324,7 +7324,7 @@ main() {
     ipfs_create_service
 
     # Install/upgrade NodeJS
-#    nodejs_do_install
+    nodejs_do_install
 
     # Install DigiAssets along with IPFS
 #    digiasset_node_do_install
