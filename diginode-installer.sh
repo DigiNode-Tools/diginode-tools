@@ -5276,6 +5276,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
       fi
     fi 
 
+    # Install the latest version of npm, if needed
+    if [ "$NPM_DO_INSTALL" = "YES" ]; then
+        printf "%b Install latest version of npm...\\n" "${INFO}"
+        npm install --quiet npm@latest -g
+    fi
+
 
     # Let's check if pm2 is already installed
     str="Is pm2 already installed?..."
@@ -5322,7 +5328,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
       fi
     fi 
 
-    # Install the latest version of PM2
+    # Install the latest version of PM2, if needed
     if [ "$PM2_DO_INSTALL" = "YES" ]; then
         printf "%b Install latest version of pm2...\\n" "${INFO}"
         npm install --quiet pm2@latest -g
