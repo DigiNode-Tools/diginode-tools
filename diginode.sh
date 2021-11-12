@@ -1177,7 +1177,7 @@ temperature=$(cat </sys/class/thermal/thermal_zone0/temp)
 TEMP_C=$((temperature/1000))
 
 # Convert temperature to Degrees F
-TEMP_F=$(((9/5) * $tempc + 32))
+TEMP_F=$(((9/5) * $TEMP_C + 32))
 
 
 # ------------------------------------------------------------------------------
@@ -1641,7 +1641,7 @@ echo ""
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
 if [ $DGB_CONNECTIONS -le 8 ]; then
-printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
+printf "  ║ CONNECTIONS   ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
 else
 printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 fi
