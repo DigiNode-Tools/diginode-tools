@@ -5793,15 +5793,9 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Remove IPFS updater from PATH
-            str="Deleting ipfs-update entry from PATH..."
-            printf "%b %s..." "${INFO}" "${str}"
-            sudo sed -i.bak '/swap/d' /etc/fstab
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
             # Delete Go-IPFS binary
             if [ -f /usr/local/bin/ipfs ]; then
-                str="Deleting current Go-IPFS binary..."
+                str="Deleting current Go-IPFS binary: /usr/local/bin/ipfs..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
