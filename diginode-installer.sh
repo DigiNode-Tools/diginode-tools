@@ -5227,7 +5227,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     if [[ -d $DGA_INSTALL_LOCATION ]]; then
         str="Removing DigiAsset Node current version..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -r -f $USER_HOME/digiasset_node
+        rm -r -f $DGA_INSTALL_LOCATION
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
