@@ -5401,7 +5401,7 @@ fi
 
 
 # Create pm2 service so that DigiAsset Node will run at boot
-digiasset_node_pm2_create_service() {
+digiasset_node_create_pm2_service() {
 
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
@@ -5429,12 +5429,12 @@ fi
 # If the SYSTEMD service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
             PM2_SERVICE_DO_INSTALL="if_doing_full_install"
-            PM2_INSTALL_TYPE="new"
+            PM2_SERVICE_INSTALL_TYPE="new"
 fi
 
 # If the UPSTART service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-            PM2_DO_INSTALL="if_doing_full_install"
+            PM2_SERVICE_DO_INSTALL="if_doing_full_install"
             PM2_SERVICE_INSTALL_TYPE="new"
 fi
 
@@ -7505,7 +7505,7 @@ main() {
     digiasset_node_do_install
 
     # Setup PM2 init service
-    digiasset_node_pm2_create_service
+    digiasset_node_create_pm2_service
 
 
 
