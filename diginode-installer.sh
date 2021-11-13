@@ -5369,8 +5369,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+    printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
-    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js --name digiasset -- --log
+    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+    printf "%b Saving PM2 process state..\\n" "${INFO}"
     sudo -u $USER_ACCOUNT pm2 save -force
 
 
