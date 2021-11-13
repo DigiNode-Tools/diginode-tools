@@ -154,6 +154,7 @@ TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+EMPTY="  [ ]"
 INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
@@ -3351,7 +3352,7 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "startingup" ]; then
         every15secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-        str="DigiByte Core is currently in the process of starting. This can take about 10 mins. Please wait..."
+        str="DigiByte Core is currently in the process of starting up. This can take 10 mins or more."
         printf "%b %s" "${INFO}" "${str}"
         str="Please wait..."
         printf "%b %s" "${INDENT}" "${str}"
@@ -3372,17 +3373,17 @@ digibyte_check() {
             if [ "$every15secs" -ge 30 ]; then
               BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
               if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-                printf "%b%b %s $progress Querying..." "${OVER}" "${INFO}" "${str}"
+                printf "%b%b %s $progress Querying..." "${OVER}" "${INDENT}" "${str}"
                 every15secs=0
                 sleep 0.5
               else
                 DGB_STATUS="running"
-                printf "%b%b %s Done!\\n" "${OVER}" "${INFO}" "${str}"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 tput cnorm
               fi
             else
                 every15secs=$((every15secs + 1))
-                printf "%b%b %s $progress" "${OVER}" "${INFO}" "${str}"
+                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
         done
@@ -5231,7 +5232,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         str="Removing DigiAsset Node current version..."
         printf "%b %s" "${INFO}" "${str}"
         rm -r $DGA_INSTALL_LOCATION
-        printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Let's check if npm is already installed
@@ -7465,6 +7466,9 @@ main() {
     # Install packages used by the actual software
     printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
     # ==============================================================================
+    
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
     local dep_install_list=("${DIGINODE_DEPS[@]}")
     printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
     install_dependent_packages "${dep_install_list[@]}"
