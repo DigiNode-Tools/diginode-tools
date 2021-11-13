@@ -2192,25 +2192,12 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
-    printf "%b User Account: Switching to user account: 'digibyte'... \\n" "${INFO}"
-    printf "\\n"
-    printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
-    printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
-    printf "\\n"
-    su digibyte
-    printf "\\n"
-    if [ "$(id -u -n)" = "digibyte" ]; then
-        printf "%b Re-running installer as user: digbyte ... \\n" "${INFO}"
-        sleep 3
-        exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
-    else
-        printf "%b %bERROR: Unable to switch to user: digibyte%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
         printf "\\n"
-        printf "%b Please sign as user 'digibyte' and run this installer again: \\n" "${INFO}"
-        prinff "\\n"
         printf "%b   su digibyte\\n" "${INDENT}"
         printf "\\n"
-        exit 1
+        printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+        printf "\\n"
     fi
 fi
 
@@ -2267,26 +2254,15 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         sudo usermod -aG sudo digibyte
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b You will now be asked to sign is as the user 'digibyte'. You will be asked for your password.\\n" "${INFO}"
-        printf "%b Once you have signed in successfully to the 'digibyte' account, the installer will restart.\\n" "${INDENT}"
+        printf "%b The new user 'digibyte' has been created.\\n" "${INDENT}"
         printf "\\n"
-        su digibyte
+        printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
         printf "\\n"
-
-        if [ "$(id -u -n)" = "digibyte" ]; then
-            printf "%b Re-running installer as user: digbyte ... \\n" "${INFO}"
-            sleep 3
-            exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
-        else
-            printf "%b %bERROR: Unable to switch to user: digibyte%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b Please sign as user 'digibyte' and run this installer again: \\n" "${INFO}"
-            printf "\\n"
-            printf "%b   su digibyte\\n" "${INDENT}"
-            printf "\\n"
-            exit 1
-        fi
-
+        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+        printf "\\n"
+        exit
     else
         printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
