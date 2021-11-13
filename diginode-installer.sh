@@ -5834,38 +5834,39 @@ uninstall_do_now() {
         # Do you want to delete pm2 service?
         if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." "${r}" "${c}"; then
 
-            # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-        if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
+                # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+            if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
-            # Stop the service now
-            systemctl stop "pm2-$USER_ACCOUNT"
+                # Stop the service now
+                systemctl stop "pm2-$USER_ACCOUNT"
 
-            # Disable the service now
-            systemctl disable "pm2-$USER_ACCOUNT"
+                # Disable the service now
+                systemctl disable "pm2-$USER_ACCOUNT"
 
-            str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $PM2_SYSTEMD_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+                str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $PM2_SYSTEMD_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
-        # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-        if [ -f "$PM2_UPSTART_SERVICE_FILE" ]; then
+            # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+            if [ -f "$PM2_UPSTART_SERVICE_FILE" ]; then
 
-            # Stop the service now
-            service "pm2-$USER_ACCOUNT" stop
+                # Stop the service now
+                service "pm2-$USER_ACCOUNT" stop
 
-            # Disable the service now
-            service "pm2-$USER_ACCOUNT" disable
+                # Disable the service now
+                service "pm2-$USER_ACCOUNT" disable
 
-            str="Deleting PM2 upstart service file: $PM2_UPSTART_SERVICE_FILE ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $PM2_UPSTART_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+                str="Deleting PM2 upstart service file: $PM2_UPSTART_SERVICE_FILE ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $PM2_UPSTART_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
-    else
+        else
             printf "%b You chose not to delete your PM2 service file.\\n" "${INFO}"
+        fi
     fi
 
 
