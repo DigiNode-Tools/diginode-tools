@@ -6205,7 +6205,7 @@ array[26]="digifact27"
 array[27]="digifact28"
 array[28]="digifact29"
 array[29]="digifact30"
-array[30]="digifact31"
+# array[30]="digifact31"
 array[31]="digifact32"
 array[32]="digifact33"
 array[33]="digifact34"
@@ -6224,11 +6224,11 @@ array[45]="digifact46"
 array[46]="digifact47"
 array[47]="digifact48"
 array[48]="digifact49"
-array[49]="digifact50"
+# array[49]="digifact50"
 array[50]="digifact51"
 array[51]="digifact52"
 array[52]="digifact53"
-array[53]="digifact54"
+# array[53]="digifact54"
 array[54]="digifact55"
 array[55]="digifact56"
 array[56]="digifact57"
@@ -6256,6 +6256,7 @@ array[77]="help1"
 array[78]="help2"
 array[79]="help3"
 array[80]="help4"
+array[81]="help5"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -6584,15 +6585,15 @@ if [ "$DIGIFACT" = "digifact30" ]; then
     DIGIFACT_L6=""
 fi
 
-if [ "$DIGIFACT" = "digifact31" ]; then
-    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
-    DIGIFACT_L1="The most popular Core DigiByte wallet so far was our 6.14.2"
-    DIGIFACT_L2="release, with 200,000 downloads!"
-    DIGIFACT_L3=""
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
+#if [ "$DIGIFACT" = "digifact31" ]; then
+#    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
+#    DIGIFACT_L1="The most popular Core DigiByte wallet so far was our 6.14.2"
+#    DIGIFACT_L2="release, with 200,000 downloads!"
+#    DIGIFACT_L3=""
+#    DIGIFACT_L4=""
+#    DIGIFACT_L5=""
+#    DIGIFACT_L6=""
+#fi
 
 if [ "$DIGIFACT" = "digifact32" ]; then
     DIGIFACT_TITLE="DigiFact # 32 - Did you know..."
@@ -6650,7 +6651,7 @@ if [ "$DIGIFACT" = "digifact37" ]; then
     DIGIFACT_L2="just the 'closest' or 'fastest'. It finds connections from"
     DIGIFACT_L3="all over the world, to ensure you get a broad consensus"
     DIGIFACT_L4="on the DigiByte blockchain and protects you against sybil"
-    DIGIFACT_L5=" attacks."
+    DIGIFACT_L5="attacks."
     DIGIFACT_L6=""
 fi
 
@@ -6774,15 +6775,15 @@ if [ "$DIGIFACT" = "digifact49" ]; then
     DIGIFACT_L6=""
 fi
 
-if [ "$DIGIFACT" = "digifact50" ]; then
-    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-    DIGIFACT_L1="DigiByte 1-click miner allows anybody to get started"
-    DIGIFACT_L2="participating in mining \$DGB with their graphics card in their"
-    DIGIFACT_L3="computer. Doing-so earns you DigiByte, while helping to secure"
-    DIGIFACT_L4="the network."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
+#if [ "$DIGIFACT" = "digifact50" ]; then
+#    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
+#    DIGIFACT_L1="DigiByte 1-click miner allows anybody to get started"
+#    DIGIFACT_L2="participating in mining \$DGB with their graphics card in their"
+#    DIGIFACT_L3="computer. Doing-so earns you DigiByte, while helping to secure"
+#    DIGIFACT_L4="the network."
+#    DIGIFACT_L5=""
+#    DIGIFACT_L6=""
+#fi
 
 if [ "$DIGIFACT" = "digifact51" ]; then
     DIGIFACT_TITLE="DigiFact # 51 - Did you know..."
@@ -6814,17 +6815,17 @@ if [ "$DIGIFACT" = "digifact53" ]; then
     DIGIFACT_L6=""
 fi
 
-if [ "$DIGIFACT" = "digifact54" ]; then
-    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
-    DIGIFACT_L1="DigiByte has some of the most accurate and consistent block"
-    DIGIFACT_L2="timing of any UTXO project. Where others like BTC and LTC"
-    DIGIFACT_L3="regularly vary by over 8% in any given day, DigiByte maintains"
-    DIGIFACT_L4="block timings within 0.1% of their expected schedule."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
+# if [ "$DIGIFACT" = "digifact54" ]; then
+#    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
+#    DIGIFACT_L1="DigiByte has some of the most accurate and consistent block"
+#    DIGIFACT_L2="timing of any UTXO project. Where others like BTC and LTC"
+#    DIGIFACT_L3="regularly vary by over 8% in any given day, DigiByte maintains"
+#    DIGIFACT_L4="block timings within 0.1% of their expected schedule."
+#    DIGIFACT_L5=""
+#    DIGIFACT_L6=""
+# fi
 
-if [ "$DIGIFACT" = "digifact55" ]; then
+ if [ "$DIGIFACT" = "digifact55" ]; then
     DIGIFACT_TITLE="DigiFact # 55 - Did you know..."
     DIGIFACT_L1="DigiByte mining is some of the most distributed in the industry."
     DIGIFACT_L2="When a 7-day period in September 2019 was compared against"
@@ -6832,7 +6833,7 @@ if [ "$DIGIFACT" = "digifact55" ]; then
     DIGIFACT_L4="miners. This grew to over 20X the unique miners when looking at"
     DIGIFACT_L5="a 3-month period. View more stats here: https://j.mp/3ojzV08"
     DIGIFACT_L6=""
-fi
+ fi
 
 if [ "$DIGIFACT" = "digifact56" ]; then
     DIGIFACT_TITLE="DigiFact # 56 - Did you know..."
@@ -6896,9 +6897,9 @@ fi
 
 if [ "$DIGIFACT" = "digifact62" ]; then
     DIGIFACT_TITLE="DigiFact # 62 - Did you know..."
-    DIGIFACT_L1="A single DigiByte can be divided up to 8 decimal places, known"
-    DIGIFACT_L2="as a digiSatoshi (or dSat for short). That's 1/100,000,000 of a"
-    DIGIFACT_L3="DigiByte."
+    DIGIFACT_L1="A single DigiByte can be divided up to 8 decimal places. That's"
+    DIGIFACT_L2="1/100,000,000 of a DigiByte. This is known as a Digit or DIT"
+    DIGIFACT_L3="for short. (e.g. 1000 DITS)"
     DIGIFACT_L4=""
     DIGIFACT_L5=""
     DIGIFACT_L6=""
@@ -6916,12 +6917,12 @@ fi
 
 if [ "$DIGIFACT" = "digifact64" ]; then
     DIGIFACT_TITLE="DigiFact # 64 - Did you know..."
-    DIGIFACT_L1="DigiByte has 4x address types, each starting with a different"
-    DIGIFACT_L2="prefix. \"D\" is for legacy DigiByte addresses, and \"3\" is for"
-    DIGIFACT_L3="legacy MultiSig addresses. Support for these will always remain,"
-    DIGIFACT_L4="however more commonly people are now using the newer address"
-    DIGIFACT_L5="formats - \"S\" for SegWit (Segregated Witness) or \"dgb1\""
-    DIGIFACT_L6="for Bech32 formatted addresses."
+    DIGIFACT_L1="DigiByte has 3x address types, each starting with a different"
+    DIGIFACT_L2="prefix. Modern addresses start with the letters \"dgb1\""
+    DIGIFACT_L3="for Bech32 formatted addresses or the letter \"S\" for"
+    DIGIFACT_L4="SegWit (Segregated Witness). Legacy addresses start with the"
+    DIGIFACT_L5="letter \"D\". While support for these will remain, they are"
+    DIGIFACT_L6="gradually being phased out in favor of of Bech32 addresses."
 fi
 
 if [ "$DIGIFACT" = "digifact65" ]; then
@@ -7054,7 +7055,7 @@ if [ "$DIGIFACT" = "social2" ]; then
 fi
 
 if [ "$DIGIFACT" = "help1" ]; then
-    DIGIFACT_TITLE="DigiFact Tip!"
+    DIGIFACT_TITLE="      DigiFact Tip!"
     DIGIFACT_L1="You may have noticed that many of these DigiFacts have a URL in"
     DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
     DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
@@ -7073,7 +7074,7 @@ if [ "$DIGIFACT" = "help2" ]; then
 fi
 
 if [ "$DIGIFACT" = "help3" ]; then
-    DIGIFACT_TITLE="Need DigiByte Support?"
+    DIGIFACT_TITLE="    Need DigiByte Support?"
     DIGIFACT_L1="For general DigiByte support, the best place to start is with"
     DIGIFACT_L2="the community support tool available here:"
     DIGIFACT_L3=" "
@@ -7083,13 +7084,23 @@ if [ "$DIGIFACT" = "help3" ]; then
 fi
 
 if [ "$DIGIFACT" = "help4" ]; then
-    DIGIFACT_TITLE="DigiNode Tip!"
+    DIGIFACT_TITLE="      DigiNode Tip!"
     DIGIFACT_L1="Did you know that you can view your DigiNode on a map?"
     DIGIFACT_L2=" "
     DIGIFACT_L3=" DigiByte Node: https://nodes.digibyte.host/"
     DIGIFACT_L4="DigiAsset Node: https://ipfs.digiassetx.com/"
     DIGIFACT_L5=" "
-    DIGIFACT_L6="This is also a good way to know your DigiNode is working properly."
+    DIGIFACT_L6="This is also a good way to check your DigiNode is working properly!"
+fi
+
+if [ "$DIGIFACT" = "help5" ]; then
+    DIGIFACT_TITLE="    Need DigiAsset Support?"
+    DIGIFACT_L1="For help with creating DigiAssets, a good place to start is"
+    DIGIFACT_L2="the DigiAssetX Telegram group here:"
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="https://t.me/digiassetX"
+    DIGIFACT_L5=""
+    DIGIFACT_L6=""
 fi
 
 
