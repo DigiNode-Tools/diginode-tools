@@ -90,13 +90,10 @@ Running this will uninstall your DigiNode. Your wallet file will be kept.
 
 This use use the develop branch of the installer from Github, and install the develop version of DigiNode Tools. For testing purposes only. Expect this to break things. At times it likely won't even run.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgnt-dev```
+```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgntdev```
 
 - Developer Mode: DigiAsset Node
 
 This installs the development branch of DigiAsset Node. For developers only.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --dga-dev```
-
-
-
+```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgadev```
