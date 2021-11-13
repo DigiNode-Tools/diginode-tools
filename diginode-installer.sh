@@ -1693,7 +1693,9 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
+    DIGINODE_DEPS=(cron curl iputils-ping netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
+
+ # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
     # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
     test_dpkg_lock() {
@@ -1724,7 +1726,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
+    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig jq)
     DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "${avahi_package}")
 
 # If neither apt-get or yum/dnf package managers were found
@@ -7492,10 +7494,13 @@ main() {
 
 
 
-    ### CLEAN UP ###
+    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
 
     # Change the hostname
     hostname_do_change
+
+
+    ### WRAP UP ###
 
     # Request social media post
     request_social_media
@@ -7515,203 +7520,6 @@ main() {
     # Launch Status Monitor if requested
     launch_status_monitor
 
-
-
-
-    exit
-
-    # This stuff requires a reboot after changing
-
-
-
-
-
-
-
-
-
-
-
-    #####################################
-    echo ""
-    printf "%b Exiting script early during testing!!" "${INFO}"
-    echo ""
-    exit # EXIT HERE DURING TEST
-    #####################################
-
-
-    if [[ "${NewInstall}" == true ]]; then
-
-        # pause for a moment beofe displaying menu
-        sleep 3
-
-        # Display welcome dialogs
-        welcomeDialogs
-
-
-        # Create directory for Pi-hole storage
-        install -d -m 755 /etc/pihole/
-        # Determine available interfaces
-        get_available_interfaces
-        # Find interfaces and let the user choose one
-        chooseInterface
-        # Decide what upstream DNS Servers to use
-        setDNS
-        # Give the user a choice of blocklists to include in their install. Or not.
-        chooseBlocklists
-        # Let the user decide if they want to block ads over IPv4 and/or IPv6
-        use4andor6
-        # Let the user decide if they want the web interface to be installed automatically
-        setAdminFlag
-        # Let the user decide if they want query logging enabled...
-        setLogging
-        # Let the user decide the FTL privacy level
-        setPrivacyLevel
-    else
-        # Setup adlist file if not exists
-        installDefaultBlocklists
-
-        # Source ${setupVars} to use predefined user variables in the functions
-        source "${setupVars}"
-
-        # Get the privacy level if it exists (default is 0)
-        if [[ -f "${PI_HOLE_CONFIG_DIR}/pihole-FTL.conf" ]]; then
-            PRIVACY_LEVEL=$(sed -ne 's/PRIVACYLEVEL=\(.*\)/\1/p' "${PI_HOLE_CONFIG_DIR}/pihole-FTL.conf")
-
-            # If no setting was found, default to 0
-            PRIVACY_LEVEL="${PRIVACY_LEVEL:-0}"
-        fi
-    fi
-    # Download or update the scripts by updating the appropriate git repos
-    clone_or_update_repos
-
-    # Install the Core dependencies
-    local dep_install_list=("${PIHOLE_DEPS[@]}")
-    if [[ "${INSTALL_WEB_SERVER}" == true ]]; then
-        # And, if the setting says so, install the Web admin interface dependencies
-        dep_install_list+=("${PIHOLE_WEB_DEPS[@]}")
-    fi
-
-
-
-    # On some systems, lighttpd is not enabled on first install. We need to enable it here if the user
-    # has chosen to install the web interface, else the LIGHTTPD_ENABLED check will fail
-    if [[ "${INSTALL_WEB_SERVER}" == true ]]; then
-        enable_service lighttpd
-    fi
-    # Determine if lighttpd is correctly enabled
-    if check_service_active "lighttpd"; then
-        LIGHTTPD_ENABLED=true
-    else
-        LIGHTTPD_ENABLED=false
-    fi
-    # Create the digibyte user
-    create_digibyte_user
-
-    # Check if FTL is installed - do this early on as FTL is a hard dependency for Pi-hole
-    local funcOutput
-    funcOutput=$(get_binary_name) #Store output of get_binary_name here
-    local binary
-    binary="pihole-FTL${funcOutput##*pihole-FTL}" #binary name will be the last line of the output of get_binary_name (it always begins with pihole-FTL)
-    local theRest
-    theRest="${funcOutput%pihole-FTL*}" # Print the rest of get_binary_name's output to display (cut out from first instance of "pihole-FTL")
-    if ! FTLdetect "${binary}" "${theRest}"; then
-        printf "  %b FTL Engine not installed\\n" "${CROSS}"
-        exit 1
-    fi
-
-    # Install and log everything to a file
-    installPihole | tee -a /proc/$$/fd/3
-
-    # Copy the temp log file into final log location for storage
-    copy_to_install_log
-
-    if [[ "${INSTALL_WEB_INTERFACE}" == true ]]; then
-        # Add password to web UI if there is none
-        pw=""
-        # If no password is set,
-        if [[ $(grep 'WEBPASSWORD' -c /etc/pihole/setupVars.conf) == 0 ]] ; then
-            # generate a random password
-            pw=$(tr -dc _A-Z-a-z-0-9 < /dev/urandom | head -c 8)
-            # shellcheck disable=SC1091
-            . /opt/pihole/webpage.sh
-            echo "WEBPASSWORD=$(HashPassword "${pw}")" >> "${setupVars}"
-        fi
-    fi
-
-    # Check for and disable systemd-resolved-DNSStubListener before reloading resolved
-    # DNSStubListener needs to remain in place for installer to download needed files,
-    # so this change needs to be made after installation is complete,
-    # but before starting or resarting the dnsmasq or ftl services
-    disable_resolved_stublistener
-
-    # If the Web server was installed,
-    if [[ "${INSTALL_WEB_SERVER}" == true ]]; then
-        if [[ "${LIGHTTPD_ENABLED}" == true ]]; then
-            restart_service lighttpd
-            enable_service lighttpd
-        else
-            printf "  %b Lighttpd is disabled, skipping service restart\\n" "${INFO}"
-        fi
-    fi
-
-    printf "  %b Restarting services...\\n" "${INFO}"
-    # Start services
-
-    # Enable FTL
-    # Ensure the service is enabled before trying to start it
-    # Fixes a problem reported on Ubuntu 18.04 where trying to start
-    # the service before enabling causes installer to exit
-    enable_service pihole-FTL
-    restart_service pihole-FTL
-
-    # Download and compile the aggregated block list
-    runGravity
-
-    # Force an update of the updatechecker
-    /opt/pihole/updatecheck.sh
-    /opt/pihole/updatecheck.sh x remote
-
-    if [[ "${useUpdateVars}" == false ]]; then
-        displayFinalMessage "${pw}"
-    fi
-
-    # If the Web interface was installed,
-    if [[ "${INSTALL_WEB_INTERFACE}" == true ]]; then
-        # If there is a password,
-        if (( ${#pw} > 0 )) ; then
-            # display the password
-            printf "  %b Web Interface password: %b%s%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${pw}" "${COL_NC}"
-            printf "  %b This can be changed using 'pihole -a -p'\\n\\n" "${INFO}"
-        fi
-    fi
-
-    if [[ "${useUpdateVars}" == false ]]; then
-        # If the Web interface was installed,
-        if [[ "${INSTALL_WEB_INTERFACE}" == true ]]; then
-            printf "  %b View the web interface at http://pi.hole/admin or http://%s/admin\\n\\n" "${INFO}" "${IPV4_ADDRESS%/*}"
-        fi
-        # Explain to the user how to use Pi-hole as their DNS server
-        printf "  %b You may now configure your devices to use the Pi-hole as their DNS server\\n" "${INFO}"
-        [[ -n "${IPV4_ADDRESS%/*}" ]] && printf "  %b Pi-hole DNS (IPv4): %s\\n" "${INFO}" "${IPV4_ADDRESS%/*}"
-        [[ -n "${IPV6_ADDRESS}" ]] && printf "  %b Pi-hole DNS (IPv6): %s\\n" "${INFO}" "${IPV6_ADDRESS}"
-        printf "  %b If you have not done so already, the above IP should be set to static.\\n" "${INFO}"
-        INSTALL_TYPE="Installation"
-    else
-        INSTALL_TYPE="Update"
-    fi
-
-    # Display where the log file is
-    printf "\\n  %b The install log is located at: %s\\n" "${INFO}" "${installLogLoc}"
-    printf "%b%s Complete! %b\\n" "${COL_LIGHT_GREEN}" "${INSTALL_TYPE}" "${COL_NC}"
-
-    if [[ "${INSTALL_TYPE}" == "Update" ]]; then
-        printf "\\n"
-        "${PI_HOLE_BIN_DIR}"/pihole version --current
-    fi
-
-    # Set this install as an official DigiNode install
-    set_official
 }
 
 if [[ "$RUN_INSTALLER" != "NO" ]] ; then
