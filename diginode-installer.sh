@@ -5367,7 +5367,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     cd $DGA_INSTALL_LOCATION
-    sudo -u $USER_ACCOUNT pm2 start index.js --name digiasset -- --log
+    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js --name digiasset -- --log
     sudo -u $USER_ACCOUNT pm2 save -force
 
 
@@ -5412,14 +5412,14 @@ if [ "$RESET_MODE" = true ]; then
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
-            PM2_DO_INSTALL=YES
-            PM2_INSTALL_TYPE="reset"
+            PM2_SERVICE_DO_INSTALL=YES
+            PM2_SERVICE_INSTALL_TYPE="reset"
         else
             printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
-            PM2_DO_INSTALL=NO
-            PM2_INSTALL_TYPE="none"
+            PM2_SERVICE_DO_INSTALL=NO
+            PM2_SERVICE_INSTALL_TYPE="none"
             return
         fi
     fi
@@ -5427,37 +5427,37 @@ fi
 
 # If the SYSTEMD service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-            PM2_DO_INSTALL="if_doing_full_install"
+            PM2_SERVICE_DO_INSTALL="if_doing_full_install"
             PM2_INSTALL_TYPE="new"
 fi
 
 # If the UPSTART service files do not yet exist, then assume this is a new install
 if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
             PM2_DO_INSTALL="if_doing_full_install"
-            PM2_INSTALL_TYPE="new"
+            PM2_SERVICE_INSTALL_TYPE="new"
 fi
 
 # If this is a new install of NodeJS PM2 service file, and the user has opted to do a full DigiNode install, then proceed
-if  [ "$PM2_INSTALL_TYPE" = "new" ] && [ "$PM2_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
-    PM2_DO_INSTALL=YES
+if  [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ] && [ "$PM2_SERVICE_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    PM2_SERVICE_DO_INSTALL=YES
 fi
 
 
-if [ "$PM2_DO_INSTALL" = "YES" ]; then
+if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     printf "\\n"
-    if [ "$PM2_INSTALL_TYPE" = "new" ]; then
+    if [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ]; then
         printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
         # ==============================================================================
-    elif [ "$PM2_INSTALL_TYPE" = "reset" ]; then
+    elif [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
         printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
         # ==============================================================================
     fi
 
     # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-    if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
+    if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ] && [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
         systemctl stop "pm2-$USER_ACCOUNT"
@@ -5472,7 +5472,7 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
     fi
 
     # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
-    if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_INSTALL_TYPE" = "reset" ]; then
+    if [ -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
 
         # Stop the service now
         service "pm2-$USER_ACCOUNT" stop
@@ -5492,10 +5492,10 @@ if [ "$PM2_DO_INSTALL" = "YES" ]; then
         # Generate the PM2 service file
         env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER_ACCOUNT --hp $USER_HOME
 
-        # Restart the PM2 service
-        restart_service "pm2-$USER_ACCOUNT"
+        systemctl enable "pm2-$USER_ACCOUNT"
 
-        enable_service "pm2-$USER_ACCOUNT"
+        # Restart the PM2 service
+        # restart_service "pm2-$USER_ACCOUNT"
 
     fi
 
@@ -5834,15 +5834,38 @@ uninstall_do_now() {
         # Do you want to delete pm2 service?
         if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." "${r}" "${c}"; then
 
-            # Delete asset_settings folder
-            str="Deleting PM2 service file..."
+            # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+        if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
+
+            # Stop the service now
+            systemctl stop "pm2-$USER_ACCOUNT"
+
+            # Disable the service now
+            systemctl disable "pm2-$USER_ACCOUNT"
+
+            str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
             printf "%b %s" "${INFO}" "${str}"
-            rm -f -r $PM2_UPSTART_SERVICE_FILE
-            rm -f -r $PM2_SYSTEMD_SERVICE_FILE
+            rm -f $PM2_SYSTEMD_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b You chose not to delete your PM2 service file.\\n" "${INFO}"
         fi
+
+        # If UPSTART service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
+        if [ -f "$PM2_UPSTART_SERVICE_FILE" ]; then
+
+            # Stop the service now
+            service "pm2-$USER_ACCOUNT" stop
+
+            # Disable the service now
+            service "pm2-$USER_ACCOUNT" disable
+
+            str="Deleting PM2 upstart service file: $PM2_UPSTART_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $PM2_UPSTART_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+            printf "%b You chose not to delete your PM2 service file.\\n" "${INFO}"
     fi
 
 
