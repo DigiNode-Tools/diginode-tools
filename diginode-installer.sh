@@ -2925,13 +2925,13 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
     # Display section break
     if [ "$DGB_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: DigiByte daemon service ===================\\n\\n"
+        printf " =============== Install: DigiByte daemon service ======================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_SERVICE_INSTALL_TYPE" = "update" ]; then
-        printf " =============== Updating: DigiByte daemon service =====================\\n\\n"
+        printf " =============== Update: DigiByte daemon service =======================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
+        printf " =============== Reset: DigiByte daemon service ========================\\n\\n"
         # ==============================================================================
     fi
 
@@ -3509,13 +3509,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: DigiByte Core =============================\\n\\n"
+        printf " =============== Install: DigiByte Core ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrading: DigiByte Core ==============================\\n\\n"
+        printf " =============== Upgrade: DigiByte Core ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: DigiByte Core ==============================\\n\\n"
+        printf " =============== Reset: DigiByte Core ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiByte Core.\\n" "${INFO}"
     fi
@@ -3832,13 +3832,13 @@ fi
 
                 # Display section break
         if [ "$DGNT_INSTALL_TYPE" = "new" ]; then
-            printf " =============== Installing: DigNode Tools =============================\\n\\n"
+            printf " =============== Install: DigNode Tools ================================\\n\\n"
             # ==============================================================================
         elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
-            printf " =============== Upgrading: DigNode Tools ==============================\\n\\n"
+            printf " =============== Upgrade: DigNode Tools ================================\\n\\n"
             # ==============================================================================
         elif [ "$DGNT_INSTALL_TYPE" = "reset" ]; then
-            printf " =============== Resetting: DigNode Tools ==============================\\n\\n"
+            printf " =============== Reset: DigNode Tools ==================================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You chose to re-install DigNode Tools.\\n" "${INFO}"
         fi
@@ -4165,13 +4165,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: IPFS ======================================\\n\\n"
+        printf " =============== Install: IPFS =========================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrading: IPFS =======================================\\n\\n"
+        printf " =============== Upgrade: IPFS =========================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: IPFS =======================================\\n\\n"
+        printf " =============== Reset: IPFS ===========================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install Go-IPFS.\\n" "${INFO}"
     fi
@@ -4465,10 +4465,10 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: IPFS Daemon Service =======================\\n\\n"
+        printf " =============== Install: IPFS Daemon Service ==========================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
+        printf " =============== Reset: IPFS Daemon Service ============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-configure the IPFS service.\\n" "${INFO}"
     fi
@@ -4830,13 +4830,13 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ $NODEJS_INSTALL_TYPE = "new" ]; then
-        printf " =============== Installing: NodeJS ====================================\\n\\n"
+        printf " =============== Install: NodeJS =======================================\\n\\n"
         # ==============================================================================
     elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
-        printf " =============== Upgrading: NodeJS =====================================\\n\\n"
+        printf " =============== Upgrade: NodeJS =======================================\\n\\n"
         # ==============================================================================
     elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-        printf " =============== Resetting: NodeJS =====================================\\n\\n"
+        printf " =============== Reset: NodeJS =========================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
     fi
@@ -5198,13 +5198,13 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ $DGA_INSTALL_TYPE = "new" ]; then
-        printf " =============== Installing: DigiAsset Node ============================\\n\\n"
+        printf " =============== Install: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
     elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
-        printf " =============== Upgrading: DigiAsset Node =============================\\n\\n"
+        printf " =============== Upgrade: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
     elif [ $DGA_INSTALL_TYPE = "reset" ]; then
-        printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
+        printf " =============== Reset: DigiAsset Node =================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
     fi
@@ -5449,10 +5449,10 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Installing: NodeJS PM2 Service ========================\\n\\n"
+        printf " =============== Install: NodeJS PM2 Service ===========================\\n\\n"
         # ==============================================================================
     elif [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+        printf " =============== Reset: NodeJS PM2 Service =============================\\n\\n"
         printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
         # ==============================================================================
     fi
