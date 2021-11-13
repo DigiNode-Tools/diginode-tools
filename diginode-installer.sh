@@ -1656,7 +1656,7 @@ fi
 package_manager_detect() {
 
 # Does avahi daemon need to be installed? (this only gets installed if the hostname is set to 'diginode')
-if [[ "$INSTALL_AVAHI" = "YES" ]]; then
+if [ "$INSTALL_AVAHI" = "YES" ]; then
     avahi_package="avahi-daemon"
 else
     avahi_package=""
@@ -1692,7 +1692,7 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "$avahi_package" )
+    DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
     # This function waits for dpkg to unlock, which signals that the previous apt-get command has finished.
     test_dpkg_lock() {
@@ -1724,7 +1724,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig ca-certificates jq)
-    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "$avahi_package" )
+    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "${avahi_package}")
 
 # If neither apt-get or yum/dnf package managers were found
 else
