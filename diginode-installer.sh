@@ -4410,9 +4410,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_UPDATE_AVAILABLE=NO
     IPFS_POSTUPDATE_CLEANUP=YES
 
-fi
+    printf "\\n"
 
-printf "\\n"
+fi
 
 }
 
@@ -4663,9 +4663,9 @@ EOF
 
     fi
 
-fi
+    printf "\\n"
 
-printf "\\n"
+fi
 
 }
 
@@ -4900,9 +4900,10 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     NODEJS_UPDATE_AVAILABLE=NO
     NODEJS_POSTUPDATE_CLEANUP=YES
 
+    printf "\\n"
+
 fi
 
-printf "\\n"
 
 }
 
@@ -5517,6 +5518,8 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
         printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
         exit 1
     fi
+
+    printf "\\n"
 
 fi
 
