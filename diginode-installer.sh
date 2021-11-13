@@ -7434,6 +7434,9 @@ main() {
 
 
     # Install packages used by the actual software
+    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
+    # ==============================================================================
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
     printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
     install_dependent_packages "${dep_install_list[@]}"
     unset dep_install_list
