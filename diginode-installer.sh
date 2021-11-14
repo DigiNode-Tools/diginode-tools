@@ -2878,8 +2878,25 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
 
+
+# Explain the need for a static address
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+#Nothing to do, continue
+  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+  printf "\\n"
+else
+  printf "%b Installer exited at static IP message.\\n" "${INFO}"
+  printf "\\n"
+  exit
+fi
+
+}
+
+
 # If this is the first time running the installer, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
+
+ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
@@ -2904,18 +2921,9 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
 fi
 
-# Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-#Nothing to do, continue
-  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
-  printf "\\n"
-else
-  printf "%b Installer exited at static IP message.\\n" "${INFO}"
-  printf "\\n"
-  exit
-fi
-
 }
+
+
 
 
 # Create service so that DigiByte daemon will run at boot
@@ -7498,6 +7506,9 @@ main() {
 
     # If this is a new interaactive Install, display the first install menu
     if [[ "${UnattendedInstall}" == false ]]; then
+
+        # Ask the user if they want to customize their install
+        ask_customize
 
         # Ask whther to install only DigiByte Core, or DigiAssets Node as well
         menu_first_install
