@@ -50,7 +50,7 @@
 # When a new release is made, this number will be updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this version number on your local installaion or automatic upgrades may not work.
-DGNT_VER_LOCAL=0.0.1
+DGNT_VER_LOCAL=0.0.2
 
 # This is the command people will enter to run the install script.
 DGNT_INSTALLER_OFFICIAL_CMD="curl -sSL diginode-installer.digibyte.help | bash"
