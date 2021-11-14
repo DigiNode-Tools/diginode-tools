@@ -781,7 +781,7 @@ if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
     fi
 fi
 
-if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "NEW" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "NEW" ]; then
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
     printf "\\n"
 fi
 
