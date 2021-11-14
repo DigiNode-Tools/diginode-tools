@@ -240,6 +240,7 @@ is_reset_mode() {
         printf "%b Reset Mode can only be used interactively. Please run again\\n" "${INDENT}"
         printf "%b without the --unattended flag.\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -268,17 +269,19 @@ local str
 # If the diginode.settings file does not already exist, then create it
 if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
-  # create .diginode settings folder if it does not exist
+  # create .digibyte folder if it does not exist
   if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
-    str="Creating ~/.diginode folder..."
+    str="Creating ~/.digibyte folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     if [ $VERBOSE_MODE = true ]; then
         printf "\\n"
         printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
+        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
     else
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
     fi
   fi
 
@@ -546,6 +549,7 @@ EOF
     else
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+    IS_DIGINODE_SETTINGS_FILE_NEW="YES"
 
     # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
     if [ "$UNATTENDED_MODE" = true ]; then
@@ -673,6 +677,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -683,6 +688,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -693,6 +699,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -745,6 +752,38 @@ set_sys_variables() {
 
  #   fi
     printf "\\n"
+
+}
+
+# If the .digibyte folder and diginode.settings file have just been created, and we exit with an error at startup, delete them
+purge_dgnt_settings() {
+
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "NEW" ]; then
+
+    # Delete diginode.settings file
+    printf "%b %bPurging installation file...%b\\n" "${INFO}"
+    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+        str="Deleting diginode.settings file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+fi
+
+if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "NEW" ]; then
+
+    # Delete ~/.digibyte folder
+    if [ -f "$DGNT_SETTINGS_LOCATION" ]; then
+        str="Deleting ~/digibyte folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $DGNT_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+fi
+
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "NEW" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "NEW" ]; then
+    printf "\\n"
+fi
 
 }
 
@@ -1255,6 +1294,7 @@ sys_check() {
         printf "%b should be supported please contact @digibytehelp on Twitter including\\n" "${INDENT}"
         printf "%b the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -1316,6 +1356,7 @@ sys_check() {
 
                 fi
             fi
+            purge_dgnt_settings
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1324,6 +1365,7 @@ sys_check() {
             printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
+            purge_dgnt_settings
             exit 1
         fi
     else
@@ -1555,6 +1597,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     elif [ "$pitype" = "pi" ]; then
         printf "\\n"
@@ -1569,6 +1612,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Memory: %b$MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 else
@@ -1611,6 +1655,7 @@ rpi_microsd_check() {
                 printf "%b recommended DigiNode hardware, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
+                purge_dgnt_settings
                 exit 1
             else
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1972,6 +2017,7 @@ checkSelinux() {
         printf "%b  By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n" "${INDENT}" 
         printf "\\n%b  %bSELinux Enforcing detected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
         printf "\\n"
+        purge_dgnt_settings
         exit 1;
     elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${DIGINODE_SELINUX}" ]]; then
         printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1992,6 +2038,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
+    purge_dgnt_settings
     exit 1
 else
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2113,6 +2160,7 @@ user_check() {
                     USER_DO_SWITCH="YES"
                     printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    purge_dgnt_settings
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_SWITCH="NO"
@@ -2133,6 +2181,7 @@ user_check() {
                  if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    purge_dgnt_settings
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_CREATE="NO"
@@ -2662,6 +2711,7 @@ disk_check() {
                 if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]; then
                   printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
                   printf "\\n"
+                  purge_dgnt_settings
                   exit 1
                 fi
             else
