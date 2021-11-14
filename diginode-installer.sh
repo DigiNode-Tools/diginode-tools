@@ -2279,7 +2279,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         # Create digibyte user
         local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
         printf "%b %s..." "${INFO}" "${str}"
-        useradd -p $DGB_USER_PASS_ENCR digibyte
+        useradd digibyte -p $DGB_USER_PASS_ENCR -U -G sudo -m -s /bin/sh 
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the digibyte group exists
@@ -2317,9 +2317,13 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
         printf "\\n"
-        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "%b   ${txtbld}su digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+        printf "%b Then switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run this installer again.\\n" "${INFO}"
         printf "\\n"
         exit
     else
@@ -2327,15 +2331,19 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
         printf "\\n"
-        printf "%b   sudo adduser digibyte\\n" "${INDENT}"
-        printf "%b   sudo passwd digibyte\\n" "${INDENT}"
-        printf "%b   sudo usermod -aG sudo digibyte\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Then login as the new user:\\n" "${INDENT}"
+        printf "%b Login as the new user:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "%b   ${txtbld}su digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once you are logged in as digibyte, run this installer again.\\n" "${INDENT}"
+        printf "%b Switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run this installer again.\\n" "${INDENT}"
         printf "\\n"
         exit
     fi
