@@ -3852,7 +3852,7 @@ fi
         elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/saltedlolly/diginode-tools/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
