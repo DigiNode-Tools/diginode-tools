@@ -1603,12 +1603,12 @@ rpi_microsd_check() {
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bERROR: Running a DigiNode from a microSD card is not supported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
-                printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
-                printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
-                printf "%b Please use an external SSD drive connected via USB. For help on what\\n" "${INDENT}"
-                printf "%b hardware you need, visit:\\n" "${INDENT}"
+                printf "%b %bERROR: Booting from microSD with less than 8Gb of RAM is not supported.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Since your Raspberry Pi only has $MODELMEM of RAM, you need to be booting\\n" "${INDENT}"
+                printf "%b from an SSD drive. Running a DigiNode requires at least 6Gb RAM, and a microSD\\n" "${INDENT}"
+                printf "%b card is too slow to run both the DigiNode software and swap file together.\\n" "${INDENT}"
+                printf "%b Please use an external SSD drive connected via USB. For advice on the\\n" "${INDENT}"
+                printf "%b recommended DigiNode hardware, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
                 exit 1
@@ -3852,7 +3852,7 @@ fi
         elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
