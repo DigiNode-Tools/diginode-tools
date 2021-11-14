@@ -758,7 +758,7 @@ set_sys_variables() {
 # If the .digibyte folder and diginode.settings file have just been created, and we exit with an error at startup, delete them
 purge_dgnt_settings() {
 
-if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "NEW" ]; then
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
     # Delete diginode.settings file
     printf "%b %bPurging installation file...%b\\n" "${INFO}"
@@ -770,7 +770,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "NEW" ]; then
     fi
 fi
 
-if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "NEW" ]; then
+if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
 
     # Delete ~/.digibyte folder
     if [ -f "$DGNT_SETTINGS_LOCATION" ]; then
