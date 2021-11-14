@@ -2264,7 +2264,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
 
     printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
     
-    DGB_USER_PASS=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nDon't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
+    DGB_USER_PASS=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nIMPORTANT: Don't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
                                                                         # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
