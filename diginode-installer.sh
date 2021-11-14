@@ -2194,14 +2194,14 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
-        printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
-        printf "\\n"
-        printf "%b   su digibyte\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
-        printf "\\n"
-    fi
+    printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
+    printf "\\n"
+    printf "%b   su digibyte\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+    printf "\\n"
 fi
+
 
 if [ "$USER_DO_CREATE" = "YES" ]; then
 
@@ -6214,7 +6214,7 @@ array[26]="digifact27"
 array[27]="digifact28"
 array[28]="digifact29"
 array[29]="digifact30"
-# array[30]="digifact31"
+array[30]="digifact30"   # Note this is showing 30 for now as 31 is innacurate
 array[31]="digifact32"
 array[32]="digifact33"
 array[33]="digifact34"
@@ -6233,11 +6233,11 @@ array[45]="digifact46"
 array[46]="digifact47"
 array[47]="digifact48"
 array[48]="digifact49"
-# array[49]="digifact50"
+array[49]="digifact49"   # Note this is showing 49 for now as 31 is innacurate
 array[50]="digifact51"
 array[51]="digifact52"
 array[52]="digifact53"
-# array[53]="digifact54"
+array[53]="digifact53"   # Note this is showing 53 for now as 31 is innacurate
 array[54]="digifact55"
 array[55]="digifact56"
 array[56]="digifact57"
