@@ -2746,11 +2746,11 @@ menu_first_install() {
 # Function to display the upgrade menu when a previous install has been detected
 menu_existing_install() {
 
-    printf " =============== UPGRADE MENU ==========================================\\n\\n"
+    printf " =============== MAIN MENU =============================================\\n\\n"
     # ==============================================================================
 
-    opt1a="Upgrade"
-    opt1b="Upgrade DigiNode software to the latest versions."
+    opt1a="Update"
+    opt1b="Check for updates to your DigiNode software."
     
     opt2a="Reset"
     opt2b="Reset all settings and reinstall DigiNode software."
@@ -3715,7 +3715,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 fi
 
             else        
-                printf "%b %bDigiNode Tools can be upgraded from v{$DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                 DGNT_INSTALL_TYPE="upgrade"
                 DGNT_ASK_UPGRADE=YES
             fi
@@ -5560,28 +5560,29 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
 
+        printf " =============== UPDATE MENU ===========================================\\n\\n"
+        # ==============================================================================
+
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="- DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb="        - DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="- Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="        - Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="- NodeJS LTS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="        - NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="- DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="        - DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgn="- DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="        - DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb     $upgrade_msg_ipfs     $upgrade_msg_nodejs      $upgrade_msg_dga      $upgrade_msg_dgn\\n" "${INFO}"
-            printf "\\n"
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
         #Nothing to do, continue
-          echo
           if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             DGB_DO_INSTALL=YES
           fi
@@ -5598,10 +5599,11 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             DGNT_DO_INSTALL=YES
           fi
         else
-          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n" "${INFO}"
-          printf "\\n"
+          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
           exit
         fi
+
+    printf "\\n"
 
     fi
 
@@ -7487,10 +7489,10 @@ main() {
     printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
     # ==============================================================================
     
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
     # Check again for supported package managers so that we may install dependencies
     package_manager_detect
     local dep_install_list=("${DIGINODE_DEPS[@]}")
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
     install_dependent_packages "${dep_install_list[@]}"
     unset dep_install_list
 
