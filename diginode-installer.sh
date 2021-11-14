@@ -2279,7 +2279,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         # Create digibyte user
         local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
         printf "%b %s..." "${INFO}" "${str}"
-        useradd -p $DGB_USER_PASS_ENCR digibyte -
+        useradd -p $DGB_USER_PASS_ENCR digibyte
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the digibyte group exists
