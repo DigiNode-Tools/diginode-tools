@@ -773,7 +773,7 @@ fi
 if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
 
     # Delete ~/.digibyte folder
-    if [ -f "$DGNT_SETTINGS_LOCATION" ]; then
+    if [ -d "$DGNT_SETTINGS_LOCATION" ]; then
         str="Deleting ~/digibyte folder..."
         printf "%b %s" "${INFO}" "${str}"
         rm -r $DGNT_SETTINGS_LOCATION
