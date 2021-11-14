@@ -595,7 +595,7 @@ fi
 # check if diginode.settings file exists
 diginode_tools_import_settings() {
 
-if [ -f "$DGNT_SETTINGS_FILE" ]; then
+if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; then
 
     # The settings file exists, so source it
     str="Importing diginode.settings file..."
