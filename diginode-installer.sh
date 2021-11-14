@@ -648,7 +648,7 @@ set_dgnt_branch() {
                     printf "%b %bDigiNode Tools latest release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
-                DGNT_INSTALLER_URL=$DGNT_INSTALLER_OFFICIAL_URL
+                DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL
             fi
     fi
 }
