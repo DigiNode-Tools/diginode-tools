@@ -2243,16 +2243,24 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
+
+    # Delete the settings file that was just created
+    purge_dgnt_settings
+
     printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
     printf "\\n"
     printf "%b   su digibyte\\n" "${INDENT}"
     printf "\\n"
     printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
     printf "\\n"
+    exit
 fi
 
 
 if [ "$USER_DO_CREATE" = "YES" ]; then
+
+    # Delete the settings file that was just created
+    purge_dgnt_settings
 
     printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
     
