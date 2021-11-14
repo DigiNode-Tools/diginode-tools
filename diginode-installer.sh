@@ -2277,7 +2277,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         
         # Create digibyte user
-        local str="Creating user 'digibyte' ... "
+        local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
         printf "%b %s..." "${INFO}" "${str}"
         useradd -m -p "$DGB_USER_PASS_ENCR" digibyte
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
