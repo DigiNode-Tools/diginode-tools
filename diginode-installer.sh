@@ -1693,7 +1693,7 @@ if is_command apt-get ; then
     # Packages required to run this install script (stored as an array)
     INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
+    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo "${avahi_package}")
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -1726,8 +1726,8 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    INSTALLER_DEPS=(git iproute newt procps-ng which chkconfig jq)
-    DIGINODE_DEPS=(cronie curl findutils nmap-ncat sudo unzip libidn2 psmisc sqlite libcap lsof "${avahi_package}")
+    INSTALLER_DEPS=(git iproute procps-ng which chkconfig jq)
+    DIGINODE_DEPS=(cronie curl findutils sudo psmisc "${avahi_package}")
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -4702,16 +4702,29 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
     else
-        printf "%b NodeSource PPA repository has already been added. It should only need to be done once.\\n" "${TICK}"
-        printf "%b If needed, you can have this script add it again, by editing the diginode.settings\\n" "${INDENT}"
+        printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
+        printf "%b If needed, you can have this script attempt to add it, by editing the diginode.settings\\n" "${INDENT}"
         printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
     fi
 
     # Look up the latest candidate release
-    str="Checking for the latest NodeJS LTS release..."
+    str="Checking for the latest NodeJS release..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-    NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+
+    if [ "$PKG_MANAGER" = "apt-get" ]; then
+        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+    fi
+
+    if [ "$PKG_MANAGER" = "dnf" ]; then
+        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: This installer is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+    fi
+
+    if [ "$PKG_MANAGER" = "yum" ]; then
+        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: This installer is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+    fi
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
@@ -4822,42 +4835,70 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Install NodeJS if it does not exist
-    if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-        printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
-        sudo apt-get install nodejs -y -q
-        printf "\\n"
+    # Do apt-get installation of NodeJS
+    if [ "$PKG_MANAGER" = "apt-get" ]; then
+
+        # Install NodeJS if it does not exist
+        if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
+            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            sudo apt-get install nodejs -y -q
+            printf "\\n"
+        fi
+
+        # If NodeJS 14 exists, upgrade it
+        if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            sudo apt-get install nodejs -y -q
+            printf "\\n"
+        fi
+
+        # If NodeJS exists, but needs a major upgrade, remove the old versions first as there can be conflicts
+        if [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
+            printf "%b Since this is a major upgrade, the old versions of NodeJS will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
+            printf "%b Purging old versions of NodeJS v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
+            sudo apt-get purge nodejs-legacy nodejs -y -q
+            sudo apt-get autoremove -y -q
+            printf "\\n"
+            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            sudo apt-get install nodejs -y -q
+            printf "\\n"
+        fi
+
+        # If we are in Reset Mode, remove and re-install
+        if [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Mode is ENABLED. Removing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            sudo apt-get purge nodejs-legacy nodejs -y -q
+            sudo apt-get autoremove -y -q
+            printf "\\n"
+            printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+            sudo apt-get install nodejs -y -q
+            printf "\\n"
+        fi
+
     fi
 
-    # If NodeJS 14 exists, upgrade it
-    if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
-        printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
-        sudo apt-get install nodejs -y -q
-        printf "\\n"
+    # Do yum installation of NodeJS
+    if [ "$PKG_MANAGER" = "yum" ]; then
+            # Install NodeJS if it does not exist
+        if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
+            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
+            yum install nodejs14
+            printf "\\n"
+        fi
+
     fi
 
-    # If NodeJS exists, but needs a major upgrade, remove the old versions first as there can be conflicts
-    if [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
-        printf "%b Since this is a major upgrade, the old versions of NodeJS will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
-        printf "%b Purging old versions of NodeJS v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
-        sudo apt-get purge nodejs-legacy nodejs -y -q
-        sudo apt-get autoremove -y -q
-        printf "\\n"
-        printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
-        sudo apt-get install nodejs -y -q
-        printf "\\n"
+    # Do  installation of NodeJS
+    if [ "$PKG_MANAGER" = "dnf" ]; then
+        # Install NodeJS if it does not exist
+        if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
+            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
+            dnf module install nodejs:12
+            printf "\\n"
+        fi
+
     fi
 
-    # If we are in Reset Mode, remove and re-install
-    if [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-        printf "%b Reset Mode is ENABLED. Removing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
-        sudo apt-get purge nodejs-legacy nodejs -y -q
-        sudo apt-get autoremove -y -q
-        printf "\\n"
-        printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
-        sudo apt-get install nodejs -y -q
-        printf "\\n"
-    fi
 
     # Get the new version number of the NodeJS install
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
