@@ -2652,6 +2652,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
             fi
 
+            SWAP_DO_CHANGE="YES"
             printf "\\n"
 
         fi
@@ -2729,6 +2730,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
             fi
 
+            SWAP_DO_CHANGE="YES"
             printf "\\n"
 
         fi
