@@ -2532,7 +2532,7 @@ swap_check() {
         printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bWARNING: You need to create a swap file.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INFO}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
@@ -2575,18 +2575,59 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     local str_swap_needed
 
     if [ "$SWAP_NEEDED" = "YES" ]; then
-        str_swap_needed="WARNING: You need to create a swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str_swap_needed" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "No swap file detected!" 3>&1 1>&2 2>&3) 
+        # Ask the user if they want to create a swap file now, or exit
+        if whiptail --backtitle "" --title "WARNING: You need to create a swap file." --yesno "Would you like to create a swap file now?\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\nChoose CONTINUE, to have this installer assist you in creating a swap file/\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --yes-button "Exit""${r}" "${c}"; then
 
-        local str_swap_too_low
-        str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
+            #Nothing to do, continue
+            printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+            printf "\\n"
+        else
+          printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+          printf "\\n"
+          exit
+        fi
+
+
+        # Ask the user what size of swap file they want
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "Create a swap file.\\n\\nPlease enter the size you would like your swap file to be in MB.\\n\\nNote: Running a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more.\\n\\n" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size!" 3>&1 1>&2 2>&3) 
+
+        # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
+        # Meaning instead of return the error code, it returns the value entered
+
+        # Now to check if the user pressed OK or Cancel
+        exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            printf "%b You chose to create a swap file: $SWAP_TARG_SIZE_MB Mb\\n" "${INFO}"
+        else
+            printf "%b You cancelled when choosing a swap file size.\\n" "${INFO}"
+            printf "\\n"
+            exit
+        fi
+
+        # Check the entered value is big enough
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            whiptail --msgbox --title "The entered Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            printf "%b The swap file size you entered was too small.\\n" "${INFO}"
             swap_ask_change
         fi
 
-        SWAP_FILE_LOCATION=/swapfile
+
+        # Enter the location of the swap file
+        SWAP_FILE_LOCATION=$(whiptail  --inputbox "Where do you want your swap file?.\\n\\nPlease enter the location of where you want your swap file?\\n\\nNote: If you are booting from a microSD card, it is advisable to store your swap file on a USB stick.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
+
+        # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
+        # Meaning instead of return the error code, it returns the value entered
+
+        # Now to check if the user pressed OK or Cancel
+        exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+        else
+            printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
+            printf "\\n"
+            exit
+        fi
 
     fi
 
