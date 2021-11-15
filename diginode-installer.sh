@@ -2577,7 +2577,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     if [ "$SWAP_NEEDED" = "YES" ]; then
 
         # Ask the user if they want to create a swap file now, or exit
-        if whiptail --title "WARNING: You need to create a swap file." --yesno "Would you like to create a swap file now?\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\nChoose CONTINUE To have this installer assist you in creating a swap file.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --title "WARNING: You need to create a swap file." --yesno "WARNING: RAM is less than 8Gb - you need to create a swap file.\\n\\nWould you like to create a swap file now?\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\nChoose CONTINUE To have this installer assist you in creating a swap file.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
             #Nothing to do, continue
             printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
