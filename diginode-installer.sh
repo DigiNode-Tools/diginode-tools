@@ -2620,32 +2620,36 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             swap_ask_change
         fi
 
+        # Once this has been entered once, don't ask again
+        if [ "$SWAP_FILE_LOCATION" != "" ]; then
 
-        #If the user is boooting from a microSD card then ask where to store the swap file
-        if [ "$IS_MICROSD" = "YES" ]; then
+            #If the user is boooting from a microSD card then ask where to store the swap file
+            if [ "$IS_MICROSD" = "YES" ]; then
 
-            # Enter the location of the swap file
-            SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
+                # Enter the location of the swap file
+                SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
 
-            # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
-            # Meaning instead of return the error code, it returns the value entered
+                # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
+                # Meaning instead of return the error code, it returns the value entered
 
-            # Now to check if the user pressed OK or Cancel
-            exitstatus=$?
-            if [ $exitstatus = 0 ]; then
-                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                # Now to check if the user pressed OK or Cancel
+                exitstatus=$?
+                if [ $exitstatus = 0 ]; then
+                    printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                else
+                    printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
+                    printf "\\n"
+                    exit
+                fi
+
             else
-                printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
-                printf "\\n"
-                exit
+                SWAP_FILE_LOCATION="/swapfile"
+                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
             fi
 
-        else
-            SWAP_FILE_LOCATION="/swapfile"
-            printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
-        fi
+            printf "\\n"
 
-        printf "\\n"
+        fi
 
     fi
 
@@ -2693,31 +2697,36 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             swap_ask_change
         fi
 
-        #If the user is boooting from a microSD card then ask where to store the swap file
-        if [ "$IS_MICROSD" = "YES" ]; then
+        # Once this has been entered once, don't ask again
+        if [ "$SWAP_FILE_LOCATION" != "" ]; then
 
-            # Enter the location of the swap file
-            SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
+            #If the user is boooting from a microSD card then ask where to store the swap file
+            if [ "$IS_MICROSD" = "YES" ]; then
 
-            # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
-            # Meaning instead of return the error code, it returns the value entered
+                # Enter the location of the swap file
+                SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
 
-            # Now to check if the user pressed OK or Cancel
-            exitstatus=$?
-            if [ $exitstatus = 0 ]; then
-                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
+                # Meaning instead of return the error code, it returns the value entered
+
+                # Now to check if the user pressed OK or Cancel
+                exitstatus=$?
+                if [ $exitstatus = 0 ]; then
+                    printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                else
+                    printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
+                    printf "\\n"
+                    exit
+                fi
+
             else
-                printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
-                printf "\\n"
-                exit
+                SWAP_FILE_LOCATION="/swapfile"
+                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
             fi
 
-        else
-            SWAP_FILE_LOCATION="/swapfile"
-            printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
-        fi
+            printf "\\n"
 
-        printf "\\n"
+        fi
 
     fi
 
