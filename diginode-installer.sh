@@ -2116,21 +2116,9 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
         fi
 
 
-        if [[ "$UNATTENDED_MODE" == true ]]; then
-            printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-            printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
-            sleep 5
-            sudo reboot
-        else
-            printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
-            printf "%b You can do that now by entering:\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b   sudo reboot\\n" "${INDENT}"
-            printf "\\n"
-        fi
-
-        exit
+        printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
+        printf "\\n"
 
     fi
 fi
@@ -3364,7 +3352,7 @@ donation_qrcode() {
     echo ""
 }
 
-request_reboot () {  
+request_reboot() {  
 
     if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bTo complete your install you need to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -3409,6 +3397,18 @@ request_reboot () {
         printf "%b To run it enter: diginode\\n" "${INDENT}"
         printf "\\n"
     fi
+
+    if [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ] ; then
+        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+        sleep 5
+        sudo reboot
+    elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
+        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        sleep 5
+        sudo reboot
+    fi
+
 }
 
 stop_service() {
@@ -7774,7 +7774,7 @@ main() {
     # Change the hostname
     hostname_do_change
 
-
+    
     ### WRAP UP ###
 
     # Request social media post
