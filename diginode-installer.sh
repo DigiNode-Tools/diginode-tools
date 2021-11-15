@@ -1976,7 +1976,7 @@ os_check() {
     fi
 }
 
-# SELinux
+# SELinuxswap
 checkSelinux() {
     local DEFAULT_SELINUX
     local CURRENT_SELINUX
@@ -2616,7 +2616,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
             whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
-            skip_if_reentering_swap_size = "yes"
+            skip_if_reentering_swap_size="yes"
             swap_ask_change
         fi
 
@@ -2689,7 +2689,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
             whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
-            skip_if_reentering_swap_size = "yes"
+            skip_if_reentering_swap_size="yes"
             swap_ask_change
         fi
 
