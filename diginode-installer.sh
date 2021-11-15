@@ -2247,11 +2247,15 @@ if [ "$USER_DO_SWITCH" = "YES" ]; then
     # Delete the settings file that was just created
     purge_dgnt_settings
 
-    printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
+    printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
     printf "\\n"
-    printf "%b   su digibyte\\n" "${INDENT}"
+    printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+    printf "%b Then switch to your the home directory:\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b And then run this installer again.\\n" "${INDENT}"
     printf "\\n"
     exit
 fi
@@ -2279,7 +2283,12 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         # Create digibyte user
         local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
         printf "%b %s..." "${INFO}" "${str}"
-        useradd digibyte -p $DGB_USER_PASS_ENCR -U -G sudo -m -s /bin/sh 
+
+        # For Ubuntu:
+        useradd digibyte -p $DGB_USER_PASS_ENCR -U -G sudo -m --shell /bin/bash 
+
+   #     useradd -G wheel digibyte -m -s /bin/bash #CentOS
+
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the digibyte group exists
@@ -2317,13 +2326,13 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
         printf "\\n"
-        printf "%b   ${txtbld}su digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b Then switch to your new home directory:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b And then run this installer again.\\n" "${INFO}"
+        printf "%b And then run this installer again.\\n" "${INDENT}"
         printf "\\n"
         exit
     else
@@ -2337,7 +2346,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b Login as the new user:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   ${txtbld}su digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b Switch to your new home directory:\\n" "${INDENT}"
         printf "\\n"
@@ -2459,7 +2468,7 @@ swap_check() {
     # Note: these checks on the current swap size use the lower Kibibyte value
     # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
     # the size check will come out the same for either
-    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
+    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le 6835938 ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="7Gb"
         SWAP_REC_SIZE_MB=7000
@@ -2530,6 +2539,7 @@ swap_check() {
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
             printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
+        SWAP_ASK_CHANGE="YES"
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
@@ -2543,6 +2553,7 @@ swap_check() {
         if [[ "$RUN_INSTALLER" = "NO" ]] ; then
             printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
         fi
+        SWAP_ASK_CHANGE="YES"
     fi
 
     # Calculate total memory available
@@ -2559,7 +2570,7 @@ swap_check() {
 # If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
 swap_ask_change() {
 # Display a request to change the hostname, if needed
-if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
+if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
     local str_swap_needed
 
@@ -7469,12 +7480,6 @@ main() {
     # Change the user
     user_do_change
 
-    # Check if the hostname is set to 'diginode'
-    hostname_check
-
-    # Ask to change the hostname
-    hostname_ask_change
-
     # Check if a swap file is needed
     swap_check
 
@@ -7615,6 +7620,12 @@ main() {
 
 
     ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
+    # Ask to change the hostname
+    hostname_ask_change
 
     # Change the hostname
     hostname_do_change
