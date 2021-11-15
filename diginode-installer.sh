@@ -2065,19 +2065,15 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
-
-    This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
-
-    Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nIt is recommended that you change your hostname to: 'diginode'.\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\n\\nWould you like to change your hostname to 'diginode' now?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
 
-          printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
+          printf "%b You chose to change your hostname to: digibyte.\\n" "${INFO}"
           printf "\\n"
         else
-          printf "%b Interactive Install: No - Hostname will not be changed.\\n" "${INFO}"
+          printf "%b You chose not to change your hostname to: digibyte.\\n" "${INFO}"
           printf "\\n"
         fi
     fi
