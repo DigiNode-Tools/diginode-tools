@@ -2450,6 +2450,9 @@ fi
 # This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
 swap_check() {
 
+    printf " =============== Checking: RAM and SWAP file ===========================\\n\\n"
+    # ==============================================================================
+
     local swap_current_size
 
     if [ "$SWAPTOTAL_HR" = "0B" ]; then
@@ -2566,6 +2569,7 @@ swap_check() {
     fi
     printf "\\n"
 }
+
 
 # If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
 swap_ask_change() {
@@ -2806,6 +2810,9 @@ swap_do_change() {
 disk_check() {
     # Only run the check if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Checking: Disk Space ==================================\\n\\n"
+        # ==============================================================================
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
