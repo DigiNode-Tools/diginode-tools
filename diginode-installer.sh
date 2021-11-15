@@ -7575,7 +7575,7 @@ main() {
             export DEBIAN_FRONTEND="noninteractive"
         else
             UnattendedInstall=false
-            printf "%b Interactive Install: Displaying installation menu - Whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "%b Displaying installation menu...\\n" "${INFO}"
         fi
         printf "\\n"
     fi
