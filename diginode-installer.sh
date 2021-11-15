@@ -7733,7 +7733,7 @@ main() {
     digiasset_node_create_pm2_service
 
 
-    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+    ### CHANGE THE HOSTNAME TO DIGINODE ###
 
     # Check if the hostname is set to 'diginode'
     hostname_check
@@ -7741,6 +7741,8 @@ main() {
     # Ask to change the hostname
     hostname_ask_change
 
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
     # Install packages used by the actual software
     printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
@@ -7753,6 +7755,8 @@ main() {
     install_dependent_packages "${dep_install_list[@]}"
     unset dep_install_list
 
+
+    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
 
     # Change the hostname
     hostname_do_change
