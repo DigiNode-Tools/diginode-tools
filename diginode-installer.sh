@@ -2580,15 +2580,19 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     # Do this if there is no swap file
     if [ "$SWAP_NEEDED" = "YES" ]; then
 
-        # Ask the user if they want to create a swap file now, or exit
-        if whiptail --title "Swap file not detected." --yesno "WARNING: RAM is less than 8Gb - you need to create a swap file.\\n\\nWould you like to create a swap file now?\\n\\nNote: Running a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\nChoose CONTINUE To have this installer assist you in creating a swap file.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            #Nothing to do, continue
-            printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
-        else
-          printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
-          printf "\\n"
-          exit
+            # Ask the user if they want to create a swap file now, or exit
+            if whiptail --title "Swap file not detected." --yesno "WARNING: RAM is less than 8Gb - you need to create a swap file.\\n\\nWould you like to create a swap file now?\\n\\nNote: Running a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\nChoose CONTINUE To have this installer assist you in creating a swap file.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                #Nothing to do, continue
+                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+            else
+              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+              printf "\\n"
+              exit
+            fi
+
         fi
 
 
@@ -2612,6 +2616,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
             whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
+            skip_if_reentering_swap_size = "yes"
             swap_ask_change
         fi
 
@@ -2648,15 +2653,19 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     # Do this if there is the current swap file is too small
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
 
-        # Ask the user if they want to create a swap file now, or exit
-        if whiptail --title "Swap file is too small." --yesno "WARNING: Your existing swap file is not big enough.\\n\\nWould you like to create a new swap file now?\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need a swap file of at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with. Your current swap file is only $SWAPTOTAL_HR.\\n\\nChoose CONTINUE To have this installer assist you in creating a new swap file.\\n\\nChoose EXIT to quit the installer and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            #Nothing to do, continue
-            printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
-        else
-          printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
-          printf "\\n"
-          exit
+            # Ask the user if they want to create a swap file now, or exit
+            if whiptail --title "Swap file is too small." --yesno "WARNING: Your existing swap file is not big enough.\\n\\nWould you like to create a new swap file now?\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need a swap file of at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with. Your current swap file is only $SWAPTOTAL_HR.\\n\\nChoose CONTINUE To have this installer assist you in creating a new swap file.\\n\\nChoose EXIT to quit the installer and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                #Nothing to do, continue
+                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+            else
+              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+              printf "\\n"
+              exit
+            fi
+
         fi
 
 
@@ -2680,6 +2689,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
             whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
+            skip_if_reentering_swap_size = "yes"
             swap_ask_change
         fi
 
