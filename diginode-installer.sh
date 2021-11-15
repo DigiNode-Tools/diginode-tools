@@ -2266,7 +2266,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
-        printf "%b Re-enter password to confirm for password again.\\n" "${INFO}"
+        printf "%b Password entered for new 'digibyte' user.\\n" "${INFO}"
     else
         printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
@@ -2294,14 +2294,15 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
-
+        printf "%b Password entered for new 'digibyte' user.\\n" "${INFO}"
         # Compare both passwords to check they match
         if [ "$DGB_USER_PASS1" = "$DGB_USER_PASS2" ]; then
+            printf "%b Passwords match.\\n" "${TICK}"
             DGB_USER_PASS=$DGB_USER_PASS1
             digibyte_user_passwords_match="yes"
         else
             whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
-            printf "%b The passwords do not match. Please try again.\\n" "${INFO}"
+            printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
             skip_if_reentering_password="yes"
 
             # re do prompt for password
