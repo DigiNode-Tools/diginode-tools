@@ -1690,10 +1690,15 @@ if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
     fi
 fi
 
+}
+
+# If the user is using a Raspberry Pi, but not booting from microSD, then tell the user they can remove it
+rpi_microsd_remove() {
+
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove the microSD card from the Raspberry Pi." "If there is a microSD card in the slot on the Raspberry Pi, please remove it now. It will not be required." 9 "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "If there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 "${c}"
 fi
 
 }
@@ -7652,6 +7657,9 @@ main() {
 
         # Ask whther to install only DigiByte Core, or DigiAssets Node as well
         menu_first_install
+
+        # Tell the user to remove the microSD card from the Pi if not being used
+        rpi_microsd_remove
 
     fi
 
