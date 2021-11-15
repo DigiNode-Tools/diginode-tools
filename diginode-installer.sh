@@ -2128,7 +2128,6 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             printf "\\n"
             printf "%b   sudo reboot\\n" "${INDENT}"
             printf "\\n"
-            exit
         fi
 
         exit
