@@ -2577,7 +2577,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     if [ "$SWAP_NEEDED" = "YES" ]; then
         str_swap_needed="WARNING: You need to create a swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "No swap file detected!" 3>&1 1>&2 2>&3) 
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str_swap_needed" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "No swap file detected!" 3>&1 1>&2 2>&3) 
 
         local str_swap_too_low
         str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
@@ -2591,9 +2591,12 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        str="WARNING: You need a larger swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
 
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Swap file size is too small!" 3>&1 1>&2 2>&3) 
+        local str_swap_too_small
+
+        str_swap_too_small="WARNING: You need a larger swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str_swap_too_small" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Swap file size is too small!" 3>&1 1>&2 2>&3) 
 
         local str_swap_too_low
         str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
