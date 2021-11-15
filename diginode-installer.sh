@@ -2251,16 +2251,87 @@ fi
 
 if [ "$USER_DO_CREATE" = "YES" ]; then
 
-    # Delete the settings file that was just created
-    purge_dgnt_settings
+    # Don't do this again if we need to re-enter the password
+    if [ "$skip_if_reentering_password" != "yes" ]; then
 
-    printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
-    
-    DGB_USER_PASS=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nIMPORTANT: Don't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
+        # Delete the settings file that was just created
+        purge_dgnt_settings
+
+        printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
+
+    fi
+
+    DGB_USER_PASS1=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nIMPORTANT: Don't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
                                                                         # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
+        printf "%b Re-enter password to confirm for password again.\\n" "${INFO}"
+    else
+        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Login as the new user:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run this installer again.\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
+
+    DGB_USER_PASS2=$(whiptail --passwordbox "Please re-enter the password to confirm." 8 78 --title "Re-enter password for new user: digibyte" 3>&1 1>&2 2>&3)
+                                                                        # A trick to swap stdout and stderr.
+    # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+    exitstatus=$?
+    if [ $exitstatus == 0 ]; then
+
+        # Compare both passwords to check they match
+        if [ "$DGB_USER_PASS1" = "$DGB_USER_PASS2" ]; then
+            DGB_USER_PASS=$DGB_USER_PASS1
+            digibyte_user_passwords_match="yes"
+        else
+            whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+            printf "%b The passwords do not match. Please try again.\\n" "${INFO}"
+            skip_if_reentering_password="yes"
+
+            # re do prompt for password
+            user_do_change
+        fi
+    else
+        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Login as the new user:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run this installer again.\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
+
+
+    # If the passwords have been entered okay proceed cretaing the new account (unless it has already been done)
+    if [ "$digibyte_user_passwords_match" = "yes" ]; then
 
         # Encrypt CLEARTEXT password
         local str="Encrypting CLEARTEXT password ... "
@@ -2322,26 +2393,13 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b And then run this installer again.\\n" "${INDENT}"
         printf "\\n"
-        exit
-    else
-        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
-        printf "\\n"
-        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
-        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
-        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Login as the new user:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Switch to your new home directory:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b And then run this installer again.\\n" "${INDENT}"
-        printf "\\n"
+
+        #clear password variables
+        DGB_USER_PASS1=null
+        DGB_USER_PASS2=null
+        DGB_USER_PASS=null
+        DGB_USER_PASS_ENCR=null
+
         exit
     fi
 
@@ -3000,7 +3058,7 @@ menu_existing_install() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure a DigiByte and DigiAsset Node on this device.\\n\\nRunning a DigiByte Node means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It lets you create your own DigiAssets from your own node, and also gives you the ability to earn DGB as payment for hosting the community's metadata. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure a DigiByte and DigiAsset Node on this device.\\n\\nRunning a DigiByte Node means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It enables you to create your own DigiAssets via the built-in web UI, and also lets you earn DGB as payment for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
