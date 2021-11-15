@@ -7694,18 +7694,6 @@ main() {
     menu_ask_install_updates
 
 
-    # Install packages used by the actual software
-    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
-    # ==============================================================================
-    
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    # Check again for supported package managers so that we may install dependencies
-    package_manager_detect
-    local dep_install_list=("${DIGINODE_DEPS[@]}")
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
-
-
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
@@ -7745,7 +7733,6 @@ main() {
     digiasset_node_create_pm2_service
 
 
-
     ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
 
     # Check if the hostname is set to 'diginode'
@@ -7753,6 +7740,19 @@ main() {
 
     # Ask to change the hostname
     hostname_ask_change
+
+
+    # Install packages used by the actual software
+    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
 
     # Change the hostname
     hostname_do_change
