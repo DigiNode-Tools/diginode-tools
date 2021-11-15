@@ -2621,7 +2621,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE_LOCATION" != "" ]; then
+        if [ "$SWAP_FILE_LOCATION" = "" ]; then
 
             #If the user is boooting from a microSD card then ask where to store the swap file
             if [ "$IS_MICROSD" = "YES" ]; then
@@ -2698,7 +2698,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE_LOCATION" != "" ]; then
+        if [ "$SWAP_FILE_LOCATION" = "" ]; then
 
             #If the user is boooting from a microSD card then ask where to store the swap file
             if [ "$IS_MICROSD" = "YES" ]; then
