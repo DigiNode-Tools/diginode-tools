@@ -3009,7 +3009,7 @@ menu_existing_install() {
 # A function for displaying the dialogs the user sees when first running the installer
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure DigiByte Core and DigiAsset Node on this device.\\n\\nRunning DigiByte Core means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It lets you create your own DigiAssets from your own node, and also gives you the ability to earn DGB as payment for hosting the community's metadata. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure a DigiByte and DigiAsset Node on this device.\\n\\nRunning a DigiByte Node means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It lets you create your own DigiAssets from your own node, and also gives you the ability to earn DGB as payment for hosting the community's metadata. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Installer useful
 whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -3229,7 +3229,7 @@ EOF
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_UPSTART_SERVICE_FILE
         cat <<EOF > $DGB_UPSTART_SERVICE_FILE
-description "DigiByte Core Daemon"
+description "DigiByte Daemon"
 
 start on runlevel [2345]
 stop on starting rc RUNLEVEL=[016]
@@ -3299,7 +3299,7 @@ request_social_media () {
         echo ""
     elif [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ======== ${txtgrn}DigiByte Core has been installed!${txtrst} ============================\\n"
+        printf " ======== ${txtgrn}DigiByte Node has been installed!${txtrst} ============================\\n"
         printf " =======================================================================\\n\\n"
         # ================================================================================================
         echo " Thanks for supporting DigiByte by running a DigiByte full node!"
@@ -3316,7 +3316,7 @@ request_social_media () {
         echo ""
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}DigiByte Core has been Reset!${txtrst} ======================\\n"
+        printf " ================== ${txtgrn}DigiByte Node has been Reset!${txtrst} ======================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
         echo ""
@@ -3327,7 +3327,7 @@ request_social_media () {
         # ==============================================================================
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}DigiByte Core has been Upgraded!${txtrst} ===================\\n"
+        printf " ================== ${txtgrn}DigiByte Node has been Upgraded!${txtrst} ===================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
     fi
@@ -3485,14 +3485,14 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 
 
-# This function will check if DigiByte Core is installed, and if it is, check if there is an update available
+# This function will check if DigiByte Node is installed, and if it is, check if there is an update available
 
 digibyte_check() {
 
-    printf " =============== Checking: DigiByte Core ===============================\\n\\n"
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
     # ==============================================================================
 
-    # Let's check if DigiByte Core is already installed
+    # Let's check if DigiByte Node is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -3586,7 +3586,7 @@ digibyte_check() {
 
     fi
 
-        # Get the version number of the current DigiByte Core and write it to to the settings file
+        # Get the version number of the current DigiByte Node and write it to to the settings file
     if [ "$DGB_STATUS" = "running" ]; then
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
@@ -3697,7 +3697,7 @@ if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 fi
 
 if [ "$DGB_INSTALL_TYPE" = "skipreset" ]; then
-    printf " =============== Resetting: DigiByte Core =============================\\n\\n"
+    printf " =============== Reset: DigiByte Node ==================================\\n\\n"
     # ==============================================================================
     printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
     printf "\\n"
@@ -3708,13 +3708,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: DigiByte Core ================================\\n\\n"
+        printf " =============== Install: DigiByte Node ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: DigiByte Core ================================\\n\\n"
+        printf " =============== Upgrade: DigiByte Node ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: DigiByte Core ==================================\\n\\n"
+        printf " =============== Reset: DigiByte Node ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiByte Core.\\n" "${INFO}"
     fi
@@ -4006,7 +4006,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
     DGNT_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
@@ -4326,7 +4326,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
     IPFS_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
@@ -5408,7 +5408,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
     DGA_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
@@ -6225,7 +6225,7 @@ uninstall_do_now() {
         printf "\\n"
     fi
 
-    ################## UNINSTALL DIGIBYTE CORE #################################################
+    ################## UNINSTALL DIGIBYTE NODE #################################################
 
     printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
     # ==============================================================================
