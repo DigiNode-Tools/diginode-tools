@@ -2626,13 +2626,13 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE_LOCATION" = "" ]; then
+        if [ "$SWAP_FILE" = "" ]; then
 
             #If the user is boooting from a microSD card then ask where to store the swap file
             if [ "$IS_MICROSD" = "YES" ]; then
 
                 # Enter the location of the swap file
-                SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
+                SWAP_FILE=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
 
                 # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
                 # Meaning instead of return the error code, it returns the value entered
@@ -2640,7 +2640,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 # Now to check if the user pressed OK or Cancel
                 exitstatus=$?
                 if [ $exitstatus = 0 ]; then
-                    printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                    printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
                 else
                     printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
                     printf "\\n"
@@ -2648,8 +2648,8 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 fi
 
             else
-                SWAP_FILE_LOCATION="/swapfile"
-                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                SWAP_FILE="/swapfile"
+                printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
             fi
 
             SWAP_DO_CHANGE="YES"
@@ -2704,13 +2704,13 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE_LOCATION" = "" ]; then
+        if [ "$SWAP_FILE" = "" ]; then
 
             #If the user is boooting from a microSD card then ask where to store the swap file
             if [ "$IS_MICROSD" = "YES" ]; then
 
                 # Enter the location of the swap file
-                SWAP_FILE_LOCATION=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
+                SWAP_FILE=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
 
                 # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
                 # Meaning instead of return the error code, it returns the value entered
@@ -2718,7 +2718,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 # Now to check if the user pressed OK or Cancel
                 exitstatus=$?
                 if [ $exitstatus = 0 ]; then
-                    printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                    printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
                 else
                     printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
                     printf "\\n"
@@ -2726,8 +2726,8 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 fi
 
             else
-                SWAP_FILE_LOCATION="/swapfile"
-                printf "%b Your swap file will be created here: $SWAP_FILE_LOCATION\\n" "${INFO}"
+                SWAP_FILE="/swapfile"
+                printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
             fi
 
             SWAP_DO_CHANGE="YES"
@@ -2815,7 +2815,7 @@ swap_do_change() {
 
        # Allocate space for new swap file
         str="Allocate $SWAP_TARG_SIZE_MB MB for new swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         fallocate -l "$SWAP_TARG_SIZE_MB" "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -2825,20 +2825,20 @@ swap_do_change() {
         
         # Secure swap file
         str="Secure swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         chown root:root $SWAP_FILE
         chmod 0600 $SWAP_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Activate new swap file
         str="Activate new swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         swapon "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
         # Make new swap file available at boot
         str="Make new swap file available at boot..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
