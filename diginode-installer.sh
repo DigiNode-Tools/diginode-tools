@@ -2814,19 +2814,24 @@ swap_do_change() {
         fi
 
        # Allocate space for new swap file
-        str="Allocate $SWAP_TARG_SIZE_MB MB for new swap file..."
+        str="Allocate ${SWAP_TARG_SIZE_MB}B for new swap file..."
         printf "%b %s..." "${INFO}" "${str}"
         fallocate -l "$SWAP_TARG_SIZE_MB" "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Mark new file as swap
-        printf "%b Mark as new swap file...\\n" "${INFO}"
+        printf "%b Set up new swap file...\\n" "${INFO}"
         mkswap "$SWAP_FILE"       
         
         # Secure swap file
-        str="Secure swap file..."
+        str="Assign root as swap file owner..."
         printf "%b %s..." "${INFO}" "${str}"
         chown root:root $SWAP_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Secure swap file
+        str="Give root read/write permissions for swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
         chmod 0600 $SWAP_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -2837,10 +2842,13 @@ swap_do_change() {
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
         # Make new swap file available at boot
-        str="Make new swap file available at boot..."
+        str="Make swap file available at next boot..."
         printf "%b %s..." "${INFO}" "${str}"
+        sudo sed -i.bak '/swap/d' /etc/fstab
         echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        printf "\\n"
 
     fi
 
