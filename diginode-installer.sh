@@ -2606,7 +2606,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         # Check the entered value is big enough
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "The entered Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
             swap_ask_change
         fi
@@ -2667,7 +2667,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         # Check the entered value is big enough
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "The entered Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
             swap_ask_change
         fi
