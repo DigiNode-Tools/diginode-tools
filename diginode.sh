@@ -825,12 +825,6 @@ quit_message() {
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
 
-      # Choose a random DigiFact
-      digifact_randomize
-
-      # Display a random DigiFact
-      digifact_display
-
       #Display donation QR code
       donation_qrcode
 
@@ -840,6 +834,7 @@ quit_message() {
       sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
   else
       clear -x
+      
       # Choose a random DigiFact
       digifact_randomize
 
