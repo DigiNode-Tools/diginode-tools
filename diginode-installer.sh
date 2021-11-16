@@ -2032,6 +2032,9 @@ checkSelinux() {
 # Function to check if the hostname of the machine is set to 'diginode'
 hostname_check() {
 
+    printf " =============== Checking: Hostname ====================================\\n\\n"
+    # ==============================================================================
+
 if [[ "$HOSTNAME" == "diginode" ]]; then
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -2043,7 +2046,6 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
-    purge_dgnt_settings
     exit 1
 else
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2052,7 +2054,6 @@ else
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
-    printf "%b Interactive Install: Do you want to change the hostname to 'digibyte'?\\n" "${INFO}"
     printf "\\n"
 fi
 
@@ -2114,11 +2115,6 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             hostname $NEW_HOSTNAME 2>/dev/null
             sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hostname 2>/dev/null
         fi
-
-
-        printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
-        printf "\\n"
 
     fi
 fi
@@ -2634,7 +2630,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             if whiptail --title "Swap file not detected." --yesno "Your system has less than 8Gb RAM so you need to create a swap file.\\n\\nRunning a DigiNode requires a minimmum 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n\\nWould you like to create a swap file now?\\n\\n\\nChoose CONTINUE To have this installer assist you in creating a swap file.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
-                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+                printf "%b You chose to continue and create a swap file.\\n" "${INFO}"
             else
               printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
               printf "\\n"
@@ -3417,44 +3413,48 @@ request_reboot() {
     if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bTo complete your install you need to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
         printf "\\n"
     elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %bAfter performing an upgrade, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -5194,7 +5194,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $NODEJS_INSTALL_TYPE = "upgrade" || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]]; then
+    elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -5291,13 +5291,6 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # If we get a valid local branch, update the stored local branch
     if [ "$DGA_LOCAL_BRANCH" != "" ]; then
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=$DGA_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
-    fi
-
-    # Requested branch
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
-        printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
-    elif [ "$DGA_BRANCH" = "main" ]; then
-        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
 
@@ -5397,6 +5390,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
         sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Requested branch
+    if [ "$DGA_BRANCH" = "apiV3" ]; then
+        printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
+    elif [ "$DGA_BRANCH" = "main" ]; then
+        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
 
@@ -7840,11 +7840,15 @@ main() {
     # Request social media post
     request_social_media
 
-    # Choose a random DigiFact
-    digifact_randomize
+    if [[ "${NewInstall}" == false ]]; then
 
-    # Display a random DigiFact
-    digifact_display
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+    fi
 
     # Display donation QR Code
     donation_qrcode
