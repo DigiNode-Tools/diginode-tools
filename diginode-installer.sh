@@ -3335,25 +3335,21 @@ request_social_media () {
         printf " ======== ${txtgrn}Congratulations - Your DigiNode has been installed!${txtrst} ==========\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
-        echo "Thanks for supporting DigiByte!"
+        echo "                    Thanks for supporting DigiByte!"
         echo ""
-        echo " Please let everyone know what you are helping support the DigiByte network"
-        echo " by sharing on social media using the hashtag #DigiNode."
-        echo ""
-        echo " Here's a sample Tweet you can use:"
-        echo "\"I just set up a #DigiNode to help support the decentralization of #DigiByte network!"
-        echo "If you want to help, you can learn more at $DGBH_URL_TWEET \""
+        echo "   Please let everyone know what you are helping support the DigiByte network"
+        echo "   by sharing on social media using the hashtag #DigiNode"
         echo ""
     elif [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
         printf " ======== ${txtgrn}DigiByte Node has been installed!${txtrst} ============================\\n"
         printf " =======================================================================\\n\\n"
         # ================================================================================================
-        echo " Thanks for supporting DigiByte by running a DigiByte full node!"
+        echo "      Thanks for supporting DigiByte by running a DigiByte full node!"
         echo ""
-        echo " If you want to help even more, please consider also running a DigiAsset Node"
-        echo " as well. You can run this installer again at any time to upgrade to a full"
-        echo " DigiNode."
+        echo "  If you want to help even more, please consider also running a DigiAsset Node"
+        echo "  as well. You can run this installer again at any time to upgrade to a full"
+        echo "  DigiNode."
         echo ""
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
@@ -3386,8 +3382,8 @@ donation_qrcode() {
     printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
     # ==============================================================================
 
-    echo " If you find DigiNode Tools useful and want to support my work, donations"
-    echo "in DGB are much appreciated. Thanks for your support. - Olly @saltedlolly"             
+    echo "      If you find DigiNode Tools useful and want to support my work,"
+    echo "   donations in DGB are much appreciated. Many thanks. - Olly @saltedlolly"             
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
