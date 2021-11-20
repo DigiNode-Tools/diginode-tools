@@ -2939,6 +2939,9 @@ swap_do_change() {
             echo "$SWAP_FILE swap swap defaults 0 0" >> /etc/fstab
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
+            # Tell user the swap file has been created
+            whiptail --msgbox --title "Swap file created on USB stick." "The swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 10 "${c}"
+
         else
 
             # Make new swap file available at boot
