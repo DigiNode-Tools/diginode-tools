@@ -3463,7 +3463,7 @@ request_reboot() {
     if [ $NewInstall = true ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b (You will need to reboot first.)\\n" "${INDENT}"
         printf "\\n"
