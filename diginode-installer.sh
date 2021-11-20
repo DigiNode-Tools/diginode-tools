@@ -2921,12 +2921,34 @@ swap_do_change() {
         swapon "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
-        # Make new swap file available at boot
-        str="Make swap file available at next boot..."
-        printf "%b %s..." "${INFO}" "${str}"
-        sudo sed -i.bak '/swap/d' /etc/fstab
-        echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+        #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
+        if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+            # Get the UUID of the USB stick with the swap file
+            str="Lookup UUID of USB stick..."
+            printf "%b %s..." "${INFO}" "${str}"
+            SWAP_USB_UUID=$(blkid | grep sda1 | cut -d' ' -f2 | cut -d'=' -f2 | sed 's/"//g')
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+            # Make new swap drive and file available at boot
+            str="Make USB drive and swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/usbswap/d' /etc/fstab
+            sudo sed -i.bak '/swapfile/d' /etc/fstab
+            echo "UUID=$SWAP_USB_UUID /media/usbswap auto nosuid,nodev,nofail 0 0" >> /etc/fstab
+            echo "$SWAP_FILE swap swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        else
+
+            # Make new swap file available at boot
+            str="Make swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        fi
 
         printf "\\n"
 
