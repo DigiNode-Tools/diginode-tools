@@ -834,7 +834,7 @@ quit_message() {
       sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
   else
       clear -x
-      
+
       # Choose a random DigiFact
       digifact_randomize
 
@@ -1714,7 +1714,7 @@ if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show
 printf "\\n"
 printf "   IMPORTANT: You need to forward port 12024 on your router so that\\n"
 printf "   your DigiByte node can be discovered by other nodes on the internet.\\n"
-printf "   Otherwise the number of potential inbound connections is limited to 7.\\n"
+printf "   Otherwise the number of potential inbound connections is limited to 8.\\n"
 printf ".  For help on how to do this, visit: https://portforward.com\\n"
 printf "\\n"
 printf "   You can verify that port 12024 is being forwarded correctly by\\n"

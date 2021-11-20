@@ -1331,7 +1331,7 @@ sys_check() {
             printf "\\n"
         else
             printf "    %b 64-bit OS\n" "${CROSS}"
-            printf "\n" 
+            printf "\\n" 
         fi
 
 
@@ -1352,7 +1352,7 @@ sys_check() {
                     printf "%b For more information, visit: $DGBH_URL_RPIOS64\\n" "${INDENT}"
                     printf "\\n"
                     printf "%b sudo apt update && sudo apt upgrade && echo \"arm_64bit=1\" | sudo tee -a /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
-                    printf "\n"
+                    printf "\\n"
 
                 fi
             fi
@@ -1644,10 +1644,10 @@ rpi_microsd_check() {
         fi
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
-            if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
+            if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]]; then
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bERROR: Booting from microSD with less than 8Gb of RAM is not supported.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bERROR: Booting from microSD with less than 4Gb of RAM is not supported.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Since your Raspberry Pi only has $MODELMEM of RAM, you need to be booting\\n" "${INDENT}"
                 printf "%b from an SSD drive. Running a DigiNode requires at least 6Gb RAM, and a microSD\\n" "${INDENT}"
                 printf "%b card is too slow to run both the DigiNode software and swap file together.\\n" "${INDENT}"
@@ -1657,6 +1657,19 @@ rpi_microsd_check() {
                 printf "\\n"
                 purge_dgnt_settings
                 exit 1
+
+            elif [[ "$MODELMEM" = "4Gb" ]]; then
+                printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Running a DigiNode requires at least 6Gb RAM, and a microSD is typically too\\n" "${INDENT}"
+                printf "%b slow to run both the DigiNode software and swap file. Since your Raspberry Pi\\n" "${INDENT}"
+                printf "%b only has $MODELMEM RAM, if you want want to proceed you will need a USB stick\\n" "${INDENT}"
+                printf "%b to store the swap file. 8Gb or 16Gb is sufficient and it should support USB 3.0\\n" "${INDENT}"
+                printf "%b or btter. An SSD is still recomended, so proceed at you own risk.\\n" "${INDENT}"
+                printf "\\n"
+                IS_MICROSD="YES"
+                REQUIRE_USB_STICK_FOR_SWAP="YES"
             else
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
@@ -1678,11 +1691,23 @@ rpi_microsd_check() {
 rpi_microsd_ask() {
 
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
-if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
+if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on reccomended DigiNode hardware, visit:\\n$DGBH_URL_HARDWARE\\n\\n\Since your Raspberry Pi only has $MODELMEM RAM, if you accept the risk and want to proceed, you will need an empty USB stick to store the swap file. An 8Gb or 16Gb pendrive is sufficient but it should support USB 3.0 or better.\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+    #Nothing to do, continue
+      printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
+      printf "%b You agreed to use a USB stick for your swap file, despite the risks.\\n" "${INFO}"
+    else
+      printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
+      printf "\\n"
+      exit
+    fi
+
+elif [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]]; then
 
     if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
-      echo
+      printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
     else
       printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
       printf "\\n"
@@ -2125,6 +2150,9 @@ user_check() {
 
     # Only do this check if DigiByte Core is not currently installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Checking: User Account ================================\\n\\n"
+        # ==============================================================================
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
             printf "%b User Account Check: %bPASSED%b   Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2637,6 +2665,95 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
               exit
             fi
 
+            #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
+            if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+                # Ask the user if they want to create a swap file now, or exit
+                if whiptail --title "USB stick required." --yesno "You need a USB stick to store your swap file.\\n\\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your swap file:\\n\\n - Minimum 8Gb. 16Gb or larger is better.\\n - For best performance it should support USB 3.0 or better.\\n - Please ensure the stick is empty.\\nDo not insert it into the Pi yet. If it is already unplugged in, please UNPLUG it now, before continuing.\\n\\nChoose CONTINUE if you ready, and the USB stick is unplugged.\\n\\nChoose EXIT to quit the installer and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                    #Nothing to do, continue
+                    printf "%b You chose to continue and begin preparing the swap file on a USB stick.\\n" "${INFO}"
+                else
+                  printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+                  printf "\\n"
+                  exit
+                fi
+
+                # Get the user to insert the USB stick to use as a swap drive and detect it
+                USB_SWAP_STICK_INSERTED="NO"
+                LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+                printf "%b Please insert the USB stick you wish to use for your swap drive now. (WARNING: The contents will be erased.)\\n" "${INFO}"
+                str="Waiting for USB stick... "
+                printf "%b %s" "${INDENT}" "${str}"
+                tput civis
+                while [ "$USB_SWAP_STICK_INSERTED" = "NO" ]; do
+
+                    # Show Spinner while waiting
+                    if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+                    fi
+
+                    LSBLK_AFTER_USB_INSERTED=$(lsblk)
+
+                    USB_SWAP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
+
+                    if [ "$USB_SWAP_DRIVE" != "" ]; then
+                        USB_SWAP_STICK_INSERTED="YES"
+                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                        tput cnorm
+                    else
+                        printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                        LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                        sleep 0.5
+                    fi
+                done
+
+                # Wipe the current partition on the drive
+                str="Wiping exisiting partition(s) on USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                sfdisk --quiet --delete /dev/$USB_SWAP_DRIVE
+                # dd if=/dev/zero of=/dev/$USB_SWAP_DRIVE bs=512 count=1 seek=0
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Wipe the current partition on the drive
+                str="Create new primary gpt partition on USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                parted --script --align=opt /dev/${USB_SWAP_DRIVE} mklabel gpt mkpart primary 0% 100%
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set up file system on USB stick
+                printf "Setting up EXT4 file system on USB stick..." "${INFO}"
+                mkfs.ext4 -F /dev/${USB_SWAP_DRIVE}1
+
+                # Create mount point for USB drive, if needed
+                if [ ! -d /media/usbswap ]; then
+                    str="Create mount point for USB drive..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    mkdir /media/usbswap
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Create mount point for USB drive, if needed
+                str="Mount new USB swap partition..."
+                printf "%b %s" "${INFO}" "${str}"
+                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set swap file location
+                SWAP_FILE="/media/usbswap/swapfile"
+
+            else
+                # Use default swap location, if we are not using an external USB
+                SWAP_FILE="/swapfile"
+            fi
+
         fi
 
 
@@ -2664,37 +2781,8 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             swap_ask_change
         fi
 
-        # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE" = "" ]; then
-
-            #If the user is boooting from a microSD card then ask where to store the swap file
-            if [ "$IS_MICROSD" = "YES" ]; then
-
-                # Enter the location of the swap file
-                SWAP_FILE=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
-
-                # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
-                # Meaning instead of return the error code, it returns the value entered
-
-                # Now to check if the user pressed OK or Cancel
-                exitstatus=$?
-                if [ $exitstatus = 0 ]; then
-                    printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
-                else
-                    printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
-                    printf "\\n"
-                    exit
-                fi
-
-            else
-                SWAP_FILE="/swapfile"
-                printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
-            fi
-
-            SWAP_DO_CHANGE="YES"
-            printf "\\n"
-
-        fi
+        SWAP_DO_CHANGE="YES"
+        printf "\\n"
 
     fi
 
@@ -2742,37 +2830,9 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             swap_ask_change
         fi
 
-        # Once this has been entered once, don't ask again
-        if [ "$SWAP_FILE" = "" ]; then
+        SWAP_DO_CHANGE="YES"
+        printf "\\n"
 
-            #If the user is boooting from a microSD card then ask where to store the swap file
-            if [ "$IS_MICROSD" = "YES" ]; then
-
-                # Enter the location of the swap file
-                SWAP_FILE=$(whiptail  --inputbox "\\nPlease enter the location of where you want your swap file.\\n\\nNote: Since you are booting from a microSD card, it is advisable to store your swap file on a USB stick. Otherwise, the default location should be fine.\\n\\n" "${r}" "${c}" "/swapfile" --title "Choose swap file location." 3>&1 1>&2 2>&3) 
-
-                # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
-                # Meaning instead of return the error code, it returns the value entered
-
-                # Now to check if the user pressed OK or Cancel
-                exitstatus=$?
-                if [ $exitstatus = 0 ]; then
-                    printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
-                else
-                    printf "%b You cancelled when choosing a swap file location.\\n" "${INFO}"
-                    printf "\\n"
-                    exit
-                fi
-
-            else
-                SWAP_FILE="/swapfile"
-                printf "%b Your swap file will be created here: $SWAP_FILE\\n" "${INFO}"
-            fi
-
-            SWAP_DO_CHANGE="YES"
-            printf "\\n"
-
-        fi
 
     fi
 
@@ -3406,25 +3466,27 @@ donation_qrcode() {
 
 request_reboot() {  
 
-    if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf "%b %bTo complete your install you need to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+
+    if [ $NewInstall = true ] ; then
+        printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+        printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
-        printf "\\n"
-    elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+    fi
+
+    if [ $NewInstall = true ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
         printf "%b (You will need to reboot first.)\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -3433,34 +3495,27 @@ request_reboot() {
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
+    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf "%b %bAfter performing an upgrade, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
-        printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
     if [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ] ; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+        printf "\\n"
         sleep 5
         sudo reboot
     elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        printf "\\n"
         sleep 5
         sudo reboot
     fi
@@ -3868,7 +3923,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Re-enable and re-start DigiByte daemon service after reset/upgrade
     if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf "%b Upgrade Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        printf "%b Upgrade Completed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
         enable_service digibyted
         restart_service digibyted
         DGB_STATUS="running"
@@ -4631,7 +4686,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ "$IPFS_STATUS" = "stopped" ]; then
 
         if [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Upgrade Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+            printf "%b Upgrade Completed: Re-enabling and re-starting IPFS service ...\\n" "${INFO}"
         elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
             printf "%b Reset Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
         fi
