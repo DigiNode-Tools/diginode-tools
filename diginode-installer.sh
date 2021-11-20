@@ -2650,6 +2650,26 @@ swap_ask_change() {
 # Display a request to change the hostname, if needed
 if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
+        # Do this if the current swap file is too small
+    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
+
+            # Ask the user if they want to create a swap file now, or exit
+            if whiptail --title "Swap file detected." --yesno "Your current swap file is too small.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need a swap file of at least $SWAP_REC_SIZE_HR or more. Your current swap file is only $SWAPTOTAL_HR.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have this installer assist you in creating a new swap file.\\n\\nChoose EXIT to quit the installer and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                #Nothing to do, continue
+                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+            else
+              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+              printf "\\n"
+              exit
+            fi
+
+        fi
+
+    fi
+
     # Do this if there is no swap file
     if [ "$SWAP_NEEDED" = "YES" ]; then
 
@@ -2665,6 +2685,16 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
               printf "\\n"
               exit
             fi
+
+        fi
+
+    fi
+
+
+    # Do this if there is no swap file OR the current swap file is too small
+    if [ "$SWAP_NEEDED" = "YES" ] || [ "$SWAP_TOO_SMALL" = "YES" ]; then
+
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
@@ -2784,56 +2814,6 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         SWAP_DO_CHANGE="YES"
         printf "\\n"
-
-    fi
-
-
-    # Do this if there is the current swap file is too small
-    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-
-        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
-
-            # Ask the user if they want to create a swap file now, or exit
-            if whiptail --title "Swap file detected." --yesno "Your current swap file is too small.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need a swap file of at least $SWAP_REC_SIZE_HR or more. Your current swap file is only $SWAPTOTAL_HR.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have this installer assist you in creating a new swap file.\\n\\nChoose EXIT to quit the installer and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-
-                #Nothing to do, continue
-                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
-            else
-              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
-              printf "\\n"
-              exit
-            fi
-
-        fi
-
-
-        # Ask the user what size of swap file they want
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "\\nPlease enter the desired swap file size in MB.\\n\\nNote: Running a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n\\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size" 3>&1 1>&2 2>&3) 
-
-        # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
-        # Meaning instead of return the error code, it returns the value entered
-
-        # Now to check if the user pressed OK or Cancel
-        exitstatus=$?
-        if [ $exitstatus = 0 ]; then
-            printf "%b You chose to create a swap file: $SWAP_TARG_SIZE_MB Mb\\n" "${INFO}"
-        else
-            printf "%b You exited when choosing a swap file size.\\n" "${INFO}"
-            printf "\\n"
-            exit
-        fi
-
-        # Check the entered value is big enough
-        if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
-            printf "%b The swap file size you entered was too small.\\n" "${INFO}"
-            skip_if_reentering_swap_size="yes"
-            swap_ask_change
-        fi
-
-        SWAP_DO_CHANGE="YES"
-        printf "\\n"
-
 
     fi
 
@@ -7729,6 +7709,12 @@ main() {
     # Change the user
     user_do_change
 
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_check
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_ask_lowspace
+
     # Check if a swap file is needed
     swap_check
 
@@ -7737,12 +7723,6 @@ main() {
 
     # Do swap setup
     swap_do_change
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_check
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_ask_lowspace
 
 
     ### UNATTENDED INSTALL - SET FULL DIGINODE VS DGB ONLY  ###
