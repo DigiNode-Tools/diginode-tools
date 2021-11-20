@@ -1666,7 +1666,7 @@ rpi_microsd_check() {
                 printf "%b slow to run both the DigiNode software and swap file. Since your Raspberry Pi\\n" "${INDENT}"
                 printf "%b only has $MODELMEM RAM, if you want want to proceed you will need a USB stick\\n" "${INDENT}"
                 printf "%b to store the swap file. 8Gb or 16Gb is sufficient and it should support USB 3.0\\n" "${INDENT}"
-                printf "%b or btter. An SSD is still recomended, so proceed at you own risk.\\n" "${INDENT}"
+                printf "%b or better. An SSD is still recomended, so proceed at you own risk.\\n" "${INDENT}"
                 printf "\\n"
                 IS_MICROSD="YES"
                 REQUIRE_USB_STICK_FOR_SWAP="YES"
@@ -1693,7 +1693,8 @@ rpi_microsd_ask() {
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
 
-    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on reccomended DigiNode hardware, visit:\\n$DGBH_URL_HARDWARE\\n\\n\Since your Raspberry Pi only has $MODELMEM RAM, if you accept the risk and want to proceed, you will need an empty USB stick to store the swap file. An 8Gb or 16Gb pendrive is sufficient but it should support USB 3.0 or better.\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. MicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD. For advice on reccomended DigiNode hardware, visit:\\n$DGBH_URL_HARDWARE\\n\\nSince your Raspberry Pi only has $MODELMEM RAM, if you want to proceed, you will need an empty USB stick to store the swap file. An 8Gb stick is sufficient, but 16Gb or larger is better. An SSD is still recomended, so proceed at you own risk.\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+
     #Nothing to do, continue
       printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
       printf "%b You agreed to use a USB stick for your swap file, despite the risks.\\n" "${INFO}"
