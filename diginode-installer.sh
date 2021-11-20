@@ -3420,7 +3420,7 @@ request_social_media () {
 
 donation_qrcode() {  
 
-    printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
+    printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
     echo "      If you find DigiNode Tools useful and want to support my work,"
@@ -3458,6 +3458,8 @@ request_reboot() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "\\n"
     fi
 
     if [ $NewInstall = true ]; then
@@ -3466,6 +3468,8 @@ request_reboot() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b (You will need to reboot first.)\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -3492,10 +3496,14 @@ request_reboot() {
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "\\n"
         sleep 5
         sudo reboot
     elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         printf "\\n"
         sleep 5
         sudo reboot
