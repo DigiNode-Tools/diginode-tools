@@ -37,7 +37,7 @@ Let's you monitor your DigiNode from the terminal.
     + Connection Count
     + Block Height (with Sync Progress)
     + IP addresses (local and external)
-    + Web UI address
+    + Web UI address 
     + Node uptime
     + Disk, RAM and swap usage
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
@@ -80,20 +80,8 @@ This will skip the OS check at startup in case you are having problems with your
 
 ```curl -sSL diginode-installer.digibyte.help | bash -s -- --skiposcheck```
 
-- Uninstall [NOT YET WORKING]
+- Uninstall
 
-Running this will uninstall your DigiNode. Your wallet file will be kept.
+Running this will uninstall your DigiNode. Your wallet file will be kept. THis can also be accessed from the main menu
 
 ```curl -sSL diginode-installer.digibyte.help | bash -s -- --uninstall```
-
-- Developer Mode: DigiNode Tools
-
-This use use the develop branch of the installer from Github, and install the develop version of DigiNode Tools. For testing purposes only. Expect this to break things. At times it likely won't even run.
-
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgntdev```
-
-- Developer Mode: DigiAsset Node
-
-This installs the development branch of DigiAsset Node. For developers only.
-
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --dgadev```

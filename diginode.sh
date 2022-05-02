@@ -50,7 +50,7 @@
 # When a new release is made, this number will be updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this version number on your local installaion or automatic upgrades may not work.
-DGNT_VER_LOCAL=0.0.2
+DGNT_VER_LOCAL=0.0.3
 
 # This is the command people will enter to run the install script.
 DGNT_INSTALLER_OFFICIAL_CMD="curl -sSL diginode-installer.digibyte.help | bash"
@@ -1386,7 +1386,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
 
   # Update diginode.settings with when Status Monitor last ran
   DGNT_MONITOR_LAST_RUN=$(date)
-  sed -i -e '/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN="$DGNT_MONITOR_LAST_RUN"|' $DGNT_SETTINGS_FILE
+  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
   SAVED_TIME_1MIN="$(date)"
   sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -1405,9 +1405,9 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    if [ $IP4_EXTERNAL_NEW != $IP4_EXTERNAL ]; then
-      IP4_EXTERNAL = $IP4_EXTERNAL_NEW
-      sed -i -e '/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL="$IP4_EXTERNAL_NEW"|' $DGNT_SETTINGS_FILE
+    if [ "$IP4_EXTERNAL_NEW" != "$IP4_EXTERNAL" ]; then
+      IP4_EXTERNAL=$IP4_EXTERNAL_NEW
+      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=$IP4_EXTERNAL|" $DGNT_SETTINGS_FILE
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -1437,7 +1437,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
           DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
       fi
 
-      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
+      sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
 
       # Get the local version number of NodeJS (this will also tell us if it is installed)
       NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
@@ -1454,7 +1454,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # Lookup DigiNode Tools local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
-        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
         DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 

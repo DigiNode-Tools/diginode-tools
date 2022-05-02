@@ -2636,7 +2636,7 @@ swap_check() {
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
 
     if [ $RAMTOTAL_KB -gt 7800000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system has more than 7Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system has more than 7Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     elif [ $TOTALMEM_KB -gt 7800000 ]; then
         printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 7Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
@@ -3013,7 +3013,7 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-
+            PRUNE_BLOCKCHAIN="YES"
         else
           printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           
@@ -3025,6 +3025,7 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
                 printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
                 printf "\\n"
           fi
+          exit
         fi
     fi
 
@@ -3079,8 +3080,14 @@ menu_existing_install() {
     opt2a="Reset"
     opt2b="Reset all settings and reinstall DigiNode software."
 
-    opt3a="Uninstall"
-    opt3b="Remove DigiNode from your systems."
+    opt3a="Wallet Backup"
+    opt3b="Backup your DigiByte Core wallet to an external USB stick."
+
+    opt4a="Wallet Restore"
+    opt4b="Backup your DigiByte Core wallet to an external USB stick."
+
+    opt5a="Uninstall"
+    opt5b="Remove DigiNode from your systems."
 
 
     # Display the information to the user
@@ -3109,8 +3116,20 @@ menu_existing_install() {
             printf "\\n"
             RESET_MODE=true
             ;;
-        # Uninstall,
+        # Wallet Backup
         ${opt3a})
+            printf "%b You selected the WALLET BACKUP option.\\n" "${INFO}"
+            printf "\\n"
+            do_wallet_backup
+            ;;
+        # Wallet Restore
+        ${opt3a})
+            printf "%b You selected the WALLET RESTORE option.\\n" "${INFO}"
+            printf "\\n"
+            do_wallet_restore
+            ;;
+        # Uninstall,
+        ${opt5a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -3470,7 +3489,7 @@ donation_qrcode() {
     echo ""
 }
 
-request_reboot() {  
+final_messages() {  
 
 
     if [ $NewInstall = true ] ; then
@@ -3485,6 +3504,16 @@ request_reboot() {
         printf "\\n"
         printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
+    fi
+
+    if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
+          printf "%b %bIMPORTANT: Remember to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$TEXTEDITOR" != "" ]; then
+            printf "%b You can do this by editing the digibyte.conf file:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   $TEXTEDITOR $DGB_CONF_FILE\\n" "${INDENT}"
+            printf "\\n"
+        fi
     fi
 
     if [ $NewInstall = true ]; then
@@ -6604,7 +6633,7 @@ array[26]="digifact27"
 array[27]="digifact28"
 array[28]="digifact29"
 array[29]="digifact30"
-array[30]="digifact30"   # Note this is showing 30 for now as 31 is innacurate
+array[30]="digifact31"  
 array[31]="digifact32"
 array[32]="digifact33"
 array[33]="digifact34"
@@ -6623,11 +6652,11 @@ array[45]="digifact46"
 array[46]="digifact47"
 array[47]="digifact48"
 array[48]="digifact49"
-array[49]="digifact49"   # Note this is showing 49 for now as 31 is innacurate
+array[49]="digifact50"
 array[50]="digifact51"
 array[51]="digifact52"
 array[52]="digifact53"
-array[53]="digifact53"   # Note this is showing 53 for now as 31 is innacurate
+array[53]="digifact54"   
 array[54]="digifact55"
 array[55]="digifact56"
 array[56]="digifact57"
@@ -6649,13 +6678,14 @@ array[71]="digifact72"
 array[72]="digifact73"
 array[73]="digifact74"
 array[74]="digifact75"
-array[75]="social1"
-array[76]="social2"
-array[77]="help1"
-array[78]="help2"
-array[79]="help3"
-array[80]="help4"
-array[81]="help5"
+array[75]="digifact75"
+array[76]="social1"
+array[77]="social2"
+array[78]="help1"
+array[79]="help2"
+array[80]="help3"
+array[81]="help4"
+array[82]="help5"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -6984,15 +7014,15 @@ if [ "$DIGIFACT" = "digifact30" ]; then
     DIGIFACT_L6=""
 fi
 
-#if [ "$DIGIFACT" = "digifact31" ]; then
-#    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
-#    DIGIFACT_L1="The most popular Core DigiByte wallet so far was our 6.14.2"
-#    DIGIFACT_L2="release, with 200,000 downloads!"
-#    DIGIFACT_L3=""
-#    DIGIFACT_L4=""
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-#fi
+if [ "$DIGIFACT" = "digifact31" ]; then
+    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
+    DIGIFACT_L1="If you ever have issues with getting your #DigiByte out of a"
+    DIGIFACT_L2="wallet, you can get move it to a new one easily enough with"
+    DIGIFACT_L3="DigiSweep thanks to @mctrivia  It’s easy to use and"
+    DIGIFACT_L4="open-source. Try it out if you ever need it:"
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://digisweep.digiassetx.com/"
+fi
 
 if [ "$DIGIFACT" = "digifact32" ]; then
     DIGIFACT_TITLE="DigiFact # 32 - Did you know..."
@@ -7174,15 +7204,15 @@ if [ "$DIGIFACT" = "digifact49" ]; then
     DIGIFACT_L6=""
 fi
 
-#if [ "$DIGIFACT" = "digifact50" ]; then
-#    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-#    DIGIFACT_L1="DigiByte 1-click miner allows anybody to get started"
-#    DIGIFACT_L2="participating in mining \$DGB with their graphics card in their"
-#    DIGIFACT_L3="computer. Doing-so earns you DigiByte, while helping to secure"
-#    DIGIFACT_L4="the network."
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-#fi
+if [ "$DIGIFACT" = "digifact50" ]; then
+    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
+    DIGIFACT_L1="DigiByte Faucet is a useful website where anyone can get some"
+    DIGIFACT_L2="free DGB and experience this amazing technology first hand."
+    DIGIFACT_L3="For developers, they also provide a testnet faucet."
+    DIGIFACT_L4="Tell your friends."
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://www.digifaucet.org/"
+fi
 
 if [ "$DIGIFACT" = "digifact51" ]; then
     DIGIFACT_TITLE="DigiFact # 51 - Did you know..."
@@ -7214,15 +7244,15 @@ if [ "$DIGIFACT" = "digifact53" ]; then
     DIGIFACT_L6=""
 fi
 
-# if [ "$DIGIFACT" = "digifact54" ]; then
-#    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
-#    DIGIFACT_L1="DigiByte has some of the most accurate and consistent block"
-#    DIGIFACT_L2="timing of any UTXO project. Where others like BTC and LTC"
-#    DIGIFACT_L3="regularly vary by over 8% in any given day, DigiByte maintains"
-#    DIGIFACT_L4="block timings within 0.1% of their expected schedule."
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-# fi
+if [ "$DIGIFACT" = "digifact54" ]; then
+    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
+    DIGIFACT_L1="DigiByte has never hand a contentious hard fork despite ongoing"
+    DIGIFACT_L2="major code changes. Mining is so decentralized that when the"
+    DIGIFACT_L3="myriad-groestl algorithm was replaced with odocrypt, MG mining"
+    DIGIFACT_L4="pools installed the upgrade even when it meant they would no"
+    DIGIFACT_L5="longer be able to mine."
+    DIGIFACT_L6=""
+fi
 
  if [ "$DIGIFACT" = "digifact55" ]; then
     DIGIFACT_TITLE="DigiFact # 55 - Did you know..."
@@ -7434,6 +7464,16 @@ if [ "$DIGIFACT" = "digifact75" ]; then
     DIGIFACT_L6=""
 fi
 
+if [ "$DIGIFACT" = "digifact76" ]; then
+    DIGIFACT_TITLE="DigiFact # 76 - Did you know..."
+    DIGIFACT_L1="If you have ever had the misfortune to accidentally send your"
+    DIGIFACT_L2="DigiByte to a Dogecoin address, your coins may not be lost."
+    DIGIFACT_L3="DigiSweep by @mctrivia may be able to help you recover them."
+    DIGIFACT_L4="Go here:"
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://digisweep.digiassetx.com/"
+fi
+
 if [ "$DIGIFACT" = "social1" ]; then
     DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
     DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet?"
@@ -7455,7 +7495,7 @@ fi
 
 if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_TITLE="      DigiFact Tip!"
-    DIGIFACT_L1="You may have noticed that many of these DigiFacts have a URL in"
+    DIGIFACT_L1="Some of these DigiFacts include a  website URL. You can"
     DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
     DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
     DIGIFACT_L5="It should make it possible to click on them to open the website."
@@ -7918,8 +7958,8 @@ main() {
     # Display donation QR Code
     donation_qrcode
 
-    # Display reboot message (and how to run Status Monitor)
-    request_reboot
+    # Show final messages - Display reboot message (and how to run Status Monitor)
+    final_messages
 
     # Launch Status Monitor if requested
     launch_status_monitor
