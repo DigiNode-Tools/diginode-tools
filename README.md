@@ -4,11 +4,11 @@
 
 These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode on your Linux hardware of choice. The recommended setup for this is a Raspberry Pi 4 8Gb running Ubuntu Server 64-bit.
 
-* WARNING: This script is still under development and should only be used for testing purposes at this time.
+For more information, visit: https://diginode.digibyte.help
 
 ## Disclaimer
 
-These tools are provided as is. Make sure you have a backup of your wallet file.
+These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
 
 
 ## DigiNode Installer
@@ -20,12 +20,12 @@ Install script to set up your DigiNode - installs and configures a DigiByte Node
 - Automatically checks hardware and OS at launch - it lets you know if your system is compatible.
 - Detects compatible Raspberry Pi hardware (if present).
 - Creates a swap file on low memory devices, and checks if any existing swap file is large enough.
-- Installs or upgrades DigiByte and DigiAssets software with the latest releases from GitHub.
+- Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
 - Creates or updates a digibyte.conf settings file with optimal settings.
 - Creates digibyted.service file to keep the DigiByte Node running 24/7.
 - Creates or updates an DigiAsset config file with RPC settings. 
-- Creates 'digibyte' user and sets system hostname to 'diginode'.
-- Enables zeroconf networking so you can access your node at http://diginode.local - no need to remember the IP address.
+- Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
+- Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
 
 
 ## DigiNode Status Monitor
@@ -43,11 +43,12 @@ Let's you monitor your DigiNode from the terminal.
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
 
 
-## Bonus Features
+## Additional Features
 
 - Verbose Mode: This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. Set variable at top of either script.
 - Unattended Mode: This is useful for installing the script completely unattended. The defaults should be set from the ~/.digibyte/diginode.settings file. To run in unattended mode, use the --unattended flag at launch.
 - Reset Mode: This is useful for repairing a default installation. It will delete and recreate the diginode.settings and digibyte.conf files and reinstall the DigiByte and DigiAssets software. Use with caution - it can mess up a custom installation. To run in reset mode, use the --reset flag at launch.
+- Backup/Restore: This will help you to backup your wallet.dat file, as well as your DigiAsset Node settings, to an external USB drive. It is advisable to use a USB stick that you do not use for anything else, and to store it somewhere safe. The blockchain and/or digiasset data will not be backed up.
 
 
 ## Instructions
@@ -82,6 +83,43 @@ This will skip the OS check at startup in case you are having problems with your
 
 - Uninstall
 
-Running this will uninstall your DigiNode. Your wallet file will be kept. THis can also be accessed from the main menu
+Running this will uninstall your DigiNode. Your wallet.dat file will be kept. This can also be accessed from the main menu.
 
 ```curl -sSL diginode-installer.digibyte.help | bash -s -- --uninstall```
+
+## Compatibility
+
+- DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.
+- A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run.
+- A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use.
+- A device with less than 4Gb RAM is not recommended.
+- When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
+
+DigiNode has been tested and known to work with the following systems:
+
+| **Hardware**          | **Operating System**             | **Notes**                                   |
+|-----------------------|----------------------------------|---------------------------------------------|
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the reccomended configuration.      |
+|                       |                                  |                                             |
+|-----------------------|----------------------------------|---------------------------------------------|
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          |                                             |
+|                       |                                  |                                             |
+|-----------------------|----------------------------------|---------------------------------------------|
+|                       |                                  |                                             |
+|-----------------------|----------------------------------|---------------------------------------------|
+|                       |                                  |                                             |
+|-----------------------|----------------------------------|---------------------------------------------|
+|                       |                                  |                                             |
+
+
+Raspberry Pi 4 8Gb
+
+## Release History
+
+v0.0.4
+- Fixed several bugs relating to the Status Monitor being able to check for software updates
+- Added backup feature
+
+
+v0.0.2
+- Initial Test Release
