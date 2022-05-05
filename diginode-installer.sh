@@ -419,11 +419,10 @@ IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSET NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
-DGA_SETTINGS_LOCATION=\$DGB_SETTINGS_LOCATION/assetnode_config
-DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
+DGA_SETTINGS_LOCATION=\$DGA_INSTALL_LOCATION/_config
 
 # DIGIASSET NODE FILES
-DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
+DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
 
 # SYSTEM SERVICE FILES:
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
@@ -522,7 +521,7 @@ IP4_EXTERNAL=
 
 # This records when the wallet was last backed up
 WALLET_BACKUP_DATE=
-WALLET_BACKUP_ID=
+DGA_CONFIG_BACKUP_DATE=
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
@@ -2967,7 +2966,7 @@ swap_do_change() {
 
 }
 
-# This function will help the user backup their DigiByte wallet to an external USB drive
+# This function will help the user backup their DigiByte wallet to an external USB drive. It was also optionally backup their DigiAsset Node _config folder.
 do_wallet_backup() {
 
     # Skip this part if we need to re-enter the encryption password
@@ -2998,18 +2997,21 @@ do_wallet_backup() {
             printf "\\n"
         fi
 
-        if [[ "$run_wallet_backup" == true ]]; then
+        # Ask the user if they also want to backup the DigiAsset Node _config folder, if it exists
+        if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
-            # Ask the user to prepare their USB stick
-            if whiptail --backtitle "" --title "PREPARE BACKUP STICK" --yesno "Is your backup USB stick ready? (DO NOT PLUG IT IN YET)\\n\\nMake sure your USB stick is ready - for best results format it with either ExFat or Fat32"  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            # Ask the user if they want to encrypt with a password?
+            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, make sure you have completed the setup process via the DigiAssetX web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You confirmed your USB stick is ready.\\n" "${INFO}"
+                printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
+                run_dgaconfig_backup=true
             else
-                printf "%b You chose not to proceed with DigibByte Core wallet backup. Returning to menu...\\n" "${INFO}"
-                run_wallet_backup=false
-                menu_existing_install
+                printf "%b You chose NOT to backup your DigiAsset Node configuration.\\n" "${INFO}"
+                run_dgaconfig_backup=false
             fi
-            printf "\\n"
+        fi
+
+        if [[ "$run_wallet_backup" == true ]]; then
 
             # Start the DigiByte service now, in case it is not already running
             printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
@@ -3020,7 +3022,7 @@ do_wallet_backup() {
             digibyte_check
 
             # Check if the wallet is currently unencrypted
-            if [[ ~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet" ]]; then
+            if [[ $(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet") ]]; then
 
                 # Ask the user if they want to encrypt with a password?
                 if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your wallet with a passphrase?\\n\\nThis is a highly recommended, if you have not already done so. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the password."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
@@ -3043,7 +3045,7 @@ do_wallet_backup() {
 
     if [[ "$encrypt_wallet_now" == true ]]; then
 
-        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet.\\n\\nIMPORTANT: Don't forget this - you will need it to access your wallet! It can be as long as you like and may include spaces." 8 78 --title "Choose a passphrase to encrypt your wallet.dat file" 3>&1 1>&2 2>&3)
+        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet.\\n\\nIMPORTANT: Don't forget this - you will need it every time you want to access your wallet! It can be as long as you like and may include spaces." 8 78 --title "Choose a passphrase to encrypt your wallet.dat file" 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -3085,6 +3087,12 @@ do_wallet_backup() {
             menu_existing_install  
         fi
 
+        # Stop DigiByte Core if it is running, as we need to encrypt the wallet
+        if [ "$DGB_STATUS" = "running" ] || [ $DGB_INSTALL_TYPE = "startingup" ]; then
+           stop_service digibyted
+           DGB_STATUS="stopped"
+        fi
+
 
         # If the passphrases have been entered correctly, proceed encrypting the wallet.dat file
         if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
@@ -3092,13 +3100,7 @@ do_wallet_backup() {
             # Encrypting wallet.dat file
             local str="Encrypting wallet.dat ... "
             printf "%b %s..." "${INFO}" "${str}"
-            digibyte-cli encryptwallet "$WALLET_ENCRYT_PASS"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            
-            # Create digibyte user
-            local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
-            printf "%b %s..." "${INFO}" "${str}"
-
+            sudo -u $USER_ACCOUNT $DGB_CLI encryptwallet "$WALLET_ENCRYT_PASS" 1>/dev/null
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         fi
@@ -3112,11 +3114,95 @@ do_wallet_backup() {
 
     # END PASSWORD ENCRYPTION OF DIGIBYTE WALLET
 
-    # Start unencrypted backup
+    if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
-    if [[ "$encrypt_wallet_backup" == false ]]; then
+        # Ask the user to prepare their USB stick
+        if whiptail --backtitle "" --title "PREPARE BACKUP STICK" --yesno "Is your backup USB stick ready? (DO NOT PLUG IT IN YET)\\n\\nMake sure your USB stick is ready - for best results format it with either ExFat or Fat32"  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
-    fi
+            printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
+        else
+            printf "%b You chose not to proceed the backup. Returning to menu...\\n" "${INFO}"
+            run_wallet_backup=false
+            menu_existing_install
+        fi
+        printf "\\n"
+
+        # Get the user to insert the USB stick to use as a swap drive and detect it
+        USB_BACKUP_STICK_INSERTED="NO"
+        LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+        progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        printf "%b Please insert the USB stick you wish to use for your backup now.\\n" "${INFO}"
+        str="Waiting for USB stick... "
+        printf "%b %s" "${INDENT}" "${str}"
+        tput civis
+        while [ "$USB_SWAP_STICK_INSERTED" = "NO" ]; do
+
+            # Show Spinner while waiting
+            if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+            fi
+
+            LSBLK_AFTER_USB_INSERTED=$(lsblk)
+
+            USB_SWAP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
+
+            if [ "$USB_SWAP_DRIVE" != "" ]; then
+                USB_SWAP_STICK_INSERTED="YES"
+                printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                tput cnorm
+            else
+                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                sleep 0.5
+            fi
+        done
+
+        # Wipe the current partition on the drive
+        str="Wiping exisiting partition(s) on USB stick..."
+        printf "%b %s" "${INFO}" "${str}"
+        sfdisk --quiet --delete /dev/$USB_SWAP_DRIVE
+        # dd if=/dev/zero of=/dev/$USB_SWAP_DRIVE bs=512 count=1 seek=0
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Wipe the current partition on the drive
+        str="Create new primary gpt partition on USB stick..."
+        printf "%b %s" "${INFO}" "${str}"
+        parted --script --align=opt /dev/${USB_SWAP_DRIVE} mklabel gpt mkpart primary 0% 100%
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Set up file system on USB stick
+        printf "Setting up EXT4 file system on USB stick..." "${INFO}"
+        mkfs.ext4 -F /dev/${USB_SWAP_DRIVE}1
+
+        # Create mount point for USB drive, if needed
+        if [ ! -d /media/usbswap ]; then
+            str="Create mount point for USB drive..."
+            printf "%b %s" "${INFO}" "${str}"
+            mkdir /media/usbswap
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Create mount point for USB drive, if needed
+        str="Mount new USB swap partition..."
+        printf "%b %s" "${INFO}" "${str}"
+        mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Set swap file location
+        SWAP_FILE="/media/usbswap/swapfile"
+
+
+
+
+
+
+
 
 
 
@@ -5865,7 +5951,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." "${r}" "${c}"; then
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
@@ -6313,7 +6399,7 @@ digiasset_node_create_settings() {
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
     if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="reset"
         else
