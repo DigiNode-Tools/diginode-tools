@@ -458,7 +458,6 @@ DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
 DGNT_VER_RELEASE=
-DGNT_LOCAL_BRANCH=
 DGNT_LOCAL_RELEASE=
 
 # THese are updated automatically every time DigiNode Tools is installed/upgraded. 
@@ -1431,7 +1430,13 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         if [ $revision = 'd03114' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
+        elif [ $revision = '902120' ]; then #Pi Zero 2 W
+            pitype="piold"
+            MODELMEM="1Gb"
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
+            pitype="pi4"
+            MODELMEM="4Gb"
+        elif [ $revision = 'c03114' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
@@ -1440,6 +1445,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
+        elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
+            pitype="pi4_lowmem"
+            MODELMEM="2Gb"
         elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
             pitype="pi4_lowmem"
             MODELMEM="2Gb"
@@ -2959,6 +2967,293 @@ swap_do_change() {
 
 }
 
+# This function will help the user backup their DigiByte wallet to an external USB drive
+do_wallet_backup() {
+
+    # Skip this part if we need to re-enter the encryption password
+    if [ "$skip_if_reentering_encryption_passphrases" != "yes" ]; then
+
+        # Ask to backup DigiByte Core Wallet, if it exists
+        if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
+
+            # Ask if the user wants to backup their DigiBytewallet
+            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet now?\\n\\nYou will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your wallet to it and then place it somewhere secure such as a safe. You do not need a large USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need access to a free USB slot on the device running your DigiNode." "${r}" "${c}"; then
+
+                printf "%b You chose to run the DigiByte Core wallet backup script.\\n" "${INFO}"
+                run_wallet_backup=true
+
+
+            else
+                printf "%b You chose not to proceed with DigibByte Core wallet backup. Returning to menu...\\n" "${INFO}"
+                run_wallet_backup=false
+                menu_existing_install
+            fi
+            printf "\\n"
+        else
+            printf "%b No DigiByte Core wallet file currently exists. Returning to menu...\\n" "${INFO}"
+            run_wallet_backup=false
+            # Display a message saying that the wallet.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "ERROR: wallet.dat not found" "No DigiByte Core wallet.dat file currently exists to backup. The script will exit." "${r}" "${c}"
+            menu_existing_install   
+            printf "\\n"
+        fi
+
+        if [[ "$run_wallet_backup" == true ]]; then
+
+            # Ask the user to prepare their USB stick
+            if whiptail --backtitle "" --title "PREPARE BACKUP STICK" --yesno "Is your backup USB stick ready? (DO NOT PLUG IT IN YET)\\n\\nMake sure your USB stick is ready - for best results format it with either ExFat or Fat32"  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                printf "%b You confirmed your USB stick is ready.\\n" "${INFO}"
+            else
+                printf "%b You chose not to proceed with DigibByte Core wallet backup. Returning to menu...\\n" "${INFO}"
+                run_wallet_backup=false
+                menu_existing_install
+            fi
+            printf "\\n"
+
+            # Start the DigiByte service now, in case it is not already running
+            printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
+            systemctl start digibyted
+
+            # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
+            # but has also completely finished starting up, and this function will wait until it has before continuing.
+            digibyte_check
+
+            # Check if the wallet is currently unencrypted
+            if [[ ~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet" ]]; then
+
+                # Ask the user if they want to encrypt with a password?
+                if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your wallet with a passphrase?\\n\\nThis is a highly recommended, if you have not already done so. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the password."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                    printf "%b You chose to encrypt your wallet with a password.\\n" "${INFO}"
+                    encrypt_wallet_now=true
+                else
+                    printf "%b You chose NOT to encrypt your wallet with a password.\\n" "${INFO}"
+                    encrypt_wallet_now=false
+                fi
+            fi
+
+            printf "\\n"
+
+        fi
+
+    fi    
+
+    # START PASSPHRASE ENCRYPTION OF DIGIBYTE WALLET
+
+    if [[ "$encrypt_wallet_now" == true ]]; then
+
+        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet.\\n\\nIMPORTANT: Don't forget this - you will need it to access your wallet! It can be as long as you like and may include spaces." 8 78 --title "Choose a passphrase to encrypt your wallet.dat file" 3>&1 1>&2 2>&3)
+            # A trick to swap stdout and stderr.
+            # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+        exitstatus=$?
+        if [ $exitstatus == 0 ]; then
+            printf "%b Passphrase entered for encrypted wallet.\\n" "${INFO}"
+        else
+            printf "%b %bYou cancelled choosing a wallet encryption passphrase.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            # Display a message saying that the wallet.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering an encryption passphrase. The script will exit." "${r}" "${c}" 
+            printf "\\n"
+            menu_existing_install  
+        fi
+
+        WALLET_ENCRYT_PASS2=$(whiptail --passwordbox "Please re-enter the passphrase to confirm." 8 78 --title "Re-enter passphrase for wallet encryption" 3>&1 1>&2 2>&3)
+            # A trick to swap stdout and stderr.
+            # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+        exitstatus=$?
+        if [ $exitstatus == 0 ]; then
+            printf "%b Passphrase re-entered for wallet encryption.\\n" "${INFO}"
+            # Compare both passphrases to check they match
+            if [ "$WALLET_ENCRYT_PASS1" = "$WALLET_ENCRYT_PASS2" ]; then
+                printf "%b Passphrases match.\\n" "${TICK}"
+                WALLET_ENCRYT_PASS=$WALLET_ENCRYT_PASS1
+                wallet_encryption_passphrases_match="yes"
+                printf "\\n"
+            else
+                whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+                printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
+                skip_if_reentering_encryption_passphrases="yes"
+
+                # re-do prompt for password
+                do_wallet_backup
+            fi
+        else
+            printf "%b %bYou cancelled choosing an encryption password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            # Display a message saying that the wall.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering a backup password. The script will exit." "${r}" "${c}" 
+            printf "\\n"
+            menu_existing_install  
+        fi
+
+
+        # If the passphrases have been entered correctly, proceed encrypting the wallet.dat file
+        if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
+
+            # Encrypting wallet.dat file
+            local str="Encrypting wallet.dat ... "
+            printf "%b %s..." "${INFO}" "${str}"
+            digibyte-cli encryptwallet "$WALLET_ENCRYT_PASS"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            
+            # Create digibyte user
+            local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
+            printf "%b %s..." "${INFO}" "${str}"
+
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        #clear password variables
+        WALLET_ENCRYT_PASS1=null
+        WALLET_ENCRYT_PASS2=null
+        WALLET_ENCRYT_PASS=null
+
+    fi
+
+    # END PASSWORD ENCRYPTION OF DIGIBYTE WALLET
+
+    # Start unencrypted backup
+
+    if [[ "$encrypt_wallet_backup" == false ]]; then
+
+    fi
+
+
+
+# -----
+
+    # Go ahead and create/change the swap if requested
+    if [[ $SWAP_DO_CHANGE = "YES" ]]; then
+
+        #create local variable
+        local str
+
+        # Display section break
+        if [ "$SWAP_NEEDED" = "YES" ]; then
+            printf " =============== Creating: SWAP file ===================================\\n\\n"
+            # ==============================================================================
+        elif [ "$SWAP_TOO_SMALL" = "YES" ]; then
+            printf " =============== Modifying: SWAP file ==================================\\n\\n"
+            # ==============================================================================
+        fi
+
+        # Display message if we are doing a unattended install using a manual swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_SIZE_MB" != "" ]]; then
+            SWAP_TARG_SIZE_MB=$UI_SWAP_SIZE_MB
+            printf "%b Unattended Install: Using manual swap file size from diginode.settings\\n" "${INFO}"
+        fi
+
+         # Display message if we are doing a unattended install using a reccomended swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_SIZE_MB" = "" ]]; then
+            SWAP_TARG_SIZE_MB=$SWAP_REC_SIZE_MB
+            printf "%b Unattended Install: Using recommended swap size of $SWAP_REC_SIZE_HR\\n" "${INFO}" 
+        fi
+
+        # If unattended install, and no swap file location is specified, use the dafault
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_FILE" = "" ]]; then
+            SWAP_FILE=/swapfile
+            printf "%b Unattended Install: Using default SWAP file location: /swapfile\\n" "${INFO}"
+        fi
+
+        # Display message if we are doing a unattended install using a manual swap size
+        if [[ "$UNATTENDED_MODE" = "true" ]] && [[ "$UI_SWAP_FILE" != "" ]]; then
+            SWAP_FILE=$UI_SWAP_FILE
+            printf "%b %bUnattended Install: Using manual swap file size from diginode.settings: $UI_SWAP_FILE%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        fi
+
+        # Append M units to target swap file size
+        SWAP_TARG_SIZE_MB="${SWAP_TARG_SIZE_MB}M"
+
+        # If the swap file already exists, but is too small
+        if [ "$SWAP_TOO_SMALL" = "YES" ]; then
+
+            # Disable existing swap file
+            str="Disable existing swap file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+            swapoff -a
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Remove swap file entry from fstab file
+            str="Deleting swap entry from fstab file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+       # Allocate space for new swap file
+        str="Allocate ${SWAP_TARG_SIZE_MB}B for new swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
+        fallocate -l "$SWAP_TARG_SIZE_MB" "$SWAP_FILE"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Mark new file as swap
+        printf "%b Set up new swap file...\\n" "${INFO}"
+        mkswap "$SWAP_FILE"       
+        
+        # Secure swap file
+        str="Assign root as swap file owner..."
+        printf "%b %s..." "${INFO}" "${str}"
+        chown root:root $SWAP_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Secure swap file
+        str="Give root read/write permissions for swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
+        chmod 0600 $SWAP_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Activate new swap file
+        str="Activate new swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
+        swapon "$SWAP_FILE"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
+        if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+            # Get the UUID of the USB stick with the swap file
+            str="Lookup UUID of USB stick..."
+            printf "%b %s..." "${INFO}" "${str}"
+            SWAP_USB_UUID=$(blkid | grep sda1 | cut -d' ' -f2 | cut -d'=' -f2 | sed 's/"//g')
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+            # Make new swap drive and file available at boot
+            str="Make USB drive and swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/usbswap/d' /etc/fstab
+            sudo sed -i.bak '/swapfile/d' /etc/fstab
+            echo "UUID=$SWAP_USB_UUID /media/usbswap auto nosuid,nodev,nofail 0 0" >> /etc/fstab
+            echo "$SWAP_FILE swap swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+            # Tell user the swap file has been created
+            whiptail --msgbox --title "Swap file created on USB stick." "The swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 10 "${c}"
+
+        else
+
+            # Make new swap file available at boot
+            str="Make swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        fi
+
+        printf "\\n"
+
+    fi
+
+}
+
+# This function will help the user restore their DigiByte wallet backup from an external USB drive
+do_wallet_restore() {
+
+    whiptail --msgbox --backtitle "" --title "Script Not Added Yet" "This feature has not been implemented yet, but will be added soon. The script will now exit." "${r}" "${c}"
+    menu_existing_install  
+}
+
 #check there is sufficient space on the chosen drive to download the blockchain
 disk_check() {
     # Only run the check if DigiByte Core is not yet installed
@@ -3080,21 +3375,23 @@ menu_existing_install() {
     opt2a="Reset"
     opt2b="Reset all settings and reinstall DigiNode software."
 
-    opt3a="Wallet Backup"
-    opt3b="Backup your DigiByte Core wallet to an external USB stick."
+    opt3a="Backup"
+    opt3b="Backup your wallet & settings to an external USB stick."
 
-    opt4a="Wallet Restore"
-    opt4b="Backup your DigiByte Core wallet to an external USB stick."
+    opt4a="Restore"
+    opt4b="Backup your wallet & settings from an external USB stick."
 
     opt5a="Uninstall"
     opt5b="Remove DigiNode from your systems."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is highly recommended.)\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
+    "${opt3a}"  "${opt3b}" \
+    "${opt4a}"  "${opt4b}" \
+    "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
     { printf "%b %bCancel was selected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
 
     # Set the variable based on if the user chooses
@@ -3118,13 +3415,13 @@ menu_existing_install() {
             ;;
         # Wallet Backup
         ${opt3a})
-            printf "%b You selected the WALLET BACKUP option.\\n" "${INFO}"
+            printf "%b You selected the BACKUP option.\\n" "${INFO}"
             printf "\\n"
             do_wallet_backup
             ;;
         # Wallet Restore
-        ${opt3a})
-            printf "%b You selected the WALLET RESTORE option.\\n" "${INFO}"
+        ${opt4a})
+            printf "%b You selected the RESTORE option.\\n" "${INFO}"
             printf "\\n"
             do_wallet_restore
             ;;
@@ -5452,9 +5749,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
     if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
-        DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+        DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL beta"  # e.g. DigiAsset Node v3 beta
     elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
-        DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+        DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL"       # e.g. DigiAsset Node v3
     elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
         DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
     fi
@@ -5462,7 +5759,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 
     # Next we need to check for the latest release at the DigiAssetX website
-    str="Checking DigiAssetX website for the latest release..."
+    str="Querying DigiAssetX website for the latest release..."
     printf "%b %s" "${INFO}" "${str}"
     DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
 
@@ -5488,9 +5785,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Requested branch
     if [ "$DGA_BRANCH" = "apiV3" ]; then
-        printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
+        printf "%b DigiAsset Node development version requested.\\n" "${INFO}"
     elif [ "$DGA_BRANCH" = "main" ]; then
-        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
+        printf "%b DigiAsset Node release version requested.\\n" "${INFO}"
     fi
 
 
@@ -5523,7 +5820,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 
         elif [ "$DGA_LOCAL_BRANCH" = "apiV3" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
         else 
@@ -5735,7 +6032,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Next install the newest version
     cd $USER_HOME
-    # Clone the apiV3 version if develop flag is set
+    # Clone the development version if develop flag is set
     if [ "$DGA_BRANCH" = "apiV3" ]; then
         str="Cloning DigiAsset Node apiV3 branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5748,7 +6045,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT npm install
         cd $USER_HOME
 
-    # Clone the develop version if develop flag is set
+    # Clone the release version if main flag is set
     elif [ "$DGA_BRANCH" = "main" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
