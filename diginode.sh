@@ -28,7 +28,7 @@
 # in the same folder when it runs. Tne installer script contains functions and variables
 # used by this one.
 #
-# Both the DigiNode Installer and Status Monitor scripts make use of a settings file
+# Both DigiNode Setup and Status Monitor scripts make use of a settings file
 # located at: ~/.diginode/diginode.settings
 #
 # It want to make changes to folder locations etc. please edit this file.
@@ -53,16 +53,16 @@
 DGNT_VER_LOCAL=0.0.4
 
 # This is the command people will enter to run the install script.
-DGNT_INSTALLER_OFFICIAL_CMD="curl -sSL diginode-installer.digibyte.help | bash"
+DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
 
-#######################################################
-#### UPDATE THESE VALUES FROM THE INSTALLER FIRST #####
-#######################################################
+########################################################
+#### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
+########################################################
 
-# These colour and text formatting variables are included in both scripts since they are required before installer-script.sh is sourced into this one.
-# Changes to these variables should be first made in the installer script and then copied here, to help ensure the settings remain identical in both scripts.
+# These colour and text formatting variables are included in both scripts since they are required before diginode-setup.sh is sourced into this one.
+# Changes to these variables should be first made in the setup script and then copied here, to help ensure the settings remain identical in both scripts.
 
-# Set these values so the installer can still run in color
+# Set these values so we can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
@@ -132,7 +132,7 @@ done
 ######### FUNCTIONS ##################################
 ######################################################
 
-# Find where this script is running from, so we can make sure the diginode-installer.sh script is with it
+# Find where this script is running from, so we can make sure the diginode-setup.sh script is with it
 get_script_location() {
   SOURCE="${BASH_SOURCE[0]}"
   while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -141,38 +141,38 @@ get_script_location() {
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
   DGNT_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGNT_INSTALLER_SCRIPT_NOW=$DGNT_LOCATION_NOW/diginode-installer.sh
+  DGNT_SETUP_SCRIPT_NOW=$DGNT_LOCATION_NOW/diginode-setup.sh
 
   if [ "$VERBOSE_MODE" = true ]; then
     printf "%b Monitor Script Location: $DGNT_LOCATION_NOW\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGNT_INSTALLER_SCRIPT_NOW\\n" "${INFO}"
+    printf "%b Setup Script Location (presumed): $DGNT_SETUP_SCRIPT_NOW\\n" "${INFO}"
   fi
 }
 
-# PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
-import_installer_functions() {
+# PULL IN THE CONTENTS OF THE SETUP SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
+import_setup_functions() {
     # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
-    RUN_INSTALLER="NO"
-    # If the installer file exists,
-    if [[ -f "$DGNT_INSTALLER_SCRIPT_NOW" ]]; then
+    RUN_SETUP="NO"
+    # If the setup file exists,
+    if [[ -f "$DGNT_SETUP_SCRIPT_NOW" ]]; then
         # source it
         if [ $VERBOSE_MODE = true ]; then
-          printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
+          printf "%b Importing functions from diginode-setup.sh\\n" "${TICK}"
           printf "\\n"
         fi
-        source "$DGNT_INSTALLER_SCRIPT_NOW"
+        source "$DGNT_SETUP_SCRIPT_NOW"
     # Otherwise,
     else
         printf "\\n"
-        printf "%b %bERROR: diginode-installer.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: diginode-setup.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b The diginode-installer.sh file is required to continue.\\n" "${INDENT}"
+        printf "%b The diginode-setup.sh file is required to continue.\\n" "${INDENT}"
         printf "%b It contains functions we need to run the DigiNode Status Monitor.\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have not already setup your DigiNode, please use\\n" "${INDENT}"
-        printf "%b the official DigiNode installer:\\n" "${INDENT}"
+        printf "%b the official DigiNode Setup script:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   $DGNT_INSTALLER_OFFICIAL_CMD\\n" "${INDENT}"
+        printf "%b   $DGNT_SETUP_OFFICIAL_CMD\\n" "${INDENT}"
         printf "\\n"
         printf "%b Alternatively, to use 'DigiNode Status Monitor' with your existing\\n" "${INDENT}"
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
@@ -245,8 +245,8 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate digibyte installation in home folder.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core installation folder\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
-        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
+        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
         printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
         printf "\\n"
         printf "  %b For example:\\n" "${INDENT}"
@@ -269,8 +269,8 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate DigiByte Core binaries.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core binaries - digibyte & digibye-cli.\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
-        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
+        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
         printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
         printf "\\n"
         printf "  %b For example:\\n" "${INDENT}"
@@ -297,7 +297,7 @@ is_dgbnode_installed() {
         printf "  %b to run 'digibyted', please, rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
         printf "  %b so that this script can find it.\\n" "${INDENT}"
         printf "\\n"
-        printf "  %b If you wish to setup your DigiByte Node as a service, please use the DigiNode Installer.\\n" "${INDENT}"
+        printf "  %b If you wish to setup your DigiByte Node as a service, please use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         local dgb_service_warning="yes"
     fi
@@ -334,7 +334,7 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
-        printf "  %b your node. The DigiNode Installer can help you create one.\\n" "${INDENT}"
+        printf "  %b your node. DigiNode Setup can help you create one.\\n" "${INDENT}"
         printf "  %b The expected location is here: $DGB_CONF_FILE\\n" "${INDENT}"
         printf "\\n"
         exit 1
@@ -470,7 +470,7 @@ digibyte_check_official() {
         printf "%b DigiNode Installer was not used to install this DigiByte Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-        printf "%b For best results use the DigiNode Installer.\\n" "${INDENT}"
+        printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         is_dgb_installed="maybe"
     fi
@@ -492,14 +492,14 @@ digiasset_check_official() {
             printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use the DigiNode installer.\\n" "${INDENT}"
+            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="maybe"
         else
             printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using the DigiNode installer.\\n" "${INDENT}"
+            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="no"
         fi
@@ -510,14 +510,14 @@ digiasset_check_official() {
             printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use the DigiNode installer.\\n" "${INDENT}"
+            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="maybe"
         else
             printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using the DigiNode installer.\\n" "${INDENT}"
+            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="no"
         fi
@@ -588,7 +588,7 @@ is_dganode_installed() {
         fi
           printf "\\n"
           printf "  %b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
-          printf "  %b You can install them using the DigiNode Installer.\\n" "${INDENT}"
+          printf "  %b You can install them using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           STARTWAIT="yes"
           DGA_STATUS="not_detected"
@@ -601,9 +601,9 @@ is_dganode_installed() {
       if [ "" = "$(pgrep ipfs)" ]; then
           printf "  %b IPFS daemon is NOT running%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
-          printf "  %b You can install it with the DigiNode Installer\\n" "${INFO}"
+          printf "  %b You can install it with DigiNode Setup\\n" "${INFO}"
           printf "\\n"
-          echo "You can set it up using the DigiNode Installer."
+          echo "You can set it up using DigiNode Setup."
           printf "\\n"
           ipfs_running="no"
           DGA_STATUS="not_detected"
@@ -627,7 +627,7 @@ is_dganode_installed() {
           printf "  %b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
           printf "  %b DigiAsset Node software does not appear to be installed.\\n" "${INFO}"
-          printf "  %b You can install it using the DigiNode Installer.\\n" "${INDENT}"
+          printf "  %b You can install it using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           DGA_STATUS="not_detected"
           STARTWAIT="yes"
@@ -791,7 +791,7 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        exec curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended --statusmonitor
+        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
       fi
       printf "\\n"
 
@@ -1086,12 +1086,12 @@ pre_loop() {
 
 startup_checks() {
 
-  # Note: Some of these functions are found in the diginode-installer.sh file
+  # Note: Some of these functions are found in the diginode-setup.sh file
   
   digimon_title_box                # Clear screen and display title box
 # digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
-  import_installer_functions       # Import diginode-installer.sh file because it contains functions we need
+  import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
   diginode_logo_v3                 # Display DigiNode logo
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
