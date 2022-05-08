@@ -48,14 +48,14 @@ Let's you monitor your DigiNode from the terminal.
 - Verbose Mode: This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. Set variable at top of either script.
 - Unattended Mode: This is useful for installing the script completely unattended. The defaults should be set from the ~/.digibyte/diginode.settings file. To run in unattended mode, use the --unattended flag at launch.
 - Reset Mode: This is useful for repairing a default installation. It will delete and recreate the diginode.settings and digibyte.conf files and reinstall the DigiByte and DigiAssets software. Use with caution - it can mess up a custom installation. To run in reset mode, use the --reset flag at launch.
-- Backup/Restore: This will help you to backup your wallet.dat file, as well as your DigiAsset Node settings, to an external USB drive. It is advisable to use a USB stick that you do not use for anything else, and to store it somewhere safe. The blockchain and/or digiasset data will not be backed up.
+- Backup/Restore: This will help you to backup your wallet.dat file, as well as your DigiAsset Node settings, to an external USB drive. It is advisable to use a USB stick that you do not use for anything else, and to store it somewhere safe. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
 
 
 ## Instructions
 
 - To install your DigiNode, run the following command in the terminal:
 
-# curl -sSL diginode-installer.digibyte.help | bash
+# curl -sSL diginode-setup.digibyte.help | bash
 
 
 
@@ -67,25 +67,25 @@ These features are for advanced users and should be used with caution:
 
 Run this only having customized the settings in the ~/.digibyte/diginode.settings file. It will be created the first time you run this installer. Use with caution.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended```
+```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended```
 
 - Reset Mode
 
 This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --reset```
+```curl -sSL diginode-setup.digibyte.help | bash -s -- --reset```
 
 - Skip OS Check
 
 This will skip the OS check at startup in case you are having problems with your system. Proceed with caution.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --skiposcheck```
+```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck```
 
 - Uninstall
 
 Running this will uninstall your DigiNode. Your wallet.dat file will be kept. This can also be accessed from the main menu.
 
-```curl -sSL diginode-installer.digibyte.help | bash -s -- --uninstall```
+```curl -sSL diginode-setup.digibyte.help | bash -s -- --uninstall```
 
 ## Compatibility
 
@@ -94,20 +94,15 @@ Running this will uninstall your DigiNode. Your wallet.dat file will be kept. Th
 - A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use.
 - A device with less than 4Gb RAM is not recommended.
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
+- A 64bit Linux OS is required - the latest Ubuntu Server LTS version is recommened.
 
 DigiNode has been tested and known to work with the following systems:
 
 | **Hardware**          | **Operating System**             | **Notes**                                   |
 |-----------------------|----------------------------------|---------------------------------------------|
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the reccomended configuration.      |
-|                       |                                  |                                             |
 |-----------------------|----------------------------------|---------------------------------------------|
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          |                                             |
-|                       |                                  |                                             |
-|-----------------------|----------------------------------|---------------------------------------------|
-|                       |                                  |                                             |
-|-----------------------|----------------------------------|---------------------------------------------|
-|                       |                                  |                                             |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.          |
 |-----------------------|----------------------------------|---------------------------------------------|
 |                       |                                  |                                             |
 
@@ -116,10 +111,11 @@ Raspberry Pi 4 8Gb
 
 ## Release History
 
-v0.0.4
+v0.1.0 - 2022-05
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
+- Install URL has changed to diginode-setup.digibyte.help
 - Added backup feature
 
 
-v0.0.2
-- Initial Test Release
+v0.0.2 - 2021-11-14
+- Test Release
