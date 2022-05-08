@@ -7,6 +7,8 @@
 #
 # Author:  Olly Stedall @saltedlolly
 #
+# Website: https://diginode.digibyte.help
+#
 # Usage:   Install with this command (from your Linux machine):
 #
 #          curl http://diginode-setup.digibyte.help | bash 
@@ -520,8 +522,8 @@ IP4_INTERNAL=$IP4_INTERNAL
 IP4_EXTERNAL=
 
 # This records when the wallet was last backed up
-WALLET_BACKUP_DATE=
-DGA_CONFIG_BACKUP_DATE=
+DGB_WALLET_BACKUP_DATE_ON DIGINODE=
+DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
@@ -2972,20 +2974,37 @@ do_wallet_backup() {
     # Skip this part if we need to re-enter the encryption password
     if [ "$skip_if_reentering_encryption_passphrases" != "yes" ]; then
 
+        printf " =============== DigiNode Backup =======================================\\n\\n"
+        # ==============================================================================
+
+        # Reset selection variables in case this is not the first time running though the options
+        run_wallet_backup=false
+        run_dgaconfig_backup=false
+
+
+        # Introduction to backup.
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node configuration. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode. Do not continue if you do not have this." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+            printf "%b You chose to begin the backup process.\\n" "${INFO}"
+        else
+            printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
+            menu_existing_install 
+        fi
+        printf "\\n"
+
         # Ask to backup DigiByte Core Wallet, if it exists
         if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
 
-            # Ask if the user wants to backup their DigiBytewallet
-            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet now?\\n\\nYou will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your wallet to it and then place it somewhere secure such as a safe. You do not need a large USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode." "${r}" "${c}"; then
 
-                printf "%b You chose to begin the DigiNode backup process.\\n" "${INFO}"
+            # Ask if the user wants to backup their DigiBytewallet
+            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet?\\n\\nThis is a highly recommended as it will safeguard the contents of your wallet, and make it easy to restore your wallet to another DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
                 run_wallet_backup=true
 
-
             else
-                printf "%b You chose not to proceed with DigiNode backup. Returning to menu...\\n" "${INFO}"
+                printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
                 run_wallet_backup=false
-                menu_existing_install
             fi
             printf "\\n"
         else
@@ -2997,11 +3016,11 @@ do_wallet_backup() {
             printf "\\n"
         fi
 
-        # Ask the user if they also want to backup the DigiAsset Node _config folder, if it exists
+        # Ask to backup the DigiAsset Node _config folder, if it exists
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to encrypt with a password?
-            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, make sure you have completed the setup process via the DigiAssetX web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
                 run_dgaconfig_backup=true
@@ -3011,28 +3030,41 @@ do_wallet_backup() {
             fi
         fi
 
+        # Return to main menu if the user has selected to backup neither the wallet nor the DigiAsset config
+        if [[ "$run_wallet_backup" == false ]] && [[ "$run_dgaconfig_backup" == false ]]; then
+                printf "%b Backup cancelled. Returning to menu...\\n" "${INFO}"
+                menu_existing_install
+        fi
+
+        # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
         if [[ "$run_wallet_backup" == true ]]; then
+
+            printf "%b Checking the DigiByte wallet encryption status... (DigiByte daemon needs to be running.)\\n" "${INFO}"
 
             # Start the DigiByte service now, in case it is not already running
             printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
             systemctl start digibyted
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
-            # but has also completely finished starting up, and this function will wait until it has before continuing.
+            # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
             digibyte_check
 
             # Check if the wallet is currently unencrypted
             if [[ $(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet") ]]; then
 
-                # Ask the user if they want to encrypt with a password?
-                if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your wallet with a passphrase?\\n\\nThis is a highly recommended, if you have not already done so. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the password."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+                printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
-                    printf "%b You chose to encrypt your wallet with a password.\\n" "${INFO}"
+                # Ask the user if they want to encrypt with a password?
+                if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your DigiByte wallet with a passphrase?\\n\\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                    printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=true
                 else
-                    printf "%b You chose NOT to encrypt your wallet with a password.\\n" "${INFO}"
+                    printf "%b You chose NOT to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=false
                 fi
+            else
+                printf "%b DigiByte Wallet is already encrypted.\\n" "${TICK}"
             fi
 
             printf "\\n"
@@ -3045,7 +3077,7 @@ do_wallet_backup() {
 
     if [[ "$encrypt_wallet_now" == true ]]; then
 
-        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet.\\n\\nIMPORTANT: Don't forget this - you will need it every time you want to access your wallet! It can be as long as you like and may include spaces." 8 78 --title "Choose a passphrase to encrypt your wallet.dat file" 3>&1 1>&2 2>&3)
+        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\nIMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your wallet. You have been warned!!" 8 78 --title "Enter a passphrase to encrypt your DigiByte wallet" 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -3101,11 +3133,18 @@ do_wallet_backup() {
             local str="Encrypting wallet.dat ... "
             printf "%b %s..." "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT $DGB_CLI encryptwallet "$WALLET_ENCRYT_PASS" 1>/dev/null
+
+            # If the command completed without error, then assume the wallet is encrypted
+            if [ $? -eq 0 ]; then
+                whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+            fi
+
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         fi
 
         #clear password variables
+        skip_if_reentering_encryption_passphrases="no"
         WALLET_ENCRYT_PASS1=null
         WALLET_ENCRYT_PASS2=null
         WALLET_ENCRYT_PASS=null
@@ -3117,7 +3156,7 @@ do_wallet_backup() {
     if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
         # Ask the user to prepare their backup USB stick
-        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either ExFat or Fat32. NTFS will not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either ExFat or Fat32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
@@ -3176,15 +3215,15 @@ do_wallet_backup() {
         # Mount USB stick
         str="Mount primary USB partition..."
         printf "%b %s" "${INFO}" "${str}"
-        mount /dev/${USB_SWAP_DRIVE}1 /media/usbbackup
+        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # TEST WRITE TO PARTITION USING TOUCH testfile.txt
+        # TEST WRITE TO USB STICK USING TOUCH testfile.txt
         printf "%b Checking the inserted USB stick...\\n" "${INFO}"
         touch /media/usbbackup/testfile.txt 2>/dev/null
 
         # Check if the file was successfully written
-        str="Is the USB partition ready?"
+        str="Is the USB stick useable?"
         printf "%b %s..." "${INFO}" "${str}"
         if [ -f /media/usbbackup/testfile.txt ]; then
             printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
@@ -3193,33 +3232,144 @@ do_wallet_backup() {
             printf "%b%b %s NO! [ Write test failed ]\\n" "${OVER}" "${CROSS}" "${str}" 
 
             # Ask the user if they want to format the USB stick
-            if whiptail --backtitle "" --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.!\\n\\nWARNING: If you continue, any existing data will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.!\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
 
                 # FORMAT USB STICK HERE 
 
+                printf " =============== FORMAT USB STICK ======================================\\n\\n"
+                # ==============================================================================
+
+                opt1a="exFAT"
+                opt1b="Format the USB stick as exFAT."
+                
+                opt2a="FAT32"
+                opt2b="Format the USB stick as FAT32."
+
+
+                # Display the information to the user
+                UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
+                "${opt1a}"  "${opt1b}" \
+                "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install}
+
+                # Set the variable based on if the user chooses
+                case ${UpdateCmd} in
+                    # Update, or
+                    ${opt1a})
+                        printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
+                        printf "\\n"
+                        USB_BACKUP_STICK_FORMAT="exfat"
+
+                        ;;
+                    # Reset,
+                    ${opt2a})
+                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"
+                        printf "\\n"                   
+                        USB_BACKUP_STICK_FORMAT="fat32"
+                        ;;
+                esac
+
+                # Wipe the current partition on the drive
+                str="Wiping exisiting partition(s) on USB backup stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Wipe the current partition on the drive
+                str="Create new primary gpt partition on USB backup stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set up file system on USB stick (exfat or fat32)
+                if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
+                    printf "Setting up exFAT file system on USB backup stick..." "${INFO}"
+                    mkfs.exfat -F /dev/${USB_BACKUP_DRIVE}1
+                elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
+                    printf "Setting up exFAT file system on USB backup stick..." "${INFO}"
+                    mkfs.vfat -F /dev/${USB_BACKUP_DRIVE}1
+                fi
+
+                # Create mount point for USB backup drive, if needed
+                if [ ! -d /media/usbbackup ]; then
+                    str="Create mount point for USB backup drive..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    mkdir /media/usbbackup
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Create mount point for USB backup drive, if needed
+                str="Mount new USB swap partition..."
+                printf "%b %s" "${INFO}" "${str}"
+                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
             else
                 printf "%b You chose not to proceed with formatting the USB stick. Returning to menu...\\n" "${INFO}"
+                whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
                 run_wallet_backup=false
+                run_dgaconfig_backup=false
                 menu_existing_install
             fi
             printf "\\n"
 
         fi
-        sudo sed -i.bak '/swap/d' /etc/fstab
-        echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
-        # Create backup folder, if needed
+        # Create backup folder on USB stick, if needed
         if [ ! -d /media/usbbackup/diginode_backup ]; then
             str="Create \"diginode_backup\" folder on USB drive..."
             printf "%b %s" "${INFO}" "${str}"
-            mkdir /media/usbbackup/DigiNode_Backup
+            mkdir /media/usbbackup/diginode_backup
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Check for existing wallet backup. Ask user if they want to overwrite it 
+        # Create a backup status file on the USB stick, if it does not already exist
+        if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+
+            str="Creating DigiNode Backup status file on USB stick: diginode_backup.info ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch /media/usbbackup/diginode_backup/diginode_backup.info
+            cat <<EOF > /media/usbbackup/diginode_backup/diginode_backup.info
+DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""
+DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Create a backup log file on the USB stick, if it does not already exist
+        if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.log ]; then
+
+            str="Creating DigiNode Backup log file on USB stick: diginode_backup.log ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Source the diginode_backup.info file to find out when last backups were carried out
+        source /media/usbbackup/diginode_backup/diginode_backup.info
+
+        # Create a variable containing the new backup date
+        NEW_BACKUP_DATE=$(date)
+
+        # START DIGIBYTE WALLET BACKUP
+        if [ "$run_wallet_backup" = true ]; then
+
+            # If a wallet backup already exists on the stick compare the date of the last backup logged by the DigiNode itself, with the date logged on the USB stick, to check it is the most recent
+            if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
+
+                #First make sure that both dates of values
+                if [ ! "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ] && [ ! "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
+
+                fi
+
+            fi
+
+        fi
+
+
+
 
         # Copy wallet dat
 
