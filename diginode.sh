@@ -6,7 +6,7 @@
 #
 # Author:  Olly Stedall @saltedlolly <digibyte.help> 
 # 
-# Usage:   Use the official DigiNode Installer to install this script on your system. 
+# Usage:   Use the official DigiNode Setup script to install this on your system. 
 #
 #          Alternatively clone the repo to your home folder:
 #
@@ -24,8 +24,8 @@
 ##### IMPORTANT INFORMATION #########################
 #####################################################
 
-# Please note that this script requires the diginode-installer.sh script to be with it
-# in the same folder when it runs. Tne installer script contains functions and variables
+# Please note that this script requires the diginode-setup.sh script to be with it
+# in the same folder when it runs. Tne setup script contains functions and variables
 # used by this one.
 #
 # Both DigiNode Setup and Status Monitor scripts make use of a settings file
@@ -35,7 +35,7 @@
 # (e.g. To move your DigiByte data folder to an external drive.)
 # 
 # Note: The default location of the diginode.settings file can be changed at the top of
-# the installer script, but this is not recommended.
+# the setup script, but this is not recommended.
 
 ######################################################
 ######### VARIABLES ##################################
@@ -50,7 +50,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.4
+DGNT_VER_LOCAL=0.1.0
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -151,7 +151,7 @@ get_script_location() {
 
 # PULL IN THE CONTENTS OF THE SETUP SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
 import_setup_functions() {
-    # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
+    # BEFORE INPORTING THE FUNCTIONS FROM diginode-setup.sh, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE SETUP SCRIPT
     RUN_SETUP="NO"
     # If the setup file exists,
     if [[ -f "$DGNT_SETUP_SCRIPT_NOW" ]]; then
@@ -367,7 +367,7 @@ is_dgbnode_installed() {
             if [ "$dgb_service_warning" = "yes" ]; then
               printf "\\n"
               printf "  %b %bWARNING: digibyted is not currently running as a service%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-              printf "  %b DigiNode Installer can help you to setup digibyted to run as a service.\\n" "${INDENT}"
+              printf "  %b DigiNode Setup can help you to setup digibyted to run as a service.\\n" "${INDENT}"
               printf "  %b This ensures that your DigiByte Node starts automatically at boot and\\n" "${INDENT}"
               printf "  %b will restart automatically if it crashes for some reason. This is the preferred\\n" "${INDENT}"
               printf "  %b way to run a DigiByte Node and helps to ensure it is kept running 24/7.\\n" "${INDENT}"
@@ -388,7 +388,7 @@ is_dgbnode_installed() {
           printf "  %b %bERROR: DigiByte daemon is not running.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "  %b DigiNode Status Monitor cannot start as your DigiByte Node is not currently running.\\n" "${INDENT}"
           printf "  %b Please start digibyted and then relaunch the status monitor.\\n" "${INDENT}"
-          printf "  %b DigiNode Installer can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
+          printf "  %b DigiNode Setup can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
           printf "  %b so that it launches automatically at boot.\\n" "${INDENT}"
           printf "\\n"
           exit 1
@@ -467,7 +467,7 @@ digibyte_check_official() {
     else
         printf "%b Checking for DigiNode Tools Install of DigiByte Core: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b DigiNode Installer was not used to install this DigiByte Node.\\n" "${INFO}"
+        printf "%b DigiNode Setup was not used to install this DigiByte Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
         printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
@@ -489,7 +489,7 @@ digiasset_check_official() {
         elif [ -d "$DGA_INSTALL_LOCATION" ]; then
             printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
+            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
             printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
@@ -507,7 +507,7 @@ digiasset_check_official() {
         if [ -d "$DGA_INSTALL_LOCATION" ]; then
             printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
+            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
             printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
@@ -702,7 +702,7 @@ is_avahi_installed() {
       printf "  %b Installing avahi-daemon is recommended if you are using a dedicated\\n" "${INFO}"
       printf "  %b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
       printf "  %b you can you can access it at the address ${HOSTNAME}.local\\n" "${INDENT}"
-      printf "  %b instead of having to remember the IP address. DigiNode Installer\\n" "${INDENT}"
+      printf "  %b instead of having to remember the IP address. DigiNode Setup\\n" "${INDENT}"
       printf "  %b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
