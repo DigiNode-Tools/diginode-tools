@@ -48,12 +48,12 @@ Let's you monitor your DigiNode from the terminal.
 - Verbose Mode: This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. Set variable at top of either script.
 - Unattended Mode: This is useful for installing the script completely unattended. The defaults should be set from the ~/.digibyte/diginode.settings file. To run in unattended mode, use the --unattended flag at launch.
 - Reset Mode: This is useful for repairing a default installation. It will delete and recreate the diginode.settings and digibyte.conf files and reinstall the DigiByte and DigiAssets software. Use with caution - it can mess up a custom installation. To run in reset mode, use the --reset flag at launch.
-- Backup/Restore: This will help you to backup your wallet.dat file, as well as your DigiAsset Node settings, to an external USB drive. It is advisable to use a USB stick that you do not use for anything else, and to store it somewhere safe. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
+- Backup/Restore: This will help you to backup your DigiByte wallet and/or your DigiAsset Node settings, to an external USB stick. It is advisable to choose a USB stick that you do not use for anything else, and to store it somewhere secure when you are done. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
 
 
 ## Instructions
 
-- To install your DigiNode, run the following command in the terminal:
+- To get started, run DigiNode Setup by entering the following command in the terminal:
 
 # curl -sSL diginode-setup.digibyte.help | bash
 
@@ -65,7 +65,7 @@ These features are for advanced users and should be used with caution:
 
 - Unattended Mode
 
-Run this only having customized the settings in the ~/.digibyte/diginode.settings file. It will be created the first time you run this installer. Use with caution.
+Run this only having customized the settings in the ~/.digibyte/diginode.settings file. The settings file will be created the first time you run DigiNode Setup. Use with caution.
 
 ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended```
 
@@ -102,7 +102,7 @@ DigiNode has been tested and known to work with the following systems:
 |-----------------------|----------------------------------|---------------------------------------------|
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the reccomended configuration.      |
 |-----------------------|----------------------------------|---------------------------------------------|
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.          |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.            |
 |-----------------------|----------------------------------|---------------------------------------------|
 |                       |                                  |                                             |
 
