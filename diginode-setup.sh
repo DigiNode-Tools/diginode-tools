@@ -2983,7 +2983,7 @@ wallet_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node configuration. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode. Do not continue if you do not have this." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node configuration. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
@@ -3042,16 +3042,19 @@ wallet_backup() {
             printf "%b Checking the DigiByte wallet encryption status... (DigiByte daemon needs to be running.)\\n" "${INFO}"
 
             # Start the DigiByte service now, in case it is not already running
-            printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
+            printf "%b Starting DigiByte daemon systemd service...\\n\\n" "${INFO}"
             systemctl start digibyted
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
             # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
             digibyte_check
 
+            printf " =============== Checking: DigiNode Wallet =============================\\n\\n"
+            # ==============================================================================
+
             # Check if the wallet is currently unencrypted
             IS_WALLET_ENCRYPTED=$(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep -Eo "running with an unencrypted wallet")
-            if  [ "$IS_WALLET_ENCRYPTED" = "running with an unencrypted wallet" ]; then
+            if [ "$IS_WALLET_ENCRYPTED" = "running with an unencrypted wallet" ]; then
 
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
