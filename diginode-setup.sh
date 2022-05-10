@@ -3038,8 +3038,6 @@ wallet_backup() {
         # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
         if [[ "$run_wallet_backup" == true ]]; then
 
-            printf "%b Checking the DigiByte wallet encryption status... (DigiByte daemon needs to be running.)\\n" "${INFO}"
-
             # Start the DigiByte service now, in case it is not already running
             printf "%b Starting DigiByte daemon systemd service...\\n\\n" "${INFO}"
             systemctl start digibyted
@@ -3106,7 +3104,6 @@ wallet_backup() {
                 printf "%b Passphrases match.\\n" "${TICK}"
                 WALLET_ENCRYT_PASS=$WALLET_ENCRYT_PASS1
                 wallet_encryption_passphrases_match="yes"
-                printf "\\n"
             else
                 whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
                 printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
@@ -3128,7 +3125,7 @@ wallet_backup() {
         if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
 
             # Encrypting wallet.dat file
-            local str="Encrypting wallet.dat ... "
+            local str="Encrypting Digibyte wallet"
             printf "%b %s..." "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT $DGB_CLI encryptwallet "$WALLET_ENCRYT_PASS" 1>/dev/null
 
@@ -3136,12 +3133,15 @@ wallet_backup() {
             if [ $? -eq 0 ]; then
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+                
+                # Restart the DigiByte service
+                printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
+                systemctl start digibyted
             else
                 whiptail --msgbox --backtitle "" --title "DigiByte Wallet encryption failed." "ERROR: Your DigiByte wallet was not successfully encrypted. The script will exit." "${r}" "${c}" 
+                printf "\\n"
                 exit 1
             fi
-
-            
 
         fi
 
