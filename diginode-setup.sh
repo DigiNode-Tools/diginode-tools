@@ -2990,7 +2990,6 @@ wallet_backup() {
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
             menu_existing_install 
         fi
-        printf "\\n"
 
         # Ask to backup DigiByte Core Wallet, if it exists
         if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
@@ -3006,7 +3005,6 @@ wallet_backup() {
                 printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
                 run_wallet_backup=false
             fi
-            printf "\\n"
         else
             printf "%b No DigiByte Core wallet file currently exists. Returning to menu...\\n" "${INFO}"
             run_wallet_backup=false
@@ -3033,6 +3031,7 @@ wallet_backup() {
         # Return to main menu if the user has selected to backup neither the wallet nor the DigiAsset config
         if [[ "$run_wallet_backup" == false ]] && [[ "$run_dgaconfig_backup" == false ]]; then
                 printf "%b Backup cancelled. Returning to menu...\\n" "${INFO}"
+                printf "\\n"
                 menu_existing_install
         fi
 
@@ -3053,7 +3052,7 @@ wallet_backup() {
             # ==============================================================================
 
             # Check if the wallet is currently unencrypted
-            IS_WALLET_ENCRYPTED=$(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep -Eo "running with an unencrypted wallet")
+            IS_WALLET_ENCRYPTED=$(sudo -u $USER_ACCOUNT $DGB_CLI walletlock 2>&1 | grep -Eo "running with an unencrypted wallet")
             if [ "$IS_WALLET_ENCRYPTED" = "running with an unencrypted wallet" ]; then
 
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
