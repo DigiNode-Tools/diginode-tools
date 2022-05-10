@@ -4,9 +4,13 @@
 # Purpose: Monitor the status of your DigiByte Node and DigiAsset Node.
 #          Includes stats for the Raspberry Pi when used.
 #
-# Author:  Olly Stedall @saltedlolly <digibyte.help> 
+# Author:  Olly Stedall @saltedlolly
+#
+# Website: https://diginode.digibyte.help
 # 
-# Usage:   Use the official DigiNode Setup script to install this on your system. 
+# Usage:   Use the official DigiNode Setup script to install this on your system:
+#
+#          curl http://diginode-setup.digibyte.help | bash 
 #
 #          Alternatively clone the repo to your home folder:
 #
@@ -50,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.1.0
+DGNT_VER_LOCAL=0.0.4
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1427,9 +1431,6 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
           sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
       fi
 
-    echo "DigiAsset Node Minor Local Version: $DGA_VER_MNR_LOCAL"
-    echo "DigiAsset Node Major Local Version: $DGA_VER_MJR_LOCAL"
-
       # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
       if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
           DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL beta"  # e.g. DigiAsset Node v3 beta
@@ -1733,11 +1734,9 @@ printf "   connections is limited to 8. For help on how to do this, visit: https
 printf "\\n"
 printf "   To verify that port 12024 is being forwarded correctly, visit: https://opennodes.digibyte.link\\n"
 printf "   Enter your external IP address in the form at the bottom of the page. If the port is open,\\n"
-printf "   it should should display your DigiByte version number and approximate location.\\n"
-printf "\\n"
-printf "   If you have already forwarded port 12024, monitor the connection count above - it should \\n"
-printf "   start increasing. If the number is above 8, this indicates that things are working correctly.\\n"
-printf "   This message will disappear when the total connections is 9 or more.\\n"  
+printf "   it should should display your DigiByte version number and approximate location. The connection\\n"
+printf "   count should also slowly start increasing. If the number is above 8, this indicates that things are\\n"
+printf "   working correctly. This message will disappear when the total connections is 9 or more.\\n"  
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"

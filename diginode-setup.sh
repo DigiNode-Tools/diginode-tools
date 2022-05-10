@@ -3232,7 +3232,7 @@ wallet_backup() {
             printf "%b%b %s NO! [ Write test failed ]\\n" "${OVER}" "${CROSS}" "${str}" 
 
             # Ask the user if they want to format the USB stick
-            if whiptail --backtitle "" --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.!\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
 
@@ -3252,7 +3252,7 @@ wallet_backup() {
                 UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install}
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
@@ -3540,6 +3540,8 @@ EOF
         do_wallet_backup_now=false
         do_dgaconfig_backup_now=false
         menu_existing_install
+
+    fi
 
 }
 

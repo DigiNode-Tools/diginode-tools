@@ -11,9 +11,9 @@ For more information, visit: https://diginode.digibyte.help
 These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
 
 
-## DigiNode Installer
+## DigiNode Setup
 
-Install script to set up your DigiNode - installs and configures a DigiByte Node and DigiAsset Node. It will also upgrade an existing install with any updates.
+Script to help you setup and manage your DigiNode - installs and configures a DigiByte Node and DigiAsset Node. It will also upgrade an existing install with any updates.
 
 - Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node.
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
@@ -111,7 +111,7 @@ Raspberry Pi 4 8Gb
 
 ## Release History
 
-v0.1.0 - 2022-05
+v0.0.4 - 2022-05-10 Latest test release
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
 - Install URL has changed to diginode-setup.digibyte.help
 - Added backup feature
