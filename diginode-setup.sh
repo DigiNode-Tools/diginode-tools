@@ -2997,7 +2997,7 @@ wallet_backup() {
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet?\\n\\nThis is a highly recommended as it will safeguard the contents of your wallet, and make it easy to restore your wallet to another DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup your DigiByte wallet?\\n\\nThis is highly recomended, if you have not already done so, as it will safeguard the contents of your DigiByte wallet, and make it easy to restore your DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
                 run_wallet_backup=true
@@ -3674,17 +3674,17 @@ menu_existing_install() {
     opt2b="Reset all settings and reinstall DigiNode software."
 
     opt3a="Backup"
-    opt3b="Backup your wallet & settings to an external USB stick."
+    opt3b="Backup your wallet & settings to a USB stick."
 
     opt4a="Restore"
-    opt4b="Backup your wallet & settings from an external USB stick."
+    opt4b="Restore your wallet & settings from a USB stick."
 
     opt5a="Uninstall"
     opt5b="Remove DigiNode from your systems."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
