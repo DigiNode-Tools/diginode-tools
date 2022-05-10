@@ -3694,7 +3694,7 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; echo ""; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
