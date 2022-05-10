@@ -3441,7 +3441,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode.\\nThe existing backup was made on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick but it does not appear to have been made from this DigiNode.\\nThe existing backup was made on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
 
                             do_wallet_backup_now=true
                             printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3484,12 +3484,12 @@ EOF
             # Perform DigiByte wallet backup
             if [ "$do_wallet_backup_now" = true ]; then
 
-                # Backup the existing wallet backup
+                # Backup the existing wallet backup, if it exists
                 if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
 
                     # Delete previous secondary backup of existing wallet, if it exists
                     if [ -f /media/usbbackup/diginode_backup/wallet.dat.old ]; then
-                        str="Deleting wallet.dat.old ... "
+                        str="Deleting existing secondary backup: wallet.dat.old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm /media/usbbackup/diginode_backup/wallet.dat.old
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3506,11 +3506,13 @@ EOF
                 # Copy "live" wallet to backup stick
                 str="Backing up DigiByte wallet to USB stick ... "
                 printf "%b %s" "${INFO}" "${str}" 
-
-
-
-
-
+                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
+                if [ $? -eq 0 ]; then
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick.//n//n" "${r}" "${c}"
+                else
+                    printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet failed due to an error. Check the USB stick.//n//n" "${r}" "${c}"
                 fi
 
             fi
@@ -3518,9 +3520,8 @@ EOF
         fi
 
 
-        # Carry out wallet backup
+        # PERFORM DIGIASSET CONFIG BACKUP
 
-        # Copy wallet dat
 
 
         # BACKUP FINISHED
@@ -6707,17 +6708,17 @@ digiasset_node_create_settings() {
 
         fi
 
-        # create .digibyte settings folder if it does not already exist
-        if [ ! -d $DGB_SETTINGS_LOCATION ]; then
-            str="Creating ~/.digibyte/ folder..."
+        # create ~/digiasset_node install folder if it does not already exist
+        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
+            str="Creating ~/digiasset_node/ folder..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
+            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # create assetnode_config folder if it does not already exist
         if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-            str="Creating ~/.digibyte/assetnode_config/ folder..."
+            str="Creating ~/digiasset_node/_config/ folder..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6725,7 +6726,7 @@ digiasset_node_create_settings() {
 
         if [ ! -f $DGA_SETTINGS_FILE ]; then
             # Create a new main.json settings file
-            str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
+            str="Creating ~/digiasset_node/_config/main.json settings file..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
             cat <<EOF > $DGA_SETTINGS_FILE
