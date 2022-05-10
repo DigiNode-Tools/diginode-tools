@@ -1,15 +1,17 @@
 #!/bin/bash
 #
-# Name:    DigiNode Installer
+# Name:    DigiNode Setup
 # Purpose: Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
 #          Script supports most Linux servers and the Raspberry Pi 3 and later.
 #          A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
 # Author:  Olly Stedall @saltedlolly
 #
+# Website: https://diginode.digibyte.help
+#
 # Usage:   Install with this command (from your Linux machine):
 #
-#          curl http://diginode-installer.digibyte.help | bash 
+#          curl http://diginode-setup.digibyte.help | bash 
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -54,14 +56,14 @@ fi
 
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
 # This can be overridden when needed by the --verboseon or --verboseoff flags.
-# (Note: The RUN_INSTALLER condition ensures that the VERBOSE_MODE setting only applies to this installer
+# (Note: The RUN_SETUP condition ensures that the VERBOSE_MODE setting only applies to DigiNode Setup
 # and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
-if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+if [[ "$RUN_SETUP" != "NO" ]] ; then
     VERBOSE_MODE=false
 fi
 
 ######### IMPORTANT NOTE ###########
-# Both the DigiNode Installer and Status Monitor scripts make use of a setting file
+# Both the DigiNode Setup and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
 # If you want to change the default folder locations, please edit this file.
 # (e.g. To move your DigiByte Core data file to an external drive.)
@@ -78,19 +80,19 @@ DGB_DATA_REQUIRED_KB="28000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
-DGNT_INSTALLER_OFFICIAL_URL=https://diginode-installer.digibyte.help
-DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL=diginode-installer.digibyte.help
-DGNT_INSTALLER_GIHTUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-installer.sh
-DGNT_INSTALLER_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-installer.sh
+DGNT_SETUP_OFFICIAL_URL=https://diginode-setup.digibyte.help
+DGNT_SETUP_GITHUB_LATEST_RELEASE_URL=diginode-setup.digibyte.help
+DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-setup.sh
+DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-setup.sh
 
 # This is the Github repo for the DigiAsset Node (this only needs to be changed if you with to test a new version.)
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
 DGA_GITHUB_REPO_MAIN="--depth 1 https://github.com/digiassetX/digiasset_node.git"
-DGA_GITHUB_REPO_DEV="--branch apiV3 https://github.com/digiassetX/digiasset_node.git"
+DGA_GITHUB_REPO_DEV="--branch development https://github.com/digiassetX/digiasset_node.git"
 
 
-# These are the commands that the use pastes into the terminal to run the installer
-DGNT_INSTALLER_OFFICIAL_CMD="curl $DGNT_INSTALLER_OFFICIAL_URL | bash"
+# These are the commands that the user pastes into the terminal to run DigiNode Setup
+DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
@@ -133,7 +135,7 @@ for var in "$@"; do
         "--unattended" ) UNATTENDED_MODE=true;;
         "--dgntdev" ) DGNT_BRANCH="develop";; 
         "--dgntmain" ) DGNT_BRANCH="main";; 
-        "--dgadev" ) DGA_BRANCH="apiV3";; 
+        "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
@@ -143,7 +145,7 @@ for var in "$@"; do
 done
 
 
-# Set these values so the installer can still run in color
+# Set these values so DigiNode Setup can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
@@ -222,9 +224,9 @@ is_unattended_mode() {
 
 # Inform user if DigiAsset Dev Mode is enable
 is_dgadev_mode() {
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
+    if [ "$DGA_BRANCH" = "development" ]; then
         printf "%b DigiAsset Node Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   The apiV3 version of DigiAsset Node will be installed.\\n" "${INDENT}"
+        printf "%b   The development version of DigiAsset Node will be installed.\\n" "${INDENT}"
         printf "\\n"
         DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
     else
@@ -240,6 +242,7 @@ is_reset_mode() {
         printf "%b Reset Mode can only be used interactively. Please run again\\n" "${INDENT}"
         printf "%b without the --unattended flag.\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -268,17 +271,19 @@ local str
 # If the diginode.settings file does not already exist, then create it
 if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
-  # create .diginode settings folder if it does not exist
+  # create .digibyte folder if it does not exist
   if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
-    str="Creating ~/.diginode folder..."
+    str="Creating ~/.digibyte folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
     if [ $VERBOSE_MODE = true ]; then
         printf "\\n"
         printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
+        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
     else
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
     fi
   fi
 
@@ -291,7 +296,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
   sudo -u $USER_ACCOUNT touch $DGNT_SETTINGS_FILE
   cat <<EOF > $DGNT_SETTINGS_FILE
 #!/bin/bash
-# This settings file is used to store variables for the DigiNode Installer and DigiNode Status Monitor
+# This settings file is used to store variables for DigiNode Setup and DigiNode Status Monitor
 
 
 ############################################
@@ -302,8 +307,8 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 # If you want to change the default location of folders you can edit them here
 # Important: Use the USER_HOME variable to identify your home folder location.
 
-# DGNT_SETTINGS_LOCATION=   [This value is set in the header of the installer script. Do not set it here.]
-# DGNT_SETTINGS_FILE=       [This value is set in the header of the installer script. Do not set it here.]
+# DGNT_SETTINGS_LOCATION=   [This value is set in the header of the setup script. Do not set it here.]
+# DGNT_SETTINGS_FILE=       [This value is set in the header of the setup script. Do not set it here.]
 
 # DIGIBYTE CORE BLOCKCHAIN DATA LOCATION:
 # You can change this to optionally store the DigiByte blockchain data in a diferent location
@@ -314,7 +319,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 # 1) Stop the digibyted service
 # 2) Manually move the blockchain data from the old to the new location
 # 3) Update this file with the new location below
-# 4) Re-run the DigiNode Installer to automatically update your service file and digibyte.conf file with the new location
+# 4) Re-run DigiNode Setup to automatically update your service file and digibyte.conf file with the new location
 # 5) Restart the digibyted service 
 DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
@@ -342,16 +347,16 @@ INSTALL_SYS_UPGRADES=NO
 
 
 #####################################
-####### UNATTENDED INSTALLER ########
+####### UNATTENDED SETUP ########
 #####################################
 
 # INSTRUCTIONS: 
 # These variables are used during an unattended install to automatically configure your DigiNode.
-# Set these variables and then run the installer with the --unattended flag set.
+# Set these variables and then run DigiNode Setup with the --unattended flag set.
 
 # Decide whether to have the script enforce using user: digibyte (Set to YES/NO)
-# If set to YES the Installer will only proceed if the the user is: digibyte
-# If set to NO the Installer will install as the current user
+# If set to YES DigiNode Setup will only proceed if the the user is: digibyte
+# If set to NO DigiNode Setup will install as the current user
 UI_ENFORCE_DIGIBYTE_USER=YES
 
 # Choose whether to change the system hostname to: diginode (Set to YES/NO)
@@ -371,7 +376,7 @@ UI_SWAP_SETUP=YES
 
 # You can optionally manually enter a desired swap file size here in MB.
 # The UI_SWAP_SETUP variable above must be set to YES for this to be used.
-# If you leave this value empty, the optimal swap file size will calculated by the installer.
+# If you leave this value empty, the optimal swap file size will calculated by DigiNode Setup.
 # Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
 UI_SWAP_SIZE_MB=
 
@@ -394,13 +399,13 @@ UI_DO_FULL_INSTALL=YES
 ####### SYSTEM VARIABLES ####################
 #############################################
 
-# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY THE INSTALLER AND STATUS MONITOR.
+# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup AND STATUS MONITOR.
 
 # DIGIBYTE NODE LOCATION:
 # This references a symbolic link that points at the actual install folder. Please do not change this.
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
-# Be aware that DigiNode Installer upgrades will likely not work if you do this.
+# Be aware that DigiNode Setup upgrades will likely not work if you do this.
 DGB_INSTALL_LOCATION=$USER_HOME/digibyte
 
 # Do not change this. You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
@@ -416,11 +421,10 @@ IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSET NODE LOCATION:
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
-DGA_SETTINGS_LOCATION=\$DGB_SETTINGS_LOCATION/assetnode_config
-DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
+DGA_SETTINGS_LOCATION=\$DGA_INSTALL_LOCATION/_config
 
 # DIGIASSET NODE FILES
-DGA_CONFIG_FILE=\$DGA_INSTALL_LOCATION/_config/main.json
+DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
 
 # SYSTEM SERVICE FILES:
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
@@ -442,8 +446,8 @@ DGB_VER_LOCAL_CHECK_FREQ=daily
 DGNT_LOCATION=$USER_HOME/diginode-tools
 
 # DIGINODE TOOLS FILES:
-DGNT_INSTALLER_SCRIPT=\$DGNT_LOCATION/diginode-installer.sh
-DGNT_INSTALLER_LOG=\$DGNT_LOCATION/diginode.log
+DGNT_SETUP_SCRIPT=\$DGNT_LOCATION/diginode-setup.sh
+DGNT_SETUP_LOG=\$DGNT_LOCATION/diginode.log
 DGNT_MONITOR_SCRIPT=\$DGNT_LOCATION/diginode.sh
 
 # DIGINODE TOOLS INSTALLATION DETAILS:
@@ -455,7 +459,6 @@ DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
 DGNT_VER_RELEASE=
-DGNT_LOCAL_BRANCH=
 DGNT_LOCAL_RELEASE=
 
 # THese are updated automatically every time DigiNode Tools is installed/upgraded. 
@@ -518,9 +521,9 @@ DGB_DATA_DISKUSED_PERC=
 IP4_INTERNAL=$IP4_INTERNAL
 IP4_EXTERNAL=
 
-# This records when the wallet was last backed up
-WALLET_BACKUP_DATE=
-WALLET_BACKUP_ID=
+# This records when DigiNode was last backed up to a USB stick
+DGB_WALLET_BACKUP_DATE_ON_DIGINODE=
+DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES=
@@ -546,16 +549,17 @@ EOF
     else
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+    IS_DIGINODE_SETTINGS_FILE_NEW="YES"
 
     # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "\\n"
         printf "%b %bIMPORTANT: Customize your Unattended Install before running this again!!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Since this is the first time running the DigiNode Installer, a settings file used for\\n" "${INDENT}"
+        printf "%b Since this is the first time running DigiNode Setup, a settings file used for\\n" "${INDENT}"
         printf "%b customizing an Unattended Install has just been created at: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you want to customize your Unattended Install of DigiNode, you need to edit\\n" "${INDENT}"
-        printf "%b this file before running the Installer again with the --unattended flag.\\n" "${INDENT}"
+        printf "%b this file before running DigiNode Setup again with the --unattended flag.\\n" "${INDENT}"
         printf "\\n"
         if [ "$TEXTEDITOR" != "" ]; then
             printf "%b You can edit it by entering:\\n" "${INDENT}"
@@ -591,7 +595,7 @@ fi
 # check if diginode.settings file exists
 diginode_tools_import_settings() {
 
-if [ -f "$DGNT_SETTINGS_FILE" ]; then
+if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; then
 
     # The settings file exists, so source it
     str="Importing diginode.settings file..."
@@ -627,28 +631,28 @@ set_dgnt_branch() {
             printf "%b   The develop branch will be used.\\n" "${INDENT}"
             printf "\\n"
         fi
-        DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_DEVELOP_URL
+        DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_DEVELOP_URL
     elif [ "$DGNT_BRANCH" = "main" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
             printf "%b DigiNode Tools Main Branch Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   The main branch will be used. Used for testing before pushing a final release.\\n" "${INDENT}"
             printf "\\n"
         fi
-        DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_MAIN_URL
+        DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_MAIN_URL
     else
         # If latest release branch does not exist, use main branch
-            if [ "$DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL" = "" ]; then
+            if [ "$DGNT_SETUP_GITHUB_LATEST_RELEASE_URL" = "" ]; then
                 if [[ "${EUID}" -eq 0 ]] && [ $VERBOSE_MODE = true ]; then
                     printf "%b %bDigiNode Tools release branch is unavailable - main branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
-                DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_MAIN_URL
+                DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_MAIN_URL
             else
                 if [[ "${EUID}" -eq 0 ]] && [ $VERBOSE_MODE = true ]; then
                     printf "%b %bDigiNode Tools latest release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
-                DGNT_INSTALLER_URL=$DGNT_INSTALLER_GITHUB_LATEST_RELEASE_URL
+                DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_LATEST_RELEASE_URL
             fi
     fi
 }
@@ -673,6 +677,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -683,6 +688,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -693,6 +699,7 @@ set_sys_variables() {
         fi
         printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -723,7 +730,7 @@ set_sys_variables() {
     fi
 
  #   # No need to update the disk usage variables if running the status monitor, as it does it itself
- #   if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+ #   if [[ "$RUN_SETUP" != "NO" ]] ; then
 
         # Get internal IP address
         IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
@@ -745,6 +752,38 @@ set_sys_variables() {
 
  #   fi
     printf "\\n"
+
+}
+
+# If the .digibyte folder and diginode.settings file have just been created, and we exit with an error at startup, delete them
+purge_dgnt_settings() {
+
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
+
+    # Delete diginode.settings file
+    printf "%b %bPurging installation file...%b\\n" "${INFO}"
+    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+        str="Deleting diginode.settings file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+fi
+
+if [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
+
+    # Delete ~/.digibyte folder
+    if [ -d "$DGNT_SETTINGS_LOCATION" ]; then
+        str="Deleting ~/digibyte folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $DGNT_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+fi
+
+if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_NEW" = "YES" ]; then
+    printf "\\n"
+fi
 
 }
 
@@ -1075,14 +1114,14 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 }
 
 
-# A simple function that just the installer title in a box
-installer_title_box() {
+# A simple function that just displays the title in a box
+setup_title_box() {
      clear -x
      echo " ╔════════════════════════════════════════════════════════╗"
      echo " ║                                                        ║"
-     echo " ║         ${txtbld}D I G I N O D E   I N S T A L L E R${txtrst}            ║ "
+     echo " ║         ${txtbld}D I G I N O D E   S E T U P${txtrst}            ║ "
      echo " ║                                                        ║"
-     echo " ║  Install and configure your DigiByte & DigiAsset Node  ║"
+     echo " ║  Setup and maintain your DigiByte & DigiAsset Node  ║"
      echo " ║                                                        ║"
      echo " ╚════════════════════════════════════════════════════════╝" 
      echo ""
@@ -1250,11 +1289,12 @@ sys_check() {
     if [ "$is_linux" = "no" ]; then 
         printf "\\n"
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b DigiNode Installer requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
+        printf "%b DigiNode Setup requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
         printf "%b should be supported please contact @digibytehelp on Twitter including\\n" "${INDENT}"
         printf "%b the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 
@@ -1291,13 +1331,13 @@ sys_check() {
             printf "\\n"
         else
             printf "    %b 64-bit OS\n" "${CROSS}"
-            printf "\n" 
+            printf "\\n" 
         fi
 
 
         if [[ "$is_64bit" == "no32" ]]; then
             printf "%b %bERROR: 32-bit OS detected - 64-bit required%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b DigiNode Installer requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
+            printf "%b DigiNode Setup requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
@@ -1308,22 +1348,24 @@ sys_check() {
                 if [[ $(lsb_release -is) = "Raspbian" ]] && [[ $(lsb_release -cs) = "buster" ]]; then
                     printf "%b Since you are running Raspberry Pi OS, you can install the 64-bit kernel\\n" "${INFO}"
                     printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
-                    printf "%b Your Pi will restart with the 64-bit kernel. Then run the installer again.\\n" "${INDENT}"
+                    printf "%b Your Pi will restart with the 64-bit kernel. Then run DigiNode Setup again.\\n" "${INDENT}"
                     printf "%b For more information, visit: $DGBH_URL_RPIOS64\\n" "${INDENT}"
                     printf "\\n"
                     printf "%b sudo apt update && sudo apt upgrade && echo \"arm_64bit=1\" | sudo tee -a /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
-                    printf "\n"
+                    printf "\\n"
 
                 fi
             fi
+            purge_dgnt_settings
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b DigiNode Installer requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
+            printf "%b DigiNode Setup requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
             printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
+            purge_dgnt_settings
             exit 1
         fi
     else
@@ -1389,7 +1431,13 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         if [ $revision = 'd03114' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
+        elif [ $revision = '902120' ]; then #Pi Zero 2 W
+            pitype="piold"
+            MODELMEM="1Gb"
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
+            pitype="pi4"
+            MODELMEM="4Gb"
+        elif [ $revision = 'c03114' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
@@ -1398,6 +1446,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
+        elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
+            pitype="pi4_lowmem"
+            MODELMEM="2Gb"
         elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
             pitype="pi4_lowmem"
             MODELMEM="2Gb"
@@ -1504,7 +1555,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Raspberry Pi 5 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
             rpi_microsd_check
         fi
@@ -1513,7 +1564,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
             rpi_microsd_check
         fi
@@ -1523,7 +1574,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         # hide this part if running digimon
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
@@ -1538,7 +1589,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         # hide this part if running digimon
         IS_RPI="YES"
-        if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
@@ -1555,6 +1606,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     elif [ "$pitype" = "pi" ]; then
         printf "\\n"
@@ -1569,6 +1621,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Memory: %b$MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
+        purge_dgnt_settings
         exit 1
     fi
 else
@@ -1583,7 +1636,7 @@ fi
 # This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
 rpi_microsd_check() {
     # Only display this message if running this install script directly (not when running diginode.sh)
-    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    if [[ "$RUN_SETUP" != "NO" ]] ; then
 
         local usb_drive=$(df | grep boot | grep -oa sda)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
@@ -1600,18 +1653,32 @@ rpi_microsd_check() {
         fi
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
-            if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]] || [[ "$MODELMEM" = "4Gb" ]]; then
+            if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]]; then
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bERROR: Running a DigiNode from a microSD card is not supported%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-                printf "%b Since your Raspberry Pi has $MODELMEM you need to be booting from an SSD drive.\\n" "${INFO}" "${COL_NC}"
-                printf "%b It requires at least 6Gb RAM in order to run a DigiNode, and the microSD card\\n" "${INDENT}"
-                printf "%b is too slow to run both the DigiNode and the swap file together.\\n" "${INDENT}"
-                printf "%b Please use an external SSD drive connected via USB. For help on what\\n" "${INDENT}"
-                printf "%b hardware you need, visit:\\n" "${INDENT}"
+                printf "%b %bERROR: Booting from microSD with less than 4Gb of RAM is not supported.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Since your Raspberry Pi only has $MODELMEM of RAM, you need to be booting\\n" "${INDENT}"
+                printf "%b from an SSD drive. Running a DigiNode requires at least 6Gb RAM, and a microSD\\n" "${INDENT}"
+                printf "%b card is too slow to run both the DigiNode software and swap file together.\\n" "${INDENT}"
+                printf "%b Please use an external SSD drive connected via USB. For advice on the\\n" "${INDENT}"
+                printf "%b recommended DigiNode hardware, visit:\\n" "${INDENT}"
                 printf "%b   $DGBH_URL_HARDWARE\\n" "${INDENT}"
                 printf "\\n"
+                purge_dgnt_settings
                 exit 1
+
+            elif [[ "$MODELMEM" = "4Gb" ]]; then
+                printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b Running a DigiNode requires at least 6Gb RAM, and a microSD is typically too\\n" "${INDENT}"
+                printf "%b slow to run both the DigiNode software and swap file. Since your Raspberry Pi\\n" "${INDENT}"
+                printf "%b only has $MODELMEM RAM, if you want want to proceed you will need a USB stick\\n" "${INDENT}"
+                printf "%b to store the swap file. 8Gb or 16Gb is sufficient and it should support USB 3.0\\n" "${INDENT}"
+                printf "%b or better. An SSD is still recomended, so proceed at you own risk.\\n" "${INDENT}"
+                printf "\\n"
+                IS_MICROSD="YES"
+                REQUIRE_USB_STICK_FOR_SWAP="YES"
             else
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
@@ -1633,22 +1700,40 @@ rpi_microsd_check() {
 rpi_microsd_ask() {
 
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
-if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] ; then
+if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. MicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD. For advice on reccomended DigiNode hardware, visit:\\n$DGBH_URL_HARDWARE\\n\\nSince your Raspberry Pi only has $MODELMEM RAM, if you want to proceed, you will need an empty USB stick to store the swap file. An 8Gb stick is sufficient, but 16Gb or larger is better. An SSD is still recommended, so proceed at you own risk.\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+
+    #Nothing to do, continue
+      printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
+      printf "%b You agreed to use a USB stick for your swap file, despite the risks.\\n" "${INFO}"
+    else
+      printf "%b DigiNode Setup exited at microSD warning message.\\n" "${INFO}"
+      printf "\\n"
+      exit
+    fi
+
+elif [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]]; then
 
     if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
     #Nothing to do, continue
-      echo
+      printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
     else
-      printf "%b Installer exited at microSD warning message.\\n" "${INFO}"
+      printf "%b DigiNode Setup exited at microSD warning message.\\n" "${INFO}"
       printf "\\n"
       exit
     fi
 fi
 
+}
+
+# If the user is using a Raspberry Pi, but not booting from microSD, then tell the user they can remove it
+rpi_microsd_remove() {
+
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove the microSD card from the Raspberry Pi." "If there is a microSD card in the slot on the Raspberry Pi, please remove it now. It will not be required." 9 "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "If there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 "${c}"
 fi
 
 }
@@ -1690,8 +1775,8 @@ if is_command apt-get ; then
  
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
-    # Packages required to run this install script (stored as an array)
-    INSTALLER_DEPS=(git "${iproute_pkg}" jq whiptail)
+    # Packages required to run this setup script (stored as an array)
+    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo "${avahi_package}")
 
@@ -1726,14 +1811,14 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    INSTALLER_DEPS=(git iproute procps-ng which chkconfig jq)
+    SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc "${avahi_package}")
 
 # If neither apt-get or yum/dnf package managers were found
 else
     # it's not an OS we can support,
     printf "%b OS distribution not supported\\n" "${CROSS}"
-    # so exit the installer
+    # so exit DigiNode Setup
     exit
 fi
 }
@@ -1915,7 +2000,7 @@ os_check() {
             printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
             printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
-            printf "%b   %bcurl -sSL $DGNT_INSTALLER_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   %bcurl -sSL $DGNT_SETUP_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
             printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1927,11 +2012,11 @@ os_check() {
             echo ""
         fi
     else
-        printf "%b %bDIGINODE_SKIP_OS_CHECK env variable set to true - installer will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDIGINODE_SKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 }
 
-# SELinux
+# SELinuxswap
 checkSelinux() {
     local DEFAULT_SELINUX
     local CURRENT_SELINUX
@@ -1963,23 +2048,27 @@ checkSelinux() {
     else
         echo -e "${INFO} ${COL_GREEN}SELinux not detected${COL_NC}\\n";
     fi
-    # Exit the installer if any SELinux checks toggled the flag
+    # Exit DigiNode Setup if any SELinux checks toggled the flag
     if [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -z "${DIGINODE_SELINUX}" ]]; then
         printf "%b DigiNode does not provide an SELinux policy as the required changes modify the security of your system.\\n" "${INDENT}" 
         printf "%b Please refer to https://wiki.centos.org/HowTos/SELinux if SELinux is required for your deployment.\\n" "${INDENT}" 
         printf "%b  This check can be skipped by setting the environment variable %bDIGINODE_SELINUX%b to %btrue%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b  e.g: export DIGINODE_SELINUX=true\\n" "${INDENT}" 
         printf "%b  By setting this variable to true you acknowledge there may be issues with DigiNode during or after the install\\n" "${INDENT}" 
-        printf "\\n%b  %bSELinux Enforcing detected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
+        printf "\\n%b  %bSELinux Enforcing detected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}";
         printf "\\n"
+        purge_dgnt_settings
         exit 1;
     elif [[ "${SELINUX_ENFORCING}" -eq 1 ]] && [[ -n "${DIGINODE_SELINUX}" ]]; then
-        printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - installer will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bSELinux Enforcing detected%b. DIGINODE_SELINUX env variable set - DigiNode Setup will continue\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
     fi
 }
 
 # Function to check if the hostname of the machine is set to 'diginode'
 hostname_check() {
+
+    printf " =============== Checking: Hostname ====================================\\n\\n"
+    # ==============================================================================
 
 if [[ "$HOSTNAME" == "diginode" ]]; then
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -1987,7 +2076,7 @@ if [[ "$HOSTNAME" == "diginode" ]]; then
     INSTALL_AVAHI="YES"
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b This installer currently assumes it will always be able to discover the\\n" "${INDENT}"
+    printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
     printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
@@ -2000,7 +2089,6 @@ else
     printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
-    printf "%b Interactive Install: Do you want to change the hostname to 'digibyte'?\\n" "${INFO}"
     printf "\\n"
 fi
 
@@ -2013,19 +2101,15 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\n\\nIt is recommended that you change your hostname to: 'diginode'.
-
-    This is optional but recommended, since it will make the DigiAssets website available at https://diginode.local which is obviously easier than remembering an IP address.
-
-    Would you like to change your hostname to 'diginode'?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nIt is recommended that you change your hostname to: 'diginode'.\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\n\\nWould you like to change your hostname to 'diginode' now?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
 
-          printf "%b Interactive Install: Yes - Hostname will be changed.\\n" "${INFO}"
+          printf "%b You chose to change your hostname to: digibyte.\\n" "${INFO}"
           printf "\\n"
         else
-          printf "%b Interactive Install: No - Hostname will not be changed.\\n" "${INFO}"
+          printf "%b You chose not to change your hostname to: digibyte.\\n" "${INFO}"
           printf "\\n"
         fi
     fi
@@ -2067,24 +2151,6 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hostname 2>/dev/null
         fi
 
-
-        if [[ "$UNATTENDED_MODE" == true ]]; then
-            printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-            printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
-            sleep 5
-            sudo reboot
-        else
-            printf "\\n%b %bPlease restart your machine now!%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You need to reboot for the changes to the hostname to take effect.\\n" "${INDENT}"
-            printf "%b You can do that now by entering:\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b   sudo reboot\\n" "${INDENT}"
-            printf "\\n"
-            exit
-        fi
-
-        exit
-
     fi
 fi
 }
@@ -2094,6 +2160,9 @@ user_check() {
 
     # Only do this check if DigiByte Core is not currently installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Checking: User Account ================================\\n\\n"
+        # ==============================================================================
 
         if [[ "$USER_ACCOUNT" == "digibyte" ]]; then
             printf "%b User Account Check: %bPASSED%b   Current user is 'digibyte'\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2113,6 +2182,7 @@ user_check() {
                     USER_DO_SWITCH="YES"
                     printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    purge_dgnt_settings
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_SWITCH="NO"
@@ -2133,6 +2203,7 @@ user_check() {
                  if [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "YES" ]; then
                     printf "%b %bUnattended Mode: Unable to continue - user is not 'digibyte' and requirement is enforced in diginode.settings%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                     printf "\\n"
+                    purge_dgnt_settings
                     exit 1
                 elif [[ "$UNATTENDED_MODE" == true ]] && [ $UI_ENFORCE_DIGIBYTE_USER = "NO" ]; then
                     USER_DO_CREATE="NO"
@@ -2158,7 +2229,7 @@ if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
     # Only ask to change the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'.\\n\\nChoose YES to exit and login as 'digibyte' from where you can run this installer again."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+      if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose YES to exit and login as 'digibyte' from where you can run DigiNode Setup again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_SWITCH="YES"
         printf "%b User Account: You chose to install as user: 'digibyte' (This account already exists.).\\n" "${INFO}"
@@ -2176,7 +2247,7 @@ if [[ "$USER_ASK_CREATE" = "YES" ]]; then
     # Only ask to create the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run this installer again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+      if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run DigiNode Setup again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
 
         USER_DO_CREATE="YES"
         printf "%b User Account: You chose to install as user: 'digibyte'. (This account will be created.)\\n" "${INFO}"
@@ -2194,24 +2265,109 @@ fi
 user_do_change() {
 
 if [ "$USER_DO_SWITCH" = "YES" ]; then
-    printf "%b Please sign in as user 'digibyte' by entering:\\n" "${INFO}"
+
+    # Delete the settings file that was just created
+    purge_dgnt_settings
+
+    printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
     printf "\\n"
-    printf "%b   su digibyte\\n" "${INDENT}"
+    printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+    printf "%b Then switch to your the home directory:\\n" "${INDENT}"
     printf "\\n"
+    printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b And then run DigiNode Setup again.\\n" "${INDENT}"
+    printf "\\n"
+    exit
 fi
 
 
 if [ "$USER_DO_CREATE" = "YES" ]; then
 
-    printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
-    
-    DGB_USER_PASS=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nDon't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
+    # Don't do this again if we need to re-enter the password
+    if [ "$skip_if_reentering_password" != "yes" ]; then
+
+        # Delete the settings file that was just created
+        purge_dgnt_settings
+
+        printf "%b User Account: Creating user account: 'digibyte'... \\n" "${INFO}"
+
+    fi
+
+    DGB_USER_PASS1=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nIMPORTANT: Don't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
                                                                         # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
+        printf "%b Password entered for new 'digibyte' user.\\n" "${INFO}"
+    else
+        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Login as the new user:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run DigiNode Setup again.\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
+
+    DGB_USER_PASS2=$(whiptail --passwordbox "Please re-enter the password to confirm." 8 78 --title "Re-enter password for new user: digibyte" 3>&1 1>&2 2>&3)
+                                                                        # A trick to swap stdout and stderr.
+    # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+    exitstatus=$?
+    if [ $exitstatus == 0 ]; then
+        printf "%b Password re-entered for new 'digibyte' user.\\n" "${INFO}"
+        # Compare both passwords to check they match
+        if [ "$DGB_USER_PASS1" = "$DGB_USER_PASS2" ]; then
+            printf "%b Passwords match.\\n" "${TICK}"
+            DGB_USER_PASS=$DGB_USER_PASS1
+            digibyte_user_passwords_match="yes"
+            printf "\\n"
+        else
+            whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+            printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
+            skip_if_reentering_password="yes"
+
+            # re do prompt for password
+            user_do_change
+        fi
+    else
+        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b   ${txtbld}sudo adduser digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo passwd digibyte${txtrst}\\n" "${INDENT}"
+        printf "%b   ${txtbld}sudo usermod -aG sudo digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Login as the new user:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Switch to your new home directory:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b And then run DigiNode Setup again.\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
+
+
+    # If the passwords have been entered okay proceed cretaing the new account (unless it has already been done)
+    if [ "$digibyte_user_passwords_match" = "yes" ]; then
 
         # Encrypt CLEARTEXT password
         local str="Encrypting CLEARTEXT password ... "
@@ -2220,9 +2376,14 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         
         # Create digibyte user
-        local str="Creating user 'digibyte' ... "
+        local str="Creating user 'digibyte'. This can sometimes take a moment. Please wait... "
         printf "%b %s..." "${INFO}" "${str}"
-        useradd -m -p "$DGB_USER_PASS_ENCR" digibyte
+
+        # For Ubuntu:
+        useradd digibyte -p $DGB_USER_PASS_ENCR -U -G sudo -m --shell /bin/bash 
+
+   #     useradd -G wheel digibyte -m -s /bin/bash #CentOS
+
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the digibyte group exists
@@ -2260,26 +2421,21 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         printf "\\n"
         printf "%b Please sign as user 'digibyte' by entering:\\n" "${INFO}"
         printf "\\n"
-        printf "%b   su digibyte\\n" "${INDENT}"
+        printf "%b   ${txtbld}su - digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once you have done so, please run this installer again.\\n" "${INFO}"
+        printf "%b Then switch to your new home directory:\\n" "${INDENT}"
         printf "\\n"
-        exit
-    else
-        printf "%b %bYou cancelled creating a password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   ${txtbld}cd${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %bIf you prefer, you can manually create a 'digibyte' user account:\\n" "${INFO}"
+        printf "%b And then run DigiNode Setup again.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   sudo adduser digibyte\\n" "${INDENT}"
-        printf "%b   sudo passwd digibyte\\n" "${INDENT}"
-        printf "%b   sudo usermod -aG sudo digibyte\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Then login as the new user:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   su digibyte\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Once you are logged in as digibyte, run this installer again.\\n" "${INDENT}"
-        printf "\\n"
+
+        #clear password variables
+        DGB_USER_PASS1=null
+        DGB_USER_PASS2=null
+        DGB_USER_PASS=null
+        DGB_USER_PASS_ENCR=null
+
         exit
     fi
 
@@ -2376,6 +2532,9 @@ fi
 # This will check if a swap file is needed to run a DigiNode on this device, and suggest a recommend what size is needed
 swap_check() {
 
+    printf " =============== Checking: RAM and SWAP file ===========================\\n\\n"
+    # ==============================================================================
+
     local swap_current_size
 
     if [ "$SWAPTOTAL_HR" = "0B" ]; then
@@ -2384,8 +2543,8 @@ swap_check() {
       swap_current_size="${COL_LIGHT_GREEN}${SWAPTOTAL_HR}b${COL_NC}"
     fi
     printf "%b System Memory Check:     System RAM: %b${RAMTOTAL_HR}b%b     SWAP size: $swap_current_size\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    # insert a single line gap if this is the installer
-    if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+    # insert a single line gap if this is DigiNode Setup
+    if [[ "$RUN_SETUP" != "NO" ]] ; then
         printf "\\n"
     fi
 
@@ -2394,7 +2553,7 @@ swap_check() {
     # Note: these checks on the current swap size use the lower Kibibyte value
     # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
     # the size check will come out the same for either
-    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
+    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le 6835938 ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="7Gb"
         SWAP_REC_SIZE_MB=7000
@@ -2458,13 +2617,14 @@ swap_check() {
         printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bWARNING: You need to create a swap file.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INFO}"
+        printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
-        if [[ "$RUN_INSTALLER" = "NO" ]] ; then
-            printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
+        if [[ "$RUN_SETUP" = "NO" ]] ; then
+            printf "%b The official DigiNode Setup can setup the swap file for you.\\n" "${INDENT}"
         fi
+        SWAP_ASK_CHANGE="YES"
     fi
 
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
@@ -2475,58 +2635,194 @@ swap_check() {
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
-        if [[ "$RUN_INSTALLER" = "NO" ]] ; then
-            printf "%b The official DigiNode installer can setup the swap file for you.\\n" "${INDENT}"
+        if [[ "$RUN_SETUP" = "NO" ]] ; then
+            printf "%b The official DigiNode Setup can setup the swap file for you.\\n" "${INDENT}"
         fi
+        SWAP_ASK_CHANGE="YES"
     fi
 
     # Calculate total memory available
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
 
     if [ $RAMTOTAL_KB -gt 7800000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system has more than 7Gb RAM so no swap file is required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system has more than 7Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     elif [ $TOTALMEM_KB -gt 7800000 ]; then
         printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 7Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
     printf "\\n"
 }
 
+
 # If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
 swap_ask_change() {
+
 # Display a request to change the hostname, if needed
-if [[ "$SWAP_ASK_CHANGE" = "YES" ]]; then
+if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
-    local str_swap_needed
+        # Do this if the current swap file is too small
+    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
 
-    if [ "$SWAP_NEEDED" = "YES" ]; then
-        str_swap_needed="WARNING: You need to create a swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $swap_rec_size or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "No swap file detected!" 3>&1 1>&2 2>&3) 
+            # Ask the user if they want to create a swap file now, or exit
+            if whiptail --title "Swap file detected." --yesno "Your current swap file is too small.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need a swap file of at least $SWAP_REC_SIZE_HR or more. Your current swap file is only $SWAPTOTAL_HR.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
-        local str_swap_too_low
-        str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
-        if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
-            swap_ask_change
+                #Nothing to do, continue
+                printf "%b You chose to exit to continue and create a swap file.\\n" "${INFO}"
+            else
+              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+              printf "\\n"
+              exit
+            fi
+
         fi
-
-        SWAP_FILE_LOCATION=/swapfile
 
     fi
 
-    if [ "$SWAP_TOO_SMALL" = "YES" ]; then
-        str="WARNING: You need a larger swap file.\\n\\nRunning a DigiNode requires approximately 5Gb RAM. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more. This will give your system at least 8Gb of total memory to work with.\\n\\n"
+    # Do this if there is no swap file
+    if [ "$SWAP_NEEDED" = "YES" ]; then
 
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "$str" "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Swap file size is too small!" 3>&1 1>&2 2>&3) 
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-        local str_swap_too_low
-        str_swap_too_low="The entered value is smaller than the reccomended swap size. Please enter the recommended size or larger."
+            # Ask the user if they want to create a swap file now, or exit
+            if whiptail --title "Swap file not detected." --yesno "Your system has less than 8Gb RAM so you need to create a swap file.\\n\\nRunning a DigiNode requires a minimmum 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, you need to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n\\nWould you like to create a swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                #Nothing to do, continue
+                printf "%b You chose to continue and create a swap file.\\n" "${INFO}"
+            else
+              printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+              printf "\\n"
+              exit
+            fi
+
+        fi
+
+    fi
+
+
+    # Do this if there is no swap file OR the current swap file is too small
+    if [ "$SWAP_NEEDED" = "YES" ] || [ "$SWAP_TOO_SMALL" = "YES" ]; then
+
+        if [ "$skip_if_reentering_swap_size" != "yes" ]; then
+
+            #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
+            if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+                # Ask the user if they want to create a swap file now, or exit
+                if whiptail --title "USB stick required." --yesno "You need a USB stick to store your swap file.\\n\\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your swap file:\\n\\n - Minimum 8Gb. 16Gb or larger is better.\\n - For best performance it should support USB 3.0 or greater.\\n - WARNING: The existing contents will be erased.\\n\\nDo not insert the USB stick into the Pi yet. If it is already plugged in, please UNPLUG it before continuing.\\n\\nChoose CONTINUE once you are ready, with the USB stick unplugged.\\n\\nChoose EXIT to quit DigiNode Setup and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                    #Nothing to do, continue
+                    printf "%b You chose to continue and begin preparing the swap file on a USB stick.\\n" "${INFO}"
+                else
+                  printf "%b You chose to exit to create a swap file manually.\\n" "${INFO}"
+                  printf "\\n"
+                  exit
+                fi
+
+                # Get the user to insert the USB stick to use as a swap drive and detect it
+                USB_SWAP_STICK_INSERTED="NO"
+                LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+                printf "%b Please insert the USB stick you wish to use for your swap drive now. (WARNING: The contents will be erased.)\\n" "${INFO}"
+                str="Waiting for USB stick... "
+                printf "%b %s" "${INDENT}" "${str}"
+                tput civis
+                while [ "$USB_SWAP_STICK_INSERTED" = "NO" ]; do
+
+                    # Show Spinner while waiting
+                    if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+                    elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+                      progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+                    fi
+
+                    LSBLK_AFTER_USB_INSERTED=$(lsblk)
+
+                    USB_SWAP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
+
+                    if [ "$USB_SWAP_DRIVE" != "" ]; then
+                        USB_SWAP_STICK_INSERTED="YES"
+                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                        tput cnorm
+                    else
+                        printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                        LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                        sleep 0.5
+                    fi
+                done
+
+                # Wipe the current partition on the drive
+                str="Wiping exisiting partition(s) on USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                sfdisk --quiet --delete /dev/$USB_SWAP_DRIVE
+                # dd if=/dev/zero of=/dev/$USB_SWAP_DRIVE bs=512 count=1 seek=0
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Wipe the current partition on the drive
+                str="Create new primary gpt partition on USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                parted --script --align=opt /dev/${USB_SWAP_DRIVE} mklabel gpt mkpart primary 0% 100%
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set up file system on USB stick
+                printf "Setting up EXT4 file system on USB stick..." "${INFO}"
+                mkfs.ext4 -F /dev/${USB_SWAP_DRIVE}1
+
+                # Create mount point for USB drive, if needed
+                if [ ! -d /media/usbswap ]; then
+                    str="Create mount point for USB drive..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    mkdir /media/usbswap
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Create mount point for USB drive, if needed
+                str="Mount new USB swap partition..."
+                printf "%b %s" "${INFO}" "${str}"
+                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set swap file location
+                SWAP_FILE="/media/usbswap/swapfile"
+
+            else
+                # Use default swap location, if we are not using an external USB
+                SWAP_FILE="/swapfile"
+            fi
+
+        fi
+
+
+        # Ask the user what size of swap file they want
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "\\nPlease enter the desired swap file size in MB.\\n\\nNote: Running a DigiNode requires approximately 5Gb RAM. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n\\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size" 3>&1 1>&2 2>&3) 
+
+        # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
+        # Meaning instead of return the error code, it returns the value entered
+
+        # Now to check if the user pressed OK or Cancel
+        exitstatus=$?
+        if [ $exitstatus = 0 ]; then
+            printf "%b You chose to create a swap file: $SWAP_TARG_SIZE_MB Mb\\n" "${INFO}"
+        else
+            printf "%b You exited when choosing a swap file size.\\n" "${INFO}"
+            printf "\\n"
+            exit
+        fi
+
+        # Check the entered value is big enough
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_REC_SIZE_MB" ]; then
-            whiptail --msgbox --title "Swap file size is too small!" "$str_swap_too_low" "${r}" "${c}"
+            whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
+            printf "%b The swap file size you entered was too small.\\n" "${INFO}"
+            skip_if_reentering_swap_size="yes"
             swap_ask_change
         fi
 
-        SWAP_FILE_LOCATION=/swapfile
+        SWAP_DO_CHANGE="YES"
+        printf "\\n"
 
     fi
 
@@ -2607,42 +2903,662 @@ swap_do_change() {
         fi
 
        # Allocate space for new swap file
-        str="Allocate $SWAP_TARG_SIZE_MB MB for new swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        str="Allocate ${SWAP_TARG_SIZE_MB}B for new swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
         fallocate -l "$SWAP_TARG_SIZE_MB" "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Mark new file as swap
-        printf "%b Mark as new swap file...\\n" "${INFO}"
+        printf "%b Set up new swap file...\\n" "${INFO}"
         mkswap "$SWAP_FILE"       
         
         # Secure swap file
-        str="Secure swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        str="Assign root as swap file owner..."
+        printf "%b %s..." "${INFO}" "${str}"
         chown root:root $SWAP_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Secure swap file
+        str="Give root read/write permissions for swap file..."
+        printf "%b %s..." "${INFO}" "${str}"
         chmod 0600 $SWAP_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Activate new swap file
         str="Activate new swap file..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
+        printf "%b %s..." "${INFO}" "${str}"
         swapon "$SWAP_FILE"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
-        # Make new swap file available at boot
-        str="Make new swap file available at boot..."
-        printf "\\n%b %s..." "${INFO}" "${str}"
-        echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+        #If we are using a Pi, booting from microSD, and we need a USB stick for the swap, tell the user to prepare one
+        if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
+
+            # Get the UUID of the USB stick with the swap file
+            str="Lookup UUID of USB stick..."
+            printf "%b %s..." "${INFO}" "${str}"
+            SWAP_USB_UUID=$(blkid | grep sda1 | cut -d' ' -f2 | cut -d'=' -f2 | sed 's/"//g')
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+            # Make new swap drive and file available at boot
+            str="Make USB drive and swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/usbswap/d' /etc/fstab
+            sudo sed -i.bak '/swapfile/d' /etc/fstab
+            echo "UUID=$SWAP_USB_UUID /media/usbswap auto nosuid,nodev,nofail 0 0" >> /etc/fstab
+            echo "$SWAP_FILE swap swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+            # Tell user the swap file has been created
+            whiptail --msgbox --title "Swap file created on USB stick." "The swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 10 "${c}"
+
+        else
+
+            # Make new swap file available at boot
+            str="Make swap file available at next boot..."
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo sed -i.bak '/swap/d' /etc/fstab
+            echo "$SWAP_FILE none swap defaults 0 0" >> /etc/fstab
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+        fi
+
+        printf "\\n"
 
     fi
 
+}
+
+# This function will help the user backup their DigiByte wallet to an external USB drive. It will also optionally backup the DigiAsset Node _config folder.
+wallet_backup() {
+
+    # Skip this part if we need to re-enter the encryption password
+    if [ "$skip_if_reentering_encryption_passphrases" != "yes" ]; then
+
+        printf " =============== DigiNode Backup =======================================\\n\\n"
+        # ==============================================================================
+
+        # Reset selection variables in case this is not the first time running though the options
+        run_wallet_backup=false
+        run_dgaconfig_backup=false
+
+
+        # Introduction to backup.
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node configuration. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode. Do not continue if you do not have this." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+            printf "%b You chose to begin the backup process.\\n" "${INFO}"
+        else
+            printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
+            menu_existing_install 
+        fi
+        printf "\\n"
+
+        # Ask to backup DigiByte Core Wallet, if it exists
+        if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
+
+
+            # Ask if the user wants to backup their DigiBytewallet
+            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet?\\n\\nThis is a highly recommended as it will safeguard the contents of your wallet, and make it easy to restore your wallet to another DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
+                run_wallet_backup=true
+
+            else
+                printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
+                run_wallet_backup=false
+            fi
+            printf "\\n"
+        else
+            printf "%b No DigiByte Core wallet file currently exists. Returning to menu...\\n" "${INFO}"
+            run_wallet_backup=false
+            # Display a message saying that the wallet.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "ERROR: wallet.dat not found" "No DigiByte Core wallet.dat file currently exists to backup. The script will exit." "${r}" "${c}"
+            menu_existing_install   
+            printf "\\n"
+        fi
+
+        # Ask to backup the DigiAsset Node _config folder, if it exists
+        if [ -d "$DGA_SETTINGS_LOCATION" ]; then
+
+            # Ask the user if they want to encrypt with a password?
+            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
+                run_dgaconfig_backup=true
+            else
+                printf "%b You chose NOT to backup your DigiAsset Node configuration.\\n" "${INFO}"
+                run_dgaconfig_backup=false
+            fi
+        fi
+
+        # Return to main menu if the user has selected to backup neither the wallet nor the DigiAsset config
+        if [[ "$run_wallet_backup" == false ]] && [[ "$run_dgaconfig_backup" == false ]]; then
+                printf "%b Backup cancelled. Returning to menu...\\n" "${INFO}"
+                menu_existing_install
+        fi
+
+        # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
+        if [[ "$run_wallet_backup" == true ]]; then
+
+            printf "%b Checking the DigiByte wallet encryption status... (DigiByte daemon needs to be running.)\\n" "${INFO}"
+
+            # Start the DigiByte service now, in case it is not already running
+            printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
+            systemctl start digibyted
+
+            # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
+            # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
+            digibyte_check
+
+            # Check if the wallet is currently unencrypted
+            if [[ $(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet") ]]; then
+
+                printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
+
+                # Ask the user if they want to encrypt with a password?
+                if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your DigiByte wallet with a passphrase?\\n\\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+
+                    printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
+                    encrypt_wallet_now=true
+                else
+                    printf "%b You chose NOT to encrypt your wallet with a passphrase.\\n" "${INFO}"
+                    encrypt_wallet_now=false
+                fi
+            else
+                printf "%b DigiByte Wallet is already encrypted.\\n" "${TICK}"
+            fi
+
+            printf "\\n"
+
+        fi
+
+    fi    
+
+    # START PASSPHRASE ENCRYPTION OF DIGIBYTE WALLET
+
+    if [[ "$encrypt_wallet_now" == true ]]; then
+
+        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\nIMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your wallet. You have been warned!!" 8 78 --title "Enter a passphrase to encrypt your DigiByte wallet" 3>&1 1>&2 2>&3)
+            # A trick to swap stdout and stderr.
+            # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+        exitstatus=$?
+        if [ $exitstatus == 0 ]; then
+            printf "%b Passphrase entered for encrypted wallet.\\n" "${INFO}"
+        else
+            printf "%b %bYou cancelled choosing a wallet encryption passphrase.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            # Display a message saying that the wallet.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering an encryption passphrase. The script will exit." "${r}" "${c}" 
+            printf "\\n"
+            menu_existing_install  
+        fi
+
+        WALLET_ENCRYT_PASS2=$(whiptail --passwordbox "Please re-enter the passphrase to confirm." 8 78 --title "Re-enter passphrase for wallet encryption" 3>&1 1>&2 2>&3)
+            # A trick to swap stdout and stderr.
+            # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+        exitstatus=$?
+        if [ $exitstatus == 0 ]; then
+            printf "%b Passphrase re-entered for wallet encryption.\\n" "${INFO}"
+            # Compare both passphrases to check they match
+            if [ "$WALLET_ENCRYT_PASS1" = "$WALLET_ENCRYT_PASS2" ]; then
+                printf "%b Passphrases match.\\n" "${TICK}"
+                WALLET_ENCRYT_PASS=$WALLET_ENCRYT_PASS1
+                wallet_encryption_passphrases_match="yes"
+                printf "\\n"
+            else
+                whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+                printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
+                skip_if_reentering_encryption_passphrases="yes"
+
+                # re-do prompt for password
+                wallet_backup
+            fi
+        else
+            printf "%b %bYou cancelled choosing an encryption password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            # Display a message saying that the wall.dat file does not exist
+            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering a backup password. The script will exit." "${r}" "${c}" 
+            printf "\\n"
+            menu_existing_install  
+        fi
+
+        # Stop DigiByte Core if it is running, as we need to encrypt the wallet
+        if [ "$DGB_STATUS" = "running" ] || [ $DGB_INSTALL_TYPE = "startingup" ]; then
+           stop_service digibyted
+           DGB_STATUS="stopped"
+        fi
+
+
+        # If the passphrases have been entered correctly, proceed encrypting the wallet.dat file
+        if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
+
+            # Encrypting wallet.dat file
+            local str="Encrypting wallet.dat ... "
+            printf "%b %s..." "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT $DGB_CLI encryptwallet "$WALLET_ENCRYT_PASS" 1>/dev/null
+
+            # If the command completed without error, then assume the wallet is encrypted
+            if [ $? -eq 0 ]; then
+                whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+            fi
+
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        #clear password variables
+        skip_if_reentering_encryption_passphrases="no"
+        WALLET_ENCRYT_PASS1=null
+        WALLET_ENCRYT_PASS2=null
+        WALLET_ENCRYT_PASS=null
+
+    fi
+
+    # END PASSWORD ENCRYPTION OF DIGIBYTE WALLET
+
+    if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
+
+        # Ask the user to prepare their backup USB stick
+        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with DigiNode backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either ExFat or Fat32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+            printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
+        else
+            printf "%b You chose not to proceed with the backup. Returning to menu...\\n" "${INFO}"
+            run_wallet_backup=false
+            menu_existing_install
+        fi
+        printf "\\n"
+
+        # Ask the user to insert the USB stick to use as a backup drive and detect it
+        USB_BACKUP_STICK_INSERTED="NO"
+        LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+        progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        printf "%b %bPlease insert the USB stick you wish to use for your backup now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INFO}"
+        printf "\\n"
+        str="Waiting for USB stick... "
+        printf "%b %s" "${INDENT}" "${str}"
+        tput civis
+        while [ "$USB_BACKUP_STICK_INSERTED" = "NO" ]; do
+
+            # Show Spinner while waiting
+            if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+            fi
+
+            LSBLK_AFTER_USB_INSERTED=$(lsblk)
+
+            USB_BACKUP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
+
+            if [ "$USB_BACKUP_DRIVE" != "" ]; then
+                USB_BACKUP_STICK_INSERTED="YES"
+                printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                tput cnorm
+            else
+                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+                sleep 0.5
+            fi
+        done
+
+        # Create mount point for USB stick, if needed
+        if [ ! -d /media/usbbackup ]; then
+            str="Creating mount point for inserted USB stick..."
+            printf "%b %s" "${INFO}" "${str}"
+            mkdir /media/usbbackup
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Mount USB stick
+        str="Mount primary USB partition..."
+        printf "%b %s" "${INFO}" "${str}"
+        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # TEST WRITE TO USB USING TOUCH testfile.txt
+        printf "%b Checking the inserted USB stick...\\n" "${INFO}"
+        touch /media/usbbackup/testfile.txt 2>/dev/null
+
+        # Check if the file was successfully written
+        str="Is the USB stick compatible?"
+        printf "%b %s..." "${INFO}" "${str}"
+        if [ -f /media/usbbackup/testfile.txt ]; then
+            printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
+            rm /media/usbbackup/testfile.txt
+        else
+            printf "%b%b %s NO! [ Write test failed ]\\n" "${OVER}" "${CROSS}" "${str}" 
+
+            # Ask the user if they want to format the USB stick
+            if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+
+                printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
+
+                # FORMAT USB STICK HERE 
+
+                printf " =============== FORMAT USB STICK ======================================\\n\\n"
+                # ==============================================================================
+
+                opt1a="exFAT"
+                opt1b="Format the USB stick as exFAT."
+                
+                opt2a="FAT32"
+                opt2b="Format the USB stick as FAT32."
+
+
+                # Display the information to the user
+                UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
+                "${opt1a}"  "${opt1b}" \
+                "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install; }
+
+                # Set the variable based on if the user chooses
+                case ${UpdateCmd} in
+                    # Update, or
+                    ${opt1a})
+                        printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
+                        printf "\\n"
+                        USB_BACKUP_STICK_FORMAT="exfat"
+
+                        ;;
+                    # Reset,
+                    ${opt2a})
+                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"
+                        printf "\\n"                   
+                        USB_BACKUP_STICK_FORMAT="fat32"
+                        ;;
+                esac
+
+                # Wipe the current partition on the drive
+                str="Wiping exisiting partition(s) on USB backup stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Wipe the current partition on the drive
+                str="Create new primary gpt partition on USB backup stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Set up file system on USB stick (exfat or fat32)
+                if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
+                    printf "Setting up exFAT file system on USB backup stick..." "${INFO}"
+                    mkfs.exfat -F /dev/${USB_BACKUP_DRIVE}1
+                elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
+                    printf "Setting up FAT32 file system on USB backup stick..." "${INFO}"
+                    mkfs.vfat -F /dev/${USB_BACKUP_DRIVE}1
+                fi
+
+                # Create mount point for USB backup drive, if needed
+                if [ ! -d /media/usbbackup ]; then
+                    str="Create mount point for USB backup drive..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    mkdir /media/usbbackup
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Create mount point for USB backup drive, if needed
+                str="Mount new USB swap partition..."
+                printf "%b %s" "${INFO}" "${str}"
+                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            else
+                printf "%b You chose not to proceed with formatting the USB stick. Returning to menu...\\n" "${INFO}"
+                whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
+                run_wallet_backup=false
+                run_dgaconfig_backup=false
+                menu_existing_install
+            fi
+            printf "\\n"
+
+        fi
+
+        # Create backup folder on USB stick, if it does not already exist
+        if [ ! -d /media/usbbackup/diginode_backup ]; then
+            str="Create \"diginode_backup\" folder on USB drive..."
+            printf "%b %s" "${INFO}" "${str}"
+            mkdir /media/usbbackup/diginode_backup
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Create a backup status file on the USB stick, if it does not already exist
+        if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+
+            str="Creating DigiNode Backup status file on USB stick: diginode_backup.info ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch /media/usbbackup/diginode_backup/diginode_backup.info
+            cat <<EOF > /media/usbbackup/diginode_backup/diginode_backup.info
+DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""
+DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Create a backup log file on the USB stick, if it does not already exist
+        if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.log ]; then
+
+            str="Creating DigiNode Backup log file on USB stick: diginode_backup.log ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Source the diginode_backup.info file to find out when last backups were carried out
+        source /media/usbbackup/diginode_backup/diginode_backup.info
+
+        # Create a variable containing the time and date right now for logging changes
+        NEW_BACKUP_DATE=$(date)
+
+        # If the wallet.dat file does not exist on the USB stick, delete the corresponding backup date in the status file (perhaps a previous backup has been manually deleted)
+        if [ ! -f /media/usbbackup/diginode_backup/wallet.dat ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+            str="wallet.dat has been deleted since last backup. Removing backup date from diginode_backup.info ... "
+            printf "%b %s" "${INFO}" "${str}"
+            DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""            
+            sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
+            echo "$NEW_BACKUP_DATE DigiByte Wallet: wallet.dat has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If the _config folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
+        if [ ! -d /media/usbbackup/diginode_backup/_config ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+            str="DigiAssets _config folder has been deleted since last backup. Removing backup date from diginode_backup.info ... "
+            printf "%b %s" "${INFO}" "${str}"  
+            DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""          
+            sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
+            echo "$NEW_BACKUP_DATE DigiAsset Node Settings: _config folder has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # START DIGIBYTE WALLET BACKUP
+        if [ "$run_wallet_backup" = true ]; then
+
+            # If a wallet.dat backup exists on the stick already
+            if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
+
+                #If the stick already contains a wallet.dat backup, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_wallet_backup_now=true
+                        printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiByte Wallet: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_wallet_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. The date of the existing backup is: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_wallet_backup_now=true
+                        printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiByte Wallet: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_wallet_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. This DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing wallet backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_wallet_backup_now=true
+                        printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiByte Wallet: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_wallet_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a wallet.dat backup, and there has been a previous backup logged on both the stick and the DigiNode, check if they are the same or not
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+
+                    # If this is the same backup stick as was used last time, then ask the user if they want to overwrite it
+                    if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" ]; then
+
+                        # Ask the user to prepare their backup USB stick
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup was previously created by this DigiNode on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new backup unless you have recently encrypted the wallet. If you continue your existing wallet backup will be overwritten. Are you sure that you want to continue backing up your wallet to this stick?" "${r}" "${c}"; then
+
+                            do_wallet_backup_now=true
+                            printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                            echo "$NEW_BACKUP_DATE DigiByte Wallet: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        else
+                            printf "%b DigiByte Wallet: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                            do_wallet_backup_now=false
+                        fi
+
+                    else
+
+                        # Ask the user to prepare their backup USB stick
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick but it does not appear to have been made from this DigiNode.\\nThe existing backup was made on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                            do_wallet_backup_now=true
+                            printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                            echo "$NEW_BACKUP_DATE DigiByte Wallet: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        else
+                            printf "%b DigiByte Wallet: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                            do_wallet_backup_now=false
+                        fi
+
+                    fi
+
+                fi
+
+            else
+                # If NO wallet.dat file exists on the stick already
+
+                #If the wallet.dat file has seemingly never been backed up anywhere else
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ]; then
+                    do_wallet_backup_now=true
+                    printf "%b DigiByte Wallet: No previous wallet.dat backup has been detected. Backup will proceed...\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: No previous wallet.dat backup has been detected. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                fi
+
+                #If the wallet.dat file has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
+                if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiByte wallet was previously backed up on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_wallet_backup_now=true
+                        printf "%b DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: No previous wallet.dat backup has been detected anywhere. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiByte Wallet: You chose not to proceed with backing up DigiByte Wallet to a new USB stick.\\n" "${INFO}"
+                        do_wallet_backup_now=false
+                    fi
+                fi
+                
+            fi
+
+            # Perform DigiByte wallet backup
+            if [ "$do_wallet_backup_now" = true ]; then
+
+                # Backup the existing wallet backup, if it exists
+                if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
+
+                    # Delete previous secondary backup of existing wallet, if it exists
+                    if [ -f /media/usbbackup/diginode_backup/wallet.dat.old ]; then
+                        str="Deleting existing secondary backup: wallet.dat.old ... "
+                        printf "%b %s" "${INFO}" "${str}" 
+                        rm /media/usbbackup/diginode_backup/wallet.dat.old
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                    # Rename existing wallet backup to .old
+                    str="Renaming existing wallet.dat backup to wallet.dat.old ... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    mv /media/usbbackup/diginode_backup/wallet.dat /media/usbbackup/diginode_backup/wallet.dat.old
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                fi
+
+                # Copy "live" wallet to backup stick
+                str="Backing up DigiByte wallet to USB stick ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
+                if [ $? -eq 0 ]; then
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick.//n//n" "${r}" "${c}"
+                else
+                    printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet failed due to an error. Check the USB stick.//n//n" "${r}" "${c}"
+                fi
+
+            fi
+
+        fi
+
+
+        # PERFORM DIGIASSET CONFIG BACKUP
+
+
+
+        # BACKUP FINISHED
+
+        # Unmount USB stick
+        str="Unmount the USB backup stick..."
+        printf "%b %s" "${INFO}" "${str}"
+        umount /dev/${USB_SWAP_DRIVE}1
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Tell user to eject backup USB stick, reset variables, and return to the main menu
+        printf "%b Backup complete. Returning to menu...\\n" "${INFO}"
+        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK.//n//n" "${r}" "${c}"
+        run_wallet_backup=false
+        run_dgaconfig_backup=false
+        do_wallet_backup_now=false
+        do_dgaconfig_backup_now=false
+        menu_existing_install
+
+    fi
+
+}
+
+# This function will help the user restore their DigiByte wallet backup from an external USB drive
+wallet_restore() {
+
+    whiptail --msgbox --backtitle "" --title "Script Not Added Yet" "This feature has not been implemented yet, but will be added soon. The script will now exit." "${r}" "${c}"
+    menu_existing_install  
 }
 
 #check there is sufficient space on the chosen drive to download the blockchain
 disk_check() {
     # Only run the check if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Checking: Disk Space ==================================\\n\\n"
+        # ==============================================================================
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2660,8 +3576,9 @@ disk_check() {
                 printf "\\n"
             elif [[ "$UNATTENDED_MODE" = true ]]; then
                 if [[ "$UI_DISKSPACE_OVERRIDE" = "NO" ]] || [[ "$UI_DISKSPACE_OVERRIDE" = "" ]]; then
-                  printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting Installer...\\n" "${INFO}"
+                  printf "%b Unattended Install: Disk Space Check Override DISABLED. Exiting DigiNode Setup...\\n" "${INFO}"
                   printf "\\n"
+                  purge_dgnt_settings
                   exit 1
                 fi
             else
@@ -2689,7 +3606,7 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-
+            PRUNE_BLOCKCHAIN="YES"
         else
           printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           
@@ -2698,9 +3615,10 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
                 printf "\\n"
                 printf "%b   $TEXTEDITOR $DGB_CONF_FILE\\n" "${INDENT}"
                 printf "\\n"
-                printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+                printf "%b Once you have made your changes, re-run DigiNode Setup.\\n" "${INDENT}"
                 printf "\\n"
           fi
+          exit
         fi
     fi
 
@@ -2725,7 +3643,7 @@ menu_first_install() {
     UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "  %bCancel was selected, exiting installer%b\\n\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "  %bCancel was selected, exiting DigiNode Setup%b\\n\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -2746,25 +3664,33 @@ menu_first_install() {
 # Function to display the upgrade menu when a previous install has been detected
 menu_existing_install() {
 
-    printf " =============== UPGRADE MENU ==========================================\\n\\n"
+    printf " =============== MAIN MENU =============================================\\n\\n"
     # ==============================================================================
 
-    opt1a="Upgrade"
-    opt1b="Upgrade DigiNode software to the latest versions."
+    opt1a="Update"
+    opt1b="Check for updates to your DigiNode software."
     
     opt2a="Reset"
     opt2b="Reset all settings and reinstall DigiNode software."
 
-    opt3a="Uninstall"
-    opt3b="Remove DigiNode from your systems."
+    opt3a="Backup"
+    opt3b="Backup your wallet & settings to an external USB stick."
+
+    opt4a="Restore"
+    opt4b="Backup your wallet & settings from an external USB stick."
+
+    opt5a="Uninstall"
+    opt5b="Remove DigiNode from your systems."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nWe have detected an existing DigiNode on this system.\\n\\nPlease choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is highly recommended.)\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b %bCancel was selected, exiting installer%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+    "${opt3a}"  "${opt3b}" \
+    "${opt4a}"  "${opt4b}" \
+    "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
+    { printf "%b %bCancel was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -2785,8 +3711,20 @@ menu_existing_install() {
             printf "\\n"
             RESET_MODE=true
             ;;
-        # Uninstall,
+        # Wallet Backup
         ${opt3a})
+            printf "%b You selected the BACKUP option.\\n" "${INFO}"
+            printf "\\n"
+            wallet_backup
+            ;;
+        # Wallet Restore
+        ${opt4a})
+            printf "%b You selected the RESTORE option.\\n" "${INFO}"
+            printf "\\n"
+            wallet_restore
+            ;;
+        # Uninstall,
+        ${opt5a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -2795,13 +3733,13 @@ menu_existing_install() {
 }
 
 
-# A function for displaying the dialogs the user sees when first running the installer
+# A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Installer" "DigiNode Installer will install and configure DigiByte Core and DigiAsset Node on this device.\\n\\nRunning DigiByte Core means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to earn DGB for hosting others data, as well as being able to create your own DigiAssets on your own node.\\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to install and configure a DigiByte and DigiAsset Node on this device.\\n\\nRunning a DigiByte Node means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the blockchain network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It enables you to create your own DigiAssets via the built-in web UI, and also lets you earn DGB as payment for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
-# Request that users donate if they find DigiNode Installer useful
-whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
+# Request that users donate if they find DigiNode Setup useful
+whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -2820,8 +3758,25 @@ whiptail --msgbox --backtitle "" --title "DigiNode Installer is FREE and OPEN SO
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
 
-# If this is the first time running the installer, and the diginode.settings file has just been created,
+
+# Explain the need for a static address
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+#Nothing to do, continue
+  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+  printf "\\n"
+else
+  printf "%b DigiNode Setup exited at static IP message.\\n" "${INFO}"
+  printf "\\n"
+  exit
+fi
+
+}
+
+
+# If this is the first time running DigiNode Setup, and the diginode.settings file has just been created,
 # ask the user if they want to EXIT to customize their install settings.
+
+ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
@@ -2837,7 +3792,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
             printf "\\n"
             printf "%b   $TEXTEDITOR $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
-            printf "%b Once you have made your changes, re-run the installer.\\n" "${INDENT}"
+            printf "%b Once you have made your changes, re-run DigiNode Setup.\\n" "${INDENT}"
         fi
         printf "%b For more help go to: $DGBH_URL_CUSTOM\\n"  "${INDENT}"
         printf "\\n"
@@ -2846,18 +3801,9 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
 fi
 
-# Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-#Nothing to do, continue
-  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
-  printf "\\n"
-else
-  printf "%b Installer exited at static IP message.\\n" "${INFO}"
-  printf "\\n"
-  exit
-fi
-
 }
+
+
 
 
 # Create service so that DigiByte daemon will run at boot
@@ -3010,7 +3956,7 @@ EOF
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_UPSTART_SERVICE_FILE
         cat <<EOF > $DGB_UPSTART_SERVICE_FILE
-description "DigiByte Core Daemon"
+description "DigiByte Daemon"
 
 start on runlevel [2345]
 stop on starting rc RUNLEVEL=[016]
@@ -3069,25 +4015,21 @@ request_social_media () {
         printf " ======== ${txtgrn}Congratulations - Your DigiNode has been installed!${txtrst} ==========\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
-        echo "Thanks for supporting DigiByte!"
+        echo "                    Thanks for supporting DigiByte!"
         echo ""
-        echo " Please let everyone know what you are helping support the DigiByte network"
-        echo " by sharing on social media using the hashtag #DigiNode."
-        echo ""
-        echo " Here's a sample Tweet you can use:"
-        echo "\"I just set up a #DigiNode to help support the decentralization of #DigiByte network!"
-        echo "If you want to help, you can learn more at $DGBH_URL_TWEET \""
+        echo "   Please let everyone know what you are helping support the DigiByte network"
+        echo "   by sharing on social media using the hashtag #DigiNode"
         echo ""
     elif [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ======== ${txtgrn}DigiByte Core has been installed!${txtrst} ============================\\n"
+        printf " ======== ${txtgrn}DigiByte Node has been installed!${txtrst} ============================\\n"
         printf " =======================================================================\\n\\n"
         # ================================================================================================
-        echo " Thanks for supporting DigiByte by running a DigiByte full node!"
+        echo "      Thanks for supporting DigiByte by running a DigiByte full node!"
         echo ""
-        echo " If you want to help even more, please consider also running a DigiAsset Node"
-        echo " as well. You can run this installer again at any time to upgrade to a full"
-        echo " DigiNode."
+        echo "  If you want to help even more, please consider also running a DigiAsset Node"
+        echo "  as well. You can run DigiNode Setup again at any time to upgrade to a full"
+        echo "  DigiNode."
         echo ""
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
@@ -3097,7 +4039,7 @@ request_social_media () {
         echo ""
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}DigiByte Core has been Reset!${txtrst} ======================\\n"
+        printf " ================== ${txtgrn}DigiByte Node has been Reset!${txtrst} ======================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
         echo ""
@@ -3108,7 +4050,7 @@ request_social_media () {
         # ==============================================================================
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}DigiByte Core has been Upgraded!${txtrst} ===================\\n"
+        printf " ================== ${txtgrn}DigiByte Node has been Upgraded!${txtrst} ===================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
     fi
@@ -3117,11 +4059,11 @@ request_social_media () {
 
 donation_qrcode() {  
 
-    printf " ============== Please Donate to support DigiNode Tools ================\\n\\n"
+    printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo " If you find DigiNode Tools useful and want to support my work, donations"
-    echo "in DGB are much appreciated. Thanks for your support. - Olly @saltedlolly"             
+    echo "      If you find DigiNode Tools useful and want to support my work,"
+    echo "   donations in DGB are much appreciated. Many thanks. - Olly @saltedlolly"             
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -3142,51 +4084,80 @@ donation_qrcode() {
     echo ""
 }
 
-request_reboot () {  
+final_messages() {  
 
-    if [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf "%b %bTo complete your install you need to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+
+    if [ $NewInstall = true ] ; then
+        printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
+    elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+        printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
+          printf "%b %bIMPORTANT: Remember to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$TEXTEDITOR" != "" ]; then
+            printf "%b You can do this by editing the digibyte.conf file:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   $TEXTEDITOR $DGB_CONF_FILE\\n" "${INDENT}"
+            printf "\\n"
+        fi
+    fi
+
+    if [ $NewInstall = true ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-    elif [ $NewInstall = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+    elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
-        printf "\\n"
-    elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf "%b %bAfter performing an upgrade, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
-        printf "\\n"
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: diginode\\n" "${INDENT}"
+        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
+
+    if [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ] ; then
+        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        sleep 5
+        sudo reboot
+    elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
+        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
+        printf "\\n"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        sleep 5
+        sudo reboot
+    fi
+
 }
 
 stop_service() {
@@ -3266,14 +4237,14 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 
 
-# This function will check if DigiByte Core is installed, and if it is, check if there is an update available
+# This function will check if DigiByte Node is installed, and if it is, check if there is an update available
 
 digibyte_check() {
 
-    printf " =============== Checking: DigiByte Core ===============================\\n\\n"
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
     # ==============================================================================
 
-    # Let's check if DigiByte Core is already installed
+    # Let's check if DigiByte Node is already installed
     str="Is DigiByte Core already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -3367,7 +4338,7 @@ digibyte_check() {
 
     fi
 
-        # Get the version number of the current DigiByte Core and write it to to the settings file
+        # Get the version number of the current DigiByte Node and write it to to the settings file
     if [ "$DGB_STATUS" = "running" ]; then
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
@@ -3478,7 +4449,7 @@ if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 fi
 
 if [ "$DGB_INSTALL_TYPE" = "skipreset" ]; then
-    printf " =============== Resetting: DigiByte Core =============================\\n\\n"
+    printf " =============== Reset: DigiByte Node ==================================\\n\\n"
     # ==============================================================================
     printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
     printf "\\n"
@@ -3489,13 +4460,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: DigiByte Core ================================\\n\\n"
+        printf " =============== Install: DigiByte Node ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: DigiByte Core ================================\\n\\n"
+        printf " =============== Upgrade: DigiByte Node ================================\\n\\n"
         # ==============================================================================
     elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: DigiByte Core ==================================\\n\\n"
+        printf " =============== Reset: DigiByte Node ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiByte Core.\\n" "${INFO}"
     fi
@@ -3590,7 +4561,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Re-enable and re-start DigiByte daemon service after reset/upgrade
     if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf "%b Upgrade Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        printf "%b Upgrade Completed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
         enable_service digibyted
         restart_service digibyted
         DGB_STATUS="running"
@@ -3606,7 +4577,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     DGB_UPDATE_AVAILABLE=NO
     DGB_POSTUPDATE_CLEANUP=YES
 
-    # Create hidden file to denote this version was installed with the official installer
+    # Create hidden file to denote this version was installed with the official DigiNode Setup
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         str="Labeling as official DigiNode install..."
         printf "%b %s" "${INFO}" "${str}"
@@ -3715,7 +4686,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 fi
 
             else        
-                printf "%b %bDigiNode Tools can be upgraded from v{$DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                 DGNT_INSTALL_TYPE="upgrade"
                 DGNT_ASK_UPGRADE=YES
             fi
@@ -3787,7 +4758,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
     DGNT_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
@@ -3852,7 +4823,7 @@ fi
         elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
             sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
@@ -3869,7 +4840,7 @@ fi
         # Make downloads executable
         str="Making DigiNode scripts executable..."
         printf "%b %s" "${INFO}" "${str}"
-        chmod +x $DGNT_INSTALLER_SCRIPT
+        chmod +x $DGNT_SETUP_SCRIPT
         chmod +x $DGNT_MONITOR_SCRIPT
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -3890,20 +4861,20 @@ fi
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Add alias so entering 'diginode-installer' works from any folder
-        if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode-installer' alias in .bashrc file..."
+        # Add alias so entering 'diginode-setup' works from any folder
+        if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
+            str="Updating 'diginode-setup' alias in .bashrc file..."
             printf "%b %s" "${INFO}" "${str}"
             # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-installer=/s|.*|alias diginode-installer='$DGNT_INSTALLER_SCRIPT'|" $USER_HOME/.bashrc
+            sed -i -e "/^alias diginode-setup=/s|.*|alias diginode-setup='$DGNT_SETUP_SCRIPT'|" $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
-            str="Adding 'diginode-installer' alias to .bashrc file..."
+            str="Adding 'diginode-setup' alias to .bashrc file..."
             printf "%b %s" "${INFO}" "${str}"
             # Append alias to .bashrc file
             echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode-installer='$DGNT_INSTALLER_SCRIPT'" >> $USER_HOME/.bashrc
+            echo "# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder" >> $USER_HOME/.bashrc
+            echo "alias diginode-setup='$DGNT_SETUP_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -4107,7 +5078,7 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
     IPFS_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
     if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
@@ -4242,7 +5213,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Delete IPFS Updater tar.gz installer file
+        # Delete IPFS Updater tar.gz DigiNode Setup file
         str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
@@ -4353,7 +5324,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ "$IPFS_STATUS" = "stopped" ]; then
 
         if [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Upgrade Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
+            printf "%b Upgrade Completed: Re-enabling and re-starting IPFS service ...\\n" "${INFO}"
         elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
             printf "%b Reset Completed: Renabling and restarting IPFS service ...\\n" "${INFO}"
         fi
@@ -4718,12 +5689,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     if [ "$PKG_MANAGER" = "dnf" ]; then
         # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: This installer is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
         # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: This installer is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
     fi
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
@@ -4912,7 +5883,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $NODEJS_INSTALL_TYPE = "upgrade" || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]]; then
+    elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -4937,7 +5908,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     printf " =============== Checking: DigiAsset Node ==============================\\n\\n"
     # ==============================================================================
 
-    # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with this installer.
+    # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with DigiNode Setup.
     str="Is DigiAsset Node already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -5011,13 +5982,6 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=$DGA_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
     fi
 
-    # Requested branch
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
-        printf "%b DigiAsset Node apiV3 branch requested.\\n" "${INFO}"
-    elif [ "$DGA_BRANCH" = "main" ]; then
-        printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
-    fi
-
 
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
@@ -5083,9 +6047,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
     if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
-        DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+        DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL beta"  # e.g. DigiAsset Node v3 beta
     elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
-        DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+        DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL"       # e.g. DigiAsset Node v3
     elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
         DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
     fi
@@ -5093,7 +6057,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 
     # Next we need to check for the latest release at the DigiAssetX website
-    str="Checking DigiAssetX website for the latest release..."
+    str="Querying DigiAssetX website for the latest release..."
     printf "%b %s" "${INFO}" "${str}"
     DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
 
@@ -5115,6 +6079,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
         sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Requested branch
+    if [ "$DGA_BRANCH" = "development" ]; then
+        printf "%b DigiAsset Node development version requested.\\n" "${INFO}"
+    elif [ "$DGA_BRANCH" = "main" ]; then
+        printf "%b DigiAsset Node release version requested.\\n" "${INFO}"
     fi
 
 
@@ -5146,8 +6117,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             fi
 
 
-        elif [ "$DGA_LOCAL_BRANCH" = "apiV3" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGA_LOCAL_BRANCH" = "development" ]; then
+            printf "%b %bDigiAsset Node will be upgraded from the development branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
         else 
@@ -5156,18 +6127,18 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_DO_INSTALL="if_doing_full_install"
         fi
 
-    # Upgrade to apiV3 branch
-    elif [ "$DGA_BRANCH" = "apiV3" ]; then
+    # Upgrade to development branch
+    elif [ "$DGA_BRANCH" = "development" ]; then
         if [ "$DGA_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the apiV3 branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "apiV3" ]; then
-            printf "%b %bDigiAsset Node apiV3 branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGNT_LOCAL_BRANCH" = "development" ]; then
+            printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
         else
-            printf "%b %bDigiAsset Node apiV3 branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node development branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="new"
             DGA_DO_INSTALL="if_doing_full_install"
         fi
@@ -5189,10 +6160,10 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
     DGA_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+# If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/.digibyte/assetnode_settings will not be affected." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." "${r}" "${c}"; then
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
@@ -5359,12 +6330,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Next install the newest version
     cd $USER_HOME
-    # Clone the apiV3 version if develop flag is set
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
-        str="Cloning DigiAsset Node apiV3 branch from Github repository..."
+    # Clone the development version if develop flag is set
+    if [ "$DGA_BRANCH" = "development" ]; then
+        str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch apiV3 https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=apiV3|" $DGNT_SETTINGS_FILE
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
@@ -5372,7 +6343,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT npm install
         cd $USER_HOME
 
-    # Clone the develop version if develop flag is set
+    # Clone the release version if main flag is set
     elif [ "$DGA_BRANCH" = "main" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5411,7 +6382,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Create DigiAsset Node PM2
 
-    # Create hidden file in the 'digiasset_node' folder to denote this version was installed with the official installer
+    # Create hidden file in the 'digiasset_node' folder to denote this version was installed with the official DigiNode Setup script
     if [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
         sudo -u $USER_ACCOUNT touch $DGA_INSTALL_LOCATION/.officialdiginode
     fi
@@ -5560,28 +6531,29 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
 
+        printf " =============== UPDATE MENU ===========================================\\n\\n"
+        # ==============================================================================
+
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="- DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb="        - DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="- Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="        - Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="- NodeJS LTS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="        - NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="- DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="        - DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgn="- DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="        - DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "There are updates available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb     $upgrade_msg_ipfs     $upgrade_msg_nodejs      $upgrade_msg_dga      $upgrade_msg_dgn\\n" "${INFO}"
-            printf "\\n"
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
         #Nothing to do, continue
-          echo
           if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             DGB_DO_INSTALL=YES
           fi
@@ -5598,10 +6570,11 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             DGNT_DO_INSTALL=YES
           fi
         else
-          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n" "${INFO}"
-          printf "\\n"
+          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
           exit
         fi
+
+    printf "\\n"
 
     fi
 
@@ -5638,7 +6611,7 @@ digiasset_node_create_settings() {
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
     if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/.digibyte/assetnode_config/ and then recreate them with the default settings." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="reset"
         else
@@ -5737,17 +6710,17 @@ digiasset_node_create_settings() {
 
         fi
 
-        # create .digibyte settings folder if it does not already exist
-        if [ ! -d $DGB_SETTINGS_LOCATION ]; then
-            str="Creating ~/.digibyte/ folder..."
+        # create ~/digiasset_node install folder if it does not already exist
+        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
+            str="Creating ~/digiasset_node/ folder..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGB_SETTINGS_LOCATION
+            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # create assetnode_config folder if it does not already exist
         if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-            str="Creating ~/.digibyte/assetnode_config/ folder..."
+            str="Creating ~/digiasset_node/_config/ folder..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -5755,7 +6728,7 @@ digiasset_node_create_settings() {
 
         if [ ! -f $DGA_SETTINGS_FILE ]; then
             # Create a new main.json settings file
-            str="Creating ~/.digibyte/assetnode_config/main.json settings file..."
+            str="Creating ~/digiasset_node/_config/main.json settings file..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
             cat <<EOF > $DGA_SETTINGS_FILE
@@ -6004,7 +6977,7 @@ uninstall_do_now() {
         printf "\\n"
     fi
 
-    ################## UNINSTALL DIGIBYTE CORE #################################################
+    ################## UNINSTALL DIGIBYTE NODE #################################################
 
     printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
     # ==============================================================================
@@ -6114,7 +7087,7 @@ uninstall_do_now() {
     if [ -d "$DGNT_LOCATION" ]; then
 
         # Delete DigiNode Tools
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Installer'." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Setup' scripts." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
@@ -6126,13 +7099,13 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete 'diginode-installer' alias
-            if grep -q "alias diginode-installer=" "$USER_HOME/.bashrc"; then
-                str="Deleting 'diginode-installer' alias in .bashrc file..."
+            # Delete 'diginode-setup' alias
+            if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
+                str="Deleting 'diginode-setup' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
-                sed -i "/# Alias for DigiNode tools so that entering 'diginode-installer' will run this from any folder/d" $USER_HOME/.bashrc
-                sed -i '/alias diginode-installer=/d' $USER_HOME/.bashrc
+                sed -i "/# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder/d" $USER_HOME/.bashrc
+                sed -i '/alias diginode-setup=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -6255,7 +7228,7 @@ array[26]="digifact27"
 array[27]="digifact28"
 array[28]="digifact29"
 array[29]="digifact30"
-array[30]="digifact30"   # Note this is showing 30 for now as 31 is innacurate
+array[30]="digifact31"  
 array[31]="digifact32"
 array[32]="digifact33"
 array[33]="digifact34"
@@ -6274,11 +7247,11 @@ array[45]="digifact46"
 array[46]="digifact47"
 array[47]="digifact48"
 array[48]="digifact49"
-array[49]="digifact49"   # Note this is showing 49 for now as 31 is innacurate
+array[49]="digifact50"
 array[50]="digifact51"
 array[51]="digifact52"
 array[52]="digifact53"
-array[53]="digifact53"   # Note this is showing 53 for now as 31 is innacurate
+array[53]="digifact54"   
 array[54]="digifact55"
 array[55]="digifact56"
 array[56]="digifact57"
@@ -6300,13 +7273,14 @@ array[71]="digifact72"
 array[72]="digifact73"
 array[73]="digifact74"
 array[74]="digifact75"
-array[75]="social1"
-array[76]="social2"
-array[77]="help1"
-array[78]="help2"
-array[79]="help3"
-array[80]="help4"
-array[81]="help5"
+array[75]="digifact75"
+array[76]="social1"
+array[77]="social2"
+array[78]="help1"
+array[79]="help2"
+array[80]="help3"
+array[81]="help4"
+array[82]="help5"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -6635,15 +7609,15 @@ if [ "$DIGIFACT" = "digifact30" ]; then
     DIGIFACT_L6=""
 fi
 
-#if [ "$DIGIFACT" = "digifact31" ]; then
-#    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
-#    DIGIFACT_L1="The most popular Core DigiByte wallet so far was our 6.14.2"
-#    DIGIFACT_L2="release, with 200,000 downloads!"
-#    DIGIFACT_L3=""
-#    DIGIFACT_L4=""
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-#fi
+if [ "$DIGIFACT" = "digifact31" ]; then
+    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
+    DIGIFACT_L1="If you ever have issues with getting your #DigiByte out of a"
+    DIGIFACT_L2="wallet, you can get move it to a new one easily enough with"
+    DIGIFACT_L3="DigiSweep thanks to @mctrivia  It’s easy to use and"
+    DIGIFACT_L4="open-source. Try it out if you ever need it:"
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://digisweep.digiassetx.com/"
+fi
 
 if [ "$DIGIFACT" = "digifact32" ]; then
     DIGIFACT_TITLE="DigiFact # 32 - Did you know..."
@@ -6825,15 +7799,15 @@ if [ "$DIGIFACT" = "digifact49" ]; then
     DIGIFACT_L6=""
 fi
 
-#if [ "$DIGIFACT" = "digifact50" ]; then
-#    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-#    DIGIFACT_L1="DigiByte 1-click miner allows anybody to get started"
-#    DIGIFACT_L2="participating in mining \$DGB with their graphics card in their"
-#    DIGIFACT_L3="computer. Doing-so earns you DigiByte, while helping to secure"
-#    DIGIFACT_L4="the network."
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-#fi
+if [ "$DIGIFACT" = "digifact50" ]; then
+    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
+    DIGIFACT_L1="DigiByte Faucet is a useful website where anyone can get some"
+    DIGIFACT_L2="free DGB and experience this amazing technology first hand."
+    DIGIFACT_L3="For developers, they also provide a testnet faucet."
+    DIGIFACT_L4="Tell your friends."
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://www.digifaucet.org/"
+fi
 
 if [ "$DIGIFACT" = "digifact51" ]; then
     DIGIFACT_TITLE="DigiFact # 51 - Did you know..."
@@ -6865,15 +7839,15 @@ if [ "$DIGIFACT" = "digifact53" ]; then
     DIGIFACT_L6=""
 fi
 
-# if [ "$DIGIFACT" = "digifact54" ]; then
-#    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
-#    DIGIFACT_L1="DigiByte has some of the most accurate and consistent block"
-#    DIGIFACT_L2="timing of any UTXO project. Where others like BTC and LTC"
-#    DIGIFACT_L3="regularly vary by over 8% in any given day, DigiByte maintains"
-#    DIGIFACT_L4="block timings within 0.1% of their expected schedule."
-#    DIGIFACT_L5=""
-#    DIGIFACT_L6=""
-# fi
+if [ "$DIGIFACT" = "digifact54" ]; then
+    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
+    DIGIFACT_L1="DigiByte has never hand a contentious hard fork despite ongoing"
+    DIGIFACT_L2="major code changes. Mining is so decentralized that when the"
+    DIGIFACT_L3="myriad-groestl algorithm was replaced with odocrypt, MG mining"
+    DIGIFACT_L4="pools installed the upgrade even when it meant they would no"
+    DIGIFACT_L5="longer be able to mine."
+    DIGIFACT_L6=""
+fi
 
  if [ "$DIGIFACT" = "digifact55" ]; then
     DIGIFACT_TITLE="DigiFact # 55 - Did you know..."
@@ -7085,6 +8059,16 @@ if [ "$DIGIFACT" = "digifact75" ]; then
     DIGIFACT_L6=""
 fi
 
+if [ "$DIGIFACT" = "digifact76" ]; then
+    DIGIFACT_TITLE="DigiFact # 76 - Did you know..."
+    DIGIFACT_L1="If you have ever had the misfortune to accidentally send your"
+    DIGIFACT_L2="DigiByte to a Dogecoin address, your coins may not be lost."
+    DIGIFACT_L3="DigiSweep by @mctrivia may be able to help you recover them."
+    DIGIFACT_L4="Go here:"
+    DIGIFACT_L5=""
+    DIGIFACT_L6="https://digisweep.digiassetx.com/"
+fi
+
 if [ "$DIGIFACT" = "social1" ]; then
     DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
     DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet?"
@@ -7106,7 +8090,7 @@ fi
 
 if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_TITLE="      DigiFact Tip!"
-    DIGIFACT_L1="You may have noticed that many of these DigiFacts have a URL in"
+    DIGIFACT_L1="Some of these DigiFacts include a  website URL. You can"
     DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
     DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
     DIGIFACT_L5="It should make it possible to click on them to open the website."
@@ -7215,7 +8199,7 @@ main() {
         # they are root and all is good
         printf "%b %s\\n\\n" "${TICK}" "${str}"
 
-        # set the DigiNode Tools branch to use for the installer
+        # set the DigiNode Tools branch to use for DigiNode Setup
         set_dgnt_branch
 
         # Display a message if Verbose Mode is enabled
@@ -7235,16 +8219,16 @@ main() {
         make_temporary_log
 
     else
-        # show installer title box
-        installer_title_box
+        # show DigiNode Setup title box
+        setup_title_box
 
-        # set the DigiNode Tools branch to use for the installer
+        # set the DigiNode Tools branch to use for DigiNode Setup
         set_dgnt_branch
 
         # Otherwise, they do not have enough privileges, so let the user know
         printf "%b %s\\n" "${INFO}" "${str}"
         printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b DigiNode Installer requires elevated privileges to get started.\\n" "${INDENT}"
+        printf "%b DigiNode Setup requires elevated privileges to get started.\\n" "${INDENT}"
         printf "%b Please review the source code on GitHub for any concerns regarding this\\n" "${INDENT}"
         printf "%b requirement. Make sure to download this script from a trusted source.\\n\\n" "${INDENT}"
         printf "%b Sudo utility check" "${INFO}"
@@ -7260,13 +8244,13 @@ main() {
                     local add_args="-s --"
                 fi
 
-                printf "%b Re-running DigiNode Installer URL as root...\\n" "${INFO}"
+                printf "%b Re-running DigiNode Setup URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGNT_INSTALLER_URL | sudo bash -s $add_args "$@"
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@"
             else
                 # when run via calling local bash script
-                printf "%b Re-running DigiNode Installer as root...\\n" "${INFO}"
+                printf "%b Re-running DigiNode Setup as root...\\n" "${INFO}"
                 exec sudo bash "$0" "$@"
             fi
 
@@ -7274,7 +8258,7 @@ main() {
         else
             # Otherwise, tell the user they need to run the script as root, and bail
             printf "%b  %b Sudo utility check\\n" "${OVER}" "${CROSS}"
-            printf "%b Sudo is needed for the DigiNode installer to proceed.\\n\\n" "${INFO}"
+            printf "%b Sudo is needed for DigiNode Setup to proceed.\\n\\n" "${INFO}"
             printf "%b %bPlease re-run as root.${COL_NC}\\n" "${INFO}" "${COL_LIGHT_RED}"
             exit 1
         fi
@@ -7318,8 +8302,8 @@ main() {
     rpi_check
 
     # Install packages used by this installation script
-    printf "%b Checking for / installing required dependencies for installer...\\n" "${INFO}"
-    install_dependent_packages "${INSTALLER_DEPS[@]}"
+    printf "%b Checking for / installing required dependencies for DigiNode Setup...\\n" "${INFO}"
+    install_dependent_packages "${SETUP_DEPS[@]}"
 
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_LOCATION}/.officialdiginode" ]]; then
@@ -7354,7 +8338,7 @@ main() {
             export DEBIAN_FRONTEND="noninteractive"
         else
             UnattendedInstall=false
-            printf "%b Interactive Install: Displaying installation menu - Whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "%b Displaying installation menu...\\n" "${INFO}"
         fi
         printf "\\n"
     fi
@@ -7365,7 +8349,7 @@ main() {
     if [ -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
         printf "%b %bUnable to upgrade this installation of DigiByte Core%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
-        printf "%b using this Installer and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
+        printf "%b using DigiNode Setup and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -7393,11 +8377,11 @@ main() {
     # Change the user
     user_do_change
 
-    # Check if the hostname is set to 'diginode'
-    hostname_check
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_check
 
-    # Ask to change the hostname
-    hostname_ask_change
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_ask_lowspace
 
     # Check if a swap file is needed
     swap_check
@@ -7407,12 +8391,6 @@ main() {
 
     # Do swap setup
     swap_do_change
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_check
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_ask_lowspace
 
 
     ### UNATTENDED INSTALL - SET FULL DIGINODE VS DGB ONLY  ###
@@ -7439,8 +8417,14 @@ main() {
     # If this is a new interaactive Install, display the first install menu
     if [[ "${UnattendedInstall}" == false ]]; then
 
+        # Ask the user if they want to customize their install
+        ask_customize
+
         # Ask whther to install only DigiByte Core, or DigiAssets Node as well
         menu_first_install
+
+        # Tell the user to remove the microSD card from the Pi if not being used
+        rpi_microsd_remove
 
     fi
 
@@ -7483,18 +8467,6 @@ main() {
     menu_ask_install_updates
 
 
-    # Install packages used by the actual software
-    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
-    # ==============================================================================
-    
-    # Check again for supported package managers so that we may install dependencies
-    package_manager_detect
-    local dep_install_list=("${DIGINODE_DEPS[@]}")
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
-
-
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create DigiByte.conf file
@@ -7534,36 +8506,62 @@ main() {
     digiasset_node_create_pm2_service
 
 
+    ### CHANGE THE HOSTNAME TO DIGINODE ###
+
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
+    # Ask to change the hostname
+    hostname_ask_change
+
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
+
+    # Install packages used by the actual software
+    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
 
     ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
 
     # Change the hostname
     hostname_do_change
 
-
+    
     ### WRAP UP ###
 
     # Request social media post
     request_social_media
 
-    # Choose a random DigiFact
-    digifact_randomize
+    if [[ "${NewInstall}" == false ]]; then
 
-    # Display a random DigiFact
-    digifact_display
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+    fi
 
     # Display donation QR Code
     donation_qrcode
 
-    # Display reboot message (and how to run Status Monitor)
-    request_reboot
+    # Show final messages - Display reboot message (and how to run Status Monitor)
+    final_messages
 
     # Launch Status Monitor if requested
     launch_status_monitor
 
 }
 
-if [[ "$RUN_INSTALLER" != "NO" ]] ; then
+if [[ "$RUN_SETUP" != "NO" ]] ; then
     main "$@"
 fi
 

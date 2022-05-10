@@ -4,9 +4,13 @@
 # Purpose: Monitor the status of your DigiByte Node and DigiAsset Node.
 #          Includes stats for the Raspberry Pi when used.
 #
-# Author:  Olly Stedall @saltedlolly <digibyte.help> 
+# Author:  Olly Stedall @saltedlolly
+#
+# Website: https://diginode.digibyte.help
 # 
-# Usage:   Use the official DigiNode Installer to install this script on your system. 
+# Usage:   Use the official DigiNode Setup script to install this on your system:
+#
+#          curl http://diginode-setup.digibyte.help | bash 
 #
 #          Alternatively clone the repo to your home folder:
 #
@@ -24,18 +28,18 @@
 ##### IMPORTANT INFORMATION #########################
 #####################################################
 
-# Please note that this script requires the diginode-installer.sh script to be with it
-# in the same folder when it runs. Tne installer script contains functions and variables
+# Please note that this script requires the diginode-setup.sh script to be with it
+# in the same folder when it runs. Tne setup script contains functions and variables
 # used by this one.
 #
-# Both the DigiNode Installer and Status Monitor scripts make use of a settings file
+# Both DigiNode Setup and Status Monitor scripts make use of a settings file
 # located at: ~/.diginode/diginode.settings
 #
 # It want to make changes to folder locations etc. please edit this file.
 # (e.g. To move your DigiByte data folder to an external drive.)
 # 
 # Note: The default location of the diginode.settings file can be changed at the top of
-# the installer script, but this is not recommended.
+# the setup script, but this is not recommended.
 
 ######################################################
 ######### VARIABLES ##################################
@@ -46,23 +50,23 @@
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
-# This variable stores the version number of this release of 'DigiNode Tools.
-# When a new release is made, this number will be updated to match the release number on GitHub.
+# This variable stores the version number of this release of 'DigiNode Tools'.
+# When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
-# Do not change this version number on your local installaion or automatic upgrades may not work.
-DGNT_VER_LOCAL=0.0.2
+# Do not change this number or the mechanism for installing updates may no longer work.
+DGNT_VER_LOCAL=0.0.4
 
 # This is the command people will enter to run the install script.
-DGNT_INSTALLER_OFFICIAL_CMD="curl -sSL diginode-installer.digibyte.help | bash"
+DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
 
-#######################################################
-#### UPDATE THESE VALUES FROM THE INSTALLER FIRST #####
-#######################################################
+########################################################
+#### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
+########################################################
 
-# These colour and text formatting variables are included in both scripts since they are required before installer-script.sh is sourced into this one.
-# Changes to these variables should be first made in the installer script and then copied here, to help ensure the settings remain identical in both scripts.
+# These colour and text formatting variables are included in both scripts since they are required before diginode-setup.sh is sourced into this one.
+# Changes to these variables should be first made in the setup script and then copied here, to help ensure the settings remain identical in both scripts.
 
-# Set these values so the installer can still run in color
+# Set these values so we can still run in color
 COL_NC='\e[0m' # No Color
 COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
@@ -132,7 +136,7 @@ done
 ######### FUNCTIONS ##################################
 ######################################################
 
-# Find where this script is running from, so we can make sure the diginode-installer.sh script is with it
+# Find where this script is running from, so we can make sure the diginode-setup.sh script is with it
 get_script_location() {
   SOURCE="${BASH_SOURCE[0]}"
   while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
@@ -141,38 +145,38 @@ get_script_location() {
     [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
   done
   DGNT_LOCATION_NOW="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-  DGNT_INSTALLER_SCRIPT_NOW=$DGNT_LOCATION_NOW/diginode-installer.sh
+  DGNT_SETUP_SCRIPT_NOW=$DGNT_LOCATION_NOW/diginode-setup.sh
 
   if [ "$VERBOSE_MODE" = true ]; then
     printf "%b Monitor Script Location: $DGNT_LOCATION_NOW\\n" "${INFO}"
-    printf "%b Install Script Location (presumed): $DGNT_INSTALLER_SCRIPT_NOW\\n" "${INFO}"
+    printf "%b Setup Script Location (presumed): $DGNT_SETUP_SCRIPT_NOW\\n" "${INFO}"
   fi
 }
 
-# PULL IN THE CONTENTS OF THE INSTALLER SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
-import_installer_functions() {
-    # BEFORE INPORTING THE INSTALLER FUNCTIONS, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE INSTALLER
-    RUN_INSTALLER="NO"
-    # If the installer file exists,
-    if [[ -f "$DGNT_INSTALLER_SCRIPT_NOW" ]]; then
+# PULL IN THE CONTENTS OF THE SETUP SCRIPT BECAUSE IT HAS FUNCTIONS WE WANT TO USE
+import_setup_functions() {
+    # BEFORE INPORTING THE FUNCTIONS FROM diginode-setup.sh, SET VARIABLE SO IT DOESN'T ACTUAL RUN THE SETUP SCRIPT
+    RUN_SETUP="NO"
+    # If the setup file exists,
+    if [[ -f "$DGNT_SETUP_SCRIPT_NOW" ]]; then
         # source it
         if [ $VERBOSE_MODE = true ]; then
-          printf "%b Importing functions from diginode-installer.sh\\n" "${TICK}"
+          printf "%b Importing functions from diginode-setup.sh\\n" "${TICK}"
           printf "\\n"
         fi
-        source "$DGNT_INSTALLER_SCRIPT_NOW"
+        source "$DGNT_SETUP_SCRIPT_NOW"
     # Otherwise,
     else
         printf "\\n"
-        printf "%b %bERROR: diginode-installer.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: diginode-setup.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b The diginode-installer.sh file is required to continue.\\n" "${INDENT}"
+        printf "%b The diginode-setup.sh file is required to continue.\\n" "${INDENT}"
         printf "%b It contains functions we need to run the DigiNode Status Monitor.\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have not already setup your DigiNode, please use\\n" "${INDENT}"
-        printf "%b the official DigiNode installer:\\n" "${INDENT}"
+        printf "%b the official DigiNode Setup script:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   $DGNT_INSTALLER_OFFICIAL_CMD\\n" "${INDENT}"
+        printf "%b   $DGNT_SETUP_OFFICIAL_CMD\\n" "${INDENT}"
         printf "\\n"
         printf "%b Alternatively, to use 'DigiNode Status Monitor' with your existing\\n" "${INDENT}"
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
@@ -193,6 +197,7 @@ import_installer_functions() {
 digimon_title_box() {
     clear -x
     tput civis
+    tput smcup
     echo ""
     echo " ╔════════════════════════════════════════════════════════╗"
     echo " ║                                                        ║"
@@ -244,8 +249,8 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate digibyte installation in home folder.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core installation folder\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
-        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
+        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
         printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
         printf "\\n"
         printf "  %b For example:\\n" "${INDENT}"
@@ -268,8 +273,8 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate DigiByte Core binaries.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core binaries - digibyte & digibye-cli.\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using the\\n" "${INDENT}"
-        printf "  %b DigiNode Installer. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
+        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
+        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
         printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
         printf "\\n"
         printf "  %b For example:\\n" "${INDENT}"
@@ -296,7 +301,7 @@ is_dgbnode_installed() {
         printf "  %b to run 'digibyted', please, rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
         printf "  %b so that this script can find it.\\n" "${INDENT}"
         printf "\\n"
-        printf "  %b If you wish to setup your DigiByte Node as a service, please use the DigiNode Installer.\\n" "${INDENT}"
+        printf "  %b If you wish to setup your DigiByte Node as a service, please use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         local dgb_service_warning="yes"
     fi
@@ -333,7 +338,7 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
-        printf "  %b your node. The DigiNode Installer can help you create one.\\n" "${INDENT}"
+        printf "  %b your node. DigiNode Setup can help you create one.\\n" "${INDENT}"
         printf "  %b The expected location is here: $DGB_CONF_FILE\\n" "${INDENT}"
         printf "\\n"
         exit 1
@@ -363,10 +368,10 @@ is_dgbnode_installed() {
           if [ $VERBOSE_MODE = true ]; then
             printf "  %b DigiByte daemon is running\\n" "${TICK}"
             # Don't display service warning mesage if it has already been shown above
-            if [ "$dgb_service_warning" = "YES" ]; then
+            if [ "$dgb_service_warning" = "yes" ]; then
               printf "\\n"
               printf "  %b %bWARNING: digibyted is not currently running as a service%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-              printf "  %b DigiNode Installer can help you to setup digibyted to run as a service.\\n" "${INDENT}"
+              printf "  %b DigiNode Setup can help you to setup digibyted to run as a service.\\n" "${INDENT}"
               printf "  %b This ensures that your DigiByte Node starts automatically at boot and\\n" "${INDENT}"
               printf "  %b will restart automatically if it crashes for some reason. This is the preferred\\n" "${INDENT}"
               printf "  %b way to run a DigiByte Node and helps to ensure it is kept running 24/7.\\n" "${INDENT}"
@@ -387,7 +392,7 @@ is_dgbnode_installed() {
           printf "  %b %bERROR: DigiByte daemon is not running.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "  %b DigiNode Status Monitor cannot start as your DigiByte Node is not currently running.\\n" "${INDENT}"
           printf "  %b Please start digibyted and then relaunch the status monitor.\\n" "${INDENT}"
-          printf "  %b DigiNode Installer can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
+          printf "  %b DigiNode Setup can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
           printf "  %b so that it launches automatically at boot.\\n" "${INDENT}"
           printf "\\n"
           exit 1
@@ -412,7 +417,7 @@ get_dgb_rpc_credentials() {
       RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword= | cut -d'=' -f 2)
       RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport= | cut -d'=' -f 2)
       if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
-        RPC_CREDENTIALS_OK="YES"
+        RPC_CREDENTIALS_OK="yes"
         printf "  %b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n" "${TICK}"
       else
         RPC_CREDENTIALS_OK="NO"
@@ -466,10 +471,10 @@ digibyte_check_official() {
     else
         printf "%b Checking for DigiNode Tools Install of DigiByte Core: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b DigiNode Installer was not used to install this DigiByte Node.\\n" "${INFO}"
+        printf "%b DigiNode Setup was not used to install this DigiByte Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-        printf "%b For best results use the DigiNode Installer.\\n" "${INDENT}"
+        printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         is_dgb_installed="maybe"
     fi
@@ -488,17 +493,17 @@ digiasset_check_official() {
         elif [ -d "$DGA_INSTALL_LOCATION" ]; then
             printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
+            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use the DigiNode installer.\\n" "${INDENT}"
+            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="maybe"
         else
             printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using the DigiNode installer.\\n" "${INDENT}"
+            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="no"
         fi
@@ -506,17 +511,17 @@ digiasset_check_official() {
         if [ -d "$DGA_INSTALL_LOCATION" ]; then
             printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b DigiNode Installer was not used to install this DigiAsset Node.\\n" "${INFO}"
+            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
             printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
             printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use the DigiNode installer.\\n" "${INDENT}"
+            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="maybe"
         else
             printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using the DigiNode installer.\\n" "${INDENT}"
+            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
             printf "\\n"
             is_dga_installed="no"
         fi
@@ -528,7 +533,7 @@ digiasset_check_official() {
 # function to update the _config/main.json file with updated RPC credentials (if they have been changed)
 # update_dga_config() {
 # Only update if there are RPC get_rpc_credentials
-#  if [[ $RPC_CREDENTIALS_OK == "YES" ]]; then
+#  if [[ $RPC_CREDENTIALS_OK == "yes" ]]; then
 #    # need to write this one
 #    true
 #  fi
@@ -549,7 +554,7 @@ is_dganode_installed() {
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       if [ "$IPFS_VER_LOCAL" = "" ]; then
           ipfs_installed="no"
-          STARTWAIT=yes
+          STARTWAIT="yes"
       else
           DGA_STATUS="ipfsinstalled"
           ipfs_installed="yes"
@@ -561,7 +566,7 @@ is_dganode_installed() {
       PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
       if [ "" = "$PKG_OK" ]; then
           nodejs_installed="no"
-          STARTWAIT=yes
+          STARTWAIT="yes"
       else
           if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
             DGA_STATUS="nodejsinstalled"
@@ -587,7 +592,7 @@ is_dganode_installed() {
         fi
           printf "\\n"
           printf "  %b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
-          printf "  %b You can install them using the DigiNode Installer.\\n" "${INDENT}"
+          printf "  %b You can install them using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           STARTWAIT="yes"
           DGA_STATUS="not_detected"
@@ -600,9 +605,9 @@ is_dganode_installed() {
       if [ "" = "$(pgrep ipfs)" ]; then
           printf "  %b IPFS daemon is NOT running%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
-          printf "  %b You can install it with the DigiNode Installer\\n" "${INFO}"
+          printf "  %b You can install it with DigiNode Setup\\n" "${INFO}"
           printf "\\n"
-          echo "You can set it up using the DigiNode Installer."
+          echo "You can set it up using DigiNode Setup."
           printf "\\n"
           ipfs_running="no"
           DGA_STATUS="not_detected"
@@ -626,7 +631,7 @@ is_dganode_installed() {
           printf "  %b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
           printf "  %b DigiAsset Node software does not appear to be installed.\\n" "${INFO}"
-          printf "  %b You can install it using the DigiNode Installer.\\n" "${INDENT}"
+          printf "  %b You can install it using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           DGA_STATUS="not_detected"
           STARTWAIT="yes"
@@ -640,7 +645,7 @@ is_dganode_installed() {
           IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
           if [ "$IS_DGANODE_RUNNING" != "" ]; then
               DGA_STATUS="running"
-              IS_DGANODE_RUNNING="YES"
+              IS_DGANODE_RUNNING="yes"
               printf "  %b %bDigiAsset Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           else
               # If that didn't work, check if it is running using PM2
@@ -653,16 +658,16 @@ is_dganode_installed() {
               if [ "$IS_PM2_RUNNING" = "" ]; then
                   DGA_STATUS="stopped"
                   IS_PM2_RUNNING="NO"
-                  STARTWAIT=yes
+                  STARTWAIT="yes"
                   printf "  %b DigiAsset Node Status: NOT RUNNING\\n" "${CROSS}"
               elif [ "$IS_PM2_RUNNING" = "0" ]; then
                   DGA_STATUS="stopped"
                   IS_PM2_RUNNING="NO"
-                  STARTWAIT=yes
+                  STARTWAIT="yes"
                   printf "  %b DigiAsset Node Status: NOT RUNNING  [ PM2 is stopped ]\\n" "${CROSS}"
               else
                   DGA_STATUS="running"
-                  IS_PM2_RUNNING="YES"
+                  IS_PM2_RUNNING="yes"
                   printf "  %b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
               fi    
           fi
@@ -701,12 +706,12 @@ is_avahi_installed() {
       printf "  %b Installing avahi-daemon is recommended if you are using a dedicated\\n" "${INFO}"
       printf "  %b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
       printf "  %b you can you can access it at the address ${HOSTNAME}.local\\n" "${INDENT}"
-      printf "  %b instead of having to remember the IP address. DigiNode Installer\\n" "${INDENT}"
+      printf "  %b instead of having to remember the IP address. DigiNode Setup\\n" "${INDENT}"
       printf "  %b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
       printf "  %b avahi-daemon is installed. DigiNode URL: https://${HOSTNAME}.local:8090\\n"  "${TICK}"
-      IS_AVAHI_INSTALLED="YES"
+      IS_AVAHI_INSTALLED="yes"
     fi
 }
 
@@ -719,7 +724,7 @@ is_jq_installed() {
       printf "\\n"
       printf "  %b jq is a required package and will be installed. It is required for this\\n"  "${INFO}"
       printf "  %b script to be able to retrieve data from the DigiAsset Node.\\n"  "${INDENT}"
-      install_jq='yes'
+      install_jq="yes"
       printf "\\n"
     else
       printf "  %b jq is installed.\\n"  "${TICK}"
@@ -762,11 +767,14 @@ install_required_pkgs() {
 
 # Quit message
 quit_message() {
+
+    tput sgr0
+    tput rmcup
+
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$DGB_UPDATE_AVAILABLE" = "YES" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
 
       # Install updates now
-      clear -x
 
       printf "\\n"
       printf "  %b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
@@ -787,25 +795,9 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        exec curl -sSL diginode-installer.digibyte.help | bash -s -- --unattended --statusmonitor
+        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
       fi
       printf "\\n"
- #       if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
- #         digibyte_do_install
- #       fi
- #       if [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
- #         ipfs_do_install
- #       fi
- #       if [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
- #         nodejs_do_install
- #       fi
- #       if [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
- #         dga_do_install
- #       fi
- #       if [ "$DGNTOOLS_UPDATE_AVAILABLE" = "YES" ]; then
- #         dgntools_do_install
- #       fi
- #     fi
 
        if [ "$DONATION_PLEA" = "yes" ]; then
 
@@ -820,16 +812,9 @@ quit_message() {
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
-      clear -x
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
-
-      # Choose a random DigiFact
-      digifact_randomize
-
-      # Display a random DigiFact
-      digifact_display
 
       #Display donation QR code
       donation_qrcode
@@ -839,7 +824,7 @@ quit_message() {
       DONATION_PLEA="wait15"
       sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
   else
-      clear -x
+
       # Choose a random DigiFact
       digifact_randomize
 
@@ -988,9 +973,9 @@ firstrun_dganode_configs() {
 
       # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
       if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
-          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+          DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL beta"  # e.g. DigiAsset Node v3 beta
       elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
-          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+          DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL"       # e.g. DigiAsset Node v3
       elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
           DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
       fi
@@ -1055,18 +1040,18 @@ pre_loop() {
 
   # Check if there is an update for DigiByte Core
   if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-    DGB_UPDATE_AVAILABLE=NO
+    DGB_UPDATE_AVAILABLE="no"
   else
-    DGB_UPDATE_AVAILABLE=YES
+    DGB_UPDATE_AVAILABLE="yes"
   fi
 
   # If there is actually a local version of NodeJS, check for an update
   if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # Check if there is an update for NodeJS
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-        NODEJS_UPDATE_AVAILABLE=NO
+        NODEJS_UPDATE_AVAILABLE="no"
       else
-        NODEJS_UPDATE_AVAILABLE=YES
+        NODEJS_UPDATE_AVAILABLE="yes"
       fi
   fi
 
@@ -1074,11 +1059,23 @@ pre_loop() {
   if [ "$IPFS_VER_LOCAL" != "" ]; then
       # Check if there is an update for NodeJS
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-        IPFS_UPDATE_AVAILABLE=NO
+        IPFS_UPDATE_AVAILABLE="no"
       else
-        IPFS_UPDATE_AVAILABLE=YES
+        IPFS_UPDATE_AVAILABLE="yes"
       fi
   fi
+
+  if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
+
+      # Check if there is an update for DigiAsset Node
+      if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
+        DGA_UPDATE_AVAILABLE="no"
+      else
+        DGA_UPDATE_AVAILABLE="yes"
+      fi
+  fi
+
+
 
   # Choose a random DigiFact
   digifact_randomize
@@ -1093,12 +1090,12 @@ pre_loop() {
 
 startup_checks() {
 
-  # Note: Some of these functions are found in the diginode-installer.sh file
+  # Note: Some of these functions are found in the diginode-setup.sh file
   
   digimon_title_box                # Clear screen and display title box
 # digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
-  import_installer_functions       # Import diginode-installer.sh file because it contains functions we need
+  import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
   diginode_logo_v3                 # Display DigiNode logo
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
@@ -1312,9 +1309,9 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
         if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=$DGB_VER_LOCAL_CHECK_FREQ|" $DGNT_SETTINGS_FILE
-          DGB_UPDATE_AVAILABLE=NO
+          DGB_UPDATE_AVAILABLE="no"
         else
-          DGB_UPDATE_AVAILABLE=YES
+          DGB_UPDATE_AVAILABLE="yes"
         fi
 
       fi
@@ -1391,7 +1388,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
 
   # Update diginode.settings with when Status Monitor last ran
   DGNT_MONITOR_LAST_RUN=$(date)
-  sed -i -e '/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN="$DGNT_MONITOR_LAST_RUN"|' $DGNT_SETTINGS_FILE
+  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
   SAVED_TIME_1MIN="$(date)"
   sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -1410,9 +1407,9 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    if [ $IP4_EXTERNAL_NEW != $IP4_EXTERNAL ]; then
-      IP4_EXTERNAL = $IP4_EXTERNAL_NEW
-      sed -i -e '/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL="$IP4_EXTERNAL_NEW"|' $DGNT_SETTINGS_FILE
+    if [ "$IP4_EXTERNAL_NEW" != "$IP4_EXTERNAL" ]; then
+      IP4_EXTERNAL=$IP4_EXTERNAL_NEW
+      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=$IP4_EXTERNAL|" $DGNT_SETTINGS_FILE
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -1431,18 +1428,20 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
           sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
       else
           DGA_VER_MNR_LOCAL=""
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
       fi
 
       # Now we can update the main DGA_VER_LOCAL variable with the current version (major or minor depending on what was found)
       if [ "$DGA_VER_MNR_LOCAL" = "beta" ]; then
-          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+          DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL beta"  # e.g. DigiAsset Node v3 beta
+          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
-          DGA_VER_LOCAL="$DGA_VER_MAJ_LOCAL"       # e.g. DigiAsset Node v3
+          DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL"       # e.g. DigiAsset Node v3
+          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
       elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
           DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
+          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
       fi
-
-      sed -i -e '/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL="$DGA_VER_LOCAL"|' $DGNT_SETTINGS_FILE
 
       # Get the local version number of NodeJS (this will also tell us if it is installed)
       NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
@@ -1450,7 +1449,8 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
       if [ "$NODEJS_VER_LOCAL" = "" ]; then
           NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
       fi
-      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+
 
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
       sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
@@ -1459,7 +1459,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
 
     # Lookup DigiNode Tools local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
-        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
         DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
@@ -1502,7 +1502,8 @@ fi
 
 TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
 
-if [ $TIME_DIF_1DAY -gt 86400 ]; then
+# if [ $TIME_DIF_1DAY -gt 86400 ]; then              # Commented to test update checks
+if [ $TIME_DIF_1DAY -gt 100 ]; then 
 
     # items to repeat every 24 hours go here
 
@@ -1529,11 +1530,11 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
         # Compare current DigiByte Core version with Github version to know if there is a new version available
         if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-          DGB_UPDATE_AVAILABLE=NO
+          DGB_UPDATE_AVAILABLE="no"
         else
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=$DGB_VER_LOCAL_CHECK_FREQ|" $DGNT_SETTINGS_FILE
-          DGB_UPDATE_AVAILABLE=YES
+          DGB_UPDATE_AVAILABLE="yes"
         fi
     fi
 
@@ -1542,11 +1543,11 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
       if [ "$DGNT_VER_RELEASE_QUERY" != "" ]; then
         DGNT_VER_RELEASE=$DGNT_VER_RELEASE_QUERY
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
-        # Check if there is an update for Go-IPFS
+        # Check if there is an update for DigiNode Tools
         if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
-          DGNT_UPDATE_AVAILABLE=NO
+          DGNT_UPDATE_AVAILABLE="no"
         else
-          DGNT_UPDATE_AVAILABLE=YES
+          DGNT_UPDATE_AVAILABLE="yes"
         fi
     fi
 
@@ -1561,9 +1562,9 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
     if [ "$NODEJS_VER_LOCAL" != "" ]; then
         # Check if there is an update for NodeJS
         if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-          NODEJS_UPDATE_AVAILABLE=NO
+          NODEJS_UPDATE_AVAILABLE="no"
         else
-          NODEJS_UPDATE_AVAILABLE=YES
+          NODEJS_UPDATE_AVAILABLE="yes"
         fi
     fi
 
@@ -1579,7 +1580,11 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
     # If installed, get the major release directly from the api.js file
     if test -f $DGA_INSTALL_LOCATION/lib/api.js; then
-      DGA_VER_MJR_LOCAL=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
+      DGA_VER_MJR_LOCAL_QUERY=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
+      if [ $DGA_VER_MJR_LOCAL_QUERY != "" ]; then
+        DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL_QUERY
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL|" $DGNT_SETTINGS_FILE
+      fi
     fi
 
     if [ "$DGA_VER_RELEASE" != "" ]; then
@@ -1588,11 +1593,11 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
         # If there is actually a local version, then check for an update
         if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
 
-          # Check if there is an update for Go-IPFS
+          # Check if there is an update for DigiAsset Node
           if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-            DGA_UPDATE_AVAILABLE=NO
+            DGA_UPDATE_AVAILABLE="no"
           else
-            DGA_UPDATE_AVAILABLE=YES
+            DGA_UPDATE_AVAILABLE="yes"
           fi
       fi
     fi
@@ -1608,9 +1613,9 @@ if [ $TIME_DIF_1DAY -gt 86400 ]; then
 
           # Check if there is an update for Go-IPFS
           if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-            IPFS_UPDATE_AVAILABLE=NO
+            IPFS_UPDATE_AVAILABLE="no"
           else
-            IPFS_UPDATE_AVAILABLE=YES
+            IPFS_UPDATE_AVAILABLE="yes"
           fi
         fi
     fi
@@ -1661,7 +1666,7 @@ printf "  ╠═══════════════╬══════�
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$IS_AVAHI_INSTALLED" = "YES" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
+if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "running" ]; then
@@ -1677,34 +1682,40 @@ fi
 printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGB_UPDATE_AVAILABLE" = "YES" ]; then
+if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
 printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Available: v$DGB_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-if [ "$DGNT_UPDATE_AVAILABLE" = "YES" ]; then
+if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
 printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Available: v$DGNT_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
-elif [ "$IPFS_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Available: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+  if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Available: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+  else
+    printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+  fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
-elif [ "$NODEJS_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Available: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+  if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
+    printf "  ║               ║  " && printf "%-27s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Available: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+  else
+    printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
+  fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
-printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
-elif [ "$DGA_UPDATE_AVAILABLE" = "YES" ]; then
-printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Available: v$DGA_VER_RELEASE${txtrst}" "  ║"
+  if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
+    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Available: v$DGA_VER_RELEASE${txtrst}" "  ║"
+  else
+    printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+  fi
 fi
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
@@ -1717,21 +1728,15 @@ printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
-printf "   IMPORTANT: You need to forward port 12024 on your router so that\\n"
-printf "   your DigiByte node can be discovered by other nodes on the internet.\\n"
-printf "   Otherwise the number of potential inbound connections is limited to 7.\\n"
-printf ".  For help on how to do this, visit: https://portforward.com\\n"
+printf "   IMPORTANT: You need to forward port 12024 on your router so that your DigiByte node can\\n"
+printf "   be discovered by other nodes on the internet, otherwise the number of potential inbound\\n"
+printf "   connections is limited to 8. For help on how to do this, visit: https://portforward.com\\n"
 printf "\\n"
-printf "   You can verify that port 12024 is being forwarded correctly by\\n"
-printf "   visiting [ https://opennodes.digibyte.link ] and entering your\\n"
-printf "   external IP address in the form at the bottom of the page. If the\\n"
-printf "   port is open, it should find your node and display your DigiByte\\n"
-printf "   version number and approximate location.\\n"
-printf "\\n"
-printf "   If you have already forwarded port 12024, monitor the connection\\n"
-printf "   count above - it should start increasing. If the number is above 8,\\n"
-printf "   this indicates that things are working correctly. This message will\\n"
-printf "   disappear when the total connections is 9 or more.\\n"
+printf "   To verify that port 12024 is being forwarded correctly, visit: https://opennodes.digibyte.link\\n"
+printf "   Enter your external IP address in the form at the bottom of the page. If the port is open,\\n"
+printf "   it should should display your DigiByte version number and approximate location. The connection\\n"
+printf "   count should also slowly start increasing. If the number is above 8, this indicates that things are\\n"
+printf "   working correctly. This message will disappear when the total connections is 9 or more.\\n"  
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
@@ -1744,10 +1749,18 @@ if [ "$SWAPTOTAL_HR" != "0B" ]; then # only display the swap file status if ther
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -gt 8 ]; then
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
+fi
+if [ "$DGB_STATUS" = "startingup" ]; then
+printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
+printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
+fi
 printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 # Display a random DigiFact
