@@ -6539,23 +6539,23 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="        - DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb=".    DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="        - Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs=".    Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="        - NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs=".    NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="        - DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="     DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt="        - DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt=".    DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
             printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
         #Nothing to do, continue
           if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
