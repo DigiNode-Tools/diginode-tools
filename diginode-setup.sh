@@ -3019,8 +3019,8 @@ wallet_backup() {
         # Ask to backup the DigiAsset Node _config folder, if it exists
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
-            # Ask the user if they want to encrypt with a password?
-            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            # Ask the user if they want to backup their DigiAsset Node settings
+            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
                 run_dgaconfig_backup=true
@@ -3050,7 +3050,8 @@ wallet_backup() {
             digibyte_check
 
             # Check if the wallet is currently unencrypted
-            if [[ $(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet") ]]; then
+            IS_WALLET_ENCRYPTED=$(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep -Eo "running with an unencrypted wallet")
+            if  [ "$IS_WALLET_ENCRYPTED" = "running with an unencrypted wallet" ]; then
 
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
