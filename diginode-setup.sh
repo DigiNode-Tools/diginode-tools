@@ -3684,7 +3684,7 @@ menu_existing_install() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" --no-button "Exit" "${r}" "${c}" 5 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
