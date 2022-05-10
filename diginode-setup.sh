@@ -3221,7 +3221,7 @@ wallet_backup() {
         # Mount USB stick
         str="Mount primary USB partition..."
         printf "%b %s" "${INFO}" "${str}"
-        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
+        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # TEST WRITE TO USB USING TOUCH testfile.txt
@@ -3229,7 +3229,7 @@ wallet_backup() {
         touch /media/usbbackup/testfile.txt 2>/dev/null
 
         # Check if the file was successfully written
-        str="Is the USB stick compatible?"
+        str="Can the USB stick be written to?"
         printf "%b %s..." "${INFO}" "${str}"
         if [ -f /media/usbbackup/testfile.txt ]; then
             printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
@@ -3317,6 +3317,7 @@ wallet_backup() {
                 whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
                 run_wallet_backup=false
                 run_dgaconfig_backup=false
+                printf "\\n"  
                 menu_existing_install
             fi
             printf "\\n"
