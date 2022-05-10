@@ -1117,13 +1117,13 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 # A simple function that just displays the title in a box
 setup_title_box() {
      clear -x
-     echo " ╔════════════════════════════════════════════════════════╗"
-     echo " ║                                                        ║"
-     echo " ║         ${txtbld}D I G I N O D E   S E T U P${txtrst}            ║ "
-     echo " ║                                                        ║"
-     echo " ║  Setup and maintain your DigiByte & DigiAsset Node  ║"
-     echo " ║                                                        ║"
-     echo " ╚════════════════════════════════════════════════════════╝" 
+     echo " ╔═════════════════════════════════════════════════════════╗"
+     echo " ║                                                         ║"
+     echo " ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+     echo " ║                                                         ║"
+     echo " ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+     echo " ║                                                         ║"
+     echo " ╚═════════════════════════════════════════════════════════╝" 
      echo ""
 }
 
