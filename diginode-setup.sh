@@ -3647,7 +3647,7 @@ menu_first_install() {
     UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "  %bCancel was selected, exiting DigiNode Setup%b\\n\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "  %Exit was selected, exiting DigiNode Setup%b\\n" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
