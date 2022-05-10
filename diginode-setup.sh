@@ -3123,12 +3123,6 @@ wallet_backup() {
             menu_existing_install  
         fi
 
-        # Stop DigiByte Core if it is running, as we need to encrypt the wallet
-        if [ "$DGB_STATUS" = "running" ] || [ $DGB_INSTALL_TYPE = "startingup" ]; then
-           stop_service digibyted
-           DGB_STATUS="stopped"
-        fi
-
 
         # If the passphrases have been entered correctly, proceed encrypting the wallet.dat file
         if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
@@ -3140,10 +3134,14 @@ wallet_backup() {
 
             # If the command completed without error, then assume the wallet is encrypted
             if [ $? -eq 0 ]; then
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+            else
+                whiptail --msgbox --backtitle "" --title "DigiByte Wallet encryption failed." "ERROR: Your DigiByte wallet was not successfully encrypted. The script will exit." "${r}" "${c}" 
+                exit 1
             fi
 
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            
 
         fi
 
