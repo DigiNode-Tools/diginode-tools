@@ -3048,7 +3048,7 @@ wallet_backup() {
             # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
             digibyte_check
 
-            printf " =============== Checking: DigiNode Wallet =============================\\n\\n"
+            printf " =============== Checking: DigiByte Wallet =============================\\n\\n"
             # ==============================================================================
 
             # Check if the wallet is currently unencrypted
@@ -3065,12 +3065,13 @@ wallet_backup() {
                 else
                     printf "%b You chose NOT to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=false
+                    printf "\\n"
                 fi
             else
                 printf "%b DigiByte Wallet is already encrypted.\\n" "${TICK}"
+                printf "\\n"
             fi
 
-            printf "\\n"
 
         fi
 
@@ -3158,6 +3159,9 @@ wallet_backup() {
 
     if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
+        printf " =============== Backup DigiNode =======================================\\n\\n"
+        # ==============================================================================
+
         # Ask the user to prepare their backup USB stick
         if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with DigiNode backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
@@ -3165,6 +3169,7 @@ wallet_backup() {
         else
             printf "%b You chose not to proceed with the backup. Returning to menu...\\n" "${INFO}"
             run_wallet_backup=false
+            printf "\\n"
             menu_existing_install
         fi
         printf "\\n"
