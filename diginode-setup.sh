@@ -3279,14 +3279,22 @@ wallet_backup() {
                 # Unmount USB stick
                 str="Unmount the USB stick..."
                 printf "%b %s" "${INFO}" "${str}"
-                umount /dev/${USB_BACKUP_DRIVE}1
+                umount /dev/${USB_BACKUP_DRIVE}*
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on USB backup stick..."
                 printf "%b %s" "${INFO}" "${str}"
                 sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # If the command completed without error, then assume the wallet is encrypted
+                if [ $? -eq 0 ]; then
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    whiptail --msgbox --backtitle "" --title "USB Formatting Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "\\n"
+                    menu_existing_install
+                fi
 
                 # Wipe the current partition on the drive
                 str="Create new primary gpt partition on USB backup stick..."
@@ -3541,7 +3549,7 @@ EOF
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_BACKUP_DRIVE}1
+        umount /dev/${USB_BACKUP_DRIVE}*
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
