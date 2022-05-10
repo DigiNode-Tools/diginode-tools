@@ -88,7 +88,7 @@ DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/digi
 # This is the Github repo for the DigiAsset Node (this only needs to be changed if you with to test a new version.)
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
 DGA_GITHUB_REPO_MAIN="--depth 1 https://github.com/digiassetX/digiasset_node.git"
-DGA_GITHUB_REPO_DEV="--branch apiV3 https://github.com/digiassetX/digiasset_node.git"
+DGA_GITHUB_REPO_DEV="--branch development https://github.com/digiassetX/digiasset_node.git"
 
 
 # These are the commands that the user pastes into the terminal to run DigiNode Setup
@@ -135,7 +135,7 @@ for var in "$@"; do
         "--unattended" ) UNATTENDED_MODE=true;;
         "--dgntdev" ) DGNT_BRANCH="develop";; 
         "--dgntmain" ) DGNT_BRANCH="main";; 
-        "--dgadev" ) DGA_BRANCH="apiV3";; 
+        "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
@@ -224,9 +224,9 @@ is_unattended_mode() {
 
 # Inform user if DigiAsset Dev Mode is enable
 is_dgadev_mode() {
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
+    if [ "$DGA_BRANCH" = "development" ]; then
         printf "%b DigiAsset Node Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   The apiV3 version of DigiAsset Node will be installed.\\n" "${INDENT}"
+        printf "%b   The development version of DigiAsset Node will be installed.\\n" "${INDENT}"
         printf "\\n"
         DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
     else
@@ -6080,7 +6080,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # Requested branch
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
+    if [ "$DGA_BRANCH" = "development" ]; then
         printf "%b DigiAsset Node development version requested.\\n" "${INFO}"
     elif [ "$DGA_BRANCH" = "main" ]; then
         printf "%b DigiAsset Node release version requested.\\n" "${INFO}"
@@ -6115,8 +6115,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             fi
 
 
-        elif [ "$DGA_LOCAL_BRANCH" = "apiV3" ]; then
-            printf "%b %bDigiAsset Node will be upgraded from the apiV3 branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGA_LOCAL_BRANCH" = "development" ]; then
+            printf "%b %bDigiAsset Node will be upgraded from the development branch to the v${DGA_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
         else 
@@ -6125,18 +6125,18 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_DO_INSTALL="if_doing_full_install"
         fi
 
-    # Upgrade to apiV3 branch
-    elif [ "$DGA_BRANCH" = "apiV3" ]; then
+    # Upgrade to development branch
+    elif [ "$DGA_BRANCH" = "development" ]; then
         if [ "$DGA_LOCAL_BRANCH" = "main" ]; then
-            printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the apiV3 branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "apiV3" ]; then
-            printf "%b %bDigiAsset Node apiV3 branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGNT_LOCAL_BRANCH" = "development" ]; then
+            printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
         else
-            printf "%b %bDigiAsset Node apiV3 branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bDigiAsset Node development branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="new"
             DGA_DO_INSTALL="if_doing_full_install"
         fi
@@ -6329,11 +6329,11 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Next install the newest version
     cd $USER_HOME
     # Clone the development version if develop flag is set
-    if [ "$DGA_BRANCH" = "apiV3" ]; then
-        str="Cloning DigiAsset Node apiV3 branch from Github repository..."
+    if [ "$DGA_BRANCH" = "development" ]; then
+        str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch apiV3 https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=apiV3|" $DGNT_SETTINGS_FILE
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
