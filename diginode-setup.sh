@@ -3018,7 +3018,7 @@ wallet_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
                 run_dgaconfig_backup=true
@@ -3241,10 +3241,11 @@ wallet_backup() {
             if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
+                printf "\\n"
 
                 # FORMAT USB STICK HERE 
 
-                printf " =============== FORMAT USB STICK ======================================\\n\\n"
+                printf " =============== Format USB Stick ======================================\\n\\n"
                 # ==============================================================================
 
                 opt1a="exFAT"
@@ -3265,17 +3266,21 @@ wallet_backup() {
                     # Update, or
                     ${opt1a})
                         printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
-                        printf "\\n"
                         USB_BACKUP_STICK_FORMAT="exfat"
 
                         ;;
                     # Reset,
                     ${opt2a})
-                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"
-                        printf "\\n"                   
+                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"                   
                         USB_BACKUP_STICK_FORMAT="fat32"
                         ;;
                 esac
+
+                # Unmount USB stick
+                str="Unmount the USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                umount /dev/${USB_BACKUP_DRIVE}1
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on USB backup stick..."
@@ -3516,10 +3521,10 @@ EOF
                 cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick.//n//n" "${r}" "${c}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick." "${r}" "${c}"
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet failed due to an error. Check the USB stick.//n//n" "${r}" "${c}"
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet backup failed due to an error. Check the USB stick." "${r}" "${c}"
                 fi
 
             fi
@@ -3536,12 +3541,12 @@ EOF
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_SWAP_DRIVE}1
+        umount /dev/${USB_BACKUP_DRIVE}1
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
         printf "%b Backup complete. Returning to menu...\\n" "${INFO}"
-        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK.//n//n" "${r}" "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
         run_wallet_backup=false
         run_dgaconfig_backup=false
         do_wallet_backup_now=false
