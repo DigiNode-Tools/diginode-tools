@@ -1776,7 +1776,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail)
+    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail bc)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo "${avahi_package}")
 
@@ -3803,6 +3803,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
       printf "%b You chose to proceed without customizing your install.\\n" "${INFO}"
+      printf "\\n"diginode
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -4926,7 +4927,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # ==============================================================================
 
     # Get the local version number of IPFS Updater (this will also tell us if it is installed)
-    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
 
     # Let's check if IPFS Updater is already installed
     str="Is IPFS Updater already installed?..."
