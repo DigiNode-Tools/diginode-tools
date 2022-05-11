@@ -6388,7 +6388,6 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
 
     # Fetch the release version if main flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
