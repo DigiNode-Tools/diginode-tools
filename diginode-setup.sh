@@ -4112,12 +4112,18 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        if [[ "$HOSTNAME" == "diginode" ]]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
+        printf "\\n"
     elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -4137,8 +4143,6 @@ final_messages() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b (You will need to reboot first.)\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -4165,14 +4169,18 @@ final_messages() {
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
         sleep 5
         sudo reboot
     elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
+        if [[ "$HOSTNAME" == "diginode" ]]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
         printf "\\n"
         sleep 5
         sudo reboot
