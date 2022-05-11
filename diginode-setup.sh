@@ -5252,7 +5252,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        if [ $IPFSU_INSTALL_TYPE = "install" ]; then
+        if [ $IPFSU_INSTALL_TYPE = "new" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
             sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -5335,7 +5335,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
     sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $IPFS_INSTALL_TYPE = "install" ]; then
+    if [ $IPFS_INSTALL_TYPE = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -5909,7 +5909,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    if [ $NODEJS_INSTALL_TYPE = "new" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -6397,7 +6397,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
     sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $DGA_INSTALL_TYPE = "install" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
+    if [ $DGA_INSTALL_TYPE = "new" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
         sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
