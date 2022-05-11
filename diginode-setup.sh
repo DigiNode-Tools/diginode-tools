@@ -3371,7 +3371,7 @@ EOF
         source /media/usbbackup/diginode_backup/diginode_backup.info
 
         # Create a variable containing the time and date right now for logging changes
-        NEW_BACKUP_DATE=$(date -u)
+        NEW_BACKUP_DATE=$(date)
 
         # If the wallet.dat file does not exist on the USB stick, delete the corresponding backup date in the status file (perhaps a previous backup has been manually deleted)
         if [ ! -f /media/usbbackup/diginode_backup/wallet.dat ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
@@ -4583,9 +4583,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     DGB_VER_LOCAL=$DGB_VER_RELEASE
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Re-enable and re-start DigiByte daemon service after reset/upgrade
@@ -4861,9 +4861,9 @@ fi
 
         # Update diginode.settings with the install/upgrade date
         if [ "$DGNT_INSTALL_TYPE" = "new" ]; then
-            sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
-            sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Make downloads executable
@@ -5254,9 +5254,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
         if [ $IPFSU_INSTALL_TYPE = "new" ]; then
-            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
-            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Reset IPFS Updater Install and Upgrade Variables
@@ -5337,9 +5337,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new Go local version number and the install/upgrade date
     sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $IPFS_INSTALL_TYPE = "new" ]; then
-        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Initialize IPFS, if it has not already been done so
@@ -5911,9 +5911,9 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "new" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
-        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
-        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -6245,11 +6245,17 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Delete existing 'digiasset_node' folder (if it exists)
-    if [[ -d $DGA_INSTALL_LOCATION ]]; then
-        str="Removing DigiAsset Node current version..."
+    # Delete existing 'digiasset_node' files (if they exists)
+    if [[ -d $DGA_INSTALL_LOCATION/lib ]]; then
+        str="Removing existing DigiAsset Node files..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -r $DGA_INSTALL_LOCATION
+        rm -r $DGA_INSTALL_LOCATION/lib
+        rm -r $DGA_INSTALL_LOCATION/node_modules
+        rm -r $DGA_INSTALL_LOCATION/template
+        rm $DGA_INSTALL_LOCATION/index.js
+        rm $DGA_INSTALL_LOCATION/LICENCE
+        rm $DGA_INSTALL_LOCATION/*.log
+        rm $DGA_INSTALL_LOCATION/*.json
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -6356,36 +6362,48 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         npm install --quiet pm2@latest -g
     fi
 
-
     # Next install the newest version
     cd $USER_HOME
-    # Clone the development version if develop flag is set
-    if [ "$DGA_BRANCH" = "development" ]; then
+
+    # Clone the development version if develop flag is set, and this is a new install
+    if [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
-        cd $DGA_INSTALL_LOCATION
-        sudo -u $USER_ACCOUNT npm install
-        cd $USER_HOME
+    # Fetch the development version if develop flag is set, and this is an update
+    elif [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+        str="Cloning DigiAsset Node development branch from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Clone the release version if main flag is set
-    elif [ "$DGA_BRANCH" = "main" ]; then
+    # Clone the release version if main flag is set, and this is a new install
+    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
-        cd $DGA_INSTALL_LOCATION
-        sudo -u $USER_ACCOUNT npm install
-        cd $USER_HOME
-
     fi
+
+    # Fetch the release version if main flag is set, and this is an update
+    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Install latest dependencies
+    printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
+    cd $DGA_INSTALL_LOCATION
+    sudo -u $USER_ACCOUNT npm install
+    cd $USER_HOME
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
@@ -6399,9 +6417,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     DGA_VER_LOCAL=$DGA_VER_RELEASE
     sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
     if [ $DGA_INSTALL_TYPE = "new" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
-        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
-        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset DGA Install and Upgrade Variables

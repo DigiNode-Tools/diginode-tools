@@ -892,24 +892,24 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     str="Setting up Status Monitor timers..."
     printf "  %b %s" "${INFO}" "${str}"
     # set 15 sec timer and save to settings file
-    SAVED_TIME_15SEC="$(date -u)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15SEC="$(date)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
-    SAVED_TIME_1MIN="$(date -u)"
-    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set 15 min timer and save to settings file
-    SAVED_TIME_15MIN="$(date -u)"
-    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set daily timer and save to settings file
-    SAVED_TIME_1DAY="$(date -u)"
-    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1DAY="$(date)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
     # set weekly timer and save to settings file
-    SAVED_TIME_1WEEK="$(date -u)"
-    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1WEEK="$(date)"
+    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date)\"|" $DGNT_SETTINGS_FILE
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
 
@@ -929,7 +929,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # Log date of Status Monitor first run to diginode.settings
     str="Logging date of first run to diginode.settings file..."
     printf "  %b %s" "${INFO}" "${str}"
-    DGNT_MONITOR_FIRST_RUN=$(date -u)
+    DGNT_MONITOR_FIRST_RUN=$(date)
     sed -i -e "/^DGNT_MONITOR_FIRST_RUN=/s|.*|DGNT_MONITOR_FIRST_RUN=\"$DGNT_MONITOR_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -995,7 +995,7 @@ firstrun_dganode_configs() {
       fi
       sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
 
-      DGA_FIRST_RUN=$(date -u)
+      DGA_FIRST_RUN=$(date)
       sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=\"$DGA_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
       printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -1010,12 +1010,12 @@ pre_loop() {
   loopcounter=0
 
   # Set timenow variable with the current time
-  TIME_NOW=$(date -u)
+  TIME_NOW=$(date)
 
   # Log date of this Status Monitor run to diginode.settings
   str="Logging date of this run to diginode.settings file..."
   printf "%b %s" "${INFO}" "${str}"
-  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
   printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
   # Is DigiByte daemon starting up?
@@ -1159,7 +1159,7 @@ fi
 # ------------------------------------------------------------------------------
 
 # Update timenow variable with current time
-TIME_NOW=$(date -u)
+TIME_NOW=$(date)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
@@ -1272,7 +1272,7 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15SEC" "+%s") )))
+TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15SEC)" "+%s") )))
 
 if [ $TIME_DIF_15SEC -gt 15 ]; then 
 
@@ -1321,8 +1321,8 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
-    SAVED_TIME_15SEC="$(date -u)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15SEC="$(date)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1331,7 +1331,7 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1MIN" "+%s") )))
+TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1MIN)" "+%s") )))
 
 if [ $TIME_DIF_1MIN -gt 60 ]; then
 
@@ -1387,11 +1387,11 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
   fi
 
   # Update diginode.settings with when Status Monitor last ran
-  DGNT_MONITOR_LAST_RUN=$(date -u)
-  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+  DGNT_MONITOR_LAST_RUN=$(date)
+  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
-  SAVED_TIME_1MIN="$(date -u)"
-  sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+  SAVED_TIME_1MIN="$(date)"
+  sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -1401,7 +1401,7 @@ fi
 #    Update the Internal & External IP
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15MIN" "+%s") )))
+TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15MIN)" "+%s") )))
 
 if [ $TIME_DIF_15MIN -gt 300 ]; then
 
@@ -1490,8 +1490,8 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     DONATION_PLEA="yes"
     sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
 
-    SAVED_TIME_15MIN="$(date -u)"
-    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15MIN="$(date)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1500,7 +1500,7 @@ fi
 #    Check for new version of DigiByte Core
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
+TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1DAY)" "+%s") )))
 
 # if [ $TIME_DIF_1DAY -gt 86400 ]; then              # Commented to test update checks
 if [ $TIME_DIF_1DAY -gt 100 ]; then 
@@ -1623,8 +1623,8 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
 
 
     # reset 24 hour timer
-    SAVED_TIME_1DAY="$(date -u)"
-    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date -u)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1DAY="$(date)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
