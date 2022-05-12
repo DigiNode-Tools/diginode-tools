@@ -420,8 +420,11 @@ DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSET NODE LOCATION:
+# The backup location variable is a temporary folder that stores your _config folder backup during a reset or uninstall.
+# When reinstalling, this folder is automatically restored to the correct location, typically ~/digiasset_node/_config
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 DGA_SETTINGS_LOCATION=\$DGA_INSTALL_LOCATION/_config
+DGA_SETTINGS_BACKUP_LOCATION=$USER_HOME/dga_config_backup
 
 # DIGIASSET NODE FILES
 DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
@@ -6581,19 +6584,19 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb=".    DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb="      DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs=".    Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="      Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs=".    NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="      NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="     DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="      DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt=".    DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="      DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
@@ -6840,37 +6843,66 @@ uninstall_do_now() {
         # Do you want to uninstall your DigiAsset Node?
         if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" "${r}" "${c}"; then
 
-            # Delete existing 'digiasset_node' folder (if it exists)
-            str="Stopping DigiAsset Node PM2 service..."
-            printf "%b %s" "${INFO}" "${str}"
-            pm2 delete digiasset
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Delete existing 'digiasset_node' folder (if it exists)
-            str="Deleting ~/digiasset_node folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r -f $USER_HOME/digiasset_node
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            local delete_dga=yes
 
         else
+            local delete_dga=no
             printf "%b You chose not to uninstall DigiAsset Node v${DGA_VER_LOCAL}.\\n" "${INFO}"
         fi
     fi
 
-    # Ask to delete DigiAsset Node settings (main.json) if it exists
-    if [ -f "$DGA_SETTINGS_FILE" ]; then
+    # Ask to delete DigiAsset Node config folder if it exists
+    if [ -f "$DGA_SETTINGS_LOCATION" ]; then
 
         # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your DigiAsset Node settings folder: ~/.digibyte/asset_settings ?" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\nIf you say no, the _config folder will backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software." "${r}" "${c}"; then
+            local delete_dga_config=yes
+        else
+            local delete_dga_config=no
+            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
+        fi
+    fi
+
+    # Stop PM2 service, if we are deleting
+    if [ "$delete_dga" = "yes" ]; then
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Stopping DigiAsset Node PM2 service..."
+        printf "%b %s" "${INFO}" "${str}"
+        pm2 delete digiasset
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Backup DigiAsset _config folder to the home folder, if we are uninstalling DigiAssets Node, but keeping the configuration
+    if [ "$delete_dga_config" = "no" ] && [ "$delete_dga" = "yes" ]; then
+        
+            # Delete asset_settings folder
+            str="Backing up the DigiAssets settings folder: ~/digiasset_node/_config  [ It will be moved to to the user's home folder. ].."
+            printf "%b %s" "${INFO}" "${str}"
+            mv $DGA_SETTINGS_LOCATION $DGA_SETTINGS_BACKUP_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+
+    # Delete DigiAsset _config folder, if we are keeping the DigiAssets Node, but deleting the configuration
+    if [ "$delete_dga_config" = "yes" ] && [ "$delete_dga" = "yes" ]; then
 
             # Delete asset_settings folder
-            str="Deleting DigiAssets settings folder: asset_settings.."
+            str="Deleting DigiAssets settings folder: ~/digiasset_node/_config.."
             printf "%b %s" "${INFO}" "${str}"
             rm -f -r $DGA_SETTINGS_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
-        fi
+    fi
+
+    # Delete DigiAsset Node
+    if [ "$delete_dga" = "yes" ]; then
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Deleting ~/digiasset_node folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Ask to delete PM2 service, if it exists
