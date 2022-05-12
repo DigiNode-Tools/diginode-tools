@@ -6446,6 +6446,169 @@ fi
 
 }
 
+# Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
+digiasset_node_create_settings() {
+
+    local str
+
+    # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
+    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="reset"
+        else
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            # ==============================================================================
+            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
+            DGA_SETTINGS_CREATE=NO
+            DGA_SETTINGS_CREATE_TYPE="none"
+            return
+        fi
+    fi
+
+    # If DigiAsset Node settings do not yet exist, then assume this is a new install
+    if [ ! -f "$DGA_SETTINGS_FILE" ]; then
+                DGA_SETTINGS_CREATE="if_doing_full_install"
+                DGA_SETTINGS_CREATE_TYPE="new"
+    fi
+
+    # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
+    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        DGA_SETTINGS_CREATE=YES
+    fi
+
+    # Let's get the latest RPC credentials from digibyte.conf if it exists
+    if [ -f $DGB_CONF_FILE ]; then
+        source $DGB_CONF_FILE
+    fi
+
+
+    # If main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
+
+        local rpcuser_json_cur
+        local rpcpass_json_cur
+        local rpcpass_json_cur
+
+        # Let's get the current rpcuser and rpcpassword from the main.json file
+
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+        elif [ "$rpcport" != "$rpcport_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+        fi
+    fi
+
+
+    if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
+
+         # Display section break
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
+            printf " =============== Creating: DigiAsset Node settings ===================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
+            printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
+            # ==============================================================================
+        fi
+
+        # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
+        if [ $DGA_SETTINGS_CREATE_TYPE = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
+            str="Deleting existing DigiAssets settings..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+
+            str="Updating RPC credentials in main.json..."
+            printf "%b %s" "${INFO}" "${str}"
+
+            tmpfile=($mktemp)
+
+            cp $DGA_SETTINGS_FILE "$tmpfile" &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
+              "$tmpfile" >$DGA_SETTINGS_FILE &&
+            mv "$tmpfile" $DGA_SETTINGS_FILE &&
+            rm -f "$tmpfile"
+
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        # create ~/digiasset_node install folder if it does not already exist
+        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
+            str="Creating ~/digiasset_node/ folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # create assetnode_config folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_LOCATION ]; then
+            str="Creating ~/digiasset_node/_config/ folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        if [ ! -f $DGA_SETTINGS_FILE ]; then
+            # Create a new main.json settings file
+            str="Creating ~/digiasset_node/_config/main.json settings file..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
+            cat <<EOF > $DGA_SETTINGS_FILE
+{
+    "ignoreList": [
+        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
+    ],
+    "quiet":          true,
+    "includeMedia":   {
+        "maxSize":    1000000,
+        "names":      ["icon"],
+        "mimeTypes":  ["image/png","image/jpg","image/gif"],
+        "paid":       "always"
+    },
+    "timeout":        6000000,
+    "errorDelay":     600000,
+    "port":           8090,
+    "scanDelay":      600000,
+    "sessionLife":    86400000,
+    "users":          false,
+    "publish":        false,
+    "wallet":         {
+      "user":         "$rpcuser",
+      "pass":         "$rpcpassword",
+      "host":         "127.0.0.1",
+      "port":         $rpcport
+    }
+}
+EOF
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        printf "\\n"
+
+    fi
+}
+
 
 # Create pm2 service so that DigiAsset Node will run at boot
 digiasset_node_create_pm2_service() {
@@ -6654,169 +6817,6 @@ if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == f
 
 fi
 
-}
-
-# Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
-digiasset_node_create_settings() {
-
-    local str
-
-    # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
-    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
-
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="reset"
-        else
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
-            # ==============================================================================
-            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
-            DGA_SETTINGS_CREATE=NO
-            DGA_SETTINGS_CREATE_TYPE="none"
-            return
-        fi
-    fi
-
-    # If DigiAsset Node settings do not yet exist, then assume this is a new install
-    if [ ! -f "$DGA_SETTINGS_FILE" ]; then
-                DGA_SETTINGS_CREATE="if_doing_full_install"
-                DGA_SETTINGS_CREATE_TYPE="new"
-    fi
-
-    # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
-    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
-        DGA_SETTINGS_CREATE=YES
-    fi
-
-    # Let's get the latest RPC credentials from digibyte.conf if it exists
-    if [ -f $DGB_CONF_FILE ]; then
-        source $DGB_CONF_FILE
-    fi
-
-
-    # If main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
-    if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
-
-        local rpcuser_json_cur
-        local rpcpass_json_cur
-        local rpcpass_json_cur
-
-        # Let's get the current rpcuser and rpcpassword from the main.json file
-
-        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
-        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
-        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
-
-        # Compare them with the digibyte.conf values to see if they need updating
-
-        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        elif [ "$rpcport" != "$rpcport_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        fi
-    fi
-
-
-    if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
-
-         # Display section break
-        if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
-            printf " =============== Creating: DigiAsset Node settings ===================\\n\\n"
-            # ==============================================================================
-        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-            printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
-            printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
-        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
-            printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
-            # ==============================================================================
-        fi
-
-        # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
-        if [ $DGA_SETTINGS_CREATE_TYPE = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
-            str="Deleting existing DigiAssets settings..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f -r $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # If main.json file already exists, update the rpc user and password if they have changed
-        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-
-            str="Updating RPC credentials in main.json..."
-            printf "%b %s" "${INFO}" "${str}"
-
-            tmpfile=($mktemp)
-
-            cp $DGA_SETTINGS_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
-              "$tmpfile" >$DGA_SETTINGS_FILE &&
-            mv "$tmpfile" $DGA_SETTINGS_FILE &&
-            rm -f "$tmpfile"
-
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-        fi
-
-        # create ~/digiasset_node install folder if it does not already exist
-        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
-            str="Creating ~/digiasset_node/ folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # create assetnode_config folder if it does not already exist
-        if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-            str="Creating ~/digiasset_node/_config/ folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        if [ ! -f $DGA_SETTINGS_FILE ]; then
-            # Create a new main.json settings file
-            str="Creating ~/digiasset_node/_config/main.json settings file..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
-            cat <<EOF > $DGA_SETTINGS_FILE
-{
-    "ignoreList": [
-        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
-    ],
-    "quiet":          true,
-    "includeMedia":   {
-        "maxSize":    1000000,
-        "names":      ["icon"],
-        "mimeTypes":  ["image/png","image/jpg","image/gif"],
-        "paid":       "always"
-    },
-    "timeout":        6000000,
-    "errorDelay":     600000,
-    "port":           8090,
-    "scanDelay":      600000,
-    "sessionLife":    86400000,
-    "users":          false,
-    "publish":        false,
-    "wallet":         {
-      "user":         "$rpcuser",
-      "pass":         "$rpcpassword",
-      "host":         "127.0.0.1",
-      "port":         $rpcport
-    }
-}
-EOF
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        printf "\\n"
-
-    fi
 }
 
 
