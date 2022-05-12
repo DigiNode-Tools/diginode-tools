@@ -6424,9 +6424,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        str="Removing ~/dga_config_backup folder..."
+        str="Removing DigiAsset configuration backup folder: ~/dga_config_backup ..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -r $DGA_SETTINGS_BACKUP_LOCATION
+        rmdir $DGA_SETTINGS_BACKUP_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
