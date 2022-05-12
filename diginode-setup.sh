@@ -6410,9 +6410,18 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Restore _config from local backup folder
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
-        str="Restoring DigiAsset configuration from local backup..."
+
+        # create ~/dga_config_backup/ folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_LOCATION ]; then #
+            str="Creating ~/digiasset_node/_config folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        str="Restoring DigiAsset configuration files from local backup..."
         printf "%b %s" "${INFO}" "${str}"
-        mv $DGA_SETTINGS_BACKUP_LOCATION $DGA_SETTINGS_LOCATION
+        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION*.json
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -6953,11 +6962,19 @@ uninstall_do_now() {
 
     # Backup DigiAsset _config folder to the home folder, if we are uninstalling DigiAssets Node, but keeping the configuration
     if [ "$delete_dga_config" = "no" ] && [ "$delete_dga" = "yes" ]; then
+
+            # create ~/dga_config_backup/ folder if it does not already exist
+            if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+                str="Creating ~/dga_config_backup/ backup folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
         
             # Delete asset_settings folder
             str="Backing up the DigiAssets settings folder: ~/digiasset_node/_config  [ It will be moved to to the user's home folder. ].."
             printf "%b %s" "${INFO}" "${str}"
-            mv $DGA_SETTINGS_LOCATION $DGA_SETTINGS_BACKUP_LOCATION
+            mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION/*.json
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "\\n"
     fi
