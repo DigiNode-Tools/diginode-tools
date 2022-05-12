@@ -6407,6 +6407,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     sudo -u $USER_ACCOUNT npm install
     cd $USER_HOME
 
+    ###################################################################################################################################
+    # I think this is where I need to either create the main.json in the event of a new install, or restore the backup _config folder
+    ###################################################################################################################################
+
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
@@ -6852,10 +6856,10 @@ uninstall_do_now() {
     fi
 
     # Ask to delete DigiAsset Node config folder if it exists
-    if [ -f "$DGA_SETTINGS_LOCATION" ]; then
+    if [ -d "$DGA_SETTINGS_LOCATION" ] && [ "$delete_dga" = "yes" ]; then
 
         # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\nIf you say no, the _config folder will backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\n(If you choose No, the _config folder will backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" "${r}" "${c}"; then
             local delete_dga_config=yes
         else
             local delete_dga_config=no
@@ -6863,7 +6867,7 @@ uninstall_do_now() {
         fi
     fi
 
-    # Stop PM2 service, if we are deleting
+    # Stop PM2 service, if we are deleting DigiAsset Node
     if [ "$delete_dga" = "yes" ]; then
 
         # Delete existing 'digiasset_node' folder (if it exists)
@@ -8565,9 +8569,6 @@ main() {
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
-    # Create assetnode_config script PLUS main.json file (if they don't yet exist)
-    digiasset_node_create_settings
-
     # Install/upgrade IPFS
     ipfs_do_install
 
@@ -8579,6 +8580,9 @@ main() {
 
     # Install DigiAssets along with IPFS
     digiasset_node_do_install
+
+    # Create ~/digiasset_node/_config folder PLUS main.json file (if they don't yet exist)
+    digiasset_node_create_settings
 
     # Setup PM2 init service
     digiasset_node_create_pm2_service
