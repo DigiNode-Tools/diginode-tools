@@ -428,6 +428,7 @@ DGA_SETTINGS_BACKUP_LOCATION=$USER_HOME/dga_config_backup
 
 # DIGIASSET NODE FILES
 DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
+DGA_SETTINGS_BACKUP_FILE=\$DGA_SETTINGS_BACKUP_LOCATION/main.json
 
 # SYSTEM SERVICE FILES:
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
@@ -6246,21 +6247,23 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b %s" "${INFO}" "${str}"
         pm2 delete digiasset
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete existing 'digiasset_node' files (if they exists)
+        if [[ -d $DGA_INSTALL_LOCATION/lib ]]; then
+            str="Removing existing DigiAsset Node files..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $DGA_INSTALL_LOCATION/lib
+            rm -r $DGA_INSTALL_LOCATION/node_modules
+            rm -r $DGA_INSTALL_LOCATION/template
+            rm $DGA_INSTALL_LOCATION/index.js
+            rm $DGA_INSTALL_LOCATION/LICENCE
+            rm $DGA_INSTALL_LOCATION/*.log
+            rm $DGA_INSTALL_LOCATION/*.json
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
     fi
 
-    # Delete existing 'digiasset_node' files (if they exists)
-    if [[ -d $DGA_INSTALL_LOCATION/lib ]]; then
-        str="Removing existing DigiAsset Node files..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -r $DGA_INSTALL_LOCATION/lib
-        rm -r $DGA_INSTALL_LOCATION/node_modules
-        rm -r $DGA_INSTALL_LOCATION/template
-        rm $DGA_INSTALL_LOCATION/index.js
-        rm $DGA_INSTALL_LOCATION/LICENCE
-        rm $DGA_INSTALL_LOCATION/*.log
-        rm $DGA_INSTALL_LOCATION/*.json
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
 
     # Let's check if npm is already installed
     str="Is npm already installed?..."
@@ -6405,6 +6408,14 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # I think this is where I need to either create the main.json in the event of a new install, or restore the backup _config folder
     ###################################################################################################################################
 
+    # Restore _config from local backup folder
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
+        str="Restoring DigiAsset configuration from local backup..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_BACKUP_LOCATION $DGA_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
     # Install latest dependencies
     printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
@@ -6467,14 +6478,25 @@ digiasset_node_create_settings() {
         fi
     fi
 
-    # If DigiAsset Node settings do not yet exist, then assume this is a new install
-    if [ ! -f "$DGA_SETTINGS_FILE" ]; then
+    # If DigiAsset Node live & backup settings do not yet exist, then assume this is a new install
+    if [ ! -f "$DGA_SETTINGS_FILE" ] && [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
                 DGA_SETTINGS_CREATE="if_doing_full_install"
                 DGA_SETTINGS_CREATE_TYPE="new"
     fi
 
+    # If DigiAsset Node live settings do not exist, but backup settings do, then assume this is a restore install
+    if [ ! -f "$DGA_SETTINGS_FILE" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+                DGA_SETTINGS_CREATE="if_doing_full_install"
+                DGA_SETTINGS_CREATE_TYPE="restore"
+    fi
+
     # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
     if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        DGA_SETTINGS_CREATE=YES
+    fi
+
+    # If we are restoring the DigiAsset Node backup settings file, and the user has opted to do a full DigiNode install, then proceed
+    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "restore" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         DGA_SETTINGS_CREATE=YES
     fi
 
@@ -6484,7 +6506,7 @@ digiasset_node_create_settings() {
     fi
 
 
-    # If main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
 
         local rpcuser_json_cur
@@ -6511,20 +6533,56 @@ digiasset_node_create_settings() {
         fi
     fi
 
+    # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
+
+        local rpcuser_json_cur
+        local rpcpass_json_cur
+        local rpcpass_json_cur
+
+        # Let's get the current rpcuser and rpcpassword from the main.json file
+
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+        elif [ "$rpcport" != "$rpcport_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+        fi
+    fi
+
 
     if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
 
          # Display section break
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
-            printf " =============== Creating: DigiAsset Node settings ===================\\n\\n"
             # ==============================================================================
+            printf " =============== Creating: DigiAsset Node settings =====================\\n\\n"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-            printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
+            # ==============================================================================
+            printf " =============== Updating: DigiAsset Node settings =====================\\n\\n"
             printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "restore" ]; then
+            # ==============================================================================
+            printf " =============== Restoring: DigiAsset Node settings ====================\\n\\n"
+            printf "%b Your DigiAsset Node backup settings will be restored.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
+            # ==============================================================================
+            printf " =============== Updating & Restoring: DigiAsset Node settings =========\\n\\n"
+            printf "%b RPC credentials in digibyte.conf have changed. Your DigiAsset Node backup settings will be updated and restored.\\n" "${INFO}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
+            # ==============================================================================
             printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
             printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
-            # ==============================================================================
         fi
 
         # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
@@ -6535,10 +6593,10 @@ digiasset_node_create_settings() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If main.json file already exists, update the rpc user and password if they have changed
-        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+        # If the live main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-            str="Updating RPC credentials in main.json..."
+            str="Updating RPC credentials in live main.json..."
             printf "%b %s" "${INFO}" "${str}"
 
             tmpfile=($mktemp)
@@ -6553,28 +6611,41 @@ digiasset_node_create_settings() {
 
         fi
 
-        # create ~/digiasset_node install folder if it does not already exist
-        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
-            str="Creating ~/digiasset_node/ folder..."
+        # If the backup main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+
+            str="Updating RPC credentials in backup main.json..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
+
+            tmpfile=($mktemp)
+
+            cp $DGA_SETTINGS_BACKUP_FILE "$tmpfile" &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
+              "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
+            mv "$tmpfile" $DGA_SETTINGS_BACKUP_FILE &&
+            rm -f "$tmpfile"
+
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
         fi
 
-        # create assetnode_config folder if it does not already exist
-        if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-            str="Creating ~/digiasset_node/_config/ folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+        # If the "backup" settings folder does not exist, create the backup settings folder
+        if [ ! -d "$DGA_SETTINGS_BACKUP_FILE" ]; then
 
-        if [ ! -f $DGA_SETTINGS_FILE ]; then
-            # Create a new main.json settings file
-            str="Creating ~/digiasset_node/_config/main.json settings file..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
-            cat <<EOF > $DGA_SETTINGS_FILE
+            # create ~/dga_config_backup/ folder if it does not already exist
+            if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+                str="Creating ~/dga_config_backup/ folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Create a new main.json settings backup file
+            if [ ! -f $DGA_SETTINGS_BACKUP_FILE ]; then
+                str="Creating ~/dga_config_backup/main.json settings file..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_BACKUP_FILE
+                cat <<EOF > $DGA_SETTINGS_BACKUP_FILE
 {
     "ignoreList": [
         "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
@@ -6601,10 +6672,12 @@ digiasset_node_create_settings() {
     }
 }
 EOF
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
-        printf "\\n"
+            printf "\\n"
+
+        fi
 
     fi
 }
@@ -8578,11 +8651,11 @@ main() {
     # Install/upgrade NodeJS
     nodejs_do_install
 
+    # Create or update main.json file with RPC credentials
+    digiasset_node_create_settings
+
     # Install DigiAssets along with IPFS
     digiasset_node_do_install
-
-    # Create ~/digiasset_node/_config folder PLUS main.json file (if they don't yet exist)
-    digiasset_node_create_settings
 
     # Setup PM2 init service
     digiasset_node_create_pm2_service
