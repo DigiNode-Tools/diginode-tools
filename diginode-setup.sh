@@ -6689,7 +6689,7 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            printf "\\n"
+
 
         fi
 
