@@ -6411,9 +6411,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Restore _config from local backup folder
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
 
-        # create ~/dga_config_backup/ folder if it does not already exist
+        # create ~/digiasset_node/_config folder, it does not already exist
         if [ ! -d $DGA_SETTINGS_LOCATION ]; then #
-            str="Creating ~/digiasset_node/_config folder..."
+            str="Creating ~/digiasset_node/_config settings folder..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6421,7 +6421,12 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
         str="Restoring DigiAsset configuration files from local backup..."
         printf "%b %s" "${INFO}" "${str}"
-        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION/*.json
+        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        str="Removing ~/dga_config_backup folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $DGA_SETTINGS_BACKUP_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -6972,9 +6977,9 @@ uninstall_do_now() {
             fi
         
             # Delete asset_settings folder
-            str="Backing up the DigiAssets settings folder: ~/digiasset_node/_config  [ It will be moved to to the user's home folder. ].."
+            str="Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
             printf "%b %s" "${INFO}" "${str}"
-            mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION/*.json
+            mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "\\n"
     fi
