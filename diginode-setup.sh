@@ -6421,7 +6421,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
         str="Restoring DigiAsset configuration files from local backup..."
         printf "%b %s" "${INFO}" "${str}"
-        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION*.json
+        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION/*.json
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
