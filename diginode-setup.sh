@@ -6372,13 +6372,13 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     if [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the development version if develop flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
-        str="Cloning DigiAsset Node development branch from Github repository..."
+        str="Pulling DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
@@ -6394,22 +6394,22 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Fetch the release version if main flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
-        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
-       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+    ###################################################################################################################################
+    # I think this is where I need to either create the main.json in the event of a new install, or restore the backup _config folder
+    ###################################################################################################################################
 
     # Install latest dependencies
     printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
     sudo -u $USER_ACCOUNT npm install
     cd $USER_HOME
-
-    ###################################################################################################################################
-    # I think this is where I need to either create the main.json in the event of a new install, or restore the backup _config folder
-    ###################################################################################################################################
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
