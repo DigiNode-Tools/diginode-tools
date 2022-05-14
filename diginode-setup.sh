@@ -8538,7 +8538,7 @@ main() {
         sleep 2
 
         # Display welcome dialogs
-        welcomeDialogs
+#        welcomeDialogs
 
         # Show microSD card warnings if this is a Raspberry Pi
         rpi_microsd_ask
