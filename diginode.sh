@@ -882,7 +882,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # update internal IP address and save to settings file
     str="Looking up internal IP address..."
     printf "  %b %s" "${INFO}" "${str}"
-    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
     if [ $IP4_INTERNAL_QUERY != "" ]; then
         IP4_INTERNAL=$IP4_INTERNAL_QUERY
         sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
@@ -1380,7 +1380,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
   digifact_randomize
 
   # Update local IP address if it has changed
-  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
   if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
     IP4_INTERNAL = $IP4_INTERNAL_NEW
     sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
