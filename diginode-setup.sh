@@ -739,7 +739,7 @@ set_sys_variables() {
         # Get internal IP address
         IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=$IP4_INTERNAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Lookup disk usage, and update diginode.settings if present
@@ -822,16 +822,16 @@ update_disk_usage() {
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=$BOOT_DISKUSED_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=$BOOT_DISKUSED_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=$BOOT_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=$BOOT_DISKFREE_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=$BOOT_DISKFREE_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=$DGB_DATA_DISKUSED_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=$DGB_DATA_DISKUSED_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=$DGB_DATA_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=$DGB_DATA_DISKFREE_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=$DGB_DATA_DISKFREE_KB|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=\"$BOOT_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=\"$BOOT_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=\"$BOOT_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=\"$BOOT_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=\"$BOOT_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=\"$DGB_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=\"$DGB_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=\"$DGB_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=\"$DGB_DATA_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=\"$DGB_DATA_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
         fi
 
 }
@@ -4376,7 +4376,7 @@ digibyte_check() {
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -4420,7 +4420,7 @@ digibyte_check() {
         return     
     else
         printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=$DGB_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -4585,7 +4585,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_RELEASE
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -4644,7 +4644,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     # If we get a response, update the stored release version
     if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
-        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Get the current local version and branch, if any
@@ -4657,12 +4657,12 @@ printf " =============== Checking: DigiNode Tools ==============================
     # If we get a valid version number, update the stored local version
     if [ "$dgnt_ver_local_query" != "" ]; then
         DGNT_VER_LOCAL=$dgnt_ver_local_query
-        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If we get a valid local branch, update the stored local branch
     if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=$DGNT_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"$DGNT_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Let's check if DigiNode Tools already installed
@@ -4842,7 +4842,7 @@ fi
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode-tools/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"develop\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
@@ -4850,14 +4850,14 @@ fi
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"release\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -4943,7 +4943,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFSU_STATUS="installed"
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -4966,7 +4966,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return     
     else
         printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
@@ -5017,7 +5017,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return     
     else
         printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
@@ -5033,7 +5033,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFS_STATUS="installed"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -5256,7 +5256,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         if [ $IPFSU_INSTALL_TYPE = "new" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
@@ -5339,7 +5339,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
-    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ $IPFS_INSTALL_TYPE = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
@@ -5680,7 +5680,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         NODEJS_STATUS="installed"
-        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -5704,7 +5704,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
         # Update variable in diginode.settings so this does not run again
         NODEJS_PPA_ADDED=YES
-        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
     else
         printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
         printf "%b If needed, you can have this script attempt to add it, by editing the diginode.settings\\n" "${INDENT}"
@@ -5742,7 +5742,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return
     else
         printf "%b%b %s Found: v${NODEJS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
@@ -5913,7 +5913,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
-    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ $NODEJS_INSTALL_TYPE = "new" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
@@ -6001,7 +6001,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # If we actually get a valid response, update DGA_VER_MJR_LOCAL variable with a new major version 
       if [ "$DGA_VER_MJR_LOCAL_QUERY" != "" ]; then
         DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL_QUERY
-        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=\"$DGA_VER_MJR_LOCAL\"|" $DGNT_SETTINGS_FILE
       fi
     fi
 
@@ -6012,7 +6012,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If we get a valid local branch, update the stored local branch
     if [ "$DGA_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=$DGA_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"$DGA_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -6025,13 +6025,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_VER_MNR_LOCAL="beta"
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
@@ -6060,14 +6060,14 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_VER_MNR_LOCAL="beta"
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         # If we actually get a version number then we can use it
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
@@ -6086,7 +6086,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
         DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
     fi
-    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
 
     # Next we need to check for the latest release at the DigiAssetX website
@@ -6109,9 +6109,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
         printf "%b%b %s Found: DigiAsset Node v${DGA_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
-        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Requested branch
@@ -6376,7 +6376,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the development version if develop flag is set, and this is an update
@@ -6384,7 +6384,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         str="Pulling DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Clone the release version if main flag is set, and this is a new install
@@ -6392,7 +6392,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
-       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the release version if main flag is set, and this is an update
@@ -6400,7 +6400,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -6446,7 +6446,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
-    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ $DGA_INSTALL_TYPE = "new" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
@@ -7063,7 +7063,7 @@ uninstall_do_now() {
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFS_STATUS="installed"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Next let's check if IPFS daemon is running
