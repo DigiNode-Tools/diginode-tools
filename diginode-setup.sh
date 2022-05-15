@@ -443,7 +443,7 @@ DGB_INSTALL_DATE=
 DGB_UPGRADE_DATE=
 DGB_VER_RELEASE=
 DGB_VER_LOCAL=
-DGB_VER_LOCAL_CHECK_FREQ=daily
+DGB_VER_LOCAL_CHECK_FREQ="daily"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. There should be no need to change this.
@@ -540,7 +540,7 @@ IPFS_PORT_TEST_STATUS=
 IPFS_PORT_TEST_DATE=
 
 # Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
-DONATION_PLEA=yes
+DONATION_PLEA="yes"
 
 # Store DigiByte blockchain sync progress
 BLOCKSYNC_VALUE=
@@ -4870,6 +4870,23 @@ fi
             sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
+        # Get the current local version and branch, if any
+        if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+            local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+            DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        fi
+
+        # If we get a valid version number, update the stored local version
+        if [ "$dgnt_ver_local_query" != "" ]; then
+            DGNT_VER_LOCAL=$dgnt_ver_local_query
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # If we get a valid local branch, update the stored local branch
+        if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
+            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"$DGNT_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
+        fi
+
         # Make downloads executable
         str="Making DigiNode scripts executable..."
         printf "%b %s" "${INFO}" "${str}"
@@ -5253,7 +5270,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Get the new version number of the local IPFS Updater install
-        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -5918,6 +5935,12 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If there is no install date (i.e. NodeJS was already installed) add it now
+    if [ $NODEJS_INSTALL_DATE = "" ]; then
+        NODEJS_INSTALL_DATE="$(date)"
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
