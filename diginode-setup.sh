@@ -203,7 +203,7 @@ txtbld=$(tput bold) # Set bold mode
 
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
@@ -275,7 +275,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
   if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
     str="Creating ~/.digibyte folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
@@ -547,7 +547,7 @@ BLOCKSYNC_VALUE=
 
 EOF
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
     else
@@ -579,7 +579,7 @@ EOF
     printf "%b %s" "${INFO}" "${str}"
     source $DGNT_SETTINGS_FILE
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
@@ -607,7 +607,7 @@ if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; th
 
     source $DGNT_SETTINGS_FILE
     
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
@@ -617,7 +617,7 @@ if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; th
     fi
 
 else
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b diginode.settings file not found\\n" "${INDENT}"
         printf "\\n"
     fi
@@ -667,7 +667,7 @@ set_sys_variables() {
 
     local str
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Looking up system variables...\\n" "${INFO}"
     else
         str="Looking up system variables..."
@@ -676,7 +676,7 @@ set_sys_variables() {
 
     # check the 'cat' command is available
     if ! is_command cat ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -687,7 +687,7 @@ set_sys_variables() {
 
     # check the 'free' command is available
     if ! is_command free ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -698,7 +698,7 @@ set_sys_variables() {
 
     # check the 'df' command is available
     if ! is_command df ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -715,9 +715,9 @@ set_sys_variables() {
     SWAPTOTAL_KB=$(cat /proc/meminfo | grep SwapTotal: | tr -s ' ' | cut -d' ' -f2)
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b   Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
-        if [ $SWAPTOTAL_HR = "0B" ]; then
+        if [ "$SWAPTOTAL_HR" = "0B" ]; then
             printf "%b   Total SWAP: none\\n" "${INDENT}"
         else
             printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
@@ -729,7 +729,7 @@ set_sys_variables() {
     DGB_DATA_DISKTOTAL_HR=$(df $DGB_DATA_LOCATION -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     DGB_DATA_DISKTOTAL_KB=$(df $DGB_DATA_LOCATION --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
@@ -883,7 +883,7 @@ digibyte_create_conf() {
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
         local set_dbcache
-        if [ $RAMTOTAL_KB -ge "7340032" ]; then
+        if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
             str="System RAM exceeds 7GB. Setting dbcache to 2Gb..."
             printf "%b %s" "${INFO}" "${str}"
             set_dbcache=2048
@@ -5009,7 +5009,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $IPFSU_STATUS = "not_detected" ]; then
+    if [ "$IPFSU_STATUS" = "not_detected" ]; then
       printf "%b %bIPFS Updater v${IPFSU_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFSU_INSTALL_TYPE="new"
       IPFSU_DO_INSTALL=YES
@@ -5108,7 +5108,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $IPFS_STATUS = "not_detected" ]; then
+    if [ "$IPFS_STATUS" = "not_detected" ]; then
       printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
@@ -5135,7 +5135,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
         # Reset IPFS Updater as well, if needed
-        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
             IPFSU_DO_INSTALL=YES
             IPFSU_INSTALL_TYPE="reset"
         fi
@@ -5147,7 +5147,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         # Don't reset IPFS Updater, if we are not resetting Go-IPFS (no point)
-        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
             IPFSU_DO_INSTALL=NO
             IPFSU_INSTALL_TYPE="none"
         fi
@@ -5189,7 +5189,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
 
         # If we are re-installing the current version of IPFS Updater, delete the existing install folder
-        if [ $IPFSU_INSTALL_TYPE = "reset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "reset" ]; then
             str="Reset Mode: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r /usr/local/bin/ipfs-update
@@ -5197,7 +5197,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         # If we are updating the current version of IPFS Updater, delete the existing install folder
-        if [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
             str="Preparing Upgrade: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r /usr/local/bin/ipfs-update
@@ -5274,9 +5274,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        if [ $IPFSU_INSTALL_TYPE = "new" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "new" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-        elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+        elif [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
             sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
@@ -5326,7 +5326,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
 
     # If we are re-installing the current version of Go-IPFS, delete the existing binary
-    if [ $IPFS_INSTALL_TYPE = "reset" ]; then
+    if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
         str="Reset Mode: Deleting Go-IPFS v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
@@ -5357,9 +5357,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
     sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    if [ $IPFS_INSTALL_TYPE = "new" ]; then
+    if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -5656,7 +5656,7 @@ EOF
     fi
 
     # If the system is not using upstart or systemd then quit since others are not yet supported
-    if [ $INIT_SYSTEM = "sysv-init" ] || [ $INIT_SYSTEM = "unknown" ]; then
+    if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
         printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
@@ -5843,13 +5843,13 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     printf "\\n"
-    if [ $NODEJS_INSTALL_TYPE = "new" ]; then
+    if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
         printf " =============== Install: NodeJS =======================================\\n\\n"
         # ==============================================================================
-    elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
         printf " =============== Upgrade: NodeJS =======================================\\n\\n"
         # ==============================================================================
-    elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Reset: NodeJS =========================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
@@ -5931,14 +5931,14 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    if [ $NODEJS_INSTALL_TYPE = "new" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If there is no install date (i.e. NodeJS was already installed) add it now
-    if [ $NODEJS_INSTALL_DATE = "" ]; then
+    if [ "$NODEJS_INSTALL_DATE" = "" ]; then
         NODEJS_INSTALL_DATE="$(date)"
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
@@ -6245,13 +6245,13 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     printf "\\n"
-    if [ $DGA_INSTALL_TYPE = "new" ]; then
+    if [ "$DGA_INSTALL_TYPE" = "new" ]; then
         printf " =============== Install: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
-    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         printf " =============== Upgrade: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
-    elif [ $DGA_INSTALL_TYPE = "reset" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Reset: DigiAsset Node =================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
@@ -6264,7 +6264,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
        DGA_STATUS="stopped"
     fi
 
-    if [ $DGA_INSTALL_TYPE = "reset" ]; then
+    if [ "$DGA_INSTALL_TYPE" = "reset" ]; then
 
         str="Reset Mode: Delete DigiAsset Node pm2 instance..."
         printf "%b %s" "${INFO}" "${str}"
@@ -6470,9 +6470,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
     sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    if [ $DGA_INSTALL_TYPE = "new" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
+    if [ "$DGA_INSTALL_TYPE" = "new" ] || [ "$DGA_INSTALL_TYPE" = "reset" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -6623,7 +6623,7 @@ digiasset_node_create_settings() {
         fi
 
         # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
-        if [ $DGA_SETTINGS_CREATE_TYPE = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
             str="Deleting existing DigiAssets settings..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f -r $DGA_SETTINGS_LOCATION
@@ -7378,7 +7378,7 @@ elif is_command vi ; then
     TEXTEDITOR=vi
 fi
 
-if [ $VERBOSE_MODE = true ]; then
+if [ "$VERBOSE_MODE" = true ]; then
     printf "%b Text Editor: $TEXTEDITOR\\n" "${INFO}"
 fi
 
