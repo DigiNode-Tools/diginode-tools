@@ -6268,7 +6268,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
         str="Reset Mode: Delete DigiAsset Node pm2 instance..."
         printf "%b %s" "${INFO}" "${str}"
-        pm2 delete digiasset
+        sudo -u $USER_ACCOUNT pm2 delete digiasset
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Delete existing 'digiasset_node' files (if they exists)
@@ -6991,20 +6991,19 @@ uninstall_do_now() {
     # Backup DigiAsset _config folder to the home folder, if we are uninstalling DigiAssets Node, but keeping the configuration
     if [ "$delete_dga_config" = "no" ] && [ "$delete_dga" = "yes" ]; then
 
-            # create ~/dga_config_backup/ folder if it does not already exist
-            if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
-                str="Creating ~/dga_config_backup/ backup folder..."
-                printf "%b %s" "${INFO}" "${str}"
-                sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-        
-            # Delete asset_settings folder
-            str="Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
+        # create ~/dga_config_backup/ folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+            str="Creating ~/dga_config_backup/ backup folder..."
             printf "%b %s" "${INFO}" "${str}"
-            mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        printf "\\n"
+        fi
+    
+        # Delete asset_settings folder
+        str="Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Delete DigiAsset _config folder, if we are keeping the DigiAssets Node, but deleting the configuration
