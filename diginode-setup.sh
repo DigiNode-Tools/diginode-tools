@@ -6783,6 +6783,12 @@ digiasset_node_create_settings() {
         printf "\\n"
     fi
 
+    # If no DigiAsset settings file exists, a new one will be created
+    if [ ! -f $DGA_SETTINGS_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
+        printf "%b DigiAsset Settings do not currently exist and will be created.\\n" "${INFO}"
+        printf "\\n"
+    fi
+
 
     if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
 
@@ -6853,7 +6859,7 @@ digiasset_node_create_settings() {
         fi
 
         # If the "backup" settings folder does not exist, create the backup settings folder
-        if [ ! -d "$DGA_SETTINGS_BACKUP_FILE" ]; then
+        if [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
 
             # create ~/dga_config_backup/ folder if it does not already exist
             if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
