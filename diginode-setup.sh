@@ -6704,8 +6704,10 @@ digiasset_node_create_settings() {
 
     # Let's get the latest RPC credentials from digibyte.conf if it exists
     if [ -f $DGB_CONF_FILE ]; then
-        printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         source $DGB_CONF_FILE
+        if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+            printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
+        fi
     fi
 
 
