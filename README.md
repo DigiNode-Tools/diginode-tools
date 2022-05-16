@@ -114,13 +114,17 @@ Raspberry Pi 4 8Gb
 
 ## Release History
 
-v0.0.4 - 2022-05-10 Latest test release
+v0.0.5 - 2022-05-16 Test Release
+- USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
+- DigiAsset Settings are backed up locally when uninstalling, if desired
+- Fixes to diginode.settings to better store variables
+
+v0.0.4 - 2022-05-10 Test Release
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
 - Install URL has changed to diginode-setup.digibyte.help
 - Implemented backup feature for prelimanry testing
 - Renamed every mention of "DigiNode Installer to "DigiNode Setup"
 - WARNING: There is currently a bug with the DigiAsset Node updater that will erase you configuration. I  am currently working to fix this.
-
 
 v0.0.2 - 2021-11-14
 - Test Release

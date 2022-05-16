@@ -6696,8 +6696,15 @@ digiasset_node_create_settings() {
         DGA_SETTINGS_CREATE=YES
     fi
 
+    # Display title if the settings file already exist
+    if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+            printf " =============== Checking: DigiAsset Node settings ====================\\n\\n"
+            # ==============================================================================
+    fi
+
     # Let's get the latest RPC credentials from digibyte.conf if it exists
     if [ -f $DGB_CONF_FILE ]; then
+        printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         source $DGB_CONF_FILE
     fi
 
@@ -6705,6 +6712,9 @@ digiasset_node_create_settings() {
     # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
 
+        str="Checking if live DigiAsset Settings need updating with new RPC credentials..."
+        printf "%b %s" "${INFO}" "${str}"
+
         local rpcuser_json_cur
         local rpcpass_json_cur
         local rpcpass_json_cur
@@ -6720,40 +6730,55 @@ digiasset_node_create_settings() {
         if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+        printf "\\n"
     fi
 
     # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
 
+        str="Checking if backup DigiAsset Settings need updating with new RPC credentials..."
+        printf "%b %s" "${INFO}" "${str}"
+
         local rpcuser_json_cur
         local rpcpass_json_cur
         local rpcpass_json_cur
 
         # Let's get the current rpcuser and rpcpassword from the main.json file
 
-        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
-        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
-        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpass_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.port' | tr -d '"')
 
         # Compare them with the digibyte.conf values to see if they need updating
 
         if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+        printf "\\n"
     fi
 
 
