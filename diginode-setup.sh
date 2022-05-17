@@ -6707,7 +6707,7 @@ digiasset_node_create_settings() {
 
     # Display title if the settings file already exist
     if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
-            printf " =============== Checking: DigiAsset Node settings ====================\\n\\n"
+            printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
             # ==============================================================================
     fi
 
@@ -6719,11 +6719,20 @@ digiasset_node_create_settings() {
         fi
     fi
 
+    # Check if DigiAsset settings file exists
+    if [ -f $DGA_SETTINGS_FILE ]; then
+        printf "%b Existing DigiAsset settings found.\\n" "${INFO}"
+    fi
+
+    # Check if DigiAsset settings backup file exists
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+        printf "%b Existing DigiAsset settings backup found.\\n" "${INFO}"
+    fi
 
     # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
 
-        str="Checking if live DigiAsset Settings need updating with new RPC credentials..."
+        str="Checking if DigiAsset Settings need updating with new RPC credentials..."
         printf "%b %s" "${INFO}" "${str}"
 
         local rpcuser_json_cur
@@ -6793,7 +6802,7 @@ digiasset_node_create_settings() {
     fi
 
     # If no DigiAsset settings file exists, a new one will be created
-    if [ ! -f $DGA_SETTINGS_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
+    if [ ! -f $DGA_SETTINGS_FILE ] && [ ! -f $DGA_SETTINGS_BACKUP_FILE ]; then
         printf "%b DigiAsset Settings do not currently exist and will be created.\\n" "${INFO}"
         printf "\\n"
     fi
@@ -6816,7 +6825,7 @@ digiasset_node_create_settings() {
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
             # ==============================================================================
             printf " =============== Updating & Restoring: DigiAsset Node settings =========\\n\\n"
-            printf "%b RPC credentials in digibyte.conf have changed. Your DigiAsset Node backup settings will be updated and restored.\\n" "${INFO}"
+            printf "%b RPC credentials in digibyte.conf have changed. DigiAsset backup settings will be updated and restored.\\n" "${INFO}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
             # ==============================================================================
             printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
