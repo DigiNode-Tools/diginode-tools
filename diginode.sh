@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.5
+DGNT_VER_LOCAL="0.0.5"
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -398,6 +398,19 @@ is_dgbnode_installed() {
           exit 1
         fi
       fi
+    fi
+
+    # Tell user to reboot if the RPC username or password in digibyte.conf have recently been changed
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
+            printf "\\n"
+            printf "%b %bRPC credentials have recently been changed. You need to restart your DigiNode for the changes to take effect.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+            printf "\\n"
+            exit
+        fi
     fi
 
     # Display message if the DigiByte Node is running okay
@@ -1036,6 +1049,7 @@ pre_loop() {
     fi
   fi
 
+
   ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
 
   # Check if there is an update for DigiByte Core
@@ -1460,7 +1474,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     # Lookup DigiNode Tools local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
-        DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
@@ -1470,18 +1484,19 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     fi
 
     # If we get a valid local branch, update the stored local branch
-    if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=\"$DGNT_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
+    if [ "$dgnt_branch_local_query" != "" ]; then
+        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Let's check if DigiNode Tools already installed
-    if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+    elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
         DGNT_VER_LOCAL_DISPLAY="dev-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+    elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     fi
@@ -1539,9 +1554,9 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    DGNT_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
-      if [ "$DGNT_VER_RELEASE_QUERY" != "" ]; then
-        DGNT_VER_RELEASE=$DGNT_VER_RELEASE_QUERY
+    dgnt_ver_release_query=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+      if [ "$dgnt_ver_release_query" != "" ]; then
+        DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         # Check if there is an update for DigiNode Tools
         if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
