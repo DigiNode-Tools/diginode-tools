@@ -4476,6 +4476,15 @@ digibyte_check() {
       fi
     fi
 
+    # Restart Digibyted if the RPC username or password in digibyte.conf have recently been changed
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
+            printf "%b RPC credentials have been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted
+        fi
+    fi
+
     # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ]; then
         str="Is DigiByte Core finished starting up?..."
