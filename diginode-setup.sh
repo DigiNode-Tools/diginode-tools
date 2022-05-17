@@ -3966,7 +3966,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
       printf "%b You chose to proceed without customizing your install.\\n" "${INFO}"
-      printf "\\n"diginode
+      printf "\\n"
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -6807,12 +6807,6 @@ digiasset_node_create_settings() {
         else
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        printf "\\n"
-    fi
-
-    # If no DigiAsset settings file exists, a new one will be created
-    if [ ! -f $DGA_SETTINGS_FILE ] && [ ! -f $DGA_SETTINGS_BACKUP_FILE ]; then
-        printf "%b DigiAsset Settings do not currently exist and will be created.\\n" "${INFO}"
         printf "\\n"
     fi
 
