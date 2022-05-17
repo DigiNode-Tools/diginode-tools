@@ -535,7 +535,7 @@ SYSTEM_SECURITY_UPDATES=
 IPFS_PORT_TEST_STATUS=
 IPFS_PORT_TEST_DATE=
 
-# Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+# Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
 DONATION_PLEA="yes"
 
 # Store DigiByte blockchain sync progress
@@ -6868,6 +6868,10 @@ digiasset_node_create_settings() {
             printf "%b %s" "${INFO}" "${str}"
 
             tmpfile=($mktemp)
+
+            echo "DEBUGGING:"
+            echo "DGA_SETTINGS_BACKUP_FILE: $DGA_SETTINGS_BACKUP_FILE"
+            echo "tmpfile: $tmpfile"
 
             cp $DGA_SETTINGS_BACKUP_FILE "$tmpfile" &&
             jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
