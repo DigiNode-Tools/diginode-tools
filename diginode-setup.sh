@@ -6849,7 +6849,7 @@ digiasset_node_create_settings() {
             str="Updating RPC credentials in live main.json..."
             printf "%b %s" "${INFO}" "${str}"
 
-            tmpfile=($mktemp)
+            tmpfile=($sudo -u $USER_ACCOUNT mktemp)
 
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
             jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
@@ -6867,7 +6867,7 @@ digiasset_node_create_settings() {
             str="Updating RPC credentials in backup main.json..."
             printf "%b %s" "${INFO}" "${str}"
 
-            tmpfile=($mktemp)
+            tmpfile=($sudo -u $USER_ACCOUNT mktemp)
 
             echo "DEBUGGING:"
             echo "DGA_SETTINGS_BACKUP_FILE: $DGA_SETTINGS_BACKUP_FILE"
