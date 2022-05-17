@@ -7200,7 +7200,7 @@ uninstall_do_now() {
         # Delete existing 'digiasset_node' folder (if it exists)
         str="Stopping DigiAsset Node PM2 service..."
         printf "%b %s" "${INFO}" "${str}"
-        pm2 delete digiasset
+        sudo -u $USER_ACCOUNT pm2 delete digiasset
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
