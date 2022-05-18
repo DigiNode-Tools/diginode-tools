@@ -6877,6 +6877,12 @@ digiasset_node_create_settings() {
 
         fi
 
+        # Restart PM2 if the live main.json credentials have been updated
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf "%b Restarting PM2 digiasset service, as the credentials have been updated...\\n" "${INFO}"
+            pm2 restart digiasset
+        fi
+
         # If the "backup" settings folder does not exist, create the backup settings folder
         if [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
 
