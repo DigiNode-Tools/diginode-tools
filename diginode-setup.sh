@@ -6771,7 +6771,6 @@ digiasset_node_create_settings() {
         else
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        printf "\\n"
     fi
 
     # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
@@ -6807,7 +6806,6 @@ digiasset_node_create_settings() {
         else
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        printf "\\n"
     fi
 
 
@@ -6929,11 +6927,11 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-        printf "\\n"
-
         fi
 
     fi
+
+    printf "\\n"
 }
 
 
