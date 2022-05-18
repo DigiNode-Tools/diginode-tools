@@ -4481,6 +4481,15 @@ digibyte_check() {
         fi
     fi
 
+    # Restart if the RPC port has changed and it can't connect
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_COULD_NOT_CONNECT=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_COULD_NOT_CONNECT" = "Could not connect to the server" ]; then
+            printf "%b RPC port has been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted
+        fi
+    fi
+
     # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ]; then
         str="Is DigiByte Core finished starting up?..."
@@ -6425,7 +6434,6 @@ fi
 if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Display section break
-    printf "\\n"
     if [ "$DGA_INSTALL_TYPE" = "new" ]; then
         printf " =============== Install: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
