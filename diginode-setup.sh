@@ -6880,11 +6880,11 @@ digiasset_node_create_settings() {
         # Restart PM2 if the live main.json credentials have been updated
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
             printf "%b Restarting PM2 digiasset service, as the credentials have been updated...\\n" "${INFO}"
-            pm2 restart digiasset
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
         fi
 
-        # If the "backup" settings folder does not exist, create the backup settings folder
-        if [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+        # If the main.json settings file does not exist anywhere, create the backup settings folder
+        if [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ] && [ ! -f "$DGA_SETTINGS_FILE" ]; then
 
             # create ~/dga_config_backup/ folder if it does not already exist
             if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
@@ -6929,7 +6929,7 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-
+        printf "\\n"
 
         fi
 
@@ -7197,7 +7197,7 @@ uninstall_do_now() {
     # Stop PM2 service, if we are deleting DigiAsset Node
     if [ "$delete_dga" = "yes" ]; then
 
-        # Delete existing 'digiasset_node' folder (if it exists)
+        # Stop digiasset PM2 service
         str="Stopping DigiAsset Node PM2 service..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT pm2 delete digiasset
