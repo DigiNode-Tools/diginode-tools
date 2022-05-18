@@ -6751,7 +6751,7 @@ digiasset_node_create_settings() {
         # Let's get the current rpcuser and rpcpassword from the main.json file
 
         rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
-        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcpassword_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
         rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
 
         # Compare them with the digibyte.conf values to see if they need updating
@@ -6780,13 +6780,13 @@ digiasset_node_create_settings() {
         printf "%b %s" "${INFO}" "${str}"
 
         local rpcuser_json_cur
-        local rpcpass_json_cur
-        local rpcpass_json_cur
+        local rpcpassword_json_cur
+        local rpcport_json_cur
 
         # Let's get the current rpcuser and rpcpassword from the main.json file
 
         rpcuser_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.user' | tr -d '"')
-        rpcpass_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcpassword_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.pass' | tr -d '"')
         rpcport_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.port' | tr -d '"')
 
         # Compare them with the digibyte.conf values to see if they need updating
