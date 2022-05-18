@@ -6739,7 +6739,7 @@ digiasset_node_create_settings() {
     fi
 
     # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
-    if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
+    if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
         str="Checking if DigiAsset Settings need updating with new RPC credentials..."
         printf "%b %s" "${INFO}" "${str}"
@@ -6775,7 +6775,7 @@ digiasset_node_create_settings() {
     fi
 
     # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
-    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
         str="Checking if backup DigiAsset Settings need updating with new RPC credentials..."
         printf "%b %s" "${INFO}" "${str}"
