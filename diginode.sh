@@ -411,6 +411,15 @@ is_dgbnode_installed() {
             printf "\\n"
             exit
         fi
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "\\n"
+            printf "%b %bRPC port has recently been changed. You need to restart your DigiNode for the changes to take effect.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+            printf "\\n"
+            exit
+        fi
     fi
 
     # Display message if the DigiByte Node is running okay
