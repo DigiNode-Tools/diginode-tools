@@ -6745,8 +6745,8 @@ digiasset_node_create_settings() {
         printf "%b %s" "${INFO}" "${str}"
 
         local rpcuser_json_cur
-        local rpcpass_json_cur
-        local rpcpass_json_cur
+        local rpcpassword_json_cur
+        local rpcport_json_cur
 
         # Let's get the current rpcuser and rpcpassword from the main.json file
 
@@ -6760,7 +6760,7 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$rpcpassword" != "$rpcpass_json_cur" ]; then
+        elif [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6795,7 +6795,7 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$rpcpassword" != "$rpcpass_json_cur" ]; then
+        elif [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6852,7 +6852,7 @@ digiasset_node_create_settings() {
             tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
             mv "$tmpfile" $DGA_SETTINGS_FILE &&
             rm -f "$tmpfile"
 
@@ -6869,7 +6869,7 @@ digiasset_node_create_settings() {
             tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
             cp $DGA_SETTINGS_BACKUP_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
             mv "$tmpfile" $DGA_SETTINGS_BACKUP_FILE &&
             rm -f "$tmpfile"
 
