@@ -6852,8 +6852,7 @@ digiasset_node_create_settings() {
             tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
-              "$tmpfile" >$DGA_SETTINGS_FILE &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
             mv "$tmpfile" $DGA_SETTINGS_FILE &&
             rm -f "$tmpfile"
 
@@ -6869,13 +6868,8 @@ digiasset_node_create_settings() {
 
             tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
-            echo "DEBUGGING:"
-            echo "DGA_SETTINGS_BACKUP_FILE: $DGA_SETTINGS_BACKUP_FILE"
-            echo "tmpfile: $tmpfile"
-
             cp $DGA_SETTINGS_BACKUP_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
-              "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
+            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
             mv "$tmpfile" $DGA_SETTINGS_BACKUP_FILE &&
             rm -f "$tmpfile"
 
