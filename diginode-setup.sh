@@ -6811,6 +6811,8 @@ digiasset_node_create_settings() {
 
     if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
 
+        printf "\\n"
+
          # Display section break
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
             # ==============================================================================
