@@ -6760,7 +6760,7 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
+        elif [ "$rpcpassword" != "$rpcpass_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6795,7 +6795,7 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
+        elif [ "$rpcpassword" != "$rpcpass_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7385,7 +7385,7 @@ uninstall_do_now() {
                 str="Deleting ~/.ipfs settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -r $USER_HOME/.ipfs
-                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             else
                 printf "%b You chose not to delete the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
             fi
