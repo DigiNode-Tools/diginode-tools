@@ -995,7 +995,7 @@ digibyte_create_conf() {
 
         #Update rpcport variable in settings if it exists and is blank, otherwise append it
         if grep -q "rpcport=" $DGB_CONF_FILE; then
-            if [ "$rpcport" = "" ] || [ "$rpcport" != "14022" ]; then
+            if [ "$rpcport" = "" ]; then
                 echo "$INDENT   Updating digibyte.conf: rpcport=14022"
                 sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
             fi
