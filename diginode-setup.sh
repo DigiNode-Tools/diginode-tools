@@ -8916,6 +8916,9 @@ main() {
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
+    # Create/update digibyte.conf file
+    digibyte_create_conf
+
     # Check if DigiByte Core is installed, and if there is an upgrade available
     digibyte_check
 
@@ -8939,9 +8942,6 @@ main() {
 
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
-
-    # Create DigiByte.conf file
-    digibyte_create_conf
 
     # Install/upgrade DigiByte Core
     digibyte_do_install
