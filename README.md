@@ -100,26 +100,33 @@ Running this will uninstall your DigiNode. Your wallet.dat file will be kept. Th
 
 DigiNode has been tested and known to work with the following systems:
 
-| **Hardware**          | **Operating System**             | **Notes**                                   |
-|-----------------------|----------------------------------|---------------------------------------------|
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the reccomended configuration.      |
-|-----------------------|----------------------------------|---------------------------------------------|
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.            |
-|-----------------------|----------------------------------|---------------------------------------------|
-|                       |                                  |                                             |
+| **Hardware**          | **Operating System**             | **Notes**                                                                                                   |
+|-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+| Raspberry Pi 4 8Gb    | Raspberry Pi OS 64-bit           | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+|-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.                                                                            |
+|-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
+|                       |                                  |                                                                                                             |
 
 
 Raspberry Pi 4 8Gb
 
 ## Release History
 
-v0.0.4 - 2022-05-10 Latest test release
+v0.0.5 - 2022-05-19 Test Release
+- USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
+- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bux in v0.0.4
+- Fixes to diginode.settings to better store variables
+- Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
+- Countless bug fixes and improvements
+
+v0.0.4 - 2022-05-10 Test Release
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
 - Install URL has changed to diginode-setup.digibyte.help
 - Implemented backup feature for prelimanry testing
 - Renamed every mention of "DigiNode Installer to "DigiNode Setup"
 - WARNING: There is currently a bug with the DigiAsset Node updater that will erase you configuration. I  am currently working to fix this.
-
 
 v0.0.2 - 2021-11-14
 - Test Release

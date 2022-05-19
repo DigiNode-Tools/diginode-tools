@@ -203,7 +203,7 @@ txtbld=$(tput bold) # Set bold mode
 
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
@@ -275,7 +275,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
   if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
     str="Creating ~/.digibyte folder..."
     printf "\\n%b %s" "${INFO}" "${str}"
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
@@ -420,11 +420,15 @@ DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 IPFS_SETTINGS_LOCATION=$USER_HOME/.ipfs
 
 # DIGIASSET NODE LOCATION:
+# The backup location variable is a temporary folder that stores your _config folder backup during a reset or uninstall.
+# When reinstalling, this folder is automatically restored to the correct location, typically ~/digiasset_node/_config
 DGA_INSTALL_LOCATION=$USER_HOME/digiasset_node
 DGA_SETTINGS_LOCATION=\$DGA_INSTALL_LOCATION/_config
+DGA_SETTINGS_BACKUP_LOCATION=$USER_HOME/dga_config_backup
 
 # DIGIASSET NODE FILES
 DGA_SETTINGS_FILE=\$DGA_SETTINGS_LOCATION/main.json
+DGA_SETTINGS_BACKUP_FILE=\$DGA_SETTINGS_BACKUP_LOCATION/main.json
 
 # SYSTEM SERVICE FILES:
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
@@ -439,7 +443,7 @@ DGB_INSTALL_DATE=
 DGB_UPGRADE_DATE=
 DGB_VER_RELEASE=
 DGB_VER_LOCAL=
-DGB_VER_LOCAL_CHECK_FREQ=daily
+DGB_VER_LOCAL_CHECK_FREQ="daily"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. There should be no need to change this.
@@ -458,14 +462,10 @@ DGNT_MONITOR_FIRST_RUN=
 DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
-DGNT_VER_RELEASE=
-DGNT_LOCAL_RELEASE=
 
-# THese are updated automatically every time DigiNode Tools is installed/upgraded. 
-# Stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
-DGNT_LOCAL_BRANCH=
-# Stores the version number of the release branch (if currently installed)
-DGNT_LOCAL_RELEASE_VER=
+# This is updated automatically every time DigiNode Tools is installed/upgraded. 
+# It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
+DGNT_BRANCH_LOCAL=
 
 # Store DigiAsset Node installation details:
 DGA_INSTALL_DATE=
@@ -535,15 +535,15 @@ SYSTEM_SECURITY_UPDATES=
 IPFS_PORT_TEST_STATUS=
 IPFS_PORT_TEST_DATE=
 
-# Don't display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
-DONATION_PLEA=yes
+# Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+DONATION_PLEA="yes"
 
 # Store DigiByte blockchain sync progress
 BLOCKSYNC_VALUE=
 
 EOF
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
     else
@@ -575,7 +575,7 @@ EOF
     printf "%b %s" "${INFO}" "${str}"
     source $DGNT_SETTINGS_FILE
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
@@ -603,7 +603,7 @@ if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; th
 
     source $DGNT_SETTINGS_FILE
     
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "\\n"
         printf "%b   File location: $DGNT_SETTINGS_FILE\\n" "${INDENT}"
         printf "\\n"
@@ -613,7 +613,7 @@ if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; th
     fi
 
 else
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b diginode.settings file not found\\n" "${INDENT}"
         printf "\\n"
     fi
@@ -663,7 +663,7 @@ set_sys_variables() {
 
     local str
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Looking up system variables...\\n" "${INFO}"
     else
         str="Looking up system variables..."
@@ -672,7 +672,7 @@ set_sys_variables() {
 
     # check the 'cat' command is available
     if ! is_command cat ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'cat' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -683,7 +683,7 @@ set_sys_variables() {
 
     # check the 'free' command is available
     if ! is_command free ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'free' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -694,7 +694,7 @@ set_sys_variables() {
 
     # check the 'df' command is available
     if ! is_command df ; then
-        if [ $VERBOSE_MODE = false ]; then
+        if [ "$VERBOSE_MODE" = false ]; then
             printf "\\n"
         fi
         printf "%b %bERROR: Unable to look up system variables - 'df' command not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -711,9 +711,9 @@ set_sys_variables() {
     SWAPTOTAL_KB=$(cat /proc/meminfo | grep SwapTotal: | tr -s ' ' | cut -d' ' -f2)
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b   Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
-        if [ $SWAPTOTAL_HR = "0B" ]; then
+        if [ "$SWAPTOTAL_HR" = "0B" ]; then
             printf "%b   Total SWAP: none\\n" "${INDENT}"
         else
             printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
@@ -725,7 +725,7 @@ set_sys_variables() {
     DGB_DATA_DISKTOTAL_HR=$(df $DGB_DATA_LOCATION -h --si --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
     DGB_DATA_DISKTOTAL_KB=$(df $DGB_DATA_LOCATION --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
-    if [ $VERBOSE_MODE = true ]; then
+    if [ "$VERBOSE_MODE" = true ]; then
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
@@ -733,9 +733,9 @@ set_sys_variables() {
  #   if [[ "$RUN_SETUP" != "NO" ]] ; then
 
         # Get internal IP address
-        IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+        IP4_INTERNAL=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=$IP4_INTERNAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Lookup disk usage, and update diginode.settings if present
@@ -818,16 +818,16 @@ update_disk_usage() {
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=$BOOT_DISKUSED_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=$BOOT_DISKUSED_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=$BOOT_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=$BOOT_DISKFREE_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=$BOOT_DISKFREE_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=$DGB_DATA_DISKUSED_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=$DGB_DATA_DISKUSED_KB|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=$DGB_DATA_DISKUSED_PERC|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=$DGB_DATA_DISKFREE_HR|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=$DGB_DATA_DISKFREE_KB|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=\"$BOOT_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=\"$BOOT_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=\"$BOOT_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=\"$BOOT_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=\"$BOOT_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=\"$DGB_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=\"$DGB_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=\"$DGB_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=\"$DGB_DATA_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=\"$DGB_DATA_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
         fi
 
 }
@@ -854,6 +854,9 @@ digibyte_create_conf() {
         printf " =============== Resetting: digibyte.conf ==============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
+        printf "%b DigiByte daemon will be stopped.\\n" "${INFO}"
+        stop_service digibyted
+        DGB_STATUS="stopped"
         str="Deleting existing digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_CONF_FILE
@@ -879,7 +882,7 @@ digibyte_create_conf() {
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
         local set_dbcache
-        if [ $RAMTOTAL_KB -ge "7340032" ]; then
+        if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
             str="System RAM exceeds 7GB. Setting dbcache to 2Gb..."
             printf "%b %s" "${INFO}" "${str}"
             set_dbcache=2048
@@ -995,7 +998,7 @@ digibyte_create_conf() {
 
         #Update rpcport variable in settings if it exists and is blank, otherwise append it
         if grep -q "rpcport=" $DGB_CONF_FILE; then
-            if [ "$rpcport" = "" ] || [ "$rpcport" != "14022" ]; then
+            if [ "$rpcport" = "" ]; then
                 echo "$INDENT   Updating digibyte.conf: rpcport=14022"
                 sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
             fi
@@ -1117,13 +1120,13 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 # A simple function that just displays the title in a box
 setup_title_box() {
      clear -x
-     echo " ╔════════════════════════════════════════════════════════╗"
-     echo " ║                                                        ║"
-     echo " ║         ${txtbld}D I G I N O D E   S E T U P${txtrst}            ║ "
-     echo " ║                                                        ║"
-     echo " ║  Setup and maintain your DigiByte & DigiAsset Node  ║"
-     echo " ║                                                        ║"
-     echo " ╚════════════════════════════════════════════════════════╝" 
+     echo " ╔═════════════════════════════════════════════════════════╗"
+     echo " ║                                                         ║"
+     echo " ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+     echo " ║                                                         ║"
+     echo " ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+     echo " ║                                                         ║"
+     echo " ╚═════════════════════════════════════════════════════════╝" 
      echo ""
 }
 
@@ -1776,7 +1779,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail)
+    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail bc)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo "${avahi_package}")
 
@@ -2969,7 +2972,7 @@ swap_do_change() {
 }
 
 # This function will help the user backup their DigiByte wallet to an external USB drive. It will also optionally backup the DigiAsset Node _config folder.
-wallet_backup() {
+usb_backup() {
 
     # Skip this part if we need to re-enter the encryption password
     if [ "$skip_if_reentering_encryption_passphrases" != "yes" ]; then
@@ -2983,21 +2986,20 @@ wallet_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node configuration. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this, pretty much any size should be sufficient.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode. Do not continue if you do not have this." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node settings. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
             menu_existing_install 
         fi
-        printf "\\n"
 
         # Ask to backup DigiByte Core Wallet, if it exists
         if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup you DigiByte Core wallet?\\n\\nThis is a highly recommended as it will safeguard the contents of your wallet, and make it easy to restore your wallet to another DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup your DigiByte wallet?\\n\\nThis is highly recomended, if you have not already done so, as it will safeguard the contents of your DigiByte wallet, and make it easy to restore your DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
                 run_wallet_backup=true
@@ -3006,7 +3008,6 @@ wallet_backup() {
                 printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
                 run_wallet_backup=false
             fi
-            printf "\\n"
         else
             printf "%b No DigiByte Core wallet file currently exists. Returning to menu...\\n" "${INFO}"
             run_wallet_backup=false
@@ -3019,13 +3020,13 @@ wallet_backup() {
         # Ask to backup the DigiAsset Node _config folder, if it exists
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
-            # Ask the user if they want to encrypt with a password?
-            if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to also backup you DigiAsset Node configuration?\\n\\nThis will backup your DigiAsset Node settings including your Amazon web services credentials. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move it to a different machine. Before doing this, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            # Ask the user if they want to backup their DigiAsset Node settings
+            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device. Before creating a backup, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You chose to also backup your DigiAsset Node configuration.\\n" "${INFO}"
+                printf "%b You chose to also backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=true
             else
-                printf "%b You chose NOT to backup your DigiAsset Node configuration.\\n" "${INFO}"
+                printf "%b You chose NOT to backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=false
             fi
         fi
@@ -3033,24 +3034,27 @@ wallet_backup() {
         # Return to main menu if the user has selected to backup neither the wallet nor the DigiAsset config
         if [[ "$run_wallet_backup" == false ]] && [[ "$run_dgaconfig_backup" == false ]]; then
                 printf "%b Backup cancelled. Returning to menu...\\n" "${INFO}"
+                printf "\\n"
                 menu_existing_install
         fi
 
         # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
         if [[ "$run_wallet_backup" == true ]]; then
 
-            printf "%b Checking the DigiByte wallet encryption status... (DigiByte daemon needs to be running.)\\n" "${INFO}"
-
             # Start the DigiByte service now, in case it is not already running
-            printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
+            printf "%b Starting DigiByte daemon systemd service...\\n\\n" "${INFO}"
             systemctl start digibyted
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
             # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
             digibyte_check
 
+            printf " =============== Checking: DigiByte Wallet =============================\\n\\n"
+            # ==============================================================================
+
             # Check if the wallet is currently unencrypted
-            if [[ $(~/digibyte/bin/digibyte-cli walletlock 2>&1 | grep "running with an unencrypted wallet") ]]; then
+            IS_WALLET_ENCRYPTED=$(sudo -u $USER_ACCOUNT $DGB_CLI walletlock 2>&1 | grep -Eo "running with an unencrypted wallet")
+            if [ "$IS_WALLET_ENCRYPTED" = "running with an unencrypted wallet" ]; then
 
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
@@ -3062,12 +3066,13 @@ wallet_backup() {
                 else
                     printf "%b You chose NOT to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=false
+                    printf "\\n"
                 fi
             else
                 printf "%b DigiByte Wallet is already encrypted.\\n" "${TICK}"
+                printf "\\n"
             fi
 
-            printf "\\n"
 
         fi
 
@@ -3102,14 +3107,13 @@ wallet_backup() {
                 printf "%b Passphrases match.\\n" "${TICK}"
                 WALLET_ENCRYT_PASS=$WALLET_ENCRYT_PASS1
                 wallet_encryption_passphrases_match="yes"
-                printf "\\n"
             else
                 whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
                 printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
                 skip_if_reentering_encryption_passphrases="yes"
 
                 # re-do prompt for password
-                wallet_backup
+                usb_backup
             fi
         else
             printf "%b %bYou cancelled choosing an encryption password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -3119,27 +3123,28 @@ wallet_backup() {
             menu_existing_install  
         fi
 
-        # Stop DigiByte Core if it is running, as we need to encrypt the wallet
-        if [ "$DGB_STATUS" = "running" ] || [ $DGB_INSTALL_TYPE = "startingup" ]; then
-           stop_service digibyted
-           DGB_STATUS="stopped"
-        fi
-
 
         # If the passphrases have been entered correctly, proceed encrypting the wallet.dat file
         if [ "$wallet_encryption_passphrases_match" = "yes" ]; then
 
             # Encrypting wallet.dat file
-            local str="Encrypting wallet.dat ... "
+            local str="Encrypting Digibyte wallet"
             printf "%b %s..." "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT $DGB_CLI encryptwallet "$WALLET_ENCRYT_PASS" 1>/dev/null
 
             # If the command completed without error, then assume the wallet is encrypted
             if [ $? -eq 0 ]; then
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+                
+                # Restart the DigiByte service
+                printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
+                systemctl start digibyted
+            else
+                whiptail --msgbox --backtitle "" --title "DigiByte Wallet encryption failed." "ERROR: Your DigiByte wallet was not successfully encrypted. The script will exit." "${r}" "${c}" 
+                printf "\\n"
+                exit 1
             fi
-
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         fi
 
@@ -3155,13 +3160,17 @@ wallet_backup() {
 
     if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
+        printf " =============== Backup DigiNode =======================================\\n\\n"
+        # ==============================================================================
+
         # Ask the user to prepare their backup USB stick
-        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with DigiNode backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either ExFat or Fat32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with DigiNode backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
             printf "%b You chose not to proceed with the backup. Returning to menu...\\n" "${INFO}"
             run_wallet_backup=false
+            printf "\\n"
             menu_existing_install
         fi
         printf "\\n"
@@ -3215,7 +3224,7 @@ wallet_backup() {
         # Mount USB stick
         str="Mount primary USB partition..."
         printf "%b %s" "${INFO}" "${str}"
-        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
+        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # TEST WRITE TO USB USING TOUCH testfile.txt
@@ -3223,7 +3232,7 @@ wallet_backup() {
         touch /media/usbbackup/testfile.txt 2>/dev/null
 
         # Check if the file was successfully written
-        str="Is the USB stick compatible?"
+        str="Can the USB stick be written to?"
         printf "%b %s..." "${INFO}" "${str}"
         if [ -f /media/usbbackup/testfile.txt ]; then
             printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
@@ -3235,10 +3244,11 @@ wallet_backup() {
             if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
+                printf "\\n"
 
                 # FORMAT USB STICK HERE 
 
-                printf " =============== FORMAT USB STICK ======================================\\n\\n"
+                printf " =============== Format USB Stick ======================================\\n\\n"
                 # ==============================================================================
 
                 opt1a="exFAT"
@@ -3249,7 +3259,7 @@ wallet_backup() {
 
 
                 # Display the information to the user
-                UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
+                UpdateCmd=$(whiptail --title "Format USB Stick" --menu "\\n\\nPlease choose what file system you would like to format your USB stick. \\n\\nIMPORTANT: If you continue, any data currently on the stick will be erased.\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
                 { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install; }
@@ -3259,23 +3269,35 @@ wallet_backup() {
                     # Update, or
                     ${opt1a})
                         printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
-                        printf "\\n"
                         USB_BACKUP_STICK_FORMAT="exfat"
 
                         ;;
                     # Reset,
                     ${opt2a})
-                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"
-                        printf "\\n"                   
+                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"                   
                         USB_BACKUP_STICK_FORMAT="fat32"
                         ;;
                 esac
+
+                # Unmount USB stick
+                str="Unmount the USB stick..."
+                printf "%b %s" "${INFO}" "${str}"
+                umount /dev/${USB_BACKUP_DRIVE}*
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on USB backup stick..."
                 printf "%b %s" "${INFO}" "${str}"
                 sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # If the command completed without error, then assume the wallet is encrypted
+                if [ $? -eq 0 ]; then
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    whiptail --msgbox --backtitle "" --title "USB Formatting Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "\\n"
+                    menu_existing_install
+                fi
 
                 # Wipe the current partition on the drive
                 str="Create new primary gpt partition on USB backup stick..."
@@ -3311,6 +3333,7 @@ wallet_backup() {
                 whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
                 run_wallet_backup=false
                 run_dgaconfig_backup=false
+                printf "\\n"  
                 menu_existing_install
             fi
             printf "\\n"
@@ -3374,6 +3397,7 @@ EOF
         fi
 
         # START DIGIBYTE WALLET BACKUP
+
         if [ "$run_wallet_backup" = true ]; then
 
             # If a wallet.dat backup exists on the stick already
@@ -3472,7 +3496,7 @@ EOF
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
-                        echo "$NEW_BACKUP_DATE DigiByte Wallet: No previous wallet.dat backup has been detected anywhere. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     else
                         printf "%b DigiByte Wallet: You chose not to proceed with backing up DigiByte Wallet to a new USB stick.\\n" "${INFO}"
                         do_wallet_backup_now=false
@@ -3492,6 +3516,7 @@ EOF
                         str="Deleting existing secondary backup: wallet.dat.old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm /media/usbbackup/diginode_backup/wallet.dat.old
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Deleted existing wallet backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -3499,6 +3524,7 @@ EOF
                     str="Renaming existing wallet.dat backup to wallet.dat.old ... "
                     printf "%b %s" "${INFO}" "${str}" 
                     mv /media/usbbackup/diginode_backup/wallet.dat /media/usbbackup/diginode_backup/wallet.dat.old
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: Renaming existing wallet.dat backup to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
@@ -3509,32 +3535,192 @@ EOF
                 cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick.//n//n" "${r}" "${c}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick." "${r}" "${c}"
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet failed due to an error. Check the USB stick.//n//n" "${r}" "${c}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet backup failed due to an error. Check the USB stick." "${r}" "${c}"
                 fi
 
             fi
 
         fi
 
+        #################################
+        # START DIGIASSET CONFIG BACKUP TO USB STICK
+        #################################
 
-        # PERFORM DIGIASSET CONFIG BACKUP
 
+        if [ "$run_dgaconfig_backup" = true ]; then
 
+            # If a 'dga_config_backup' folder exists on the stick already
+            if [ -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
+
+                #If the stick already contains a 'dga_config_backup' folder, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created from this DigiNode. It is unknown when this backup was created. \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_dgaconfig_backup_now=true
+                        printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiAsset Settings: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_dgaconfig_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a 'dga_config_backup' folder, but it was not created by this DigiNode, ask the user if they want to continue
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. The date of the existing backup is: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_dgaconfig_backup_now=true
+                        printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiAsset Settings: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_dgaconfig_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a DigiAsset Settings folder, but it was not created by this DigiNode, ask the user if they want to continue
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. This DigiNode was previously backed up to a different USB stick on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing DigiAsset settings backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_dgaconfig_backup_now=true
+                        printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiAsset Settings: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                        do_dgaconfig_backup_now=false
+                    fi
+                fi
+
+                #If the stick already contains a DigiAsset Settings folder, and there has been a previous backup logged on both the stick and the DigiNode, check if they are the same or not
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+
+                    # If this is the same backup stick as was used last time, then ask the user if they want to overwrite it
+                    if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" ]; then
+
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick.\\n\\nThis backup was previously created by this DigiNode on: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new DigiAsset Settings backup unless you have recently changed your configuration. If you continue your existing DigiAsset Settings backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                            do_dgaconfig_backup_now=true
+                            printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                            echo "$NEW_BACKUP_DATE DigiAsset Settings: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        else
+                            printf "%b DigiAsset Settings: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                            do_dgaconfig_backup_now=false
+                        fi
+
+                    else
+
+                        # Ask the user to prepare their backup USB stick
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick but it does not appear to have been made from this DigiNode.\\nThe existing backup was made on: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                            do_dgaconfig_backup_now=true
+                            printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
+                            echo "$NEW_BACKUP_DATE DigiAsset Settings: Existing backup will be overwritten" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        else
+                            printf "%b DigiAsset Settings: You chose not to proceed with overwriting the existing backup.\\n" "${INFO}"
+                            do_dgaconfig_backup_now=false
+                        fi
+
+                    fi
+
+                fi
+
+            else
+                # If no DigiAsset settings folder exists on the stick already
+
+                #If the DigiAsset settings folder seemingly never been backed up anywhere else
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ]; then
+                    do_dgaconfig_backup_now=true
+                    printf "%b DigiAsset Settings: No previous backup has been detected. Backup will proceed...\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: No previous backup has been detected. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                fi
+
+                #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
+                if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ]; then
+                    # Ask the user to prepare their backup USB stick
+                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiAsset Settings were previously backed up on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+
+                        do_dgaconfig_backup_now=true
+                        printf "%b DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    else
+                        printf "%b DigiAsset Settings: You chose not to proceed with backing up DigiAsset Settings to a new USB stick.\\n" "${INFO}"
+                        do_dgaconfig_backup_now=false
+                    fi
+                fi
+                
+            fi
+
+            # Perform DigiAsset settings backup
+            if [ "$do_dgaconfig_backup_now" = true ]; then
+
+                # Backup the existing wallet backup, if it exists
+                if [ -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
+
+                    # Delete previous secondary backup folder of DigiAsset, if it exists
+                    if [ -d /media/usbbackup/diginode_backup/dga_config_backup_old ]; then
+                        str="Deleting existing secondary backup folder: dga_config_backup_old ... "
+                        printf "%b %s" "${INFO}" "${str}" 
+                        rm -rf /media/usbbackup/diginode_backup/dga_config_backup_old
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Deleting existing secondary backup folder" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    fi
+
+                    # Rename existing wallet backup folder to old
+                    str="Renaming existing dga_config_backup folder to dga_config_backup_old ... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    mv /media/usbbackup/diginode_backup/dga_config_backup /media/usbbackup/diginode_backup/dga_config_backup_old
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: Renaming existing dga_config_backup folder to dga_config_backup_old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                fi
+
+                 # Create DigiAsset Settings backup folder
+                    if [ ! -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
+                        str="Create DigiAsset settings backup folder on USB stick: dga_config_backup ... "
+                        printf "%b %s" "${INFO}" "${str}" 
+                        mkdir /media/usbbackup/diginode_backup/dga_config_backup
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Create backup folder on USB stick: /dga_config_backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                # TO DO.......... >>>>>>    
+
+                # Copy DigiAsset Settings to backup stick
+                str="Backing up DigiAsset Settings to USB stick ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                cp $DGA_SETTINGS_LOCATION/*.json /media/usbbackup/diginode_backup/dga_config_backup 2>/dev/null/
+                if [ $? -eq 0 ]; then
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick." "${r}" "${c}"
+                else
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Check the USB stick." "${r}" "${c}"
+                fi
+
+            fi
+
+        fi
 
         # BACKUP FINISHED
 
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_SWAP_DRIVE}1
+        umount /dev/${USB_BACKUP_DRIVE}*
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
         printf "%b Backup complete. Returning to menu...\\n" "${INFO}"
-        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK.//n//n" "${r}" "${c}"
+        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
         run_wallet_backup=false
         run_dgaconfig_backup=false
         do_wallet_backup_now=false
@@ -3546,7 +3732,7 @@ EOF
 }
 
 # This function will help the user restore their DigiByte wallet backup from an external USB drive
-wallet_restore() {
+usb_restore() {
 
     whiptail --msgbox --backtitle "" --title "Script Not Added Yet" "This feature has not been implemented yet, but will be added soon. The script will now exit." "${r}" "${c}"
     menu_existing_install  
@@ -3640,10 +3826,10 @@ menu_first_install() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" "${r}" 80 3 \
+    UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "  %bCancel was selected, exiting DigiNode Setup%b\\n\\n" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -3674,23 +3860,23 @@ menu_existing_install() {
     opt2b="Reset all settings and reinstall DigiNode software."
 
     opt3a="Backup"
-    opt3b="Backup your wallet & settings to an external USB stick."
+    opt3b="Backup your wallet & settings to a USB stick."
 
     opt4a="Restore"
-    opt4b="Backup your wallet & settings from an external USB stick."
+    opt4b="Restore your wallet & settings from a USB stick."
 
     opt5a="Uninstall"
-    opt5b="Remove DigiNode from your systems."
+    opt5b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system. Please choose one of the options below. \\n\\n(Note: In all cases, your DigiByte wallet will not be harmed. That said, a backup is always recommended.)\\n\\n" "${r}" "${c}" 3 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b %bCancel was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; echo ""; exit 1; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -3711,17 +3897,17 @@ menu_existing_install() {
             printf "\\n"
             RESET_MODE=true
             ;;
-        # Wallet Backup
+        # USB Stick Backup
         ${opt3a})
             printf "%b You selected the BACKUP option.\\n" "${INFO}"
             printf "\\n"
-            wallet_backup
+            usb_backup
             ;;
-        # Wallet Restore
+        # USB Stick Restore
         ${opt4a})
             printf "%b You selected the RESTORE option.\\n" "${INFO}"
             printf "\\n"
-            wallet_restore
+            usb_restore
             ;;
         # Uninstall,
         ${opt5a})
@@ -3783,6 +3969,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
       printf "%b You chose to proceed without customizing your install.\\n" "${INFO}"
+      printf "\\n"
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -4092,12 +4279,18 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        if [[ "$HOSTNAME" == "diginode" ]]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
+        printf "\\n"
     elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -4117,8 +4310,6 @@ final_messages() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b (You will need to reboot first.)\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -4145,14 +4336,18 @@ final_messages() {
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
         sleep 5
         sudo reboot
     elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_CURRENT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
+        if [[ "$HOSTNAME" == "diginode" ]]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
         printf "\\n"
         sleep 5
         sudo reboot
@@ -4280,6 +4475,24 @@ digibyte_check() {
       fi
     fi
 
+    # Restart Digibyted if the RPC username or password in digibyte.conf have recently been changed
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
+            printf "%b RPC credentials have been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted
+        fi
+    fi
+
+    # Restart if the RPC port has changed and it can't connect
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "%b RPC port has been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted
+        fi
+    fi
+
     # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ]; then
         str="Is DigiByte Core finished starting up?..."
@@ -4343,7 +4556,7 @@ digibyte_check() {
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
     fi
 
@@ -4387,7 +4600,7 @@ digibyte_check() {
         return     
     else
         printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=$DGB_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -4552,7 +4765,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_RELEASE
-    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -4595,7 +4808,7 @@ fi
 # This function will install or upgrade the local version of the 'DigiNode Tools' scripts.
 # By default, it will always install the latest release version from GitHub. If the existing installed version
 # is the develop version or an older release version, it will be upgraded to the latest release version.
-# If the --dgnt_dev_branch flag is used at launch it will always replace the local version
+# If the --dgntdev flag is used at launch it will always replace the local version
 # with the latest develop branch version from Github.
 
 diginode_tools_check() {
@@ -4611,25 +4824,25 @@ printf " =============== Checking: DigiNode Tools ==============================
     # If we get a response, update the stored release version
     if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
-        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
 
-        DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        DGNT_BRANCH_LOCAL=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
     if [ "$dgnt_ver_local_query" != "" ]; then
         DGNT_VER_LOCAL=$dgnt_ver_local_query
-        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If we get a valid local branch, update the stored local branch
-    if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=$DGNT_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+    if [ "$DGNT_BRANCH_LOCAL" != "" ]; then
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Let's check if DigiNode Tools already installed
@@ -4642,11 +4855,11 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         DGNT_STATUS="installed"
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b%b %s YES!  DigiNode Tools develop branch\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b%b %s YES!  DigiNode Tools main branch\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
@@ -4673,7 +4886,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ "$DGNT_BRANCH" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
 
             if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
 
@@ -4691,11 +4904,11 @@ printf " =============== Checking: DigiNode Tools ==============================
                 DGNT_ASK_UPGRADE=YES
             fi
 
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -4707,15 +4920,15 @@ printf " =============== Checking: DigiNode Tools ==============================
 
     # Upgrade to develop branch
     elif [ "$DGNT_BRANCH" = "develop" ]; then
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -4727,15 +4940,15 @@ printf " =============== Checking: DigiNode Tools ==============================
     
     # Upgrade to main branch
     elif [ "$DGNT_BRANCH" = "main" ]; then
-        if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b %bDigiNode Tools develop branch will be replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -4809,7 +5022,7 @@ fi
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode-tools/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=develop|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"develop\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
@@ -4817,16 +5030,16 @@ fi
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"main\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
-            sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=release|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
-            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -4835,6 +5048,36 @@ fi
             sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
             sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Get the current local version and branch, if any
+        if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+            local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+            local dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        fi
+
+        # If we get a valid version number, update the stored local version
+        if [ "$dgnt_ver_local_query" != "" ]; then
+            DGNT_VER_LOCAL=$dgnt_ver_local_query
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # If we get a valid local branch, update the stored local branch
+        if [ "$dgnt_branch_local_query" != "" ]; then
+            DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Update DigiNode Tools display verion
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+            DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
+            DGNT_VER_LOCAL_DISPLAY="dev-branch"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
+            DGNT_VER_LOCAL_DISPLAY="main-branch"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Make downloads executable
@@ -4898,7 +5141,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # ==============================================================================
 
     # Get the local version number of IPFS Updater (this will also tell us if it is installed)
-    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
 
     # Let's check if IPFS Updater is already installed
     str="Is IPFS Updater already installed?..."
@@ -4910,7 +5153,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFSU_STATUS="installed"
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -4933,7 +5176,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return     
     else
         printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=$IPFSU_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
@@ -4959,7 +5202,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $IPFSU_STATUS = "not_detected" ]; then
+    if [ "$IPFSU_STATUS" = "not_detected" ]; then
       printf "%b %bIPFS Updater v${IPFSU_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFSU_INSTALL_TYPE="new"
       IPFSU_DO_INSTALL=YES
@@ -4984,7 +5227,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return     
     else
         printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Get the local version number of Go-IPFS (this will also tell us if it is installed)
@@ -5000,7 +5243,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFS_STATUS="installed"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -5058,7 +5301,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi 
 
     # If no current version is installed, then do a clean install
-    if [ $IPFS_STATUS = "not_detected" ]; then
+    if [ "$IPFS_STATUS" = "not_detected" ]; then
       printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
@@ -5085,7 +5328,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
         # Reset IPFS Updater as well, if needed
-        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
             IPFSU_DO_INSTALL=YES
             IPFSU_INSTALL_TYPE="reset"
         fi
@@ -5097,7 +5340,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         # Don't reset IPFS Updater, if we are not resetting Go-IPFS (no point)
-        if [ $IPFSU_INSTALL_TYPE = "askreset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
             IPFSU_DO_INSTALL=NO
             IPFSU_INSTALL_TYPE="none"
         fi
@@ -5139,7 +5382,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
 
         # If we are re-installing the current version of IPFS Updater, delete the existing install folder
-        if [ $IPFSU_INSTALL_TYPE = "reset" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "reset" ]; then
             str="Reset Mode: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r /usr/local/bin/ipfs-update
@@ -5147,7 +5390,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         # If we are updating the current version of IPFS Updater, delete the existing install folder
-        if [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+        if [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
             str="Preparing Upgrade: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r /usr/local/bin/ipfs-update
@@ -5220,13 +5463,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Get the new version number of the local IPFS Updater install
-        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3)
+        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
 
         # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=$IPFSU_VER_LOCAL|" $DGNT_SETTINGS_FILE
-        if [ $IPFSU_INSTALL_TYPE = "install" ]; then
+        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        if [ "$IPFSU_INSTALL_TYPE" = "new" ]; then
             sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-        elif [ $IPFSU_INSTALL_TYPE = "upgrade" ]; then
+        elif [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
             sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
         fi
 
@@ -5276,7 +5519,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
 
     # If we are re-installing the current version of Go-IPFS, delete the existing binary
-    if [ $IPFS_INSTALL_TYPE = "reset" ]; then
+    if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
         str="Reset Mode: Deleting Go-IPFS v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
@@ -5287,7 +5530,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             if whiptail --backtitle "" --title "RESET MODE" --yesno "Would you like to reset your IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs" "${r}" "${c}"; then
                 str="Reset Mode: Deleting ~/.ipfs settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -r $USER_HOME/.ipfs
+                rm -rf $USER_HOME/.ipfs
                 printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
             else
                 printf "%b Reset Mode: You chose not to reset the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
@@ -5306,10 +5549,10 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Update diginode.settings with new Go local version number and the install/upgrade date
-    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $IPFS_INSTALL_TYPE = "install" ]; then
+    sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $IPFS_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -5606,7 +5849,7 @@ EOF
     fi
 
     # If the system is not using upstart or systemd then quit since others are not yet supported
-    if [ $INIT_SYSTEM = "sysv-init" ] || [ $INIT_SYSTEM = "unknown" ]; then
+    if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
         printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
@@ -5647,7 +5890,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         NODEJS_STATUS="installed"
-        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -5671,7 +5914,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
         # Update variable in diginode.settings so this does not run again
         NODEJS_PPA_ADDED=YES
-        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=$NODEJS_PPA_ADDED|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
     else
         printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
         printf "%b If needed, you can have this script attempt to add it, by editing the diginode.settings\\n" "${INDENT}"
@@ -5709,7 +5952,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         return
     else
         printf "%b%b %s Found: v${NODEJS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If a NodeJS local version already exists.... (i.e. we have a local version number)
@@ -5793,13 +6036,13 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     printf "\\n"
-    if [ $NODEJS_INSTALL_TYPE = "new" ]; then
+    if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
         printf " =============== Install: NodeJS =======================================\\n\\n"
         # ==============================================================================
-    elif [ $NODEJS_INSTALL_TYPE = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
         printf " =============== Upgrade: NodeJS =======================================\\n\\n"
         # ==============================================================================
-    elif [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Reset: NodeJS =========================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
@@ -5880,11 +6123,17 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
-    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $NODEJS_INSTALL_TYPE = "install" ] || [ $NODEJS_INSTALL_TYPE = "reset" ]; then
+    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $NODEJS_INSTALL_TYPE = "upgrade" ] || [ $NODEJS_INSTALL_TYPE = "majorupgrade" ]; then
+    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If there is no install date (i.e. NodeJS was already installed) add it now
+    if [ "$NODEJS_INSTALL_DATE" = "" ]; then
+        NODEJS_INSTALL_DATE="$(date)"
+        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -5968,7 +6217,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
       # If we actually get a valid response, update DGA_VER_MJR_LOCAL variable with a new major version 
       if [ "$DGA_VER_MJR_LOCAL_QUERY" != "" ]; then
         DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL_QUERY
-        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=\"$DGA_VER_MJR_LOCAL\"|" $DGNT_SETTINGS_FILE
       fi
     fi
 
@@ -5979,7 +6228,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If we get a valid local branch, update the stored local branch
     if [ "$DGA_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=$DGA_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"$DGA_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
     fi
 
 
@@ -5992,13 +6241,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_VER_MNR_LOCAL="beta"
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
@@ -6027,14 +6276,14 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             DGA_VER_MNR_LOCAL="beta"
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
         # If we actually get a version number then we can use it
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
             str="Current Version:"
             printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         else
             DGA_VER_MNR_LOCAL=""
@@ -6053,7 +6302,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
         DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
     fi
-    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
 
     # Next we need to check for the latest release at the DigiAssetX website
@@ -6076,9 +6325,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
         printf "%b%b %s Found: DigiAsset Node v${DGA_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
-        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Requested branch
@@ -6133,7 +6382,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_LOCAL_BRANCH" = "development" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "development" ]; then
             printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
@@ -6188,14 +6437,13 @@ fi
 if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Display section break
-    printf "\\n"
-    if [ $DGA_INSTALL_TYPE = "new" ]; then
+    if [ "$DGA_INSTALL_TYPE" = "new" ]; then
         printf " =============== Install: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
-    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         printf " =============== Upgrade: DigiAsset Node ===============================\\n\\n"
         # ==============================================================================
-    elif [ $DGA_INSTALL_TYPE = "reset" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "reset" ]; then
         printf " =============== Reset: DigiAsset Node =================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
@@ -6208,21 +6456,29 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
        DGA_STATUS="stopped"
     fi
 
-    if [ $DGA_INSTALL_TYPE = "reset" ]; then
+    if [ "$DGA_INSTALL_TYPE" = "reset" ]; then
 
         str="Reset Mode: Delete DigiAsset Node pm2 instance..."
         printf "%b %s" "${INFO}" "${str}"
-        pm2 delete digiasset
+        sudo -u $USER_ACCOUNT pm2 delete digiasset
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete existing 'digiasset_node' files (if they exists)
+        if [[ -d $DGA_INSTALL_LOCATION/lib ]]; then
+            str="Removing existing DigiAsset Node files..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -rf $DGA_INSTALL_LOCATION/lib
+            rm -rf $DGA_INSTALL_LOCATION/node_modules
+            rm -rf $DGA_INSTALL_LOCATION/template
+            rm $DGA_INSTALL_LOCATION/index.js
+            rm $DGA_INSTALL_LOCATION/LICENCE
+            rm $DGA_INSTALL_LOCATION/*.log
+            rm $DGA_INSTALL_LOCATION/*.json
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
     fi
 
-    # Delete existing 'digiasset_node' folder (if it exists)
-    if [[ -d $DGA_INSTALL_LOCATION ]]; then
-        str="Removing DigiAsset Node current version..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -r $DGA_INSTALL_LOCATION
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
 
     # Let's check if npm is already installed
     str="Is npm already installed?..."
@@ -6327,36 +6583,69 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         npm install --quiet pm2@latest -g
     fi
 
-
     # Next install the newest version
     cd $USER_HOME
-    # Clone the development version if develop flag is set
-    if [ "$DGA_BRANCH" = "development" ]; then
+
+    # Clone the development version if develop flag is set, and this is a new install
+    if [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=development|" $DGNT_SETTINGS_FILE
+        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
-        cd $DGA_INSTALL_LOCATION
-        sudo -u $USER_ACCOUNT npm install
-        cd $USER_HOME
+    # Fetch the development version if develop flag is set, and this is an update
+    elif [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+        str="Pulling DigiAsset Node development branch from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # Clone the release version if main flag is set
-    elif [ "$DGA_BRANCH" = "main" ]; then
+    # Clone the release version if main flag is set, and this is a new install
+    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
-       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=main|" $DGNT_SETTINGS_FILE
+       sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
-        cd $DGA_INSTALL_LOCATION
-        sudo -u $USER_ACCOUNT npm install
-        cd $USER_HOME
-
+    # Fetch the release version if main flag is set, and this is an update
+    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+        str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+    # Restore DigiAsset Node settings from local backup, if it exists, and then delete the backup folder
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ ! -f $DGA_SETTINGS_FILE ]; then
+
+        # create ~/digiasset_node/_config folder, it does not already exist
+        if [ ! -d $DGA_SETTINGS_LOCATION ]; then #
+            str="Creating ~/digiasset_node/_config settings folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        str="Restoring DigiAsset configuration files from local backup..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        str="Removing DigiAsset configuration backup folder: ~/dga_config_backup ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rmdir $DGA_SETTINGS_BACKUP_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Install latest dependencies
+    printf "%b Install latest DigiAsset Node dependencies...\\n" "${INFO}"
+    cd $DGA_INSTALL_LOCATION
+    sudo -u $USER_ACCOUNT npm install
+    cd $USER_HOME
 
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
@@ -6368,10 +6657,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
     DGA_VER_LOCAL=$DGA_VER_RELEASE
-    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
-    if [ $DGA_INSTALL_TYPE = "install" ] || [ $DGA_INSTALL_TYPE = "reset" ]; then
+    sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    if [ "$DGA_INSTALL_TYPE" = "new" ] || [ "$DGA_INSTALL_TYPE" = "reset" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ $DGA_INSTALL_TYPE = "upgrade" ]; then
+    elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -6391,6 +6680,305 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
 fi
 
+}
+
+# Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
+digiasset_node_create_settings() {
+
+    local str
+
+    # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
+    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
+
+        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="reset"
+        else
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            # ==============================================================================
+            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
+            DGA_SETTINGS_CREATE=NO
+            DGA_SETTINGS_CREATE_TYPE="none"
+            return
+        fi
+    fi
+
+    # If DigiAsset Node live & backup settings do not yet exist, then assume this is a new install
+    if [ ! -f "$DGA_SETTINGS_FILE" ] && [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+                DGA_SETTINGS_CREATE="if_doing_full_install"
+                DGA_SETTINGS_CREATE_TYPE="new"
+    fi
+
+    # If DigiAsset Node live settings do not exist, but backup settings do, then assume this is a restore install
+    if [ ! -f "$DGA_SETTINGS_FILE" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+                DGA_SETTINGS_CREATE="if_doing_full_install"
+                DGA_SETTINGS_CREATE_TYPE="restore"
+    fi
+
+    # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
+    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        DGA_SETTINGS_CREATE=YES
+    fi
+
+    # If we are restoring the DigiAsset Node backup settings file, and the user has opted to do a full DigiNode install, then proceed
+    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "restore" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
+        DGA_SETTINGS_CREATE=YES
+    fi
+
+    # Display title if the settings file already exist
+    if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+            printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
+            # ==============================================================================
+    fi
+
+    # Let's get the latest RPC credentials from digibyte.conf if it exists
+    if [ -f $DGB_CONF_FILE ]; then
+        source $DGB_CONF_FILE
+        if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+            printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
+        fi
+    fi
+
+    # Check if DigiAsset settings file exists
+    if [ -f $DGA_SETTINGS_FILE ]; then
+        printf "%b Existing DigiAsset settings found.\\n" "${INFO}"
+    fi
+
+    # Check if DigiAsset settings backup file exists
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+        printf "%b Existing DigiAsset backup settings found.\\n" "${INFO}"
+    fi
+
+    # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
+
+        str="Checking if RPC credentials have changed..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        local rpcuser_json_cur
+        local rpcpassword_json_cur
+        local rpcport_json_cur
+
+        # Let's get the current rpcuser and rpcpassword from the main.json file
+
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpassword_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_user=true
+        fi
+        if [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_password=true
+        fi
+        if [ "$rpcport" != "$rpcport_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_port=true
+        fi
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf "%b%b %s Yes! DigiAsset settings need updating.\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+    # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
+
+        str="Checking if RPC credentials have changed..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        local rpcuser_json_cur
+        local rpcpassword_json_cur
+        local rpcport_json_cur
+
+        # Let's get the current rpcuser and rpcpassword from the main.json file
+
+        rpcuser_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.user' | tr -d '"')
+        rpcpassword_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.pass' | tr -d '"')
+        rpcport_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.wallet.port' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_user=true
+        fi
+        if [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_password=true
+        fi
+        if [ "$rpcport" != "$rpcport_json_cur" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_port=true
+        fi
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
+            printf "%b%b %s Yes! DigiAsset backup settings need updating.\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+
+    if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
+
+        printf "\\n"
+
+         # Display section break
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
+            # ==============================================================================
+            printf " =============== Creating: DigiAsset Node settings =====================\\n\\n"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            # ==============================================================================
+            printf " =============== Updating: DigiAsset Node settings =====================\\n\\n"
+            printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "restore" ]; then
+            # ==============================================================================
+            printf " =============== Restoring: DigiAsset Node settings ====================\\n\\n"
+            printf "%b Your DigiAsset Node backup settings will be restored.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
+            # ==============================================================================
+            printf " =============== Updating & Restoring: DigiAsset Node settings =========\\n\\n"
+            printf "%b RPC credentials in digibyte.conf have changed. DigiAsset backup settings will be updated and restored.\\n" "${INFO}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
+            # ==============================================================================
+            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
+        fi
+
+        # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
+            str="Deleting existing DigiAssets settings..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f -r $DGA_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If the live main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ] && [ -f "$DGA_SETTINGS_FILE" ]; then
+
+            if [ "$rpc_change_user" = true ]; then
+                str="Updating RPC user in main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcuser}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_password" = true ]; then
+                str="Updating RPC password in main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcpassword}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_port" = true ]; then
+                str="Updating RPC port in main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcport}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        fi
+
+        # If the backup main.json file already exists, update the rpc user and password if they have changed
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
+
+            if [ "$rpc_change_user" = true ]; then
+                str="Updating RPC user in backup main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcuser}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_password" = true ]; then
+                str="Updating RPC password in backup main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcpassword}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_port" = true ]; then
+                str="Updating RPC port in backup main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcport}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        fi
+
+        # Restart PM2 if the live main.json credentials have been updated
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf "%b Restarting PM2 digiasset service, as the credentials have been updated...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
+        fi
+
+        # If the main.json settings file does not exist anywhere, create the backup settings folder
+        if [ ! -f "$DGA_SETTINGS_BACKUP_FILE" ] && [ ! -f "$DGA_SETTINGS_FILE" ]; then
+
+            # create ~/dga_config_backup/ folder if it does not already exist
+            if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+                str="Creating ~/dga_config_backup/ settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Create a new main.json settings backup file
+            if [ ! -f $DGA_SETTINGS_BACKUP_FILE ]; then
+                str="Creating ~/dga_config_backup/main.json settings file..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_BACKUP_FILE
+                cat <<EOF > $DGA_SETTINGS_BACKUP_FILE
+{
+    "ignoreList": [
+        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
+    ],
+    "quiet":          true,
+    "includeMedia":   {
+        "maxSize":    1000000,
+        "names":      ["icon"],
+        "mimeTypes":  ["image/png","image/jpg","image/gif"],
+        "paid":       "always"
+    },
+    "timeout":        6000000,
+    "errorDelay":     600000,
+    "port":           8090,
+    "scanDelay":      600000,
+    "sessionLife":    86400000,
+    "users":          false,
+    "publish":        false,
+    "wallet":         {
+      "user":         "$rpcuser",
+      "pass":         "$rpcpassword",
+      "host":         "127.0.0.1",
+      "port":         $rpcport
+    }
+}
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        fi
+
+    fi
+
+    printf "\\n"
 }
 
 
@@ -6535,23 +7123,23 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="        - DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb="      DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="        - Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="      Go-IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="        - NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="      NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="        - DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="      DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt="        - DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="      DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\n\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgn\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
             printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
         #Nothing to do, continue
           if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
@@ -6603,169 +7191,6 @@ fi
 
 }
 
-# Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
-digiasset_node_create_settings() {
-
-    local str
-
-    # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
-    if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
-
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="reset"
-        else
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
-            # ==============================================================================
-            printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
-            DGA_SETTINGS_CREATE=NO
-            DGA_SETTINGS_CREATE_TYPE="none"
-            return
-        fi
-    fi
-
-    # If DigiAsset Node settings do not yet exist, then assume this is a new install
-    if [ ! -f "$DGA_SETTINGS_FILE" ]; then
-                DGA_SETTINGS_CREATE="if_doing_full_install"
-                DGA_SETTINGS_CREATE_TYPE="new"
-    fi
-
-    # If this is the first time creating the DigiAsset Node settings file, and the user has opted to do a full DigiNode install, then proceed
-    if  [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ] && [ "$DGA_SETTINGS_CREATE" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
-        DGA_SETTINGS_CREATE=YES
-    fi
-
-    # Let's get the latest RPC credentials from digibyte.conf if it exists
-    if [ -f $DGB_CONF_FILE ]; then
-        source $DGB_CONF_FILE
-    fi
-
-
-    # If main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
-    if [ -f $DGA_SETTINGS_FILE ] && [ ! $DGA_SETTINGS_CREATE_TYPE = "reset" ]; then
-
-        local rpcuser_json_cur
-        local rpcpass_json_cur
-        local rpcpass_json_cur
-
-        # Let's get the current rpcuser and rpcpassword from the main.json file
-
-        rpcuser_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.user' | tr -d '"')
-        rpcpass_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.pass' | tr -d '"')
-        rpcport_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.wallet.port' | tr -d '"')
-
-        # Compare them with the digibyte.conf values to see if they need updating
-
-        if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        elif [ "$rpcpass" != "$rpcpass_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        elif [ "$rpcport" != "$rpcport_json_cur" ]; then
-            DGA_SETTINGS_CREATE=YES
-            DGA_SETTINGS_CREATE_TYPE="update"
-        fi
-    fi
-
-
-    if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
-
-         # Display section break
-        if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
-            printf " =============== Creating: DigiAsset Node settings ===================\\n\\n"
-            # ==============================================================================
-        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-            printf " =============== Updating: DigiAsset Node settings ====================\\n\\n"
-            printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
-        elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
-            printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
-            # ==============================================================================
-        fi
-
-        # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
-        if [ $DGA_SETTINGS_CREATE_TYPE = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
-            str="Deleting existing DigiAssets settings..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f -r $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # If main.json file already exists, update the rpc user and password if they have changed
-        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-
-            str="Updating RPC credentials in main.json..."
-            printf "%b %s" "${INFO}" "${str}"
-
-            tmpfile=($mktemp)
-
-            cp $DGA_SETTINGS_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpass" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port'
-              "$tmpfile" >$DGA_SETTINGS_FILE &&
-            mv "$tmpfile" $DGA_SETTINGS_FILE &&
-            rm -f "$tmpfile"
-
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-        fi
-
-        # create ~/digiasset_node install folder if it does not already exist
-        if [ ! -d $DGA_INSTALL_LOCATION ]; then #
-            str="Creating ~/digiasset_node/ folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_INSTALL_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # create assetnode_config folder if it does not already exist
-        if [ ! -d $DGA_SETTINGS_LOCATION ]; then
-            str="Creating ~/digiasset_node/_config/ folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_LOCATION
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        if [ ! -f $DGA_SETTINGS_FILE ]; then
-            # Create a new main.json settings file
-            str="Creating ~/digiasset_node/_config/main.json settings file..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT touch $DGA_SETTINGS_FILE
-            cat <<EOF > $DGA_SETTINGS_FILE
-{
-    "ignoreList": [
-        "QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmQ2C5V7WN2nQLAQz73URXauENhgTwkZwYXQE56Ymg55dV","QmT7mPQPpQfA154bioJACMfYD3XBdAJ2BuBFWHkPrpVaAe","QmVUqYFvA9UEGT7vxrNWsKrRpof6YajfLcXJuSHBbLDXgK","QmWCH8fzy71C9CHc5LhuECJDM7dyW6N5QC13auS9KMNYax","QmYMiHk7zBiQ681o567MYH6AqkXGCB7RU8Rf5M4bhP4RjA","QmZxpYP6T4oQjNVJMjnVzbkFrKVGwPkGpJ4MZmuBL5qZso","QmbKUYdu1D8zwJJfBnvxf3LAJav8Sp4SNYFoz3xRM1j4hV","Qmc2ywGVoAZcpkYpETf2CVHxhmTokETMx3AiuywADbBEHY","QmdRmLoFVnEWx44NiK3VeWaz59sqV7mBQzEb8QGVuu7JXp","QmdtLCqzYNJdhJ545PxE247o6AxDmrx3YT9L5XXyddPR1M"
-    ],
-    "quiet":          true,
-    "includeMedia":   {
-        "maxSize":    1000000,
-        "names":      ["icon"],
-        "mimeTypes":  ["image/png","image/jpg","image/gif"],
-        "paid":       "always"
-    },
-    "timeout":        6000000,
-    "errorDelay":     600000,
-    "port":           8090,
-    "scanDelay":      600000,
-    "sessionLife":    86400000,
-    "users":          false,
-    "publish":        false,
-    "wallet":         {
-      "user":         "$rpcuser",
-      "pass":         "$rpcpassword",
-      "host":         "127.0.0.1",
-      "port":         $rpcport
-    }
-}
-EOF
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        printf "\\n"
-
-    fi
-}
-
 
 # Perform uninstall if requested
 uninstall_do_now() {
@@ -6794,37 +7219,73 @@ uninstall_do_now() {
         # Do you want to uninstall your DigiAsset Node?
         if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" "${r}" "${c}"; then
 
-            # Delete existing 'digiasset_node' folder (if it exists)
-            str="Stopping DigiAsset Node PM2 service..."
-            printf "%b %s" "${INFO}" "${str}"
-            pm2 delete digiasset
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Delete existing 'digiasset_node' folder (if it exists)
-            str="Deleting ~/digiasset_node folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r -f $USER_HOME/digiasset_node
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            local delete_dga=yes
 
         else
+            local delete_dga=no
             printf "%b You chose not to uninstall DigiAsset Node v${DGA_VER_LOCAL}.\\n" "${INFO}"
         fi
     fi
 
-    # Ask to delete DigiAsset Node settings (main.json) if it exists
-    if [ -f "$DGA_SETTINGS_FILE" ]; then
+    # Ask to delete DigiAsset Node config folder if it exists
+    if [ -d "$DGA_SETTINGS_LOCATION" ] && [ "$delete_dga" = "yes" ]; then
 
         # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your DigiAsset Node settings folder: ~/.digibyte/asset_settings ?" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\n(If you choose No, the _config folder will backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" "${r}" "${c}"; then
+            local delete_dga_config=yes
+        else
+            local delete_dga_config=no
+            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
+        fi
+    fi
+
+    # Stop PM2 service, if we are deleting DigiAsset Node
+    if [ "$delete_dga" = "yes" ]; then
+
+        # Stop digiasset PM2 service
+        str="Stopping DigiAsset Node PM2 service..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT pm2 delete digiasset
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Backup DigiAsset _config folder to the home folder, if we are uninstalling DigiAssets Node, but keeping the configuration
+    if [ "$delete_dga_config" = "no" ] && [ "$delete_dga" = "yes" ]; then
+
+        # create ~/dga_config_backup/ folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+            str="Creating ~/dga_config_backup/ backup folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    
+        # Delete asset_settings folder
+        str="Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Delete DigiAsset _config folder, if we are keeping the DigiAssets Node, but deleting the configuration
+    if [ "$delete_dga_config" = "yes" ] && [ "$delete_dga" = "yes" ]; then
 
             # Delete asset_settings folder
-            str="Deleting DigiAssets settings folder: asset_settings.."
+            str="Deleting DigiAssets settings folder: ~/digiasset_node/_config.."
             printf "%b %s" "${INFO}" "${str}"
             rm -f -r $DGA_SETTINGS_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b You chose not to delete your DigiAsset settings folder.\\n" "${INFO}"
-        fi
+    fi
+
+    # Delete DigiAsset Node
+    if [ "$delete_dga" = "yes" ]; then
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Deleting ~/digiasset_node folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Ask to delete PM2 service, if it exists
@@ -6886,7 +7347,7 @@ uninstall_do_now() {
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         IPFS_STATUS="installed"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Next let's check if IPFS daemon is running
@@ -6969,7 +7430,7 @@ uninstall_do_now() {
                 str="Deleting ~/.ipfs settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -r $USER_HOME/.ipfs
-                printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             else
                 printf "%b You chose not to delete the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
             fi
@@ -7151,7 +7612,7 @@ uninstall_do_now() {
     printf "\\n"
 
     printf " =======================================================================\\n"
-    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} ================\\n"
+    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} =====================\\n"
     printf " =======================================================================\\n\\n"
     # ==============================================================================
 
@@ -7178,7 +7639,7 @@ elif is_command vi ; then
     TEXTEDITOR=vi
 fi
 
-if [ $VERBOSE_MODE = true ]; then
+if [ "$VERBOSE_MODE" = true ]; then
     printf "%b Text Editor: $TEXTEDITOR\\n" "${INFO}"
 fi
 
@@ -8445,6 +8906,9 @@ main() {
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
+    # Create/update digibyte.conf file
+    digibyte_create_conf
+
     # Check if DigiByte Core is installed, and if there is an upgrade available
     digibyte_check
 
@@ -8469,9 +8933,6 @@ main() {
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
-    # Create DigiByte.conf file
-    digibyte_create_conf
-
     # Install/upgrade DigiByte Core
     digibyte_do_install
 
@@ -8487,9 +8948,6 @@ main() {
 
     ### INSTALL/UPGRADE DIGIASSETS NODE ###
 
-    # Create assetnode_config script PLUS main.json file (if they don't yet exist)
-    digiasset_node_create_settings
-
     # Install/upgrade IPFS
     ipfs_do_install
 
@@ -8498,6 +8956,9 @@ main() {
 
     # Install/upgrade NodeJS
     nodejs_do_install
+
+    # Create or update main.json file with RPC credentials
+    digiasset_node_create_settings
 
     # Install DigiAssets along with IPFS
     digiasset_node_do_install

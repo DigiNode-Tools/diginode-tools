@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.4
+DGNT_VER_LOCAL=0.0.5
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -398,6 +398,28 @@ is_dgbnode_installed() {
           exit 1
         fi
       fi
+    fi
+
+    # Tell user to reboot if the RPC username or password in digibyte.conf have recently been changed
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
+            printf "\\n"
+            printf "%b %bThe RPC credentials have been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "\\n"
+            exit
+        fi
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "\\n"
+            printf "%b %bThe RPC port has been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "\\n"
+            exit
+        fi
     fi
 
     # Display message if the DigiByte Node is running okay
@@ -806,7 +828,7 @@ quit_message() {
 
         # Don't show the donation plea again for at least 15 minutes
         DONATION_PLEA="wait15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
       fi
 
 
@@ -822,7 +844,7 @@ quit_message() {
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
       DONATION_PLEA="wait15"
-      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=wait15|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
   else
 
       # Choose a random DigiFact
@@ -874,7 +896,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
     if [ $IP4_EXTERNAL_QUERY != "" ]; then
         IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
-        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=$IP4_EXTERNAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
     fi
     printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
 
@@ -882,10 +904,10 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # update internal IP address and save to settings file
     str="Looking up internal IP address..."
     printf "  %b %s" "${INFO}" "${str}"
-    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
     if [ $IP4_INTERNAL_QUERY != "" ]; then
         IP4_INTERNAL=$IP4_INTERNAL_QUERY
-        sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=$IP4_INTERNAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
     fi
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -919,7 +941,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
     if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
         DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     else
         DGB_STATUS="startingup"
@@ -935,7 +957,7 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
 
     # When the user quits, enable showing a donation plea
     DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -956,13 +978,13 @@ firstrun_dganode_configs() {
           DGA_VER_MNR_LOCAL="beta"
           str="Current Version:"
           printf "%b %s" "${INFO}" "${str}"
-          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
           printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
       elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
           DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
           str="Current Version:"
           printf "%b %s" "${INFO}" "${str}"
-          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
           printf "%b%b %s DigiAsset Node v${DGA_VER_MNR_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
       else
           DGA_VER_MNR_LOCAL=""
@@ -993,7 +1015,7 @@ firstrun_dganode_configs() {
       if [ "$NODEJS_VER_LOCAL" = "" ]; then
           NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
       fi
-      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
       DGA_FIRST_RUN=$(date)
       sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=\"$DGA_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
@@ -1030,11 +1052,12 @@ pre_loop() {
       DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
       if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
         DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       fi
 
     fi
   fi
+
 
   ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
 
@@ -1234,7 +1257,7 @@ if [ "$DGB_STATUS" = "running" ]; then
     # Only update the variable, if a new value is found
     if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
        BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE_QUERY
-       sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE|" $DGNT_SETTINGS_FILE
+       sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Calculate blockchain sync percentage
@@ -1272,7 +1295,7 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15SEC" "+%s") )))
+TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15SEC)" "+%s") )))
 
 if [ $TIME_DIF_15SEC -gt 15 ]; then 
 
@@ -1302,13 +1325,13 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
         DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
         if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
           DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-          sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
         if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
-          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=$DGB_VER_LOCAL_CHECK_FREQ|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE="no"
         else
           DGB_UPDATE_AVAILABLE="yes"
@@ -1331,7 +1354,7 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1MIN" "+%s") )))
+TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1MIN)" "+%s") )))
 
 if [ $TIME_DIF_1MIN -gt 60 ]; then
 
@@ -1353,7 +1376,7 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
         # Ok, we got a number back. Update the variable.
         if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
            BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE_QUERY
-           sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE|" $DGNT_SETTINGS_FILE
+           sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
         fi
 
         # Calculate blockchain sync percentage
@@ -1380,10 +1403,10 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
   digifact_randomize
 
   # Update local IP address if it has changed
-  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
   if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
     IP4_INTERNAL = $IP4_INTERNAL_NEW
-    sed -i -e '/^IP4_INTERNAL=/s|.*|IP4_INTERNAL="$IP4_INTERNAL_NEW"|' $DGNT_SETTINGS_FILE
+    sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
   fi
 
   # Update diginode.settings with when Status Monitor last ran
@@ -1401,7 +1424,7 @@ fi
 #    Update the Internal & External IP
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_15MIN" "+%s") )))
+TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15MIN)" "+%s") )))
 
 if [ $TIME_DIF_15MIN -gt 300 ]; then
 
@@ -1409,7 +1432,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
     if [ "$IP4_EXTERNAL_NEW" != "$IP4_EXTERNAL" ]; then
       IP4_EXTERNAL=$IP4_EXTERNAL_NEW
-      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=$IP4_EXTERNAL|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -1422,10 +1445,10 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
-          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
       elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
           DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
-          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
       else
           DGA_VER_MNR_LOCAL=""
           sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
@@ -1437,10 +1460,10 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
           sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       elif [ "$DGA_VER_MNR_LOCAL" = "" ]; then
           DGA_VER_LOCAL="$DGA_VER_MJR_LOCAL"       # e.g. DigiAsset Node v3
-          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       elif [ "$DGA_VER_MNR_LOCAL" != "" ]; then
           DGA_VER_LOCAL="$DGA_VER_MNR_LOCAL"       # e.g. DigiAsset Node v3.2
-          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=$DGA_VER_LOCAL|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
       fi
 
       # Get the local version number of NodeJS (this will also tell us if it is installed)
@@ -1449,46 +1472,47 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
       if [ "$NODEJS_VER_LOCAL" = "" ]; then
           NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
       fi
-      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=$NODEJS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
 
       IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-      sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=$IPFS_VER_LOCAL|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
 
     # Lookup DigiNode Tools local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
-        DGNT_LOCAL_BRANCH=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
     if [ "$dgnt_ver_local_query" != "" ]; then
         DGNT_VER_LOCAL=$dgnt_ver_local_query
-        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=$DGNT_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If we get a valid local branch, update the stored local branch
-    if [ "$DGNT_LOCAL_BRANCH" != "" ]; then
-        sed -i -e "/^DGNT_LOCAL_BRANCH=/s|.*|DGNT_LOCAL_BRANCH=$DGNT_LOCAL_BRANCH|" $DGNT_SETTINGS_FILE
+    if [ "$dgnt_branch_local_query" != "" ]; then
+        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Let's check if DigiNode Tools already installed
-    if [ "$DGNT_LOCAL_BRANCH" = "release" ]; then
+    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_LOCAL_BRANCH" = "develop" ]; then
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
         DGNT_VER_LOCAL_DISPLAY="dev-branch"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_LOCAL_BRANCH" = "main" ]; then
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=$DGNT_VER_LOCAL_DISPLAY|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     fi
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
     DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=yes|" $DGNT_SETTINGS_FILE
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
 
     SAVED_TIME_15MIN="$(date)"
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -1500,7 +1524,7 @@ fi
 #    Check for new version of DigiByte Core
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "$TIME_NOW" "+%s") - $(date -d "$SAVED_TIME_1DAY" "+%s") )))
+TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1DAY)" "+%s") )))
 
 # if [ $TIME_DIF_1DAY -gt 86400 ]; then              # Commented to test update checks
 if [ $TIME_DIF_1DAY -gt 100 ]; then 
@@ -1518,7 +1542,7 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
     DGB_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
       DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-      sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=$DGB_VER_RELEASE|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
@@ -1526,23 +1550,23 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
 
         # Get current software version, and write to diginode.settings
         DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=$DGB_VER_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
 
         # Compare current DigiByte Core version with Github version to know if there is a new version available
         if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
           DGB_UPDATE_AVAILABLE="no"
         else
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
-          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=$DGB_VER_LOCAL_CHECK_FREQ|" $DGNT_SETTINGS_FILE
+          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE="yes"
         fi
     fi
 
     # Check for new release of DigiNode Tools on Github
-    DGNT_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
-      if [ "$DGNT_VER_RELEASE_QUERY" != "" ]; then
-        DGNT_VER_RELEASE=$DGNT_VER_RELEASE_QUERY
-        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=$DGNT_VER_RELEASE|" $DGNT_SETTINGS_FILE
+    dgnt_ver_release_query=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+      if [ "$dgnt_ver_release_query" != "" ]; then
+        DGNT_VER_RELEASE=$dgnt_ver_release_query
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
         # Check if there is an update for DigiNode Tools
         if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
           DGNT_UPDATE_AVAILABLE="no"
@@ -1555,7 +1579,7 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
     NODEJS_VER_RELEASE_QUERY=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
     if [ "$NODEJS_VER_RELEASE_QUERY" != "" ]; then
       NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE_QUERY
-      sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=$NODEJS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If there is actually a local version of NodeJS, check for an update
@@ -1574,8 +1598,8 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
     if [ $DGA_VER_RELEASE_QUERY != "" ]; then
       DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
       DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
-      sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
-      sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=$DGA_VER_MJR_RELEASE|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+      sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # If installed, get the major release directly from the api.js file
@@ -1583,12 +1607,12 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
       DGA_VER_MJR_LOCAL_QUERY=$(cat $DGA_INSTALL_LOCATION/lib/api.js | grep "const apiVersion=" | cut -d'=' -f2 | cut -d';' -f1)
       if [ $DGA_VER_MJR_LOCAL_QUERY != "" ]; then
         DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL_QUERY
-        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=$DGA_VER_MJR_LOCAL|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=\"$DGA_VER_MJR_LOCAL\"|" $DGNT_SETTINGS_FILE
       fi
     fi
 
     if [ "$DGA_VER_RELEASE" != "" ]; then
-        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=$DGA_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
 
         # If there is actually a local version, then check for an update
         if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
@@ -1606,7 +1630,7 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
     IPFS_VER_RELEASE_QUERY=$(curl -sfL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=$IPFS_VER_RELEASE|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
 
         # If there actually a local version, then check for an update
         if [ "$IPFS_VER_LOCAL" != "" ]; then
@@ -1734,8 +1758,8 @@ printf "   connections is limited to 8. For help on how to do this, visit: https
 printf "\\n"
 printf "   To verify that port 12024 is being forwarded correctly, visit: https://opennodes.digibyte.link\\n"
 printf "   Enter your external IP address in the form at the bottom of the page. If the port is open,\\n"
-printf "   it should should display your DigiByte version number and approximate location. The connection\\n"
-printf "   count should also slowly start increasing. If the number is above 8, this indicates that things are\\n"
+printf "   it should should display your DigiByte version number and approximate location. The connection count\\n"
+printf "   above should also slowly start increasing. If the number is above 8, this indicates that things are\\n"
 printf "   working correctly. This message will disappear when the total connections is 9 or more.\\n"  
 fi
 printf "\\n"
