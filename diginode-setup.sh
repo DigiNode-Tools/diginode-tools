@@ -6767,14 +6767,17 @@ digiasset_node_create_settings() {
         if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_user=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_password=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
+            rpc_change_port=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6802,14 +6805,17 @@ digiasset_node_create_settings() {
         if [ "$rpcuser" != "$rpcuser_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_user=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_password=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
+            rpc_change_port=true
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6854,28 +6860,58 @@ digiasset_node_create_settings() {
         # If the live main.json file already exists, update the rpc user and password if they have changed
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-            str="Updating RPC credentials in live main.json..."
-            printf "%b %s" "${INFO}" "${str}"
-
-            tmpfile=`sudo -u $USER_ACCOUNT mktemp`
+#            tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
             echo ""
             echo "RPC Credentials for digibyte.conf:"
-            echo "rpcuser - $rpcuser"
-            echo "rpcpassword - $rpcpassword"
-            echo "rpcport - $rpcport"
+            echo "  rpcuser - $rpcuser"
+            echo "  rpcpassword - $rpcpassword"
+            echo "  rpcport - $rpcport"
 
+            echo ""
+            echo ">> Start File Contents:"
+            cat "$DGA_SETTINGS_FILE" | jq
+            echo ""
 
-            cp $DGA_SETTINGS_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
-            echo ">> Temp File Contents:"
-            cat "$tmpfile" | jq
-            mv "$tmpfile" $DGA_SETTINGS_FILE &&
-            rm -f "$tmpfile"
+            printf "%b Updating RPC credentials in live main.json\\n" "${INFO}"
+
+            if [ "$rpc_change_user" = true ]; then
+                str="Updating RPC user..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcuser="$(jq '.wallet.user = "$rpcuser"' $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcuser}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_password" = true ]; then
+                str="Updating RPC password..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcpassword="$(jq '.wallet.pass = "$rpcpassword"' $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcpassword}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$rpc_change_port" = true ]; then
+                str="Updating RPC port..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcport="$(jq '.wallet.port = "$rpcport"' $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_rpcport}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+ #           cp $DGA_SETTINGS_FILE "$tmpfile"
+ #           jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE
+
+ #           echo ""
+ #           echo ">> Temp File Contents:"
+ #           cat "$tmpfile" | jq
+
+ #           mv "$tmpfile" $DGA_SETTINGS_FILE
+ #           rm -f "$tmpfile"
+
+            echo ""
             echo ">> Final File Contents:"
             cat "$DGA_SETTINGS_FILE" | jq
-
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         fi
 
