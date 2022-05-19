@@ -6893,7 +6893,7 @@ digiasset_node_create_settings() {
             if [ "$rpc_change_port" = true ]; then
                 str="Updating RPC port..."
                 printf "%b %s" "${INFO}" "${str}"
-                update_rpcport="$(jq ".wallet.pass = $rpcport" $DGA_SETTINGS_FILE)" && \
+                update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
@@ -6928,7 +6928,7 @@ digiasset_node_create_settings() {
             if [ "$rpc_change_port" = true ]; then
                 str="Updating RPC port..."
                 printf "%b %s" "${INFO}" "${str}"
-                update_rpcport="$(jq ".wallet.pass = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
+                update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_BACKUP_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
