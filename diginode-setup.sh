@@ -6859,6 +6859,13 @@ digiasset_node_create_settings() {
 
             tmpfile=`sudo -u $USER_ACCOUNT mktemp`
 
+            echo ""
+            echo "RPC Credentials for digibyte.conf:"
+            echo: "rpcuser: $rpcuser"
+            echo: "rpcpassword: $rpcpassword"
+            echo: "rpcport: $rpcport"
+
+
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
             jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
             echo ">> Temp File Contents:"
