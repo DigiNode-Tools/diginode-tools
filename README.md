@@ -114,10 +114,12 @@ Raspberry Pi 4 8Gb
 
 ## Release History
 
-v0.0.5 - 2022-05-16 Test Release
+v0.0.5 - 2022-05-19 Test Release
 - USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
-- DigiAsset Settings are backed up locally when uninstalling, if desired
+- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bux in v0.0.4
 - Fixes to diginode.settings to better store variables
+- Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
+- Countless bug fixes and improvements
 
 v0.0.4 - 2022-05-10 Test Release
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
