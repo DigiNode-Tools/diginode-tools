@@ -6861,9 +6861,9 @@ digiasset_node_create_settings() {
 
             echo ""
             echo "RPC Credentials for digibyte.conf:"
-            echo "rpcuser: $rpcuser"
-            echo "rpcpassword: $rpcpassword"
-            echo "rpcport: $rpcport"
+            echo "rpcuser - $rpcuser"
+            echo "rpcpassword - $rpcpassword"
+            echo "rpcport - $rpcport"
 
 
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
