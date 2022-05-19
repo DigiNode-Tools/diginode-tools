@@ -405,18 +405,18 @@ is_dgbnode_installed() {
         IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
-            printf "%b %bRPC credentials have recently been changed. You need to restart your DigiNode for the changes to take effect.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bThe RPC credentials have been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
             printf "\\n"
             exit
         fi
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
-            printf "%b %bRPC port has recently been changed. You need to restart your DigiNode for the changes to take effect.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bThe RPC port has been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
             printf "\\n"
             exit
         fi

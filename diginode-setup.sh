@@ -6743,13 +6743,13 @@ digiasset_node_create_settings() {
 
     # Check if DigiAsset settings backup file exists
     if [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
-        printf "%b Existing DigiAsset settings backup found.\\n" "${INFO}"
+        printf "%b Existing DigiAsset backup settings found.\\n" "${INFO}"
     fi
 
     # If live main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking if DigiAsset Settings need updating with new RPC credentials..."
+        str="Checking if RPC credentials have changed..."
         printf "%b %s" "${INFO}" "${str}"
 
         local rpcuser_json_cur
@@ -6780,7 +6780,7 @@ digiasset_node_create_settings() {
             rpc_change_port=true
         fi
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Yes! DigiAsset settings need updating.\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -6789,7 +6789,7 @@ digiasset_node_create_settings() {
     # If backup main.json file already exists, and we are not doing a reset, let's check if the rpc user and password need updating
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking if backup DigiAsset Settings need updating with new RPC credentials..."
+        str="Checking if RPC credentials have changed..."
         printf "%b %s" "${INFO}" "${str}"
 
         local rpcuser_json_cur
@@ -6820,7 +6820,7 @@ digiasset_node_create_settings() {
             rpc_change_port=true
         fi
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Yes! DigiAsset backup settings need updating.\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -6864,14 +6864,6 @@ digiasset_node_create_settings() {
         # If the live main.json file already exists, update the rpc user and password if they have changed
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-#            tmpfile=`sudo -u $USER_ACCOUNT mktemp`
-
-            echo ""
-            echo "RPC Credentials for digibyte.conf:"
-            echo "  rpcuser - $rpcuser"
-            echo "  rpcpassword - $rpcpassword"
-            echo "  rpcport - $rpcport"
-
             echo ""
             echo ">> Start File Contents:"
             cat "$DGA_SETTINGS_FILE" | jq
@@ -6903,16 +6895,6 @@ digiasset_node_create_settings() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
- #           cp $DGA_SETTINGS_FILE "$tmpfile"
- #           jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE
-
- #           echo ""
- #           echo ">> Temp File Contents:"
- #           cat "$tmpfile" | jq
-
- #           mv "$tmpfile" $DGA_SETTINGS_FILE
- #           rm -f "$tmpfile"
-
             echo ""
             echo ">> Final File Contents:"
             cat "$DGA_SETTINGS_FILE" | jq
@@ -6922,17 +6904,31 @@ digiasset_node_create_settings() {
         # If the backup main.json file already exists, update the rpc user and password if they have changed
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
 
-            str="Updating RPC credentials in backup main.json..."
-            printf "%b %s" "${INFO}" "${str}"
+            printf "%b Updating RPC credentials in backup main.json\\n" "${INFO}"
 
-            tmpfile=`sudo -u $USER_ACCOUNT mktemp`
+            if [ "$rpc_change_user" = true ]; then
+                str="Updating RPC user..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcuser}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
-            cp $DGA_SETTINGS_BACKUP_FILE "$tmpfile" &&
-            jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_BACKUP_FILE &&
-            mv "$tmpfile" $DGA_SETTINGS_BACKUP_FILE &&
-            rm -f "$tmpfile"
+            if [ "$rpc_change_password" = true ]; then
+                str="Updating RPC password..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcpassword}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            if [ "$rpc_change_port" = true ]; then
+                str="Updating RPC port..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_rpcport="$(jq ".wallet.pass = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_rpcport}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
 
         fi
 
@@ -6947,7 +6943,7 @@ digiasset_node_create_settings() {
 
             # create ~/dga_config_backup/ folder if it does not already exist
             if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
-                str="Creating ~/dga_config_backup/ folder..."
+                str="Creating ~/dga_config_backup/ settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
                 sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
