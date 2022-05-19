@@ -6768,21 +6768,20 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             rpc_change_user=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             rpc_change_password=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update"
             rpc_change_port=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        if [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
@@ -6809,21 +6808,20 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             rpc_change_user=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$rpcpassword" != "$rpcpassword_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             rpc_change_password=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$rpcport" != "$rpcport_json_cur" ]; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="update_restore"
             rpc_change_port=true
-            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-        if [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
