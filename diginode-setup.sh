@@ -6884,7 +6884,7 @@ digiasset_node_create_settings() {
             if [ "$rpc_change_user" = true ]; then
                 str="Updating RPC user..."
                 printf "%b %s" "${INFO}" "${str}"
-                update_rpcuser="$(jq '.wallet.user = "$rpcuser"' $DGA_SETTINGS_FILE)" && \
+                update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcuser}" > $DGA_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
@@ -6892,7 +6892,7 @@ digiasset_node_create_settings() {
             if [ "$rpc_change_password" = true ]; then
                 str="Updating RPC password..."
                 printf "%b %s" "${INFO}" "${str}"
-                update_rpcpassword="$(jq '.wallet.pass = "$rpcpassword"' $DGA_SETTINGS_FILE)" && \
+                update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcpassword}" > $DGA_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
@@ -6900,7 +6900,7 @@ digiasset_node_create_settings() {
             if [ "$rpc_change_port" = true ]; then
                 str="Updating RPC port..."
                 printf "%b %s" "${INFO}" "${str}"
-                update_rpcport="$(jq '.wallet.port = "$rpcport"' $DGA_SETTINGS_FILE)" && \
+                update_rpcport="$(jq ".wallet.pass = $rpcport" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
