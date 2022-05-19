@@ -6867,15 +6867,8 @@ digiasset_node_create_settings() {
         # If the live main.json file already exists, update the rpc user and password if they have changed
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-            echo ""
-            echo ">> Start File Contents:"
-            cat "$DGA_SETTINGS_FILE" | jq
-            echo ""
-
-            printf "%b Updating RPC credentials in live main.json\\n" "${INFO}"
-
             if [ "$rpc_change_user" = true ]; then
-                str="Updating RPC user..."
+                str="Updating RPC user in main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcuser}" > $DGA_SETTINGS_FILE
@@ -6883,7 +6876,7 @@ digiasset_node_create_settings() {
             fi
 
             if [ "$rpc_change_password" = true ]; then
-                str="Updating RPC password..."
+                str="Updating RPC password in main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcpassword}" > $DGA_SETTINGS_FILE
@@ -6891,26 +6884,20 @@ digiasset_node_create_settings() {
             fi
 
             if [ "$rpc_change_port" = true ]; then
-                str="Updating RPC port..."
+                str="Updating RPC port in main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            echo ""
-            echo ">> Final File Contents:"
-            cat "$DGA_SETTINGS_FILE" | jq
-
         fi
 
         # If the backup main.json file already exists, update the rpc user and password if they have changed
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ] && [ -f "$DGA_SETTINGS_BACKUP_FILE" ]; then
 
-            printf "%b Updating RPC credentials in backup main.json\\n" "${INFO}"
-
             if [ "$rpc_change_user" = true ]; then
-                str="Updating RPC user..."
+                str="Updating RPC user in backup main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcuser="$(jq ".wallet.user = \"$rpcuser\"" $DGA_SETTINGS_BACKUP_FILE)" && \
                 echo -E "${update_rpcuser}" > $DGA_SETTINGS_BACKUP_FILE
@@ -6918,7 +6905,7 @@ digiasset_node_create_settings() {
             fi
 
             if [ "$rpc_change_password" = true ]; then
-                str="Updating RPC password..."
+                str="Updating RPC password in backup main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcpassword="$(jq ".wallet.pass = \"$rpcpassword\"" $DGA_SETTINGS_BACKUP_FILE)" && \
                 echo -E "${update_rpcpassword}" > $DGA_SETTINGS_BACKUP_FILE
@@ -6926,7 +6913,7 @@ digiasset_node_create_settings() {
             fi
 
             if [ "$rpc_change_port" = true ]; then
-                str="Updating RPC port..."
+                str="Updating RPC port in backup main.json..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_BACKUP_FILE
