@@ -4483,8 +4483,8 @@ digibyte_check() {
 
     # Restart if the RPC port has changed and it can't connect
     if [ "$DGB_STATUS" = "running" ]; then
-        IS_COULD_NOT_CONNECT=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
-        if [ "$IS_COULD_NOT_CONNECT" = "Could not connect to the server" ]; then
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "%b RPC port has been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
             restart_service digibyted
         fi
@@ -6861,8 +6861,12 @@ digiasset_node_create_settings() {
 
             cp $DGA_SETTINGS_FILE "$tmpfile" &&
             jq --arg user "$rpcuser" --arg pass "$rpcpassword" --arg port "$rpcport" '.wallet.user |= $user | .wallet.pass |= $pass | .wallet.port |= $port' "$tmpfile" >$DGA_SETTINGS_FILE &&
+            echo ">> Temp File Contents:"
+            cat "$tmpfile" | jq
             mv "$tmpfile" $DGA_SETTINGS_FILE &&
             rm -f "$tmpfile"
+            echo ">> Final File Contents:"
+            cat "$DGA_SETTINGS_FILE" | jq
 
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
