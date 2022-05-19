@@ -854,6 +854,9 @@ digibyte_create_conf() {
         printf " =============== Resetting: digibyte.conf ==============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
+        printf "%b DigiByte daemon will be stopped.\\n" "${INFO}"
+        stop_service digibyted
+        DGB_STATUS="stopped"
         str="Deleting existing digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_CONF_FILE
