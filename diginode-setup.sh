@@ -65,8 +65,8 @@ fi
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Setup and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
-# If you want to change the default folder locations, please edit this file.
-# (e.g. To move your DigiByte Core data file to an external drive.)
+# If you want to change the default folder locations, you should change the settings in this file.
+# (e.g. To store your DigiByte Core data file on an external drive.)
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
@@ -4852,8 +4852,8 @@ printf " =============== Checking: DigiNode Tools ==============================
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
-
-        DGNT_BRANCH_LOCAL=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE    
+        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
@@ -4863,7 +4863,8 @@ printf " =============== Checking: DigiNode Tools ==============================
     fi
 
     # If we get a valid local branch, update the stored local branch
-    if [ "$DGNT_BRANCH_LOCAL" != "" ]; then
+    if [ "$dgnt_branch_local_query" != "" ]; then
+        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -7313,6 +7314,20 @@ uninstall_do_now() {
         str="Deleting ~/digiasset_node folder..."
         printf "%b %s" "${INFO}" "${str}"
         rm -r -f $USER_HOME/digiasset_node
+        DGA_LOCAL_BRANCH=""
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
+        DGA_VER_LOCAL=""
+        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MJR_LOCAL=""
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MNR_LOCAL=""
+        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_INSTALL_DATE=""
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_UPGRADE_DATE=""
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_FIRST_RUN=""
+        sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -7436,6 +7451,12 @@ uninstall_do_now() {
                 str="Deleting current IPFS Updater installer: ~/ipfs-update..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -r $USER_HOME/ipfs-update
+                IPFSU_VER_LOCAL=""
+                sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                IPFSU_INSTALL_DATE=""
+                sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                IPFSU_UPGRADE_DATE=""
+                sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7445,6 +7466,12 @@ uninstall_do_now() {
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
+                IPFS_VER_LOCAL=""
+                sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                IPFS_INSTALL_DATE=""
+                sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                IPFS_UPGRADE_DATE=""
+                sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7511,6 +7538,12 @@ uninstall_do_now() {
             str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            DGB_INSTALL_DATE=""
+            sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+            DGB_UPGRADE_DATE=""
+            sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -7585,6 +7618,20 @@ uninstall_do_now() {
                 str="Deleting DigiNode Tools..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -rf $DGNT_LOCATION
+                DGNT_BRANCH_LOCAL=""
+                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGNT_VER_LOCAL_=""
+                sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGNT_VER_LOCAL_DISPLAY=""
+                sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=|" $DGNT_SETTINGS_FILE
+                DGNT_INSTALL_DATE=""
+                sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                DGNT_UPGRADE_DATE=""
+                sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                DGNT_MONITOR_FIRST_RUN=""
+                sed -i -e "/^DGNT_MONITOR_FIRST_RUN=/s|.*|DGNT_MONITOR_FIRST_RUN=|" $DGNT_SETTINGS_FILE
+                DGNT_MONITOR_LAST_RUN=""
+                sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7607,6 +7654,7 @@ uninstall_do_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
+
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
         fi
