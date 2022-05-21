@@ -6157,15 +6157,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
-        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If there is no install date (i.e. NodeJS was already installed) add it now
-    if [ "$NODEJS_INSTALL_DATE" = "" ]; then
         NODEJS_INSTALL_DATE="$(date)"
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
+        NODEJS_UPGRADE_DATE="$(date)"
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -6175,6 +6171,12 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     printf "\\n"
 
+fi
+
+# If there is no install date (i.e. NodeJS was already installed when this script was first run) add it now, since it was up-to-date at this time
+if [ "$NODEJS_INSTALL_DATE" = "" ]; then
+    NODEJS_INSTALL_DATE="$(date)"
+    sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
