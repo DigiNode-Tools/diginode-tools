@@ -4534,7 +4534,7 @@ digibyte_check() {
 
             if [ "$every15secs" -ge 30 ]; then
                 # Query if digibyte has finished starting up. Display error. Send success to null.
-                is_dgb_live_query=$(digibyte-cli uptime 2>&1 1>/dev/null)
+                is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
                 if [ "$is_dgb_live_query" != "" ]; then
                     dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
                     printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
