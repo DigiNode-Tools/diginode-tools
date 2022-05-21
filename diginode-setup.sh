@@ -3740,11 +3740,12 @@ usb_restore() {
 
 #check there is sufficient space on the chosen drive to download the blockchain
 disk_check() {
+
+    printf " =============== Checking: Disk Space ==================================\\n\\n"
+    # ==============================================================================
+
     # Only run the check if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-
-        printf " =============== Checking: Disk Space ==================================\\n\\n"
-        # ==============================================================================
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -3946,7 +3947,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE
 
 
 # Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 #Nothing to do, continue
   printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
   printf "\\n"
@@ -4532,19 +4533,21 @@ digibyte_check() {
             fi 
 
             if [ "$every15secs" -ge 30 ]; then
-              BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
-              if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-                printf "%b%b %s $progress Querying..." "${OVER}" "${INDENT}" "${str}"
-                every15secs=0
-                sleep 0.5
-              else
-                DGB_STATUS="running"
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                tput cnorm
-              fi
+                # Query if digibyte has finished starting up. Display error. Send success to null.
+                is_dgb_live_query=$(digibyte-cli uptime 2>&1 1>/dev/null)
+                if [ "$is_dgb_live_query" != "" ]; then
+                    dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+                    printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
+                    every15secs=0
+                    sleep 0.5
+                else
+                    DGB_STATUS="running"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    tput cnorm
+                fi
             else
                 every15secs=$((every15secs + 1))
-                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                printf "%b%b %s $dgb_error_msg $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
         done
@@ -8845,7 +8848,7 @@ main() {
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_LOCATION}/.officialdiginode" ]]; then
         NewInstall=false
-        printf "%b Existing DigiNode detected...\\n" "${INFO}"
+        printf "%b Existing DigiNode detected...\\n\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
         if [[ "$UNINSTALL" == true ]]; then
@@ -8855,29 +8858,27 @@ main() {
         # if it's running unattended,
         if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Upgrade: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "\\n"
             # Perform unattended upgrade
             UnattendedUpgrade=true
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
-            # If running attended, show the available options (upgrade/reset/uninstall)
-            printf "%b Interactive Upgrade: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
+            # If running attended, show the main menu
             UnattendedUpgrade=false
         fi
-        printf "\\n"
     else
         NewInstall=true
         if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Install: Using diginode.settings file - no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "\\n"
             # Perform unattended upgrade
             UnattendedInstall=true
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
             UnattendedInstall=false
-            printf "%b Displaying installation menu...\\n" "${INFO}"
         fi
-        printf "\\n"
     fi
 
 
