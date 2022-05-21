@@ -4798,6 +4798,28 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Add DigiByte binary folder to the path for now
+    if [ -f "$DGB_CLI" ]; then
+        str="Adding $DGB_CLI folder to path..."
+        printf "%b %s" "${INFO}" "${str}"
+        export PATH+=":$DGB_INSTALL_LOCATION/bin"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Add DigiByte binary folder to the path permanently (so it works after reboot)
+    str="Is DigiByte binary folder path already in .bashrc?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
+        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        # Append export path to .bashrc file
+        echo "" >> $USER_HOME/.bashrc
+        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
+        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
+        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
     printf "\\n"
 
 fi
@@ -5120,6 +5142,12 @@ fi
             echo "alias diginode-setup='$DGNT_SETUP_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        # Load new aliases
+        str="Loading new alias..."
+        printf "%b %s" "${INFO}" "${str}"
+        source $USER_HOME/.bashrc
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Reset DGNT Install and Upgrade Variables
         DGNT_INSTALL_TYPE=""
