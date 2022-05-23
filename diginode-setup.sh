@@ -3588,13 +3588,22 @@ EOF
                 printf "%b %s" "${INFO}" "${str}" 
                 cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/
                 if [ $? -eq 0 ]; then
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"           
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"          
-                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
-                    DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
-                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
                     local dgb_backup_result="ok"
+
+                    DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
+                    str="Log DigiByte wallet backup date on the USB stick... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                    DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    str="Log DigiByte wallet backup date in the DigiNode settings... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
@@ -3757,11 +3766,20 @@ EOF
                 if [ $? -eq 0 ]; then
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    DGA_CONFIG_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"          
-                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
-                    DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
-                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
                     local dga_backup_result="ok"
+
+                    DGA_CONFIG_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
+                    str="Log DigiAsset settings backup date on the USB stick... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"     
+
+                    DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    str="Log DigiAsset settings backup date in the DigiNode settings... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"     
+                    
                 else
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
