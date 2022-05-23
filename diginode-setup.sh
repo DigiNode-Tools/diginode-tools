@@ -3378,6 +3378,7 @@ usb_backup() {
                 str="Mount new USB swap partition..."
                 printf "%b %s" "${INFO}" "${str}"
                 mount /dev/${USB_SWAP_DRIVE}1 /media/usbbackup
+                mount_partition="${USB_SWAP_DRIVE}1"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             else
@@ -3815,7 +3816,7 @@ EOF
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_BACKUP_DRIVE}
+        umount /dev/$mount_partition
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
