@@ -3787,6 +3787,7 @@ EOF
         run_dgaconfig_backup=false
         do_wallet_backup_now=false
         do_dgaconfig_backup_now=false
+        printf "\\n"
         menu_existing_install
 
     fi
