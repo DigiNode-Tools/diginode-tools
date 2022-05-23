@@ -3225,23 +3225,28 @@ usb_backup() {
 
         # Mount USB stick
         local format_usb_stick_now=false
+        local mount_partition=""
         printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
         # Query partprobe to find valid partition
         if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
+            mount_partition="${USB_BACKUP_DRIVE}2"
         elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+            mount_partition="${USB_BACKUP_DRIVE}2"
         else
             printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
             rmdir /media/usbbackup
+            mount_partition=""
         fi
 
         # Did the USB stick get mounted successfully?
         str="Did USB stick mount successfully?..."
         printf "%b %s" "${INFO}" "${str}"
-        if [ "$(mount | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
+        # Check if the mount point is showing up alongside the correct partition
+        if [ "$(mount | grep /media/usbbackup | grep -Eo $mount_partion)" != "" ]; then
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
 
             # TEST WRITE TO USB USING TOUCH testfile.txt
