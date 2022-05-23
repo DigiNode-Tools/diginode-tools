@@ -3231,11 +3231,11 @@ usb_backup() {
         local mount_partition=""
         printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
         # Query partprobe to find valid partition
-        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1 | grep -Eo "Error")" != "Error" ]; then
+        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1 | grep -Eo "loop")" != "loop" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
             mount_partition="${USB_BACKUP_DRIVE}2"
-        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "Error")" != "Error" ]; then
+        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
             mount_partition="${USB_BACKUP_DRIVE}2"
