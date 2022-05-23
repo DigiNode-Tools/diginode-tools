@@ -2749,6 +2749,9 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
                     if [ "$USB_SWAP_DRIVE" != "" ]; then
                         USB_SWAP_STICK_INSERTED="YES"
+                        if [ "$USB_SWAP_DRIVE" = "├─sdb1" ]; then
+                            USB_SWAP_DRIVE="sdb"
+                        fi
                         printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                         tput cnorm
                     else
