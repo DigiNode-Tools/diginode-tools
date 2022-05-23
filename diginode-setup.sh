@@ -3022,7 +3022,7 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device. Before creating a backup, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
                 printf "%b You chose to also backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=true
@@ -3227,10 +3227,13 @@ usb_backup() {
         local format_usb_stick_now=false
         printf "%b Trying to mount USB...\\n" "${INFO}"
         if [ -f "/dev/${USB_BACKUP_DRIVE}2" ]; then
+            printf "%b Trying to mount ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
         elif [ -f "/dev/${USB_BACKUP_DRIVE}1" ]; then
+            printf "%b Trying to mount ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         else
+            printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
             rmdir /media/usbbackup
         fi
 
