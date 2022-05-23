@@ -2749,7 +2749,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
                     if [ "$USB_SWAP_DRIVE" != "" ]; then
                         USB_SWAP_STICK_INSERTED="YES"
-                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                         tput cnorm
                     else
                         printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
@@ -3206,7 +3206,7 @@ usb_backup() {
 
             if [ "$USB_BACKUP_DRIVE" != "" ]; then
                 USB_BACKUP_STICK_INSERTED="YES"
-                printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                 tput cnorm
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
@@ -3226,9 +3226,9 @@ usb_backup() {
         # Mount USB stick
         local format_usb_stick_now=false
         printf "%b Trying to mount USB...\\n" "${INFO}"
-        if [ -d /dev/${USB_BACKUP_DRIVE}2 ]; then
+        if [ -d "/dev/${USB_BACKUP_DRIVE}2" ]; then
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
-        elif [ -d /dev/${USB_BACKUP_DRIVE}1 ]; then
+        elif [ -d "/dev/${USB_BACKUP_DRIVE}1" ]; then
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         fi
 
