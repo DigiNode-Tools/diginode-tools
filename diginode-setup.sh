@@ -3567,10 +3567,10 @@ EOF
 
                     # Delete previous secondary backup of existing wallet, if it exists
                     if [ -f /media/usbbackup/diginode_backup/wallet.dat.old ]; then
-                        str="Deleting existing secondary backup: wallet.dat.old ... "
+                        str="Deleting existing old backup: wallet.dat.old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm /media/usbbackup/diginode_backup/wallet.dat.old
-                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Deleted existing wallet backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Deleted existing old backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -3732,11 +3732,11 @@ EOF
 
                     # Delete previous secondary backup folder of DigiAsset, if it exists
                     if [ -d /media/usbbackup/diginode_backup/dga_config_backup_old ]; then
-                        str="Deleting existing secondary backup folder: dga_config_backup_old ... "
+                        str="Deleting existing old backup: dga_config_backup_old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm -rf /media/usbbackup/diginode_backup/dga_config_backup_old
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Deleting existing secondary backup folder" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Deleting existing old backup: dga_config_backup_old" >> /media/usbbackup/diginode_backup/diginode_backup.log
                     fi
 
                     # Rename existing wallet backup folder to old
@@ -3753,7 +3753,7 @@ EOF
                         str="Create DigiAsset settings backup folder on USB stick: dga_config_backup ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         mkdir /media/usbbackup/diginode_backup/dga_config_backup
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Create backup folder on USB stick: /dga_config_backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Create backup folder on USB stick: dga_config_backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
