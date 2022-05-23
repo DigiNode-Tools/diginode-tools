@@ -3238,7 +3238,7 @@ usb_backup() {
         elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
-            mount_partition="${USB_BACKUP_DRIVE}2"
+            mount_partition="${USB_BACKUP_DRIVE}1"
         else
             printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
             rmdir /media/usbbackup
