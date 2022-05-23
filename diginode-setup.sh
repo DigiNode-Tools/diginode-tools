@@ -3245,8 +3245,6 @@ usb_backup() {
         # Did the USB stick get mounted successfully?
         str="Did USB stick mount successfully?..."
         printf "%b %s" "${INFO}" "${str}"
-        # Check if the mount point is showing up alongside the correct partition
- #       if [ "$(mount | grep /media/usbbackup | grep -Eo $mount_partition)" != "" ]; then
         if [ "$(lsblk | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -3592,6 +3590,10 @@ EOF
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"          
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
                     whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick." "${r}" "${c}"
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
@@ -3755,6 +3757,10 @@ EOF
                 if [ $? -eq 0 ]; then
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    DGA_CONFIG_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"          
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
                     whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick." "${r}" "${c}"
                 else
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
