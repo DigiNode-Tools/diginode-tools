@@ -3162,7 +3162,7 @@ usb_backup() {
 
     if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
-        printf " =============== Backup DigiNode =======================================\\n\\n"
+        printf " =============== DigiNode Backup =======================================\\n\\n"
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
@@ -3230,6 +3230,8 @@ usb_backup() {
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
         elif [ -d "/dev/${USB_BACKUP_DRIVE}1" ]; then
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+        else
+            rmdir /media/usbbackup
         fi
 
         # Did the USB stick get mounted successfully?
