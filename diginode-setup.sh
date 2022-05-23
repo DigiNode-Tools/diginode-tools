@@ -2772,8 +2772,9 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Set up file system on USB stick
-                printf "Setting up EXT4 file system on USB stick..." "${INFO}"
-                mkfs.ext4 -F /dev/${USB_SWAP_DRIVE}1
+                printf "Setting up EXT4 file system on USB stick. Please wait..." "${INFO}"
+                printf "(Note: This may take some time. Do not unplug the USB stick.)" "${INDENT}"
+                mkfs.ext4 -f /dev/${USB_SWAP_DRIVE}1
 
                 # Create mount point for USB drive, if needed
                 if [ ! -d /media/usbswap ]; then
@@ -3223,28 +3224,41 @@ usb_backup() {
         fi
 
         # Mount USB stick
-        str="Mount primary USB partition..."
-        printf "%b %s" "${INFO}" "${str}"
-        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        local format_usb_stick_now=false
+        printf "%b Trying to mount USB...\\n" "${INFO}"
+        if [ -d /dev/${USB_BACKUP_DRIVE}2 ]; then
+            mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
+        elif [ -d /dev/${USB_BACKUP_DRIVE}1 ]; then
+            mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+        fi
 
-        # TEST WRITE TO USB USING TOUCH testfile.txt
-        printf "%b Checking the inserted USB stick...\\n" "${INFO}"
-        touch /media/usbbackup/testfile.txt 2>/dev/null
+        if [ $? -eq 0 ]; then
 
-        # Check if the file was successfully written
-        str="Can the USB stick be written to?"
-        printf "%b %s..." "${INFO}" "${str}"
-        if [ -f /media/usbbackup/testfile.txt ]; then
-            printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
-            rm /media/usbbackup/testfile.txt
+            # TEST WRITE TO USB USING TOUCH testfile.txt
+            printf "%b Checking the inserted USB stick is writeable...\\n" "${INFO}"
+            touch /media/usbbackup/testfile.txt 2>/dev/null
+            if [ -f /media/usbbackup/testfile.txt ]; then
+                printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
+                rm /media/usbbackup/testfile.txt
+                format_usb_stick_now=false
+            else
+                printf "%b%b %s No! [ Write test FAILED ]\\n" "${OVER}" "${CROSS}" "${str}" 
+                format_usb_stick_now=true 
+            fi
         else
-            printf "%b%b %s NO! [ Write test failed ]\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+            format_usb_stick_now=true
+        fi
+
+
+        # Offer to format the stick if needed
+        if [ "$format_usb_stick_now" = true ]; then
+            printf "%b Asking to format USB stick...\\n" "${INFO}"
 
             # Ask the user if they want to format the USB stick
             if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
-                printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
+                printf "%b You confirmed you want to format the USB stick.\\n" "${INFO}"
                 printf "\\n"
 
                 # FORMAT USB STICK HERE 
@@ -3263,19 +3277,19 @@ usb_backup() {
                 UpdateCmd=$(whiptail --title "Format USB Stick" --menu "\\n\\nPlease choose what file system you would like to format your USB stick. \\n\\nIMPORTANT: If you continue, any data currently on the stick will be erased.\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install; }
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
                     # Update, or
                     ${opt1a})
-                        printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
+                        printf "%b You selected to format the USB stick as exFAT.\\n" "${INFO}"
                         USB_BACKUP_STICK_FORMAT="exfat"
 
                         ;;
                     # Reset,
                     ${opt2a})
-                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"                   
+                        printf "%b You selected to format the USB stick as FAT32.\\n" "${INFO}"                   
                         USB_BACKUP_STICK_FORMAT="fat32"
                         ;;
                 esac
@@ -3283,36 +3297,59 @@ usb_backup() {
                 # Unmount USB stick
                 str="Unmount the USB stick..."
                 printf "%b %s" "${INFO}" "${str}"
-                umount /dev/${USB_BACKUP_DRIVE}*
+                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
-                str="Wiping exisiting partition(s) on USB backup stick..."
+                str="Wiping exisiting partition(s) on the USB stick..."
                 printf "%b %s" "${INFO}" "${str}"
                 sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
 
-                # If the command completed without error, then assume the wallet is encrypted
+                # If the command completed without error, then assume the wallet was formatted
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
-                    whiptail --msgbox --backtitle "" --title "USB Formatting Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Deleting USB Partitons Failed." "ERROR: Your USB stick could not be wiped. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
+                    format_usb_stick_now=false
                     menu_existing_install
                 fi
 
-                # Wipe the current partition on the drive
-                str="Create new primary gpt partition on USB backup stick..."
+                # Create new partition on the USB stick
+                str="Creating new gpt partition on the USB stick..."
                 printf "%b %s" "${INFO}" "${str}"
                 parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # If the command completed without an error, then assume the partition was created successfully
+                if [ $? -eq 0 ]; then
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "\\n"
+                    format_usb_stick_now=false
+                    menu_existing_install
+                fi
 
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
-                    printf "Setting up exFAT file system on USB backup stick..." "${INFO}"
-                    mkfs.exfat -F /dev/${USB_BACKUP_DRIVE}1
+                    printf "Setting up exFAT file system on the USB stick. Please wait..." "${INFO}"
+                    mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
-                    printf "Setting up FAT32 file system on USB backup stick..." "${INFO}"
-                    mkfs.vfat -F /dev/${USB_BACKUP_DRIVE}1
+                    printf "Setting up FAT32 file system on USB stick. Please wait..." "${INFO}"
+                    mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
+                fi
+
+                # If the command completed without an error, then assume the partition was successfully formatted
+                if [ $? -eq 0 ]; then
+                    printf "Formatting USB Stick completed successfully." "${TICK}"
+                else
+                    printf "ERROR: Formatting USB Stick failed." "${CROSS}"
+                    whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "\\n"
+                    format_usb_stick_now=false
+                    menu_existing_install
                 fi
 
                 # Create mount point for USB backup drive, if needed
@@ -3326,7 +3363,7 @@ usb_backup() {
                 # Create mount point for USB backup drive, if needed
                 str="Mount new USB swap partition..."
                 printf "%b %s" "${INFO}" "${str}"
-                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                mount /dev/${USB_SWAP_DRIVE}1 /media/usbbackup
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             else
@@ -3334,10 +3371,12 @@ usb_backup() {
                 whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
                 run_wallet_backup=false
                 run_dgaconfig_backup=false
+                format_usb_stick_now=false
                 printf "\\n"  
                 menu_existing_install
             fi
             printf "\\n"
+            format_usb_stick_now=false
 
         fi
 
