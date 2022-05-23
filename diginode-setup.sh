@@ -3232,7 +3232,11 @@ usb_backup() {
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         fi
 
-        if [ $? -eq 0 ]; then
+        # Did the USB stick get mounted successfully?
+        str="Did USB stick mount successfully?..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$(mount | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
 
             # TEST WRITE TO USB USING TOUCH testfile.txt
             printf "%b Checking the inserted USB stick is writeable...\\n" "${INFO}"
@@ -3246,7 +3250,7 @@ usb_backup() {
                 format_usb_stick_now=true 
             fi
         else
-            printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
             format_usb_stick_now=true
         fi
 
