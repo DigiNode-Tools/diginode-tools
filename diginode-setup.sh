@@ -3440,9 +3440,9 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If the _config folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
-        if [ ! -d /media/usbbackup/diginode_backup/_config ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
-            str="DigiAssets _config folder has been deleted since last backup. Removing backup date from diginode_backup.info ... "
+        # If the dga_config_backup folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
+        if [ ! -d /media/usbbackup/diginode_backup/dga_config_backup ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+            str="DigiAssets dga_config_backup folder has been deleted from the USB stick since last backup. Removing backup date from diginode_backup.info ... "
             printf "%b %s" "${INFO}" "${str}"  
             DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""          
             sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
