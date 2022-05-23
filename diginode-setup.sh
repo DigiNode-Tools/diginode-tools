@@ -3311,11 +3311,11 @@ usb_backup() {
                         ;;
                 esac
 
-                # Unmount USB stick
-                str="Unmount the USB stick..."
-                printf "%b %s" "${INFO}" "${str}"
-                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#                # Unmount USB stick
+#                str="Unmount the USB stick..."
+#                printf "%b %s" "${INFO}" "${str}"
+#                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
+#                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on the USB stick..."
@@ -3351,10 +3351,10 @@ usb_backup() {
 
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
-                    printf "Setting up exFAT file system on the USB stick. Please wait..." "${INFO}"
+                    printf "Setting up exFAT file system on the USB stick. Please wait...\\n" "${INFO}"
                     mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
-                    printf "Setting up FAT32 file system on USB stick. Please wait..." "${INFO}"
+                    printf "Setting up FAT32 file system on USB stick. Please wait...\\n" "${INFO}"
                     mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
                 fi
 
