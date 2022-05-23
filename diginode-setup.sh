@@ -3226,11 +3226,11 @@ usb_backup() {
         # Mount USB stick
         local format_usb_stick_now=false
         printf "%b Trying to mount USB...\\n" "${INFO}"
-        # Check for symbolic links to relevant partition
-        if [ -h "/dev/${USB_BACKUP_DRIVE}2" ]; then
+        # Query partprobe to find valid partition
+        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
-        elif [ -h "/dev/${USB_BACKUP_DRIVE}1" ]; then
+        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
             mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
         else
