@@ -3246,7 +3246,8 @@ usb_backup() {
         str="Did USB stick mount successfully?..."
         printf "%b %s" "${INFO}" "${str}"
         # Check if the mount point is showing up alongside the correct partition
-        if [ "$(mount | grep /media/usbbackup | grep -Eo $mount_partion)" != "" ]; then
+ #       if [ "$(mount | grep /media/usbbackup | grep -Eo $mount_partition)" != "" ]; then
+        if [ "$(lsblk | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
 
             # TEST WRITE TO USB USING TOUCH testfile.txt
