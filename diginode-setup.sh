@@ -3594,11 +3594,11 @@ EOF
                     sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
                     DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
                     sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
-                    local dgb_backup_completed="ok"
+                    local dgb_backup_result="ok"
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    local dgb_backup_completed="failed"
+                    local dgb_backup_result="failed"
                 fi
 
             fi
