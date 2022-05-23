@@ -3225,7 +3225,7 @@ usb_backup() {
 
         # Mount USB stick
         local format_usb_stick_now=false
-        printf "%b Trying to mount USB...\\n" "${INFO}"
+        printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
         # Query partprobe to find valid partition
         if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
             printf "%b Trying to mount ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
@@ -3582,7 +3582,7 @@ EOF
                 # Copy "live" wallet to backup stick
                 str="Backing up DigiByte wallet to USB stick ... "
                 printf "%b %s" "${INFO}" "${str}" 
-                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
+                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
@@ -3745,7 +3745,7 @@ EOF
                 # Copy DigiAsset Settings to backup stick
                 str="Backing up DigiAsset Settings to USB stick ... "
                 printf "%b %s" "${INFO}" "${str}" 
-                cp $DGA_SETTINGS_LOCATION/*.json /media/usbbackup/diginode_backup/dga_config_backup 2>/dev/null/
+                cp $DGA_SETTINGS_LOCATION/*.json /media/usbbackup/diginode_backup/dga_config_backup/
                 if [ $? -eq 0 ]; then
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3765,7 +3765,7 @@ EOF
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_BACKUP_DRIVE}*
+        umount /dev/${USB_BACKUP_DRIVE}
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
