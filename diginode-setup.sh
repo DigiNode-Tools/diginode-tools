@@ -3550,15 +3550,9 @@ EOF
                 #If the wallet.dat file has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiByte wallet was previously backed up on:\\n$DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
-
-                        do_wallet_backup_now=true
-                        printf "%b DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
-                        echo "$NEW_BACKUP_DATE DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    else
-                        printf "%b DigiByte Wallet: You chose not to proceed with backing up DigiByte Wallet to a new USB stick.\\n" "${INFO}"
-                        do_wallet_backup_now=false
-                    fi
+                    do_wallet_backup_now=true
+                    printf "%b DigiByte Wallet: This backup will replace the one created on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: This backup will replace the one created on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
                 
             fi
@@ -3712,18 +3706,11 @@ EOF
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: No previous backup has been detected. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
 
-                #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
+                #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, note that it is replacing the old backup
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ]; then
-                    # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiAsset Settings were previously backed up on:\\n$DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
-
-                        do_dgaconfig_backup_now=true
-                        printf "%b DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    else
-                        printf "%b DigiAsset Settings: You chose not to proceed with backing up DigiAsset Settings to a new USB stick.\\n" "${INFO}"
-                        do_dgaconfig_backup_now=false
-                    fi
+                    do_dgaconfig_backup_now=true
+                    printf "%b DigiByte Wallet: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
                 
             fi
