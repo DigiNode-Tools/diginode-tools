@@ -3419,6 +3419,11 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        # DEBUGGING CODE
+        echo " ===== diginode_backup.info >> ====="
+        cat /media/usbbackup/diginode_backup/diginode_backup.info
+        echo " ===== << diginode_backup.info ====="
+
         # Create a backup log file on the USB stick, if it does not already exist
         if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.log ]; then
 
@@ -3442,6 +3447,11 @@ EOF
             sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
             echo "$NEW_BACKUP_DATE DigiByte Wallet: wallet.dat has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # DEBUGGING CODE
+            echo " ===== diginode_backup.info >> ====="
+            cat /media/usbbackup/diginode_backup/diginode_backup.info
+            echo " ===== << diginode_backup.info ====="
         fi
 
         # If the dga_config_backup folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
@@ -3452,6 +3462,11 @@ EOF
             sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
             echo "$NEW_BACKUP_DATE DigiAsset Node Settings: _config folder has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # DEBUGGING CODE
+            echo " ===== diginode_backup.info >> ====="
+            cat /media/usbbackup/diginode_backup/diginode_backup.info
+            echo " ===== << diginode_backup.info ====="
         fi
 
         # START DIGIBYTE WALLET BACKUP
@@ -3596,11 +3611,21 @@ EOF
                     sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+                    # DEBUGGING CODE
+                    echo " ===== diginode_backup.info >> ====="
+                    cat /media/usbbackup/diginode_backup/diginode_backup.info
+                    echo " ===== << diginode_backup.info ====="
+
                     DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
                     str="Log DigiByte wallet backup date in the DigiNode settings... "
                     printf "%b %s" "${INFO}" "${str}"          
                     sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                    # DEBUGGING CODE
+                    echo " ===== diginode_backup.info >> ====="
+                    cat /media/usbbackup/diginode_backup/diginode_backup.info
+                    echo " ===== << diginode_backup.info ====="
 
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
@@ -3763,7 +3788,12 @@ EOF
                     str="Log DigiAsset settings backup date on the USB stick... "
                     printf "%b %s" "${INFO}" "${str}"          
                     sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"     
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+
+                    # DEBUGGING CODE
+                    echo " ===== diginode_backup.info >> ====="
+                    cat /media/usbbackup/diginode_backup/diginode_backup.info
+                    echo " ===== << diginode_backup.info ====="    
 
                     DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
                     str="Log DigiAsset settings backup date in the DigiNode settings... "
