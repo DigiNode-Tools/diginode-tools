@@ -4652,7 +4652,7 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "startingup" ]; then
         every15secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-        printf "%b DigiByte Core is in the process of starting up. This can take 10 mins or more.\\n" "${INFO}"
+        printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         str="Please wait..."
         printf "%b %s" "${INDENT}" "${str}"
         tput civis
