@@ -2759,22 +2759,28 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                         #
                         # if the string starts with └─, remove it
                         if [[ $USB_SWAP_DRIVE = └─* ]]; then
-                            printf "%b Swap stick was inserted before boot. Removing └─ from Swap drive partion name.\\n" "${INFO}"
+                            cleanup_swap_name=true
                             USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/└─//')
                         fi
                         # if the string starts with ├─, remove it
                         if [[ $USB_SWAP_DRIVE = ├─* ]]; then
-                            printf "%b Swap stick was inserted before boot. Removing ├─ from Swap drive partion name.\\n" "${INFO}"
+                            cleanup_swap_name=true
                             USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/├─//')
                         fi
                         # if the string ends in a number, remove it
                         if [[ $USB_SWAP_DRIVE = *[0-9] ]]; then
-                            printf "%b Swap stick was inserted before boot. Removing trailing number from Swap drive partion name.\\n" "${INFO}"
+                            cleanup_swap_name=true
                             USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/.$//')
                         fi 
 
                         printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                         tput cnorm
+
+                        # Display partition name cleanup messages
+                        if [[ $cleanup_swap_name = true ]]; then
+                            printf "%b (Note: Swap stick was already inserted at boot. In future, do not plug it in until requested or you may encounter errors.)\\n" "${INFO}"
+                            cleanup_swap_name=false
+                        fi
                     else
                         printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
@@ -3235,17 +3241,17 @@ usb_backup() {
                 #
                 # if the string starts with └─, remove it
                 if [[ $USB_BACKUP_DRIVE = └─* ]]; then
-                    cleanup_l=true
+                    cleanup_partion_name=true
                     USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/└─//')
                 fi
                 # if the string starts with ├─, remove it
                 if [[ $USB_BACKUP_DRIVE = ├─* ]]; then
-                    cleanup_t=true
+                    cleanup_partion_name=true
                     USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/├─//')
                 fi
                 # if the string ends in a number, remove it
                 if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
-                    cleanup_n=true
+                    cleanup_partion_name=true
                     USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
                 fi 
 
@@ -3254,18 +3260,10 @@ usb_backup() {
                 tput cnorm
 
                 # Display partition name cleanup messages
-                if [[ $cleanup_l = true ]]; then
-                    printf "%b Backup stick was inserted before boot. Removing └─ from Backup stick partion name.\\n" "${INFO}"
-                    cleanup_l=false
+                if [[ $cleanup_partion_name = true ]]; then
+                    printf "%b (Note: Backup stick was already inserted at boot. If future, do not plug it in until requested or you may encounter errors.)\\n" "${INFO}"
+                    cleanup_partion_name=false
                 fi
-                if [[ $cleanup_t = true ]]; then
-                    printf "%b Backup stick was inserted before boot. Removing ├─ from Backup stick partion name.\\n" "${INFO}"
-                    cleanup_t=false
-                fi
-                if [[ $cleanup_n = true ]]; then
-                    printf "%b Backup stick was inserted before boot. Removing trailing number from Backup stick partion name.\\n" "${INFO}"
-                    cleanup_n=false
-                fi 
 
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
