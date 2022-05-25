@@ -2753,6 +2753,26 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                         if [ "$USB_SWAP_DRIVE" = "├─sdb1" ]; then
                             USB_SWAP_DRIVE="sdb"
                         fi
+
+                        # Check if USB_SWAP_DRIVE string starts with └─ or ├─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+                        # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
+                        #
+                        # if the string starts with └─, remove it
+                        if [[ $USB_SWAP_DRIVE = └─* ]]; then
+                            printf "%b Swap stick was inserted before boot. Removing └─ from Swap drive partion name.\\n" "${INFO}"
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/└─//')
+                        fi
+                        # if the string starts with ├─, remove it
+                        if [[ $USB_SWAP_DRIVE = ├─* ]]; then
+                            printf "%b Swap stick was inserted before boot. Removing ├─ from Swap drive partion name.\\n" "${INFO}"
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/├─//')
+                        fi
+                        # if the string ends in a number, remove it
+                        if [[ $USB_SWAP_DRIVE = *[0-9] ]]; then
+                            printf "%b Swap stick was inserted before boot. Removing trailing number from Swap drive partion name.\\n" "${INFO}"
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/.$//')
+                        fi 
+
                         printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                         tput cnorm
                     else
@@ -3210,18 +3230,24 @@ usb_backup() {
 
             if [ "$USB_BACKUP_DRIVE" != "" ]; then
 
-                # Check if string starts with └─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+                # Check if USB_BACKUP_DRIVE string starts with └─ or ├─ (this can happen if the user booted the machine with the backup USB stick already inserted)
                 # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
                 #
                 # if the string starts with └─, remove it
                 if [[ $USB_BACKUP_DRIVE = └─* ]]; then
-                    printf "%b Backup stick was inserted before boot. Cleaning up partion name variable.\\n" "${INFO}"
+                    printf "%b Backup stick was inserted before boot. Removing └─ from Backup stick partion name.\\n" "${INFO}"
                     USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/└─//')
-                    # if the string ends in a number, remove it
-                    if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
-                        USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
-                    fi    
                 fi
+                # if the string starts with ├─, remove it
+                if [[ $USB_BACKUP_DRIVE = ├─* ]]; then
+                    printf "%b Backup stick was inserted before boot. Removing ├─ from Backup stick partion name.\\n" "${INFO}"
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/├─//')
+                fi
+                # if the string ends in a number, remove it
+                if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
+                    printf "%b Backup stick was inserted before boot. Removing trailing number from Backup stick partion name.\\n" "${INFO}"
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
+                fi 
 
                 printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                 USB_BACKUP_STICK_INSERTED="YES"
@@ -4688,7 +4714,7 @@ digibyte_check() {
         tput civis
         while [ $DGB_STATUS = "startingup" ]; do
 
-            # Show Spinner while waiting
+            # Show Spinner while waiting for DigiByte Core to finishing starting up
             if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
               progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
             elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
