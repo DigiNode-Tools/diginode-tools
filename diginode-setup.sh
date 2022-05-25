@@ -3734,8 +3734,8 @@ EOF
                 #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, note that it is replacing the old backup
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ]; then
                     do_dgaconfig_backup_now=true
-                    printf "%b DigiByte Wallet: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
-                    echo "$NEW_BACKUP_DATE DigiByte Wallet: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b DigiAsset Settings: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
                 
             fi
