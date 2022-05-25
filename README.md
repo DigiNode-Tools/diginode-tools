@@ -51,7 +51,7 @@ Let's you monitor your DigiNode from the terminal.
 
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
-- Backup/Restore: This will help you to backup your DigiByte wallet and/or your DigiAsset Node settings, to an external USB stick. It is advisable to choose a USB stick that you do not use for anything else, and to store it somewhere secure when you are done. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
+- Backup/Restore: This will help you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick. It is advisable to choose a USB stick that you do not use for anything else, and to store it somewhere secure when you are done. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
 
 
 ## Instructions
