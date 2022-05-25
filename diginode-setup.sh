@@ -3406,11 +3406,13 @@ usb_backup() {
                     printf "%b %s" "${INFO}" "${str}"
                     parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary ntfs 0% 100%
                     partprobe
+                    sleep 5
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
                     str="Creating GPT partition for FAT32 file system on the USB stick..."
                     printf "%b %s" "${INFO}" "${str}"
                     parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary fat32 0% 100%
                     partprobe
+                    sleep 5
                 fi
 
                 # If the command completed without an error, then assume the partition was created successfully
