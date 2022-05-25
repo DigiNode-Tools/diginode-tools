@@ -3441,10 +3441,6 @@ usb_backup() {
                 else
                     printf "ERROR: Creating file system failed." "${CROSS}"
 
-                    # DEBUGGING CODE
-                    cat /proc/partitions
-                    exit 1
-
                     whiptail --msgbox --backtitle "" --title "Creating File System Failed." "ERROR: The $USB_BACKUP_STICK_FORMAT file system could not be created. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
                     format_usb_stick_now=false
