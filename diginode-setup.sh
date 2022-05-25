@@ -3884,37 +3884,36 @@ EOF
 
         fi
 
-        # Display backup completed messages
-
-        if [ "$dgb_backup_result" = "ok" ] && [ "$dga_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiNode Backup Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully backed up to the USB stick." "${r}" "${c}"
-        elif [ "$dgb_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Completed Successfully" "Your DigiByte wallet has been successfully backed up to the USB stick." "${r}" "${c}"
-        elif [ "$dga_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick." "${r}" "${c}"
-        fi
-
-        # Display backup failed messages
-
-        if [ "$dgb_backup_result" = "failed" ] && [ "$dga_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiNode Backup Failed" "ERROR: Your DigiByte wallet and DigiAsset settings backup failed. Check the USB stick." "${r}" "${c}"
-        elif [ "$dgb_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Failed" "ERROR: Your DigiByte wallet backup failed due to an error. Check the USB stick." "${r}" "${c}"
-        elif [ "$dga_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Check the USB stick." "${r}" "${c}"
-        fi
-
-        # BACKUP FINISHED
-
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
         umount /dev/$mount_partition
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+        # Display backup completed messages
+
+        if [ "$dgb_backup_result" = "ok" ] && [ "$dga_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiNode Backup Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        elif [ "$dgb_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Completed Successfully" "Your DigiByte wallet has been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        elif [ "$dga_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        fi
+
+        # Display backup failed messages
+
+        if [ "$dgb_backup_result" = "failed" ] && [ "$dga_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiNode Backup Failed" "ERROR: Your DigiByte wallet and DigiAsset settings backup failed. Please check the USB stick.\\n\\nPlease unplug the USB stick. When you have done so, press OK." "${r}" "${c}"
+        elif [ "$dgb_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Failed" "ERROR: Your DigiByte wallet backup failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+        elif [ "$dga_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Please check the USB stick.\\n\\nPlease unplug the backup USB now. When you have done so, press OK." "${r}" "${c}"
+        fi
+
+        # BACKUP FINISHED
+
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
         printf "%b Backup complete. Returning to menu...\\n" "${INFO}"
-        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
         run_wallet_backup=false
         run_dgaconfig_backup=false
         do_wallet_backup_now=false
