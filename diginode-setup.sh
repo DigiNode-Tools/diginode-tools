@@ -3278,6 +3278,15 @@ usb_backup() {
                 printf "%b%b %s No! [ Write test FAILED ]\\n" "${OVER}" "${CROSS}" "${str}" 
                 format_usb_stick_now=true 
             fi
+
+            # Does USB stick contain an existing backup?
+            if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+                printf "%b Existed DigiNode backup detected on USB stick:\\n" "${INFO}"
+                source /media/usbbackup/diginode_backup/diginode_backup.info
+                printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+                printf "%b DigiAsset Settings backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+            fi
+
         else
             printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
             format_usb_stick_now=true
@@ -3445,11 +3454,6 @@ DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-
-        # DEBUGGING CODE
-        echo " ===== diginode_backup.info >> ====="
-        cat /media/usbbackup/diginode_backup/diginode_backup.info
-        echo " ===== << diginode_backup.info ====="
 
         # Create a backup log file on the USB stick, if it does not already exist
         if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.log ]; then
