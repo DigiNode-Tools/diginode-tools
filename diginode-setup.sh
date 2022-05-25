@@ -3280,7 +3280,7 @@ usb_backup() {
             fi
 
             # Does USB stick contain an existing backup?
-            if [ ! -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+            if [ -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
                 printf "%b Existed DigiNode backup detected on USB stick:\\n" "${INFO}"
                 source /media/usbbackup/diginode_backup/diginode_backup.info
                 printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
