@@ -3381,6 +3381,10 @@ usb_backup() {
                     printf "Formatting USB Stick completed successfully." "${TICK}"
                 else
                     printf "ERROR: Formatting USB Stick failed." "${CROSS}"
+
+                    # DEBUGGING CODE
+                    exit 1
+
                     whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
                     format_usb_stick_now=false
