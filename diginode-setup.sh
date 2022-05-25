@@ -3076,7 +3076,7 @@ usb_backup() {
         if [[ "$run_wallet_backup" == true ]]; then
 
             # Start the DigiByte service now, in case it is not already running
-            printf "%b DigiByte daemon must be running to check your wallet before backup.\\n\\n" "${INFO}"
+            printf "%b DigiByte daemon must be running to check your wallet before backup.\\n" "${INFO}"
             printf "%b Starting DigiByte daemon service...\\n\\n" "${INFO}"
             systemctl start digibyted
 
