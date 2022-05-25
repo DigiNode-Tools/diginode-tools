@@ -3327,11 +3327,11 @@ usb_backup() {
                         ;;
                 esac
 
-#                # Unmount USB stick
-#                str="Unmount the USB stick..."
-#                printf "%b %s" "${INFO}" "${str}"
-#                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
-#                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                # Unmount USB stick
+                str="Unmount the USB stick at /dev/${USB_BACKUP_DRIVE}..."
+                printf "%b %s" "${INFO}" "${str}"
+                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on the USB stick..."
@@ -3350,7 +3350,7 @@ usb_backup() {
                 fi
 
                 # Create new partition on the USB stick
-                str="Creating new gpt partition on the USB stick..."
+                str="Creating new GPT partition on the USB stick..."
                 printf "%b %s" "${INFO}" "${str}"
                 parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
 
@@ -3368,11 +3368,15 @@ usb_backup() {
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
                     printf "Setting up exFAT file system on the USB stick. Please wait...\\n" "${INFO}"
+                    cat /proc/partitions
                     partprobe
+                    cat /proc/partitions
                     mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
                     printf "Setting up FAT32 file system on USB stick. Please wait...\\n" "${INFO}"
+                    cat /proc/partitions
                     partprobe
+                    cat /proc/partitions
                     mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
                 fi
 
@@ -3383,6 +3387,7 @@ usb_backup() {
                     printf "ERROR: Formatting USB Stick failed." "${CROSS}"
 
                     # DEBUGGING CODE
+                    cat /proc/partitions
                     exit 1
 
                     whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
