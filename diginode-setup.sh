@@ -4710,6 +4710,11 @@ digibyte_check() {
         str="Please wait..."
         printf "%b %s" "${INDENT}" "${str}"
         tput civis
+        # Query if digibyte has finished starting up. Display error. Send success to null.
+        is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
+        if [ "$is_dgb_live_query" != "" ]; then
+            dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+        fi
         while [ $DGB_STATUS = "startingup" ]; do
 
             # Show Spinner while waiting for DigiByte Core to finishing starting up
