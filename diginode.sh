@@ -1691,7 +1691,8 @@ printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up. Please wait...$dgb_error_msg ${txtrst}"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║               ║  " && printf "%-60s ║ \n" "${txtbred}  Please wait... $dgb_error_msg ${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
