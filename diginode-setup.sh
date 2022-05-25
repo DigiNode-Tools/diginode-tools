@@ -2733,7 +2733,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 tput civis
                 while [ "$USB_SWAP_STICK_INSERTED" = "NO" ]; do
 
-                    # Show Spinner while waiting
+                    # Show Spinner while waiting for SWAP drive
                     if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
                       progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
                     elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
@@ -3193,7 +3193,7 @@ usb_backup() {
         tput civis
         while [ "$USB_BACKUP_STICK_INSERTED" = "NO" ]; do
 
-            # Show Spinner while waiting
+            # Show Spinner while waiting for USB backup stick
             if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
               progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
             elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
@@ -3209,8 +3209,22 @@ usb_backup() {
             USB_BACKUP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
 
             if [ "$USB_BACKUP_DRIVE" != "" ]; then
-                USB_BACKUP_STICK_INSERTED="YES"
+
+                # Check if string starts with └─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+                # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
+                #
+                # if the string starts with └─, remove it
+                if [[ $USB_BACKUP_DRIVE = └─* ]]; then
+                    printf "%b Backup stick was inserted before boot. Cleaning up partion name variable.\\n" "${INFO}"
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/└─//')
+                    # if the string ends in a number, remove it
+                    if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
+                        USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
+                    fi    
+                fi
+
                 printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
+                USB_BACKUP_STICK_INSERTED="YES"
                 tput cnorm
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
