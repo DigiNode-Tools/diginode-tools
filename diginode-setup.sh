@@ -3032,11 +3032,8 @@ usb_backup() {
             # Ask if the user wants to backup their DigiBytewallet
             if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup your DigiByte wallet?\\n\\nThis is highly recomended, if you have not already done so, as it will safeguard the contents of your DigiByte wallet, and make it easy to restore your DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
                 run_wallet_backup=true
-
             else
-                printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
                 run_wallet_backup=false
             fi
         else
@@ -3054,10 +3051,8 @@ usb_backup() {
             # Ask the user if they want to backup their DigiAsset Node settings
             if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You chose to also backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=true
             else
-                printf "%b You chose NOT to backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=false
             fi
         fi
@@ -3069,11 +3064,21 @@ usb_backup() {
                 menu_existing_install
         fi
 
+        # Display start backup messages
+        if [[ "$run_wallet_backup" == true ]] && [[ "$run_dgaconfig_backup" == true ]]; then
+            printf "%b You chose backup both your DigiByte wallet and DigiAsset Node settings.\\n" "${INFO}"
+        elif [[ "$run_wallet_backup" == true ]] && [[ "$run_dgaconfig_backup" == false ]]; then
+            printf "%b You chose to backup only your DigiByte Core wallet.\\n" "${INFO}"
+        elif [[ "$run_dgaconfig_backup" == false ]] && [[ "$run_dgaconfig_backup" == true ]]; then
+            printf "%b You chose to backup only your DigiAsset Node settings.\\n" "${INFO}"
+        fi
+
         # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
         if [[ "$run_wallet_backup" == true ]]; then
 
             # Start the DigiByte service now, in case it is not already running
-            printf "%b Starting DigiByte daemon systemd service...\\n\\n" "${INFO}"
+            printf "%b DigiByte daemon must be running to check your wallet before backup.\\n\\n" "${INFO}"
+            printf "%b Starting DigiByte daemon service...\\n\\n" "${INFO}"
             systemctl start digibyted
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
