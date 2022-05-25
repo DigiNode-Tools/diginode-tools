@@ -3414,10 +3414,10 @@ usb_backup() {
                 fi
 
                 # Create mount point for USB backup drive, if needed
-                str="Mount new USB swap partition..."
+                str="Mount new USB backup partition..."
                 printf "%b %s" "${INFO}" "${str}"
-                mount /dev/${USB_SWAP_DRIVE}1 /media/usbbackup
-                mount_partition="${USB_SWAP_DRIVE}1"
+                mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
+                mount_partition="${USB_BACKUP_DRIVE}1"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             else
