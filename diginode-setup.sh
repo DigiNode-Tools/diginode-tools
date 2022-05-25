@@ -3207,20 +3207,6 @@ usb_backup() {
 
             USB_BACKUP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
 
-            # DEBUGGING CODE
-            echo " ===== LSBLK BEFORE >> ====="
-            echo $LSBLK_BEFORE_USB_INSERTED
-            echo " ===== << LSBLK BEFORE =====" 
-            echo ""
-            echo " ===== LSBLK AFTER >> ====="
-            echo $LSBLK_AFTER_USB_INSERTED
-            echo " ===== << LSBLK BEFORE =====" 
-            echo ""
-            echo " ===== LSBLK DIF >> ====="
-            diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED")
-            echo " ===== << LSBLK DIF =====" 
-
-
             if [ "$USB_BACKUP_DRIVE" != "" ]; then
                 USB_BACKUP_STICK_INSERTED="YES"
                 printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
@@ -3231,6 +3217,21 @@ usb_backup() {
                 sleep 0.5
             fi
         done
+
+        # DEBUGGING CODE
+        echo ""
+        echo " ===== LSBLK BEFORE >> ====="
+        echo $LSBLK_BEFORE_USB_INSERTED
+        echo " ===== << LSBLK BEFORE =====" 
+        echo ""
+        echo " ===== LSBLK AFTER >> ====="
+        echo $LSBLK_AFTER_USB_INSERTED
+        echo " ===== << LSBLK BEFORE =====" 
+        echo ""
+        echo " ===== LSBLK DIF >> ====="
+        diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED")
+        echo " ===== << LSBLK DIF =====" 
+        echo ""
 
         # Create mount point for USB stick, if needed
         if [ ! -d /media/usbbackup ]; then
