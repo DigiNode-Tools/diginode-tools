@@ -74,9 +74,10 @@ DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
-# This value needs updating periodically as the size increases
-DGB_DATA_REQUIRED_HR="28Gb"
-DGB_DATA_REQUIRED_KB="28000000"
+# This value needs updating periodically as the size of the blockchain increases over time
+# Last Updated: 2022-05-25
+DGB_DATA_REQUIRED_HR="35Gb"
+DGB_DATA_REQUIRED_KB="35000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -3367,9 +3368,11 @@ usb_backup() {
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
                     printf "Setting up exFAT file system on the USB stick. Please wait...\\n" "${INFO}"
+                    partprobe
                     mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
                     printf "Setting up FAT32 file system on USB stick. Please wait...\\n" "${INFO}"
+                    partprobe
                     mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
                 fi
 
@@ -8803,7 +8806,7 @@ if [ "$DIGIFACT" = "help4" ]; then
     DIGIFACT_L3=" DigiByte Node: https://nodes.digibyte.host/"
     DIGIFACT_L4="DigiAsset Node: https://ipfs.digiassetx.com/"
     DIGIFACT_L5=" "
-    DIGIFACT_L6="This is also a good way to check your DigiNode is working properly!"
+    DIGIFACT_L6="This is a good way to check your DigiNode is setup correctly!"
 fi
 
 if [ "$DIGIFACT" = "help5" ]; then

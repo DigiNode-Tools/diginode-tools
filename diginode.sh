@@ -1305,11 +1305,12 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
         # Query if digibyte has finished starting up. Display error. Send success to null.
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
-            dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+            DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
         else
             DGB_STATUS="running"
         fi
 
+        echo "DGB_ERROR_MESSAGE: $DGB_ERROR_MSG"
 
     fi
 
@@ -1691,8 +1692,8 @@ printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║               ║  " && printf "%-60s ║ \n" "${txtbred}  Please wait... $dgb_error_msg ${txtrst}"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up.${txtrst}"
+printf "  ║               ║  " && printf "%-60s ║ \n" "Please wait... $DGB_ERROR_MSG"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
