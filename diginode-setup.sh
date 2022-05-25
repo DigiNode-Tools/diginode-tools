@@ -3326,7 +3326,7 @@ usb_backup() {
                 printf "%b Existed DigiNode backup detected on USB stick:\\n" "${INFO}"
                 source /media/usbbackup/diginode_backup/diginode_backup.info
                 printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
-                printf "%b DigiAsset Settings backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+                printf "%b DigiAsset Node backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
             fi
 
         else
@@ -3385,32 +3385,40 @@ usb_backup() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
-                str="Wiping exisiting partition(s) on the USB stick..."
-                printf "%b %s" "${INFO}" "${str}"
-                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
+#                str="Wiping exisiting partition(s) on the USB stick..."
+#                printf "%b %s" "${INFO}" "${str}"
+#                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
 
                 # If the command completed without error, then assume the wallet was formatted
-                if [ $? -eq 0 ]; then
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                else
-                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Deleting USB Partitons Failed." "ERROR: Your USB stick could not be wiped. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
-                    printf "\\n"
-                    format_usb_stick_now=false
-                    menu_existing_install
-                fi
+#                if [ $? -eq 0 ]; then
+#                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#                else
+#                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+#                    whiptail --msgbox --backtitle "" --title "Deleting USB Partitons Failed." "ERROR: Your USB stick could not be wiped. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+#                    printf "\\n"
+#                    format_usb_stick_now=false
+#                    menu_existing_install
+#                fi
 
                 # Create new partition on the USB stick
-                str="Creating new GPT partition on the USB stick..."
-                printf "%b %s" "${INFO}" "${str}"
-                parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
+                if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
+                    str="Creating GPT partition for exFAT file system on the USB stick..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary ntfs 0% 100%
+                    partprobe
+                elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
+                    str="Creating GPT partition for FAT32 file system on the USB stick..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary fat32 0% 100%
+                    partprobe
+                fi
 
                 # If the command completed without an error, then assume the partition was created successfully
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
                     printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    whiptail --msgbox --backtitle "" --title "Creating GPT Partition Failed." "ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
                     format_usb_stick_now=false
                     menu_existing_install
@@ -3418,30 +3426,24 @@ usb_backup() {
 
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
-                    printf "Setting up exFAT file system on the USB stick. Please wait...\\n" "${INFO}"
-                    cat /proc/partitions
-                    partprobe
-                    cat /proc/partitions
+                    printf "Creating exFAT file system. Please wait...\\n" "${INFO}"
                     mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
-                    printf "Setting up FAT32 file system on USB stick. Please wait...\\n" "${INFO}"
-                    cat /proc/partitions
-                    partprobe
-                    cat /proc/partitions
+                    printf "Creating FAT32 file system. Please wait...\\n" "${INFO}"
                     mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
                 fi
 
                 # If the command completed without an error, then assume the partition was successfully formatted
                 if [ $? -eq 0 ]; then
-                    printf "Formatting USB Stick completed successfully." "${TICK}"
+                    printf "File system created successfully." "${TICK}"
                 else
-                    printf "ERROR: Formatting USB Stick failed." "${CROSS}"
+                    printf "ERROR: Creating file system failed." "${CROSS}"
 
                     # DEBUGGING CODE
                     cat /proc/partitions
                     exit 1
 
-                    whiptail --msgbox --backtitle "" --title "Creating USB Partion Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    whiptail --msgbox --backtitle "" --title "Creating File System Failed." "ERROR: The $USB_BACKUP_STICK_FORMAT file system could not be created. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
                     format_usb_stick_now=false
                     menu_existing_install
