@@ -3780,7 +3780,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nThis backup does not appear to have been made from this DigiNode.\\nThe backup was made on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nThis DigiNode was backed up to a different USB stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nThis backup was made on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nThis DigiNode was backed up to a different USB stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
 
                             do_dgaconfig_backup_now=true
                             printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
