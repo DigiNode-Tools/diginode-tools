@@ -3018,7 +3018,7 @@ usb_backup() {
 
         # Introduction to backup.
         if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is highly reccomended that you use a USB stick that is not used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-
+            printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
             menu_existing_install 
