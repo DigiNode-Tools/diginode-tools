@@ -821,6 +821,9 @@ quit_message() {
       fi
       printf "\\n"
 
+      #Share backup reminder
+      backup_reminder
+
        if [ "$DONATION_PLEA" = "yes" ]; then
 
         #Display donation QR code
@@ -838,6 +841,9 @@ quit_message() {
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
 
+      #Share backup reminder
+      backup_reminder
+
       #Display donation QR code
       donation_qrcode
 
@@ -852,6 +858,9 @@ quit_message() {
 
       # Display a random DigiFact
       digifact_display
+
+      #Share backup reminder
+      backup_reminder
 
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
