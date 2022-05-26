@@ -65,8 +65,8 @@ fi
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Setup and Status Monitor scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
-# If you want to change the default folder locations, please edit this file.
-# (e.g. To move your DigiByte Core data file to an external drive.)
+# If you want to change the default folder locations, you should change the settings in this file.
+# (e.g. To store your DigiByte Core data file on an external drive.)
 #
 # NOTE: This variable sets the default location of the diginode.settings file. 
 # There should be no reason to change this, and it is unadvisable to do.
@@ -74,9 +74,10 @@ DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
-# This value needs updating periodically as the size increases
-DGB_DATA_REQUIRED_HR="28Gb"
-DGB_DATA_REQUIRED_KB="28000000"
+# This value needs updating periodically as the size of the blockchain increases over time
+# Last Updated: 2022-05-25
+DGB_DATA_REQUIRED_HR="35Gb"
+DGB_DATA_REQUIRED_KB="35000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -2732,7 +2733,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 tput civis
                 while [ "$USB_SWAP_STICK_INSERTED" = "NO" ]; do
 
-                    # Show Spinner while waiting
+                    # Show Spinner while waiting for SWAP drive
                     if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
                       progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
                     elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
@@ -2749,8 +2750,37 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
                     if [ "$USB_SWAP_DRIVE" != "" ]; then
                         USB_SWAP_STICK_INSERTED="YES"
-                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
+                        if [ "$USB_SWAP_DRIVE" = "├─sdb1" ]; then
+                            USB_SWAP_DRIVE="sdb"
+                        fi
+
+                        # Check if USB_SWAP_DRIVE string starts with └─ or ├─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+                        # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
+                        #
+                        # if the string starts with └─, remove it
+                        if [[ $USB_SWAP_DRIVE = └─* ]]; then
+                            cleanup_swap_name=true
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/└─//')
+                        fi
+                        # if the string starts with ├─, remove it
+                        if [[ $USB_SWAP_DRIVE = ├─* ]]; then
+                            cleanup_swap_name=true
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/├─//')
+                        fi
+                        # if the string ends in a number, remove it
+                        if [[ $USB_SWAP_DRIVE = *[0-9] ]]; then
+                            cleanup_swap_name=true
+                            USB_SWAP_DRIVE=$(echo $USB_SWAP_DRIVE | sed 's/.$//')
+                        fi 
+
+                        printf "%b%b %s USB Stick Inserted: $USB_SWAP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                         tput cnorm
+
+                        # Display partition name cleanup messages
+                        if [[ $cleanup_swap_name = true ]]; then
+                            printf "%b (Note: Swap stick was already inserted at boot. In future, do not plug it in until requested or you may encounter errors.)\\n" "${INFO}"
+                            cleanup_swap_name=false
+                        fi
                     else
                         printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
@@ -2772,8 +2802,9 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Set up file system on USB stick
-                printf "Setting up EXT4 file system on USB stick..." "${INFO}"
-                mkfs.ext4 -F /dev/${USB_SWAP_DRIVE}1
+                printf "Setting up EXT4 file system on USB stick. Please wait..." "${INFO}"
+                printf "(Note: This may take some time. Do not unplug the USB stick.)" "${INDENT}"
+                mkfs.ext4 -f /dev/${USB_SWAP_DRIVE}1
 
                 # Create mount point for USB drive, if needed
                 if [ ! -d /media/usbswap ]; then
@@ -2986,8 +3017,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node settings. You will need a USB stick for this. It is highly reccomended that this stick not be used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need direct access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is highly reccomended that you use a USB stick that is not used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -3001,11 +3031,8 @@ usb_backup() {
             # Ask if the user wants to backup their DigiBytewallet
             if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup your DigiByte wallet?\\n\\nThis is highly recomended, if you have not already done so, as it will safeguard the contents of your DigiByte wallet, and make it easy to restore your DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You chose to backup your DigiByte Core wallet.\\n" "${INFO}"
                 run_wallet_backup=true
-
             else
-                printf "%b You chose not to backup your DigiByte Core wallet. Returning to menu...\\n" "${INFO}"
                 run_wallet_backup=false
             fi
         else
@@ -3021,12 +3048,10 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device. Before creating a backup, it is advisable to have completed the DigiAsset setup process via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
-                printf "%b You chose to also backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=true
             else
-                printf "%b You chose NOT to backup your DigiAsset Node settings.\\n" "${INFO}"
                 run_dgaconfig_backup=false
             fi
         fi
@@ -3038,11 +3063,21 @@ usb_backup() {
                 menu_existing_install
         fi
 
+        # Display start backup messages
+        if [[ "$run_wallet_backup" == true ]] && [[ "$run_dgaconfig_backup" == true ]]; then
+            printf "%b You chose to backup both your DigiByte wallet and DigiAsset Node settings.\\n" "${INFO}"
+        elif [[ "$run_wallet_backup" == true ]] && [[ "$run_dgaconfig_backup" == false ]]; then
+            printf "%b You chose to backup only your DigiByte Core wallet.\\n" "${INFO}"
+        elif [[ "$run_dgaconfig_backup" == false ]] && [[ "$run_dgaconfig_backup" == true ]]; then
+            printf "%b You chose to backup only your DigiAsset Node settings.\\n" "${INFO}"
+        fi
+
         # If we are backing up the wallet, we first check that it is encrypted (DigiByte daemon needs to be running to do this)
         if [[ "$run_wallet_backup" == true ]]; then
 
             # Start the DigiByte service now, in case it is not already running
-            printf "%b Starting DigiByte daemon systemd service...\\n\\n" "${INFO}"
+            printf "%b DigiByte daemon must be running to check your wallet before backup.\\n" "${INFO}"
+            printf "%b Starting DigiByte daemon service...\\n\\n" "${INFO}"
             systemctl start digibyted
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
@@ -3148,7 +3183,8 @@ usb_backup() {
 
         fi
 
-        #clear password variables
+        #clear wallet encryption variables
+        encrypt_wallet_now=null
         skip_if_reentering_encryption_passphrases="no"
         WALLET_ENCRYT_PASS1=null
         WALLET_ENCRYT_PASS2=null
@@ -3160,7 +3196,7 @@ usb_backup() {
 
     if [[ "$run_wallet_backup" == true ]] || [[ "$run_dgaconfig_backup" == true ]]; then
 
-        printf " =============== Backup DigiNode =======================================\\n\\n"
+        printf " =============== DigiNode Backup =======================================\\n\\n"
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
@@ -3187,7 +3223,7 @@ usb_backup() {
         tput civis
         while [ "$USB_BACKUP_STICK_INSERTED" = "NO" ]; do
 
-            # Show Spinner while waiting
+            # Show Spinner while waiting for USB backup stick
             if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
               progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
             elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
@@ -3203,9 +3239,36 @@ usb_backup() {
             USB_BACKUP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
 
             if [ "$USB_BACKUP_DRIVE" != "" ]; then
+
+                # Check if USB_BACKUP_DRIVE string starts with └─ or ├─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+                # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
+                #
+                # if the string starts with └─, remove it
+                if [[ $USB_BACKUP_DRIVE = └─* ]]; then
+                    cleanup_partion_name=true
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/└─//')
+                fi
+                # if the string starts with ├─, remove it
+                if [[ $USB_BACKUP_DRIVE = ├─* ]]; then
+                    cleanup_partion_name=true
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/├─//')
+                fi
+                # if the string ends in a number, remove it
+                if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
+                    cleanup_partion_name=true
+                    USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
+                fi 
+
+                printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                 USB_BACKUP_STICK_INSERTED="YES"
-                printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE!\\n" "${OVER}" "${TICK}" "${str}"
                 tput cnorm
+
+                # Display partition name cleanup messages
+                if [[ $cleanup_partion_name = true ]]; then
+                    printf "%b (Note: Backup stick was already inserted at boot. If future, do not plug it in until requested or you may encounter errors.)\\n" "${INFO}"
+                    cleanup_partion_name=false
+                fi
+
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                 LSBLK_BEFORE_USB_INSERTED=$(lsblk)
@@ -3222,28 +3285,70 @@ usb_backup() {
         fi
 
         # Mount USB stick
-        str="Mount primary USB partition..."
-        printf "%b %s" "${INFO}" "${str}"
-        mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-        # TEST WRITE TO USB USING TOUCH testfile.txt
-        printf "%b Checking the inserted USB stick...\\n" "${INFO}"
-        touch /media/usbbackup/testfile.txt 2>/dev/null
-
-        # Check if the file was successfully written
-        str="Can the USB stick be written to?"
-        printf "%b %s..." "${INFO}" "${str}"
-        if [ -f /media/usbbackup/testfile.txt ]; then
-            printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
-            rm /media/usbbackup/testfile.txt
+        local format_usb_stick_now=false
+        local mount_partition=""
+        printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
+        # Query partprobe to find valid partition
+        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
+            partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1)
+            if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+                printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
+                mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
+                mount_partition="${USB_BACKUP_DRIVE}2"
+            fi
+        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]; then
+            partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1)
+            if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+                printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
+                mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+                mount_partition="${USB_BACKUP_DRIVE}1"
+            fi
         else
-            printf "%b%b %s NO! [ Write test failed ]\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
+            rmdir /media/usbbackup
+            mount_partition=""
+        fi
+
+        # Did the USB stick get mounted successfully?
+        str="Did USB stick mount successfully?..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$(lsblk | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # TEST WRITE TO USB USING TOUCH testfile.txt
+            printf "%b Checking the inserted USB stick is writeable...\\n" "${INFO}"
+            touch /media/usbbackup/testfile.txt 2>/dev/null
+            if [ -f /media/usbbackup/testfile.txt ]; then
+                printf "%b%b %s Yes! [ Write test completed successfully ]\\n" "${OVER}" "${TICK}" "${str}" 
+                rm /media/usbbackup/testfile.txt
+                format_usb_stick_now=false
+            else
+                printf "%b%b %s No! [ Write test FAILED ]\\n" "${OVER}" "${CROSS}" "${str}" 
+                format_usb_stick_now=true 
+            fi
+
+            # Does USB stick contain an existing backup?
+            if [ -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+                printf "%b Existed DigiNode backup detected on USB stick:\\n" "${INFO}"
+                source /media/usbbackup/diginode_backup/diginode_backup.info
+                printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+                printf "%b DigiAsset Node backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+            fi
+
+        else
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            format_usb_stick_now=true
+        fi
+
+
+        # Offer to format the stick if needed
+        if [ "$format_usb_stick_now" = true ]; then
+            printf "%b Asking to format USB stick...\\n" "${INFO}"
 
             # Ask the user if they want to format the USB stick
             if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
-                printf "%b You confirmed you want to format the backup USB stick.\\n" "${INFO}"
+                printf "%b You confirmed you want to format the USB stick.\\n" "${INFO}"
                 printf "\\n"
 
                 # FORMAT USB STICK HERE 
@@ -3262,56 +3367,90 @@ usb_backup() {
                 UpdateCmd=$(whiptail --title "Format USB Stick" --menu "\\n\\nPlease choose what file system you would like to format your USB stick. \\n\\nIMPORTANT: If you continue, any data currently on the stick will be erased.\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; menu_existing_install; }
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
                     # Update, or
                     ${opt1a})
-                        printf "%b You selected to format the backup USB stick as exFAT.\\n" "${INFO}"
+                        printf "%b You selected to format the USB stick as exFAT.\\n" "${INFO}"
                         USB_BACKUP_STICK_FORMAT="exfat"
 
                         ;;
                     # Reset,
                     ${opt2a})
-                        printf "%b You selected to format the backup USB stick as FAT32.\\n" "${INFO}"                   
+                        printf "%b You selected to format the USB stick as FAT32.\\n" "${INFO}"                   
                         USB_BACKUP_STICK_FORMAT="fat32"
                         ;;
                 esac
 
                 # Unmount USB stick
-                str="Unmount the USB stick..."
+                str="Unmount the USB stick at /dev/${USB_BACKUP_DRIVE}..."
                 printf "%b %s" "${INFO}" "${str}"
-                umount /dev/${USB_BACKUP_DRIVE}*
+                umount /dev/${USB_BACKUP_DRIVE} 2>/dev/null 1>/dev/null
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Wipe the current partition on the drive
-                str="Wiping exisiting partition(s) on USB backup stick..."
-                printf "%b %s" "${INFO}" "${str}"
-                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
+#                str="Wiping exisiting partition(s) on the USB stick..."
+#                printf "%b %s" "${INFO}" "${str}"
+#                sfdisk --quiet --delete /dev/$USB_BACKUP_DRIVE
 
-                # If the command completed without error, then assume the wallet is encrypted
+                # If the command completed without error, then assume the wallet was formatted
+#                if [ $? -eq 0 ]; then
+#                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#                else
+#                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+#                    whiptail --msgbox --backtitle "" --title "Deleting USB Partitons Failed." "ERROR: Your USB stick could not be wiped. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+#                    printf "\\n"
+#                    format_usb_stick_now=false
+#                    menu_existing_install
+#                fi
+
+                # Create new partition on the USB stick
+                if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
+                    str="Creating GPT partition for exFAT file system on the USB stick..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary ntfs 0% 100%
+                    partprobe
+                    sleep 5
+                elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
+                    str="Creating GPT partition for FAT32 file system on the USB stick..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary fat32 0% 100%
+                    partprobe
+                    sleep 5
+                fi
+
+                # If the command completed without an error, then assume the partition was created successfully
                 if [ $? -eq 0 ]; then
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
-                    whiptail --msgbox --backtitle "" --title "USB Formatting Failed." "ERROR: Your USB stick could not be formatted. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+                    whiptail --msgbox --backtitle "" --title "Creating GPT Partition Failed." "ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
                     printf "\\n"
+                    format_usb_stick_now=false
                     menu_existing_install
                 fi
 
-                # Wipe the current partition on the drive
-                str="Create new primary gpt partition on USB backup stick..."
-                printf "%b %s" "${INFO}" "${str}"
-                parted --script --align=opt /dev/${USB_BACKUP_DRIVE} mklabel gpt mkpart primary 0% 100%
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
                 # Set up file system on USB stick (exfat or fat32)
                 if [ "$USB_BACKUP_STICK_FORMAT" = "exfat" ]; then
-                    printf "Setting up exFAT file system on USB backup stick..." "${INFO}"
-                    mkfs.exfat -F /dev/${USB_BACKUP_DRIVE}1
+                    printf "Creating exFAT file system. Please wait...\\n" "${INFO}"
+                    mkfs.exfat /dev/${USB_BACKUP_DRIVE}1  -L DigiNodeBAK
                 elif [ "$USB_BACKUP_STICK_FORMAT" = "fat32" ]; then
-                    printf "Setting up FAT32 file system on USB backup stick..." "${INFO}"
-                    mkfs.vfat -F /dev/${USB_BACKUP_DRIVE}1
+                    printf "Creating FAT32 file system. Please wait...\\n" "${INFO}"
+                    mkfs.vfat /dev/${USB_BACKUP_DRIVE}1 -n DIGINODEBAK -v
+                fi
+
+                # If the command completed without an error, then assume the partition was successfully formatted
+                if [ $? -eq 0 ]; then
+                    printf "File system created successfully." "${TICK}"
+                else
+                    printf "ERROR: Creating file system failed." "${CROSS}"
+
+                    whiptail --msgbox --backtitle "" --title "Creating File System Failed." "ERROR: The $USB_BACKUP_STICK_FORMAT file system could not be created. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    printf "\\n"
+                    format_usb_stick_now=false
+                    menu_existing_install
                 fi
 
                 # Create mount point for USB backup drive, if needed
@@ -3323,9 +3462,10 @@ usb_backup() {
                 fi
 
                 # Create mount point for USB backup drive, if needed
-                str="Mount new USB swap partition..."
+                str="Mount new USB backup partition..."
                 printf "%b %s" "${INFO}" "${str}"
-                mount /dev/${USB_SWAP_DRIVE}1 /media/usbswap
+                mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup
+                mount_partition="${USB_BACKUP_DRIVE}1"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             else
@@ -3333,10 +3473,12 @@ usb_backup() {
                 whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
                 run_wallet_backup=false
                 run_dgaconfig_backup=false
+                format_usb_stick_now=false
                 printf "\\n"  
                 menu_existing_install
             fi
             printf "\\n"
+            format_usb_stick_now=false
 
         fi
 
@@ -3386,9 +3528,9 @@ EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If the _config folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
-        if [ ! -d /media/usbbackup/diginode_backup/_config ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
-            str="DigiAssets _config folder has been deleted since last backup. Removing backup date from diginode_backup.info ... "
+        # If the dga_config_backup folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
+        if [ ! -d /media/usbbackup/diginode_backup/dga_config_backup ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+            str="DigiAssets dga_config_backup folder has been deleted from the USB stick since last backup. Removing backup date from diginode_backup.info ... "
             printf "%b %s" "${INFO}" "${str}"  
             DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""          
             sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
@@ -3406,7 +3548,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiByte wallet. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, and it appears that it was not created from this DigiNode. \\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3420,7 +3562,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. The date of the existing backup is: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of a DigiByte wallet. Do you want to overwrite it?\\n\\nThe existing wallet backup was created:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK \\n\\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3434,7 +3576,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. This DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing wallet backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of a DigiByte wallet. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was previously backed up to another stick on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing wallet backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3452,7 +3594,7 @@ EOF
                     if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" ]; then
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick.\\n\\nThis backup was previously created by this DigiNode on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new backup unless you have recently encrypted the wallet. If you continue your existing wallet backup will be overwritten. Are you sure that you want to continue backing up your wallet to this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of this DigiByte wallet. Do you want to overwrite it?\\n\\nThis backup was previously created on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new backup unless you have recently encrypted the wallet. If you continue your existing wallet backup will be overwritten." "${r}" "${c}"; then
 
                             do_wallet_backup_now=true
                             printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3465,7 +3607,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiByte wallet backup was found on this USB stick but it does not appear to have been made from this DigiNode.\\nThe existing backup was made on: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a DigiByte wallet backup. Do you want to overwrite it?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nA previous backup was made to a different USB stick on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                             do_wallet_backup_now=true
                             printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3492,15 +3634,9 @@ EOF
                 #If the wallet.dat file has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiByte wallet was previously backed up on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
-
-                        do_wallet_backup_now=true
-                        printf "%b DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
-                        echo "$NEW_BACKUP_DATE DigiByte Wallet: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    else
-                        printf "%b DigiByte Wallet: You chose not to proceed with backing up DigiByte Wallet to a new USB stick.\\n" "${INFO}"
-                        do_wallet_backup_now=false
-                    fi
+                    do_wallet_backup_now=true
+                    printf "%b DigiByte Wallet: This backup will replace the one created on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiByte Wallet: This backup will replace the one created on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
                 
             fi
@@ -3513,10 +3649,10 @@ EOF
 
                     # Delete previous secondary backup of existing wallet, if it exists
                     if [ -f /media/usbbackup/diginode_backup/wallet.dat.old ]; then
-                        str="Deleting existing secondary backup: wallet.dat.old ... "
+                        str="Deleting existing old backup: wallet.dat.old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm /media/usbbackup/diginode_backup/wallet.dat.old
-                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Deleted existing wallet backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Deleted existing old backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -3532,15 +3668,28 @@ EOF
                 # Copy "live" wallet to backup stick
                 str="Backing up DigiByte wallet to USB stick ... "
                 printf "%b %s" "${INFO}" "${str}" 
-                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/wallet.dat 2>/dev/null/
+                cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/
                 if [ $? -eq 0 ]; then
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"           
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Succeeded" "Your DigiByte wallet has been successfully backed up to the USB stick." "${r}" "${c}"
+                    local dgb_backup_result="ok"
+
+                    DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
+                    str="Log DigiByte wallet backup date on the USB stick... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                    DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    str="Log DigiByte wallet backup date in the DigiNode settings... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    whiptail --msgbox --backtitle "" --title "Wallet Backup Failed" "Your DigiByte wallet backup failed due to an error. Check the USB stick." "${r}" "${c}"
+                    local dgb_backup_result="failed"
                 fi
 
             fi
@@ -3559,7 +3708,7 @@ EOF
 
                 #If the stick already contains a 'dga_config_backup' folder, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created from this DigiNode. It is unknown when this backup was created. \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, and it appears that it was not created from this DigiNode. \\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3573,7 +3722,7 @@ EOF
                 #If the stick already contains a 'dga_config_backup' folder, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. The date of the existing backup is: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK \\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nThe existing backup was created:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK \\n\\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3587,7 +3736,7 @@ EOF
                 #If the stick already contains a DigiAsset Settings folder, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick.\\n\\nThis backup does not appear to have been created by this DigiNode. It is unknown when this backup was created. This DigiNode was previously backed up to a different USB stick on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing DigiAsset settings backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was preciously backed up to another stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing DigiAsset settings backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3604,7 +3753,7 @@ EOF
                     # If this is the same backup stick as was used last time, then ask the user if they want to overwrite it
                     if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" ]; then
 
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick.\\n\\nThis backup was previously created by this DigiNode on: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new DigiAsset Settings backup unless you have recently changed your configuration. If you continue your existing DigiAsset Settings backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of this DigiAsset Node. Do you want to overwrite it?\\n\\nThis backup was previously created on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new DigiAsset Settings backup unless you have recently changed your configuration. If you continue your existing DigiAsset Settings backup will be overwritten." "${r}" "${c}"; then
 
                             do_dgaconfig_backup_now=true
                             printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3617,7 +3766,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: An existing DigiAsset Settings backup was found on this USB stick but it does not appear to have been made from this DigiNode.\\nThe existing backup was made on: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\nThis DigiNode was preciously backed up to a different USB stick on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
+                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a DigiAsset Node backup. Do you want to overwrite it?\\n\\nThis DigiAsset Node backup was made on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nA previous backup was made to a different USB stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the current backup will be overwritten." "${r}" "${c}"; then
 
                             do_dgaconfig_backup_now=true
                             printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -3641,18 +3790,11 @@ EOF
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: No previous backup has been detected. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
 
-                #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, ask the user if they want to continue
+                #If the DigiAsset settings folder has previously been backed up somewhere else, but not to this stick, note that it is replacing the old backup
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ]; then
-                    # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "New backup stick detected" --yesno "WARNING: New backup stick detected.\\n\\nYour DigiAsset Settings were previously backed up on: $DGB_WALLET_BACKUP_DATE_ON_DIGINODE \\n\\nThis appears to be a different USB stick to the one you used last time. Are you sure that you want to continue using this stick?" "${r}" "${c}"; then
-
-                        do_dgaconfig_backup_now=true
-                        printf "%b DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed...\\n" "${INFO}"
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: You agreed to backup to a new USB stick. Backup will proceed..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    else
-                        printf "%b DigiAsset Settings: You chose not to proceed with backing up DigiAsset Settings to a new USB stick.\\n" "${INFO}"
-                        do_dgaconfig_backup_now=false
-                    fi
+                    do_dgaconfig_backup_now=true
+                    printf "%b DigiAsset Settings: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n" "${INFO}"
+                    echo "$NEW_BACKUP_DATE DigiAsset Settings: This backup will replace the one created on: $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" >> /media/usbbackup/diginode_backup/diginode_backup.log
                 fi
                 
             fi
@@ -3665,11 +3807,11 @@ EOF
 
                     # Delete previous secondary backup folder of DigiAsset, if it exists
                     if [ -d /media/usbbackup/diginode_backup/dga_config_backup_old ]; then
-                        str="Deleting existing secondary backup folder: dga_config_backup_old ... "
+                        str="Deleting existing old backup: dga_config_backup_old ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         rm -rf /media/usbbackup/diginode_backup/dga_config_backup_old
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Deleting existing secondary backup folder" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Deleting existing old backup: dga_config_backup_old" >> /media/usbbackup/diginode_backup/diginode_backup.log
                     fi
 
                     # Rename existing wallet backup folder to old
@@ -3686,7 +3828,7 @@ EOF
                         str="Create DigiAsset settings backup folder on USB stick: dga_config_backup ... "
                         printf "%b %s" "${INFO}" "${str}" 
                         mkdir /media/usbbackup/diginode_backup/dga_config_backup
-                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Create backup folder on USB stick: /dga_config_backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        echo "$NEW_BACKUP_DATE DigiAsset Settings: Create backup folder on USB stick: dga_config_backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -3695,36 +3837,79 @@ EOF
                 # Copy DigiAsset Settings to backup stick
                 str="Backing up DigiAsset Settings to USB stick ... "
                 printf "%b %s" "${INFO}" "${str}" 
-                cp $DGA_SETTINGS_LOCATION/*.json /media/usbbackup/diginode_backup/dga_config_backup 2>/dev/null/
+                cp $DGA_SETTINGS_LOCATION/*.json /media/usbbackup/diginode_backup/dga_config_backup/
                 if [ $? -eq 0 ]; then
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick." "${r}" "${c}"
+                    local dga_backup_result="ok"
+
+                    DGA_CONFIG_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
+                    str="Log DigiAsset settings backup date on the USB stick... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
+
+                    DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                    str="Log DigiAsset settings backup date in the DigiNode settings... "
+                    printf "%b %s" "${INFO}" "${str}"          
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
+                    
                 else
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Backup failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Check the USB stick." "${r}" "${c}"
+                    local dga_backup_result="failed"
                 fi
 
             fi
 
         fi
 
-        # BACKUP FINISHED
+        # Display new backup details, if a backup occurred
+        if [ "$dgb_backup_result" = "ok" ] || [ "$dga_backup_result" = "ok" ]; then
+            if [ -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+                printf "%b New DigiNode backup on USB stick:\\n" "${INFO}"
+                source /media/usbbackup/diginode_backup/diginode_backup.info
+                printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+                printf "%b DigiAsset Node backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+            fi  
+        fi
 
         # Unmount USB stick
         str="Unmount the USB backup stick..."
         printf "%b %s" "${INFO}" "${str}"
-        umount /dev/${USB_BACKUP_DRIVE}*
+        umount /dev/$mount_partition
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Display backup completed messages
+
+        if [ "$dgb_backup_result" = "ok" ] && [ "$dga_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiNode Backup Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        elif [ "$dgb_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Completed Successfully" "Your DigiByte wallet has been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        elif [ "$dga_backup_result" = "ok" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+        fi
+
+        # Display backup failed messages
+
+        if [ "$dgb_backup_result" = "failed" ] && [ "$dga_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiNode Backup Failed" "ERROR: Your DigiByte wallet and DigiAsset settings backup failed. Please check the USB stick.\\n\\nPlease unplug the USB stick. When you have done so, press OK." "${r}" "${c}"
+        elif [ "$dgb_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Failed" "ERROR: Your DigiByte wallet backup failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+        elif [ "$dga_backup_result" = "failed" ]; then
+            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Please check the USB stick.\\n\\nPlease unplug the backup USB now. When you have done so, press OK." "${r}" "${c}"
+        fi
+
+        # BACKUP FINISHED
 
         # Tell user to eject backup USB stick, reset variables, and return to the main menu
         printf "%b Backup complete. Returning to menu...\\n" "${INFO}"
-        whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
         run_wallet_backup=false
         run_dgaconfig_backup=false
         do_wallet_backup_now=false
         do_dgaconfig_backup_now=false
+        printf "\\n"
         menu_existing_install
 
     fi
@@ -3740,11 +3925,12 @@ usb_restore() {
 
 #check there is sufficient space on the chosen drive to download the blockchain
 disk_check() {
+
+    printf " =============== Checking: Disk Space ==================================\\n\\n"
+    # ==============================================================================
+
     # Only run the check if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-
-        printf " =============== Checking: Disk Space ==================================\\n\\n"
-        # ==============================================================================
 
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -3876,7 +4062,8 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; echo ""; exit 1; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -3922,7 +4109,7 @@ menu_existing_install() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to install and configure a DigiByte and DigiAsset Node on this device.\\n\\nRunning a DigiByte Node means you have a full copy of the DigiByte blockchain on your machine and are helping contribute to the decentralization and security of the blockchain network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It enables you to create your own DigiAssets via the built-in web UI, and also lets you earn DGB as payment for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\\n\\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Setup useful
 whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
@@ -3946,7 +4133,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE
 
 
 # Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThis devices current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 #Nothing to do, continue
   printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
   printf "\\n"
@@ -4195,7 +4382,7 @@ fi
 
 }
 
-request_social_media () {  
+request_social_media() {  
 
     if [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
@@ -4249,8 +4436,11 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "      If you find DigiNode Tools useful and want to support my work,"
-    echo "   donations in DGB are much appreciated. Many thanks. - Olly @saltedlolly"             
+    echo "    I have spent hundreds of hours of my spare time developing DigiNode Tools. I did"
+    echo "    this because I believe in DigiByte and want to help it succeed by making it easy"
+    echo "    for anyone to setup and run their own DigiByte full node. I have not been paid"
+    echo "    for any of this. If you find these tools useful, I kindly ask that you make a"
+    echo "    donation in DGB to support future development. Many thanks. - Olly @saltedlolly" 
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -4269,6 +4459,49 @@ donation_qrcode() {
     echo ""  
     echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
     echo ""
+}
+
+# Backup reminder
+backup_reminder() { 
+
+    # Only display this once DigiNode is already installed
+    if [ "$NewInstall" != true ]; then
+
+        # If this is a full install, and no backup exists
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+
+            printf "%b %bReminder: Don't forget to create a USB backup of your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
+            printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
+
+        # If this is a full install, and the DigiByte wallet has been backed up but not DigiAsset settings
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+
+            printf "%b %bReminder: Don't forget to create a USB backup of your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
+            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
+
+        # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+
+            printf "%b %bReminder: Don't forget to create a USB backup of your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
+
+
+    fi
+
 }
 
 final_messages() {  
@@ -4514,13 +4747,18 @@ digibyte_check() {
     if [ "$DGB_STATUS" = "startingup" ]; then
         every15secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-        printf "%b DigiByte Core is in the process of starting up. This can take 10 mins or more.\\n" "${INFO}"
+        printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         str="Please wait..."
         printf "%b %s" "${INDENT}" "${str}"
         tput civis
+        # Query if digibyte has finished starting up. Display error. Send success to null.
+        is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
+        if [ "$is_dgb_live_query" != "" ]; then
+            dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+        fi
         while [ $DGB_STATUS = "startingup" ]; do
 
-            # Show Spinner while waiting
+            # Show Spinner while waiting for DigiByte Core to finishing starting up
             if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
               progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
             elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
@@ -4532,19 +4770,21 @@ digibyte_check() {
             fi 
 
             if [ "$every15secs" -ge 30 ]; then
-              BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
-              if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-                printf "%b%b %s $progress Querying..." "${OVER}" "${INDENT}" "${str}"
-                every15secs=0
-                sleep 0.5
-              else
-                DGB_STATUS="running"
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                tput cnorm
-              fi
+                # Query if digibyte has finished starting up. Display error. Send success to null.
+                is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
+                if [ "$is_dgb_live_query" != "" ]; then
+                    dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+                    printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
+                    every15secs=0
+                    sleep 0.5
+                else
+                    DGB_STATUS="running"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    tput cnorm
+                fi
             else
                 every15secs=$((every15secs + 1))
-                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                printf "%b%b %s $dgb_error_msg $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
         done
@@ -4798,6 +5038,28 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Add DigiByte binary folder to the path for now
+    if [ -f "$DGB_CLI" ]; then
+        str="Adding $DGB_CLI folder to path..."
+        printf "%b %s" "${INFO}" "${str}"
+        export PATH+=":$DGB_INSTALL_LOCATION/bin"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Add DigiByte binary folder to the path permanently (so it works after reboot)
+    str="Is DigiByte binary folder path already in .bashrc?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
+        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        # Append export path to .bashrc file
+        echo "" >> $USER_HOME/.bashrc
+        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
+        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
+        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
     printf "\\n"
 
 fi
@@ -4830,8 +5092,8 @@ printf " =============== Checking: DigiNode Tools ==============================
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
-
-        DGNT_BRANCH_LOCAL=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE    
+        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
@@ -4841,7 +5103,8 @@ printf " =============== Checking: DigiNode Tools ==============================
     fi
 
     # If we get a valid local branch, update the stored local branch
-    if [ "$DGNT_BRANCH_LOCAL" != "" ]; then
+    if [ "$dgnt_branch_local_query" != "" ]; then
+        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
@@ -5120,6 +5383,12 @@ fi
             echo "alias diginode-setup='$DGNT_SETUP_SCRIPT'" >> $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        # Load new aliases
+        str="Loading new alias..."
+        printf "%b %s" "${INFO}" "${str}"
+        source $USER_HOME/.bashrc
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Reset DGNT Install and Upgrade Variables
         DGNT_INSTALL_TYPE=""
@@ -6125,15 +6394,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new NodeJS local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-        sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
-        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If there is no install date (i.e. NodeJS was already installed) add it now
-    if [ "$NODEJS_INSTALL_DATE" = "" ]; then
         NODEJS_INSTALL_DATE="$(date)"
         sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ "$NODEJS_INSTALL_TYPE" = "upgrade" ] || [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
+        NODEJS_UPGRADE_DATE="$(date)"
+        sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Reset NodeJS Install and Upgrade Variables
@@ -6143,6 +6408,12 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     printf "\\n"
 
+fi
+
+# If there is no install date (i.e. NodeJS was already installed when this script was first run) add it now, since it was up-to-date at this time
+if [ "$NODEJS_INSTALL_DATE" = "" ]; then
+    NODEJS_INSTALL_DATE="$(date)"
+    sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -7285,6 +7556,20 @@ uninstall_do_now() {
         str="Deleting ~/digiasset_node folder..."
         printf "%b %s" "${INFO}" "${str}"
         rm -r -f $USER_HOME/digiasset_node
+        DGA_LOCAL_BRANCH=""
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
+        DGA_VER_LOCAL=""
+        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MJR_LOCAL=""
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MNR_LOCAL=""
+        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_INSTALL_DATE=""
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_UPGRADE_DATE=""
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_FIRST_RUN=""
+        sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -7408,6 +7693,12 @@ uninstall_do_now() {
                 str="Deleting current IPFS Updater installer: ~/ipfs-update..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -r $USER_HOME/ipfs-update
+                IPFSU_VER_LOCAL=""
+                sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                IPFSU_INSTALL_DATE=""
+                sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                IPFSU_UPGRADE_DATE=""
+                sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7417,6 +7708,12 @@ uninstall_do_now() {
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
+                IPFS_VER_LOCAL=""
+                sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                IPFS_INSTALL_DATE=""
+                sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                IPFS_UPGRADE_DATE=""
+                sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7483,6 +7780,12 @@ uninstall_do_now() {
             str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            DGB_INSTALL_DATE=""
+            sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+            DGB_UPGRADE_DATE=""
+            sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -7557,6 +7860,20 @@ uninstall_do_now() {
                 str="Deleting DigiNode Tools..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -rf $DGNT_LOCATION
+                DGNT_BRANCH_LOCAL=""
+                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGNT_VER_LOCAL_=""
+                sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGNT_VER_LOCAL_DISPLAY=""
+                sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=|" $DGNT_SETTINGS_FILE
+                DGNT_INSTALL_DATE=""
+                sed -i -e "/^DGNT_INSTALL_DATE=/s|.*|DGNT_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                DGNT_UPGRADE_DATE=""
+                sed -i -e "/^DGNT_UPGRADE_DATE=/s|.*|DGNT_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                DGNT_MONITOR_FIRST_RUN=""
+                sed -i -e "/^DGNT_MONITOR_FIRST_RUN=/s|.*|DGNT_MONITOR_FIRST_RUN=|" $DGNT_SETTINGS_FILE
+                DGNT_MONITOR_LAST_RUN=""
+                sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=|" $DGNT_SETTINGS_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -7579,6 +7896,7 @@ uninstall_do_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
+
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
         fi
@@ -8585,7 +8903,7 @@ if [ "$DIGIFACT" = "help4" ]; then
     DIGIFACT_L3=" DigiByte Node: https://nodes.digibyte.host/"
     DIGIFACT_L4="DigiAsset Node: https://ipfs.digiassetx.com/"
     DIGIFACT_L5=" "
-    DIGIFACT_L6="This is also a good way to check your DigiNode is working properly!"
+    DIGIFACT_L6="This is a good way to check your DigiNode is setup correctly!"
 fi
 
 if [ "$DIGIFACT" = "help5" ]; then
@@ -8769,7 +9087,7 @@ main() {
     # Check if there is an existing install of DigiByte Core, installed with this script
     if [[ -f "${DGB_INSTALL_LOCATION}/.officialdiginode" ]]; then
         NewInstall=false
-        printf "%b Existing DigiNode detected...\\n" "${INFO}"
+        printf "%b Existing DigiNode detected...\\n\\n" "${INFO}"
 
         # If uninstall is requested, then do it now
         if [[ "$UNINSTALL" == true ]]; then
@@ -8779,29 +9097,27 @@ main() {
         # if it's running unattended,
         if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Upgrade: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "\\n"
             # Perform unattended upgrade
             UnattendedUpgrade=true
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
-            # If running attended, show the available options (upgrade/reset/uninstall)
-            printf "%b Interactive Upgrade: Displaying options menu (update/reset/uninstall)\\n" "${INFO}"
+            # If running attended, show the main menu
             UnattendedUpgrade=false
         fi
-        printf "\\n"
     else
         NewInstall=true
         if [[ "${UNATTENDED_MODE}" == true ]]; then
             printf "%b Unattended Install: Using diginode.settings file - no whiptail dialogs will be displayed\\n" "${INFO}"
+            printf "\\n"
             # Perform unattended upgrade
             UnattendedInstall=true
             # also disable debconf-apt-progress dialogs
             export DEBIAN_FRONTEND="noninteractive"
         else
             UnattendedInstall=false
-            printf "%b Displaying installation menu...\\n" "${INFO}"
         fi
-        printf "\\n"
     fi
 
 
@@ -9016,6 +9332,9 @@ main() {
 
     # Show final messages - Display reboot message (and how to run Status Monitor)
     final_messages
+
+    # Share backup reminder
+    backup_reminder
 
     # Launch Status Monitor if requested
     launch_status_monitor

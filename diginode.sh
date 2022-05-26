@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.5
+DGNT_VER_LOCAL=0.0.6
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -183,11 +183,11 @@ import_setup_functions() {
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
         printf "%b   git clone https://github.com/saltedlolly/diginode/ \\n" "${INDENT}"
-        printf "%b   chmod +x ~/diginode/digimon.sh \\n" "${INDENT}"
+        printf "%b   chmod +x ~/diginode/diginode.sh \\n" "${INDENT}"
         printf "\\n"
         printf "%b To run it:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   ~/diginode/digimon.sh\\n" "${INDENT}"
+        printf "%b   ~/diginode/diginode.sh\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -211,8 +211,8 @@ digimon_title_box() {
 
 # Show a disclaimer text during testing phase
 digimon_disclaimer() {
-    printf "%b %bWARNING: This script is still under active development%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Expect bugs and for it to break things - at times it may\\n" "${INDENT}"
+    printf "%b %bWARNING: This script is currently in public beta.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Please join the Telegram support group to report any bugs and share feeback:\\n" "${INDENT}"
     printf "%b not even run. Please use for testing only until further notice.\\n" "${INDENT}"
     printf "\\n"
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
@@ -793,6 +793,9 @@ quit_message() {
     tput sgr0
     tput rmcup
 
+    #Set this so the backup reminder works
+    NewInstall=False
+
     # On quit, if there are updates available, ask the user if they want to install them
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
 
@@ -821,7 +824,7 @@ quit_message() {
       fi
       printf "\\n"
 
-       if [ "$DONATION_PLEA" = "yes" ]; then
+      if [ "$DONATION_PLEA" = "yes" ]; then
 
         #Display donation QR code
         donation_qrcode
@@ -830,6 +833,9 @@ quit_message() {
         DONATION_PLEA="wait15"
         sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
       fi
+
+      #Share backup reminder
+      backup_reminder
 
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
@@ -840,6 +846,9 @@ quit_message() {
 
       #Display donation QR code
       donation_qrcode
+
+      #Share backup reminder
+      backup_reminder
 
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
@@ -856,6 +865,9 @@ quit_message() {
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
+
+      #Share backup reminder
+      backup_reminder
   fi
 
   # Display cursor again
@@ -1125,7 +1137,7 @@ startup_checks() {
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
   set_sys_variables                # Set various system variables once we know we are on linux
-#  load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
+# load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
 # install_diginode_tools           # install or upgrade the DigiNode tools scripts
@@ -1299,12 +1311,19 @@ TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "(
 
 if [ $TIME_DIF_15SEC -gt 15 ]; then 
 
-    # Check if digibyted is successfully responding to requests up yet after starting up
+    # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
     if [ "$DGB_STATUS" = "startingup" ]; then
-        BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
-        if [[ "$BLOCKCOUNT_LOCAL" != "" ]]; then
-          DGB_STATUS="running"
+        
+        # Query if digibyte has finished starting up. Display error. Send success to null.
+        is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+        if [ "$is_dgb_live_query" != "" ]; then
+            DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+        else
+            DGB_STATUS="running"
         fi
+
+        echo "DGB_ERROR_MESSAGE: $DGB_ERROR_MSG"
+
     fi
 
     # Update local block count every 15 seconds (approx once per block)
@@ -1685,7 +1704,8 @@ printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up. Please wait...${txtrst}"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up.${txtrst}"
+printf "  ║               ║  " && printf "%-60s ║ \n" "Please wait... $DGB_ERROR_MSG"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
