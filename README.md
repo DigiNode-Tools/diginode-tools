@@ -120,18 +120,20 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
-v0.0.6 - 2022-05-xx Test Release
+DigiNode Tools v0.0.6 - 2022-05-26 Test Release
 - Reboot is no longer required after first install
 - diginode.settings variables now get reset during an uninstall
+- backup reminder is displayed until you have made one
+- lots of fixes and improvements to backup function
 
-v0.0.5 - 2022-05-19 Test Release
+DigiNode Tools v0.0.5 - 2022-05-19 Test Release
 - USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
 - DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bux in v0.0.4
 - Fixes to diginode.settings to better store variables
 - Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
 - Countless bug fixes and improvements
 
-v0.0.4 - 2022-05-10 Test Release
+DigiNode Tools v0.0.4 - 2022-05-10 Test Release
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
 - Install URL has changed to diginode-setup.digibyte.help
 - Implemented backup feature for prelimanry testing
