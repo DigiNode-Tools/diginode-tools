@@ -824,10 +824,7 @@ quit_message() {
       fi
       printf "\\n"
 
-      #Share backup reminder
-      backup_reminder
-
-       if [ "$DONATION_PLEA" = "yes" ]; then
+      if [ "$DONATION_PLEA" = "yes" ]; then
 
         #Display donation QR code
         donation_qrcode
@@ -837,6 +834,9 @@ quit_message() {
         sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
       fi
 
+      #Share backup reminder
+      backup_reminder
+
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
@@ -844,11 +844,11 @@ quit_message() {
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
 
-      #Share backup reminder
-      backup_reminder
-
       #Display donation QR code
       donation_qrcode
+
+      #Share backup reminder
+      backup_reminder
 
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
@@ -862,12 +862,12 @@ quit_message() {
       # Display a random DigiFact
       digifact_display
 
-      #Share backup reminder
-      backup_reminder
-
       printf "\\n"
       printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
+
+      #Share backup reminder
+      backup_reminder
   fi
 
   # Display cursor again

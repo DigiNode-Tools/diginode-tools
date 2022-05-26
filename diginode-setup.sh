@@ -4062,7 +4062,7 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; backup_reminder; donation_qrcode; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -4474,7 +4474,7 @@ backup_reminder() {
             printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
             printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -4483,21 +4483,19 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to create a USB backup of your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
-            printf "%b You can do this from the DigiNode Setup menu. It will help you to backup your DigiByte wallet\\n" "${INDENT}"
-            printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
+            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
             printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
 
-        # If this only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
+        # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to create a USB backup of your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You can do this from the DigiNode Setup menu. It will help you to backup your DigiByte wallet\\n" "${INDENT}"
-            printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
+            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
 
