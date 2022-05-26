@@ -4474,7 +4474,7 @@ backup_reminder() {
         echo "backup reminder - this is not a new install"
 
         # If this is a full install, and no backup exists
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %Reminder: Don't forget to create a USB backup of your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
