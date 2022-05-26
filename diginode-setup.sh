@@ -3285,11 +3285,11 @@ usb_backup() {
         fi
 
         # Debugging
-        echo "Debugging:"
+        echo "Debugging: ${USB_BACKUP_DRIVE}"
         echo "First Query:"
-        [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ] && echo "yes"
+        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]] && echo "yes"
         echo "Second Query:"
-        [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ] && echo "yes"
+        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]] && echo "yes"
 
 
         # Mount USB stick
