@@ -54,7 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.6
+DGNT_VER_LOCAL=0.0.7
+# Last Updated: 2022-05-26
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1518,7 +1519,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     fi
 
     # Let's check if DigiNode Tools already installed
-    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+    if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
