@@ -106,7 +106,7 @@ Example:
 
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- A 64bit Linux OS is required - the latest Ubuntu Server LTS version is recommened.
+- A 64bit Linux OS is required - the latest *Ubuntu Server LTS 64-bit* or *Raspberry Pi OS lite 64-bit* is recommened.
 
 DigiNode has been tested and known to work with the following systems:
 
