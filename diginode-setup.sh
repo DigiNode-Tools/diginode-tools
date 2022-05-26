@@ -3286,8 +3286,9 @@ usb_backup() {
 
         # Debugging
         echo "Debugging: ${USB_BACKUP_DRIVE}"
+        echo "Partprobe: $(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1)"
         echo "First Query:"
-        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]] && echo "yes"
+        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]] && echo "yes"
         echo "Second Query:"
         [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]] && echo "yes"
 
