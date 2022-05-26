@@ -3284,15 +3284,6 @@ usb_backup() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Debugging
-        echo "Debugging: ${USB_BACKUP_DRIVE}"
-        echo "Partprobe: $(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1)"
-        echo "First Query:"
-        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]] && echo "yes"
-        echo "Second Query:"
-        [[ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]] && echo "yes"
-
-
         # Mount USB stick
         local format_usb_stick_now=false
         local mount_partition=""
@@ -4071,7 +4062,10 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; echo ""; exit 1; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; donation_qrcode; exit; }
+
+debugging
+
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -4390,7 +4384,7 @@ fi
 
 }
 
-request_social_media () {  
+request_social_media() {  
 
     if [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
@@ -4444,8 +4438,10 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "      If you find DigiNode Tools useful and want to support my work,"
-    echo "   donations in DGB are much appreciated. Many thanks. - Olly @saltedlolly"             
+    echo "    I have spent hundreds of hours of work developing DigiNode Tools for which I"
+    echo "    have not been paid. I did this because I believe in DigiByte and want to help"
+    echo "    it succeed. If you find these tools useful and want to support my work,"
+    echo "    donations in DGB are much appreciated. Many thanks. - Olly @saltedlolly"             
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
