@@ -4064,8 +4064,6 @@ menu_existing_install() {
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; backup_reminder; donation_qrcode; exit; }
 
-debugging
-
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -4466,8 +4464,14 @@ donation_qrcode() {
 # Backup reminder
 backup_reminder() { 
 
+    # debugging
+    echo "backup reminder >>>>"
+
     # Only display this once DigiNode is already installed
     if [ "$NewInstall" != true ]; then
+
+        # debugging
+        echo "backup reminder - this is not a new install"
 
         # If this is a full install, and no backup exists
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
