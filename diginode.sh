@@ -793,6 +793,9 @@ quit_message() {
     tput sgr0
     tput rmcup
 
+    #Set this so the backup reminder works
+    NewInstall=False
+
     # On quit, if there are updates available, ask the user if they want to install them
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
 
