@@ -3298,14 +3298,20 @@ usb_backup() {
         local mount_partition=""
         printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
         # Query partprobe to find valid partition
-        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1 | grep -Eo "loop")" != "loop" ]; then
-            printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
-            mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
-            mount_partition="${USB_BACKUP_DRIVE}2"
-        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ] && [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ]; then
-            printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
-            mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
-            mount_partition="${USB_BACKUP_DRIVE}1"
+        if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
+            partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1)
+            if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+                printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
+                mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
+                mount_partition="${USB_BACKUP_DRIVE}2"
+            fi
+        elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]; then
+            partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1)
+            if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+                printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
+                mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+                mount_partition="${USB_BACKUP_DRIVE}1"
+            fi
         else
             printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
             rmdir /media/usbbackup
