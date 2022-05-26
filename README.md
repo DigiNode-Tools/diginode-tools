@@ -119,7 +119,7 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
-DigiNode Tools v0.0.7 - 2022-05-26 Test Release
+DigiNode Tools v0.0.8 - 2022-05-26 Test Release
 - Another attempt to fix DigiNode Tools verion checks
 
 DigiNode Tools v0.0.6 - 2022-05-26 Test Release
