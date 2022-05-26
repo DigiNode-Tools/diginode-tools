@@ -4436,11 +4436,9 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have spent hundreds of hours of my spare time developing DigiNode Tools. I did"
-    echo "    this because I believe in DigiByte and want to help it succeed by making it easy"
-    echo "    for anyone to setup and run their own DigiByte full node. I have not been paid"
-    echo "    for any of this. If you find these tools useful, I kindly ask that you make a"
-    echo "    donation in DGB to support future development. Many thanks. - Olly @saltedlolly" 
+    echo "    I have spent hundreds of hours developing DigiNode Tools. If you"
+    echo "    find these tools useful, kindly make a donation in DGB to support my work."
+    echo "    Any amount is greatly appreciated. Many thanks. - Olly @saltedlolly"
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -5285,6 +5283,7 @@ fi
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode-tools/
+            DGNT_BRANCH_LOCAL="develop"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"develop\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -5293,6 +5292,7 @@ fi
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
+            DGNT_BRANCH_LOCAL="main"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"main\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -5300,6 +5300,7 @@ fi
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
+            DGNT_BRANCH_LOCAL="HEAD"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -5335,12 +5336,15 @@ fi
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             DGNT_VER_LOCAL_DISPLAY="dev-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             DGNT_VER_LOCAL_DISPLAY="main-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         fi
 
         # Make downloads executable

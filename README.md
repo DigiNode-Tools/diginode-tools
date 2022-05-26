@@ -106,20 +106,20 @@ Example:
 
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- A 64bit Linux OS is required - the latest Ubuntu Server LTS version is recommened.
+- A 64bit Linux OS is required - the latest *Ubuntu Server LTS 64-bit* or *Raspberry Pi OS lite 64-bit* is recommened.
 
 DigiNode has been tested and known to work with the following systems:
 
 | **Hardware**          | **Operating System**             | **Notes**                                                                                                   |
 |-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Raspberry Pi OS 64-bit           | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.                                                                            ||
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit   | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+| Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit   | Requires swap file. Runs slowly.                                                                            |
 
 
 ## Release History
 
-DigiNode Tools v0.0.7 - 2022-05-26 Test Release
+DigiNode Tools v0.0.8 - 2022-05-26 Test Release
 - Another attempt to fix DigiNode Tools verion checks
 
 DigiNode Tools v0.0.6 - 2022-05-26 Test Release
