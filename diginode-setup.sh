@@ -5118,7 +5118,7 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         DGNT_STATUS="installed"
-        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b%b %s YES!  DigiNode Tools develop branch\\n" "${OVER}" "${TICK}" "${str}"
@@ -5149,7 +5149,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ "$DGNT_BRANCH" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
 
             if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
 
@@ -5167,7 +5167,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 DGNT_ASK_UPGRADE=YES
             fi
 
-        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5183,7 +5183,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 
     # Upgrade to develop branch
     elif [ "$DGNT_BRANCH" = "develop" ]; then
-        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5203,7 +5203,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     
     # Upgrade to main branch
     elif [ "$DGNT_BRANCH" = "main" ]; then
-        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5300,7 +5300,7 @@ fi
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
-            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -5332,7 +5332,7 @@ fi
         fi
 
         # Update DigiNode Tools display verion
-        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
@@ -6653,7 +6653,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_BRANCH_LOCAL" = "development" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
