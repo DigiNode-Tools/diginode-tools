@@ -114,8 +114,7 @@ DigiNode has been tested and known to work with the following systems:
 |-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS          | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS 64-bit           | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.                                                                            |
-|                       |                                  |                                                                                                             |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS          | Requires swap file. Runs slowly.                                                                            ||
 
 
 ## Release History
