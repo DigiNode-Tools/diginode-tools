@@ -5108,6 +5108,10 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # Debugging
+    echo "Debugging:-"
+    echo "DGNT_BRANCH_LOCAL: $DGNT_BRANCH_LOCAL"
+
     # Let's check if DigiNode Tools already installed
     str="Are DigiNode Tools already installed?..."
     printf "%b %s" "${INFO}" "${str}"
