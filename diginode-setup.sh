@@ -4062,7 +4062,7 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; donation_qrcode; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; backup_reminder; donation_qrcode; exit; }
 
 debugging
 
