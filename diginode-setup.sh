@@ -3284,6 +3284,14 @@ usb_backup() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        # Debugging
+        echo "Debugging:"
+        echo "First Query:"
+        [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ] && echo "yes"
+        echo "Second Query:"
+        [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1 | grep -Eo "loop")" != "loop" ] && echo "yes"
+
+
         # Mount USB stick
         local format_usb_stick_now=false
         local mount_partition=""
