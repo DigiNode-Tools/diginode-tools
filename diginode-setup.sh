@@ -123,7 +123,7 @@ c=70
 # The UNATTENDED_MODE flag is one example of this
 RESET_MODE=false
 UNATTENDED_MODE=false
-DGNT_BRANCH="release"
+DGNT_BRANCH_REMOTE="release"
 UNINSTALL=false
 DIGINODE_SKIP_OS_CHECK=false
 DGA_BRANCH="main"
@@ -134,8 +134,8 @@ for var in "$@"; do
     case "$var" in
         "--reset" ) RESET_MODE=true;;
         "--unattended" ) UNATTENDED_MODE=true;;
-        "--dgntdev" ) DGNT_BRANCH="develop";; 
-        "--dgntmain" ) DGNT_BRANCH="main";; 
+        "--dgntdev" ) DGNT_BRANCH_REMOTE="develop";; 
+        "--dgntmain" ) DGNT_BRANCH_REMOTE="main";; 
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
@@ -463,6 +463,7 @@ DGNT_MONITOR_FIRST_RUN=
 DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
+DGNT_VER_RELEASE=
 
 # This is updated automatically every time DigiNode Tools is installed/upgraded. 
 # It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
@@ -626,14 +627,14 @@ fi
 set_dgnt_branch() {
 
     # Set relevant Github branch for DigiNode Tools
-    if [ "$DGNT_BRANCH" = "develop" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
             printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   The develop branch will be used.\\n" "${INDENT}"
             printf "\\n"
         fi
         DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_DEVELOP_URL
-    elif [ "$DGNT_BRANCH" = "main" ]; then
+    elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
             printf "%b DigiNode Tools Main Branch Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   The main branch will be used. Used for testing before pushing a final release.\\n" "${INDENT}"
@@ -5110,12 +5111,10 @@ printf " =============== Checking: DigiNode Tools ==============================
     str="Are DigiNode Tools already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ ! -f "$DGNT_MONITOR_SCRIPT" ]; then
-        DGNT_STATUS="not_detected"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
         DGNT_VER_LOCAL=""
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
-        DGNT_STATUS="installed"
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
@@ -5128,23 +5127,23 @@ printf " =============== Checking: DigiNode Tools ==============================
     fi
 
     # Requested branch
-    if [ "$DGNT_BRANCH" = "develop" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
-    elif [ "$DGNT_BRANCH" = "main" ]; then
+    elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
     # If there is no release version (i.e. it returns 'null'), use the main version
-    if [ "$DGNT_BRANCH" = "release" ] && [ "$DGNT_VER_RELEASE" = "null" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "release" ] && [ "$DGNT_VER_RELEASE" = "null" ]; then
         printf "%b DigiNode Tools release branch requested.\\n" "${INFO}"
         printf "%b ERROR: Release branch is unavailable. main branch will be installed.\\n" "${CROSS}"
-        DGNT_BRANCH="main"
+        DGNT_BRANCH_REMOTE="main"
     fi
 
    
 
     # Upgrade to release branch
-    if [ "$DGNT_BRANCH" = "release" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
@@ -5180,7 +5179,7 @@ printf " =============== Checking: DigiNode Tools ==============================
         fi
 
     # Upgrade to develop branch
-    elif [ "$DGNT_BRANCH" = "develop" ]; then
+    elif [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
@@ -5200,7 +5199,7 @@ printf " =============== Checking: DigiNode Tools ==============================
         fi
     
     # Upgrade to main branch
-    elif [ "$DGNT_BRANCH" = "main" ]; then
+    elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
@@ -5279,7 +5278,7 @@ fi
         # Next install the newest version
         cd $USER_HOME
         # Clone the develop version if develop flag is set
-        if [ "$DGNT_BRANCH" = "develop" ]; then
+        if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode-tools/
@@ -5288,7 +5287,7 @@ fi
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         # Clone the develop version if develop flag is set
-        elif [ "$DGNT_BRANCH" = "main" ]; then
+        elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
@@ -5296,7 +5295,7 @@ fi
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"main\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGNT_BRANCH" = "release" ]; then
+        elif [ "$DGNT_BRANCH_REMOTE" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
@@ -5336,15 +5335,15 @@ fi
         if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
             DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             DGNT_VER_LOCAL_DISPLAY="dev-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             DGNT_VER_LOCAL_DISPLAY="main-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-            printf "%b Updating local display version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
         fi
 
         # Make downloads executable
@@ -8095,7 +8094,7 @@ digifact_display() {
 if [ "$DIGIFACT" = "digifact1" ]; then
     DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
     DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
-    DIGIFACT_L2="11 million blocks. Bitcoin will take until the next century to"
+    DIGIFACT_L2="15 million blocks. Bitcoin will take until the next century to"
     DIGIFACT_L3="reach that many blocks."
     DIGIFACT_L4=""
     DIGIFACT_L5=""

@@ -34,7 +34,7 @@ Script to help you setup and manage your DigiNode - installs and configures a Di
 
 ## DigiNode Status Monitor
 
-Let's you monitor your DigiNode from the terminal.
+Let's you monitor your DigiNode from the terminal. It can be run by entering: `diginode` from the command line.
 
 - Monitor your DigiNode on your local machine via the terminal. I also works remotely over SSH.
 - Displays live DigiByte and DigiAsset data including:
@@ -59,6 +59,8 @@ Once your DigiNode has been installed, you can access additional features from t
 - To get started, run DigiNode Setup by entering the following command in the terminal:
 
 # curl -sSL diginode-setup.digibyte.help | bash
+
+Once DigiNode Tools has been installed, in future you can run it locally using: ```diginode-setup```
 
 
 ## Advanced Users Only
@@ -106,21 +108,22 @@ Example:
 
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- A 64bit Linux OS is required - the latest *Ubuntu Server LTS 64-bit* or *Raspberry Pi OS lite 64-bit* is recommened.
+- A 64bit Linux OS is required.
 
 DigiNode has been tested and known to work with the following systems:
 
-| **Hardware**          | **Operating System**             | **Notes**                                                                                                   |
-|-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit   | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit   | Requires swap file. Runs slowly.                                                                            |
+| **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
+|-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended. Note: Currently there are issues with the menus freezing for some unknown reason |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 
 
 ## Release History
 
-DigiNode Tools v0.0.8 - 2022-05-26 Test Release
-- Another attempt to fix DigiNode Tools verion checks
+DigiNode Tools v0.0.9 - 2022-05-27 Test Release
+- Fixes for the DigiNode Tools version checker
+- Pushed out several releases to test its ability to detect and install new versions.
 
 DigiNode Tools v0.0.6 - 2022-05-26 Test Release
 - Reboot is no longer required after first install

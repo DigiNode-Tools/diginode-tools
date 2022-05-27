@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.8
-# Last Updated: 2022-05-26
+DGNT_VER_LOCAL=0.0.9
+# Last Updated: 2022-05-27
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1081,6 +1081,13 @@ pre_loop() {
     DGB_UPDATE_AVAILABLE="yes"
   fi
 
+  # Check if there is an update for DigiNode Tools
+  if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+    DGNT_UPDATE_AVAILABLE="no"
+  else
+    DGNT_UPDATE_AVAILABLE="yes"
+  fi
+
   # If there is actually a local version of NodeJS, check for an update
   if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # Check if there is an update for NodeJS
@@ -1518,7 +1525,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Let's check if DigiNode Tools already installed
+    # Update DigiNode Tools display variable
     if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
