@@ -60,9 +60,7 @@ Once your DigiNode has been installed, you can access additional features from t
 
 # curl -sSL diginode-setup.digibyte.help | bash
 
-Once DigiNode Tools have been installed, in future you can run it locally using:
-
-# diginode-setup
+Once DigiNode Tools has been installed, in future you can run it locally using: ```diginode-setup```
 
 
 ## Advanced Users Only
