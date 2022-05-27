@@ -34,7 +34,7 @@ Script to help you setup and manage your DigiNode - installs and configures a Di
 
 ## DigiNode Status Monitor
 
-Let's you monitor your DigiNode from the terminal.
+Let's you monitor your DigiNode from the terminal. It can be run by entering: `diginode` from the command line.
 
 - Monitor your DigiNode on your local machine via the terminal. I also works remotely over SSH.
 - Displays live DigiByte and DigiAsset data including:
@@ -59,6 +59,10 @@ Once your DigiNode has been installed, you can access additional features from t
 - To get started, run DigiNode Setup by entering the following command in the terminal:
 
 # curl -sSL diginode-setup.digibyte.help | bash
+
+Once DigiNode Tools have been installed, in future you can run it locally using:
+
+# diginode-setup
 
 
 ## Advanced Users Only
