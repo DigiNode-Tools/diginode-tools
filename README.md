@@ -121,7 +121,7 @@ DigiNode has been tested and known to work with the following systems:
 
 DigiNode Tools v0.0.9 - 2022-05-27 Test Release
 - Fixes for the DigiNode Tools version checker
-- Released several releases to test things
+- Pushed out several releases to test its ability to detect and install new versions.
 
 DigiNode Tools v0.0.6 - 2022-05-26 Test Release
 - Reboot is no longer required after first install
