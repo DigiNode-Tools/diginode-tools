@@ -1081,6 +1081,13 @@ pre_loop() {
     DGB_UPDATE_AVAILABLE="yes"
   fi
 
+  # Check if there is an update for DigiNode Tools
+  if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+    DGNT_UPDATE_AVAILABLE="no"
+  else
+    DGNT_UPDATE_AVAILABLE="yes"
+  fi
+
   # If there is actually a local version of NodeJS, check for an update
   if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # Check if there is an update for NodeJS

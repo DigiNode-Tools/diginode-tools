@@ -463,6 +463,7 @@ DGNT_MONITOR_FIRST_RUN=
 DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
+DGNT_VER_RELEASE=
 
 # This is updated automatically every time DigiNode Tools is installed/upgraded. 
 # It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
