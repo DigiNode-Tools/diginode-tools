@@ -4469,7 +4469,7 @@ backup_reminder() {
         # If this is a full install, and no backup exists
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
-            printf "%b %bReminder: Don't forget to create a USB backup of your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bReminder: Don't forget to create backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
             printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
             printf "\\n"
@@ -4480,7 +4480,7 @@ backup_reminder() {
         # If this is a full install, and the DigiByte wallet has been backed up but not DigiAsset settings
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
-            printf "%b %bReminder: Don't forget to create a USB backup of your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bReminder: Don't forget to backup your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
             printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
@@ -4491,7 +4491,7 @@ backup_reminder() {
         # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
-            printf "%b %bReminder: Don't forget to create a USB backup of your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
             printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
@@ -5388,10 +5388,13 @@ fi
         fi
 
         # Load new aliases
-        str="Loading new alias..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ "$NewInstall" = true ]; then
+            str="Loading new aliases now..."
+            printf "%b %s" "${INFO}" "${str}"
+            alias diginode-setup=$DGNT_SETUP_SCRIPT
+            alias diginode=$DGNT_MONITOR_SCRIPT
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
         # Reset DGNT Install and Upgrade Variables
         DGNT_INSTALL_TYPE=""
