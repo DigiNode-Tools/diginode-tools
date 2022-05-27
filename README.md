@@ -110,11 +110,11 @@ Example:
 
 DigiNode has been tested and known to work with the following systems:
 
-| **Hardware**          | **Operating System**             | **Notes**                                                                                                   |
-|-----------------------|----------------------------------|-------------------------------------------------------------------------------------------------------------|
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit   | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit   | Requires swap file. Runs slowly.                                                                            |
+| **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
+|-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended. Note: Currently there are issues with the menus freezing for some unknown reason |
+| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 
 
 ## Release History
