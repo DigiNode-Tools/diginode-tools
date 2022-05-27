@@ -5390,7 +5390,7 @@ fi
         # Load new aliases
         str="Loading new alias..."
         printf "%b %s" "${INFO}" "${str}"
-        source $USER_HOME/.bashrc
+        sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Reset DGNT Install and Upgrade Variables
