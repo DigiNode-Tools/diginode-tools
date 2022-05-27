@@ -8095,7 +8095,7 @@ digifact_display() {
 if [ "$DIGIFACT" = "digifact1" ]; then
     DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
     DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
-    DIGIFACT_L2="11 million blocks. Bitcoin will take until the next century to"
+    DIGIFACT_L2="15 million blocks. Bitcoin will take until the next century to"
     DIGIFACT_L3="reach that many blocks."
     DIGIFACT_L4=""
     DIGIFACT_L5=""
