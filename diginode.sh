@@ -1525,7 +1525,7 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Let's check if DigiNode Tools already installed
+    # Update DigiNode Tools display variable
     if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
