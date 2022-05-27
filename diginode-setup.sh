@@ -7765,7 +7765,7 @@ uninstall_do_now() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Delte upstart service file
+        # Delete upstart service file
         if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
             str="Deleting DigiByte daemon upstart service file..."
             printf "%b %s" "${INFO}" "${str}"
@@ -7800,6 +7800,16 @@ uninstall_do_now() {
             str="Deleting digibyte symbolic link in home folder..."
             printf "%b %s" "${INFO}" "${str}"
             rm $USER_HOME/digibyte
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete .bashrc path to DigiByte binary folder
+        if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+            str="Deleting path to DigiByte binary folder in .bashrc file..."
+            printf "%b %s" "${INFO}" "${str}"
+            # Delete existing path for DigiByte binaries
+            sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
+            sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
