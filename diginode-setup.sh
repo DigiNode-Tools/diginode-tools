@@ -5391,8 +5391,8 @@ fi
         if [ "$NewInstall" = true ]; then
             str="Loading new aliases now..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT alias diginode-setup='$DGNT_SETUP_SCRIPT'
-            sudo -u $USER_ACCOUNT alias diginode='$DGNT_MONITOR_SCRIPT'
+            sudo -u $USER_ACCOUNT alias diginode-setup=$DGNT_SETUP_SCRIPT
+            sudo -u $USER_ACCOUNT alias diginode=$DGNT_MONITOR_SCRIPT
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
