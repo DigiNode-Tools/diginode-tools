@@ -4469,7 +4469,7 @@ backup_reminder() {
         # If this is a full install, and no backup exists
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
-            printf "%b %bReminder: Don't forget to create backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
             printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
             printf "\\n"
@@ -5391,8 +5391,8 @@ fi
         if [ "$NewInstall" = true ]; then
             str="Loading new aliases now..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT alias diginode-setup=$DGNT_SETUP_SCRIPT
-            sudo -u $USER_ACCOUNT alias diginode=$DGNT_MONITOR_SCRIPT
+            sudo -u $USER_ACCOUNT alias diginode-setup="$DGNT_SETUP_SCRIPT"
+            sudo -u $USER_ACCOUNT alias diginode="$DGNT_MONITOR_SCRIPT"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
