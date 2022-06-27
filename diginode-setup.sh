@@ -2726,9 +2726,13 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
                 # Get the user to insert the USB stick to use as a swap drive and detect it
                 USB_SWAP_STICK_INSERTED="NO"
+                cancel_insert_usb=""
                 LSBLK_BEFORE_USB_INSERTED=$(lsblk)
                 progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
                 printf "%b Please insert the USB stick you wish to use for your swap drive now. (WARNING: The contents will be erased.)\\n" "${INFO}"
+                printf "\\n"
+                printf "%b Press any key to cancel.\\n" "${INFO}"
+                printf "\\n"
                 str="Waiting for USB stick... "
                 printf "%b %s" "${INDENT}" "${str}"
                 tput civis
@@ -2785,9 +2789,18 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
                     else
                         printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
-                        sleep 0.5
+                        read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
                     fi
                 done
+
+                # Return to menu if a keypress was detected to cancel inserting a USB
+                if [ "$cancel_insert_usb" = "yes" ]; then
+                    whiptail --msgbox --backtitle "" --title "USB Swap Setup Cancelled." "USB Swap Setup Cancelled." "${r}" "${c}" 
+                    printf "%b You cancelled the USB backup.\\n" "${INFO}"
+                    printf "\\n"
+                    cancel_insert_usb=""
+                    exit
+                fi
 
                 # Wipe the current partition on the drive
                 str="Wiping exisiting partition(s) on USB stick..."
@@ -3015,6 +3028,7 @@ usb_backup() {
         # Reset selection variables in case this is not the first time running though the options
         run_wallet_backup=false
         run_dgaconfig_backup=false
+        cancel_insert_usb=""
 
 
         # Introduction to backup.
@@ -3217,7 +3231,9 @@ usb_backup() {
         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bPlease insert the USB stick you wish to use for your backup now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INFO}"
+        printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Press any key to cancel.\\n" "${INFO}"
         printf "\\n"
         str="Waiting for USB stick... "
         printf "%b %s" "${INDENT}" "${str}"
@@ -3262,6 +3278,7 @@ usb_backup() {
 
                 printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
                 USB_BACKUP_STICK_INSERTED="YES"
+                cancel_insert_usb="no"
                 tput cnorm
 
                 # Display partition name cleanup messages
@@ -3273,9 +3290,19 @@ usb_backup() {
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                 LSBLK_BEFORE_USB_INSERTED=$(lsblk)
-                sleep 0.5
+ #               sleep 0.5
+                read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
             fi
         done
+
+        # Return to menu if a keypress was detected to cancel inserting a USB
+        if [ "$cancel_insert_usb" = "yes" ]; then
+            whiptail --msgbox --backtitle "" --title "USB Backup Cancelled." "USB Backup Cancelled." "${r}" "${c}" 
+            printf "%b You cancelled the USB backup.\\n" "${INFO}"
+            printf "\\n"
+            cancel_insert_usb=""
+            menu_existing_install
+        fi
 
         # Create mount point for USB stick, if needed
         if [ ! -d /media/usbbackup ]; then
@@ -3920,8 +3947,101 @@ EOF
 # This function will help the user restore their DigiByte wallet backup from an external USB drive
 usb_restore() {
 
-    whiptail --msgbox --backtitle "" --title "Script Not Added Yet" "This feature has not been implemented yet, but will be added soon. The script will now exit." "${r}" "${c}"
-    menu_existing_install  
+    printf " =============== DigiNode Restore =======================================\\n\\n"
+    # ==============================================================================
+
+    # Reset selection variables in case this is not the first time running though the options
+    run_wallet_restore=false
+    run_dgaconfig_restore=false
+
+
+    # Introduction to restore.
+    if whiptail --backtitle "" --title "DigiNode Restore" "This tool will help you to restore your DigiByte Core wallet and/or DigiAsset Node settings from your USB backup stick.\\n\\nThe USB backup must previously have been made from the DigNode Tools backup menu. Please have your DigiNode USB backup stick ready before continuing. \\n\\nIMPORTANT: Your existing wallet and settings will be overwritten." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        printf "%b You chose to begin the restore process.\\n" "${INFO}"
+    else
+        printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
+        menu_existing_install 
+    fi
+
+    # Ask the user to insert the USB backup stick and detect it
+    cancel_insert_usb=""
+    USB_BACKUP_STICK_INSERTED="NO"
+    LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+    progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+    printf "%b %bPlease insert the USB stick containing your DigiNode backup.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b Press any key to cancel.\\n" "${INFO}"
+    printf "\\n"
+    str="Waiting for USB stick... "
+    printf "%b %s" "${INDENT}" "${str}"
+    tput civis
+    while [ "$USB_BACKUP_STICK_INSERTED" = "NO" ]; do
+
+        # Show Spinner while waiting for USB backup stick
+        if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        fi
+
+        LSBLK_AFTER_USB_INSERTED=$(lsblk)
+
+        USB_BACKUP_DRIVE=$(diff  <(echo "$LSBLK_BEFORE_USB_INSERTED" ) <(echo "$LSBLK_AFTER_USB_INSERTED") | grep '>' | grep -m1 sd | cut -d' ' -f2)
+
+        if [ "$USB_BACKUP_DRIVE" != "" ]; then
+
+            # Check if USB_BACKUP_DRIVE string starts with └─ or ├─ (this can happen if the user booted the machine with the backup USB stick already inserted)
+            # This snippet will clean up the USB_BACKUP_DRIVE variable on that rare occurrence
+            #
+            # if the string starts with └─, remove it
+            if [[ $USB_BACKUP_DRIVE = └─* ]]; then
+                cleanup_partion_name=true
+                USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/└─//')
+            fi
+            # if the string starts with ├─, remove it
+            if [[ $USB_BACKUP_DRIVE = ├─* ]]; then
+                cleanup_partion_name=true
+                USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/├─//')
+            fi
+            # if the string ends in a number, remove it
+            if [[ $USB_BACKUP_DRIVE = *[0-9] ]]; then
+                cleanup_partion_name=true
+                USB_BACKUP_DRIVE=$(echo $USB_BACKUP_DRIVE | sed 's/.$//')
+            fi 
+
+            printf "%b%b %s USB Stick Inserted: $USB_BACKUP_DRIVE\\n" "${OVER}" "${TICK}" "${str}"
+            USB_BACKUP_STICK_INSERTED="YES"
+            cancel_insert_usb="no"
+            tput cnorm
+
+            # Display partition name cleanup messages
+            if [[ $cleanup_partion_name = true ]]; then
+                printf "%b (Note: Backup stick was already inserted at boot. If future, do not plug it in until requested or you may encounter errors.)\\n" "${INFO}"
+                cleanup_partion_name=false
+            fi
+
+        else
+            printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+            LSBLK_BEFORE_USB_INSERTED=$(lsblk)
+#               sleep 0.5
+            read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
+        fi
+    done
+
+    # Return to menu if a keypress was detected to cancel inserting a USB
+    if [ "$cancel_insert_usb" = "yes" ]; then
+        whiptail --msgbox --backtitle "" --title "USB Restore Cancelled." "USB Restore Cancelled." "${r}" "${c}" 
+        printf "%b You cancelled the USB backup.\\n" "${INFO}"
+        printf "\\n"
+        cancel_insert_usb=""
+        menu_existing_install
+    fi
+
 }
 
 #check there is sufficient space on the chosen drive to download the blockchain
@@ -4707,20 +4827,20 @@ digibyte_check() {
       fi
     fi
 
-    # Restart Digibyted if the RPC username or password in digibyte.conf have recently been changed
-    if [ "$DGB_STATUS" = "running" ]; then
-        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
-        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
-            printf "%b RPC credentials have been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
-            restart_service digibyted
-        fi
-    fi
-
     # Restart if the RPC port has changed and it can't connect
     if [ "$DGB_STATUS" = "running" ]; then
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "%b RPC port has been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted
+        fi
+    fi
+
+    # Restart Digibyted if the RPC username or password in digibyte.conf have recently been changed
+    if [ "$DGB_STATUS" = "running" ]; then
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
+            printf "%b RPC credentials have been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
             restart_service digibyted
         fi
     fi
