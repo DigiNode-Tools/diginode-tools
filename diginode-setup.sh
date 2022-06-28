@@ -3971,7 +3971,7 @@ usb_restore() {
     printf "%b %bPlease insert the USB stick containing your DigiNode backup.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Press any key to cancel.\\n" "${INFO}"
+    printf "%b To cancel, press any key.\\n" "${INFO}"
     printf "\\n"
     str="Waiting for USB stick... "
     printf "%b %s" "${INDENT}" "${str}"
@@ -4036,11 +4036,79 @@ usb_restore() {
     # Return to menu if a keypress was detected to cancel inserting a USB
     if [ "$cancel_insert_usb" = "yes" ]; then
         whiptail --msgbox --backtitle "" --title "USB Restore Cancelled." "USB Restore Cancelled." "${r}" "${c}" 
+        printf "\\n"
         printf "%b You cancelled the USB backup.\\n" "${INFO}"
         printf "\\n"
         cancel_insert_usb=""
         menu_existing_install
     fi
+
+    # Create mount point for USB stick, if needed
+    if [ ! -d /media/usbbackup ]; then
+        str="Creating mount point for inserted USB stick..."
+        printf "%b %s" "${INFO}" "${str}"
+        mkdir /media/usbbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Mount USB stick
+    local mount_partition=""
+    printf "%b Checking USB for suitable partitions...\\n" "${INFO}"
+    # Query partprobe to find valid partition
+    if [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>/dev/null)" != "" ]; then
+        partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}2 2>&1)
+        if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+            printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}2...\\n" "${INFO}"
+            mount /dev/${USB_BACKUP_DRIVE}2 /media/usbbackup 1>/dev/null
+            mount_partition="${USB_BACKUP_DRIVE}2"
+        fi
+    elif [ "$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>/dev/null)" != "" ]; then
+        partition_type=$(partprobe -d -s /dev/${USB_BACKUP_DRIVE}1 2>&1)
+        if [ "$(echo $partition_type | grep -Eo "msdos")" = "msdos" ] || [ "$(echo $partition_type | grep -Eo "loop")" = "loop" ]; then
+            printf "%b Trying to mount partition ${USB_BACKUP_DRIVE}1...\\n" "${INFO}"
+            mount /dev/${USB_BACKUP_DRIVE}1 /media/usbbackup 1>/dev/null
+            mount_partition="${USB_BACKUP_DRIVE}1"
+        fi
+    else
+        printf "%b No suitable partition found. Removing mount point.\\n" "${INFO}"
+        rmdir /media/usbbackup
+        mount_partition=""
+    fi
+
+    # Did the USB stick get mounted successfully?
+    str="Did USB stick mount successfully?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$(lsblk | grep -Eo /media/usbbackup)" = "/media/usbbackup" ]; then
+        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Does USB stick contain an existing backup?
+        if [ -f /media/usbbackup/diginode_backup/diginode_backup.info ]; then
+            printf "%b Existed DigiNode backup detected on USB stick:\\n" "${INFO}"
+            source /media/usbbackup/diginode_backup/diginode_backup.info
+            printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+            printf "%b DigiAsset Node backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
+        else
+            whiptail --msgbox --backtitle "" --title "DigiNode Backup not found." "The USB stick does not appear to contain a DigiNode backup.\\n\\nPlease unplug the stick and choose OK to return to the main menu.\\n" "${r}" "${c}" 
+            printf "\\n"
+            printf "%b %bERROR: No DigiNode backup found on stick.%b Returning to menu.\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            cancel_insert_usb=""
+            menu_existing_install
+        fi
+
+    else
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        whiptail --msgbox --backtitle "" --title "Could not mount USB Stick." "The USB stick could not be mounted. Is this the correct DigiNode backup stick?\\n\\nPlease unplug the stick and choose OK to return to the main menu.\\n" "${r}" "${c}" 
+        printf "\\n"
+        printf "%b %bERROR: USB stick could not be mounted.%b Returning to menu.\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        cancel_insert_usb=""
+        menu_existing_install
+    fi
+
+
+    echo "EXITING TEST"
+    exit
 
 }
 
