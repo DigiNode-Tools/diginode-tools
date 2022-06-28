@@ -3944,7 +3944,7 @@ EOF
 
 }
 
-# This function will help the user restore their DigiByte wallet backup from an external USB drive
+# This function will help the user restore their DigiByte wallet backup and DigiAsset settings from an external USB drive
 usb_restore() {
 
     printf " =============== DigiNode Restore =======================================\\n\\n"
@@ -3956,7 +3956,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if whiptail --backtitle "" --title "DigiNode Restore" "This tool will help you to restore your DigiByte Core wallet and/or DigiAsset Node settings from your USB backup stick.\\n\\nThe USB backup must previously have been made from the DigNode Tools backup menu. Please have your DigiNode USB backup stick ready before continuing. \\n\\nIMPORTANT: Your existing wallet and settings will be overwritten." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "DigiNode Restore" "This tool will help you to restore your DigiByte Core wallet and/or DigiAsset Node settings from your USB backup stick.\\n\\nThe USB backup must previously have been made from the DigNode Tools backup menu. Please have your DigiNode USB backup stick ready before continuing. \\n\\nWARNING: If you continue, your current existing wallet and settings will be replaced with the ones on the USB backup. Any funds in the current wallet will be lost!!" --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
         printf "%b You chose to begin the restore process.\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
@@ -4106,9 +4106,295 @@ usb_restore() {
         menu_existing_install
     fi
 
+    # Create a variable containing the time and date right now for logging changes
+    NOW_DATE=$(date)
 
-    echo "EXITING TEST"
-    exit
+    # If the wallet.dat file does not exist on the USB stick, delete the corresponding backup date in the status file (perhaps a previous backup has been manually deleted)
+    if [ ! -f /media/usbbackup/diginode_backup/wallet.dat ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+        str="wallet.dat has been deleted since last backup. Removing backup date from diginode_backup.info ... "
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""            
+        sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
+        echo "$NOW_DATE DigiByte Wallet: wallet.dat has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If the dga_config_backup folder does not exist on the USB stick, delete the corresponding backup date in the status file (perhap a previous backup has been manually deleted)
+    if [ ! -d /media/usbbackup/diginode_backup/dga_config_backup ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
+        str="DigiAssets dga_config_backup folder has been deleted from the USB stick since last backup. Removing backup date from diginode_backup.info ... "
+        printf "%b %s" "${INFO}" "${str}"  
+        DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""          
+        sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=|" /media/usbbackup/diginode_backup/diginode_backup.info
+        echo "$NOW_DATE DigiAsset Node Settings: _config folder has been manually deleted from USB stick- removing previous backup date from diginode_backup.info." >> /media/usbbackup/diginode_backup/diginode_backup.log
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # ASK WHAT TO RESTORE
+
+    # Ask to restore the DigiByte Core Wallet backup, if it exists
+    if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
+
+        # Ask if the user wants to restore their DigiByte wallet
+        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was created:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nWARNING: If you continue your current existing wallet will be replaced with the backup and any funds will be lost." --yes-button "Yes" "${r}" "${c}"; then
+
+            run_wallet_restore=true
+        else
+            run_wallet_restore=false
+        fi
+    else
+        printf "%b No DigiByte Core wallet backup was found on the USB stick.\\n" "${INFO}"
+        run_wallet_restore=false
+        # Display a message saying that the wallet.dat file does not exist
+        whiptail --msgbox --backtitle "" --title "ERROR: DigiByte wallet backup not found" "No DigiByte Core wallet.dat was found on the USB backup stick so there is nothing to restore." "${r}" "${c}" 
+    fi
+
+    # Ask to restore the DigiAsset Node _config folder, if it exists
+    if [ -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
+
+        # Ask the user if they want to restore their DigiAsset Node settings
+        if whiptail --backtitle "" --title "RESTORE DIGIASSET NODE SETTINGS" --yesno "Would you like to also restore your DigiAsset Node settings?\\n\\nThis will replace your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc.\\n\\nThis DigiAsset settings backup was created:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n\\nWARNING: If you continue your current existing DigiAsset Node settings will be replaced with the backup."  --yes-button "Yes" "${r}" "${c}"; then
+
+            run_dgaconfig_restore=true
+        else
+            run_dgaconfig_restore=false
+        fi
+    else
+        printf "%b No DigiAsset Node settings backup was found on the USB stick.\\n" "${INFO}"
+        run_dgaconfig_restore=false
+        # Display a message saying that the wallet.dat file does not exist
+        whiptail --msgbox --backtitle "" --title "ERROR: DigiAsset Node settings backup not found" "No DigiAsset Node settings backup was found on the USB backup stick so there is nothing to restore." "${r}" "${c}" 
+    fi
+
+    # Return to main menu if the user has selected to restore neither the wallet nor the DigiAsset config
+    if [[ "$run_wallet_restore" == false ]] && [[ "$run_dgaconfig_restore" == false ]]; then
+            printf "%b Restore cancelled. Returning to menu...\\n" "${INFO}"
+            printf "\\n"
+            menu_existing_install
+    fi
+
+    # Display start restore messages
+    if [[ "$run_wallet_restore" == true ]] && [[ "$run_dgaconfig_restore" == true ]]; then
+        printf "%b You chose to restore both your DigiByte wallet and DigiAsset Node settings.\\n" "${INFO}"
+    elif [[ "$run_wallet_restore" == true ]] && [[ "$run_dgaconfig_restore" == false ]]; then
+        printf "%b You chose to restore only your DigiByte Core wallet.\\n" "${INFO}"
+    elif [[ "$run_dgaconfig_restore" == false ]] && [[ "$run_dgaconfig_restore" == true ]]; then
+        printf "%b You chose to restore only your DigiAsset Node settings.\\n" "${INFO}"
+    fi
+
+        ################################################
+        # START DIGIBYTE WALLET RESTORE FROM USB STICK #
+        ################################################
+
+    if [ "$run_wallet_restore" = true ]; then
+
+
+        printf "%b Stopping DigiByte daemon. Please wait...\\n" "${INFO}"
+        echo "$NOW_DATE Stopping DigiByte daemon..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+
+        # Stop the DigiByte service now
+        stop_service digibyted
+
+
+        # Backup the existing "live" wallet, if it exists
+        if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
+
+            # Delete previous secondary backup of existing wallet, if it exists
+            if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat.old" ]; then
+                str="Deleting old local backup: wallet.dat.old ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                rm $DGB_SETTINGS_LOCATION/wallet.dat.old
+                echo "$NOW_DATE DigiByte Wallet: Deleted existing old local backup: wallet.dat.old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Rename existing wallet backup to .old
+            str="Renaming existing local wallet.dat to wallet.dat.old ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            mv $DGB_SETTINGS_LOCATION/wallet.dat $DGB_SETTINGS_LOCATION/wallet.dat.old
+            echo "$NOW_DATE DigiByte Wallet: Renaming local wallet.dat to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        fi
+
+        # Copy backup wallet on USB stick to "live" wallet on DigiNode
+        str="Restoring backup DigiByte wallet on USB stick to DigiNode ... "
+        printf "%b %s" "${INFO}" "${str}" 
+        cp /media/usbbackup/diginode_backup/wallet.dat $DGB_SETTINGS_LOCATION
+        if [ $? -eq 0 ]; then
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"           
+            echo "$NOW_DATE DigiByte Wallet: Restore completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+            local dgb_restore_result="ok"
+
+            DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" 
+            str="Logging the originating DigiByte wallet backup date in DigiNode settings... "
+            printf "%b %s" "${INFO}" "${str}"          
+            sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$DGB_WALLET_BACKUP_DATE_ON_DIGINODE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Change file owner to user account
+            str="Changing owner of wallet.dat to $USER_ACCOUNT ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            chown $USER_ACCOUNT:$USER_ACCOUNT $DGB_SETTINGS_LOCATION/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Change file permissions to user read/write 600
+            str="Changing permissions of wallet.dat ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            chmod 600 $DGB_SETTINGS_LOCATION/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        else
+            printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+            echo "$NOW_DATE DigiByte Wallet: Restore failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
+            local dgb_restore_result="failed"
+        fi
+
+        printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
+        echo "$NOW_DATE Starting DigiByte daemon..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+
+        # Stop the DigiByte service now
+        restart_service digibyted
+
+    fi
+
+        #################################################
+        # START DIGIASSET CONFIG RESTORE FROM USB STICK #
+        #################################################
+
+    if [ "$run_dgaconfig_restore" = true ]; then
+
+        printf "%b Stopping DigiAsset Node. Please wait...\\n" "${INFO}"
+        echo "$NOW_DATE Stopping DigiAsset Node..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+
+        # Stop the DigiAsset Node now
+        sudo -u $USER_ACCOUNT pm2 stop digiasset
+
+       # Restore DigiAsset settings to the live location
+        if [ -d "$DGA_SETTINGS_LOCATION" ]; then
+
+            # Delete the existing DigiAsset live settings, if they exists
+            str="Deleting current DigiAsset Node json configuration files ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            rm $DGA_SETTINGS_LOCATION/*.json
+            echo "$NOW_DATE DigiAsset Settings: Deleting current DigiAsset Node json configuration files" >> /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Restore DigiAsset Settings from backup stick
+            str="Restoring DigiAsset Settings from USB stick ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            cp /media/usbbackup/diginode_backup/dga_config_backup/*.json $DGA_SETTINGS_LOCATION/
+            if [ $? -eq 0 ]; then
+                echo "$NOW_DATE DigiAsset Settings: Restore completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                local dga_restore_result="ok"
+
+                DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" 
+                str="Logging the originating DigiNode settings backup date in DigiNode settings... "
+                printf "%b %s" "${INFO}" "${str}"          
+                sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\"|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
+
+                # Change _config folder owner to the current user account
+                str="Changing owner of _config folder to $USER_ACCOUNT ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                chown -R $USER_ACCOUNT:$USER_ACCOUNT $DGA_SETTINGS_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                
+            else
+                echo "$NOW_DATE DigiAsset Settings: Restore failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+                local dga_restore_result="failed"
+            fi
+
+        else
+
+            # create ~/dga_config_backup/ folder if it does not already exist
+            if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+                str="Creating ~/dga_config_backup/ settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+                echo "$NOW_DATE DigiAsset Settings: Creating ~/dga_config_backup/ settings folder" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete the existing DigiAsset backup settings, if they exists
+            str="Deleting current DigiAsset Node json backup configuration files ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            rm $DGA_SETTINGS_BACKUP_LOCATION/*.json
+            echo "$NOW_DATE DigiAsset Settings: Deleting current DigiAsset Node backup json configuration files" >> /media/usbbackup/diginode_backup/diginode_backup.log
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Restore DigiAsset Settings from backup stick to local backup location
+            str="Restoring DigiAsset Settings from USB stick to local backup location ... "
+            printf "%b %s" "${INFO}" "${str}" 
+            cp /media/usbbackup/diginode_backup/dga_config_backup/*.json $DGA_SETTINGS_BACKUP_LOCATION/
+            if [ $? -eq 0 ]; then
+                echo "$NOW_DATE DigiAsset Settings: Restore completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                local dga_restore_result="ok"
+
+                DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" 
+                str="Logging the originating DigiNode settings backup date in DigiNode settings... "
+                printf "%b %s" "${INFO}" "${str}"          
+                sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\"|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
+
+                # Change ~/dga_config_backup/ folder owner to the current user account
+                str="Changing owner of ~/dga_config_backup/ folder to $USER_ACCOUNT ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                chown -R $USER_ACCOUNT:$USER_ACCOUNT $DGA_SETTINGS_BACKUP_LOCATION
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                
+            else
+                echo "$NOW_DATE DigiAsset Settings: Restore failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+                local dga_restore_result="failed"
+            fi
+
+        fi
+
+        printf "%b Restarting DigiAsset Node. Please wait...\\n" "${INFO}"
+        echo "$NOW_DATE Restarted DigiAsset Node..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+
+        # Restart the DigiAsset Node now
+        sudo -u $USER_ACCOUNT pm2 start digiasset
+
+    fi
+
+    # Unmount USB stick
+    str="Unmount the USB backup stick..."
+    printf "%b %s" "${INFO}" "${str}"
+    umount /dev/$mount_partition
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Display restore completed messages
+
+    if [ "$dgb_restore_result" = "ok" ] && [ "$dga_restore_result" = "ok" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiNode Restore Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+    elif [ "$dgb_restore_result" = "ok" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiByte Wallet Restore Completed Successfully" "Your DigiByte wallet has been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+    elif [ "$dga_restore_result" = "ok" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiAsset Settings Successfully Restored" "Your DigiAsset Settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+    fi
+
+    # Display backup failed messages
+
+    if [ "$dgb_restore_result" = "failed" ] && [ "$dga_restore_result" = "failed" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiNode Restore Failed" "ERROR: Your DigiByte wallet and DigiAsset settings restore failed. Please check the USB stick.\\n\\nPlease unplug the USB stick. When you have done so, press OK." "${r}" "${c}"
+    elif [ "$dgb_restore_result" = "failed" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiByte Wallet Restore Failed" "ERROR: Your DigiByte wallet restore failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+    elif [ "$dga_restore_result" = "failed" ]; then
+        whiptail --msgbox --backtitle "" --title "DigiAsset Settings Restore Failed" "ERROR: Your DigiAsset Settings restore failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+    fi
+
+    # BACKUP FINISHED
+
+    # Tell user to eject backup USB stick, reset variables, and return to the main menu
+    printf "%b Restore complete. Returning to menu...\\n" "${INFO}"
+    run_wallet_restore=false
+    run_dgaconfig_restore=false
+    printf "\\n"
+    menu_existing_install
 
 }
 
