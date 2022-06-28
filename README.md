@@ -121,6 +121,11 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
+DigiNode Tools v0.2.1 - 2022-06-28 Test Release
+- Add USB Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
+- You can now cancel inserting a USB stick by pressing a key
+- Version number has been bumped to reflect new features added
+
 DigiNode Tools v0.0.9 - 2022-05-27 Test Release
 - Fixes for the DigiNode Tools version checker
 - Pushed out several releases to test its ability to detect and install new versions.
@@ -133,7 +138,7 @@ DigiNode Tools v0.0.6 - 2022-05-26 Test Release
 
 DigiNode Tools v0.0.5 - 2022-05-19 Test Release
 - USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
-- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bux in v0.0.4
+- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bug in v0.0.4
 - Fixes to diginode.settings to better store variables
 - Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
 - Countless bug fixes and improvements
