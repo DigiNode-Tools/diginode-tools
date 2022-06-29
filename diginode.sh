@@ -1072,6 +1072,19 @@ pre_loop() {
     fi
   fi
 
+  # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
+  if [ "$DGB_STATUS" = "startingup" ]; then
+      
+      # Query if digibyte has finished starting up. Display error. Send success to null.
+      is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+      if [ "$is_dgb_live_query" != "" ]; then
+          DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+      else
+          DGB_STATUS="running"
+      fi
+
+  fi
+
 
   ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
 
@@ -1712,7 +1725,7 @@ printf "  ╠═══════════════╬══════�
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║               ║  " && printf "%-60s ║ \n" "Please wait... $DGB_ERROR_MSG"
+printf "  ║               ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
