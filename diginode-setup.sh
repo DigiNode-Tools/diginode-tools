@@ -4353,6 +4353,10 @@ usb_restore() {
 
         fi
 
+
+        # Now run the digiasset settings function, to update the RPC credentials in main.json if they are different to what is in digibyte.conf
+        digiasset_node_create_settings
+
         printf "%b Restarting DigiAsset Node. Please wait...\\n" "${INFO}"
         echo "$NOW_DATE Restarted DigiAsset Node..." >> /media/usbbackup/diginode_backup/diginode_backup.log
 
