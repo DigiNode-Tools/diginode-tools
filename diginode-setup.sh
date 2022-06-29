@@ -4305,7 +4305,7 @@ usb_restore() {
                 printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
                 local dga_restore_result="failed"
             fi
-
+            printf "\\n"
         else
 
             # create ~/dga_config_backup/ folder if it does not already exist
@@ -4350,18 +4350,13 @@ usb_restore() {
                 printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
                 local dga_restore_result="failed"
             fi
+            printf "\\n"
 
         fi
 
 
-        # Now run the digiasset settings function, to update the RPC credentials in main.json if they are different to what is in digibyte.conf
+        # Now run the digiasset function, to update the RPC credentials in main.json if they are different to what is in digibyte.conf
         digiasset_node_create_settings
-
-        printf "%b Restarting DigiAsset Node. Please wait...\\n" "${INFO}"
-        echo "$NOW_DATE Restarted DigiAsset Node..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-
-        # Restart the DigiAsset Node now
-        sudo -u $USER_ACCOUNT pm2 start digiasset
 
     fi
 
