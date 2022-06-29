@@ -4187,10 +4187,6 @@ usb_restore() {
 
     if [ "$run_wallet_restore" = true ]; then
 
-
-        printf "%b Stopping DigiByte daemon. Please wait...\\n" "${INFO}"
-        echo "$NOW_DATE Stopping DigiByte daemon..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-
         # Stop the DigiByte service now
         stop_service digibyted
 
@@ -4249,9 +4245,6 @@ usb_restore() {
             local dgb_restore_result="failed"
         fi
 
-        printf "%b Starting DigiByte daemon systemd service...\\n" "${INFO}"
-        echo "$NOW_DATE Starting DigiByte daemon..." >> /media/usbbackup/diginode_backup/diginode_backup.log
-
         # Stop the DigiByte service now
         restart_service digibyted
 
@@ -4263,8 +4256,7 @@ usb_restore() {
 
     if [ "$run_dgaconfig_restore" = true ]; then
 
-        printf "%b Stopping DigiAsset Node. Please wait...\\n" "${INFO}"
-        echo "$NOW_DATE Stopping DigiAsset Node..." >> /media/usbbackup/diginode_backup/diginode_backup.log
+        printf "%b Stopping DigiAsset Node...\\n" "${INFO}"
 
         # Stop the DigiAsset Node now
         sudo -u $USER_ACCOUNT pm2 stop digiasset
