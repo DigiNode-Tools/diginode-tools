@@ -46,6 +46,8 @@ Let's you monitor your DigiNode from the terminal. It can be run by entering: `d
     + Disk, RAM and swap usage
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
 
+![DigiNode Status Monitor](images/diginode_status_monitor.png)
+
 
 ## Additional Features
 
@@ -121,10 +123,13 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
-DigiNode Tools v0.2.1 - 2022-06-28 Test Release
-- Add USB Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
+DigiNode Tools v0.2.1 - 2022-06-29 Test Release
+- Add Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
 - You can now cancel inserting a USB stick by pressing a key
+- Change Status Monitor timers to use unix time to fix a bug where they don't get triggered correctly
+- Status monitor now displays more detail while waiting for DigiByte daemon to finish starting up
 - Version number has been bumped to reflect new features added
+- Note: Due to changes in how the Status Monitor tracks time, you may need to delete your existing diginode.settings file before use
 
 DigiNode Tools v0.0.9 - 2022-05-27 Test Release
 - Fixes for the DigiNode Tools version checker
