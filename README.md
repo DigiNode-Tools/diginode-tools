@@ -125,6 +125,9 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
+DigiNode Tools v0.2.2 - 2022-06-29 Test Release
+- Fix DigiNode Tools update checker
+
 DigiNode Tools v0.2.1 - 2022-06-29 Test Release
 - Add Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
 - You can now cancel inserting a USB stick by pressing a key

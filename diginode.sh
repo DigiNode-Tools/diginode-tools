@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.2.1
-# Last Updated: 2022-06-06
+DGNT_VER_LOCAL=0.2.2
+# Last Updated: 2022-06-29
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -798,7 +798,7 @@ quit_message() {
     NewInstall=False
 
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNTOOLS_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
 
       # Install updates now
 
@@ -1747,20 +1747,20 @@ printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER    
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Available: v$DGB_VER_RELEASE${txtrst}" "  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Available: v$DGNT_VER_RELEASE${txtrst}" "  ║"
+printf "  ║               ║  " && printf "%-32s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" "  ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Available: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" "  ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
   fi
@@ -1768,7 +1768,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-27s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Available: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-27s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
   fi
@@ -1776,7 +1776,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Available: v$DGA_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_RELEASE${txtrst}" "  ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
   fi
