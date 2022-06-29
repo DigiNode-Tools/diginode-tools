@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.0.9
-# Last Updated: 2022-05-27
+DGNT_VER_LOCAL=0.2.1
+# Last Updated: 2022-06-06
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -927,24 +927,24 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     str="Setting up Status Monitor timers..."
     printf "  %b %s" "${INFO}" "${str}"
     # set 15 sec timer and save to settings file
-    SAVED_TIME_15SEC="$(date)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15SEC="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
-    SAVED_TIME_1MIN="$(date)"
-    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1MIN="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
     # set 15 min timer and save to settings file
-    SAVED_TIME_15MIN="$(date)"
-    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15MIN="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
     # set daily timer and save to settings file
-    SAVED_TIME_1DAY="$(date)"
-    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1DAY="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
     # set weekly timer and save to settings file
-    SAVED_TIME_1WEEK="$(date)"
-    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1WEEK="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
 
@@ -1046,6 +1046,7 @@ pre_loop() {
 
   # Set timenow variable with the current time
   TIME_NOW=$(date)
+  TIME_NOW_UNIX=$(date +%s)
 
   # Log date of this Status Monitor run to diginode.settings
   str="Logging date of this run to diginode.settings file..."
@@ -1069,6 +1070,19 @@ pre_loop() {
       fi
 
     fi
+  fi
+
+  # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
+  if [ "$DGB_STATUS" = "startingup" ]; then
+      
+      # Query if digibyte has finished starting up. Display error. Send success to null.
+      is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+      if [ "$is_dgb_live_query" != "" ]; then
+          DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+      else
+          DGB_STATUS="running"
+      fi
+
   fi
 
 
@@ -1203,6 +1217,7 @@ fi
 
 # Update timenow variable with current time
 TIME_NOW=$(date)
+TIME_NOW_UNIX=$(date +%s)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
@@ -1315,9 +1330,9 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15SEC=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15SEC)" "+%s") )))
+TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 
-if [ $TIME_DIF_15SEC -gt 15 ]; then 
+if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
     if [ "$DGB_STATUS" = "startingup" ]; then
@@ -1329,8 +1344,6 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
         else
             DGB_STATUS="running"
         fi
-
-        echo "DGB_ERROR_MESSAGE: $DGB_ERROR_MSG"
 
     fi
 
@@ -1371,8 +1384,8 @@ if [ $TIME_DIF_15SEC -gt 15 ]; then
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
-    SAVED_TIME_15SEC="$(date)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15SEC="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1381,9 +1394,9 @@ fi
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1MIN)" "+%s") )))
+TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 
-if [ $TIME_DIF_1MIN -gt 60 ]; then
+if [ $TIME_DIF_1MIN -ge 60 ]; then
 
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
@@ -1440,8 +1453,8 @@ if [ $TIME_DIF_1MIN -gt 60 ]; then
   DGNT_MONITOR_LAST_RUN=$(date)
   sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
-  SAVED_TIME_1MIN="$(date)"
-  sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+  SAVED_TIME_1MIN="$(date +%s)"
+  sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -1451,9 +1464,9 @@ fi
 #    Update the Internal & External IP
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15MIN=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_15MIN)" "+%s") )))
+TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
-if [ $TIME_DIF_15MIN -gt 300 ]; then
+if [ $TIME_DIF_15MIN -ge 300 ]; then
 
     # update external IP if it has changed
     IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
@@ -1541,8 +1554,8 @@ if [ $TIME_DIF_15MIN -gt 300 ]; then
     DONATION_PLEA="yes"
     sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
 
-    SAVED_TIME_15MIN="$(date)"
-    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_15MIN="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1551,10 +1564,9 @@ fi
 #    Check for new version of DigiByte Core
 # ------------------------------------------------------------------------------
 
-TIME_DIF_1DAY=$(printf "%s\n" $(( $(date -d "($TIME_NOW)" "+%s") - $(date -d "($SAVED_TIME_1DAY)" "+%s") )))
+TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 
-# if [ $TIME_DIF_1DAY -gt 86400 ]; then              # Commented to test update checks
-if [ $TIME_DIF_1DAY -gt 100 ]; then 
+if [ $TIME_DIF_1DAY -ge 86400 ]; then 
 
     # items to repeat every 24 hours go here
 
@@ -1674,8 +1686,8 @@ if [ $TIME_DIF_1DAY -gt 100 ]; then
 
 
     # reset 24 hour timer
-    SAVED_TIME_1DAY="$(date)"
-    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_1DAY="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
@@ -1712,8 +1724,8 @@ printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is starting up.${txtrst}"
-printf "  ║               ║  " && printf "%-60s ║ \n" "Please wait... $DGB_ERROR_MSG"
+printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║               ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 

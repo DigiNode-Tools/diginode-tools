@@ -1,3 +1,5 @@
+![DigiNode Logo](images/diginode_logo.png)
+
 # DigiNode Tools
 
 ## Install and monitor your own DigiByte & DigiAssets Node
@@ -45,6 +47,8 @@ Let's you monitor your DigiNode from the terminal. It can be run by entering: `d
     + Node uptime
     + Disk, RAM and swap usage
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
+
+![DigiNode Status Monitor](images/diginode_status_monitor.png)
 
 
 ## Additional Features
@@ -121,6 +125,14 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
+DigiNode Tools v0.2.1 - 2022-06-29 Test Release
+- Add Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
+- You can now cancel inserting a USB stick by pressing a key
+- Change Status Monitor timers to use unix time to fix a bug where they don't get triggered correctly
+- Status monitor now displays more detail while waiting for DigiByte daemon to finish starting up
+- Version number has been bumped to reflect new features added
+- Note: Due to changes in how the Status Monitor tracks time, you may need to delete your existing diginode.settings file before use
+
 DigiNode Tools v0.0.9 - 2022-05-27 Test Release
 - Fixes for the DigiNode Tools version checker
 - Pushed out several releases to test its ability to detect and install new versions.
@@ -133,7 +145,7 @@ DigiNode Tools v0.0.6 - 2022-05-26 Test Release
 
 DigiNode Tools v0.0.5 - 2022-05-19 Test Release
 - USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
-- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bux in v0.0.4
+- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bug in v0.0.4
 - Fixes to diginode.settings to better store variables
 - Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
 - Countless bug fixes and improvements
