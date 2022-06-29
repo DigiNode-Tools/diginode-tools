@@ -1,3 +1,5 @@
+![DigiNode Logo](images/diginode_logo.png)
+
 # DigiNode Tools
 
 ## Install and monitor your own DigiByte & DigiAssets Node
