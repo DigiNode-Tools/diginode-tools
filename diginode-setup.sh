@@ -3231,7 +3231,8 @@ usb_backup() {
         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bPlease insert the USB stick you wish to use for your backup now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+        printf "%b (If it is already plugged in, unplug it, wait a moment, and then\\n" "${INDENT}"
+        printf "%b plug it back in so the script can detect it.)\\n" "${INDENT}"
         printf "\\n"
         printf "%b Press any key to cancel.\\n" "${INFO}"
         printf "\\n"
@@ -3969,7 +3970,8 @@ usb_restore() {
     LSBLK_BEFORE_USB_INSERTED=$(lsblk)
     progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
     printf "%b %bPlease insert the USB stick containing your DigiNode backup.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+    printf "%b (If it is already plugged in, unplug it, wait a moment, and then\\n" "${INDENT}"
+    printf "%b plug it back in so the script can detect it.)\\n" "${INDENT}"
     printf "\\n"
     printf "%b To cancel, press any key.\\n" "${INFO}"
     printf "\\n"
@@ -8445,17 +8447,6 @@ fi
 
 }
 
-# This will launch the Status Monitor again after installing updates
-launch_status_monitor() {
-
-    if [ "$STATUS_MONITOR" = true ]; then
-        printf "\\n"
-        printf "%b DigiNode Status Monitor will launch in 10 seconds...\\n" "${INFO}"
-        sleep 10
-        exec diginode
-    fi
-}
-
 # Select a random DigiFact to display
 digifact_randomize() {
 
@@ -9817,9 +9808,6 @@ main() {
 
     # Share backup reminder
     backup_reminder
-
-    # Launch Status Monitor if requested
-    launch_status_monitor
 
 }
 
