@@ -125,6 +125,9 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release History
 
+DigiNode Tools v0.2.3 - 2022-06-29 Test Release
+- Fix: Start IPFS daemon during an update if it installed but not currently running (perhaps due to a failed previous install)
+
 DigiNode Tools v0.2.2 - 2022-06-29 Test Release
 - Fix DigiNode Tools update checker
 

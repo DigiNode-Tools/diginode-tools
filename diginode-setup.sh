@@ -6317,7 +6317,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$INIT_SYSTEM" = "systemd" ]; then
 
             # Enable the service to run at boot
-            printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
+            str="Enabling IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
             systemctl enable ipfs
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -6332,7 +6333,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$INIT_SYSTEM" = "upstart" ]; then
 
             # Enable the service to run at boot
-            printf "%b Starting IPFS upstart service...\\n" "${INFO}"
+            str="Starting IPFS upstart service..."
+            printf "%b %s" "${INFO}" "${str}"
             service ipfs start
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             IPFS_STATUS="running"
@@ -6345,6 +6347,45 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_INSTALL_TYPE=""
     IPFS_UPDATE_AVAILABLE=NO
     IPFS_POSTUPDATE_CLEANUP=YES
+
+    printf "\\n"
+
+fi
+
+# Enable and start IPFS service if it is installed but not running for some reason (perhaps due to a failed previous install)
+if [ "$IPFS_STATUS" = "stopped" ]; then
+
+    printf " =============== Starting: IPFS ========================================\\n\\n"
+    # ==============================================================================
+
+    printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
+
+    if [ "$INIT_SYSTEM" = "systemd" ]; then
+
+        # Enable the service to run at boot
+        str="Enabling IPFS systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl enable ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Start the service now
+        str="Starting IPFS systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl start ipfs
+        IPFS_STATUS="running"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    if [ "$INIT_SYSTEM" = "upstart" ]; then
+
+        # Enable the service to run at boot
+        str="Starting IPFS upstart service..."
+        printf "%b %s" "${INFO}" "${str}"
+        service ipfs start
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        IPFS_STATUS="running"
+
+    fi
 
     printf "\\n"
 
@@ -9342,11 +9383,11 @@ fi
 
 if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_TITLE="      DigiFact Tip!"
-    DIGIFACT_L1="Some of these DigiFacts include a  website URL. You can"
-    DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
-    DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
-    DIGIFACT_L5="It should make it possible to click on them to open the website."
-    DIGIFACT_L6=""
+    DIGIFACT_L1="Some of these DigiFacts include a website URL which can be"
+    DIGIFACT_L3="dificult to open from the terminal. If you find that the"
+    DIGIFACT_L4="link does not open when you click on it, try holding the"
+    DIGIFACT_L5="\"Cmd\" key on Mac or the \"Ctrl\" key on Windows. The"
+    DIGIFACT_L6="website should then open when you click on it."
 fi
 
 if [ "$DIGIFACT" = "help2" ]; then
