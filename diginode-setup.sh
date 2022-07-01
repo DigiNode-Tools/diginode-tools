@@ -5862,8 +5862,7 @@ fi
         if [ "$NewInstall" = true ]; then
             str="Loading new aliases now..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT alias diginode-setup="$DGNT_SETUP_SCRIPT"
-            sudo -u $USER_ACCOUNT alias diginode="$DGNT_MONITOR_SCRIPT"
+            sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -6287,8 +6286,21 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Install latest version of GoIPFS
     printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     ipfs-update install latest
-    if [ "$IPFS_STATUS" = "not_detected" ];then
-        IPFS_STATUS="installed"
+
+    # If the command completed without error, then assume IPFS installed correctly
+    if [ $? -eq 0 ]; then
+        printf "%b Go-IPFS appears to have been installed correctly.\\n" "${INFO}"
+        
+        if [ "$IPFS_STATUS" = "not_detected" ];then
+            IPFS_STATUS="installed"
+        fi
+    else
+        printf "%b%b %s ${txtred}ERROR: Go-IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "\\n"
+        printf "%b This can occur because of a connection problem - it seems to be casued by problem with their servers.\\n" "${INFO}"
+        printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if keep trying.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
     fi
 
     # Get the new version number of the local Go-IPFS install

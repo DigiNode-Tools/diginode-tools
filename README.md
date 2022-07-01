@@ -125,9 +125,13 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Release Notes
 
+DigiNode Tools v0.2.4 - 2022-07-01 Test Release
+- Fix: Installation now cancels if Go-IPFS fails to install. There is a recurring problem with the install files not downloading which may be a probelm with their servers. Typically, if you keep retrying it will eventually work.
+
 DigiNode Tools v0.2.3 - 2022-07-01 Test Release
 - Fix: Start IPFS daemon during an update if it installed but not currently running (perhaps due to a failed previous install)
-- Fix: If you launch Backup/Restore from the menu and then run Update the script now performs as expected. Before it would loop back and continue backup/restore if you stopped halfway though.
+- Fix: If you launch Backup/Restore from the menu, and then run Update, the script now performs as expected. Before it would loop back and continue backup/restore from where you had stopped halfway though.
+- Fix: Formatting of update display in status monitor
 
 DigiNode Tools v0.2.2 - 2022-06-29 Test Release
 - Fix DigiNode Tools update checker
