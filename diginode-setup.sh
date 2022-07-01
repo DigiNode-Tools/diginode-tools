@@ -3036,6 +3036,7 @@ usb_backup() {
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
+            printf "\\n"
             menu_existing_install 
         fi
 
@@ -3055,6 +3056,7 @@ usb_backup() {
             run_wallet_backup=false
             # Display a message saying that the wallet.dat file does not exist
             whiptail --msgbox --backtitle "" --title "ERROR: wallet.dat not found" "No DigiByte Core wallet.dat file currently exists to backup. The script will exit." "${r}" "${c}"
+            printf "\\n"
             menu_existing_install   
             printf "\\n"
         fi
@@ -3396,7 +3398,7 @@ usb_backup() {
                 UpdateCmd=$(whiptail --title "Format USB Stick" --menu "\\n\\nPlease choose what file system you would like to format your USB stick. \\n\\nIMPORTANT: If you continue, any data currently on the stick will be erased.\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; menu_existing_install; }
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; printf "\\n"; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
@@ -3961,6 +3963,7 @@ usb_restore() {
         printf "%b You chose to begin the restore process.\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
+        printf "\\n"
         menu_existing_install 
     fi
 
@@ -4544,13 +4547,14 @@ menu_existing_install() {
             if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
                 DO_FULL_INSTALL=YES
             fi
-
+            install_or_upgrade
             ;;
         # Reset,
         ${opt2a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
+            install_or_upgrade
             ;;
         # USB Stick Backup
         ${opt3a})
@@ -9717,6 +9721,9 @@ main() {
         # Tell the user to remove the microSD card from the Pi if not being used
         rpi_microsd_remove
 
+        # Continue with install upgrade
+        install_or_upgrade
+
     fi
 
     ### UPGRADE MENU ###
@@ -9727,12 +9734,29 @@ main() {
         # Display the existing install menu
         menu_existing_install
 
+    fi
+
+    ### UPGRADE MENU ###
+
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${UnattendedUpgrade}" == true ]] || [[ "${UnattendedInstall}" == true ]]; then
+
+        # Continue with install upgrade
+        install_or_upgrade
+
+    fi
+
+}
+
+install_or_upgrade() {
+
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${UnattendedUpgrade}" == false ]]; then
+
         # Ask to install DigiAssets Node, it is not already installed
         menu_ask_install_digiasset_node
 
     fi
-
-
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
@@ -9849,6 +9873,8 @@ main() {
 
     # Share backup reminder
     backup_reminder
+
+    exit
 
 }
 

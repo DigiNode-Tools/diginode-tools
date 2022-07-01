@@ -123,10 +123,11 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 
 
-## Release History
+## Release Notes
 
-DigiNode Tools v0.2.3 - 2022-06-29 Test Release
+DigiNode Tools v0.2.3 - 2022-07-01 Test Release
 - Fix: Start IPFS daemon during an update if it installed but not currently running (perhaps due to a failed previous install)
+- Fix: If you launch Backup/Restore from the menu and then run Update the script now performs as expected. Before it would loop back and continue backup/restore if you stopped halfway though.
 
 DigiNode Tools v0.2.2 - 2022-06-29 Test Release
 - Fix DigiNode Tools update checker
@@ -138,30 +139,3 @@ DigiNode Tools v0.2.1 - 2022-06-29 Test Release
 - Status monitor now displays more detail while waiting for DigiByte daemon to finish starting up
 - Version number has been bumped to reflect new features added
 - Note: Due to changes in how the Status Monitor tracks time, you may need to delete your existing diginode.settings file before use
-
-DigiNode Tools v0.0.9 - 2022-05-27 Test Release
-- Fixes for the DigiNode Tools version checker
-- Pushed out several releases to test its ability to detect and install new versions.
-
-DigiNode Tools v0.0.6 - 2022-05-26 Test Release
-- Reboot is no longer required after first install
-- diginode.settings variables now get reset during an uninstall
-- backup reminder is displayed until you have made one
-- lots of fixes and improvements to backup function
-
-DigiNode Tools v0.0.5 - 2022-05-19 Test Release
-- USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
-- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the bug in v0.0.4
-- Fixes to diginode.settings to better store variables
-- Any changes made to the RPC credentials (user/password/port) are now updated in the DigiAssets main.json file during an Update
-- Countless bug fixes and improvements
-
-DigiNode Tools v0.0.4 - 2022-05-10 Test Release
-- Fixed several bugs relating to the Status Monitor being able to check for software updates
-- Install URL has changed to diginode-setup.digibyte.help
-- Implemented backup feature for prelimanry testing
-- Renamed every mention of "DigiNode Installer to "DigiNode Setup"
-- WARNING: There is currently a bug with the DigiAsset Node updater that will erase you configuration. I  am currently working to fix this.
-
-v0.0.2 - 2021-11-14
-- Test Release
