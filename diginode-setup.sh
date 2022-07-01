@@ -6295,10 +6295,11 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             IPFS_STATUS="installed"
         fi
     else
-        printf "%b%b %s ${txtred}ERROR: Go-IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b This can occur because of a connection problem - it seems to be casued by problem with their servers.\\n" "${INFO}"
-        printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if keep trying.\\n" "${INDENT}"
+        printf "%b%b ${txtred}ERROR: Go-IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b This can occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
+        printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if you keep retrying.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -6306,7 +6307,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Get the new version number of the local Go-IPFS install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Update diginode.settings with new Go local version number and the install/upgrade date
+    # Update diginode.settings with new Go-IPFS local version number and the install/upgrade date
     sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -8182,7 +8183,7 @@ uninstall_do_now() {
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstalled both the IPFS Updater utility and GoIPFS." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall both the IPFS Updater utility and Go-IPFS." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall Go-IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 

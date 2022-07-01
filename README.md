@@ -127,6 +127,8 @@ DigiNode has been tested and known to work with the following systems:
 
 DigiNode Tools v0.2.4 - 2022-07-01 Test Release
 - Fix: Installation now cancels if Go-IPFS fails to install. There is a recurring problem with the install files not downloading which may be a probelm with their servers. Typically, if you keep retrying it will eventually work.
+- Fix: Hide swap status in status monitor if the swap is tiny (i.e. around 1 Mb)
+- Fix: Correct error display if IPFS install fails
 
 DigiNode Tools v0.2.3 - 2022-07-01 Test Release
 - Fix: Start IPFS daemon during an update if it installed but not currently running (perhaps due to a failed previous install)
