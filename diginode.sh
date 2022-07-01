@@ -1747,20 +1747,20 @@ printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER    
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" "  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║               ║  " && printf "%-32s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" "  ║"
+printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
   fi
@@ -1768,7 +1768,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-27s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
   fi
@@ -1776,7 +1776,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
   fi
