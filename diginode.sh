@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.2.2
-# Last Updated: 2022-06-29
+DGNT_VER_LOCAL=0.2.3
+# Last Updated: 2022-06-30
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1747,20 +1747,20 @@ printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER    
 printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-28s %19s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" "  ║"
+printf "  ║ SOFTWARE      ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
 else
 printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║               ║  " && printf "%-32s %19s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" "  ║"
+printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
 else
 printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
   fi
@@ -1768,7 +1768,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-27s %19s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
   fi
@@ -1776,7 +1776,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-28s %19s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_RELEASE${txtrst}" "  ║"
+    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
   else
     printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
   fi
@@ -1792,15 +1792,17 @@ printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
-printf "   IMPORTANT: You need to forward port 12024 on your router so that your DigiByte node can\\n"
-printf "   be discovered by other nodes on the internet, otherwise the number of potential inbound\\n"
-printf "   connections is limited to 8. For help on how to do this, visit: https://portforward.com\\n"
+printf "   IMPORTANT: You need to forward port 12024 on your router so that other\\n"
+printf "   DigiByte nodes on the network can find it, otherwise the number of potential\\n"
+printf "   inbound connections is limited to 8. For help, visit: https://portforward.com\\n"
 printf "\\n"
-printf "   To verify that port 12024 is being forwarded correctly, visit: https://opennodes.digibyte.link\\n"
-printf "   Enter your external IP address in the form at the bottom of the page. If the port is open,\\n"
-printf "   it should should display your DigiByte version number and approximate location. The connection count\\n"
-printf "   above should also slowly start increasing. If the number is above 8, this indicates that things are\\n"
-printf "   working correctly. This message will disappear when the total connections is 9 or more.\\n"  
+printf "   To check that port 12024 is being forwarded correctly, visit:\\n"
+printf "   https://opennodes.digibyte.link and enter your external IP address in the\\n"
+printf "   form at the bottom of the page. If the port is open, it should should display\\n"
+printf "   your DigiByte version number and approximate location. The connection count\\n"
+printf "   above should also gradually start increasing. If the number is above 8, this\\n"
+printf "   indicates that things are working correctly. This message will disappear\\n"
+printf "   when the total connections is 9 or more.\\n"
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"

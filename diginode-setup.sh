@@ -3036,6 +3036,7 @@ usb_backup() {
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
+            printf "\\n"
             menu_existing_install 
         fi
 
@@ -3055,6 +3056,7 @@ usb_backup() {
             run_wallet_backup=false
             # Display a message saying that the wallet.dat file does not exist
             whiptail --msgbox --backtitle "" --title "ERROR: wallet.dat not found" "No DigiByte Core wallet.dat file currently exists to backup. The script will exit." "${r}" "${c}"
+            printf "\\n"
             menu_existing_install   
             printf "\\n"
         fi
@@ -3231,7 +3233,8 @@ usb_backup() {
         LSBLK_BEFORE_USB_INSERTED=$(lsblk)
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bPlease insert the USB stick you wish to use for your backup now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+        printf "%b (If it is already plugged in, unplug it, wait a moment, and then\\n" "${INDENT}"
+        printf "%b plug it back in so the script can detect it.)\\n" "${INDENT}"
         printf "\\n"
         printf "%b Press any key to cancel.\\n" "${INFO}"
         printf "\\n"
@@ -3395,7 +3398,7 @@ usb_backup() {
                 UpdateCmd=$(whiptail --title "Format USB Stick" --menu "\\n\\nPlease choose what file system you would like to format your USB stick. \\n\\nIMPORTANT: If you continue, any data currently on the stick will be erased.\\n\\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; menu_existing_install; }
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; printf "\\n"; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
@@ -3960,6 +3963,7 @@ usb_restore() {
         printf "%b You chose to begin the restore process.\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
+        printf "\\n"
         menu_existing_install 
     fi
 
@@ -3969,7 +3973,8 @@ usb_restore() {
     LSBLK_BEFORE_USB_INSERTED=$(lsblk)
     progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
     printf "%b %bPlease insert the USB stick containing your DigiNode backup.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "%b (If it is already plugged in, unplug it, wait a moment, and then plug it back in so the script can detect it.)\\n" "${INDENT}"
+    printf "%b (If it is already plugged in, unplug it, wait a moment, and then\\n" "${INDENT}"
+    printf "%b plug it back in so the script can detect it.)\\n" "${INDENT}"
     printf "\\n"
     printf "%b To cancel, press any key.\\n" "${INFO}"
     printf "\\n"
@@ -4542,13 +4547,14 @@ menu_existing_install() {
             if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
                 DO_FULL_INSTALL=YES
             fi
-
+            install_or_upgrade
             ;;
         # Reset,
         ${opt2a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
+            install_or_upgrade
             ;;
         # USB Stick Backup
         ${opt3a})
@@ -6315,7 +6321,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$INIT_SYSTEM" = "systemd" ]; then
 
             # Enable the service to run at boot
-            printf "%b Enabling IPFS systemd service...\\n" "${INFO}"
+            str="Enabling IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
             systemctl enable ipfs
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -6330,7 +6337,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$INIT_SYSTEM" = "upstart" ]; then
 
             # Enable the service to run at boot
-            printf "%b Starting IPFS upstart service...\\n" "${INFO}"
+            str="Starting IPFS upstart service..."
+            printf "%b %s" "${INFO}" "${str}"
             service ipfs start
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             IPFS_STATUS="running"
@@ -6343,6 +6351,45 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     IPFS_INSTALL_TYPE=""
     IPFS_UPDATE_AVAILABLE=NO
     IPFS_POSTUPDATE_CLEANUP=YES
+
+    printf "\\n"
+
+fi
+
+# Enable and start IPFS service if it is installed but not running for some reason (perhaps due to a failed previous install)
+if [ "$IPFS_STATUS" = "stopped" ]; then
+
+    printf " =============== Starting: IPFS ========================================\\n\\n"
+    # ==============================================================================
+
+    printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
+
+    if [ "$INIT_SYSTEM" = "systemd" ]; then
+
+        # Enable the service to run at boot
+        str="Enabling IPFS systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl enable ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Start the service now
+        str="Starting IPFS systemd service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl start ipfs
+        IPFS_STATUS="running"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    if [ "$INIT_SYSTEM" = "upstart" ]; then
+
+        # Enable the service to run at boot
+        str="Starting IPFS upstart service..."
+        printf "%b %s" "${INFO}" "${str}"
+        service ipfs start
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        IPFS_STATUS="running"
+
+    fi
 
     printf "\\n"
 
@@ -8445,17 +8492,6 @@ fi
 
 }
 
-# This will launch the Status Monitor again after installing updates
-launch_status_monitor() {
-
-    if [ "$STATUS_MONITOR" = true ]; then
-        printf "\\n"
-        printf "%b DigiNode Status Monitor will launch in 10 seconds...\\n" "${INFO}"
-        sleep 10
-        exec diginode
-    fi
-}
-
 # Select a random DigiFact to display
 digifact_randomize() {
 
@@ -9351,11 +9387,11 @@ fi
 
 if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_TITLE="      DigiFact Tip!"
-    DIGIFACT_L1="Some of these DigiFacts include a  website URL. You can"
-    DIGIFACT_L3="them. If you find that you can't click on a web adress, try"
-    DIGIFACT_L4="holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows."
-    DIGIFACT_L5="It should make it possible to click on them to open the website."
-    DIGIFACT_L6=""
+    DIGIFACT_L1="Some of these DigiFacts include a website URL which can be"
+    DIGIFACT_L3="dificult to open from the terminal. If you find that the"
+    DIGIFACT_L4="link does not open when you click on it, try holding the"
+    DIGIFACT_L5="\"Cmd\" key on Mac or the \"Ctrl\" key on Windows. The"
+    DIGIFACT_L6="website should then open when you click on it."
 fi
 
 if [ "$DIGIFACT" = "help2" ]; then
@@ -9685,6 +9721,9 @@ main() {
         # Tell the user to remove the microSD card from the Pi if not being used
         rpi_microsd_remove
 
+        # Continue with install upgrade
+        install_or_upgrade
+
     fi
 
     ### UPGRADE MENU ###
@@ -9695,12 +9734,29 @@ main() {
         # Display the existing install menu
         menu_existing_install
 
+    fi
+
+    ### UPGRADE MENU ###
+
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${UnattendedUpgrade}" == true ]] || [[ "${UnattendedInstall}" == true ]]; then
+
+        # Continue with install upgrade
+        install_or_upgrade
+
+    fi
+
+}
+
+install_or_upgrade() {
+
+    # If DigiByte Core is already install, display the update menu
+    if [[ "${UnattendedUpgrade}" == false ]]; then
+
         # Ask to install DigiAssets Node, it is not already installed
         menu_ask_install_digiasset_node
 
     fi
-
-
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
@@ -9818,8 +9874,7 @@ main() {
     # Share backup reminder
     backup_reminder
 
-    # Launch Status Monitor if requested
-    launch_status_monitor
+    exit
 
 }
 
