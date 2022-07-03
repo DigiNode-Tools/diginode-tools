@@ -56,7 +56,7 @@ Once your DigiNode has been installed, you can access additional features from t
 
 ## Donations
 
-Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development. Thanks, Olly
+Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development.
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
