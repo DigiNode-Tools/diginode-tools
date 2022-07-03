@@ -61,8 +61,9 @@ Once your DigiNode has been installed, you can access additional features from t
 
 I have spent thousands of hours developing DigiNode Tools, with the goal of making it easy for everyone to setup and manage their own DigiNode. If you find these tools useful, kindly make a donation in DGB to support my work. Thanks, Olly
 
-![DigiByte Donation QR Code](images/donation_qr_code.png)
 dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
 
 ## License
 
