@@ -59,11 +59,14 @@ Once your DigiNode has been installed, you can access additional features from t
 
 ## Donations
 
-I have spent thousands of hours have developing DigiNode Tools, with the goal of making it easy for everyone to setup and manage their own DigiNode. If you find these tools useful, kindly make a donation in DGB to support my work. Thanks, Olly
+I have spent thousands of hours developing DigiNode Tools, with the goal of making it easy for everyone to setup and manage their own DigiNode. If you find these tools useful, kindly make a donation in DGB to support my work. Thanks, Olly
 
 ![DigiByte Donation QR Code](images/donation_qr_code.png)
 dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup
 
+## License
+
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](licence_faq.md). The full licence is [here](LICENCE.md).
 
 ## Instructions
 
