@@ -14,9 +14,6 @@ For more information, visit: https://diginode.digibyte.help
 
 These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
 
-WARNING: This script is still under development and should only be used for testing purposes at this time.
-
-
 ## DigiNode Setup
 
 Script to help you setup and manage your DigiNode - installs and configures a DigiByte Node and DigiAsset Node. It will also upgrade an existing install with any updates.
@@ -32,7 +29,6 @@ Script to help you setup and manage your DigiNode - installs and configures a Di
 - Creates or updates an DigiAsset config file with RPC settings. 
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
-
 
 ## DigiNode Status Monitor
 
@@ -50,18 +46,19 @@ Let's you monitor your DigiNode from the terminal. It can be run by entering: `d
 
 ![DigiNode Status Monitor](images/diginode_status_monitor.png)
 
-
 ## Additional Features
 
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
-- Backup/Restore: This will help you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick. It is advisable to choose a USB stick that you do not use for anything else, and to store it somewhere secure when you are done. The blockchain and/or digiasset data will not be backed up. Find this in the 'DigiNode Setup' menu.
+- Backup/Restore: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick. 
+- Reset: Resets DigiNode settings in the event of a problem.
+- Uninstall: Unistalls DigiNode software from your system.
 
 ## Donations
 
-I have spent thousands of hours developing DigiNode Tools, with the goal of making it easy for everyone to setup and manage their own DigiNode. If you find these tools useful, kindly make a donation in DGB to support my work. Thanks, Olly
+Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development. Thanks, Olly
 
-dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup
+[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)
 
 ![DigiByte Donation QR Code](images/donation_qr_code.png)
 
@@ -76,7 +73,6 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 # curl -sSL diginode-setup.digibyte.help | bash
 
 Once DigiNode Tools has been installed, in future you can run it locally using: ```diginode-setup```
-
 
 ## Advanced Features
 
@@ -133,6 +129,9 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended. Note: Currently there are issues with the menus freezing for some unknown reason |
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 
+## Support
+
+If you experience any problems using DigiNode Tools, or have any other questions, please a post message in the [Telegram group](https://t.me/+ked2VGZsLPAyN2Jk).
 
 ## Release Notes
 
