@@ -3095,7 +3095,8 @@ usb_backup() {
             # Start the DigiByte service now, in case it is not already running
             printf "%b DigiByte daemon must be running to check your wallet before backup.\\n" "${INFO}"
             printf "%b Starting DigiByte daemon service...\\n\\n" "${INFO}"
-            systemctl start digibyted
+            restart_service digibyted
+        
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
             # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
@@ -3191,7 +3192,7 @@ usb_backup() {
                 
                 # Restart the DigiByte service
                 printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
-                systemctl start digibyted
+                restart_service digibyted
             else
                 whiptail --msgbox --backtitle "" --title "DigiByte Wallet encryption failed." "ERROR: Your DigiByte wallet was not successfully encrypted. The script will exit." "${r}" "${c}" 
                 printf "\\n"
