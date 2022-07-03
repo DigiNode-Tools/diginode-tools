@@ -8,7 +8,7 @@ These tools have been designed to make it as easy as possible to setup and monit
 
 The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**.
 
-For more information, visit: https://diginode.digibyte.help
+For more information, visit: https://diginode.digibyte.help (website coming soon)
 
 ## Disclaimer
 
