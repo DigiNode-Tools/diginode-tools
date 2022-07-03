@@ -58,7 +58,7 @@ Once your DigiNode has been installed, you can access additional features from t
 
 Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development. Thanks, Olly
 
-[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
 ![DigiByte Donation QR Code](images/donation_qr_code.png)
 
