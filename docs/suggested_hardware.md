@@ -87,19 +87,19 @@ Note: You need to choose the correct type of M.2 SSD depending on which Argon M.
 
 ## USB A to USB A Cable
 Purchase:
-- [Amazon.com]()
-- [Amazon.com.au]()
-- [Amazon.ca]()
+- [Amazon.com](https://amzn.to/3ON6jV1)
+- [Amazon.com.au](https://amzn.to/3AuqEtK)
+- [Amazon.ca](https://amzn.to/3NMdoUs)
 - [Amazon.co.uk](https://amzn.to/3NNCfY3)
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
-- [Amazon.nl]()
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.de](https://amzn.to/3OQDKFY)
+- [Amazon.es](https://amzn.to/3AuCGDk)
+- [Amazon.fr](https://amzn.to/3uw2qvj)
+- [Amazon.it](https://amzn.to/3ym7rrv)
+- [Amazon.nl](https://amzn.to/3nHppzF)
+- [Amazon.se](https://amzn.to/3yjpeQ9)
+- [Amazon.sg](https://amzn.to/3bVpuxg)
 
-Note: Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from a microSD card and use this to burn the image on to the SSD making the setup process longer and more complicated. This cable will save you a lot of headaches! It is optional but highly recommended. 
+Note: Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from a microSD card and then burn the image on to the SSD from that making the setup process longer and more complicated. This cable will save you a lot of headaches! It is optional but highly recommended. 
 
 ![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
 
