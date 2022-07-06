@@ -15,7 +15,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 
 ## DigiNode Setup
 
-Script to help you setup and manage your DigiNode - installs and configures a DigiByte Node and DigiAsset Node. It will also upgrade an existing install with any updates.
+DigiNode Setup helps you to install and manage your DigiNode:
 
 - Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node.
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
@@ -31,9 +31,9 @@ Script to help you setup and manage your DigiNode - installs and configures a Di
 
 ## DigiNode Status Monitor
 
-Let's you monitor your DigiNode from the terminal. It can be run by entering: `diginode` from the command line.
+DigiNode Status Monitor let's you monitor your DigiNode from the command line. It can be run by entering: `diginode`.
 
-- Monitor your DigiNode on your local machine via the terminal. I also works remotely over SSH.
+- Monitor your DigiNode on your local machine via the command line, locally or remotely over SSH.
 - Displays live DigiByte and DigiAsset data including:
     + Connection Count
     + Block Height (with Sync Progress)
@@ -66,7 +66,7 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
 - A 64bit Linux OS is required.
-- Please visit [Suggested DigiNode Hardware](docs/suggested_hardware.md) for advice on which parts to buy for your DigiNode.
+- If you are interested in building your own DigiNode, see [here](docs/suggested_hardware.md) for suggested equipment.
 
 DigiNode has been tested and known to work with the following systems:
 
