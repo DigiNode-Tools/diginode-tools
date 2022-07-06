@@ -9,7 +9,7 @@ Disclaimer: This page includes affiliate links. By purchasing your equipment fro
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3Rek4h6)
 
-Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomemned. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of thanks to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
+Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomemned. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of due to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
 
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
@@ -35,7 +35,7 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3alBS9k)
 
-Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.)
+Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.). The case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate at a certain temperature threshold.
 ![Argon One M.2 Case](/images/argon_m2.jpg)
 
 ## M.2 SATA SSD
