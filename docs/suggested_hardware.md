@@ -1,6 +1,7 @@
 # Suggested DigiNode Hardware
 
-To buid your own DigiNode, you need a Rasperry Pi 4 8Gb and then a case
+To buid your own DigiNode, you first need a Rasperry Pi 4 8Gb and power supply. You then need an SSD and case. For the latter, I have provided two options below to suit different budgets.
+
 
 ## Raspberry Pi 4 Model B 8Gb
 Purchase:
@@ -17,7 +18,8 @@ Purchase:
 Note: Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
 ![Raspberry Pi 4 PSU](/images/rpi4_psu.jpg)
 
-# Option A: Argon One M.2 Case
+
+# Option A: Argon One M.2 Case with enclosed SSD
 
 | **Pros**                                          | **Cons**                             			     |
 |---------------------------------------------------|----------------------------------------------------|
@@ -37,7 +39,7 @@ Note: You need to choose the correct type of M.2 SSD depending on which type you
 
 
 
-# Option B: Flirc Case
+# Option B: Flirc Case with separate SSD
 
 | **Pros**              | **Cons**                             			     |
 |-----------------------|----------------------------------------------------|
@@ -50,18 +52,18 @@ Purchase:
 [Amazon.com](https://amzn.to/3R5abSN)
 [Amazon.ca](https://amzn.to/3P1YcDA)
 Note: The Flirc case is made of aluminium, and the entire case acts as a heat sync. It does not inculde a fan. During the intial sync of the blockchain it can get quite hot, but the rest of the time is should be fine. If you choose a case without fan make sure it has passive cooling of some kind.
-![Flirc case](./images/flirc_case.png)
+![Flirc case](/images/flirc_case.png)
 
 ## Orico USB 3.1 10Gbps USB-C SSD Enclosure
 Purchase: [Amazon.com](https://amzn.to/3P4VTQh) [Amazon.co.uk](https://amzn.to/3ydNfbf) [Amazon.nl](https://amzn.to/3yh6Asc)
 Note: You can use whichever SSD enclosure you like but try to to ensure it is at least USB 3.1 Gen 2 10Gbps. Some enclosures are only 6Gbps.
-![Orico enclosure](./images/orico_enclosure.png)
+![Orico enclosure](/images/orico_enclosure.png)
 
 ## Crucial 2.5" SSD
 Purchase:
 [Amazon.co.uk](https://amzn.to/3IjFNjF)
 Note: As of July 2022, DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recomend 250Gb or 500Gb to be future proof.
-![Crucial 2.5" SSD](./images/crucial_2.5_ssd.png)
+![Crucial 2.5" SSD](/images/crucial_2.5_ssd.png)
 
 - 
 
