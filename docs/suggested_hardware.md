@@ -13,7 +13,7 @@ Purchase:
 - [Amazon.nl](https://amzn.to/3yLOKip)
 - [Amazon.de](https://amzn.to/3yjVYZp)
 
-Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomended. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of due to the global chip shortage, and they may be out of stock at the provided links. Also, be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). 
+Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 is highly reccomended. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb model (or greater) Pi is highly recommeded. As of July 2022, due to the global chip shortage, Raspberry Pi's are still very hard to get hold of, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
 
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
@@ -23,7 +23,6 @@ Purchase:
 - [Amazon.co.uk](https://amzn.to/3P5YtFI)
 - [Amazon.de](https://amzn.to/3NH7mo5)
 - [Amazon.nl](https://amzn.to/3AvtgYs)
-
 
 Note: Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
 
@@ -42,14 +41,14 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3alBS9k)
 
-Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.). The case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate at a certain temperature threshold.
+Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See SSD info below.). The Argon case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate it at the relevant temperature threshold.
 ![Argon One M.2 Case](/images/argon_m2.jpg)
 
 ## M.2 SATA SSD
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3yhYoIg)
 
-Note: You need to choose the correct type of M.2 SSD depending on which type your case supports - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two.
+Note: You need to choose the correct type of M.2 SSD depending on which type your Argon M.2 case supports - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two.
 
 ![M.2 SATA SSD](/images/m2_sata_ssd.jpg)
 

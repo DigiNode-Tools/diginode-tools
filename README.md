@@ -2,24 +2,16 @@
 
 # Introduction to DigiNode Tools
 
-### Q: What's a DigiNode?
-A: A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
+### What's a DigiNode?
+A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
 
-### Q: What are DigiNode Tools?
-A: DigiNode Tools are a suite of linux scripts that make it easy to setup, monitor and manage your DigiNode from the linux command line.
+### What are DigiNode Tools?
+DigiNode Tools are a suite of linux scripts that make it easy to setup, monitor and manage your DigiNode from the linux command line.
 
-### Q: What do I need to run a DigiNode?
-A: You can run DigiNode Tools on most Debian and Ubuntu systems. The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. A complete list of recommended hardware is available [here](docs/suggested_hardware.md).
+### What do I need to run a DigiNode?
+You can run DigiNode Tools on most Debian and Ubuntu systems. The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. A complete list of recommended hardware is available [here](docs/suggested_hardware.md).
 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
-
-## Disclaimer
-
-These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
-
-## License
-
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
 
 ## DigiNode Setup
 
@@ -71,7 +63,6 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ## Compatibility
 
-- D
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
 - A 64bit Linux OS is required.
@@ -84,6 +75,10 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended. Note: Currently there are issues with the menus freezing for some unknown reason |
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
+
+## Disclaimer
+
+These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
 
 ## Setup Instructions
 
@@ -137,6 +132,10 @@ Example:
 ## Support
 
 For help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+
+## License
+
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
 
 ## Release Notes
 
