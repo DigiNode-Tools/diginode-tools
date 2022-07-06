@@ -21,7 +21,7 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 ![Raspberry Pi 4 PSU](/images/rpi4_psu.jpg)
 
 
-# Option A: Argon One M.2 Case with enclosed SSD (Reccomended)
+# Option A: Argon One M.2 Case with internal SSD (Reccomended)
 
 | **Pros**                                          | **Cons**                             			     |
 |---------------------------------------------------|----------------------------------------------------|
@@ -34,6 +34,7 @@ Purchase:
 - [Amazon.co.uk](https://amzn.to/3alBS9k)
 
 Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.)
+![Argon One M.2 Case](/images/argon_m2.jpg)
 
 ## M.2 SSD
 Purchase:
@@ -49,7 +50,7 @@ Note: Since the SSD is enclosed in the Argon One case, this cable makes it possi
 ![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
 
 
-# Option B: Flirc Case with separate SSD (Budget Friendly)
+# Option B: Flirc Case with external SSD (Budget Friendly)
 
 | **Pros**              | **Cons**                             			     |
 |-----------------------|----------------------------------------------------|
