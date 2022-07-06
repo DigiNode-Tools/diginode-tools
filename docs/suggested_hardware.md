@@ -1,22 +1,29 @@
 # Build your own DigiNode
 
-To buid your own DigiNode, you will need a Raspberry Pi 4 8Gb with power supply, SSD and case. Links for all the items you require are provided below. For the case and SSD, two options have been provided to suit different budgets.
+To buid your own DigiNode, you will need a Raspberry Pi 4 8Gb with power supply, SSD and case. Links for all the items you require are provided below. For the case and SSD, two options have been provided to suit different budgets. You do not need to buy the exact specs provided but these should give you a starting point.
 
 Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.
 
 
 ## Raspberry Pi 4 Model B 8Gb
 Purchase:
+- [Amazon.com](https://amzn.to/3nIH6Pq)
 - [Amazon.co.uk](https://amzn.to/3Rek4h6)
+- [Amazon.fr](https://amzn.to/3bSHYhM)
+- [Amazon.nl](https://amzn.to/3yLOKip)
+- [Amazon.de](https://amzn.to/3yjVYZp)
 
-Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomemned. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of due to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
+Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomended. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of due to the global chip shortage, and they may be out of stock at the provided links. Also, be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). 
 
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
 ## Genuine Raspberry Pi 4 PSU
 Purchase:
-- [Amazon.co.uk](https://amzn.to/3P5YtFI)
 - [Amazon.com](https://amzn.to/3ae8To1)
+- [Amazon.co.uk](https://amzn.to/3P5YtFI)
+- [Amazon.de](https://amzn.to/3NH7mo5)
+- [Amazon.nl](https://amzn.to/3AvtgYs)
+
 
 Note: Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
 
