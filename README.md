@@ -6,7 +6,7 @@
 
 These tools have been designed to make it as easy as possible to setup and monitor your own DigiNode from the Linux command line. 
 
-The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**.
+The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. A complete list of recommended hardware is available [here](docs/suggested_hardware.md).
 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
@@ -68,6 +68,7 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ## Compatibility
 
+- D
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
 - A 64bit Linux OS is required.
