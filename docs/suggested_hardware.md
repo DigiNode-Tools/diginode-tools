@@ -7,9 +7,9 @@ Disclaimer: This page includes some affiliate links. By purchasing your equipmen
 
 ## Raspberry Pi 4 Model B 8Gb
 Purchase:
-- [Amazon.co.uk](https://amzn.to/3alBS9k)
+- [Amazon.co.uk](https://amzn.to/3Rek4h6)
 
-Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi is strongly reccomemned. A 4Gb Pi will work but it will require a swap file, and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded.
+Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi is strongly reccomemned. A 4Gb Pi will work but it will require a swap file, and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of thanks to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
 ## Genuine Raspberry Pi 4 PSU
@@ -43,7 +43,7 @@ Note: You need to choose the correct type of M.2 SSD depending on which type you
 
 ## USB A to USB A Cable
 Purchase:
-- [Amazon.co.uk](https://amzn.to/3P5rlxz)
+- [Amazon.co.uk](https://amzn.to/3NNCfY3)
 
 Note: Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from a microSD card and use this to burn the image on to the SSD making the process longer and more complicated. This cable will save you a lot of headaches! It is optional but highly recommended. 
 ![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
