@@ -1,15 +1,15 @@
-# Suggested DigiNode Hardware
+# Build your own DigiNode
 
-To buid your own DigiNode, I reccomend a Rasperry Pi 4 8Gb with a power supply, SSD and case. Links for all the items you require are provided below. For the case and SSD, I have provided two options to suit different budgets.
+To buid your own DigiNode, you will need a Raspberry Pi 4 8Gb with power supply, SSD and case. Links for all the items you require are provided below. For the case and SSD, two options have been provided to suit different budgets.
 
-Disclaimer: This page includes some affiliate links. By purchasing your equipment from here, you are helping to support future development of DigiNode Tools. Thanks for your support.
+Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.
 
 
 ## Raspberry Pi 4 Model B 8Gb
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3Rek4h6)
 
-Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi is strongly reccomemned. A 4Gb Pi will work but it will require a swap file, and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of thanks to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
+Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi 4 Raspberry Pi 4 is strongly reccomemned. The 4Gb model will function but it requires a swap files and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded. As of July 2022, Raspberry Pi's are still very hard to get hold of thanks to the global chip shortage, and they may be out of stock at the provided links. You can monitor current stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi).
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
 ## Genuine Raspberry Pi 4 PSU
@@ -36,11 +36,12 @@ Purchase:
 Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.)
 ![Argon One M.2 Case](/images/argon_m2.jpg)
 
-## M.2 SSD
+## M.2 SATA SSD
 Purchase:
-- [Amazon.co.uk](https://amzn.to/3P5rlxz)
+- [Amazon.co.uk](https://amzn.to/3yhYoIg)
 
-Note: You need to choose the correct type of M.2 SSD depending on which type your case supports - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/).
+Note: You need to choose the correct type of M.2 SSD depending on which type your case supports - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two.
+![M.2 SATA SSD](/images/m2_sata_ssd.jpg)
 
 ## USB A to USB A Cable
 Purchase:
