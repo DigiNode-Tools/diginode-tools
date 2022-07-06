@@ -54,18 +54,18 @@ Purchase:
 [Amazon.com](https://amzn.to/3R5abSN)
 [Amazon.ca](https://amzn.to/3P1YcDA)
 Note: The Flirc case is made of aluminium, and the entire case acts as a heat sync to keep your Pi cool. It does not inculde a fan. During the intial sync of the blockchain it can get quite hot, but the rest of the time is should be fine. If you choose a case without fan make sure it has passive cooling of some kind.
-![Flirc case](/images/flirc_case.png)
+![Flirc case](/images/flirc_case.jpg)
 
 ## Orico USB 3.1 10Gbps USB-C SSD Enclosure
 Purchase: [Amazon.com](https://amzn.to/3P4VTQh) [Amazon.co.uk](https://amzn.to/3ydNfbf) [Amazon.nl](https://amzn.to/3yh6Asc)
 Note: You can use whichever SSD enclosure you like but try to to ensure it is at least USB 3.1 Gen 2 10Gbps. Some enclosures are only 6Gbps.
-![Orico enclosure](/images/orico_enclosure.png)
+![Orico enclosure](/images/orico_enclosure.jpg)
 
 ## Crucial 2.5" SSD
 Purchase:
 [Amazon.co.uk](https://amzn.to/3IjFNjF)
 Note: As of July 2022, DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recomend 250Gb or 500Gb to be future proof.
-![Crucial 2.5" SSD](/images/crucial_2.5_ssd.png)
+![Crucial 2.5" SSD](/images/crucial_2.5_ssd.jpg)
 
 - 
 
