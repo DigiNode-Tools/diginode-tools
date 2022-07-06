@@ -1,6 +1,8 @@
 # Suggested DigiNode Hardware
 
-To buid your own DigiNode, you first need a Rasperry Pi 4 8Gb and power supply. You then need an SSD and case. For the latter, I have provided two options below to suit different budgets.
+To buid your own DigiNode, I reccomend a Rasperry Pi 4 8Gb with a power supply, SSD and case. Links for all the items you require are provided below. For the case and SSD, I have provided two options to suit different budgets.
+
+Disclaimer: This page includes some affiliate links. By purchasing your equipment from here, you are helping to support future development of DigiNode Tools. Thanks for your support.
 
 
 ## Raspberry Pi 4 Model B 8Gb
@@ -19,7 +21,7 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 ![Raspberry Pi 4 PSU](/images/rpi4_psu.jpg)
 
 
-# Option A: Argon One M.2 Case with enclosed SSD
+# Option A: Argon One M.2 Case with enclosed SSD (Reccomended)
 
 | **Pros**                                          | **Cons**                             			     |
 |---------------------------------------------------|----------------------------------------------------|
@@ -39,7 +41,7 @@ Note: You need to choose the correct type of M.2 SSD depending on which type you
 
 
 
-# Option B: Flirc Case with separate SSD
+# Option B: Flirc Case with separate SSD (Budget Friendly)
 
 | **Pros**              | **Cons**                             			     |
 |-----------------------|----------------------------------------------------|
@@ -51,7 +53,7 @@ Purchase:
 [Amazon.co.uk](https://amzn.to/3IjCkRV)
 [Amazon.com](https://amzn.to/3R5abSN)
 [Amazon.ca](https://amzn.to/3P1YcDA)
-Note: The Flirc case is made of aluminium, and the entire case acts as a heat sync. It does not inculde a fan. During the intial sync of the blockchain it can get quite hot, but the rest of the time is should be fine. If you choose a case without fan make sure it has passive cooling of some kind.
+Note: The Flirc case is made of aluminium, and the entire case acts as a heat sync to keep your Pi cool. It does not inculde a fan. During the intial sync of the blockchain it can get quite hot, but the rest of the time is should be fine. If you choose a case without fan make sure it has passive cooling of some kind.
 ![Flirc case](/images/flirc_case.png)
 
 ## Orico USB 3.1 10Gbps USB-C SSD Enclosure
