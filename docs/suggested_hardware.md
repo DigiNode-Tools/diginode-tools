@@ -29,17 +29,24 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 | Active cooling (Fan included)                     | 		                                             |
 | Better performance with an NVME SSD               | 		                                             |
 
-## Argon ONE M.2 for Raspberry Pi 4
+## Argon ONE M.2 Case for Raspberry Pi 4
 Purchase:
 - [Amazon.co.uk](https://amzn.to/3alBS9k)
 
-Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD and the other supports a M.2 NVME SSD. Either will work but you need to buy the correct SSD to match your chosen case.(See below.)
+Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See below.)
 
 ## M.2 SSD
 Purchase:
+- [Amazon.co.uk](https://amzn.to/3P5rlxz)
 
 Note: You need to choose the correct type of M.2 SSD depending on which type your case supports - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/).
 
+## USB A to USB A Cable
+Purchase:
+- [Amazon.co.uk](https://amzn.to/3P5rlxz)
+
+Note: Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from a microSD card and use this to burn the image on to the SSD making the process longer and more complicated. This cable will save you a lot of headaches! It is optional but highly recommended. 
+![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
 
 
 # Option B: Flirc Case with separate SSD (Budget Friendly)
