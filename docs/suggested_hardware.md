@@ -6,14 +6,14 @@ To buid your own DigiNode, you need a Rasperry Pi 4 8Gb and then a case
 Purchase:
 [Amazon.co.uk](https://amzn.to/3alBS9k)
 Note: Running DigiByte Core requires ~5Gb RAM. For this reason, an 8Gb Pi is strongly reccomemned. A 4Gb Pi will work but it will require a swap file, and performance will be very sluggish. For this reason, a 4Gb Pi is fine for testing, but for long term use, an 8Gb (or greater) Pi is highly recommeded.
-![Raspberry Pi 4 Model B 8Gb](../images/rpi4_8gb.png)
+![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.png)
 
 ## Genuine Raspberry Pi 4 PSU
 Purchase:
 [Amazon.co.uk](https://amzn.to/3P5YtFI)
 [Amazon.com](https://amzn.to/3ae8To1)
 Note: Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
-![Raspberry Pi 4 PSU](../images/rpi4_psu.png)
+![Raspberry Pi 4 PSU](/images/rpi4_psu.png)
 
 # Option A: Argon One M.2 Case
 
