@@ -8,7 +8,7 @@ Disclaimer: This page includes affiliate links. By purchasing your equipment fro
 ## Raspberry Pi 4 Model B 8Gb
 Purchase:
 - [Amazon.com](https://amzn.to/3nIH6Pq)
-- [Amazon.com.au]()
+- [Amazon.com.au](https://amzn.to/3Rg1hSh)
 - [Amazon.ca](https://amzn.to/3IkogHN)
 - [Amazon.co.uk](https://amzn.to/3Rek4h6)
 - [Amazon.de](https://amzn.to/3yjVYZp)
@@ -50,38 +50,38 @@ Note: Aftermarket power supplies can be cheaper but are frequently prone to volt
 | Active cooling (Fan included)                     | 		                                             |
 | Better performance with an optional NVME SSD      | 		                                             |
 
-## Argon ONE M.2 Case for Raspberry Pi 4
+## Argon ONE M.2 Case for Raspberry Pi 4 (SATA SSD Model)
 Purchase:
-- [Amazon.com]()
-- [Amazon.com.au]()
-- [Amazon.ca]()
+- [Amazon.com](https://amzn.to/3nHfRVB)
+- [Amazon.com.au](https://amzn.to/3yK5dni)
+- [Amazon.ca](https://amzn.to/3Ii1twm)
 - [Amazon.co.uk](https://amzn.to/3alBS9k)
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
-- [Amazon.nl]()
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.de](https://amzn.to/3OQHlUu)
+- [Amazon.es](https://amzn.to/3NPzaqn)
+- [Amazon.fr](https://amzn.to/3NPzaqn)
+- [Amazon.it](https://amzn.to/3OZnBOi)
+- [Amazon.nl](https://amzn.to/3InbgBy)
+- [Amazon.se](https://amzn.to/3O2nNeV)
+- [Amazon.sg](https://amzn.to/3P35yGM)
 
-Note: There are two variants of the Argon One M.2 case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either will work but you need to buy the correct SSD to match your chosen case. (See SSD info below.). The Argon case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate it at the relevant temperature threshold.
+Note: There are two variants of the Argon One M.2 Case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Both are suitable but you need to buy the correct SSD to match your chosen case. (See SSD info below.). The Argon One case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate it at the desired temperature threshold.
 ![Argon One M.2 Case](/images/argon_m2.jpg)
 
 ## M.2 SATA SSD
 Purchase:
-- [Amazon.com]()
-- [Amazon.com.au]()
-- [Amazon.ca]()
+- [Amazon.com](https://amzn.to/3OZoVAK)
+- [Amazon.com.au](https://amzn.to/3Ax4FSV)
+- [Amazon.ca](https://amzn.to/3RisRhK)
 - [Amazon.co.uk](https://amzn.to/3yhYoIg)
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
-- [Amazon.nl]()
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.de](https://amzn.to/3IjrQls)
+- [Amazon.es](https://amzn.to/3bXVRLO)
+- [Amazon.fr](https://amzn.to/3urgbeY)
+- [Amazon.it](https://amzn.to/3PdSIpz)
+- [Amazon.nl](https://amzn.to/3nIZDv3)
+- [Amazon.se](https://amzn.to/3Ax55bX)
+- [Amazon.sg](https://amzn.to/3RsBruL)
 
-Note: You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two.
+Note: You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. SATA is older and slower. NVME is newer and faster. SATA is more than adequate for a DigiNode, unless you want the extra performance. More info [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two. As of July 2022, DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recommend 250Gb or 500Gb to be more future proof.
 
 ![M.2 SATA SSD](/images/m2_sata_ssd.jpg)
 
@@ -114,16 +114,16 @@ Note: Since the SSD is enclosed in the Argon One case, this cable makes it possi
 ## Flirc Case for Raspberry Pi 4
 Purchase:
 - [Amazon.com](https://amzn.to/3R5abSN)
-- [Amazon.com.au]()
+- [Amazon.com.au](https://amzn.to/3aj6YhV)
 - [Amazon.ca](https://amzn.to/3P1YcDA)
 - [Amazon.co.uk](https://amzn.to/3IjCkRV)
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
-- [Amazon.nl]()
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.de](https://amzn.to/3akPeCI)
+- [Amazon.es](https://amzn.to/3yLi0Ws)
+- [Amazon.fr](https://amzn.to/3RhDGkc)
+- [Amazon.it](https://amzn.to/3ONDDer)
+- [Amazon.nl](https://amzn.to/3yK92sE)
+- [Amazon.se](https://amzn.to/3yM9cj3)
+- [Amazon.sg](https://amzn.to/3Infnxu)
 
 Note: The Flirc case is made of aluminium, and the entire case acts as a heat sync to keep your Pi cool. It does not inculde a fan. During the intial sync of the blockchain it can get quite hot, but the rest of the time is should be fine. If you choose a case without a fan make sure it has passive cooling of some kind.
 ![Flirc case](/images/flirc_case.jpg)
@@ -131,16 +131,16 @@ Note: The Flirc case is made of aluminium, and the entire case acts as a heat sy
 ## Orico USB 3.1 10Gbps USB-C SSD Enclosure
 Purchase: 
 - [Amazon.com](https://amzn.to/3P4VTQh) 
-- [Amazon.com.au]()
-- [Amazon.ca]()
+- [Amazon.com.au](https://amzn.to/3uv51FY)
+- [Amazon.ca](https://amzn.to/3O2tlGh)
 - [Amazon.co.uk](https://amzn.to/3ydNfbf) 
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
+- [Amazon.de](https://amzn.to/3nKdz7X)
+- [Amazon.es](https://amzn.to/3Rg5Gon)
+- [Amazon.fr](https://amzn.to/3arL1wW)
+- [Amazon.it](https://amzn.to/3uuu4ZI)
 - [Amazon.nl](https://amzn.to/3yh6Asc)
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.se](https://amzn.to/3Aydax8)
+- [Amazon.sg](https://amzn.to/3ImPptC)
 
 Note: You can use whichever SSD enclosure you like but try to to ensure it is at least USB 3.1 Gen 2 10Gbps. Some enclosures are only 6Gbps.
 
@@ -148,17 +148,17 @@ Note: You can use whichever SSD enclosure you like but try to to ensure it is at
 
 ## Crucial 2.5" SSD
 Purchase:
-- [Amazon.com]()
-- [Amazon.com.au]()
-- [Amazon.ca]()
+- [Amazon.com](https://amzn.to/3ORS4hq)
+- [Amazon.com.au](https://amzn.to/3RcdHe2)
+- [Amazon.ca](https://amzn.to/3NPTc3M)
 - [Amazon.co.uk](https://amzn.to/3IjFNjF)
-- [Amazon.de]()
-- [Amazon.es]()
-- [Amazon.fr]()
-- [Amazon.it]()
-- [Amazon.nl]()
-- [Amazon.se]()
-- [Amazon.sg]()
+- [Amazon.de](https://amzn.to/3P1yfEo)
+- [Amazon.es](https://amzn.to/3yeSMy8)
+- [Amazon.fr](https://amzn.to/3uRZdXp)
+- [Amazon.it](https://amzn.to/3ImFrbH)
+- [Amazon.nl](https://amzn.to/3NT3Bvz)
+- [Amazon.se](https://amzn.to/3ImFHaF)
+- [Amazon.sg](https://amzn.to/3Irgc8j)
 
 Note: As of July 2022, DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recommend 250Gb or 500Gb to be more future proof.
 
