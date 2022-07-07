@@ -1,9 +1,19 @@
 # Build your own DigiNode
 
-To buid your own DigiNode, you will need a Raspberry Pi 4 8Gb with power supply, SSD and case. Links for suggested items are below. For the case and SSD, two options have been provided to suit different budgets.
+The easiest and most cost effective way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets.
 
 Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.
 
+The approximate prices are shown below. These may not be current, and you may be able to find cheaper options if you look.
+
+| **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option A: Flirc Case w/ External SSD** | Price in USD (Approx) |
+|--------------------------------------------------|-----------------------|------------------------------------------|-----------------------|
+| Raspberry Pi 4 8Gb 				               | $75     	           | Raspberry Pi 4 8Gb 				      | $75     	          |
+| Raspberry Pi 4 Power Supply                      | $8	                   | Raspberry Pi 4 Power Supply              | $8   	              |
+| Argon One M.2 SATA Case      		               | $45	               | Flirc Case for Pi 4                      | $16     	          |
+| M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $10                   |
+| USB A to USB A Cable     		                   | $8		               | Crucial 2.5" SSD 250Gb	                  | $45                   |
+| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$150**              |                 
 
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
@@ -25,7 +35,7 @@ Purchase:
 - [Amazon.se](https://amzn.to/3yMiifO)
 - [Amazon.sg](https://amzn.to/3yoOcxl)
 
-## Genuine Raspberry Pi 4 PSU
+## Genuine Raspberry Pi 4 P
 ![Raspberry Pi 4 PSU](/images/rpi4_psu.jpg)
 
 Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
