@@ -8,9 +8,9 @@ Disclaimer: This page includes affiliate links. By purchasing your equipment fro
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
-DigiByte Core requires  at least 5Gb RAM to run. For this reason, the 8Gb model Pi 4 is highly reccomended. While the 4Gb model will work, it requires a swap file and performance will be very sluggish. Fine for testing, but not recommended for long term use.
+The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. DigiByte Core requires at least 5Gb RAM to run. For this reason, the 8Gb model Pi 4 is highly reccomended. While the 4Gb model will work, it requires a swap file which will work the SSD hard and performance will be very sluggish. Fine for testing, but not recommended for long term use. The 2Gb and 1Gb models will not work.
 
-As of July 2022, due to the global chip shortage, Raspberry Pi's are still dificult to find and may be out of stock at the provided links. You can monitor stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
+As of July 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
 
 Purchase:
 - [Amazon.com](https://amzn.to/3nIH6Pq)
