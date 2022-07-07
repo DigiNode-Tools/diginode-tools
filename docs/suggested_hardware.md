@@ -2,16 +2,16 @@
 
 The easiest and most cost effective way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets.
 
-The approximate prices are shown below. These may not be current, and there may be cheaper alternatives out there.
+The approximate prices are shown below. These may not be current, and there may be cheaper options out there if you look.
 
 | **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option B: Flirc Case w/ External SSD** | Price in USD (Approx) |
 |--------------------------------------------------|-----------------------|------------------------------------------|-----------------------|
 | Raspberry Pi 4 8Gb 				               | $75     	           | Raspberry Pi 4 8Gb 				      | $75     	          |
 | Raspberry Pi 4 Power Supply                      | $8	                   | Raspberry Pi 4 Power Supply              | $8   	              |
 | Argon One M.2 SATA Case      		               | $45	               | Flirc Case for Pi 4                      | $16     	          |
-| M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $10                   |
+| M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $20                   |
 | USB A to USB A Cable     		                   | $8		               | Crucial 2.5" SSD 250Gb	                  | $45                   |
-| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$150**              |
+| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$164**              |
 
 Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.            
 
@@ -67,7 +67,7 @@ Purchase:
 
 The Argon One case is aluminium which helps to passively cool the Pi, and the SSD is housed within the case making the entire device nice and compact. The fan can be controlled by software to activate it at the desired temperature threshold.
 
-Note that there are two variants of the Argon One M.2 Case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Both are suitable but you need to buy the correct SSD to match your chosen case. (See SSD info below.). These links are for the SATA case.
+Note that there are two variants of the Argon One M.2 Case - one that supports a M.2 SATA SSD (slower) and the other supports a M.2 NVME SSD (faster). Either is suitable but you need to buy the correct SSD to match your chosen case. (See SSD info below.). These links below are for the SATA case.
 
 Purchase:
 - [Amazon.com](https://amzn.to/3nHfRVB)
@@ -85,7 +85,7 @@ Purchase:
 ## M.2 SATA SSD
 ![M.2 SATA SSD](/images/m2_sata_ssd.jpg)
 
-You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have two gaps whereas NVME connectors have one. Learn more about the diference between NVME and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
+Depending on which Argon M.2 case you choose, you need to choose the correct type of M.2 SSD - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have two gaps whereas NVME connectors have one. Learn more about the diference between NVME and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
 
 As of July 2022, a DigiNode requires approximately 40GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
 
@@ -144,8 +144,6 @@ Purchase:
 - [Amazon.nl](https://amzn.to/3yK92sE)
 - [Amazon.se](https://amzn.to/3yM9cj3)
 - [Amazon.sg](https://amzn.to/3Infnxu)
-
-
 
 ## Orico USB 3.1 10Gbps USB-C SSD Enclosure
 ![Orico enclosure](/images/orico_enclosure.jpg)
