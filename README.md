@@ -142,6 +142,10 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
+DigiNode Tools v0.2.5 - 2022-07-07 Test Release
+- Fix: SKIP_OS_CHECK flag was not working
+- Improve documentation - add equipment suggestions for building your own DigiNode
+
 DigiNode Tools v0.2.4 - 2022-07-01 Test Release
 - Fix: Installation now cancels if Go-IPFS fails to install. There is a recurring problem with the install files not downloading which may be a probelm with their servers. Typically, if you keep retrying it will eventually work.
 - Fix: Hide swap status in status monitor if the swap is tiny (i.e. around 1 Mb)
