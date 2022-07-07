@@ -11,9 +11,9 @@ DigiNode Tools are a suite of linux scripts that make it easy to setup, monitor 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
 ### What do I need to run a DigiNode?
-You can run DigiNode Tools on most Debian and Ubuntu systems. The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. 
+DigiNode Tools should run on most Debian and Ubuntu based systems. See the Compatibility section below.
 
-If you want to build your own DigiNode, a complete list of suggested hardware is available [here](docs/suggested_hardware.md).
+If you want to build your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an SSD running **Raspberry Pi OS Lite 64-bit**. A complete list of suggested hardware is available [here](docs/suggested_hardware.md).
 
 ## DigiNode Setup
 
@@ -67,8 +67,8 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 - A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- A 64bit Linux OS is required.
-- If you are interested in building your own DigiNode, see [here](docs/suggested_hardware.md) for suggested equipment.
+- DigiNode should work with most Ubuntu or Debian based systems. A 64bit OS is required.
+- If you are interested in building your own DigiNode, see [here](docs/suggested_hardware.md) for a list of suggested equipment.
 
 DigiNode has been tested and known to work with the following systems:
 
