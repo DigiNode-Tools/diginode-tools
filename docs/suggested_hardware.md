@@ -75,7 +75,7 @@ Purchase:
 ## M.2 SATA SSD
 ![M.2 SATA SSD](/images/m2_sata_ssd.jpg)
 
-You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have one slot whereas NVME connectors have two. Learn more about the diference between NVMA and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
+You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have two gaps whereas NVME connectors have one. Learn more about the diference between NVME and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
 
 As of July 2022, a DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recommend a 250Gb SSD, or 500Gb to be more future proof.
 
