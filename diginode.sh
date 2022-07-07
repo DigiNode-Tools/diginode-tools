@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.2.5
-# Last Updated: 2022-07-03
+DGNT_VER_LOCAL=0.2.6
+# Last Updated: 2022-07-07
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1226,13 +1226,18 @@ RAMAVAIL_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.
 SWAPUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
 
 # Get current system temp
-temperature=$(cat </sys/class/thermal/thermal_zone0/temp)
+temperature=$(cat </sys/class/thermal/thermal_zone0/temp 2>/dev/null)
 
-# Convert temperature to Degrees C
-TEMP_C=$((temperature/1000))
+# Only calculate temp if a value was returned
+if [ "$temperature" != "" ]; then
 
-# Convert temperature to Degrees F
-TEMP_F=$(((9/5) * $TEMP_C + 32))
+  # Convert temperature to Degrees C
+  TEMP_C=$((temperature/1000))
+
+  # Convert temperature to Degrees F
+  TEMP_F=$(((9/5) * $TEMP_C + 32))
+
+fi
 
 
 # ------------------------------------------------------------------------------
@@ -1816,8 +1821,10 @@ printf "  ╠═══════════════╬══════�
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -gt 8 ]; then
+if [ "$temperature" != "" ]; then
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
+fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 fi
