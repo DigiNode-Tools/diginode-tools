@@ -138,7 +138,7 @@ for var in "$@"; do
         "--dgntmain" ) DGNT_BRANCH_REMOTE="main";; 
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
-        "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
+        "--skiposcheck" ) DIGINODE_SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -4909,7 +4909,7 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have spent hundreds of hours developing DigiNode Tools. If you"
+    echo "    I have spent thousands of hours developing DigiNode Tools. If you"
     echo "    find these tools useful, kindly make a donation in DGB to support my work."
     echo "    Any amount is greatly appreciated. Many thanks. - Olly @saltedlolly"
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
