@@ -2013,11 +2013,11 @@ os_check() {
             exit 1
 
         else
-            printf "%b %bSupported OS detected%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bSupported OS detected: %s %s%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${detected_os^}" "${detected_version}" "${COL_NC}"
             echo ""
         fi
     else
-        printf "%b %bSKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b--skiposcheck flag detected - OS Check was skipped.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 }
 
@@ -5563,7 +5563,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
-        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE    
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE  
         dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
@@ -5595,6 +5595,13 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b%b %s YES!  DigiNode Tools main branch\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # If there is a local version number, but no local branch, set the branch to HEAD
+            if [ "$DGNT_VER_LOCAL" != "" ]; then
+                DGNT_BRANCH_LOCAL="HEAD"
+                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
+                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${INFO}"
+            fi
         fi
     fi
 
@@ -6121,6 +6128,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         ipfsarch="arm64"
     elif [ "$ARCH" = "X86_64" ]; then
         ipfsarch="amd64"
+    elif [ "$ARCH" = "x86_64" ]; then
+        ipfsarch="amd64"
     fi
 
     # First, Upgrade IPFS Updater if there is an update
@@ -6155,6 +6164,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         # Downloading latest IPFS Updater tar.gz from IPFS distributions website
         str="Downloading IPFS Updater v${IPFSU_VER_RELEASE} from IPFS distributions website..."
         printf "%b %s" "${INFO}" "${str}"
+        echo "Download command: https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz"
         sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
