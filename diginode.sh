@@ -1226,7 +1226,7 @@ RAMAVAIL_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.
 SWAPUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
 
 # Get current system temp
-temperature=$(cat </sys/class/thermal/thermal_zone0/temp 2>/dev/null)
+temperature=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
 
 # Only calculate temp if a value was returned
 if [ "$temperature" != "" ]; then

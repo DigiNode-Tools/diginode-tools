@@ -142,6 +142,9 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
+DigiNode Tools v0.2.6
+- Fix: Hide temperature in Status Monitor if it cannot be read from the system
+
 DigiNode Tools v0.2.5 - 2022-07-07 Test Release
 - Fix: SKIP_OS_CHECK flag was not working
 - Improve documentation - add equipment suggestions for building your own DigiNode
