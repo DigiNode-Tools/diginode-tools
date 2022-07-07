@@ -8,10 +8,12 @@ A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) F
 ### What are DigiNode Tools?
 DigiNode Tools are a suite of linux scripts that make it easy to setup, monitor and manage your DigiNode from the linux command line.
 
-### What do I need to run a DigiNode?
-You can run DigiNode Tools on most Debian and Ubuntu systems. The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. A complete list of recommended hardware is available [here](docs/suggested_hardware.md).
-
 For more information, visit: https://diginode.digibyte.help (website coming soon)
+
+### What do I need to run a DigiNode?
+You can run DigiNode Tools on most Debian and Ubuntu systems. The recommended setup for this is a **Raspberry Pi 4 8Gb** running **Raspberry Pi OS Lite 64-bit**. 
+
+If you want to build your own DigiNode, a complete list of suggested hardware is available [here](docs/suggested_hardware.md).
 
 ## DigiNode Setup
 
