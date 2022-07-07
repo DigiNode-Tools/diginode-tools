@@ -13,7 +13,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Debian and Ubuntu based systems. See the Compatibility section below.
 
-If you want to build your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an SSD running **Raspberry Pi OS Lite 64-bit**. A complete list of suggested hardware is available [here](docs/suggested_hardware.md).
+If you want to build your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. A complete list of what equipment you need is available [here](docs/suggested_hardware.md).
 
 ## DigiNode Setup
 
@@ -65,9 +65,10 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ## Compatibility
 
-- A device with at least 8Gb RAM is strongly recommended. DigiNode requires >5Gb to run. 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
+- A device with at least 8Gb RAM is strongly recommended. DigiByte Core requires >5Gb to run. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
+- As of July 2022, the DigiByte blockchain currently requires around 40Gb of disk space. If you are setting up a DigiNode, a minimum 80Gb of free disk space is recommended. 
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- DigiNode should work with most Ubuntu or Debian based systems. A 64bit OS is required.
+- DigiNode should work with most Ubuntu or Debian based systems. A 64bit OS is required. It has been designed with headless operation in mind.
 - If you are interested in building your own DigiNode, see [here](docs/suggested_hardware.md) for a list of suggested equipment.
 
 DigiNode has been tested and known to work with the following systems:
