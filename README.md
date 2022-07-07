@@ -1,6 +1,6 @@
 ![DigiNode Logo](images/diginode_logo.png)
 
-# Introduction to DigiNode Tools
+# DigiNode Tools
 
 ### What's a DigiNode?
 A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 

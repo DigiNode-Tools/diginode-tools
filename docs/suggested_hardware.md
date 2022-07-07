@@ -2,25 +2,25 @@
 
 The easiest and most cost effective way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets.
 
-Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.
+The approximate prices are shown below. These may not be current, and there may be cheaper alternatives out there.
 
-The approximate prices are shown below. These may not be current, and you may be able to find cheaper options if you look.
-
-| **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option A: Flirc Case w/ External SSD** | Price in USD (Approx) |
+| **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option B: Flirc Case w/ External SSD** | Price in USD (Approx) |
 |--------------------------------------------------|-----------------------|------------------------------------------|-----------------------|
 | Raspberry Pi 4 8Gb 				               | $75     	           | Raspberry Pi 4 8Gb 				      | $75     	          |
 | Raspberry Pi 4 Power Supply                      | $8	                   | Raspberry Pi 4 Power Supply              | $8   	              |
 | Argon One M.2 SATA Case      		               | $45	               | Flirc Case for Pi 4                      | $16     	          |
 | M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $10                   |
 | USB A to USB A Cable     		                   | $8		               | Crucial 2.5" SSD 250Gb	                  | $45                   |
-| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$150**              |                 
+| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$150**              |
+
+Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.            
 
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
 The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. DigiByte Core requires at least 5Gb RAM to run. For this reason, the 8Gb model Pi 4 is highly reccomended. While the 4Gb model will work, it requires a swap file which will work the SSD hard and performance will be very sluggish. Fine for testing, but not recommended for long term use. The 2Gb and 1Gb models are not supported.
 
-As of July 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
+As of July 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
 
 Purchase:
 - [Amazon.com](https://amzn.to/3nIH6Pq)
@@ -35,10 +35,10 @@ Purchase:
 - [Amazon.se](https://amzn.to/3yMiifO)
 - [Amazon.sg](https://amzn.to/3yoOcxl)
 
-## Genuine Raspberry Pi 4 P
-![Raspberry Pi 4 PSU](/images/rpi4_psu.jpg)
+## Genuine Raspberry Pi 4 Power Supply
+![Raspberry Pi 4 Power Supplies](/images/rpi4_psu.jpg)
 
-Aftermarket power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
+Third party power supplies can be cheaper but are frequently prone to voltage issues. Since the Pi is also powering the SSD, it is highly recommnded to purchase a genuine official Raspberry Pi 4 power supply. 
 
 Purchase:
 - [Amazon.com](https://amzn.to/3ae8To1)
@@ -87,7 +87,7 @@ Purchase:
 
 You need to choose the correct type of M.2 SSD depending on which Argon M.2 case you choose - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have two gaps whereas NVME connectors have one. Learn more about the diference between NVME and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
 
-As of July 2022, a DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recommend a 250Gb SSD, or 500Gb to be more future proof.
+As of July 2022, a DigiNode requires approximately 40GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
 
 Purchase:
 - [Amazon.com](https://amzn.to/3OZoVAK)
@@ -168,7 +168,7 @@ Purchase:
 ## Crucial 2.5" SSD
 ![Crucial 2.5" SSD](/images/crucial_2.5_ssd.jpg)
 
-As of July 2022, DigiNode requires ~40GB of space. You can choose any size of SSD you want that is larger than this. I recommend 250Gb or 500Gb to be more future proof.
+As of July 2022, DigiNode requires approximately 40GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
 
 Purchase:
 - [Amazon.com](https://amzn.to/3ORS4hq)
