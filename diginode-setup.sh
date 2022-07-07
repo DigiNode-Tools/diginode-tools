@@ -125,7 +125,7 @@ RESET_MODE=false
 UNATTENDED_MODE=false
 DGNT_BRANCH_REMOTE="release"
 UNINSTALL=false
-DIGINODE_SKIP_OS_CHECK=false
+SKIP_OS_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
 # Check arguments for the undocumented flags
@@ -138,7 +138,7 @@ for var in "$@"; do
         "--dgntmain" ) DGNT_BRANCH_REMOTE="main";; 
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
-        "--skiposcheck" ) DGNT_SKIP_OS_CHECK=true;;
+        "--skiposcheck" ) SKIP_OS_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -1932,7 +1932,7 @@ install_dependent_packages() {
 
 # Check that this OS is supported
 os_check() {
-    if [ "$DIGINODE_SKIP_OS_CHECK" != true ]; then
+    if [ "$SKIP_OS_CHECK" != true ]; then
         # This function gets a list of supported OS versions from a TXT record at diginode-versions.digibyte.help
         # and determines whether or not the script is running on one of those systems
         local remote_os_domain valid_os valid_version valid_response detected_os detected_version display_warning cmdResult digReturnCode response
@@ -2005,7 +2005,7 @@ os_check() {
             printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
             printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
-            printf "%b   %bcurl -sSL $DGNT_SETUP_URL | DIGINODE_SKIP_OS_CHECK=true sudo -E bash%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   %bcurl -sSL $DGNT_SETUP_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
             printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2017,7 +2017,7 @@ os_check() {
             echo ""
         fi
     else
-        printf "%b %bDIGINODE_SKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %SKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 }
 
@@ -4909,7 +4909,7 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have spent hundreds of hours developing DigiNode Tools. If you"
+    echo "    I have spent thousands of hours developing DigiNode Tools. If you"
     echo "    find these tools useful, kindly make a donation in DGB to support my work."
     echo "    Any amount is greatly appreciated. Many thanks. - Olly @saltedlolly"
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
