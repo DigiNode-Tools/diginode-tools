@@ -2017,7 +2017,7 @@ os_check() {
             echo ""
         fi
     else
-        printf "%b %SKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bSKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 }
 
