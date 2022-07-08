@@ -2106,7 +2106,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nIt is recommended that you change your hostname to: 'diginode'.\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\n\\nWould you like to change your hostname to 'diginode' now?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode' now?\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
@@ -6737,18 +6737,20 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     printf "%b %s" "${INFO}" "${str}"
 
     if [ "$PKG_MANAGER" = "apt-get" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-        NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
+        NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1 | cut -d'~' -f1)
     fi
 
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        exit 1
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        exit 1
     fi
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
