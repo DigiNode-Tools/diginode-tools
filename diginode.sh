@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.2.6
-# Last Updated: 2022-07-07
+DGNT_VER_LOCAL=0.3.1
+# Last Updated: 2022-07-08
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1811,8 +1811,10 @@ printf "   when the total connections is 9 or more.\\n"
 fi
 printf "\\n"
 printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
+if [ "$MODEL" != "" ]; then
 printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+fi
 printf "  ║ DISK USAGE    ║  " && printf "%-33s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE  ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
