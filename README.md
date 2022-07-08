@@ -144,13 +144,13 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
-DigiNode Tools v0.3.1
+DigiNode Tools v0.3.1 - 2022-07-09 Test Release
 - New: DigiNode Tools now work on x86_64 architecture so you can use it to setup a DigiNode on PC hardware. (Please help test!)
 - Change: Rename Go-IPFS to Kubo (the name has been changed)
 - Change: IPFS Updater utility is no longer used to install Kubo (formerly Go-IPFS). It is now installed by DigiNode Setup itself.
 - Fix: Hide temperature in Status Monitor if it cannot be read from the system
 - Fix: In Status Monitor, hide DEVICE row if the device is unknown
-- Fix: Improve the scripts ability to detect if DigiAsset Node is installed and/or running/
+- Fix: Improve the scripts ability to detect if DigiAsset Node is installed and/or running.
 
 DigiNode Tools v0.2.5 - 2022-07-07 Test Release
 - Fix: --skiposcheck flag now works as expected
