@@ -7300,48 +7300,61 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     if [ "$NPM_VER_LOCAL" = "" ]; then
         NPM_DO_INSTALL="YES"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        # If no local version can be detected, let's immediately install npm
     else
         printf "%b%b %s YES!   Found: npm v${NPM_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        CHECK_FOR_NPM_UPDATE="YES"
     fi
 
-    # Check for latest npm release online
-    str="Checking the latest npm release..."
-    printf "%b %s" "${INFO}" "${str}"
-    # Gets latest npm version
-    NPM_VER_RELEASE=$(npm show npm version 2>/dev/null)
-
-    # If can't get npm release version number
-    if [ "$NPM_VER_RELEASE" = "" ]; then
-        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of npm. Is the Internet down?.\\n" "${CROSS}"
-        printf "\\n"
-        printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
-        printf "\\n"   
-    else
-        printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+    # Install npm now if it is not installed
+    if [ $NPM_DO_INSTALL = "YES" ]; then
+        install_dependent_packages npm
     fi
 
-    # If an npm local version already exists.... (i.e. we have a local version number)
-    if [ ! $NPM_VER_LOCAL = "" ] && [ ! $NPM_VER_RELEASE = "" ]; then
-      # ....then check if an upgrade is required
-      if [ $(version $NPM_VER_LOCAL) -ge $(version $NPM_VER_RELEASE) ]; then
-          printf "%b npm is already up to date.\\n" "${TICK}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. npm v${NPM_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            NPM_DO_INSTALL=YES
+
+    # If npm is installed, check for npm update
+    if [ $CHECK_FOR_NPM_UPDATE = "YES" ]; then
+
+        # Check for latest npm release online
+        str="Checking the latest npm release..."
+        printf "%b %s" "${INFO}" "${str}"
+        # Gets latest npm version
+        NPM_VER_RELEASE=$(npm show npm version 2>/dev/null)
+
+        # If can't get npm release version number
+        if [ "$NPM_VER_RELEASE" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to check for new version of npm. Is the Internet down?.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+            printf "\\n"   
+        else
+            printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If an npm local version already exists.... (i.e. we have a local version number)
+        if [ ! $NPM_VER_LOCAL = "" ] && [ ! $NPM_VER_RELEASE = "" ]; then
+          # ....then check if an upgrade is required
+          if [ $(version $NPM_VER_LOCAL) -ge $(version $NPM_VER_RELEASE) ]; then
+              printf "%b npm is already up to date.\\n" "${TICK}"
+              if [ "$RESET_MODE" = true ]; then
+                printf "%b Reset Mode is Enabled. npm v${NPM_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+                NPM_DO_INSTALL=YES
+              else
+                printf "%b Upgrade not required for npm.\\n" "${INFO}"
+              fi
           else
-            printf "%b Upgrade not required for npm.\\n" "${INFO}"
+              printf "%b %bnpm will be upgraded from v${NPM_VER_LOCAL} to v${NPM_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+              NPM_DO_INSTALL="YES"
           fi
-      else
-          printf "%b %bnpm will be upgraded from v${NPM_VER_LOCAL} to v${NPM_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          NPM_DO_INSTALL="YES"
-      fi
-    fi 
+        fi 
 
-    # Install the latest version of npm, if needed
-    if [ "$NPM_DO_INSTALL" = "YES" ]; then
-        printf "%b Install latest version of npm...\\n" "${INFO}"
-        npm install --quiet npm@latest -g
+        # Install the latest version of npm, if needed
+        if [ "$NPM_DO_INSTALL" = "YES" ]; then
+            printf "%b Install latest version of npm...\\n" "${INFO}"
+            npm install --quiet npm@latest -g
+        fi
+
     fi
 
 
