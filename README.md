@@ -83,6 +83,8 @@ DigiNode has been tested and known to work with the following systems:
 
 These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
 
+IMPORTANT: These tools are currently still under active development and should be used for testing purposes only at this time.
+
 ## Setup Instructions
 
 - To get started, run DigiNode Setup by entering the following command in the terminal:
@@ -142,8 +144,16 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
+DigiNode Tools v0.3.1
+- New: DigiNode Tools now work on x86_64 architecture so you can use it to setup a DigiNode on PC hardware. (Please help test!)
+- Change: Rename Go-IPFS to Kubo (the name has been changed)
+- Change: IPFS Updater utility is no longer used to install Kubo (formerly Go-IPFS). It is now installed by DigiNode Setup itself.
+- Fix: Hide temperature in Status Monitor if it cannot be read from the system
+- Fix: In Status Monitor, hide DEVICE row if the device is unknown
+- Fix: Improve the scripts ability to detect if DigiAsset Node is installed and/or running/
+
 DigiNode Tools v0.2.5 - 2022-07-07 Test Release
-- Fix: SKIP_OS_CHECK flag was not working
+- Fix: --skiposcheck flag now works as expected
 - Improve documentation - add equipment suggestions for building your own DigiNode
 
 DigiNode Tools v0.2.4 - 2022-07-01 Test Release

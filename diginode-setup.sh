@@ -75,9 +75,10 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size of the blockchain increases over time
-# Last Updated: 2022-05-25
-DGB_DATA_REQUIRED_HR="35Gb"
-DGB_DATA_REQUIRED_KB="35000000"
+# It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
+# Last Updated: 2022-07-08
+DGB_DATA_REQUIRED_HR="40Gb"
+DGB_DATA_REQUIRED_KB="40000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -487,7 +488,7 @@ IPFSU_VER_RELEASE=
 IPFSU_INSTALL_DATE=
 IPFSU_UPGRADE_DATE=
 
-# Store GoIPFS installation details:
+# Store Kubo (Go-IPFS) installation details:
 IPFS_VER_LOCAL=
 IPFS_VER_RELEASE=
 IPFS_INSTALL_DATE=
@@ -2013,11 +2014,11 @@ os_check() {
             exit 1
 
         else
-            printf "%b %bSupported OS detected%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bSupported OS detected: %s %s%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${detected_os^}" "${detected_version}" "${COL_NC}"
             echo ""
         fi
     else
-        printf "%b %SKIP_OS_CHECK env variable set to true - setup will continue%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b--skiposcheck flag detected - OS Check was skipped.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 }
 
@@ -2106,7 +2107,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nIt is recommended that you change your hostname to: 'diginode'.\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\n\\nWould you like to change your hostname to 'diginode' now?"  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode' now?\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
@@ -5563,7 +5564,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
-        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE    
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE  
         dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
@@ -5595,6 +5596,13 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b%b %s YES!  DigiNode Tools main branch\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # If there is a local version number, but no local branch, set the branch to HEAD
+            if [ "$DGNT_VER_LOCAL" != "" ]; then
+                DGNT_BRANCH_LOCAL="HEAD"
+                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
+                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${INFO}"
+            fi
         fi
     fi
 
@@ -5626,7 +5634,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                     printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
                     DGNT_INSTALL_TYPE="askreset"
                 else
-                    printf "%b DigiNode Tools are up to date.\\n" "${INFO}"
+                    printf "%b Upgrade not required.\\n" "${INFO}"
                     DGNT_INSTALL_TYPE="none"
                 fi
 
@@ -5883,104 +5891,36 @@ ipfs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: IPFS daemon =================================\\n\\n"
+    printf " =============== Checking: Kubo (Go-IPFS) ==============================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of IPFS Updater (this will also tell us if it is installed)
-    IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
-
-    # Let's check if IPFS Updater is already installed
-    str="Is IPFS Updater already installed?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if [ "$IPFSU_VER_LOCAL" = "" ]; then
-        IPFSU_STATUS="not_detected"
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-        IPFSU_VER_LOCAL=""
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-    else
-        IPFSU_STATUS="installed"
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: IPFS Updater v${IPFSU_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Check for latest IPFS Updater release online
-    str="Checking IPFS website for the latest IPFS Updater release..."
-    printf "%b %s" "${INFO}" "${str}"
-    # Gets latest IPFS Updater version, disregarding releases candidates (they contain 'rc' in the name).
-    IPFSU_VER_RELEASE=$(curl -sL https://dist.ipfs.io/ipfs-update/versions 2>/dev/null | tail -n 1 | sed 's/v//g')
-
-    # If can't get Github version number
-    if [ "$IPFSU_VER_RELEASE" = "" ]; then
-        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of IPFS Updater. Is the Internet down?.\\n" "${CROSS}"
-        printf "\\n"
-        printf "%b IPFS Updater cannot be upgraded at this time. Skipping...\\n" "${INFO}"
-        printf "\\n"
-        IPFSU_DO_INSTALL=NO
-        IPFSU_INSTALL_TYPE="none"
-        IPFSU_UPDATE_AVAILABLE=NO
-        return     
-    else
-        printf "%b%b %s Found: v${IPFSU_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^IPFSU_VER_RELEASE=/s|.*|IPFSU_VER_RELEASE=\"$IPFSU_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If an IPFS Updater local version already exists.... (i.e. we have a local version number)
-    if [ ! $IPFSU_VER_LOCAL = "" ]; then
-      # ....then check if an upgrade is required
-      if [ $(version $IPFSU_VER_LOCAL) -ge $(version $IPFSU_VER_RELEASE) ]; then
-          printf "%b IPFS Updater is already up to date.\\n" "${TICK}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Updater v${IPFSU_VER_RELEASE}.\\n" "${INFO}"
-            IPFSU_INSTALL_TYPE="askreset"
-            IPFSU_DO_INSTALL=YES
-          else
-            printf "%b Upgrade not required for IPFS Updater tool.\\n" "${INFO}"
-            IPFSU_DO_INSTALL=NO
-            IPFSU_INSTALL_TYPE="none"
-            IPFSU_UPDATE_AVAILABLE=NO
-          fi
-      else
-          printf "%b %bIPFS Updater will be upgraded from v${IPFSU_VER_LOCAL} to v${IPFSU_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          IPFSU_INSTALL_TYPE="upgrade"
-          IPFSU_DO_UPGRADE=YES
-      fi
-    fi 
-
-    # If no current version is installed, then do a clean install
-    if [ "$IPFSU_STATUS" = "not_detected" ]; then
-      printf "%b %bIPFS Updater v${IPFSU_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-      IPFSU_INSTALL_TYPE="new"
-      IPFSU_DO_INSTALL=YES
-    fi
-
     # Check for latest Go-IPFS release online
-    str="Checking IPFS website for the latest Go-IPFS release..."
+    str="Checking Github for the latest Kubo release..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-    IPFS_VER_RELEASE=$(curl -sL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
+    # Gets latest Kubo version, disregarding releases candidates (they contain 'rc' in the name).
+    IPFS_VER_RELEASE=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
     # If can't get Github version number
     if [ "$IPFS_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of Go-IPFS. Is the Internet down?.\\n" "${CROSS}"
+        printf "%b Unable to check for new version of Kubo. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b Go-IPFS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b Kubo cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: Kubo v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
+    # Get the local version number of Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Let's check if Go-IPFS is already installed
-    str="Is Go-IPFS already installed?..."
+    # Let's check if Kubo is already installed
+    str="Is Kubo already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -5990,12 +5930,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Go-IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Go-IPFS daemon upstart service running?..."
+      str="Is Kubo daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then # BANANA
           IPFS_STATUS="running"
@@ -6008,7 +5948,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Go-IPFS daemon systemd service running?..."
+        str="Is Kubo daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -6022,13 +5962,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
 
-    # If a Go-IPFS local version already exists.... (i.e. we have a local version number)
+    # If a Kubo local version already exists.... (i.e. we have a local version number)
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Go-IPFS is already up to date.\\n" "${TICK}"
+          printf "%b Kubo is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Go-IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
@@ -6040,7 +5980,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b Go-IPFS can be be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}\\n" "${INFO}"
+          printf "%b %bKubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           IPFS_INSTALL_TYPE="upgrade"
           IPFS_ASK_UPGRADE=YES
       fi
@@ -6048,7 +5988,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$IPFS_STATUS" = "not_detected" ]; then
-      printf "%b %bGo-IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bKubo v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
     fi
@@ -6059,7 +5999,7 @@ fi
 
 }
 
-# This function will install Go-IPFS if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install Kubo if it not yet installed, and if it is, upgrade it to the latest release
 ipfs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -6070,26 +6010,16 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Go-IPFS v${IPFS_VER_RELEASE}?\\n\\nThis will delete both Go-IPFS and the IPFS Updater utility and re-install them." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
-        # Reset IPFS Updater as well, if needed
-        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
-            IPFSU_DO_INSTALL=YES
-            IPFSU_INSTALL_TYPE="reset"
-        fi
     else        
-        printf " =============== Resetting: IPFS =======================================\\n\\n"
+        printf " =============== Resetting: Kubo (Go-IPFS) =============================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You skipped re-installing Go-IPFS.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing Kubo.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
-        # Don't reset IPFS Updater, if we are not resetting Go-IPFS (no point)
-        if [ "$IPFSU_INSTALL_TYPE" = "askreset" ]; then
-            IPFSU_DO_INSTALL=NO
-            IPFSU_INSTALL_TYPE="none"
-        fi
         return
     fi
 
@@ -6105,15 +6035,15 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: IPFS =========================================\\n\\n"
+        printf " =============== Install: Kubo (Go-IPFS) ===============================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: IPFS =========================================\\n\\n"
+        printf " =============== Upgrade: Kubo (Go-IPFS) ===============================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: IPFS ===========================================\\n\\n"
+        printf " =============== Reset: Kubo (Go-IPFS) =================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You chose to re-install Go-IPFS.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose to re-install Kubo.\\n" "${INFO}"
     fi
 
     # Let's find the correct file type to download based on the current architecture
@@ -6121,109 +6051,42 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         ipfsarch="arm64"
     elif [ "$ARCH" = "X86_64" ]; then
         ipfsarch="amd64"
+    elif [ "$ARCH" = "x86_64" ]; then
+        ipfsarch="amd64"
     fi
 
-    # First, Upgrade IPFS Updater if there is an update
+    # First, Clean up any old IPFS Updater files (IPFS Updater is no longer used at all so we get rid of all trace of it)
 
-    if [ "$IPFSU_DO_INSTALL" = "YES" ]; then
-
-        # If we are re-installing the current version of IPFS Updater, delete the existing install folder
-        if [ "$IPFSU_INSTALL_TYPE" = "reset" ]; then
-            str="Reset Mode: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r /usr/local/bin/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # If we are updating the current version of IPFS Updater, delete the existing install folder
-        if [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
-            str="Preparing Upgrade: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r /usr/local/bin/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-
-        # Delete any old IPFS Updater tar files
-        if compgen -G "$USER_HOME/ipfs-update*.tar.gz" > /dev/null; then
-            str="Deleting any old IPFS Updater tar.gz files from home folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $USER_HOME/ipfs-update*.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Downloading latest IPFS Updater tar.gz from IPFS distributions website
-        str="Downloading IPFS Updater v${IPFSU_VER_RELEASE} from IPFS distributions website..."
+    # If we are updating the current version of IPFS Updater, delete the existing install folder
+    if [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
+        str="Old Version Cleanup: Deleting IPFS Updater v${IPFSU_VER_LOCAL}..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT wget -q https://dist.ipfs.io/ipfs-update/v${IPFSU_VER_RELEASE}/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+        rm -r /usr/local/bin/ipfs-update
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
-        # Delete old IPFS Updater backup, if it exists
-        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
-            str="Deleting old backup of IPFS Updater..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $USER_HOME/ipfs-update-oldversion
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # If an there is an existing IPFS Update version, move it it to a backup version
-        if [ -d "$USER_HOME/ipfs-update" ]; then
-            str="Backing up the existing version of IPFS Updater to $USER_HOME/ipfs-update-oldversion..."
-            printf "%b %s" "${INFO}" "${str}"
-            mv $USER_HOME/ipfs-update $USER_HOME/ipfs-update-oldversion
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Extracting IPFS Updator tar.gz
-        str="Extracting IPFS Updator v${IPFSU_VER_RELEASE} ..."
+    # Delete any old IPFS Updater tar files
+    if compgen -G "$USER_HOME/ipfs-update*.tar.gz" > /dev/null; then
+        str="Old Version Cleanup: Deleting any old IPFS Updater tar.gz files from home folder..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
+        rm -f $USER_HOME/ipfs-update*.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
-        # Install IPFS Updater
-        printf "%b Installing IPFS Updater v${IPFSU_VER_RELEASE} ...\\n" "${INFO}"
-        cd $USER_HOME/ipfs-update/
-        bash install.sh
-        cd $USER_HOME
-
-        # Delete the IPFS Updater backup version, now the new version has been installed
-        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
-            str="Deleting previous version of IPFS Updater: $USER_HOME/ipfs-update-oldversion ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/ipfs-update-oldversion
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete the IPFS Updater backup version, now the new version has been installed
-        if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
-            str="Deleting IPFS Updater install folder: $USER_HOME/ipfs-update-oldversion ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete IPFS Updater tar.gz DigiNode Setup file
-        str="Deleting IPFS Updater install file: $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz ..."
+    # Delete old IPFS Updater backup, if it exists
+    if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
+        str="Old Version Cleanup: Deleting old backup of IPFS Updater..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f $USER_HOME/ipfs-update_v${IPFSU_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        rm -f $USER_HOME/ipfs-update-oldversion
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
-        # Get the new version number of the local IPFS Updater install
-        IPFSU_VER_LOCAL=$(ipfs-update --version 2>/dev/null | cut -d' ' -f3 | cut -d'-' -f1)
-
-        # Update diginode.settings with new IPFS Updater local version number and the install/upgrade date
-        sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=\"$IPFSU_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        if [ "$IPFSU_INSTALL_TYPE" = "new" ]; then
-            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-        elif [ "$IPFSU_INSTALL_TYPE" = "upgrade" ]; then
-            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
-        fi
-
-        # Reset IPFS Updater Install and Upgrade Variables
-        IPFSU_INSTALL_TYPE=""
-        IPFSU_UPDATE_AVAILABLE=NO
-        IPFSU_POSTUPDATE_CLEANUP=YES
-
+    # Delete the IPFS Updater backup version, now the new version has been installed
+    if [ -d "$USER_HOME/ipfs-update-oldversion" ]; then
+        str="Old Version Cleanup: Deleting IPFS Updater install folder: $USER_HOME/ipfs-update-oldversion ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $USER_HOME/ipfs-update
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
 
@@ -6264,9 +6127,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # If we are re-installing the current version of Go-IPFS, delete the existing binary
+    # If we are re-installing the current version of Kubo, delete the existing binary
     if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        str="Reset Mode: Deleting Go-IPFS v${IPFS_VER_LOCAL} ..."
+        str="Reset Mode: Deleting Kubo v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -6284,31 +6147,75 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # Install latest version of GoIPFS
-    printf "%b Installing Go-IPFS version v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    ipfs-update install latest
+    # If there is an existing Kubo install tar file, delete it
+    if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
+        str="Deleting existing Kubo install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Downloading latest Kubo install file from GitHub
+    str="Downloading Kubo v${IPFS_VER_RELEASE} from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If there is an existing IPFS install folder, delete it
+    if [ -d "$USER_HOME/go-ipfs" ]; then
+        str="Deleting existing ~/go-ipfs folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $USER_HOME/go-ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Extracting Kubo install files
+    str="Extracting Kubo v${IPFS_VER_RELEASE} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete Kubo install tar file, delete it
+    if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
+        str="Deleting Kubo install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Install Kubo to bin folder
+    printf "%b Installing Kubo v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
+    (cd $USER_HOME/go-ipfs; ./install.sh)
 
     # If the command completed without error, then assume IPFS installed correctly
     if [ $? -eq 0 ]; then
-        printf "%b Go-IPFS appears to have been installed correctly.\\n" "${INFO}"
+        printf "%b Kubo appears to have been installed correctly.\\n" "${INFO}"
         
         if [ "$IPFS_STATUS" = "not_detected" ];then
             IPFS_STATUS="installed"
         fi
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Go-IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: Kubo Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b This can occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
+        printf "%b This can sometimes occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
         printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if you keep retrying.\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
 
-    # Get the new version number of the local Go-IPFS install
+    # Delete ~/go-ipfs install folder
+    if [ -d "$USER_HOME/go-ipfs" ]; then
+        str="Deleting ~/go-ipfs install folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $USER_HOME/go-ipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the new version number of the local Kubo install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Update diginode.settings with new Go-IPFS local version number and the install/upgrade date
+    # Update diginode.settings with new Kubo local version number and the install/upgrade date
     sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -6574,7 +6481,7 @@ MemorySwapMax=0
 # badger is recovering) and migrations can delay startup.
 #
 # Ideally, we'd be a bit smarter about this but there's no good way to do that without hooking
-# systemd dependencies deeper into go-ipfs.
+# systemd dependencies deeper into Kubo.
 TimeoutStartSec=infinity
 
 Type=notify
@@ -6699,15 +6606,15 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
 
         # Is this Debian or Ubuntu?
-        local is_debian=$(cat /etc/issue | grep -Eo "Debian" 2>/dev/null)
-        local is_ubuntu=$(cat /etc/issue | grep -Eo "Ubuntu" 2>/dev/null)
+        local is_debian=$(cat /etc/os-release | grep ID_LIKE | grep debian -Eo)
+        local is_ubuntu=$(cat /etc/os-release | grep ID_LIKE | grep ubuntu -Eo)
 
         # Set correct PPA repository
-        if [ "$is_debian" = "Debian" ]; then
+        if [ "$is_debian" = "debian" ]; then
             printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
             curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
         fi
-        if [ "$is_ubuntu" = "Ubuntu" ]; then
+        if [ "$is_ubuntu" = "ubuntu" ]; then
             printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
         fi
@@ -6727,18 +6634,20 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     printf "%b %s" "${INFO}" "${str}"
 
     if [ "$PKG_MANAGER" = "apt-get" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
-        NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1)
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
+        NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1 | cut -d'~' -f1)
     fi
 
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        exit 1
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
-        # Gets latest Go-IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        exit 1
     fi
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
@@ -6774,7 +6683,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b NodeJS can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}\\n" "${INFO}"
+          printf "%b %bNodeJS can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           NODEJS_INSTALL_TYPE="upgrade"
           NODEJS_ASK_UPGRADE=YES
       fi
@@ -6790,7 +6699,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$NODEJS_STATUS" = "not_detected" ]; then
-      printf "%b NodeJS v${NODEJS_VER_RELEASE} will be installed.\\n" "${INFO}"
+      printf "%b %bNodeJS v${NODEJS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       NODEJS_INSTALL_TYPE="new"
       NODEJS_DO_INSTALL="if_doing_full_install"
     fi
@@ -6986,28 +6895,35 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     # First we'll see if it is running using the command: node index.js
     if [ "$DGA_STATUS" = "installed" ]; then
         str="Is DigiAsset Node currently running?..."
-        IS_DGANODE_RUNNING=$(sudo -u $USER_ACCOUNT pgrep -f "node index.js" 2>/dev/null)
+        IS_DGANODE_RUNNING=$(ps aux | sed '/grep/d' | grep "node index.js" -Eo)
         printf "%b %s" "${INFO}" "${str}"
-        if [ "$IS_DGANODE_RUNNING" != "" ]; then
+        if [ "$IS_DGANODE_RUNNING" = "node index.js" ]; then
             DGA_STATUS="running"
             IS_DGANODE_RUNNING="YES"
             printf "%b%b %s YES! [ Using: node index.js ]\\n" "${OVER}" "${TICK}" "${str}"
         else
             # If that didn't work, check if it is running using PM2
-            IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
-            if [ "$IS_PM2_RUNNING" = "" ]; then
-                DGA_STATUS="stopped"
-                IS_PM2_RUNNING="NO"
-                printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-            elif [ "$IS_PM2_RUNNING" = "0" ]; then
-                DGA_STATUS="stopped"
-                IS_PM2_RUNNING="NO"
-                printf "%b%b %s NO! [ PM2: index.js is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
-            else
+            IS_DGANODE_RUNNING=$(ps aux | sed '/grep/d' | grep digiasset_node/index.js -Eo)
+            if [ "$IS_DGANODE_RUNNING" = "digiasset_node/index.js" ]; then
                 DGA_STATUS="running"
                 IS_PM2_RUNNING="YES"
                 printf "%b%b %s YES! [ PM2: index.js is running ]\\n" "${OVER}" "${TICK}" "${str}"
-            fi    
+            else
+                IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
+                if [ "$IS_PM2_RUNNING" = "0" ]; then
+                    DGA_STATUS="stopped"
+                    IS_PM2_RUNNING="NO"
+                    printf "%b%b %s NO! [ PM2: index.js is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
+                elif [ "$IS_PM2_RUNNING" = "" ]; then
+                    DGA_STATUS="stopped"
+                    IS_PM2_RUNNING="NO" 
+                    printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+                else
+                    DGA_STATUS="running"
+                    IS_PM2_RUNNING="YES"
+                    printf "%b%b %s YES! [ PM2: index.js is probably running ]\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+            fi   
         fi
     fi
 
@@ -7033,7 +6949,6 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$DGA_LOCAL_BRANCH" != "" ]; then
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"$DGA_LOCAL_BRANCH\"|" $DGNT_SETTINGS_FILE
     fi
-
 
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
@@ -7076,11 +6991,21 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
         # This is a beta so the minor version doesn't exist
         if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
-            DGA_VER_MNR_LOCAL="beta"
-            str="Current Version:"
-            printf "%b %s" "${INFO}" "${str}"
-            sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+            if [ "$DGA_LOCAL_BRANCH" = "main" ]; then
+                DGA_VER_MNR_LOCAL=""
+                str="Current Version:"
+                printf "%b %s" "${INFO}" "${str}"
+                sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL}.x\\n" "${OVER}" "${INFO}" "${str}"
+            fi
+            if [ "$DGA_LOCAL_BRANCH" = "development" ]; then
+                DGA_VER_MNR_LOCAL="beta"
+                str="Current Version:"
+                printf "%b %s" "${INFO}" "${str}"
+                sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s DigiAsset Node v${DGA_VER_MJR_LOCAL} beta\\n" "${OVER}" "${INFO}" "${str}"
+            fi
+
         # If we actually get a version number then we can use it
         elif [ "$DGA_VER_MNR_LOCAL_QUERY" != "" ]; then
             DGA_VER_MNR_LOCAL=$DGA_VER_MNR_LOCAL_QUERY
@@ -7290,48 +7215,61 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     if [ "$NPM_VER_LOCAL" = "" ]; then
         NPM_DO_INSTALL="YES"
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        # If no local version can be detected, let's immediately install npm
     else
         printf "%b%b %s YES!   Found: npm v${NPM_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        CHECK_FOR_NPM_UPDATE="YES"
     fi
 
-    # Check for latest npm release online
-    str="Checking the latest npm release..."
-    printf "%b %s" "${INFO}" "${str}"
-    # Gets latest npm version
-    NPM_VER_RELEASE=$(npm show npm version 2>/dev/null)
-
-    # If can't get npm release version number
-    if [ "$NPM_VER_RELEASE" = "" ]; then
-        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of npm. Is the Internet down?.\\n" "${CROSS}"
-        printf "\\n"
-        printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
-        printf "\\n"   
-    else
-        printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # If an npm local version already exists.... (i.e. we have a local version number)
-    if [ ! $NPM_VER_LOCAL = "" ] && [ ! $NPM_VER_RELEASE = "" ]; then
-      # ....then check if an upgrade is required
-      if [ $(version $NPM_VER_LOCAL) -ge $(version $NPM_VER_RELEASE) ]; then
-          printf "%b npm is already up to date.\\n" "${TICK}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. npm v${NPM_VER_RELEASE} will be re-installed.\\n" "${INFO}"
-            NPM_DO_INSTALL=YES
-          else
-            printf "%b Upgrade not required for npm.\\n" "${INFO}"
-          fi
-      else
-          printf "%b %bnpm will be upgraded from v${NPM_VER_LOCAL} to v${NPM_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          NPM_DO_INSTALL="YES"
-      fi
-    fi 
-
-    # Install the latest version of npm, if needed
+    # Install npm now if it is not installed
     if [ "$NPM_DO_INSTALL" = "YES" ]; then
-        printf "%b Install latest version of npm...\\n" "${INFO}"
-        npm install --quiet npm@latest -g
+        install_dependent_packages npm
+    fi
+
+
+    # If npm is installed, check for npm update
+    if [ "$CHECK_FOR_NPM_UPDATE" = "YES" ]; then
+
+        # Check for latest npm release online
+        str="Checking the latest npm release..."
+        printf "%b %s" "${INFO}" "${str}"
+        # Gets latest npm version
+        NPM_VER_RELEASE=$(npm show npm version 2>/dev/null)
+
+        # If can't get npm release version number
+        if [ "$NPM_VER_RELEASE" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to check for new version of npm. Is the Internet down?.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+            printf "\\n"   
+        else
+            printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If an npm local version already exists.... (i.e. we have a local version number)
+        if [ ! $NPM_VER_LOCAL = "" ] && [ ! $NPM_VER_RELEASE = "" ]; then
+          # ....then check if an upgrade is required
+          if [ $(version $NPM_VER_LOCAL) -ge $(version $NPM_VER_RELEASE) ]; then
+              printf "%b npm is already up to date.\\n" "${TICK}"
+              if [ "$RESET_MODE" = true ]; then
+                printf "%b Reset Mode is Enabled. npm v${NPM_VER_RELEASE} will be re-installed.\\n" "${INFO}"
+                NPM_DO_INSTALL=YES
+              else
+                printf "%b Upgrade not required for npm.\\n" "${INFO}"
+              fi
+          else
+              printf "%b %bnpm will be upgraded from v${NPM_VER_LOCAL} to v${NPM_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+              NPM_DO_INSTALL="YES"
+          fi
+        fi 
+
+        # Install the latest version of npm, if needed
+        if [ "$NPM_DO_INSTALL" = "YES" ]; then
+            printf "%b Install latest version of npm...\\n" "${INFO}"
+            npm install --quiet npm@latest -g
+        fi
+
     fi
 
 
@@ -7929,7 +7867,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             local upgrade_msg_dgb="   DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="   Go-IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="   Kubo v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_nodejs="   NodeJS v$NODEJS_VER_RELEASE\\n"
@@ -7980,7 +7918,7 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if whiptail --backtitle "" --title "Install DigiAsset Node?" --yesno "You do not currently have the DigiAsset Node installed. Running the DigiAsset Node helps to support the network by decentralizing the DigiAsset metadata. It also gives you the ability to create your own DigiAssets and lets you earn DGB for hosting other people's metadata.\\n\\n\\nWould you like to install the DigiAsset Node now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "Install DigiAsset Node?" --yesno "Would you like to install a DigiAsset Node?\\n\\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\\n\\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
             printf "%b You choose to install the DigiAsset Node.\\n" "${INFO}"
@@ -8156,7 +8094,7 @@ uninstall_do_now() {
 
     ################## UNINSTALL IPFS #################################################
 
-    # Get the local version number of Go-IPFS (this will also tell us if it is installed)
+    # Get the local version number of Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     if [ "$IPFS_VER_LOCAL" = "" ]; then
@@ -8180,13 +8118,13 @@ uninstall_do_now() {
     # Ask to uninstall GoIPFS
     if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
 
-    printf " =============== Uninstall: Go-IPFS ====================================\\n\\n"
+    printf " =============== Uninstall: Kubo (Go-IPFS) =============================\\n\\n"
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall GoIPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall both the IPFS Updater utility and Go-IPFS." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo (Go-IPFS) v${IPFS_VER_LOCAL}?" "${r}" "${c}"; then
 
-            printf "%b You chose to uninstall Go-IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
+            printf "%b You chose to uninstall Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
 
             # Stop IPFS service if it is running, as we need to upgrade or reset it
@@ -8235,9 +8173,9 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete Go-IPFS binary
+            # Delete Kubo binary
             if [ -f /usr/local/bin/ipfs ]; then
-                str="Deleting current Go-IPFS binary: /usr/local/bin/ipfs..."
+                str="Deleting current Kubo binary: /usr/local/bin/ipfs..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
