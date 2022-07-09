@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.2
+DGNT_VER_LOCAL=0.3.3
 # Last Updated: 2022-07-09
 
 # This is the command people will enter to run the install script.
@@ -822,10 +822,14 @@ quit_message() {
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
+        updates_installed="yes"
+        exit
+      else
+        updates_installed="no"
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "yes" ]; then
+      if [ "$DONATION_PLEA" = "yes" ] && [ "$updates_installed" = "no" ]; then
 
         #Display donation QR code
         donation_qrcode
