@@ -148,6 +148,7 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 DigiNode Tools v0.3.2 - 2022-07-09 Test Release
 - Fix: Formatting for Disk Usage in Status Monitor
 - Fix: Formatting for 'DigiAsset Node is not running' message in Status Monitor
+- Fix: PM2 process detection now works correctly
 
 DigiNode Tools v0.3.1 - 2022-07-09 Test Release
 - New: DigiNode Tools now work on x86_64 architecture so you can use it to setup a DigiNode on PC hardware. (Please help test!)
