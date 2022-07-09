@@ -145,6 +145,9 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
+DigiNode Tools v0.3.4 - 2022-07-09 Test Release
+- New: Add reminder to install system updates if there are any
+
 DigiNode Tools v0.3.3 - 2022-07-09 Test Release
 - Fix: Don't restart digibyted before wallet backup if it is already running
 - Fix: Memory/swap values in Status Monitor should now display correctly
