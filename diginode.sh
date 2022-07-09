@@ -15,12 +15,12 @@
 #          Alternatively clone the repo to your home folder:
 #
 #          cd ~
-#          git clone https://github.com/saltedlolly/diginode/
-#          chmod +x ~/diginode/diginode
+#          git clone https://github.com/saltedlolly/diginode-tools/
+#          chmod +x ~/diginode-tools/diginode.sh
 #
-#          To run:
+#          To run the Status Monitor:
 #
-#          ~/diginode/diginode
+#          ~/diginode-tools/diginode.sh
 #
 # -------------------------------------------------------
 
@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.2
+DGNT_VER_LOCAL=0.3.3
 # Last Updated: 2022-07-09
 
 # This is the command people will enter to run the install script.
@@ -822,10 +822,14 @@ quit_message() {
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
+        updates_installed="yes"
+        exit
+      else
+        updates_installed="no"
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "yes" ]; then
+      if [ "$DONATION_PLEA" = "yes" ] && [ "$updates_installed" = "no" ]; then
 
         #Display donation QR code
         donation_qrcode
@@ -1221,9 +1225,9 @@ TIME_NOW_UNIX=$(date +%s)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
-RAMUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3 | sed 's/.$//')
-RAMAVAIL_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.$//')
-SWAPUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
+RAMUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3)
+RAMAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6)
+SWAPUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
 
 # Get current system temp
 temperature=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)

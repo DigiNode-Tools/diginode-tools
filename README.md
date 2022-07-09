@@ -145,6 +145,10 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
+DigiNode Tools v0.3.3 - 2022-07-09 Test Release
+- Fix: Don't restart digibyted before wallet backup if it is already running
+- Fix: Memory/swap values in Status Monitor should now display correctly
+
 DigiNode Tools v0.3.2 - 2022-07-09 Test Release
 - Fix: Formatting for Disk Usage in Status Monitor
 - Fix: Formatting for 'DigiAsset Node is not running' message in Status Monitor
@@ -160,7 +164,7 @@ DigiNode Tools v0.3.1 - 2022-07-09 Test Release
 
 DigiNode Tools v0.2.5 - 2022-07-07 Test Release
 - Fix: --skiposcheck flag now works as expected
-- Improve documentation - add equipment suggestions for building your own DigiNode
+- New: Improve documentation by adding equipment suggestions for building your own DigiNode
 
 DigiNode Tools v0.2.4 - 2022-07-01 Test Release
 - Fix: Installation now cancels if Go-IPFS fails to install. There is a recurring problem with the install files not downloading which may be a probelm with their servers. Typically, if you keep retrying it will eventually work.
