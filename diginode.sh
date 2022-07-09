@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.1
-# Last Updated: 2022-07-08
+DGNT_VER_LOCAL=0.3.2
+# Last Updated: 2022-07-09
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1742,7 +1742,7 @@ elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-58s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
+printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
@@ -1815,7 +1815,7 @@ if [ "$MODEL" != "" ]; then
 printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ DISK USAGE    ║  " && printf "%-33s %-19s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]  ║"
+printf "  ║ DISK USAGE    ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE  ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] ; then # only display the swap file status if there is one

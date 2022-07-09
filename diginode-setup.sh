@@ -6416,7 +6416,6 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     # If using systemd and the IPFS service file does not exist yet, let's create it
     if [ ! -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
 
-        printf "\\n" 
         printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
 
         # First create the folders it lives in if they don't already exist
@@ -6525,6 +6524,8 @@ EOF
 
     # If using upstart and the IPFS service file does not exist yet, let's create it
     if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+
+        printf "%b IPFS upstart service will now be created.\\n" "${INFO}"
 
         # Create a new IPFS upstart service file
 
@@ -6907,13 +6908,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             if [ "$IS_DGANODE_RUNNING" = "digiasset_node/index.js" ]; then
                 DGA_STATUS="running"
                 IS_PM2_RUNNING="YES"
-                printf "%b%b %s YES! [ PM2: index.js is running ]\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s YES! [ PM2 digiasset process is running ]\\n" "${OVER}" "${TICK}" "${str}"
             else
-                IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
+                IS_PM2_RUNNING=$(sudo -u $USER_ACCOUNT pm2 pid digiasset 2>/dev/null)
                 if [ "$IS_PM2_RUNNING" = "0" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO"
-                    printf "%b%b %s NO! [ PM2: index.js is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO! [ PM2 digiasset is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
                 elif [ "$IS_PM2_RUNNING" = "" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO" 
@@ -6921,7 +6922,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 else
                     DGA_STATUS="running"
                     IS_PM2_RUNNING="YES"
-                    printf "%b%b %s YES! [ PM2: index.js is probably running ]\\n" "${OVER}" "${TICK}" "${str}"
+                    printf "%b%b %s YES! [ PM2 digiasset process is probably running ]\\n" "${OVER}" "${TICK}" "${str}"
                 fi
             fi   
         fi
@@ -7864,23 +7865,23 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="   DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_RELEASE\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="   Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs=" >> Kubo v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="   NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs=" >> NodeJS v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="   DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga=" >> DigiAsset Node v$DGA_VER_RELEASE\\n"
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt="   DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt=" >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
         fi
 
 
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n\\n $upgrade_msg_dgb $upgrade_msg_ipfs $upgrade_msg_nodejs $upgrade_msg_dga $upgrade_msg_dgnt\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
             printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
         #Nothing to do, continue
           if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
