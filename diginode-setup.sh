@@ -1676,7 +1676,7 @@ rpi_microsd_check() {
             elif [[ "$MODELMEM" = "4Gb" ]]; then
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b Running a DigiNode requires at least 6Gb RAM, and a microSD is typically too\\n" "${INDENT}"
                 printf "%b slow to run both the DigiNode software and swap file. Since your Raspberry Pi\\n" "${INDENT}"
                 printf "%b only has $MODELMEM RAM, if you want want to proceed you will need a USB stick\\n" "${INDENT}"
@@ -1688,7 +1688,7 @@ rpi_microsd_check() {
             else
                 printf "%b%b %s %bFAILED%b   Raspberry Pi is booting from a microSD card\\n" "${OVER}" "${CROSS}" "${str}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: Running a DigiNode from a microSD card is not recommended%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is strongly recommended to use an external SSD drive connected via USB\\n" "${INDENT}"
                 printf "%b to run a DigiNode on a Raspberry Pi - using a microSD card is inadvisable.\\n" "${INDENT}"
                 printf "%b MicroSD cards are prone to corruption and perform significantly slower.\\n" "${INDENT}"
@@ -2178,7 +2178,7 @@ user_check() {
             if id "digibyte" &>/dev/null; then
                 printf "%b User Account Check: %bFAILED%b   Current user is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b A 'digibyte' user account already exists, but you are currently logged in as '$USER_ACCOUNT'.\\n"  "${INDENT}"
                 printf "%b It is advisable to use the 'digibyte' account for your DigiNode. This is optional but recommended, since it\\n"  "${INDENT}"
                 printf "%b will isolate your DigiByte wallet in its own user account.  For more information visit:\\n"  "${INDENT}"
@@ -2200,7 +2200,7 @@ user_check() {
             else
                 printf "%b User Account Check: %bFAILED%b   User is NOT 'digibyte'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bWARNING: You are NOT currently logged in as user 'digibyte'.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "%b It is advisable to create a new 'digibyte' user account for your DigiNode.\\n"  "${INDENT}"
                 printf "%b This is optional but recommended, since it will isolate your DigiByte wallet\\n"  "${INDENT}"
                 printf "%b its own user account. For more information visit:\\n"  "${INDENT}"
@@ -2622,7 +2622,7 @@ swap_check() {
     if [ "$SWAP_NEEDED" = "YES" ]; then
         printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b %bWARNING: You need to create a swap file.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bWARNING: You need to create a swap file.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
@@ -2636,7 +2636,7 @@ swap_check() {
     if [ "$SWAP_TOO_SMALL" = "YES" ]; then
         printf "%b Swap Check: %bFAILED%b   Not enough total memory for DigiNode.\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b %bWARNING: Your swap file is too small%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Running a DigiNode requires approximately 5Gb RAM. Since your device only\\n" "${INDENT}"
         printf "%b has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap size to at least $SWAP_REC_SIZE_HR or more.\\n" "${INDENT}"
         printf "%b This will give your system at least 8Gb of total memory to work with.\\n" "${INDENT}"
@@ -3033,7 +3033,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool will help you to backup your DigiByte Core wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is highly reccomended that you use a USB stick that is not used for anything else - you should backup your DigiNode to it and then place it somewhere secure, such as a safe. You do not need a large capacity USB stick for this - pretty much any size stick should be sufficient. For best results, make sure it is formatted with either exFAT or FAT32.\\n\\nIMPORTANT: You will also need access to a free USB slot on your DigiNode." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\\n\\nThe backup does not require a lot of space - any size stick should be sufficient. For best results, make sure it is formatted with exFAT.\\n\\nIMPORTANT: You will need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you likely will not be able to use this tool." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -3095,8 +3095,16 @@ usb_backup() {
 
             # Start the DigiByte service now, in case it is not already running
             printf "%b DigiByte daemon must be running to check your wallet before backup.\\n" "${INFO}"
-            printf "%b Starting DigiByte daemon service...\\n\\n" "${INFO}"
-            restart_service digibyted
+
+            # Next let's check if DigiByte daemon is running, and start it if it is not
+            if check_service_active "digibyted"; then
+                DGB_STATUS="running"
+            else
+                DGB_STATUS="notrunning"
+                restart_service digibyted
+                DGB_STATUS="running"
+            fi
+            printf "\\n"
         
 
             # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
@@ -4408,7 +4416,7 @@ disk_check() {
         if [[ "$DGB_DATA_DISKFREE_KB" -lt "$DGB_DATA_REQUIRED_KB" ]]; then
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b %bWARNING: DigiByte blockchain data will not fit on this drive%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bWARNING: DigiByte blockchain data will not fit on this drive%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b The current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
@@ -4910,9 +4918,9 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have spent thousands of hours developing DigiNode Tools. If you"
-    echo "    find these tools useful, kindly make a donation in DGB to support my work."
-    echo "    Any amount is greatly appreciated. Many thanks. - Olly @saltedlolly"
+    echo "    Thousands of hours have been spent developing DigiNode Tools."
+    echo "    If you find them useful, please donate to support my work."
+    echo "    Any amount is greatly appreciated. Thanks, Olly @saltedlolly"
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -5601,7 +5609,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             if [ "$DGNT_VER_LOCAL" != "" ]; then
                 DGNT_BRANCH_LOCAL="HEAD"
                 sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
-                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${INFO}"
+                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${WARN}"
             fi
         fi
     fi
