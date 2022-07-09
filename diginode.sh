@@ -15,12 +15,12 @@
 #          Alternatively clone the repo to your home folder:
 #
 #          cd ~
-#          git clone https://github.com/saltedlolly/diginode/
-#          chmod +x ~/diginode/diginode
+#          git clone https://github.com/saltedlolly/diginode-tools/
+#          chmod +x ~/diginode-tools/diginode.sh
 #
-#          To run:
+#          To run the Status Monitor:
 #
-#          ~/diginode/diginode
+#          ~/diginode-tools/diginode.sh
 #
 # -------------------------------------------------------
 
