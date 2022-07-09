@@ -6908,13 +6908,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             if [ "$IS_DGANODE_RUNNING" = "digiasset_node/index.js" ]; then
                 DGA_STATUS="running"
                 IS_PM2_RUNNING="YES"
-                printf "%b%b %s YES! [ PM2: index.js is running ]\\n" "${OVER}" "${TICK}" "${str}"
+                printf "%b%b %s YES! [ PM2 digiasset process is running ]\\n" "${OVER}" "${TICK}" "${str}"
             else
-                IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
+                IS_PM2_RUNNING=$(sudo -u $USER_ACCOUNT pm2 pid digiasset 2>/dev/null)
                 if [ "$IS_PM2_RUNNING" = "0" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO"
-                    printf "%b%b %s NO! [ PM2: index.js is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO! [ PM2 digiasset is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
                 elif [ "$IS_PM2_RUNNING" = "" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO" 
@@ -6922,7 +6922,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 else
                     DGA_STATUS="running"
                     IS_PM2_RUNNING="YES"
-                    printf "%b%b %s YES! [ PM2: index.js is probably running ]\\n" "${OVER}" "${TICK}" "${str}"
+                    printf "%b%b %s YES! [ PM2 digiasset process is probably running ]\\n" "${OVER}" "${TICK}" "${str}"
                 fi
             fi   
         fi
