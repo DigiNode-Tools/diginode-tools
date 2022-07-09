@@ -1742,7 +1742,7 @@ elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-58s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
+printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"

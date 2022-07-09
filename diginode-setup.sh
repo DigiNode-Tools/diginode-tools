@@ -6416,7 +6416,6 @@ if [ "$IPFS_CREATE_SERVICE" = "YES" ]; then
     # If using systemd and the IPFS service file does not exist yet, let's create it
     if [ ! -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ $INIT_SYSTEM = "systemd" ]; then
 
-        printf "\\n" 
         printf "%b IPFS systemd service will now be created.\\n" "${INFO}"
 
         # First create the folders it lives in if they don't already exist
@@ -6525,6 +6524,8 @@ EOF
 
     # If using upstart and the IPFS service file does not exist yet, let's create it
     if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ $INIT_SYSTEM = "upstart" ]; then
+
+        printf "%b IPFS upstart service will now be created.\\n" "${INFO}"
 
         # Create a new IPFS upstart service file
 
