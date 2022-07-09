@@ -1225,9 +1225,9 @@ TIME_NOW_UNIX=$(date +%s)
 loopcounter=$((loopcounter+1))
 
 # Get current memory usage
-RAMUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3 | sed 's/.$//')
-RAMAVAIL_HR=$(free -m -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6 | sed 's/.$//')
-SWAPUSED_HR=$(free -m -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
+RAMUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3)
+RAMAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6)
+SWAPUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
 
 # Get current system temp
 temperature=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)

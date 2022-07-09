@@ -3033,7 +3033,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\\n\\nThe backup does not require a lot of space - any size stick should be sufficient. For best results, make sure it is formatted with exFAT.\\n\\nIMPORTANT: You will need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you likely will not be able to use this tool." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Backup" "This tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\\n\\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\\n\\nIMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you will likely not be able to use this tool." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
             printf "%b You chose to begin the backup process.\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
