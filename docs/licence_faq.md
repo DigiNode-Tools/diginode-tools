@@ -10,7 +10,7 @@ If you're using DigiNode Tools for personal or nonprofit purposes, you enjoy nea
 
 ## Can I fork DigiNode Tools?
 
-Yes, as long as your intended use is noncommercial, you're free to fork, modify and redistribute the source. However, you may not host the diginode-setup.sh script at your own website URL. The DigiNode Setup URL must remain https://diginode-setup.digibyte.help.
+Yes, as long as your intended use is noncommercial, you're free to fork, modify and redistribute the source. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. The DigiNode Setup URL must remain https://diginode-setup.digibyte.help.
 
 ## Can I contribute to DigiNode Tools?
 
