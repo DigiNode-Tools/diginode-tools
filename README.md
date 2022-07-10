@@ -6,7 +6,7 @@
 A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
 
 ### What are DigiNode Tools?
-DigiNode Tools are a suite of linux scripts that make it easy to setup, monitor and manage your DigiNode from the linux command line.
+DigiNode Tools are a suite of linux bash scripts that make it easy to setup, monitor and manage your DigiNode via the linux command line.
 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
@@ -141,9 +141,13 @@ For help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZs
 
 ## License
 
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
 
 ## Release Notes
+
+DigiNode Tools v0.3.4 - 2022-07-10 Test Release
+- New: Add reminder to install system updates if there are any
+- Change: DigiNode dependencies are now installed before DigiNode Setup begins. Avahi-daemon is still installed just before the hostname change.
 
 DigiNode Tools v0.3.3 - 2022-07-09 Test Release
 - Fix: Don't restart digibyted before wallet backup if it is already running

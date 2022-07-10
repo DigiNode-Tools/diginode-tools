@@ -1747,13 +1747,6 @@ fi
 # Compatibility
 package_manager_detect() {
 
-# Does avahi daemon need to be installed? (this only gets installed if the hostname is set to 'diginode')
-if [ "$INSTALL_AVAHI" = "YES" ]; then
-    avahi_package="avahi-daemon"
-else
-    avahi_package=""
-fi
-
 # If apt-get is installed, then we know it's part of the Debian family
 if is_command apt-get ; then
     # Set some global variables here
@@ -1784,7 +1777,7 @@ if is_command apt-get ; then
     # Packages required to run this setup script (stored as an array)
     SETUP_DEPS=(git "${iproute_pkg}" jq whiptail bc)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo "${avahi_package}")
+    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -1818,7 +1811,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc "${avahi_package}")
+    DIGINODE_DEPS=(cronie curl findutils sudo psmisc)
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -1845,6 +1838,7 @@ notify_package_updates_available() {
             printf "%b%b %s... %s updates available\\n" "${OVER}" "${TICK}" "${str}" "${updatesToInstall}"
             echo ""
             printf "%b %bIt is recommended to update your OS after installing DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            system_updates_available="yes"
         fi
     else
         printf "%b %b %s\\n" "${OVER}" "${CROSS}" "${str}"
@@ -2126,6 +2120,11 @@ fi
 # Function to change the hostname of the machine to 'diginode'
 hostname_do_change() {
 
+# Does avahi daemon need to be installed? (this only gets installed if the hostname is set to 'diginode')
+if [ "$INSTALL_AVAHI" = "YES" ]; then
+    install_dependent_packages avahi-daemon
+fi
+
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
 if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
@@ -2159,6 +2158,7 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
     fi
 fi
+
 }
 
 # Function to check if the user account 'digibyte' is currently in use, and if it is not, check if it already exists
@@ -5038,11 +5038,23 @@ final_messages() {
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        if [ "$system_updates_available" = "yes" ]; then
+            printf "%b %There are system updates for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
         printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        if [ "$system_updates_available" = "yes" ]; then
+            printf "%b %There are system updates for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
     fi
 
     if [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ] ; then
@@ -9719,6 +9731,19 @@ install_or_upgrade() {
 
     fi
 
+    ### INSTALL DIGINODE DEPENDENCIES ###
+
+    # Install packages used by the actual software
+    printf " =============== Checking: DigiNode dependencies ==========================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
     # Create/update digibyte.conf file
@@ -9789,20 +9814,6 @@ install_or_upgrade() {
 
     # Ask to change the hostname
     hostname_ask_change
-
-
-    ### INSTALL/UPGRADE DIGINODE TOOLS ###
-
-    # Install packages used by the actual software
-    printf " =============== Check: DigiNode dependencies ==========================\\n\\n"
-    # ==============================================================================
-    
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    # Check again for supported package managers so that we may install dependencies
-    package_manager_detect
-    local dep_install_list=("${DIGINODE_DEPS[@]}")
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
 
 
     ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
