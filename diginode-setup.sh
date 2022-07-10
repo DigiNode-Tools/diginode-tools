@@ -5034,25 +5034,30 @@ final_messages() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
     elif [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$STATUS_MONITOR" = "false" ]; then
+            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
+
+        if [ "$system_updates_available" = "yes" ]; then
+            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        if [ "$STATUS_MONITOR" = "false" ]; then
+            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+        fi
+        if [ "$system_updates_available" = "yes" ]; then
+            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
     fi
