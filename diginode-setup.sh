@@ -5039,7 +5039,7 @@ final_messages() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %There are system updates for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bThere are system updates available for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
             printf "\\n"
@@ -5050,7 +5050,7 @@ final_messages() {
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %There are system updates for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %bThere are system updates available for your DigiNode.%b\\n\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b To install them enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
             printf "\\n"
