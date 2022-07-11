@@ -143,6 +143,8 @@ for var in "$@"; do
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
+        "--runlocal" ) DGNT_RUN_LOCATION="local";;
+        "--runremote" ) DGNT_RUN_LOCATION="remote";;
     esac
 done
 
@@ -208,6 +210,27 @@ is_verbose_mode() {
     if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
+    fi
+}
+
+# Inform user if Verbose Mode is enabled
+where_are_we() {
+    if [ "$DGNT_RUN_LOCATION" = "local" ]; then
+        printf "%b DigiNode Setup is running locally.\\n" "${INFO}"
+        printf "\\n"
+    fi
+    if [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
+        printf "%b DigiNode Setup is running remotely - develop branch.\\n" "${INFO}"
+        printf "\\n"
+        DGNT_RUN_LOCATION="remote_develop"
+    elif [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
+        printf "%b DigiNode Setup is running remotely - main branch.\\n" "${INFO}"
+        printf "\\n"
+        DGNT_RUN_LOCATION="remote_main"
+    elif [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+        printf "%b DigiNode Setup is running remotely.\\n" "${INFO}"
+        printf "\\n"
+        DGNT_RUN_LOCATION="remote"
     fi
 }
 
@@ -9513,6 +9536,9 @@ main() {
         # set the DigiNode Tools branch to use for DigiNode Setup
         set_dgnt_branch
 
+        # Is this script running remotely or locally?
+        where_are_we
+
         # Display a message if Verbose Mode is enabled
         is_verbose_mode
 
@@ -9558,11 +9584,10 @@ main() {
                 printf "%b Re-running DigiNode Setup URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@"
-            else
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote
                 # when run via calling local bash script
                 printf "%b Re-running DigiNode Setup as root...\\n" "${INFO}"
-                exec sudo bash "$0" "$@"
+                exec sudo bash "$0" "$@" --runlocal
             fi
 
             exit $?
