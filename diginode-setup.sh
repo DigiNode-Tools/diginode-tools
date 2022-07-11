@@ -8556,6 +8556,7 @@ array[79]="help2"
 array[80]="help3"
 array[81]="help4"
 array[82]="help5"
+array[82]="help6"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -8886,10 +8887,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact31" ]; then
     DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
-    DIGIFACT_L1="If you ever have issues with getting your #DigiByte out of a"
-    DIGIFACT_L2="wallet, you can get move it to a new one easily enough with"
-    DIGIFACT_L3="DigiSweep thanks to @mctrivia  It’s easy to use and"
-    DIGIFACT_L4="open-source. Try it out if you ever need it:"
+    DIGIFACT_L1="If you ever have issues with getting your DigiByte out of a"
+    DIGIFACT_L2="wallet, you can sweep the funds to a new wallet using the"
+    DIGIFACT_L3="DigiSweep tool created by Matthew Cornelisse of DigiAssetX."
+    DIGIFACT_L4="It's easy to use & open-source. Go here if you ever need it:"
     DIGIFACT_L5=""
     DIGIFACT_L6="https://digisweep.digiassetx.com/"
 fi
@@ -9346,8 +9347,8 @@ fi
 
 if [ "$DIGIFACT" = "social1" ]; then
     DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
-    DIGIFACT_L1="Have you joined the DigiByte community on Reddit yet?"
-    DIGIFACT_L2="We have a growing community of over 40,000 members."
+    DIGIFACT_L1="Have you joined the DigiByte subreddit yet?"
+    DIGIFACT_L2="We have a growing community of over 45,000 members."
     DIGIFACT_L3=" "
     DIGIFACT_L4="Join here: https://reddit.com/r/Digibyte"
     DIGIFACT_L5=""
@@ -9409,6 +9410,16 @@ if [ "$DIGIFACT" = "help5" ]; then
     DIGIFACT_L3=" "
     DIGIFACT_L4="https://t.me/digiassetX"
     DIGIFACT_L5=""
+    DIGIFACT_L6=""
+fi
+
+if [ "$DIGIFACT" = "help6" ]; then
+    DIGIFACT_TITLE="    Want to learn more about DigiByte?"
+    DIGIFACT_L1="The DGB Wiki is a fanatastic resource of information"
+    DIGIFACT_L2="on all things DigiByte, written and maintained"
+    DIGIFACT_L3="by members of the DigiByte community."
+    DIGIFACT_L4=""
+    DIGIFACT_L5="https://dgbwiki.com/"
     DIGIFACT_L6=""
 fi
 
