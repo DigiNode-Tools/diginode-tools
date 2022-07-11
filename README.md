@@ -55,6 +55,8 @@ Once your DigiNode has been installed, you can access additional features from t
 - Reset: Resets DigiNode settings in the event of a problem.
 - Uninstall: Unistalls DigiNode software from your system.
 
+![DigiNode Menu](images/diginode_menu.png)
+
 ## Donations
 
 Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
