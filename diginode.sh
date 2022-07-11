@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.4
-# Last Updated: 2022-07-09
+DGNT_VER_LOCAL=0.3.5
+# Last Updated: 2022-07-10
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1822,7 +1822,7 @@ fi
 printf "  ║ DISK USAGE    ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE  ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
-if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] ; then # only display the swap file status if there is one
+if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" != "0B" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 

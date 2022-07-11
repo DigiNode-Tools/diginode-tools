@@ -13,7 +13,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Debian and Ubuntu based systems. See the Compatibility section below.
 
-If you want to build your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. A complete list of what equipment you need is available [here](docs/suggested_hardware.md).
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
 
 ## DigiNode Setup
 
@@ -30,6 +30,8 @@ DigiNode Setup helps you to install and manage your DigiNode:
 - Creates or updates an DigiAsset config file with RPC settings. 
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
+
+![DigiNode Setup](images/diginode_setup.png)
 
 ## DigiNode Status Monitor
 
@@ -51,9 +53,13 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line. I
 
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
-- Backup/Restore: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick. 
-- Reset: Resets DigiNode settings in the event of a problem.
-- Uninstall: Unistalls DigiNode software from your system.
+- **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
+- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
+- **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
+- **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
+
+![DigiNode Menu](images/diginode_menu.png)
 
 ## Donations
 
@@ -82,9 +88,7 @@ DigiNode has been tested and known to work with the following systems:
 
 ## Disclaimer
 
-These tools are provided as is. Use at your own risk. Make sure you always have a backup of your wallet file. 
-
-IMPORTANT: These tools are currently still under active development and should be used for testing purposes only at this time.
+These tools are provided as is. Use at your own risk. Always maintain a backup of your DigiByte wallet. 
 
 ## Setup Instructions
 
@@ -145,20 +149,25 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 ## Release Notes
 
-DigiNode Tools v0.3.4 - 2022-07-10 Test Release
+DigiNode Tools v0.3.5 - 2022-07-11
+- Add more screenshots to the README
+- Documentation updates
+- Update several DigiFacts
+
+DigiNode Tools v0.3.4 - 2022-07-10
 - New: Add reminder to install system updates if there are any
 - Change: DigiNode dependencies are now installed before DigiNode Setup begins. Avahi-daemon is still installed just before the hostname change.
 
-DigiNode Tools v0.3.3 - 2022-07-09 Test Release
+DigiNode Tools v0.3.3 - 2022-07-09
 - Fix: Don't restart digibyted before wallet backup if it is already running
 - Fix: Memory/swap values in Status Monitor should now display correctly
 
-DigiNode Tools v0.3.2 - 2022-07-09 Test Release
+DigiNode Tools v0.3.2 - 2022-07-09
 - Fix: Formatting for Disk Usage in Status Monitor
 - Fix: Formatting for 'DigiAsset Node is not running' message in Status Monitor
 - Fix: PM2 process detection now works correctly
 
-DigiNode Tools v0.3.1 - 2022-07-09 Test Release
+DigiNode Tools v0.3.1 - 2022-07-09
 - New: DigiNode Tools now work on x86_64 architecture so you can use it to setup a DigiNode on PC hardware. (Please help test!)
 - Change: Rename Go-IPFS to Kubo (the name has been changed)
 - Change: IPFS Updater utility is no longer used to install Kubo (formerly Go-IPFS). It is now installed by DigiNode Setup itself.
@@ -166,24 +175,24 @@ DigiNode Tools v0.3.1 - 2022-07-09 Test Release
 - Fix: In Status Monitor, hide DEVICE row if the device is unknown
 - Fix: Improve the scripts ability to detect if DigiAsset Node is installed and/or running.
 
-DigiNode Tools v0.2.5 - 2022-07-07 Test Release
+DigiNode Tools v0.2.5 - 2022-07-07
 - Fix: --skiposcheck flag now works as expected
 - New: Improve documentation by adding equipment suggestions for building your own DigiNode
 
-DigiNode Tools v0.2.4 - 2022-07-01 Test Release
+DigiNode Tools v0.2.4 - 2022-07-01 
 - Fix: Installation now cancels if Go-IPFS fails to install. There is a recurring problem with the install files not downloading which may be a probelm with their servers. Typically, if you keep retrying it will eventually work.
 - Fix: Hide swap status in status monitor if the swap is tiny (i.e. around 1 Mb)
 - Fix: Correct error display if IPFS install fails
 
-DigiNode Tools v0.2.3 - 2022-07-01 Test Release
+DigiNode Tools v0.2.3 - 2022-07-01
 - Fix: Start IPFS daemon during an update if it installed but not currently running (perhaps due to a failed previous install)
 - Fix: If you launch Backup/Restore from the menu, and then run Update, the script now performs as expected. Before it would loop back and continue backup/restore from where you had stopped halfway though.
 - Fix: Formatting of update display in status monitor
 
-DigiNode Tools v0.2.2 - 2022-06-29 Test Release
+DigiNode Tools v0.2.2 - 2022-06-29
 - Fix DigiNode Tools update checker
 
-DigiNode Tools v0.2.1 - 2022-06-29 Test Release
+DigiNode Tools v0.2.1 - 2022-06-29
 - Add Restore feature - you can now restore your DigiByte wallet and/or DigiAsset Settings from a previously created USB backup.
 - You can now cancel inserting a USB stick by pressing a key
 - Change Status Monitor timers to use unix time to fix a bug where they don't get triggered correctly
