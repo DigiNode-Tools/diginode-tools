@@ -31,6 +31,8 @@ DigiNode Setup helps you to install and manage your DigiNode:
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
 
+![DigiNode Setup](images/diginode_setup.png)
+
 ## DigiNode Status Monitor
 
 DigiNode Status Monitor let's you monitor your DigiNode from the command line. It can be run by entering: `diginode`.
