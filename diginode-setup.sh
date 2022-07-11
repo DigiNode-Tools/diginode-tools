@@ -4889,7 +4889,7 @@ request_social_media() {
         echo ""
     elif [ "$RESET_MODE" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}Your DigiNode has been Reset!${txtrst} ======================\\n"
+        printf " ================== ${txtgrn}DigiNode has been Reset!${txtrst} ===========================\\n"
         printf " =======================================================================\\n\\n"
         # ==============================================================================
         echo ""
@@ -4900,15 +4900,29 @@ request_social_media() {
         # ==============================================================================
         echo ""
     elif [ "$DO_FULL_INSTALL" = "YES" ]; then
-        printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}Your DigiNode has been Upgraded!${txtrst} ===================\\n"
-        printf " =======================================================================\\n\\n"
-        # ==============================================================================
+        if [ "$DIGINODE_UPGRADED" = "YES" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode has been Upgraded!${txtrst} ========================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        else
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode is up to date!${txtrst} ============================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        fi
     elif [ "$DO_FULL_INSTALL" = "NO" ]; then
-        printf " =======================================================================\\n"
-        printf " ================== ${txtgrn}DigiByte Node has been Upgraded!${txtrst} ===================\\n"
-        printf " =======================================================================\\n\\n"
-        # ==============================================================================
+        if [ "$DIGINODE_UPGRADED" = "YES" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiByte Node has been Upgraded!${txtrst} ===================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        else
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiByte Node is up to date!${txtrst} =======================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        fi
     fi
 }
 
@@ -5515,6 +5529,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         enable_service digibyted
         restart_service digibyted
         DGB_STATUS="running"
+        DIGINODE_UPGRADED="YES"
     elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
         printf "%b Reset Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
         enable_service digibyted
@@ -5841,14 +5856,17 @@ fi
             DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             DGNT_VER_LOCAL_DISPLAY="dev-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
         elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             DGNT_VER_LOCAL_DISPLAY="main-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
         fi
 
         # Make downloads executable
@@ -6219,6 +6237,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$IPFS_STATUS" = "not_detected" ];then
             IPFS_STATUS="installed"
         fi
+        DIGINODE_UPGRADED="YES"
     else
         printf "\\n"
         printf "%b%b ${txtred}ERROR: Kubo Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
@@ -6799,6 +6818,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
         if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
             printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
+            DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
@@ -6811,6 +6831,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
             printf "\\n"
             printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
+            DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
@@ -6822,6 +6843,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
             printf "\\n"
             printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
+            DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
@@ -6833,18 +6855,20 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
             printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
             yum install nodejs14
+            DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
     fi
 
-    # Do  installation of NodeJS
+    # Do dnf installation of NodeJS
     if [ "$PKG_MANAGER" = "dnf" ]; then
         # Install NodeJS if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
             printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
             dnf module install nodejs:12
             printf "\\n"
+            DIGINODE_UPGRADED="YES"
         fi
 
     fi
@@ -7420,6 +7444,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
     printf "%b Saving PM2 process state..\\n" "${INFO}"
     sudo -u $USER_ACCOUNT pm2 save -force
+    DIGINODE_UPGRADED="YES"
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
