@@ -13,7 +13,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Debian and Ubuntu based systems. See the Compatibility section below.
 
-If you want to build your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. A complete list of what equipment you need is available [here](docs/suggested_hardware.md).
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
 
 ## DigiNode Setup
 
@@ -53,11 +53,11 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line. I
 
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
-- Update: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
-- Reset: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
-- Backup: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
-- Restore: Helps you to restore your DigiNode from an existing backup.
-- Uninstall: Unistalls DigiNode software from your system. It lets you choose which components you wish to remove. Your DigByte wallet is not removed.
+- **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
+- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
+- **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
+- **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
 ![DigiNode Menu](images/diginode_menu.png)
 
