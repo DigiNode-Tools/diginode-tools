@@ -31,13 +31,16 @@ DigiNode Setup helps you to install and manage your DigiNode:
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
 
+Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
+
 ![DigiNode Setup](images/diginode_setup.png)
 
 ## DigiNode Status Monitor
 
-DigiNode Status Monitor let's you monitor your DigiNode from the command line. It can be run by entering: `diginode`.
+DigiNode Status Monitor let's you monitor your DigiNode from the command line:
 
 - Monitor your DigiNode on your local machine via the command line, locally or remotely over SSH.
+- Quickly check that your DigiByte and DigiAsset Nodes are running correctly.
 - Displays live DigiByte and DigiAsset data including:
     + Connection Count
     + Block Height (with Sync Progress)
@@ -46,6 +49,8 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line. I
     + Node uptime
     + Disk, RAM and swap usage
 - Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
+
+Once installed, DigiNode Status Monitor can be run from the command line by entering: ```diginode```
 
 ![DigiNode Status Monitor](images/diginode_status_monitor.png)
 
@@ -90,13 +95,21 @@ DigiNode has been tested and known to work with the following systems:
 
 These tools are provided as is. Use at your own risk. Always maintain a backup of your DigiByte wallet. 
 
-## Setup Instructions
+## Instructions
 
 - To get started, run DigiNode Setup by entering the following command in the terminal:
 
 # curl -sSL diginode-setup.digibyte.help | bash
 
-Once DigiNode Tools has been installed, in future you can run it locally using: ```diginode-setup```
+Once DigiNode Tools has been installed, in future you can run DigiNode Setup locally by entering: ```diginode-setup```
+
+## Support
+
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+
+## License
+
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
 
 ## Advanced Features
 
@@ -139,15 +152,11 @@ This provides much more detailed feedback on what the scripts are doing - useful
 Example: 
 ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
 
-## Support
-
-For help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
-
-## License
-
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
-
 ## Release Notes
+
+DigiNode Tools v0.3.6
+- New: Add detection system to deduce whether DigiNode Setup is being run locally or remotely.
+- New: Preliminary tests for a new feature to upgrade the diginode.settings file whnever there is a new release. This is to allow for adding new features in the future that require changes to diginode.settings
 
 DigiNode Tools v0.3.5 - 2022-07-11
 - Add more screenshots to the README

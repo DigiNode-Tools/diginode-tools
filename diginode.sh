@@ -54,8 +54,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.5
-# Last Updated: 2022-07-10
+DGNT_VER_LOCAL=0.3.6
+# Last Updated: 2022-07-11
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -166,6 +166,10 @@ import_setup_functions() {
           printf "\\n"
         fi
         source "$DGNT_SETUP_SCRIPT_NOW"
+
+        # Set run location to local (this script cannot be run remotely). This variable is used when checking if the diginode.settings file needs updating.
+        DGNT_RUN_LOCATION="local"
+
     # Otherwise,
     else
         printf "\\n"
@@ -1165,6 +1169,7 @@ startup_checks() {
   set_sys_variables                # Set various system variables once we know we are on linux
 # load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
+  diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
 # install_diginode_tools           # install or upgrade the DigiNode tools scripts
   digibyte_check_official          # check if this is an official install of DigiByte Core
