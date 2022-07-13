@@ -99,7 +99,7 @@ These tools are provided as is. Use at your own risk. Always maintain a backup o
 
 To get started, run DigiNode Setup by entering the following command in the terminal:
 
-## - ```curl -sSL diginode-setup.digibyte.help | bash```
+## >> ```curl -sSL diginode-setup.digibyte.help | bash```
 
 ## Support
 
