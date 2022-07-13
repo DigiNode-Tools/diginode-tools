@@ -675,8 +675,8 @@ diginode_tools_update_settings() {
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
 
             # If the branch has changed we need to do a new update
-            if [ "$DGNT_RUN_LOCATION" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ]; then
-                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_REMOTE\".\\n" "${INFO}"
+            if [ "$DGNT_BRANCH_REMOTE" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ]; then
+                printf "%b diginode.settings branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_REMOTE\".\\n" "${INFO}"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
@@ -715,7 +715,7 @@ diginode_tools_update_settings() {
             # In this case, we'll update diginode.settings regardless since it may have been changed. (We just don't know so must assume it has.)
             if [ "$DGNT_BRANCH_LOCAL" = "" ]; then
 
-                printf "%b The current local branch of DigiNode Tools is unknown, so the diginode.settings file will be updated just in case.\\n" "${INFO}"
+                printf "%b WARNING: The current local branch of DigiNode Tools is unknown - diginode.settings will be updated to avoid problems.\\n" "${WARN}"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"  #At least we are assuming it has
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=""
@@ -723,8 +723,8 @@ diginode_tools_update_settings() {
 
             # If the branch has changed we need to do a new update to diginode.settings
             # (we only need to check this if it has not already been established that we need to do an update above)
-            if [ "$DGNT_RUN_LOCATION" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ] && [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ]; then
-                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_LOCAL\".\\n" "${INFO}"
+            if [ "$DGNT_BRANCH_LOCAL" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ] && [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ]; then
+                printf "%b diginode.settings branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_LOCAL\".\\n" "${INFO}"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
@@ -744,18 +744,23 @@ diginode_tools_update_settings() {
         fi
 
         # If the diginode.settings file branch has not changed, check if the diginode.settings file version has changed
-        if [ "$DGNT_SETTINGS_BRANCH_HAS_CHANGED" != "YES" ] && [ $(version $DGNT_SETTINGS_FILE_VER) -ge $(version $DGNT_SETTINGS_FILE_VER_NEW) ]; then
-            printf "%b diginode.settings file version has changed from $DGNT_SETTINGS_FILE_VER to $DGNT_SETTINGS_FILE_VER_NEW.\\n" "${INFO}"
+        if [ "$DGNT_SETTINGS_BRANCH_HAS_CHANGED" != "YES" ] && [ $(version $DGNT_SETTINGS_FILE_VER_NEW) -gt $(version $DGNT_SETTINGS_FILE_VER) ]; then
+            printf "%b diginode.settings needs upgrading from v$DGNT_SETTINGS_FILE_VER to v$DGNT_SETTINGS_FILE_VER_NEW.\\n" "${INFO}"
             # create a new diginode.settinngs file
             DGNT_SETTINGS_DO_UPGRADE="YES"
         fi
 
         # 
         if [ "$DGNT_SETTINGS_DO_UPGRADE" = "YES" ]; then
-            printf "%b diginode.settings file will now be upgraded to a new version... [Not implememented yet!]\\n" "${INFO}"
+            printf "%b diginode.settings will now be upgraded... [Not implememented yet!]\\n" "${INFO}"
         fi
 
-        printf "\\n"
+        # Only insert a line break if we did updated diginode.settings
+        if [ "$DGNT_SETTINGS_DO_UPGRADE" = "YES" ]; then
+            printf "\\n"
+        fi
+
+        DGNT_SETTINGS_DO_UPGRADE="NO"
 
     fi
 
@@ -5789,7 +5794,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             if [ "$DGNT_VER_LOCAL" != "" ]; then
                 DGNT_BRANCH_LOCAL="release"
                 sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
-                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${WARN}"
+                printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to: release\\n" "${WARN}"
             fi
         fi
     fi
@@ -7589,10 +7594,13 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
-    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
-    printf "%b Saving PM2 process state..\\n" "${INFO}"
-    sudo -u $USER_ACCOUNT pm2 save -force
-    DIGINODE_UPGRADED="YES"
+    is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+    if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
+        sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+        printf "%b Saving PM2 process state..\\n" "${INFO}"
+        sudo -u $USER_ACCOUNT pm2 save -force
+        DIGINODE_UPGRADED="YES"
+    fi
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
@@ -9925,7 +9933,7 @@ install_or_upgrade() {
     ### INSTALL DIGINODE DEPENDENCIES ###
 
     # Install packages used by the actual software
-    printf " =============== Checking: DigiNode dependencies ==========================\\n\\n"
+    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
     # ==============================================================================
     
     printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
