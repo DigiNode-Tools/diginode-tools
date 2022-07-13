@@ -304,7 +304,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
         if [ "$dgnt_ver_release_query" != "" ]; then
             DGNT_VER_RELEASE=$dgnt_ver_release_query
             DGNT_SETTINGS_FILE_VER=$dgnt_ver_release_query
-            printf "%b Settings diginode.settings file version to $DGNT_VER_RELEASE\\n" "${INFO}"
+            printf "%b Setting diginode.settings file version to $DGNT_VER_RELEASE\\n" "${INFO}"
         fi
 
         # Set the current branch for diginpde.settings
@@ -676,7 +676,7 @@ diginode_tools_update_settings() {
 
             # If the branch has changed we need to do a new update
             if [ "$DGNT_RUN_LOCATION" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ]; then
-                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_RUN_LOCATION\".\\n" "${INFO}"
+                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_REMOTE\".\\n" "${INFO}"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
@@ -704,6 +704,11 @@ diginode_tools_update_settings() {
             # If we get a valid local branch, update the stored local branch
             if [ "$dgnt_branch_local_query" != "" ]; then
                 DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+            fi
+
+            # Set the local branch to "release" if it returns "HEAD"
+            if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+                DGNT_BRANCH_LOCAL="release"
             fi
 
             # If the files have been manually updated over SFTP (usually during development), the script may not have been able to detect the local branch
@@ -5749,11 +5754,16 @@ printf " =============== Checking: DigiNode Tools ==============================
     # If we get a valid local branch, update the stored local branch
     if [ "$dgnt_branch_local_query" != "" ]; then
         DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+
+        # If the local branch has returned as "HEAD", then set it to "release"
+        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+            DGNT_BRANCH_LOCAL="release"
+        fi
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
     # Update diginode.settings with the current version if it has just been created, is running locally, and is on the main branch
-    if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] && [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+    if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] && [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
         printf "%b Setting file version of diginode.settings to $DGNT_VER_LOCAL\\n" "${INFO}"
         sed -i -e "/^DGNT_SETTINGS_FILE_VER=/s|.*|DGNT_SETTINGS_FILE_VER=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
@@ -5766,7 +5776,7 @@ printf " =============== Checking: DigiNode Tools ==============================
         DGNT_VER_LOCAL=""
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
-        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
             printf "%b%b %s YES!  DigiNode Tools develop branch\\n" "${OVER}" "${TICK}" "${str}"
@@ -5777,8 +5787,8 @@ printf " =============== Checking: DigiNode Tools ==============================
 
             # If there is a local version number, but no local branch, set the branch to HEAD
             if [ "$DGNT_VER_LOCAL" != "" ]; then
-                DGNT_BRANCH_LOCAL="HEAD"
-                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
+                DGNT_BRANCH_LOCAL="release"
+                sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
                 printf "%b WARNING: Local version is v${DGNT_VER_LOCAL} but the local branch was not detected - it has been set to HEAD.\\n" "${WARN}"
             fi
         fi
@@ -5804,7 +5814,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ "$DGNT_BRANCH_REMOTE" = "release" ]; then
         # If it's the release version lookup latest version (this is what is used normally, with no argument specified)
 
-        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
 
             if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
 
@@ -5822,7 +5832,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 DGNT_ASK_UPGRADE=YES
             fi
 
-        elif [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5838,7 +5848,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 
     # Upgrade to develop branch
     elif [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
-        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5858,7 +5868,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     
     # Upgrade to main branch
     elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
-        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
@@ -5957,8 +5967,8 @@ fi
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
-            DGNT_BRANCH_LOCAL="HEAD"
-            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"HEAD\"|" $DGNT_SETTINGS_FILE
+            DGNT_BRANCH_LOCAL="release"
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -5990,7 +6000,7 @@ fi
         fi
 
         # Update DigiNode Tools display verion
-        if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
