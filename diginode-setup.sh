@@ -9699,7 +9699,8 @@ main() {
                 printf "%b Re-running DigiNode Setup URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args --runremote "$@"
+                echo "exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote"
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote
             else
                 # when run via calling local bash script
                 printf "%b Re-running DigiNode Setup as root...\\n" "${INFO}"
