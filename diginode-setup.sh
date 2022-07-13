@@ -213,7 +213,7 @@ is_verbose_mode() {
     fi
 }
 
-# Inform user if Verbose Mode is enabled
+# Tell the user where this script is running from
 where_are_we() {
     if [ "$DGNT_RUN_LOCATION" = "local" ]; then
         printf "%b DigiNode Setup is running locally.\\n" "${INFO}"
@@ -222,15 +222,12 @@ where_are_we() {
     if [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         printf "%b DigiNode Setup is running remotely - develop branch.\\n" "${INFO}"
         printf "\\n"
-        DGNT_RUN_LOCATION="remote_develop"
     elif [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         printf "%b DigiNode Setup is running remotely - main branch.\\n" "${INFO}"
         printf "\\n"
-        DGNT_RUN_LOCATION="remote_main"
     elif [ "$DGNT_RUN_LOCATION" = "remote" ]; then
         printf "%b DigiNode Setup is running remotely.\\n" "${INFO}"
         printf "\\n"
-        DGNT_RUN_LOCATION="remote"
     fi
 }
 
@@ -288,41 +285,63 @@ diginode_tools_create_settings() {
 local str
 
 # If we are in reset mode, delete the diginode.settings file, if it already exists
-  if [ "$RESET_MODE" = true ] && [ -f "$DGNT_SETTINGS_FILE" ]; then
+if [ "$RESET_MODE" = true ] && [ -f "$DGNT_SETTINGS_FILE" ]; then
     printf "%b Reset Mode is Enabled. Deleting existing diginode.settings file.\\n" "${INFO}"
     rm -f $DGNT_SETTINGS_FILE
-  fi
+fi
+
 
 # If the diginode.settings file does not already exist, then create it
 if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
-  # create .digibyte folder if it does not exist
-  if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
-    str="Creating ~/.digibyte folder..."
-    printf "\\n%b %s" "${INFO}" "${str}"
-    if [ "$VERBOSE_MODE" = true ]; then
-        printf "\\n"
-        printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
-        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
-        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
-    else
-        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
+    # Update diginode.settings with the current version if it has just been created, is running locally, and is on the main branch
+    if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+
+        #lookup latest release version on Github (need jq installed for this query)
+        local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+
+        # If we get a response, update the stored release version
+        if [ "$dgnt_ver_release_query" != "" ]; then
+            DGNT_VER_RELEASE=$dgnt_ver_release_query
+            DGNT_SETTINGS_FILE_VER=$dgnt_ver_release_query
+            printf "%b Settings diginode.settings file version to $DGNT_VER_RELEASE\\n" "${INFO}"
+        fi
+
+        # Set the current branch for diginpde.settings
+        DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_BRANCH_REMOTE
+
     fi
-  fi
 
-  # Make sure the user owns this folder
-  # chown $USER_ACCOUNT $DGNT_SETTINGS_LOCATION
+    # create .digibyte folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
+        str="Creating ~/.digibyte folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        if [ "$VERBOSE_MODE" = true ]; then
+            printf "\\n"
+            printf "%b   Folder location: $DGNT_SETTINGS_LOCATION\\n" "${INDENT}"
+            sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
+            IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
+        else
+            sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
+        fi
+    fi
 
-  # create diginode.settings file
-  str="Creating ~/.diginode/diginode.settings file..."
-  printf "%b %s" "${INFO}" "${str}"
-  sudo -u $USER_ACCOUNT touch $DGNT_SETTINGS_FILE
-  cat <<EOF > $DGNT_SETTINGS_FILE
+    # Make sure the user owns this folder
+    # chown $USER_ACCOUNT $DGNT_SETTINGS_LOCATION
+
+    # create diginode.settings file
+    str="Creating ~/.diginode/diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT touch $DGNT_SETTINGS_FILE
+    cat <<EOF > $DGNT_SETTINGS_FILE
 #!/bin/bash
 # This settings file is used to store variables for DigiNode Setup and DigiNode Status Monitor
 
+# DIGINODE SETTINGS VERSION NUMER
+DGNT_SETTINGS_FILE_VER=$DGNT_SETTINGS_FILE_VER
+DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_SETTINGS_FILE_VER_BRANCH
 
 ############################################
 ####### FOLDER AND FILE LOCATIONS ##########
@@ -487,7 +506,7 @@ DGNT_MONITOR_FIRST_RUN=
 DGNT_MONITOR_LAST_RUN=
 DGNT_VER_LOCAL=
 DGNT_VER_LOCAL_DISPLAY=
-DGNT_VER_RELEASE=
+DGNT_VER_RELEASE=$DGNT_VER_RELEASE
 
 # This is updated automatically every time DigiNode Tools is installed/upgraded. 
 # It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
@@ -644,6 +663,96 @@ else
         printf "\\n"
     fi
 fi
+
+}
+
+# THis function will update the existing diginode.settings file with the new version, if there is one (this occurs whenever there is a new release of DigiNode Tools, or if the branch the user is running changes)
+diginode_tools_update_settings() {
+
+    if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; then
+
+        # If this is running remotely, first check if the branch has been changed, then lookup the new release version, and then
+        if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+
+            # If the branch has changed we need to do a new update
+            if [ "$DGNT_RUN_LOCATION" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ]; then
+                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_RUN_LOCATION\".\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
+            fi
+
+            # Let's get the current release version
+            local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+
+             # If we get a response, update the stored release version
+            if [ "$dgnt_ver_release_query" != "" ]; then
+                DGNT_VER_RELEASE=$dgnt_ver_release_query
+                DGNT_SETTINGS_FILE_VER_NEW=$dgnt_ver_release_query
+            fi
+
+        fi
+
+        # If this is running locally, lookup the local version number to see if the settings file needs to be updated
+        if [ "$DGNT_RUN_LOCATION" = "local" ]; then
+
+            # Get the current local branch, if any
+            if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+                dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+            fi
+
+            # If we get a valid local branch, update the stored local branch
+            if [ "$dgnt_branch_local_query" != "" ]; then
+                DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+            fi
+
+            # If the files have been manually updated over SFTP (usually during development), the script may not have been able to detect the local branch
+            # In this case, we'll update diginode.settings regardless since it may have been changed. (We just don't know so must assume it has.)
+            if [ "$DGNT_BRANCH_LOCAL" = "" ]; then
+
+                printf "%b The current local branch of DigiNode Tools is unknown, so the diginode.settings file will be updated just in case.\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"  #At least we are assuming it has
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=""
+            fi
+
+            # If the branch has changed we need to do a new update to diginode.settings
+            # (we only need to check this if it has not already been established that we need to do an update above)
+            if [ "$DGNT_RUN_LOCATION" != "$DGNT_SETTINGS_FILE_VER_BRANCH" ] && [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ]; then
+                printf "%b diginode.settings file branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_LOCAL\".\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
+            fi
+
+            # Get the current local version, if any
+            if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+                local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+            fi
+
+            # If we get a valid version number, update the stored local version
+            if [ "$dgnt_ver_local_query" != "" ]; then
+                DGNT_VER_LOCAL=$dgnt_ver_local_query
+                DGNT_SETTINGS_FILE_VER_NEW=$dgnt_ver_local_query
+            fi
+
+        fi
+
+        # If the diginode.settings file branch has not changed, check if the diginode.settings file version has changed
+        if [ "$DGNT_SETTINGS_BRANCH_HAS_CHANGED" != "YES" ] && [ $(version $DGNT_SETTINGS_FILE_VER) -ge $(version $DGNT_SETTINGS_FILE_VER_NEW) ]; then
+            printf "%b diginode.settings file version has changed from $DGNT_SETTINGS_FILE_VER to $DGNT_SETTINGS_FILE_VER_NEW.\\n" "${INFO}"
+            # create a new diginode.settinngs file
+            DGNT_SETTINGS_DO_UPGRADE="YES"
+        fi
+
+        # 
+        if [ "$DGNT_SETTINGS_DO_UPGRADE" = "YES" ]; then
+            printf "%b diginode.settings file will now be upgraded to a new version... [Not implememented yet!]\\n" "${INFO}"
+        fi
+
+        printf "\\n"
+
+    fi
 
 }
 
@@ -1796,9 +1905,9 @@ if is_command apt-get ; then
     fi
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(grep dnsutils)
+    SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" jq whiptail bc)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo)
 
@@ -5643,6 +5752,12 @@ printf " =============== Checking: DigiNode Tools ==============================
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # Update diginode.settings with the current version if it has just been created, is running locally, and is on the main branch
+    if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] && [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        printf "%b Setting file version of diginode.settings to $DGNT_VER_LOCAL\\n" "${INFO}"
+        sed -i -e "/^DGNT_SETTINGS_FILE_VER=/s|.*|DGNT_SETTINGS_FILE_VER=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
     # Let's check if DigiNode Tools already installed
     str="Are DigiNode Tools already installed?..."
     printf "%b %s" "${INFO}" "${str}"
@@ -6003,7 +6118,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
       str="Is Kubo daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "ipfs"; then # BANANA
+      if check_service_active "ipfs"; then
           IPFS_STATUS="running"
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
       else
@@ -9584,10 +9699,11 @@ main() {
                 printf "%b Re-running DigiNode Setup URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args --runremote "$@"
+            else
                 # when run via calling local bash script
                 printf "%b Re-running DigiNode Setup as root...\\n" "${INFO}"
-                exec sudo bash "$0" "$@" --runlocal
+                exec sudo bash "$0" --runlocal "$@"
             fi
 
             exit $?
@@ -9630,6 +9746,9 @@ main() {
 
     # import diginode settings
     diginode_tools_import_settings
+
+    # update diginode settings if there is a new version
+    diginode_tools_update_settings
 
     # Set the system variables once we know we are on linux
     set_sys_variables
