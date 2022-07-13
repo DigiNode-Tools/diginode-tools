@@ -101,8 +101,6 @@ These tools are provided as is. Use at your own risk. Always maintain a backup o
 
 # curl -sSL diginode-setup.digibyte.help | bash
 
-Once DigiNode Tools has been installed, in future you can run DigiNode Setup locally by entering: ```diginode-setup```
-
 ## Support
 
 If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
@@ -156,7 +154,7 @@ Example:
 
 DigiNode Tools v0.3.6
 - New: Add detection system to deduce whether DigiNode Setup is being run locally or remotely.
-- New: Preliminary tests for a new feature to upgrade the diginode.settings file whnever there is a new release. This is to allow for adding new features in the future that require changes to diginode.settings
+- New: Preliminary tests for a new feature to upgrade the diginode.settings file whenever there is a new release. This is to allow for adding new features in the future that require changes to diginode.settings
 
 DigiNode Tools v0.3.5 - 2022-07-11
 - Add more screenshots to the README
