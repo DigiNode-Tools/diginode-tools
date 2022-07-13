@@ -339,7 +339,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 #!/bin/bash
 # This settings file is used to store variables for DigiNode Setup and DigiNode Status Monitor
 
-# DIGINODE SETTINGS VERSION NUMER
+# DIGINODE.SETTINGS FILE VERSION
 DGNT_SETTINGS_FILE_VER=$DGNT_SETTINGS_FILE_VER
 DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_SETTINGS_FILE_VER_BRANCH
 
@@ -522,13 +522,6 @@ DGA_VER_LOCAL=
 DGA_VER_MJR_RELEASE=
 DGA_VER_RELEASE=
 DGA_LOCAL_BRANCH=
-
-
-# Store IPFS Updater installation details:
-IPFSU_VER_LOCAL=
-IPFSU_VER_RELEASE=
-IPFSU_INSTALL_DATE=
-IPFSU_UPGRADE_DATE=
 
 # Store Kubo (Go-IPFS) installation details:
 IPFS_VER_LOCAL=
@@ -753,6 +746,265 @@ diginode_tools_update_settings() {
         # 
         if [ "$DGNT_SETTINGS_DO_UPGRADE" = "YES" ]; then
             printf "%b diginode.settings will now be upgraded... [Not implememented yet!]\\n" "${INFO}"
+
+            if [ -f "$DGNT_SETTINGS_LOCATION/diginode.settings.new" ]; then
+                str="Deleting diginode.settings.new file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGNT_SETTINGS_LOCATION/diginode.settings.new
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+
+            # create diginode.settings file
+            str="Recreating diginode.settings.new file..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT touch $DGB_SETTINGS_LOCATION/diginode.settings.new # $DGNT_SETTINGS_FILE
+            cat <<EOF > $DGB_SETTINGS_LOCATION/diginode.settings.new
+#!/bin/bash
+# This settings file is used to store variables for DigiNode Setup and DigiNode Status Monitor
+
+# DIGINODE.SETTINGS FILE VERSION
+DGNT_SETTINGS_FILE_VER=$DGNT_SETTINGS_FILE_VER
+DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_SETTINGS_FILE_VER_BRANCH
+
+############################################
+####### FOLDER AND FILE LOCATIONS ##########
+############################################
+
+# DEFAULT FOLDER AND FILE LOCATIONS
+# If you want to change the default location of folders you can edit them here
+# Important: Use the USER_HOME variable to identify your home folder location.
+
+# DGNT_SETTINGS_LOCATION=   [This value is set in the header of the setup script. Do not set it here.]
+# DGNT_SETTINGS_FILE=       [This value is set in the header of the setup script. Do not set it here.]
+
+# DIGIBYTE CORE BLOCKCHAIN DATA LOCATION:
+# You can change this to optionally store the DigiByte blockchain data in a diferent location
+# The value set below will be used by the normal install and the unattended install
+# Note - changing this after the DigiByte Node has already been running will cause
+# the blockchain to be be re-downloaded in the new location. The old data will need to be deleted manually
+# or moved to the new location first. Follow these recommended steps to change the location:
+# 1) Stop the digibyted service
+# 2) Manually move the blockchain data from the old to the new location
+# 3) Update this file with the new location below
+# 4) Re-run DigiNode Setup to automatically update your service file and digibyte.conf file with the new location
+# 5) Restart the digibyted service 
+DGB_DATA_LOCATION=$DGB_DATA_LOCATION
+
+
+#####################################
+####### OTHER SETTINGS ##############
+#####################################
+
+# THis will set the max connections in the digibyte.conf file on the first install
+# This value set here is also used when performing an unattended install
+# (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
+DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
+
+# Stop the DigiNode Status Monitor automatically if it is left running
+# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
+# e.g. To stop after 12 hours enter: 43200
+SM_AUTO_QUIT=$SM_AUTO_QUIT
+
+# Install the develop branch of DigiNode Tools (Specify either YES or NO)
+# If NO, it will install the latest release version
+DGNT_DEV_BRANCH=$DGNT_DEV_BRANCH
+
+# This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
+INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
+
+
+#####################################
+####### UNATTENDED SETUP ########
+#####################################
+
+# INSTRUCTIONS: 
+# These variables are used during an unattended install to automatically configure your DigiNode.
+# Set these variables and then run DigiNode Setup with the --unattended flag set.
+
+# Decide whether to have the script enforce using user: digibyte (Set to YES/NO)
+# If set to YES DigiNode Setup will only proceed if the the user is: digibyte
+# If set to NO DigiNode Setup will install as the current user
+UI_ENFORCE_DIGIBYTE_USER=$UI_ENFORCE_DIGIBYTE_USER
+
+# Choose whether to change the system hostname to: diginode (Set to YES/NO)
+# If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
+# If it is running on a Linux box with a load of other stuff, then probably not.
+UI_HOSTNAME_SET=$UI_HOSTNAME_SET
+
+# Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
+UI_FIREWALL_SETUP=$UI_FIREWALL_SETUP
+
+# Choose whether to create or change the swap file size
+# The optimal swap size will be calculated to ensure there is 8Gb total memory.
+# e.g. If the system has 2Gb RAM, it will create a 6Gb swap file. Total: 8Gb.
+# If there is more than 8Gb RAM available, no swap will be created.
+# You can override this by manually entering the desired size in UI_SWAP_SIZE_MB below.
+UI_SWAP_SETUP=$UI_SWAP_SETUP
+
+# You can optionally manually enter a desired swap file size here in MB.
+# The UI_SWAP_SETUP variable above must be set to YES for this to be used.
+# If you leave this value empty, the optimal swap file size will calculated by DigiNode Setup.
+# Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
+UI_SWAP_SIZE_MB=$UI_SWAP_SIZE_MB
+
+# This is where the swap file will be located. You can change this to store it on an external drive
+# if desired.
+UI_SWAP_FILE=$UI_SWAP_FILE
+
+# Will install regardless of available disk space on the data drive. Use with caution.
+UI_DISKSPACE_OVERRIDE=$UI_DISKSPACE_OVERRIDE
+
+# Choose whether to setup Tor [NOT WORKING YET]
+UI_TOR_SETUP=$UI_TOR_SETUP
+
+# Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
+# Choose NO to install DigiByte Core only
+UI_DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
+
+
+#############################################
+####### SYSTEM VARIABLES ####################
+#############################################
+
+# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup AND STATUS MONITOR.
+
+# DIGIBYTE NODE LOCATION:
+# This references a symbolic link that points at the actual install folder. Please do not change this.
+# If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
+# called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
+# Be aware that DigiNode Setup upgrades will likely not work if you do this.
+DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
+
+# Do not change this. You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
+DGB_SETTINGS_LOCATION=$DGB_SETTINGS_LOCATION
+
+# DIGIBYTE NODE FILES:
+DGB_CONF_FILE=$DGB_CONF_FILE
+DGB_CLI=$DGB_CLI
+DGB_DAEMON=$DGB_DAEMON
+
+# IPFS NODE LOCATION
+IPFS_SETTINGS_LOCATION=$IPFS_SETTINGS_LOCATION
+
+# DIGIASSET NODE LOCATION:
+# The backup location variable is a temporary folder that stores your _config folder backup during a reset or uninstall.
+# When reinstalling, this folder is automatically restored to the correct location, typically ~/digiasset_node/_config
+DGA_INSTALL_LOCATION=$DGA_INSTALL_LOCATION
+DGA_SETTINGS_LOCATION=$DGA_SETTINGS_LOCATION
+DGA_SETTINGS_BACKUP_LOCATION=$DGA_SETTINGS_BACKUP_LOCATION
+
+# DIGIASSET NODE FILES
+DGA_SETTINGS_FILE=$DGA_SETTINGS_FILE
+DGA_SETTINGS_BACKUP_FILE=$DGA_SETTINGS_BACKUP_FILE
+
+# SYSTEM SERVICE FILES:
+DGB_SYSTEMD_SERVICE_FILE=$DGB_SYSTEMD_SERVICE_FILE
+DGB_UPSTART_SERVICE_FILE=$DGB_UPSTART_SERVICE_FILE
+IPFS_SYSTEMD_SERVICE_FILE=$IPFS_SYSTEMD_SERVICE_FILE
+IPFS_UPSTART_SERVICE_FILE=$IPFS_UPSTART_SERVICE_FILE
+PM2_SYSTEMD_SERVICE_FILE=$PM2_SYSTEMD_SERVICE_FILE
+PM2_UPSTART_SERVICE_FILE=$PM2_UPSTART_SERVICE_FILE
+
+# Store DigiByte Core Installation details:
+DGB_INSTALL_DATE=\"$DGB_INSTALL_DATE\"
+DGB_UPGRADE_DATE=\"$DGB_UPGRADE_DATE\"
+DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"
+DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"
+DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"
+
+# DIGINODE TOOLS LOCATION:
+# This is the default location where the scripts get installed to. There should be no need to change this.
+DGNT_LOCATION=$DGNT_LOCATION
+
+# DIGINODE TOOLS FILES:
+DGNT_SETUP_SCRIPT=$DGNT_SETUP_SCRIPT
+DGNT_SETUP_LOG=$DGNT_SETUP_LOG
+DGNT_MONITOR_SCRIPT=$DGNT_MONITOR_SCRIPT
+
+# DIGINODE TOOLS INSTALLATION DETAILS:
+# Release/Github versions are queried once a day and stored here. Local version number are queried every minute.
+DGNT_INSTALL_DATE=\"$DGNT_INSTALL_DATE\"
+DGNT_UPGRADE_DATE=\"$DGNT_UPGRADE_DATE\"
+DGNT_MONITOR_FIRST_RUN=\"$DGNT_MONITOR_FIRST_RUN\"
+DGNT_MONITOR_LAST_RUN=\"$DGNT_MONITOR_LAST_RUN\"
+DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"
+DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"
+DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"
+
+# This is updated automatically every time DigiNode Tools is installed/upgraded. 
+# It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
+DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"
+
+# Store DigiAsset Node installation details:
+DGA_INSTALL_DATE=\"$DGA_INSTALL_DATE\"
+DGA_UPGRADE_DATE=\"$DGA_UPGRADE_DATE\"
+DGA_FIRST_RUN=\"$DGA_FIRST_RUN\"
+DGA_VER_MJR_LOCAL=\"$DGA_VER_MJR_LOCAL\"
+DGA_VER_MNR_LOCAL=\"$DGA_VER_MNR_LOCAL\"
+DGA_VER_LOCAL=\"$DGA_VER_LOCAL\"
+DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"
+DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"
+DGA_LOCAL_BRANCH=\"$DGA_LOCAL_BRANCH\"
+
+# Store Kubo (Go-IPFS) installation details:
+IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"
+IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"
+IPFS_INSTALL_DATE=\"$IPFS_INSTALL_DATE\"
+IPFS_UPGRADE_DATE=\"$IPFS_UPGRADE_DATE\"
+
+# Store NodeJS installation details:
+NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"
+NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"
+NODEJS_INSTALL_DATE=\"$NODEJS_INSTALL_DATE\"
+NODEJS_UPGRADE_DATE=\"$NODEJS_UPGRADE_DATE\"
+NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"
+
+# Timer variables (these control the timers in the Status Monitor loop)
+SAVED_TIME_15SEC=\"$SAVED_TIME_15SEC\"
+SAVED_TIME_1MIN=\"$SAVED_TIME_1MIN\"
+SAVED_TIME_15MIN=\"$SAVED_TIME_15MIN\"
+SAVED_TIME_1DAY=\"$SAVED_TIME_1DAY\"
+SAVED_TIME_1WEEK=\"$SAVED_TIME_1WEEK\"
+
+# Disk usage variables (updated every 15 seconds)
+BOOT_DISKFREE_HR=\"$BOOT_DISKFREE_HR\"
+BOOT_DISKFREE_MB=\"$BOOT_DISKFREE_MB\"
+BOOT_DISKUSED_HR=\"$BOOT_DISKUSED_HR\"
+BOOT_DISKUSED_MB=\"$BOOT_DISKUSED_MB\"
+BOOT_DISKUSED_PERC=\"$BOOT_DISKUSED_PERC\"
+DGB_DATA_DISKFREE_HR=\"$DGB_DATA_DISKFREE_HR\"
+DGB_DATA_DISKFREE_MB=\"$DGB_DATA_DISKFREE_MB\"
+DGB_DATA_DISKUSED_HR=\"$DGB_DATA_DISKUSED_HR\"
+DGB_DATA_DISKUSED_MB=\"$DGB_DATA_DISKUSED_MB\"
+DGB_DATA_DISKUSED_PERC=\"$DGB_DATA_DISKUSED_PERC\"
+
+# IP addresses (only rechecked once every 15 minutes)
+IP4_INTERNAL=$\"$IP4_INTERNAL\"
+IP4_EXTERNAL=\"$IP4_EXTERNAL\"
+
+# This records when DigiNode was last backed up to a USB stick
+DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$DGB_WALLET_BACKUP_DATE_ON_DIGINODE\"
+DGA_CONFIG_BACKUP_DATE_ON_DIGINODE=\"$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\"
+
+# Store number of available system updates so the script only checks this occasionally
+SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"
+SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"
+
+# Store when an open port test last ran successfully
+# Note: If you want to run a port test again, remove the status and date from here
+# If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
+IPFS_PORT_TEST_STATUS=\"$IPFS_PORT_TEST_STATUS\"
+IPFS_PORT_TEST_DATE=\"$IPFS_PORT_TEST_DATE\"
+
+# Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+DONATION_PLEA=\"$DONATION_PLEA\"
+
+# Store DigiByte blockchain sync progress
+BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"
+
+EOF
+
         fi
 
         # Only insert a line break if we did updated diginode.settings

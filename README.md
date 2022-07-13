@@ -152,6 +152,9 @@ Example:
 
 ## Release Notes
 
+DigiNode Tools v0.3.7
+- New: Upgrade diginode.settings file whever there is a new release. This will make it significantly easier to add new features to DigNode Tools in the future, as diginode.settings can now be upgraded to support them.
+
 DigiNode Tools v0.3.6 - 2022-07-13
 - New: Add detection system to deduce whether DigiNode Setup is being run locally or remotely.
 - New: Preliminary tests for a new feature to upgrade the diginode.settings file whenever there is a new release. This is to allow for adding new features in the future that require changes to diginode.settings
