@@ -9691,16 +9691,11 @@ main() {
 
             # when run via curl piping
             if [[ "$0" == "bash" ]]; then
-                # Only append this to the curl command this if there are arguments to include
-                if [ ! $# -eq 0 ]; then
-                    local add_args="-s --"
-                fi
 
                 printf "%b Re-running DigiNode Setup URL as root...\\n" "${INFO}"
 
                 # Download the install script and run it with admin rights
-                echo "exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote"
-                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s $add_args "$@" --runremote
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s -- --runremote "$@" 
             else
                 # when run via calling local bash script
                 printf "%b Re-running DigiNode Setup as root...\\n" "${INFO}"
