@@ -821,6 +821,7 @@ diginode_tools_update_settings() {
             printf "%b diginode.settings needs upgrading from v$DGNT_SETTINGS_FILE_VER to v$DGNT_SETTINGS_FILE_VER_NEW.\\n" "${INFO}"
             # create a new diginode.settinngs file
             DGNT_SETTINGS_DO_UPGRADE="YES"
+            DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_SETTINGS_FILE_VER_BRANCH
         fi
 
         # 
