@@ -723,6 +723,22 @@ diginode_tools_update_settings() {
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
             fi
 
+            # If we are running the develop or main branch do an update regardless
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
+                printf "%b We are using the main branch - diginode.settings will be updated.\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
+            fi
+
+            # If we are running the develop or main branch do an update regardless
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
+                printf "%b We are using the develop branch - diginode.settings will be updated.\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
+            fi
+
             # Let's get the current release version
             local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
@@ -769,6 +785,22 @@ diginode_tools_update_settings() {
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_LOCAL
+            fi
+
+            # If we are running the develop or main branch do an update regardless
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
+                printf "%b We are using the main branch - diginode.settings will be updated.\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
+            fi
+
+            # If we are running the develop or main branch do an update regardless
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
+                printf "%b We are using the develop branch - diginode.settings will be updated.\\n" "${INFO}"
+                DGNT_SETTINGS_DO_UPGRADE="YES"
+                DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
             fi
 
             # Get the current local version, if any
