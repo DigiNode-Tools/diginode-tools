@@ -639,14 +639,14 @@ SAVED_TIME_1WEEK="$SAVED_TIME_1WEEK"
 
 # Disk usage variables (updated every 15 seconds)
 BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"
-BOOT_DISKFREE_MB="$BOOT_DISKFREE_MB"
+BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"
 BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"
-BOOT_DISKUSED_MB="$BOOT_DISKUSED_MB"
+BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"
 BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"
 DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"
-DGB_DATA_DISKFREE_MB="$DGB_DATA_DISKFREE_MB"
+DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"
 DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"
-DGB_DATA_DISKUSED_MB="$DGB_DATA_DISKUSED_MB"
+DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"
 DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"
 
 # IP addresses (only rechecked once every 15 minutes)
@@ -9682,10 +9682,10 @@ fi
 
 if [ "$DIGIFACT" = "help6" ]; then
     DIGIFACT_TITLE="    Want to learn more about DigiByte?"
-    DIGIFACT_L1="The DGB Wiki is a fanatastic resource of information"
-    DIGIFACT_L2="on all things DigiByte, written and maintained"
-    DIGIFACT_L3="by members of the DigiByte community."
-    DIGIFACT_L4=""
+    DIGIFACT_L1="The DGB Wiki is a fanatastic resource of information on all"
+    DIGIFACT_L2="things DigiByte, written and maintained by members of the"
+    DIGIFACT_L3="DigiByte community:"
+    DIGIFACT_L4=" "
     DIGIFACT_L5="https://dgbwiki.com/"
     DIGIFACT_L6=""
 fi
