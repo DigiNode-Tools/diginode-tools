@@ -3,7 +3,7 @@
 # DigiNode Tools
 
 ### What's a DigiNode?
-A DigiNode is a dedicated device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
+A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
 
 ### What are DigiNode Tools?
 DigiNode Tools are a suite of linux bash scripts that make it easy to setup, monitor and manage your DigiNode via the linux command line.
@@ -11,23 +11,23 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
 ### What do I need to run a DigiNode?
-DigiNode Tools should run on most Debian and Ubuntu based systems. See the Compatibility section below.
+DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below.
 
-If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Ubuntu Server 64-bit** or **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
 
 ## DigiNode Setup
 
-DigiNode Setup helps you to install and manage your DigiNode:
+DigiNode Setup helps you to setup and manage your DigiNode:
 
-- Intuitively walks you though the process of installing a DigiByte Node and DigiAsset Node.
+- Intuitively walks you though the process of setting up a DigiByte Full Node and DigiAsset Node.
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
 - Automatically checks hardware and OS at launch - it lets you know if your system is compatible.
 - Detects compatible Raspberry Pi hardware (if present).
 - Creates a swap file on low memory devices, and checks if any existing swap file is large enough.
 - Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
 - Creates or updates a digibyte.conf settings file with optimal settings.
-- Creates digibyted.service file to keep the DigiByte Node running 24/7.
-- Creates or updates an DigiAsset config file with RPC settings. 
+- Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
+- Creates or updates your DigiAsset Node configuration file with your RPC credentioals. This ensures you can always access your wallet and mint DigiAssets.
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
 
@@ -152,8 +152,11 @@ Example:
 
 ## Release Notes
 
-DigiNode Tools v0.3.7
+DigiNode Tools v0.3.8
 - New: Upgrade diginode.settings file whever there is a new release. This will make it significantly easier to add new features to DigNode Tools in the future, as diginode.settings can now be upgraded to support them.
+
+DigiNode Tools v0.3.7 - 2022-07-13
+- New: Create new diginode.settings.new file whever there is a new release. This is to test the update mechanism for upgrading diginode.settings.
 
 DigiNode Tools v0.3.6 - 2022-07-13
 - New: Add detection system to deduce whether DigiNode Setup is being run locally or remotely.
