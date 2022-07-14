@@ -1552,8 +1552,14 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Update DigiNode Tools display variable
+    # If it returns head, set it to release
     if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
+        DGNT_BRANCH_LOCAL="release"
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Update DigiNode Tools display variable
+    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
         DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
