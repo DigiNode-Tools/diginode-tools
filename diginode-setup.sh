@@ -584,8 +584,8 @@ DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 
 # DIGINODE TOOLS LOCATION:
-# This is the default location where the scripts get installed to. There should be no need to change this.
-DGNT_LOCATION=$DGNT_LOCATION
+# This is the default location where the scripts get installed to. (Do not change this.)
+DGNT_LOCATION=$USER_HOME/diginode-tools
 
 # DIGINODE TOOLS FILES:
 DGNT_SETUP_SCRIPT=$DGNT_SETUP_SCRIPT
@@ -757,6 +757,8 @@ diginode_tools_update_settings() {
             if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
                 dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
             fi
+
+            echo "dgnt_branch_local_query: $dgnt_branch_local_query"
 
             # If we get a valid local branch, update the stored local branch
             if [ "$dgnt_branch_local_query" != "" ]; then
