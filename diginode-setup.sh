@@ -726,7 +726,7 @@ diginode_tools_update_settings() {
                 printf "%b diginode.settings branch has changed from \"$DGNT_SETTINGS_FILE_VER_BRANCH\" to \"$DGNT_BRANCH_REMOTE\".\\n" "${INFO}"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
-                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_RUN_LOCATION
+                DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
             fi
 
             # Let's get the current release version
