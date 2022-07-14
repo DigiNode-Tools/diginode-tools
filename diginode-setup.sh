@@ -219,13 +219,7 @@ where_are_we() {
         printf "%b DigiNode Setup is running locally.\\n" "${INFO}"
         printf "\\n"
     fi
-    if [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
-        printf "%b DigiNode Setup is running remotely - develop branch.\\n" "${INFO}"
-        printf "\\n"
-    elif [ "$DGNT_RUN_LOCATION" = "remote" ] && [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
-        printf "%b DigiNode Setup is running remotely - main branch.\\n" "${INFO}"
-        printf "\\n"
-    elif [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+    if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
         printf "%b DigiNode Setup is running remotely.\\n" "${INFO}"
         printf "\\n"
     fi
