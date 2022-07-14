@@ -152,8 +152,8 @@ Example:
 
 ## Release Notes
 
-DigiNode Tools v0.3.8
-- New: Upgrade diginode.settings file whever there is a new release. This will make it significantly easier to add new features to DigNode Tools in the future, as diginode.settings can now be upgraded to support them.
+DigiNode Tools v0.3.8 - 2022-07-14
+- New: Upgrade diginode.settings file whever there is a new release. This will make it significantly easier to add new features to DigNode Tools in the future, as diginode.settings can now be upgraded to support them. Up till now you would likely have had to delete diginode.settings whenever there was a significant upgrade made to DigiNode Tools.
 
 DigiNode Tools v0.3.7 - 2022-07-13
 - New: Create new diginode.settings.new file whever there is a new release. This is to test the update mechanism for upgrading diginode.settings.
