@@ -9961,7 +9961,7 @@ main() {
 
         # If DigiNode Tools are running locally (i.e. installed), offer to check for updates to them
         if [ "$DGNT_RUN_LOCATION" = "local" ]; then
-            if whiptail --backtitle "" --title "Upgade DigiNode Tools" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since it was not originally setup using DigiNode Tools, it cannot be safely managed using DigiNode Setup. However, DigiNode Setup can check for updates to DigiNode Tools itself, so you can install any updates to the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "Upgrade DigiNode Tools?" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since it was not originally setup using DigiNode Tools, it cannot be safely managed using DigiNode Setup.\\n\\nDigiNode Setup can check for updates to DigiNode Tools itself, so you can install any updates to the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
 

@@ -229,7 +229,7 @@ digimon_disclaimer() {
 locate_digibyte_node() {
 
         printf "%b If you have not yet installed a DigiByte Node, choose Option 1 below to run\\n" "${INDENT}"
-        printf "%b DigiNode Setup to set one up. If you already have installed on this system,\\n" "${INDENT}"
+        printf "%b DigiNode Setup to set one up. If you already have a DigiByte Node installed on this system,\\n" "${INDENT}"
         printf "%b please choose Option 2 to enter the absolute path of where it is installed.\\n" "${INDENT}"
         printf "\\n"
         printf "%b    1.  Run DigiNode Setup\\n" "${INDENT}"
