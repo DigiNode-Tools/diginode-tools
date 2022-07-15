@@ -152,7 +152,10 @@ Example:
 
 ## Release Notes
 
-DigiNode Tools v0.3.9 - 2022-07-14
+DigiNode Tools v0.3.10 - 2022-07-15
+- New: The Status Monitor will now prompt the user for the absolute location of their DigiByte Core install folder, if it is unable to locate it. This should make it easier to use the Status Monitor with an existing DigiByte Node that wasn't setup using DigiNode Setup.
+
+DigiNode Tools v0.3.9 - 2022-07-15
 - New: Add menu option to install DigiNode Tools ONLY. This is to make it easier to use the Status Monitor with an existing DigiByte Node. It also lets you run the DigiNode Setup script locally, which gives you the opportunity to look at what it does before you run it. Always install it from the official Github repository.
 
 DigiNode Tools v0.3.8 - 2022-07-14
