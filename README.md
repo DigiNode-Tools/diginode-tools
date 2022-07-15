@@ -152,6 +152,9 @@ Example:
 
 ## Release Notes
 
+DigiNode Tools v0.3.9 - 2022-07-14
+- New: Add menu option to install DigiNode Tools ONLY. This is to make it easier to use the Status Monitor with an existing DigiByte Node. It also lets you run the DigiNode Setup script locally, which gives you the opportunity to look at what it does before you run it. Always install it from the official Github repository.
+
 DigiNode Tools v0.3.8 - 2022-07-14
 - New: Auto-upgrade diginode.settings file whenever there is a new release. This will make it significantly easier to add new features to DigNode Tools in the future, as diginode.settings can now be upgraded to support them. Up till now you would likely have had to delete diginode.settings whenever there was a significant upgrade to DigiNode Tools.
 
