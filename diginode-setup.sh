@@ -5924,6 +5924,7 @@ printf " =============== Checking: DigiNode Tools ==============================
         DGNT_VER_LOCAL=""
         DGNT_BRANCH_LOCAL=""
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
             printf "%b%b %s YES!  DigiNode Tools v${DGNT_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
@@ -5981,7 +5982,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 DGNT_ASK_UPGRADE=YES
             fi
 
-        elif [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
