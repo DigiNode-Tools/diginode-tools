@@ -4705,11 +4705,15 @@ menu_first_install() {
     opt2a="DigiByte Node ONLY "
     opt2b=" DigiAsset Node will NOT be installed."
 
+    opt3a="DigiNode Tools ONLY "
+    opt3b=" To use the Status Monitor with an existing install."
+
 
     # Display the information to the user
     UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
 
     # Set the variable based on if the user chooses
@@ -4724,8 +4728,47 @@ menu_first_install() {
             DO_FULL_INSTALL=NO
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             ;;
+        # Install DigiNode ONLY
+        ${opt3a})
+            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
+            install_diginode_tools_only
+            ;;
     esac
     printf "\\n"
+}
+
+# This function will install or upgrade the DigiNode Tools script on this machine banana
+install_diginode_tools_only() {
+
+    # Check and install/upgrade DigiNode Tools
+    diginode_tools_check
+    diginode_tools_do_install
+
+    # Request social media post
+    request_social_media
+
+    # Choose a random DigiFact
+    digifact_randomize
+
+    # Display a random DigiFact
+    digifact_display
+
+    # Display donation QR Code
+    donation_qrcode
+
+    printf "%b %b'DigiNode Status Monitor' can be used to monitor your existing DigiByte Node if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b %b'DigiNode Setup' can now be run locally to upgrade DigiNode Tools or setup your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work yet." "${INDENT}"
+    printf "%b If you are connected over SSH you will need to exit and re-connect before you can use them." "${INDENT}"
+    printf "\\n"
+
+    exit
 }
 
 # Function to display the upgrade menu when a previous install has been detected
@@ -5134,6 +5177,28 @@ request_social_media() {
         else
             printf " =======================================================================\\n"
             printf " ================== ${txtgrn}DigiByte Node is up to date!${txtrst} =======================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        fi
+    else
+        if [ "$DGNT_INSTALL_TYPE" = "new" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools has been installed!${txtrst} =================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools has been upgrade!${txtrst} ===================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGNT_INSTALL_TYPE" = "none" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools is up to date!${txtrst} ======================\\n"
+            printf " =======================================================================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGNT_INSTALL_TYPE" = "reset" ];then
+            printf " =======================================================================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools has been reset!${txtrst} =====================\\n"
             printf " =======================================================================\\n\\n"
             # ==============================================================================
         fi
@@ -6144,7 +6209,6 @@ fi
         fi
 
         # Reset DGNT Install and Upgrade Variables
-        DGNT_INSTALL_TYPE=""
         DGNT_UPDATE_AVAILABLE=NO
         DGNT_POSTUPDATE_CLEANUP=YES
 
