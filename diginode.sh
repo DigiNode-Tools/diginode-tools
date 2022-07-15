@@ -54,7 +54,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.3.9
+DGNT_VER_LOCAL=0.3.10
 # Last Updated: 2022-07-14
 
 # This is the command people will enter to run the install script.
@@ -225,6 +225,86 @@ digimon_disclaimer() {
 }
 
 
+# This script will prompt the user to locate DigiByte core, or install it # banana
+locate_digibyte_node() {
+
+        printf "%b If you have not yet installed a DigiByte Node, choose Option 1 below to run\\n" "${INDENT}"
+        printf "%b DigiNode Setup to set one up. If you already have installed on this system,\\n" "${INDENT}"
+        printf "%b please choose Option 2 to enter the absolute path of where it is installed.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 1.  Run DigiNode Setup\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 2.  Enter the absolute path of your DigiByte Core install folder\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 3.  Exit\\n" "${INDENT}"
+        printf "\\n"
+        read -p "         Please choose option 1, 2 or 3: " -n 1 -r          
+        printf "\\n" 
+
+      if [[ $REPLY =~ ^[1]$ ]]; then
+        printf "%b Running DigiNode Setup...\\n" "${INFO}"
+        echo ""
+        exec curl -sSL diginode-setup.digibyte.help | bash
+        exit
+      elif [[ $REPLY =~ ^[2]$ ]]; then
+        printf "%b Prompting for absoute path of digibyte core install folder...\\n" "${INFO}"
+
+        DGB_CORE_PATH=$(whiptail --inputbox "Please enter the absolute path of your DigiByte Core install folder.\\n\\nExample: /usr/bin/digibyted" 8 78 --title "Enter the absolute path of your DigiByte Node." 3>&1 1>&2 2>&3)
+                                                                            # A trick to swap stdout and stderr.
+        # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
+        exitstatus=$?
+        if [ $exitstatus == 0 ]; then
+            printf "%b You entered the following path: $DGB_CORE_PATH\\n" "${INFO}"
+
+            # Delete old ~/digibyte symbolic link
+            if [ -h "$USER_HOME/digibyte" ]; then
+                str="Deleting old 'digibyte' symbolic link from home folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm $USER_HOME/digibyte
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Create new symbolic link
+            str="Creating new ~/digibyte symbolic link pointing at $DGB_CORE_PATH ..."
+            printf "%b %s" "${INFO}" "${str}"
+            ln -s $DGB_CORE_PATH $USER_HOME/digibyte
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+            printf "%b Run DigiNode again to check your new symbolic link...\\n" "${INFO}"
+            printf "\\n"
+            exit
+        else
+            printf "%b %bYou cancelled entering the path to your DigiByte Core install folder.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "  %b If you prefer to set this up manually, create a 'digibyte' symbolic link in\\n" "${INDENT}"
+            printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
+            printf "\\n"
+            printf "  %b For example:\\n" "${INDENT}"
+            printf "\\n"
+            printf "  %b   cd ~\\n" "${INDENT}"
+            printf "  %b   ln -s /usr/bin/digibyted digibyte\\n" "${INDENT}"
+            printf "\\n"
+            printf "\\n"
+            exit
+        fi
+
+      else
+        printf "%b Exiting...\\n" "${INFO}"
+        printf "\\n" 
+        printf "  %b An alternative solution is to create a 'digibyte' symbolic link in you home folder\\n" "${INDENT}"
+        printf "  %b that points to the location of your DigiByte Core installation:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b For example:\\n" "${INDENT}"
+        printf "\\n"
+        printf "  %b   cd ~\\n" "${INDENT}"
+        printf "  %b   ln -s /usr/bin/digibyted digibyte\\n" "${INDENT}"
+        printf "\\n"
+        exit
+      fi
+      printf "\\n"
+}
+
+
 # Run checks to be sure that digibyte node is installed and running
 is_dgbnode_installed() {
 
@@ -254,16 +334,7 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate digibyte installation in home folder.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core installation folder\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
-        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
-        printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
-        printf "\\n"
-        printf "  %b For example:\\n" "${INDENT}"
-        printf "\\n"
-        printf "  %b   cd ~\\n" "${INDENT}"
-        printf "  %b   ln -s digibyte-7.17.3 digibyte\\n" "${INDENT}"
-        printf "\\n"
-        exit 1
+        locate_digibyte_node
       fi
     fi
 
@@ -278,16 +349,7 @@ is_dgbnode_installed() {
         printf "\\n"
         printf "  %b %bERROR: Unable to locate DigiByte Core binaries.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "  %b This script is unable to find your DigiByte Core binaries - digibyte & digibye-cli.\\n" "${INDENT}"
-        printf "  %b If you have not yet installed DigiByte Core, please do so using\\n" "${INDENT}"
-        printf "  %b DigiNode Setup. Otherwise, please create a 'digibyte' symbolic link in\\n" "${INDENT}"
-        printf "  %b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
-        printf "\\n"
-        printf "  %b For example:\\n" "${INDENT}"
-        printf "\\n"
-        printf "  %b   cd ~\\n" "${INDENT}"
-        printf "  %b   ln -s digibyte-7.17.3 digibyte\\n" "${INDENT}"
-        printf "\\n"
-        exit 1
+        locate_digibyte_node
     fi
 
     # Check if digibyte core is configured to run as a service

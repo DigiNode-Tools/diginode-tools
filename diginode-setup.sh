@@ -353,6 +353,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DO_FULL_INSTALL=YES
 
     # SYSTEM VARIABLES
+    DGB_INSTALL_LOCATION=$USER_HOME/digibyte
     DONATION_PLEA="yes"
 
     # create diginode.settings file
@@ -540,10 +541,12 @@ UI_DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
 
 # DIGIBYTE NODE LOCATION:
 # This references a symbolic link that points at the actual install folder. Please do not change this.
+# If you are using DigiNode Setup to manage your node there is no reason to change this.
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
-# Be aware that DigiNode Setup upgrades will likely not work if you do this.
-DGB_INSTALL_LOCATION=\$USER_HOME/digibyte
+# Be aware that DigiNode Setup upgrades will likely not work if you do this. The Status Monitor script will help you create one
+#  
+DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
 
 # Do not change this.
 # You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
@@ -4738,7 +4741,7 @@ menu_first_install() {
     printf "\\n"
 }
 
-# This function will install or upgrade the DigiNode Tools script on this machine banana
+# This function will install or upgrade the DigiNode Tools script on this machine
 install_diginode_tools_only() {
 
     # Check and install/upgrade DigiNode Tools
@@ -9955,7 +9958,20 @@ main() {
         printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
         printf "%b using DigiNode Setup and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
-        exit 1
+
+        # If DigiNode Tools are running locally (i.e. installed), offer to check for updates to them
+        if [ "$DGNT_RUN_LOCATION" = "local" ]; then
+            if whiptail --backtitle "" --title "Upgade DigiNode Tools" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since it was not originally setup using DigiNode Tools, it cannot be safely managed using DigiNode Setup. However, DigiNode Setup can check for updates to DigiNode Tools itself, so you can install any updates to the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
+
+                install_diginode_tools_only
+
+            else
+                printf "%b Exiting: You chose not to check for updates to DigiNode Tools.\\n" "${INFO}"
+                printf "\\n"
+            fi
+        fi
+
+        exit
     fi
 
     # If this is a new interaactive Install, display the welcome dialogs
