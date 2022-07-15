@@ -4706,7 +4706,7 @@ menu_first_install() {
     opt2b=" DigiAsset Node will NOT be installed."
 
     opt3a="DigiNode Tools ONLY "
-    opt3b=" Use the Status Monitor with an existing DigiByte full node."
+    opt3b=" Use the Status Monitor with an existing \\nDigiByte full node."
 
 
     # Display the information to the user
