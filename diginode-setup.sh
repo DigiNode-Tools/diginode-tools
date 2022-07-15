@@ -4706,7 +4706,7 @@ menu_first_install() {
     opt2b=" DigiAsset Node will NOT be installed."
 
     opt3a="DigiNode Tools ONLY "
-    opt3b=" To use the Status Monitor with an existing install."
+    opt3b=" Use the Status Monitor with an existing DigiByte full node."
 
 
     # Display the information to the user
@@ -4731,6 +4731,7 @@ menu_first_install() {
         # Install DigiNode ONLY
         ${opt3a})
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
+            print "\\n"
             install_diginode_tools_only
             ;;
     esac
@@ -4758,14 +4759,14 @@ install_diginode_tools_only() {
 
     printf "%b %b'DigiNode Status Monitor' can be used to monitor your existing DigiByte Node if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
     printf "\\n"
     printf "%b %b'DigiNode Setup' can now be run locally to upgrade DigiNode Tools or setup your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work yet." "${INDENT}"
-    printf "%b If you are connected over SSH you will need to exit and re-connect before you can use them." "${INDENT}"
+    printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work yet.\\n" "${INDENT}"
+    printf "%b If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
     printf "\\n"
 
     exit
