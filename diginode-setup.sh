@@ -9963,19 +9963,31 @@ main() {
         printf "%b using DigiNode Setup and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
 
-        # If DigiNode Tools are running locally (i.e. installed), offer to check for updates to them
-        if [ "$DGNT_RUN_LOCATION" = "local" ]; then
-            if whiptail --backtitle "" --title "Upgrade DigiNode Tools?" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since it was not originally setup using DigiNode Tools, it cannot be safely managed using DigiNode Setup.\\n\\nDigiNode Setup can check for updates to DigiNode Tools itself, so you can install any updates to the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
+        # If DigiNode Tools is installed, offer to check for an update
+        if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
+            if whiptail --backtitle "" --title "Upgrade DigiNode Tools?" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nYou can check for updates to DigiNode Tools itself, to upgrade the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
 
             else
                 printf "%b Exiting: You chose not to check for updates to DigiNode Tools.\\n" "${INFO}"
                 printf "\\n"
+                exit
+            fi
+
+        # If DigiNode Tools is not installed), offer to install them
+        else
+            if whiptail --backtitle "" --title "Install DigiNode Tools" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
+
+                install_diginode_tools_only
+
+            else
+                printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
+                printf "\\n"
+                exit
             fi
         fi
 
-        exit
     fi
 
     # If this is a new interaactive Install, display the welcome dialogs
