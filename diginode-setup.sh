@@ -5887,8 +5887,10 @@ printf " =============== Checking: DigiNode Tools ==============================
     # Get the current local version and branch, if any
     if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
         local dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f 2)
+        local dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+    else
+        DGNT_BRANCH_LOCAL=""
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=|" $DGNT_SETTINGS_FILE  
-        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
     fi
 
     # If we get a valid version number, update the stored local version
@@ -5920,6 +5922,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     if [ ! -f "$DGNT_MONITOR_SCRIPT" ]; then
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
         DGNT_VER_LOCAL=""
+        DGNT_BRANCH_LOCAL=""
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
     else
         if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
