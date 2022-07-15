@@ -4714,7 +4714,7 @@ menu_first_install() {
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit 1; }
+    { printf "%b %bExit was selected, exiting DigiNode Setup%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; print "\\n"; digifact_randomize; digifact_display; print "\\n"; exit; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
