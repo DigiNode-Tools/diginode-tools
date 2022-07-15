@@ -4706,7 +4706,7 @@ menu_first_install() {
     opt2b=" DigiAsset Node will NOT be installed."
 
     opt3a="DigiNode Tools ONLY "
-    opt3b=" Use the Status Monitor with an existing \\nDigiByte full node."
+    opt3b=" Use the Status Monitor with an existing DigiByte node."
 
 
     # Display the information to the user
@@ -4745,8 +4745,8 @@ install_diginode_tools_only() {
     diginode_tools_check
     diginode_tools_do_install
 
-    # Request social media post
-    request_social_media
+    # Display closing message
+    closing_banner_message
 
     # Choose a random DigiFact
     digifact_randomize
@@ -4801,7 +4801,7 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; request_social_media; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -5122,7 +5122,7 @@ fi
 
 }
 
-request_social_media() {  
+closing_banner_message() {  
 
     if [ "$NewInstall" = true ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf " =======================================================================\\n"
@@ -10160,8 +10160,8 @@ install_or_upgrade() {
     
     ### WRAP UP ###
 
-    # Request social media post
-    request_social_media
+    # Display closing message
+    closing_banner_message
 
     if [[ "${NewInstall}" == false ]]; then
 
