@@ -1576,20 +1576,6 @@ sys_check() {
             printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
-            # If it's linux running on ARM and...
-            if [[ "$sysarch" == "arm"* ]] && [[ "$OSTYPE" == "linux-gnu"* ]]; then
-                # ...if it's Raspbian buster, show the instructions to upgrade the kernel to 64-bit.
-                if [[ $(lsb_release -is) = "Raspbian" ]] && [[ $(lsb_release -cs) = "buster" ]]; then
-                    printf "%b Since you are running Raspberry Pi OS, you can install the 64-bit kernel\\n" "${INFO}"
-                    printf "%b by copying the command below and pasting into the terminal.\\n" "${INDENT}"
-                    printf "%b Your Pi will restart with the 64-bit kernel. Then run DigiNode Setup again.\\n" "${INDENT}"
-                    printf "%b For more information, visit: $DGBH_URL_RPIOS64\\n" "${INDENT}"
-                    printf "\\n"
-                    printf "%b sudo apt update && sudo apt upgrade && echo \"arm_64bit=1\" | sudo tee -a /boot/config.txt && sudo systemctl reboot\\n" "${INDENT}"
-                    printf "\\n"
-
-                fi
-            fi
             purge_dgnt_settings
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
