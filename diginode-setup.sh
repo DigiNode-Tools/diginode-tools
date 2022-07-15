@@ -4706,7 +4706,7 @@ menu_first_install() {
     opt2b=" DigiAsset Node will NOT be installed."
 
     opt3a="DigiNode Tools ONLY "
-    opt3b=" Use the Status Monitor with an existing DigiByte node."
+    opt3b=" Use the Status Monitor with an existing DigiByte Node."
 
 
     # Display the information to the user
@@ -4730,8 +4730,8 @@ menu_first_install() {
             ;;
         # Install DigiNode ONLY
         ${opt3a})
-            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
-            print "\\n"
+            printf "%b %soption selected\\n" "${INFO}" "${opt3a}"
+            printf "\\n"
             install_diginode_tools_only
             ;;
     esac
