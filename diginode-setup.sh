@@ -4763,7 +4763,7 @@ install_diginode_tools_only() {
     printf "\\n"
     printf "%b %b'DigiNode Setup' can now be run locally to upgrade DigiNode Tools or setup your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+    printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
     printf "\\n"
     printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work yet.\\n" "${INDENT}"
     printf "%b If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
@@ -5184,22 +5184,22 @@ request_social_media() {
     else
         if [ "$DGNT_INSTALL_TYPE" = "new" ];then
             printf " =======================================================================\\n"
-            printf " ================== ${txtgrn}DigiNode Tools has been installed!${txtrst} =================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools have been installed!${txtrst} ================\\n"
             printf " =======================================================================\\n\\n"
             # ==============================================================================
         elif [ "$DGNT_INSTALL_TYPE" = "upgrade" ];then
             printf " =======================================================================\\n"
-            printf " ================== ${txtgrn}DigiNode Tools has been upgrade!${txtrst} ===================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools have been upgraded!${txtrst} =================\\n"
             printf " =======================================================================\\n\\n"
             # ==============================================================================
         elif [ "$DGNT_INSTALL_TYPE" = "none" ];then
             printf " =======================================================================\\n"
-            printf " ================== ${txtgrn}DigiNode Tools is up to date!${txtrst} ======================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools are up to date!${txtrst} =====================\\n"
             printf " =======================================================================\\n\\n"
             # ==============================================================================
         elif [ "$DGNT_INSTALL_TYPE" = "reset" ];then
             printf " =======================================================================\\n"
-            printf " ================== ${txtgrn}DigiNode Tools has been reset!${txtrst} =====================\\n"
+            printf " ================== ${txtgrn}DigiNode Tools have been reset!${txtrst} ====================\\n"
             printf " =======================================================================\\n\\n"
             # ==============================================================================
         fi
