@@ -7932,10 +7932,7 @@ digiasset_node_create_settings() {
             printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         fi
     else
-        printf "%b digibyte.conf does not exist. Dummy RPC credentials generated.\\n" "${INFO}"
-        rpcuser=user
-        rpcuser=password
-        rpcport=14022
+        local create_dummy_rpc_credentials="yes"
     fi
 
     # Check if DigiAsset settings file exists
@@ -8054,6 +8051,14 @@ digiasset_node_create_settings() {
             printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
             printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
         fi
+
+        if [ "$create_dummy_rpc_credentials" = "yes" ]; then  
+            rpcuser=user
+            rpcuser=password
+            rpcport=14022
+            printf "%b digibyte.conf does not exist. Dummy RPC credentials generated.\\n" "${INFO}"
+        fi
+
 
         # If we are in reset mode, delete the entire DigiAssets settings folder if it already exists
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ] && [ -d "$DGA_SETTINGS_LOCATION" ]; then
