@@ -10050,6 +10050,9 @@ main() {
             else
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
                 printf "\\n"
+                digifact_randomize
+                digifact_display
+                printf "\\n"
                 exit
             fi
         fi
