@@ -4723,15 +4723,19 @@ menu_first_install() {
     opt2a="DigiByte Node ONLY "
     opt2b=" DigiAsset Node will NOT be installed."
 
-    opt3a="DigiNode Tools ONLY "
-    opt3b=" Use the Status Monitor with an existing DigiByte Node."
+    opt3a="DigiAsset Node ONLY "
+    opt3b=" DigiByte Node will NOT be installed."
+
+    opt4a="DigiNode Tools ONLY "
+    opt4b=" Use the Status Monitor with an existing DigiByte Node."
 
 
     # Display the information to the user
     UpdateCmd=$(whiptail --title "DigiNode Install Menu" --menu "\\n\\nPlease choose whether you would like to perform a full DigiNode install, or to install DigiByte Core only. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
+    "${opt3a}"  "${opt3b}" \
+    "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
     { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
 
     # Set the variable based on if the user chooses
@@ -4746,8 +4750,14 @@ menu_first_install() {
             DO_FULL_INSTALL=NO
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             ;;
-        # Install DigiNode ONLY
+        # Install DigiByte Core ONLY
         ${opt3a})
+            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
+            printf "\\n"
+            install_digiasset_node_only
+            ;;
+        # Install DigiNode ONLY
+        ${opt4a})
             printf "%b %soption selected\\n" "${INFO}" "${opt3a}"
             printf "\\n"
             install_diginode_tools_only
@@ -5461,7 +5471,7 @@ final_messages() {
         fi
     fi
 
-    if [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ] ; then
+    if [ "$UNATTENDED_MODE" == true ] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
