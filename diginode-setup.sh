@@ -7931,6 +7931,11 @@ digiasset_node_create_settings() {
         if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
             printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         fi
+    else
+        printf "%b digibyte.conf does not exist. Dummy RPC credentials generated.\\n" "${INFO}"
+        rpcuser=user
+        rpcuser=password
+        rpcport=14022
     fi
 
     # Check if DigiAsset settings file exists
