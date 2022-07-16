@@ -4855,6 +4855,24 @@ welcomeDialogs() {
     whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\\n\\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
 # Request that users donate if they find DigiNode Setup useful
+donationDialog
+
+# Explain the need for a static address
+if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+#Nothing to do, continue
+  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+  printf "\\n"
+else
+  printf "%b DigiNode Setup exited at static IP message.\\n" "${INFO}"
+  printf "\\n"
+  exit
+fi
+
+}
+
+# Request that users donate if they find DigiNode Setup useful
+donationDialog() {
+
 whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
@@ -4873,19 +4891,6 @@ whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
            dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
-
-
-# Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-#Nothing to do, continue
-  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
-  printf "\\n"
-else
-  printf "%b DigiNode Setup exited at static IP message.\\n" "${INFO}"
-  printf "\\n"
-  exit
-fi
-
 }
 
 
@@ -8671,6 +8676,28 @@ uninstall_do_now() {
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
 
+    uninstall_diginode_tools_now
+
+    printf " =======================================================================\\n"
+    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} =====================\\n"
+    printf " =======================================================================\\n\\n"
+    # ==============================================================================
+
+    printf "\\n"
+    donation_qrcode
+    printf "\\n"
+    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
+    printf "\\n"
+    exit
+
+}
+
+
+# Uninstall DigiNode Tools Only
+uninstall_diginode_tools_now() {
+
     # Show DigiNode Tools uninstall title if it exists
     if [ -d "$DGNT_LOCATION" ] || [ -f "$DGNT_SETTINGS_FILE" ]; then
 
@@ -8761,21 +8788,8 @@ uninstall_do_now() {
 
     printf "\\n"
 
-    printf " =======================================================================\\n"
-    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} =====================\\n"
-    printf " =======================================================================\\n\\n"
-    # ==============================================================================
-
-    printf "\\n"
-    donation_qrcode
-    printf "\\n"
-    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
-    printf "\\n"
-    exit
-
 }
+
 
 # Simple function to find an installed text editor
 set_text_editor() {
@@ -9956,30 +9970,82 @@ main() {
 
 
 
-    # If there is an existing install of DigiByte Core, but it was not installed by this script, then exit
+    # If there is an existing install of DigiByte Core, but it was not installed by this script, mark this node as "unofficial"
     if [ -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        UNOFFICIAL_DIGIBYTE_NODE="YES"
+        UNOFFICIAL_DIGIBYTE_NODE_LOCATION="$DGB_INSTALL_LOCATION"
+    elif [ -f "/usr/bin/digibyted/bin/digibyted" ]; then
+        UNOFFICIAL_DIGIBYTE_NODE="YES"
+        UNOFFICIAL_DIGIBYTE_NODE_LOCATION="/usr/bin/digibyted"
+    elif [ -f "/usr/bin/digibyte/bin/digibyted" ]; then
+        UNOFFICIAL_DIGIBYTE_NODE="YES"
+        UNOFFICIAL_DIGIBYTE_NODE_LOCATION="/usr/bin/digibyte"
+    fi
+
+
+
+    # If this is an "unofficial" DigiByte Node
+    if [ "$UNOFFICIAL_DIGIBYTE_NODE" = "YES" ]; then
+
+        # Display donation dialog
+        donationDialog
+
         printf "%b %bUnable to upgrade this installation of DigiByte Core%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
         printf "%b using DigiNode Setup and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
+        printf "%b DigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n" "${INFO}"
+        printf "\\n"
 
         # If DigiNode Tools is installed, offer to check for an update
         if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
-            if whiptail --backtitle "" --title "Upgrade DigiNode Tools?" --yesno "Would you like to check for updates to DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nYou can check for updates to DigiNode Tools itself, to upgrade the Status Monitor. Would you like to do that now?" "${r}" "${c}"; then
+            
+            printf " =============== MAIN MENU ==========================================\\n\\n"
+            # ==============================================================================
 
-                install_diginode_tools_only
+            opt1a="Update"
+            opt1b="Check for updates to DigiNode Tools"
+            
+            opt2a="Uninstall"
+            opt2b="Remove DigiNode Tools from your system"
 
-            else
-                printf "%b Exiting: You chose not to check for updates to DigiNode Tools.\\n" "${INFO}"
-                printf "\\n"
-                exit
-            fi
+
+            # Display the information to the user
+            UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can check for updates to DigiNode Tools itself to upgrade the Status Monitor. You can also choose to Uninstall DigiNode Tools.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+            "${opt1a}"  "${opt1b}" \
+            "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+
+            # Set the variable based on if the user chooses
+            case ${UpdateCmd} in
+                # Install DigiNode Tools
+                ${opt1a})
+                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "\\n"
+                    install_diginode_tools_only                 
+                    ;;
+                # Uninstall,
+                ${opt2a})
+                    printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
+                    printf "\\n"
+                    uninstall_diginode_tools_now
+                    digifact_randomize
+                    digifact_display
+                    printf "\\n"
+                    exit
+                    ;;
+            esac
+            printf "\\n"
 
         # If DigiNode Tools is not installed), offer to install them
         else
             if whiptail --backtitle "" --title "Install DigiNode Tools" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
+                digifact_randomize
+                digifact_display
+                printf "\\n"
+                exit
 
             else
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
