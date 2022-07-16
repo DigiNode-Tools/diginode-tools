@@ -10181,7 +10181,7 @@ main() {
         donationDialog
 
         # If DigiNode Tools is installed, offer to check for an update
-        if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
+        if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
             
             printf " =============== DIGIASSET NODE ONLY - MAIN MENU =======================\\n\\n"
             # ==============================================================================
