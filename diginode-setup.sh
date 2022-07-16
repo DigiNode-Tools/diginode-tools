@@ -7933,6 +7933,13 @@ digiasset_node_create_settings() {
         fi
     else
         local create_dummy_rpc_credentials="yes"
+        rpcuser=user
+        rpcuser=password
+        rpcport=14022
+        if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
+            printf "%b digibyte.conf does not exist. Placeholder RPC credentials generated.\\n" "${INFO}"
+            create_dummy_rpc_credentials="done"
+        fi
     fi
 
     # Check if DigiAsset settings file exists
@@ -8053,10 +8060,7 @@ digiasset_node_create_settings() {
         fi
 
         if [ "$create_dummy_rpc_credentials" = "yes" ]; then  
-            rpcuser=user
-            rpcuser=password
-            rpcport=14022
-            printf "%b digibyte.conf does not exist. Dummy RPC credentials generated.\\n" "${INFO}"
+            printf "%b digibyte.conf does not exist. Placeholder RPC credentials generated.\\n" "${INFO}"
         fi
 
 
