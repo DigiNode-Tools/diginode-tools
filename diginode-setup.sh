@@ -129,6 +129,7 @@ UNINSTALL=false
 SKIP_OS_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
+DGANODE_ONLY=null
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -10025,7 +10026,7 @@ main() {
     set_sys_variables
 
     # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
-    if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+    if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY"  ]; then
         printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped...\\n" "${INFO}"
         DGANODE_ONLY=true
     fi
