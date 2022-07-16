@@ -241,13 +241,13 @@ is_unattended_mode() {
 }
 
 # Inform user if DigiAsset Node ONLY is enable
-is_dganode_only() {
+is_dganode_only_mode() {
     if [ "$DGANODE_ONLY" = true ]; then
-        printf "%b DigiAsset Node ONLY: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b DigiAsset Node ONLY Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
     if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b DigiAsset Node ONLY: %bDisabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b DigiAsset Node ONLY Mode: %bDisabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -9933,7 +9933,7 @@ main() {
         is_unattended_mode
 
         # Display if DigiAsset Node only mode is manually enabled or disable via the launch flag
-        is_dganode_only
+        is_dganode_only_mode
 
         # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
         is_reset_mode 
