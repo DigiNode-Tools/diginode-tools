@@ -129,6 +129,7 @@ UNINSTALL=false
 SKIP_OS_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
+DGANODE_ONLY=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -145,6 +146,8 @@ for var in "$@"; do
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
         "--runremote" ) DGNT_RUN_LOCATION="remote";;
+        "--dganode-only" ) DGANODE_ONLY=true;;
+        "--full-diginode" ) DGANODE_ONLY=false;;
     esac
 done
 
@@ -4773,6 +4776,88 @@ install_diginode_tools_only() {
     printf "\\n"
 
     exit
+}
+
+install_digiasset_node_only() {
+
+    # Install packages used by the actual software
+    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
+    # Set variable to install DigiAsset Node stuff
+    DO_FULL_INSTALL="YES"
+
+    # Check if IPFS installed, and if there is an upgrade available
+    ipfs_check
+
+    # Check if DigiAssets Node is installed, and if there is an upgrade available
+    digiasset_node_check
+
+    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
+    diginode_tools_check
+
+    ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
+
+    # Ask to install any upgrades, if there are any
+    menu_ask_install_updates
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
+
+    # Install DigiNode Tools
+    diginode_tools_do_install
+
+    ### INSTALL/UPGRADE DIGIASSETS NODE ###
+
+    # Install/upgrade IPFS
+    ipfs_do_install
+
+    # Create IPFS service
+    ipfs_create_service
+
+    # Install/upgrade NodeJS
+    nodejs_do_install
+
+    # Create or update main.json file with RPC credentials
+    digiasset_node_create_settings
+
+    # Install DigiAssets along with IPFS
+    digiasset_node_do_install
+
+    # Setup PM2 init service
+    digiasset_node_create_pm2_service
+
+    ### CHANGE THE HOSTNAME TO DIGINODE ###
+
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
+    # Ask to change the hostname
+    hostname_ask_change
+
+
+    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+
+    # Change the hostname
+    hostname_do_change
+
+    # Choose a random DigiFact
+    digifact_randomize
+
+    # Display a random DigiFact
+    digifact_display
+
+    # Display donation QR Code
+    donation_qrcode
+
+    exit
+
 }
 
 # Function to display the upgrade menu when a previous install has been detected
@@ -9925,8 +10010,19 @@ main() {
     # Set the system variables once we know we are on linux
     set_sys_variables
 
+    # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
+    if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped...\\n" "${INFO}"
+        DGANODE_ONLY=true
+    fi
+
     # Check for Raspberry Pi hardware
-    rpi_check
+    if [[ "$DGANODE_ONLY" == false ]]; then
+        rpi_check
+    else
+        printf "%b DigiAsset Node ONLY: Raspberry Pi hardware checks will be skipped.\\n" "${INFO}"
+        printf "\\n"
+    fi
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for DigiNode Setup...\\n" "${INFO}"
@@ -10000,7 +10096,7 @@ main() {
         # If DigiNode Tools is installed, offer to check for an update
         if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
             
-            printf " =============== MAIN MENU ==========================================\\n\\n"
+            printf " =============== DIGINODE SETUP - MAIN MENU ============================\\n\\n"
             # ==============================================================================
 
             opt1a="Update"
@@ -10022,7 +10118,7 @@ main() {
                 ${opt1a})
                     printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
                     printf "\\n"
-                    install_diginode_tools_only             
+                                
                     ;;
                 # Uninstall,
                 ${opt2a})
@@ -10055,6 +10151,72 @@ main() {
         fi
 
     fi
+
+
+    # If the is a DigiAsset Node ONLY (No DigiByte Node)
+    if [[ "$DGANODE_ONLY" == true ]]; then
+ 
+        # Display donation dialog
+        donationDialog
+
+        # If DigiNode Tools is installed, offer to check for an update
+        if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
+            
+            printf " =============== DIGIASSET NODE ONLY - MAIN MENU =======================\\n\\n"
+            # ==============================================================================
+
+            opt1a="Update"
+            opt1b="Check for updates to your DigiAsset Node"
+            
+            opt2a="Uninstall"
+            opt2b="Remove DigiAsset Node from your system"
+
+
+            # Display the information to the user
+            UpdateCmd=$(whiptail --title "DigiAsset Node Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered on this system but no DigiByte Node.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nIf you would like to add a DigiByte Node, run DigiNode Setup with the --full_diginode flag.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+            "${opt1a}"  "${opt1b}" \
+            "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+
+            # Set the variable based on if the user chooses
+            case ${UpdateCmd} in
+                # Install DigiNode Tools
+                ${opt1a})
+                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "\\n" 
+                    install_digiasset_node_only          
+                    ;;
+                # Uninstall,
+                ${opt2a})
+                    printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
+                    printf "\\n"
+                    digifact_randomize
+                    digifact_display
+                    donation_qrcode
+                    printf "\\n"
+                    exit
+                    ;;
+            esac
+            printf "\\n"
+
+        # If DigiNode Tools is not installed), offer to install them
+        else
+            if whiptail --backtitle "" --title "DigiAsset Node Setup - Main Menu" --yesno "Would you like to install a DigiAsset Node?\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others.\\n\\nNote: If you continue, a DigiByte Node will not be installed." "${r}" "${c}"; then
+
+                install_diginode_tools_only
+
+            else
+                printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
+                printf "\\n"
+                digifact_randomize
+                digifact_display
+                printf "\\n"
+                exit
+            fi
+        fi
+
+    fi
+
 
     # If this is a new interaactive Install, display the welcome dialogs
     if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
