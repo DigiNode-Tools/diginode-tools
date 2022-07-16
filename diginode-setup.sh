@@ -10037,7 +10037,7 @@ main() {
 
     # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
     if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY" ]; then
-        printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped...\\n" "${INFO}"
+        printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped.\\n" "${INFO}"
         DGANODE_ONLY=true
     fi
 
@@ -10051,7 +10051,7 @@ main() {
     if [[ "$DGANODE_ONLY" == false ]]; then
         rpi_check
     else
-        printf "%b DigiAsset Node ONLY: Raspberry Pi hardware checks will be skipped.\\n" "${INFO}"
+        printf "%b Skipping Raspberry Pi hardware checks...\\n" "${INFO}"
         printf "\\n"
     fi
 
@@ -10204,7 +10204,7 @@ main() {
 
 
             # Display the information to the user
-            UpdateCmd=$(whiptail --title "DigiAsset Node Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered on this system but no DigiByte Node.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nIf you would like to add a DigiByte Node, run DigiNode Setup with the --full_diginode flag.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+            UpdateCmd=$(whiptail --title "DigiAsset Node Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nIf you would like to add a DigiByte Node, run DigiNode Setup using the --full_diginode flag.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
             { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
@@ -10221,9 +10221,7 @@ main() {
                 ${opt2a})
                     printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
                     printf "\\n"
-                    digifact_randomize
-                    digifact_display
-                    donation_qrcode
+                    uninstall_do_now
                     printf "\\n"
                     exit
                     ;;
@@ -10232,7 +10230,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiAsset Node Setup - Main Menu" --yesno "Would you like to install a DigiAsset Node?\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others.\\n\\n(Important: A DigiByte Node will not be installed - only a DigiAsset Node.)" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiAsset Node ONLY Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganode-only flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
 
                 install_digiasset_node_only
 
