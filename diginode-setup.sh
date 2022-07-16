@@ -129,7 +129,6 @@ UNINSTALL=false
 SKIP_OS_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
-DGANODE_ONLY=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -237,6 +236,18 @@ is_unattended_mode() {
         else
             printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
         fi
+        printf "\\n"
+    fi
+}
+
+# Inform user if DigiAsset Node ONLY is enable
+is_dganode_only() {
+    if [ "$DGANODE_ONLY" = true ]; then
+        printf "%b DigiAsset Node ONLY: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+    fi
+    if [ "$DGANODE_ONLY" = false ]; then
+        printf "%b DigiAsset Node ONLY: %bDisabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -9921,6 +9932,9 @@ main() {
         # Display a message if Unattended Mode is enabled
         is_unattended_mode
 
+        # Display if DigiAsset Node only mode is manually enabled or disable via the launch flag
+        is_dganode_only
+
         # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
         is_reset_mode 
 
@@ -10014,6 +10028,11 @@ main() {
     if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
         printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped...\\n" "${INFO}"
         DGANODE_ONLY=true
+    fi
+
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        printf "%b DigiByte Node Detected. Disabling DigiAsset Node ONLY mode...\\n" "${INFO}"
+        DGANODE_ONLY=false
     fi
 
     # Check for Raspberry Pi hardware
