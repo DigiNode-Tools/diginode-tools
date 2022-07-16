@@ -10227,7 +10227,7 @@ main() {
                 install_digiasset_node_only
 
             else
-                printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
+                printf "%b Exiting: You chose not to install a DigiAsset Node.\\n" "${INFO}"
                 printf "\\n"
                 digifact_randomize
                 digifact_display
