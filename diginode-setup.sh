@@ -10029,6 +10029,7 @@ main() {
     if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY"  ]; then
         printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped...\\n" "${INFO}"
         DGANODE_ONLY=true
+        exit
     fi
 
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
