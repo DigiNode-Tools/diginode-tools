@@ -4727,11 +4727,11 @@ menu_first_install() {
     opt3b=" DigiByte Node will NOT be installed."
 
     opt4a="DigiNode Tools ONLY "
-    opt4b=" Use the Status Monitor with an existing DigiByte Node."
+    opt4b=" Use Status Monitor with an existing DigiByte Node."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose whether you would like to perform a full DigiNode install, or setup ONLY a DigiByte Node or ONLY a DigiAsset Node. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nYou can also choose to installonly DigiNode Tools itself so you can use the Status Monitor with your existing DigiByte Node.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose whether you would like to perform a full DigiNode install, or setup ONLY a DigiByte Node or ONLY a DigiAsset Node. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nYou can also choose to install only DigiNode Tools to use the Status Monitor with your existing DigiByte Node.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
