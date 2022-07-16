@@ -10167,7 +10167,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "Install DigiNode Tools" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
 
@@ -10197,19 +10197,19 @@ main() {
             # ==============================================================================
 
             opt1a="Update"
-            opt1b="Check for updates to your DigiAsset Node"
+            opt1b=" Check for updates to your DigiAsset Node"
 
-            opt2a="Add DigiByte Node"
-            opt2b="Upgrade to a full DigiNode"
+            opt2a="Setup DigiByte Node"
+            opt2b=" Upgrade to a full DigiNode"
             
             opt3a="Uninstall"
-            opt3b="Remove DigiAsset Node from your system"
+            opt3b=" Remove DigiAsset Node from your system"
 
 
 
 
             # Display the information to the user
-            UpdateCmd=$(whiptail --title "DigiAsset Node Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nIf you would like to add a DigiByte Node, run DigiNode Setup using the --full_diginode flag.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+            UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a full DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" \
             "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
@@ -10248,7 +10248,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiAsset Node ONLY Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganode-only flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganode-only flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
 
                 install_digiasset_node_only
 
