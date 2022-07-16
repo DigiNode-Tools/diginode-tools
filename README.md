@@ -122,7 +122,7 @@ Example:
 
 ### DigiAsset Node ONLY Setup
 
-If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganode-only``` flag to setup only a DigiAsset Node. This requires very little disk space or memory and should work on very low power devices. If you later decide you want to add a DigiByte Node as well, you can use the ```--full-diginode``` flag to upgrade your existing DigiAsset Node setup.
+If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganode-only``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--full-diginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
 
 Example:
 ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only``` or
@@ -161,7 +161,7 @@ Example:
 ## Release Notes
 
 DigiNode Tools v0.3.12 - 2022-07-16
-- New: Use the new ```--dganode-only``` flag to install only the DigiAsset Node without a DigiByte Node. Maybe you have a low spec device that isn't powerful enough to run a DigiByte Node. You can now run only a DigiAsset Node on it. It's a great way to support the DigiByte blockchain.
+- New: Use the new ```--dganode-only``` flag to install only the DigiAsset Node without a DigiByte Node. Maybe you have a low spec device that isn't powerful enough to run a DigiByte Node? You can now run only a DigiAsset Node on it. It's a great way to support the DigiByte blockchain, if you can't run a full node.
 
 DigiNode Tools v0.3.11 - 2022-07-16
 - New: If an "unofficial" DigByte Node is detected at launch (i.e one not originally setup using DigiNode Tools), and DigiNode Tools is installed, it now displays a menu offering to either upgrade DigiNode Tools or uninstall it. This is so you can upgrade the Status Monitor with your own DigiByte Node.
