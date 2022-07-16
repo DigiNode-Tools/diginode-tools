@@ -152,6 +152,9 @@ Example:
 
 ## Release Notes
 
+DigiNode Tools v0.3.11 - 2022-07-16
+- New: If an "unofficial" DigByte Node is detected at launch (i.e one not originally setup using DigiNode Tools), and DigiNode Tools is installed, it now displays a menu offering to either upgrade DigiNode Tools or uninstall it. This is so you can upgrade the Status Monitor with your own DigiByte Node.
+
 DigiNode Tools v0.3.10 - 2022-07-15
 - New: The Status Monitor will now prompt the user for the absolute location of their DigiByte Core install folder if it cannot locate it. This should make it easier to use the Status Monitor with an existing DigiByte Node that wasn't set up using DigiNode Setup.
 
