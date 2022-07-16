@@ -10198,15 +10198,21 @@ main() {
 
             opt1a="Update"
             opt1b="Check for updates to your DigiAsset Node"
+
+            opt2a="Add DigiByte Node"
+            opt2b="Upgrade to a full DigiNode"
             
-            opt2a="Uninstall"
-            opt2b="Remove DigiAsset Node from your system"
+            opt3a="Uninstall"
+            opt3b="Remove DigiAsset Node from your system"
+
+
 
 
             # Display the information to the user
             UpdateCmd=$(whiptail --title "DigiAsset Node Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nIf you would like to add a DigiByte Node, run DigiNode Setup using the --full_diginode flag.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
             "${opt1a}"  "${opt1b}" \
-            "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+            "${opt2a}"  "${opt2b}" \
+            "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
             { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
 
             # Set the variable based on if the user chooses
@@ -10217,8 +10223,20 @@ main() {
                     printf "\\n" 
                     install_digiasset_node_only          
                     ;;
-                # Uninstall,
+                # Add DigiByte Node,
                 ${opt2a})
+                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "\\n"
+                    if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only --unattended
+                    elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
+                        exec diginode-setup --dganode-only --unattended
+                    fi    
+                    printf "\\n"
+                    exit
+                    ;;
+                # Uninstall,
+                ${opt3a})
                     printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
                     printf "\\n"
                     uninstall_do_now
