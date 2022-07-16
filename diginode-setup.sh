@@ -10222,7 +10222,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiAsset Node Setup - Main Menu" --yesno "Would you like to install a DigiAsset Node?\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others.\\n\\nNote: If you continue, a DigiByte Node will not be installed." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiAsset Node Setup - Main Menu" --yesno "Would you like to install a DigiAsset Node?\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others.\\n\\n(Important: A DigiByte Node will not be installed - only a DigiAsset Node.)" "${r}" "${c}"; then
 
                 install_digiasset_node_only
 
