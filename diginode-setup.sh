@@ -9923,23 +9923,23 @@ main() {
         # set the DigiNode Tools branch to use for DigiNode Setup
         set_dgnt_branch
 
-        # Is this script running remotely or locally?
-        where_are_we
-
-        # Display a message if Verbose Mode is enabled
-        is_verbose_mode
-
         # Display a message if Unattended Mode is enabled
         is_unattended_mode
 
         # Display if DigiAsset Node only mode is manually enabled or disable via the launch flag
         is_dganode_only_mode
 
+        # Display a message if Verbose Mode is enabled
+        is_verbose_mode
+
         # Display a message if Reset Mode is enabled. Quit if Reset and Unattended Modes are enable together.
         is_reset_mode 
 
         # Display a message if DigiAsset Node developer mode is enabled
         is_dgadev_mode
+
+        # Is this script running remotely or locally?
+        where_are_we
 
         # Show the DigiNode logo
         diginode_logo_v3
