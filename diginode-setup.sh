@@ -10022,7 +10022,7 @@ main() {
                 ${opt1a})
                     printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
                     printf "\\n"
-                    install_diginode_tools_only                 
+                    install_diginode_tools_only             
                     ;;
                 # Uninstall,
                 ${opt2a})
@@ -10031,6 +10031,7 @@ main() {
                     uninstall_diginode_tools_now
                     digifact_randomize
                     digifact_display
+                    donation_qrcode
                     printf "\\n"
                     exit
                     ;;
@@ -10042,10 +10043,6 @@ main() {
             if whiptail --backtitle "" --title "Install DigiNode Tools" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
-                digifact_randomize
-                digifact_display
-                printf "\\n"
-                exit
 
             else
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
