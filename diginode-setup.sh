@@ -4908,12 +4908,12 @@ install_digiasset_node_only() {
     printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
-        printf "%b Your DigiAsset Node should now be accessible locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        printf "%b You can access it locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
     else
-        printf "%b Your DigiAsset Node should now be accessible locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+        printf "%b You can access it locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
     printf "\\n"
-    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://{$IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
     printf "\\n"
     printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
