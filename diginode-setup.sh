@@ -5414,10 +5414,8 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
+            printf "%b You can do this using 'DigiNode Setup'. You can use it to backup your DigiByte wallet\\n" "${INDENT}"
             printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5427,9 +5425,7 @@ backup_reminder() {
             printf "%b %bReminder: Don't forget to backup your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
-            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b You can do this from 'DigiNode Setup' menu.\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5438,10 +5434,9 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b You can do this from 'DigiNode Setup' menu.\\n" "${INDENT}"
             printf "\\n"
         fi
-
 
     fi
 
@@ -5483,9 +5478,9 @@ final_messages() {
     if [ $NewInstall = true ]; then
         printf "%b %b'DigiNode Tools' can be accessed from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To launch Status Monitor, enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b To manage your DigiNode, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
         printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
@@ -5495,17 +5490,19 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b'DigiNode Tools' can be accessed from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
     else
         if [ "$STATUS_MONITOR" = "false" ]; then
             printf "%b %b'DigiNode Tools' can be accessed from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To launch Status Monitor, enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
             printf "\\n"
-            printf "%b To manage your DigiNode, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
             printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
             printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
