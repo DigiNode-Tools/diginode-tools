@@ -4911,7 +4911,7 @@ install_digiasset_node_only() {
     printf "%b   - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
     printf "%b     If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b   - 'DigiNode Status Monitor' will not run with a DigiAsset Node Only - it needs a DigiByte Node to work.\\n" "${INDENT}"
+    printf "%b   - 'DigiNode Status Monitor' will not run with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
     printf "\\n"
 
     exit
