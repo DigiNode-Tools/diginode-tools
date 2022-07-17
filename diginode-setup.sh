@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.0
+#           Name:  DigiNode Setup v0.4.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -9872,8 +9872,9 @@ fi
 if [ "$DIGIFACT" = "social2" ]; then
     DIGIFACT_TITLE="Join the DigiByte Community on Discord!"
     DIGIFACT_L1="Have you joined the DigiByte Community on Discord yet?"
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="Join here: https://dsc.gg/digibytediscord"
+    DIGIFACT_L2=" "
+    DIGIFACT_L3="Join here: https://dsc.gg/digibytediscord"
+    DIGIFACT_L4=""
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi
@@ -9881,10 +9882,11 @@ fi
 if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_TITLE="      DigiFact Tip!"
     DIGIFACT_L1="Some of these DigiFacts include a website URL which can be"
-    DIGIFACT_L3="dificult to open from the terminal. If you find that the"
-    DIGIFACT_L4="link does not open when you click on it, try holding the"
-    DIGIFACT_L5="\"Cmd\" key on Mac or the \"Ctrl\" key on Windows. The"
-    DIGIFACT_L6="website should then open when you click on it."
+    DIGIFACT_L2="dificult to open from the terminal. To open a link,"
+    DIGIFACT_L3="try holding the \"Cmd\" key on Mac or the \"Ctrl\" key"
+    DIGIFACT_L4="on Windows as you click on it."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="Try it now: https://diginode.digibyte.help"
 fi
 
 if [ "$DIGIFACT" = "help2" ]; then

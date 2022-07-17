@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.0
+#           Name:  DigiNode Status Monitor v0.4.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.0
+DGNT_VER_LOCAL=0.4.1
 # Last Updated: 2022-07-17
 
 # This is the command people will enter to run the install script.
