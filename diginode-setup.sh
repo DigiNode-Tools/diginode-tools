@@ -5504,9 +5504,6 @@ final_messages() {
             printf "\\n"
             printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
-            printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-            printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
-            printf "\\n"
         fi
 
         if [ "$system_updates_available" = "yes" ]; then
