@@ -8701,78 +8701,83 @@ uninstall_do_now() {
 
     ################## UNINSTALL DIGIBYTE NODE #################################################
 
-    printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
-    # ==============================================================================
+    # Only prompt to unistall DigiByte Node if it is an official install
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
+        # ==============================================================================
 
 
-    # Uninstall DigiByte Core
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
+        # Uninstall DigiByte Core
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
-        printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
+            printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
-        printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
-        stop_service digibyted
-        disable_service digibyted
-        DGB_STATUS="stopped"
+            printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
+            stop_service digibyted
+            disable_service digibyted
+            DGB_STATUS="stopped"
 
-        # Delete systemd service file
-        if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
-            str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_SYSTEMD_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            # Delete systemd service file
+            if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
+                str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_SYSTEMD_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete upstart service file
+            if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
+                str="Deleting DigiByte daemon upstart service file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_UPSTART_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+           # Delete old DigiByte Core tar files, if present
+            if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
+                str="Deleting old DigiByte Core tar.gz files from home folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete DigiByte Core folder
+            if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+                str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
+                DGB_VER_LOCAL=""
+                sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGB_INSTALL_DATE=""
+                sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                DGB_UPGRADE_DATE=""
+                sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete ~/digibyte symbolic link
+            if [ -h "$USER_HOME/digibyte" ]; then
+                str="Deleting digibyte symbolic link in home folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm $USER_HOME/digibyte
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete .bashrc path to DigiByte binary folder
+            if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+                str="Deleting path to DigiByte binary folder in .bashrc file..."
+                printf "%b %s" "${INFO}" "${str}"
+                # Delete existing path for DigiByte binaries
+                sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
+                sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        else
+            printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
         fi
 
-        # Delete upstart service file
-        if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
-            str="Deleting DigiByte daemon upstart service file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_UPSTART_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-       # Delete old DigiByte Core tar files, if present
-        if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
-            str="Deleting old DigiByte Core tar.gz files from home folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete DigiByte Core folder
-        if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-            str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
-            DGB_VER_LOCAL=""
-            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            DGB_INSTALL_DATE=""
-            sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-            DGB_UPGRADE_DATE=""
-            sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete ~/digibyte symbolic link
-        if [ -h "$USER_HOME/digibyte" ]; then
-            str="Deleting digibyte symbolic link in home folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm $USER_HOME/digibyte
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete .bashrc path to DigiByte binary folder
-        if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
-            str="Deleting path to DigiByte binary folder in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Delete existing path for DigiByte binaries
-            sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
-            sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    else
-        printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
     fi
 
 
@@ -8792,23 +8797,28 @@ uninstall_do_now() {
         fi
     fi
 
-    # Delete DigiByte blockchain data
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+    # Only prompt to delete the blockchain data if it already exists
+    if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
-        # Delete systemd service file
-        if [ -d "$DGB_DATA_LOCATION" ]; then
-            str="Deleting DigiByte Core blockchain data..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $DGB_DATA_LOCATION/indexes
-            rm -rf $DGB_DATA_LOCATION/chainstate
-            rm -rf $DGB_DATA_LOCATION/blocks
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Delete DigiByte blockchain data
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+
+            # Delete systemd service file
+            if [ -d "$DGB_DATA_LOCATION" ]; then
+                str="Deleting DigiByte Core blockchain data..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf $DGB_DATA_LOCATION/indexes
+                rm -rf $DGB_DATA_LOCATION/chainstate
+                rm -rf $DGB_DATA_LOCATION/blocks
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            printf "\\n"
+
+        else
+            printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
+            printf "\\n"
         fi
-        printf "\\n"
 
-    else
-        printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
-        printf "\\n"
     fi
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
