@@ -4885,16 +4885,6 @@ install_digiasset_node_only() {
     # Change the hostname
     hostname_do_change
 
-    # update external IP address and save to settings file
-    str="Looking up external IP address..."
-    printf "  %b %s" "${INFO}" "${str}"
-    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    if [ $IP4_EXTERNAL_QUERY != "" ]; then
-        IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
-        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
-    fi
-    printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
-
     # Choose a random DigiFact
     digifact_randomize
 
@@ -4928,6 +4918,20 @@ install_digiasset_node_only() {
     printf "\\n"
 
     exit
+
+}
+
+lookup_external_ip() {
+
+    # update external IP address and save to settings file
+    str="Looking up external IP address..."
+    printf "  %b %s" "${INFO}" "${str}"
+    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
+    if [ $IP4_EXTERNAL_QUERY != "" ]; then
+        IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    fi
+    printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
 
 }
 
@@ -5462,18 +5466,7 @@ final_messages() {
         fi
         printf "\\n"
         printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Please note:\\n" "${INFO}"
-        printf "\\n"
-        printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
-        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
-        printf "\\n"
+        printf "\\n"    
     fi
 
     if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
@@ -5491,7 +5484,16 @@ final_messages() {
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
+        printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Please note:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -5508,6 +5510,17 @@ final_messages() {
             printf "\\n"
             printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
             printf "\\n"
+            printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Please note:\\n" "${INFO}"
+            printf "\\n"
+            printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+            printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
+            printf "\\n"
         fi
 
         if [ "$system_updates_available" = "yes" ]; then
@@ -5521,6 +5534,17 @@ final_messages() {
             printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
+            printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Please note:\\n" "${INFO}"
+            printf "\\n"
+            printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+            printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
             printf "\\n"
         fi
         if [ "$system_updates_available" = "yes" ]; then
@@ -10118,6 +10142,9 @@ main() {
 
     # Set the system variables once we know we are on linux
     set_sys_variables
+
+    # Lookup the external IP
+    lookup_external_ip
 
     # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
     if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY" ]; then
