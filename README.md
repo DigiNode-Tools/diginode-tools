@@ -151,8 +151,8 @@ Example:
 
 ## Release Notes
 
-DigiNode Tools v0.4.1
-- Somethings
+DigiNode Tools v0.4.1 - 2022-07-17
+- Fix: Improve DigiByte locate menu during Status Monitor startup
 
 DigiNode Tools v0.4.0 - 2022-07-17
 - Fix: Uninstall now prompts to remove DigiByte Core and the DigiByte blockchain only if they are present
