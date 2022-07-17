@@ -1,17 +1,30 @@
 #!/bin/bash
 #
-# Name:    DigiNode Setup
-# Purpose: Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
-#          Script supports most Linux servers and the Raspberry Pi 3 and later.
-#          A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#           Name:  DigiNode Setup v0.3.12
 #
-# Author:  Olly Stedall @saltedlolly
+#        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
+#          
+#  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
+#                  Other distros may not work at present. Please help test so that support can be added.
+#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
-# Website: https://diginode.digibyte.help
+#         Author:  Olly Stedall @saltedlolly
 #
-# Usage:   Install with this command (from your Linux machine):
+#        Website:  https://diginode.digibyte.help
 #
-#          curl http://diginode-setup.digibyte.help | bash 
+#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#
+#    Get Started:  curl http://diginode-setup.digibyte.help | bash  
+#  
+#                  Alternatively clone the repo to your home folder:
+#
+#                  cd ~
+#                  git clone https://github.com/saltedlolly/diginode-tools/
+#                  chmod +x ~/diginode-tools/diginode-setup.sh
+#
+#                  To run the Status Monitor:
+#
+#                  ~/diginode-tools/diginode-setup.sh      
 #
 # -----------------------------------------------------------------------------------------------------
 
