@@ -8770,7 +8770,7 @@ uninstall_do_now() {
     ################## UNINSTALL DIGIBYTE NODE #################################################
 
     # Only prompt to unistall DigiByte Node if it is an official install
-    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
         printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
         # ==============================================================================
