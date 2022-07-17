@@ -10111,7 +10111,7 @@ main() {
         DGANODE_ONLY=true
     fi
 
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGANODE_ONLY" = true ]; then; then
         printf "%b WARNING: DigiByte Node Detected. Disabling DigiAsset Node ONLY mode...\\n" "${WARN}"
         printf "\\n"
         DGANODE_ONLY=false
