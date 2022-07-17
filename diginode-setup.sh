@@ -5544,8 +5544,6 @@ final_messages() {
             printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
             printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
-            printf "\\n"
         fi
         if [ "$system_updates_available" = "yes" ]; then
             printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
