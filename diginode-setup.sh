@@ -4894,6 +4894,26 @@ install_digiasset_node_only() {
     # Display donation QR Code
     donation_qrcode
 
+    if [ "$HOSTNAME" = "diginode" ]; then
+        printf "%b Your DigiAsset Node should now be accessible locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
+    else
+        printf "%b Your DigiAsset Node should now be accessible locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+    fi
+    printf "\\n"
+    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://{$IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b Important Note:\\n" "${INFO}"
+    printf "\\n"
+    printf "%b   - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+    printf "%b     If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b   - 'DigiNode Status Monitor' will not run with a DigiAsset Node Only - it needs a DigiByte Node to work.\\n" "${INDENT}"
+    printf "\\n"
+
     exit
 
 }
