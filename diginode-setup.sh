@@ -4885,6 +4885,16 @@ install_digiasset_node_only() {
     # Change the hostname
     hostname_do_change
 
+    # update external IP address and save to settings file
+    str="Looking up external IP address..."
+    printf "  %b %s" "${INFO}" "${str}"
+    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
+    if [ $IP4_EXTERNAL_QUERY != "" ]; then
+        IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    fi
+    printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
+
     # Choose a random DigiFact
     digifact_randomize
 
@@ -4894,6 +4904,9 @@ install_digiasset_node_only() {
     # Display donation QR Code
     donation_qrcode
 
+    printf "\\n"
+    printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
         printf "%b Your DigiAsset Node should now be accessible locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
     else
