@@ -4905,7 +4905,7 @@ install_digiasset_node_only() {
     printf "\\n"
     printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
     printf "\\n"
@@ -5481,20 +5481,14 @@ final_messages() {
     fi
 
     if [ $NewInstall = true ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b'DigiNode Tools' can be accessed from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch Status Monitor, enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b To manage your DigiNode, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Please note:\\n" "${INFO}"
-        printf "\\n"
-        printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
-        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
+        printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+        printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -5505,45 +5499,19 @@ final_messages() {
         printf "\\n"
         printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
+    else
         if [ "$STATUS_MONITOR" = "false" ]; then
-            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %b'DigiNode Tools' can be accessed from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "%b To launch Status Monitor, enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
             printf "\\n"
-            printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b To manage your DigiNode, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b Please note:\\n" "${INFO}"
-            printf "\\n"
-            printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
-            printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+            printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+            printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
             printf "\\n"
         fi
 
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-        fi
-    elif [ "$DO_FULL_INSTALL" = "NO" ]; then
-        if [ "$STATUS_MONITOR" = "false" ]; then
-            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b Please note:\\n" "${INFO}"
-            printf "\\n"
-            printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
-            printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-            printf "\\n"
-        fi
         if [ "$system_updates_available" = "yes" ]; then
             printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
