@@ -5444,24 +5444,35 @@ backup_reminder() {
 
 final_messages() {  
 
-
-    if [ "$NewInstall" = true ] ; then
-        printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
-        printf "\\n"
-    elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+    if [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+    elif [ "$DO_FULL_INSTALL" = "YES" ]; then 
+        printf "\\n"
+        printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        if [ "$HOSTNAME" = "diginode" ]; then
+            printf "%b You can access it locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b You can access it locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+        fi
+        printf "\\n"
+        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b %b'DigiNode Setup' can be run from the command line to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Please note:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
         printf "\\n"
     fi
 
