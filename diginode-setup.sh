@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.3.12
+#           Name:  DigiNode Setup v0.4.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -4894,7 +4894,45 @@ install_digiasset_node_only() {
     # Display donation QR Code
     donation_qrcode
 
+    printf "\\n"
+    printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    if [ "$HOSTNAME" = "diginode" ]; then
+        printf "%b You can access it locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
+    else
+        printf "%b You can access it locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+    fi
+    printf "\\n"
+    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b Please note:\\n" "${INFO}"
+    printf "\\n"
+    printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+    printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
+    printf "\\n"
+
     exit
+
+}
+
+lookup_external_ip() {
+
+    # update external IP address and save to settings file
+    str="Looking up external IP address..."
+    printf "  %b %s" "${INFO}" "${str}"
+    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
+    if [ $IP4_EXTERNAL_QUERY != "" ]; then
+        IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    fi
+    printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
+    printf "\\n"
 
 }
 
@@ -5373,13 +5411,12 @@ backup_reminder() {
     if [ "$NewInstall" != true ]; then
 
         # If this is a full install, and no backup exists
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
-            printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b You can use 'DigiNode Setup' to backup your DigiByte wallet & DigiAsset Node settings\\n" "${INDENT}"
+            printf "%b to a USB stick.\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5387,10 +5424,9 @@ backup_reminder() {
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
-            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b You can do this by entering: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b You currently only have a USB backup of your DigiByte wallet. It is reccomended to also=\\n" "${INDENT}"
+            printf "%b backup your DigiAsset Node settings. You can do this using 'DigiNode Setup'.\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5398,12 +5434,10 @@ backup_reminder() {
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+            printf "%b You can use 'DigiNode Setup' to backup your DigiByte wallet to a USB stick.\\n" "${INDENT}"
             printf "\\n"
         fi
-
 
     fi
 
@@ -5411,25 +5445,25 @@ backup_reminder() {
 
 final_messages() {  
 
-
-    if [ "$NewInstall" = true ] ; then
-        printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
-        printf "\\n"
-    elif [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+    if [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         printf "\\n"
+    elif [ "$DO_FULL_INSTALL" = "YES" ]; then 
+        printf "\\n"
+        printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        if [ "$HOSTNAME" = "diginode" ]; then
+            printf "%b You can access it locally at: ${txtbld}https://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b You can access it locally at: ${txtbld}https://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+        fi
+        printf "\\n"
+        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"    
     fi
 
     if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
@@ -5443,42 +5477,36 @@ final_messages() {
     fi
 
     if [ $NewInstall = true ]; then
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b (You will need to reboot first.)\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+        printf "%b       If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To run it enter: ${txtbld}diginode${txtrst}\\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
-    elif [ "$DO_FULL_INSTALL" = "YES" ]; then
-        if [ "$STATUS_MONITOR" = "false" ]; then
-            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+    else
+        if [ "$STATUS_MONITOR" = "false" ] && [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+            printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
         fi
 
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-        fi
-    elif [ "$DO_FULL_INSTALL" = "NO" ]; then
-        if [ "$STATUS_MONITOR" = "false" ]; then
-            printf "%b %b'DigiNode Status Monitor' can be used to monitor your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-        fi
         if [ "$system_updates_available" = "yes" ]; then
             printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -8701,78 +8729,83 @@ uninstall_do_now() {
 
     ################## UNINSTALL DIGIBYTE NODE #################################################
 
-    printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
-    # ==============================================================================
+    # Only prompt to unistall DigiByte Node if it is an official install
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+
+        printf " =============== Uninstall: DigiByte Node ==============================\\n\\n"
+        # ==============================================================================
 
 
-    # Uninstall DigiByte Core
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
+        # Uninstall DigiByte Core
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
-        printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
+            printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
-        printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
-        stop_service digibyted
-        disable_service digibyted
-        DGB_STATUS="stopped"
+            printf "%b Stopping DigiByte Core daemon...\\n" "${INFO}"
+            stop_service digibyted
+            disable_service digibyted
+            DGB_STATUS="stopped"
 
-        # Delete systemd service file
-        if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
-            str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_SYSTEMD_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            # Delete systemd service file
+            if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
+                str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_SYSTEMD_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete upstart service file
+            if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
+                str="Deleting DigiByte daemon upstart service file..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_UPSTART_SERVICE_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+           # Delete old DigiByte Core tar files, if present
+            if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
+                str="Deleting old DigiByte Core tar.gz files from home folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete DigiByte Core folder
+            if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+                str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
+                DGB_VER_LOCAL=""
+                sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGB_INSTALL_DATE=""
+                sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                DGB_UPGRADE_DATE=""
+                sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete ~/digibyte symbolic link
+            if [ -h "$USER_HOME/digibyte" ]; then
+                str="Deleting digibyte symbolic link in home folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm $USER_HOME/digibyte
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete .bashrc path to DigiByte binary folder
+            if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+                str="Deleting path to DigiByte binary folder in .bashrc file..."
+                printf "%b %s" "${INFO}" "${str}"
+                # Delete existing path for DigiByte binaries
+                sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
+                sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+        else
+            printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
         fi
 
-        # Delete upstart service file
-        if [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
-            str="Deleting DigiByte daemon upstart service file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_UPSTART_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-       # Delete old DigiByte Core tar files, if present
-        if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
-            str="Deleting old DigiByte Core tar.gz files from home folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete DigiByte Core folder
-        if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-            str="Deleting DigiByte Core v${DGB_VER_LOCAL}"
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
-            DGB_VER_LOCAL=""
-            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            DGB_INSTALL_DATE=""
-            sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-            DGB_UPGRADE_DATE=""
-            sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete ~/digibyte symbolic link
-        if [ -h "$USER_HOME/digibyte" ]; then
-            str="Deleting digibyte symbolic link in home folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm $USER_HOME/digibyte
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete .bashrc path to DigiByte binary folder
-        if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
-            str="Deleting path to DigiByte binary folder in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Delete existing path for DigiByte binaries
-            sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
-            sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    else
-        printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
     fi
 
 
@@ -8792,23 +8825,28 @@ uninstall_do_now() {
         fi
     fi
 
-    # Delete DigiByte blockchain data
-    if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+    # Only prompt to delete the blockchain data if it already exists
+    if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
-        # Delete systemd service file
-        if [ -d "$DGB_DATA_LOCATION" ]; then
-            str="Deleting DigiByte Core blockchain data..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -rf $DGB_DATA_LOCATION/indexes
-            rm -rf $DGB_DATA_LOCATION/chainstate
-            rm -rf $DGB_DATA_LOCATION/blocks
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Delete DigiByte blockchain data
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+
+            # Delete systemd service file
+            if [ -d "$DGB_DATA_LOCATION" ]; then
+                str="Deleting DigiByte Core blockchain data..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf $DGB_DATA_LOCATION/indexes
+                rm -rf $DGB_DATA_LOCATION/chainstate
+                rm -rf $DGB_DATA_LOCATION/blocks
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            printf "\\n"
+
+        else
+            printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
+            printf "\\n"
         fi
-        printf "\\n"
 
-    else
-        printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
-        printf "\\n"
     fi
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
@@ -10065,14 +10103,17 @@ main() {
     # Set the system variables once we know we are on linux
     set_sys_variables
 
+    # Lookup the external IP
+    lookup_external_ip
+
     # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
     if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY" ]; then
         printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped.\\n" "${INFO}"
         DGANODE_ONLY=true
     fi
 
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b WARNING: DigiByte Node Detected. Disabling DigiAsset Node ONLY mode...\\n" "${WARN}"
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGANODE_ONLY" = true ]; then
+        printf "%b %bWARNING: DigiByte Node Detected. DigiAsset Node ONLY Mode has been disabled.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         DGANODE_ONLY=false
     fi
@@ -10249,13 +10290,13 @@ main() {
             case ${UpdateCmd} in
                 # Install DigiNode Tools
                 ${opt1a})
-                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
                     printf "\\n" 
                     install_digiasset_node_only          
                     ;;
                 # Add DigiByte Node,
                 ${opt2a})
-                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
                     printf "\\n"
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
                         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only --unattended
@@ -10267,7 +10308,7 @@ main() {
                     ;;
                 # Uninstall,
                 ${opt3a})
-                    printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
+                    printf "%b You selected to UNINSTALL your DigiAsset Node.\\n" "${INFO}"
                     printf "\\n"
                     uninstall_do_now
                     printf "\\n"

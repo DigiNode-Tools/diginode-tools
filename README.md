@@ -151,7 +151,12 @@ Example:
 
 ## Release Notes
 
-DigiNode Tools v0.3.12 - 2022-07-16
+DigiNode Tools v0.4.0 - 2022-07-17
+- Fix: Uninstall now prompts to remove DigiByte Core and the DigiByte blockchain only if they are present
+- Change: Rewrote closing messages to be clearer
+- Fix: Lots of formatting problems and other bugs
+
+DigiNode Tools v0.3.12 - 2022-07-17
 - New: Use the new ```--dganode-only``` flag to install only the DigiAsset Node without a DigiByte Node. Maybe you have a low spec device that isn't powerful enough to run a DigiByte Node? You can now run only a DigiAsset Node on it. It's a great way to support the DigiByte blockchain, if you can't run a full node.
 
 DigiNode Tools v0.3.11 - 2022-07-16
