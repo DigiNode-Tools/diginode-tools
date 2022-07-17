@@ -151,6 +151,9 @@ Example:
 
 ## Release Notes
 
+DigiNode Tools v0.4.2 - 2022-07-18
+- Fix: Block count in Status Monitor now has thousands sperated by commas
+
 DigiNode Tools v0.4.1 - 2022-07-17
 - Fix: Improve DigiByte locate menu during Status Monitor startup
 
