@@ -4932,6 +4932,7 @@ lookup_external_ip() {
         sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
     fi
     printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
+    printf "\\n"
 
 }
 
