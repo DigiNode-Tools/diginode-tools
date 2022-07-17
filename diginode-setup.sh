@@ -10292,13 +10292,13 @@ main() {
             case ${UpdateCmd} in
                 # Install DigiNode Tools
                 ${opt1a})
-                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
                     printf "\\n" 
                     install_digiasset_node_only          
                     ;;
                 # Add DigiByte Node,
                 ${opt2a})
-                    printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+                    printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
                     printf "\\n"
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
                         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only --unattended
@@ -10310,7 +10310,7 @@ main() {
                     ;;
                 # Uninstall,
                 ${opt3a})
-                    printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
+                    printf "%b You selected to UNINSTALL your DigiAsset Node.\\n" "${INFO}"
                     printf "\\n"
                     uninstall_do_now
                     printf "\\n"
