@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.0
+#           Name:  DigiNode Status Monitor v0.4.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.0
+DGNT_VER_LOCAL=0.4.1
 # Last Updated: 2022-07-17
 
 # This is the command people will enter to run the install script.
@@ -232,24 +232,32 @@ digimon_disclaimer() {
 # This script will prompt the user to locate DigiByte core, or install it # banana
 locate_digibyte_node() {
 
-        printf "%b If you have not yet installed a DigiByte Node, choose Option 1 below to run\\n" "${INDENT}"
-        printf "%b DigiNode Setup to set one up. If you already have a DigiByte Node installed on this system,\\n" "${INDENT}"
-        printf "%b please choose Option 2 to enter the absolute path of where it is installed.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b    1.  Run DigiNode Setup\\n" "${INDENT}"
-        printf "%b    2.  Enter the absolute path of your DigiByte Core install folder\\n" "${INDENT}"
-        printf "%b    3.  Exit\\n" "${INDENT}"
+        printf "%b Please choose from the options below:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 1. ${txtbld}Locate existing DigiByte Node${txtrst}\\n" "${INDENT}"
+        printf "%b    This will prompt you for absolute path of your existing DigiByte Core install folder\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 2. ${txtbld}Setup a NEW DigiByte Node${txtrst}\\n" "${INDENT}"
+        printf "%b    If you don't already have a DigiByte Node installed, this will launch 'DigiNode Setup' so you can install one.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b 3. ${txtbld}Exit${txtrst}\\n" "${INDENT}"
+        printf "%b    If you do not have a DigiByte Node installed, and don't want to install one, choose Exit.\\n" "${INDENT}"
         printf "\\n"
         read -p "                  Please choose option 1, 2 or 3: " -n 1 -r          
         printf "\\n" 
 
-      if [[ $REPLY =~ ^[1]$ ]]; then
+      if [[ $REPLY =~ ^[2]$ ]]; then
         printf "\\n" 
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
-        exec curl -sSL diginode-setup.digibyte.help | bash
+        if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --full-diginode
+        elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
+            ~/diginode-tools/diginode-setup.sh --full-diginode
+        fi  
         exit
-      elif [[ $REPLY =~ ^[2]$ ]]; then
+      elif [[ $REPLY =~ ^[1]$ ]]; then
         printf "\\n" 
         printf "%b Prompting for absoute path of digibyte core install folder...\\n" "${INFO}"
 
@@ -280,29 +288,22 @@ locate_digibyte_node() {
         else
             printf "%b %bYou cancelled entering the path to your DigiByte Core install folder.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b If you prefer to set this up manually, create a 'digibyte' symbolic link in\\n" "${INDENT}"
-            printf "%b your home folder, pointing to the location of your DigiByte Core installation:\\n" "${INDENT}"
+            printf "%b Tip: If you already have an existing DigiByte Node installed on this system, and\\n" "${INFO}"
+            printf "%b would rather locate it manually, you can create a 'digibyte' symbolic link in your\\n" "${INDENT}"
+            printf "%b home folder that points to the location of your existing DigiByte install folder:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b For example:\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b   cd ~\\n" "${INDENT}"
-            printf "%b   ln -s /usr/bin/digibyted digibyte\\n" "${INDENT}"
-            printf "\\n"
+            printf "%b For example: ${txtbld}ln -s /usr/bin/digibyted ~/digibyte${txtrst}\\n" "${INDENT}"
             printf "\\n"
             exit
         fi
 
       else
         printf "\\n" 
-        printf "%b Exiting...\\n" "${INFO}"
-        printf "\\n" 
-        printf "%b An alternative solution is to create a 'digibyte' symbolic link in you home folder\\n" "${INFO}"
-        printf "%b that points to the location of your DigiByte Core installation:\\n" "${INDENT}"
+        printf "%b Tip: If you already have an existing DigiByte Node installed on this system, and\\n" "${INFO}"
+        printf "%b would rather locate it manually, you can create a 'digibyte' symbolic link in your\\n" "${INDENT}"
+        printf "%b home folder that points to the location of your existing DigiByte install folder:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b For example:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   cd ~\\n" "${INDENT}"
-        printf "%b   ln -s /usr/bin/digibyted digibyte\\n" "${INDENT}"
+        printf "%b For example: ${txtbld}ln -s /usr/bin/digibyted ~/digibyte${txtrst}\\n" "${INDENT}"
         printf "\\n"
         exit
       fi
@@ -321,7 +322,7 @@ is_dgbnode_installed() {
     local find_dgb_service
 
     # Begin check to see that DigiByte Core is installed
-    printf "%b Checking DigiByte Node...\\n" "${INFO}"
+    printf "%b Looking for DigiByte Node...\\n" "${INFO}"
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
@@ -559,16 +560,16 @@ get_dgb_rpc_credentials() {
 digibyte_check_official() {
 
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b Checking for DigiNode Tools Install of DigiByte Core: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         is_dgb_installed="yes"
     else
-        printf "%b Checking for DigiNode Tools Install of DigiByte Core: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b DigiNode Setup was not used to install this DigiByte Node.\\n" "${INFO}"
+        printf "%b DigiNode Setup was unable to detect a DigiByte Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-        printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
+        printf "%b For best results use DigiNode Tools to setup your DigiNode.\\n" "${INDENT}"
         printf "\\n"
         is_dgb_installed="maybe"
     fi
