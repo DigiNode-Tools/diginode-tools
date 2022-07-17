@@ -1,17 +1,30 @@
 #!/bin/bash
 #
-# Name:    DigiNode Setup
-# Purpose: Install a DigiByte Node and DigiAsset Metadata server on a compatible linux device.
-#          Script supports most Linux servers and the Raspberry Pi 3 and later.
-#          A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#           Name:  DigiNode Setup v0.3.12
 #
-# Author:  Olly Stedall @saltedlolly
+#        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
+#          
+#  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
+#                  Other distros may not work at present. Please help test so that support can be added.
+#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
-# Website: https://diginode.digibyte.help
+#         Author:  Olly Stedall @saltedlolly
 #
-# Usage:   Install with this command (from your Linux machine):
+#        Website:  https://diginode.digibyte.help
 #
-#          curl http://diginode-setup.digibyte.help | bash 
+#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#
+#    Get Started:  curl http://diginode-setup.digibyte.help | bash  
+#  
+#                  Alternatively clone the repo to your home folder:
+#
+#                  cd ~
+#                  git clone https://github.com/saltedlolly/diginode-tools/
+#                  chmod +x ~/diginode-tools/diginode-setup.sh
+#
+#                  To run the Status Monitor:
+#
+#                  ~/diginode-tools/diginode-setup.sh      
 #
 # -----------------------------------------------------------------------------------------------------
 
@@ -1287,6 +1300,9 @@ digibyte_create_conf() {
         cat <<EOF > $DGB_CONF_FILE
 # This config should be placed in the following path:
 # ~/.digibyte/digibyte.conf
+
+# This template is based on the Bitcoin Core Config Generator by Jameson Lopp
+# https://jlopp.github.io/bitcoin-core-config-generator/
 
 
 # [core]
@@ -5396,12 +5412,12 @@ backup_reminder() {
 final_messages() {  
 
 
-    if [ $NewInstall = true ] ; then
+    if [ "$NewInstall" = true ] ; then
         printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        if [[ "$HOSTNAME" == "diginode" ]]; then
+        if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
@@ -5471,7 +5487,7 @@ final_messages() {
         fi
     fi
 
-    if [ "$UNATTENDED_MODE" == true ] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ]; then
+    if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
@@ -5479,10 +5495,10 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
-    elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
+    elif [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = "true" ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
-        if [[ "$HOSTNAME" == "diginode" ]]; then
+        if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
@@ -7943,8 +7959,8 @@ digiasset_node_create_settings() {
         fi
     else
         local create_dummy_rpc_credentials="yes"
-        rpcuser=user
-        rpcpassword=password
+        rpcuser=no_digibyte_config_file_found
+        rpcpassword=no_digibyte_config_file_found
         rpcport=14022
         if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
             printf "%b digibyte.conf does not exist. Placeholder RPC credentials generated.\\n" "${INFO}"
@@ -8800,7 +8816,7 @@ uninstall_do_now() {
     uninstall_diginode_tools_now
 
     printf " =======================================================================\\n"
-    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} =====================\\n"
+    printf " ================== ${txtgrn}DigiNode Uninstall Completed!${txtrst} ======================\\n"
     printf " =======================================================================\\n\\n"
     # ==============================================================================
 
