@@ -19,7 +19,8 @@ If you are interested in building your own DigiNode, the recommended setup is a 
 
 DigiNode Setup helps you to setup and manage your DigiNode:
 
-- Intuitively walks you though the process of setting up a DigiByte Full Node and DigiAsset Node.
+- Intuitively walks you though the process of setting up a DigiByte Full Node and/or DigiAsset Node.
+- You can also choose to install DigiNode Tools only, so you can use the Status Monitor (see below) with your existing DigiByte Node, or want to inspect the DigiNode Setup scripts before using them. (They will be installed at ```~/diginode-tools```)
 - Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
 - Automatically checks hardware and OS at launch - it lets you know if your system is compatible.
 - Detects compatible Raspberry Pi hardware (if present).
@@ -27,11 +28,11 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
 - Creates or updates a digibyte.conf settings file with optimal settings.
 - Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
-- Creates or updates your DigiAsset Node configuration file with your RPC credentioals. This ensures you can always access your wallet and mint DigiAssets.
+- Creates or updates your DigiAsset Node configuration file with your RPC credentioals. This ensures you can always access your wallet from the web UI to mint DigiAssets.
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
 - Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
 
-Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
+To get started, see the Instructions section below. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
 
 ![DigiNode Setup](images/diginode_setup.png)
 
@@ -66,14 +67,6 @@ Once your DigiNode has been installed, you can access additional features from t
 
 ![DigiNode Menu](images/diginode_menu.png)
 
-## Donations
-
-Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
-
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
-
-![DigiByte Donation QR Code](images/donation_qr_code.png)
-
 ## Compatibility
 
 - A device with at least 8Gb RAM is strongly recommended. DigiByte Core requires >5Gb to run. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
@@ -90,6 +83,14 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.                                            |
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
+
+## Donations
+
+Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
+
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
 
 ## Disclaimer
 
