@@ -4919,12 +4919,12 @@ install_digiasset_node_only() {
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Important Note:\\n" "${INFO}"
+    printf "%b Please note:\\n" "${INFO}"
     printf "\\n"
-    printf "%b   - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-    printf "%b     If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
+    printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+    printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b   - 'DigiNode Status Monitor' will not run with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
+    printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
     printf "\\n"
 
     exit
