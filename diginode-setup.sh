@@ -5413,6 +5413,7 @@ backup_reminder() {
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
             printf "%b You can do this from the DigiNode Setup menu. It will backup your DigiByte wallet\\n" "${INDENT}"
             printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
             printf "\\n"
@@ -5424,6 +5425,7 @@ backup_reminder() {
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
             printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
             printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
@@ -5435,7 +5437,6 @@ backup_reminder() {
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b You can do this from the DigiNode Setup menu.\\n" "${INDENT}"
             printf "\\n"
             printf "%b To get started, enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
