@@ -5415,8 +5415,8 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can do this using 'DigiNode Setup'. You can use it to backup your DigiByte wallet\\n" "${INDENT}"
-            printf "%b and DigiAsset Node settings to a USB stick.\\n" "${INDENT}"
+            printf "%b You can use 'DigiNode Setup' to backup your DigiByte wallet & DigiAsset Node settings\\n" "${INDENT}"
+            printf "%b to a USB stick.\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5425,8 +5425,8 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to backup your DigiAsset Node settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b You currently have a backup of your DigiByte wallet but not your DigiAsset Node settings.\\n" "${INDENT}"
-            printf "%b You can do this from 'DigiNode Setup' menu.\\n" "${INDENT}"
+            printf "%b You currently only have a USB backup of your DigiByte wallet. It is reccomended to also=\\n" "${INDENT}"
+            printf "%b backup your DigiAsset Node settings. You can do this using 'DigiNode Setup'.\\n" "${INDENT}"
             printf "\\n"
         fi
 
@@ -5435,7 +5435,7 @@ backup_reminder() {
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can do this from 'DigiNode Setup' menu.\\n" "${INDENT}"
+            printf "%b You can use 'DigiNode Setup' to backup your DigiByte wallet to a USB stick.\\n" "${INDENT}"
             printf "\\n"
         fi
 
