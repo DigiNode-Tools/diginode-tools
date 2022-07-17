@@ -1288,6 +1288,9 @@ digibyte_create_conf() {
 # This config should be placed in the following path:
 # ~/.digibyte/digibyte.conf
 
+# This template is based on the Bitcoin Core Config Generator by Jameson Lopp
+# https://jlopp.github.io/bitcoin-core-config-generator/
+
 
 # [core]
 # Run in the background as a daemon and accept commands.
@@ -5396,12 +5399,12 @@ backup_reminder() {
 final_messages() {  
 
 
-    if [ $NewInstall = true ] ; then
+    if [ "$NewInstall" = true ] ; then
         printf "%b %bTo complete your install you need to reboot now.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        if [[ "$HOSTNAME" == "diginode" ]]; then
+        if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
@@ -5471,7 +5474,7 @@ final_messages() {
         fi
     fi
 
-    if [ "$UNATTENDED_MODE" == true ] && [ $NewInstall = true ] && [ $HOSTNAME_DO_CHANGE = "YES" ]; then
+    if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
@@ -5479,10 +5482,10 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
-    elif [[ "$UNATTENDED_MODE" == true ]] && [ $NewInstall = true ]; then
+    elif [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = "true" ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
-        if [[ "$HOSTNAME" == "diginode" ]]; then
+        if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
@@ -7943,8 +7946,8 @@ digiasset_node_create_settings() {
         fi
     else
         local create_dummy_rpc_credentials="yes"
-        rpcuser=user
-        rpcpassword=password
+        rpcuser=no_digibyte_config_file_found
+        rpcpassword=no_digibyte_config_file_found
         rpcport=14022
         if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
             printf "%b digibyte.conf does not exist. Placeholder RPC credentials generated.\\n" "${INFO}"
