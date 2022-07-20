@@ -875,8 +875,6 @@ quit_message() {
       # Install updates now
 
       printf "\\n"
-      printf "  %b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
-      printf "\\n"
 
       # Choose a random DigiFact
       digifact_randomize
@@ -918,8 +916,6 @@ quit_message() {
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
       printf "\\n"
-      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
-      printf "\\n"
 
       #Display donation QR code
       donation_qrcode
@@ -939,8 +935,6 @@ quit_message() {
       # Display a random DigiFact
       digifact_display
 
-      printf "\\n"
-      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
 
       #Share backup reminder
