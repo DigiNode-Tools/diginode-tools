@@ -6597,17 +6597,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         if [ "$INIT_SYSTEM" = "systemd" ]; then
 
-            # Disable the service from running at boot
-            printf "%b Disabling IPFS systemd service...\\n" "${INFO}"
-            systemctl disable ipfs
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
             # Stop the service now
             str="Stopping IPFS systemd service..."
             printf "%b %s" "${INFO}" "${str}"
             systemctl stop ipfs
             IPFS_STATUS="stopped"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Disable the service from running at boot
+            printf "%b Disabling IPFS systemd service...\\n" "${INFO}"
+            systemctl disable ipfs
 
         fi
 
@@ -6643,21 +6642,29 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # If there is an existing Kubo install tar file, delete it
+    # If there is an existing Go-IPFS install tar file, delete it
     if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting existing Kubo install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting existing Go-IPFS install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If there is an existing Kubo install tar file, delete it
+    if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
+        str="Deleting existing Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Downloading latest Kubo install file from GitHub
     str="Downloading Kubo v${IPFS_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+    sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # If there is an existing IPFS install folder, delete it
+    # If there is an existing Go-IPFS install folder, delete it
     if [ -d "$USER_HOME/go-ipfs" ]; then
         str="Deleting existing ~/go-ipfs folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -6665,23 +6672,31 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # If there is an existing Kubo install folder, delete it
+    if [ -d "$USER_HOME/kubo" ]; then
+        str="Deleting existing ~/kubo folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $USER_HOME/kubo
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
     # Extracting Kubo install files
     str="Extracting Kubo v${IPFS_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete Kubo install tar file, delete it
-    if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting Kubo install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+    if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
+        str="Deleting Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
-        rm $USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
+        rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install Kubo to bin folder
     printf "%b Installing Kubo v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
-    (cd $USER_HOME/go-ipfs; ./install.sh)
+    (cd $USER_HOME/kubo; ./install.sh)
 
     # If the command completed without error, then assume IPFS installed correctly
     if [ $? -eq 0 ]; then
@@ -6701,13 +6716,15 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         exit 1
     fi
 
-    # Delete ~/go-ipfs install folder
-    if [ -d "$USER_HOME/go-ipfs" ]; then
-        str="Deleting ~/go-ipfs install folder..."
+    # Delete ~/kubo install folder
+    if [ -d "$USER_HOME/kubo" ]; then
+        str="Deleting ~/kubo install folder..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -r $USER_HOME/go-ipfs
+        rm -r $USER_HOME/kubo
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+exit
 
     # Get the new version number of the local Kubo install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
