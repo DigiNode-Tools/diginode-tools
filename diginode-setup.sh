@@ -2360,7 +2360,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode' now?\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
