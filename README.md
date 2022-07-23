@@ -60,9 +60,9 @@ Once installed, DigiNode Status Monitor can be run from the command line by ente
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
-- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
 ![DigiNode Menu](images/diginode_menu.png)
@@ -150,6 +150,9 @@ Example:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
 
 ## Release Notes
+
+DigiNode Tools v0.4.3 - 2022-07-xx
+- 
 
 DigiNode Tools v0.4.2 - 2022-07-23
 - Improvement: Current block count in Status Monitor now has thousands seperated by commas

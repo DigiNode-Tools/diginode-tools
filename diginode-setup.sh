@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.2
+#           Name:  DigiNode Setup v0.4.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -4944,15 +4944,15 @@ menu_existing_install() {
 
     opt1a="Update"
     opt1b="Check for updates to your DigiNode software."
+
+    opt2a="Backup"
+    opt2b="Backup your wallet & settings to a USB stick."
+
+    opt3a="Restore"
+    opt3b="Restore your wallet & settings from a USB stick."
     
-    opt2a="Reset"
-    opt2b="Reset all settings and reinstall DigiNode software."
-
-    opt3a="Backup"
-    opt3b="Backup your wallet & settings to a USB stick."
-
-    opt4a="Restore"
-    opt4b="Restore your wallet & settings from a USB stick."
+    opt4a="Reset"
+    opt4b="Reset all settings and reinstall DigiNode software."
 
     opt5a="Uninstall"
     opt5b="Remove DigiNode from your system."
@@ -4981,24 +4981,24 @@ menu_existing_install() {
             fi
             install_or_upgrade
             ;;
-        # Reset,
-        ${opt2a})
-            printf "%b You selected the RESET option.\\n" "${INFO}"
-            printf "\\n"
-            RESET_MODE=true
-            install_or_upgrade
-            ;;
         # USB Stick Backup
-        ${opt3a})
+        ${opt2a})
             printf "%b You selected the BACKUP option.\\n" "${INFO}"
             printf "\\n"
             usb_backup
             ;;
         # USB Stick Restore
-        ${opt4a})
+        ${opt3a})
             printf "%b You selected the RESTORE option.\\n" "${INFO}"
             printf "\\n"
             usb_restore
+            ;;
+        # Reset,
+        ${opt4a})
+            printf "%b You selected the RESET option.\\n" "${INFO}"
+            printf "\\n"
+            RESET_MODE=true
+            install_or_upgrade
             ;;
         # Uninstall,
         ${opt5a})
