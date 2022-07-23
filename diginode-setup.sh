@@ -6779,8 +6779,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-exit
-
     # Get the new version number of the local Kubo install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
