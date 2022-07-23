@@ -115,38 +115,30 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 These features are for advanced users and should be used with caution:
 
 **Unattended Mode:** This is useful for installing the script completely unattended. Run this only having customized the unattended install settings in the ~/.digibyte/diginode.settings file. The settings file will be created the first time you run DigiNode Setup. To run in unattended mode, use the --unattended flag at launch.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
 - ```diginode-setup --unattended```
 
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganode-only``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--full-diginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
-
-Example:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only``` or
 - ```diginode-setup --dganode-only```
 
 **Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
-
-Example:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --reset``` or
 - ```diginode-setup --reset```
 
 **Skip OS Check:** The --skiposcheck flag will skip the OS check at startup in case you are having problems with your system. Proceed with caution.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
+**Skip Update Package Cache:** The --skippkgupdatecheck flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skippkgupdatecheck``` or
+- ```diginode-setup --skippkgupdatecheck```
 
-Example: 
+**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --uninstall``` or
 - ```diginode-setup --uninstall```
 
 **Verbose Mode:** This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. This can be set using the ```--verboseon``` flags.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
 
 ## Release Notes

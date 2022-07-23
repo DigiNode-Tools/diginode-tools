@@ -22,7 +22,7 @@
 #                  git clone https://github.com/saltedlolly/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode.sh
 #
-#                  To run the Status Monitor:
+#                  To run DigiNode Status Monitor:
 #
 #                  ~/diginode-tools/diginode.sh      
 #

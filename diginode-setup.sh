@@ -22,7 +22,7 @@
 #                  git clone https://github.com/saltedlolly/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode-setup.sh
 #
-#                  To run the Status Monitor:
+#                  To run DigiNode Setup:
 #
 #                  ~/diginode-tools/diginode-setup.sh      
 #
@@ -140,6 +140,7 @@ UNATTENDED_MODE=false
 DGNT_BRANCH_REMOTE="release"
 UNINSTALL=false
 SKIP_OS_CHECK=false
+SKIP_PKG_UPDATE_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
 DGANODE_ONLY=
@@ -154,6 +155,7 @@ for var in "$@"; do
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
+        "--skippkgupdatecheck" ) SKIP_PKG_UPDATE_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -2095,23 +2097,32 @@ notify_package_updates_available() {
 }
 
 update_package_cache() {
-    # Running apt-get update/upgrade with minimal output can cause some issues with
-    # requiring user input (e.g password for phpmyadmin see #218)
 
-    # Update package cache on apt based OSes. Do this every time since
-    # it's quick and packages can be updated at any time.
+    # Skip this if the --skippkgupdatecheck flag is used
+    if [ "$SKIP_PKG_UPDATE_CHECK" != true ]; then
 
-    # Local, named variables
-    local str="Update local cache of available packages"
-    printf "%b %s..." "${INFO}" "${str}"
-    # Create a command from the package cache variable
-    if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
-        printf "%b%b %s" "${OVER}" "${TICK}" "${str}"
-    else
-        # Otherwise, show an error and exit
-        printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
-        return 1
+        # Running apt-get update/upgrade with minimal output can cause some issues with
+        # requiring user input (e.g password for phpmyadmin see #218)
+
+        # Update package cache on apt based OSes. Do this every time since
+        # it's quick and packages can be updated at any time.
+
+        # Local, named variables
+        local str="Update local cache of available packages"
+        printf "%b %s..." "${INFO}" "${str}"
+        # Create a command from the package cache variable
+        if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
+            printf "%b%b %s" "${OVER}" "${TICK}" "${str}"
+        else
+            # Otherwise, show an error and exit
+            printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b You can skip the package update check using the --skippkgupdatecheck flag.\\n" "${INDENT}"
+            printf "\\n"
+            return 1
+        fi
+
     fi
 }
 
