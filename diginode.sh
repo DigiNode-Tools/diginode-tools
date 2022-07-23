@@ -252,9 +252,9 @@ locate_digibyte_node() {
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --full-diginode
+            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --fulldiginode
         elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-            ~/diginode-tools/diginode-setup.sh --full-diginode
+            ~/diginode-tools/diginode-setup.sh --fulldiginode
         fi  
         exit
       elif [[ $REPLY =~ ^[1]$ ]]; then

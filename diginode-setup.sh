@@ -161,8 +161,8 @@ for var in "$@"; do
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
         "--runremote" ) DGNT_RUN_LOCATION="remote";;
-        "--dganode-only" ) DGANODE_ONLY=true;;
-        "--full-diginode" ) DGANODE_ONLY=false;;
+        "--dganodeonly" ) DGANODE_ONLY=true;;
+        "--fulldiginode" ) DGANODE_ONLY=false;;
     esac
 done
 
@@ -10371,9 +10371,9 @@ main() {
                     printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
                     printf "\\n"
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only --unattended
+                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
                     elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                        exec diginode-setup --dganode-only --unattended
+                        exec diginode-setup --dganodeonly --unattended
                     fi    
                     printf "\\n"
                     exit
@@ -10391,7 +10391,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganode-only flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganodeonly flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
 
                 install_digiasset_node_only
 
