@@ -10020,39 +10020,39 @@ fi
 
 
 printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-66s ║ \n" "              $DIGIFACT_TITLE"
+printf "  ║ " && printf "%-67s ║ \n" "              $DIGIFACT_TITLE"
 printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 
 if [ "$DIGIFACT_L1" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L1"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L1"
 fi
 
 if [ "$DIGIFACT_L2" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L2"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L2"
 fi
 
 if [ "$DIGIFACT_L3" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L3"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L3"
 fi
 
 if [ "$DIGIFACT_L4" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L4"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L4"
 fi
 
 if [ "$DIGIFACT_L5" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L5"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L5"
 fi
 
 if [ "$DIGIFACT_L6" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L6"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L6"
 fi
 
 if [ "$DIGIFACT_L7" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L7"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L7"
 fi
 
 if [ "$DIGIFACT_L8" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L8"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L8"
 fi
 
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
