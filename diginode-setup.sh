@@ -6662,6 +6662,50 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     str="Downloading Kubo v${IPFS_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
+
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: Kubo Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b The new version of Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+        if [ "$INIT_SYSTEM" = "systemd" ]; then
+
+            # Enable the service to run at boot
+            str="Re-enabling IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl enable ipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Start the service now
+            str="Re-starting IPFS systemd service..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl start ipfs
+            IPFS_STATUS="running"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        if [ "$INIT_SYSTEM" = "upstart" ]; then
+
+            # Enable the service to run at boot
+            str="Re-starting IPFS upstart service..."
+            printf "%b %s" "${INFO}" "${str}"
+            service ipfs start
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IPFS_STATUS="running"
+
+        fi
+
+        printf "\\n"
+        exit 1
+    fi
+
+
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # If there is an existing Go-IPFS install folder, delete it
