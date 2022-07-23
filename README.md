@@ -151,6 +151,10 @@ Example:
 
 ## Release Notes
 
+DigiNode Tools v0.4.2 - 2022-07-23
+- Improvement: Current block count in Status Monitor now has thousands seperated by commas
+- Fix: Change mentions of 'go-ipfs' in Github download to 'kubo' - downloads have been renamed. Same with the install folder.
+
 DigiNode Tools v0.4.1 - 2022-07-17
 - Fix: Improve DigiByte locate menu during Status Monitor startup
 

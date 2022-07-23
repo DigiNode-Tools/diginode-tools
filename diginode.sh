@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.1
+#           Name:  DigiNode Status Monitor v0.4.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.1
+DGNT_VER_LOCAL=0.4.2
 # Last Updated: 2022-07-17
 
 # This is the command people will enter to run the install script.
@@ -875,8 +875,6 @@ quit_message() {
       # Install updates now
 
       printf "\\n"
-      printf "  %b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
-      printf "\\n"
 
       # Choose a random DigiFact
       digifact_randomize
@@ -918,8 +916,6 @@ quit_message() {
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
       printf "\\n"
-      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
-      printf "\\n"
 
       #Display donation QR code
       donation_qrcode
@@ -939,8 +935,6 @@ quit_message() {
       # Display a random DigiFact
       digifact_display
 
-      printf "\\n"
-      printf "%b Thank you for using DigiNode Status Monitor.\\n" "${INFO}"
       printf "\\n"
 
       #Share backup reminder
@@ -1137,6 +1131,7 @@ pre_loop() {
       DGB_STATUS="startingup"
     else
       BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
+      BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
 
       # Query current version number of DigiByte Core
       DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
@@ -1346,6 +1341,7 @@ if [ "$DGB_STATUS" = "running" ]; then
     # If the blockchain is not yet synced, get blockcount
     if [ "$BLOCKSYNC_PROGRESS" = "" ] || [ "$BLOCKSYNC_PROGRESS" = "notsynced" ]; then
       BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+      BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
 
       # If we don't get a response, assume it is starting up
       if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
@@ -1433,10 +1429,13 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
     # Is digibyted in the process of starting up, and not ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ] && [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
         BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+        BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
           DGB_STATUS="startingup"
         fi
     fi
+
+
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ $DGB_STATUS = "running" ]; then
@@ -1802,7 +1801,7 @@ else
 printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_LOCAL Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
+printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
