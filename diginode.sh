@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.2
+#           Name:  DigiNode Status Monitor v0.4.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -22,7 +22,7 @@
 #                  git clone https://github.com/saltedlolly/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode.sh
 #
-#                  To run the Status Monitor:
+#                  To run DigiNode Status Monitor:
 #
 #                  ~/diginode-tools/diginode.sh      
 #
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.2
-# Last Updated: 2022-07-17
+DGNT_VER_LOCAL=0.4.3
+# Last Updated: 2022-07-23
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -252,9 +252,9 @@ locate_digibyte_node() {
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --full-diginode
+            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --fulldiginode
         elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-            ~/diginode-tools/diginode-setup.sh --full-diginode
+            ~/diginode-tools/diginode-setup.sh --fulldiginode
         fi  
         exit
       elif [[ $REPLY =~ ^[1]$ ]]; then

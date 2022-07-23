@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.2
+#           Name:  DigiNode Setup v0.4.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -22,7 +22,7 @@
 #                  git clone https://github.com/saltedlolly/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode-setup.sh
 #
-#                  To run the Status Monitor:
+#                  To run DigiNode Setup:
 #
 #                  ~/diginode-tools/diginode-setup.sh      
 #
@@ -140,6 +140,7 @@ UNATTENDED_MODE=false
 DGNT_BRANCH_REMOTE="release"
 UNINSTALL=false
 SKIP_OS_CHECK=false
+SKIP_PKG_UPDATE_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
 DGANODE_ONLY=
@@ -154,13 +155,14 @@ for var in "$@"; do
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
+        "--skipupdatepkgcache" ) SKIP_PKG_UPDATE_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
         "--runremote" ) DGNT_RUN_LOCATION="remote";;
-        "--dganode-only" ) DGANODE_ONLY=true;;
-        "--full-diginode" ) DGANODE_ONLY=false;;
+        "--dganodeonly" ) DGANODE_ONLY=true;;
+        "--fulldiginode" ) DGANODE_ONLY=false;;
     esac
 done
 
@@ -2095,23 +2097,32 @@ notify_package_updates_available() {
 }
 
 update_package_cache() {
-    # Running apt-get update/upgrade with minimal output can cause some issues with
-    # requiring user input (e.g password for phpmyadmin see #218)
 
-    # Update package cache on apt based OSes. Do this every time since
-    # it's quick and packages can be updated at any time.
+    # Skip this if the --skipupdatepkgcache flag is used
+    if [ "$SKIP_PKG_UPDATE_CHECK" != true ]; then
 
-    # Local, named variables
-    local str="Update local cache of available packages"
-    printf "%b %s..." "${INFO}" "${str}"
-    # Create a command from the package cache variable
-    if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
-        printf "%b%b %s" "${OVER}" "${TICK}" "${str}"
-    else
-        # Otherwise, show an error and exit
-        printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
-        return 1
+        # Running apt-get update/upgrade with minimal output can cause some issues with
+        # requiring user input (e.g password for phpmyadmin see #218)
+
+        # Update package cache on apt based OSes. Do this every time since
+        # it's quick and packages can be updated at any time.
+
+        # Local, named variables
+        local str="Update local cache of available packages"
+        printf "%b %s..." "${INFO}" "${str}"
+        # Create a command from the package cache variable
+        if eval "${UPDATE_PKG_CACHE}" &> /dev/null; then
+            printf "%b%b %s" "${OVER}" "${TICK}" "${str}"
+        else
+            # Otherwise, show an error and exit
+            printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b You can skip the package update check using the --skipupdatepkgcache flag.\\n" "${INDENT}"
+            printf "\\n"
+            return 1
+        fi
+
     fi
 }
 
@@ -2349,7 +2360,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode' now?\\n\\nThis is optional but recommended, since it will make the DigiAssets website available at https://diginode.local:8090 which is obviously easier than remembering an IP address."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           INSTALL_AVAHI="YES"
@@ -4835,6 +4846,9 @@ install_digiasset_node_only() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
+    # Check if NodeJS installed, and if there is an upgrade available
+    nodejs_check
+
     # Check if DigiAssets Node is installed, and if there is an upgrade available
     digiasset_node_check
 
@@ -4898,12 +4912,12 @@ install_digiasset_node_only() {
     printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
-        printf "%b You can access it locally at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
     else
-        printf "%b You can access it locally at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+        printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
     printf "\\n"
-    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
     printf "\\n"
     printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -4944,15 +4958,15 @@ menu_existing_install() {
 
     opt1a="Update"
     opt1b="Check for updates to your DigiNode software."
+
+    opt2a="Backup"
+    opt2b="Backup your wallet & settings to a USB stick."
+
+    opt3a="Restore"
+    opt3b="Restore your wallet & settings from a USB stick."
     
-    opt2a="Reset"
-    opt2b="Reset all settings and reinstall DigiNode software."
-
-    opt3a="Backup"
-    opt3b="Backup your wallet & settings to a USB stick."
-
-    opt4a="Restore"
-    opt4b="Restore your wallet & settings from a USB stick."
+    opt4a="Reset"
+    opt4b="Reset all settings and reinstall DigiNode software."
 
     opt5a="Uninstall"
     opt5b="Remove DigiNode from your system."
@@ -4972,7 +4986,7 @@ menu_existing_install() {
     case ${UpdateCmd} in
         # Update, or
         ${opt1a})
-            printf "%b You selected the UPGRADE option.\\n" "${INFO}"
+            printf "%b You selected the UPDATE option.\\n" "${INFO}"
             printf "\\n"
 
             # If DigiAssets Node is installed, we already know this is a full install
@@ -4981,24 +4995,24 @@ menu_existing_install() {
             fi
             install_or_upgrade
             ;;
-        # Reset,
-        ${opt2a})
-            printf "%b You selected the RESET option.\\n" "${INFO}"
-            printf "\\n"
-            RESET_MODE=true
-            install_or_upgrade
-            ;;
         # USB Stick Backup
-        ${opt3a})
+        ${opt2a})
             printf "%b You selected the BACKUP option.\\n" "${INFO}"
             printf "\\n"
             usb_backup
             ;;
         # USB Stick Restore
-        ${opt4a})
+        ${opt3a})
             printf "%b You selected the RESTORE option.\\n" "${INFO}"
             printf "\\n"
             usb_restore
+            ;;
+        # Reset,
+        ${opt4a})
+            printf "%b You selected the RESET option.\\n" "${INFO}"
+            printf "\\n"
+            RESET_MODE=true
+            install_or_upgrade
             ;;
         # Uninstall,
         ${opt5a})
@@ -6767,8 +6781,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         rm -r $USER_HOME/kubo
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
-
-exit
 
     # Get the new version number of the local Kubo install
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
@@ -8704,7 +8716,7 @@ uninstall_do_now() {
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo (Go-IPFS) v${IPFS_VER_LOCAL}?" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
@@ -10362,9 +10374,9 @@ main() {
                     printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
                     printf "\\n"
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only --unattended
+                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
                     elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                        exec diginode-setup --dganode-only --unattended
+                        exec diginode-setup --dganodeonly --unattended
                     fi    
                     printf "\\n"
                     exit
@@ -10382,7 +10394,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganode-only flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganodeonly flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
 
                 install_digiasset_node_only
 

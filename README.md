@@ -60,9 +60,9 @@ Once installed, DigiNode Status Monitor can be run from the command line by ente
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
-- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
 ![DigiNode Menu](images/diginode_menu.png)
@@ -115,41 +115,38 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 These features are for advanced users and should be used with caution:
 
 **Unattended Mode:** This is useful for installing the script completely unattended. Run this only having customized the unattended install settings in the ~/.digibyte/diginode.settings file. The settings file will be created the first time you run DigiNode Setup. To run in unattended mode, use the --unattended flag at launch.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
 - ```diginode-setup --unattended```
 
-**DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganode-only``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--full-diginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
-
-Example:
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganode-only``` or
-- ```diginode-setup --dganode-only```
+**DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly``` or
+- ```diginode-setup --dganodeoonly```
 
 **Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
-
-Example:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --reset``` or
 - ```diginode-setup --reset```
 
 **Skip OS Check:** The --skiposcheck flag will skip the OS check at startup in case you are having problems with your system. Proceed with caution.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
+**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skipupdatepkgcache``` or
+- ```diginode-setup --skipupdatepkgcache```
 
-Example: 
+**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --uninstall``` or
 - ```diginode-setup --uninstall```
 
 **Verbose Mode:** This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. This can be set using the ```--verboseon``` flags.
-
-Example: 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
 
 ## Release Notes
+
+DigiNode Tools v0.4.3 - 2022-07-23
+- Improvement: Add flag for skipping package update check at startup (some VPS won't let you update)
+- Fix: When performing a DigiAsset Node Only setup, it now checks for NodeJS
+- Various other fixes to make it easy to run DigiNode Tools on a VPS
 
 DigiNode Tools v0.4.2 - 2022-07-23
 - Improvement: Current block count in Status Monitor now has thousands seperated by commas
@@ -165,7 +162,7 @@ DigiNode Tools v0.4.0 - 2022-07-17
 - Fix: Lots of formatting problems and other bugs
 
 DigiNode Tools v0.3.12 - 2022-07-17
-- New: Use the new ```--dganode-only``` flag to install only the DigiAsset Node without a DigiByte Node. Maybe you have a low spec device that isn't powerful enough to run a DigiByte Node? You can now run only a DigiAsset Node on it. It's a great way to support the DigiByte blockchain, if you can't run a full node.
+- New: Use the new ```--dganodeonly``` flag to install only the DigiAsset Node without a DigiByte Node. Maybe you have a low spec device that isn't powerful enough to run a DigiByte Node? You can now run only a DigiAsset Node on it. It's a great way to support the DigiByte blockchain, if you can't run a full node.
 
 DigiNode Tools v0.3.11 - 2022-07-16
 - New: If an "unofficial" DigByte Node is detected at launch (i.e one not originally setup using DigiNode Tools), and DigiNode Tools is installed, it now displays a menu offering to either upgrade DigiNode Tools or uninstall it. This is so you can upgrade the Status Monitor with your own DigiByte Node.
