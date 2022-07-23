@@ -4972,7 +4972,7 @@ menu_existing_install() {
     case ${UpdateCmd} in
         # Update, or
         ${opt1a})
-            printf "%b You selected the UPGRADE option.\\n" "${INFO}"
+            printf "%b You selected the UPDATE option.\\n" "${INFO}"
             printf "\\n"
 
             # If DigiAssets Node is installed, we already know this is a full install
