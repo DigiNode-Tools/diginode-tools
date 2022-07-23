@@ -143,8 +143,8 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.4.3 - 2022-07-xx
-- 
+DigiNode Tools v0.4.3 - 2022-07-23
+- Improvement: Add flag for skipping package update check at startup (some VPS won't let you update)
 
 DigiNode Tools v0.4.2 - 2022-07-23
 - Improvement: Current block count in Status Monitor now has thousands seperated by commas
