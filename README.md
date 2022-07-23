@@ -143,10 +143,13 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.4.4 - 2022-07-xx
+- Add option to display the wallet balance in the Status Monitor. You can choose not to display this by setting the SM_DISPLAY_BALANCE variable in diginode.settings
+
 DigiNode Tools v0.4.3 - 2022-07-23
-- Improvement: Add flag for skipping package update check at startup (some VPS won't let you update)
+- Improvement: Add ```--skipupdatepkgcache``` flag for skipping package update check at startup (some VPS won't let you update)
 - Fix: When performing a DigiAsset Node Only setup, it now checks for NodeJS
-- Various other fixes to make it easy to run DigiNode Tools on a VPS
+- Assorted fixes and improvements to make it easier to run DigiNode Tools on a VPS
 
 DigiNode Tools v0.4.2 - 2022-07-23
 - Improvement: Current block count in Status Monitor now has thousands seperated by commas
