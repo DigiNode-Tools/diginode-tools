@@ -368,6 +368,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     # OTHER SETTINGS
     DGB_MAX_CONNECTIONS=300
     SM_AUTO_QUIT=43200
+    SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
@@ -504,6 +505,9 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=$SM_AUTO_QUIT
+
+# Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
+SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If NO, it will install the latest release version

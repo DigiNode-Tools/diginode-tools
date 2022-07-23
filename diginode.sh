@@ -1111,97 +1111,112 @@ firstrun_dganode_configs() {
 
 pre_loop() {
 
-  # Setup loopcounter - used for debugging
-  loopcounter=0
+      # Setup loopcounter - used for debugging
+      loopcounter=0
 
-  # Set timenow variable with the current time
-  TIME_NOW=$(date)
-  TIME_NOW_UNIX=$(date +%s)
+      # Set timenow variable with the current time
+      TIME_NOW=$(date)
+      TIME_NOW_UNIX=$(date +%s)
 
-  # Log date of this Status Monitor run to diginode.settings
-  str="Logging date of this run to diginode.settings file..."
-  printf "%b %s" "${INFO}" "${str}"
-  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-  printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+      # Log date of this Status Monitor run to diginode.settings
+      str="Logging date of this run to diginode.settings file..."
+      printf "%b %s" "${INFO}" "${str}"
+      sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+      printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-  # Is DigiByte daemon starting up?
-  if [ "$DGB_STATUS" = "running" ]; then
-    BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
-    if [ "$BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
-      DGB_STATUS="startingup"
-    else
-      BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
-      BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
+      # Is DigiByte daemon starting up?
+      if [ "$DGB_STATUS" = "running" ]; then
+        BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
+        if [ "$BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
+          DGB_STATUS="startingup"
+        else
+          BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
+          BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
 
-      # Query current version number of DigiByte Core
-      DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-      if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
-        DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+          # Query current version number of DigiByte Core
+          DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+          if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
+            DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+          fi
+
+        fi
       fi
 
+      # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
+      if [ "$DGB_STATUS" = "startingup" ]; then
+          
+          # Query if digibyte has finished starting up. Display error. Send success to null.
+          is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+          if [ "$is_dgb_live_query" != "" ]; then
+              DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+          else
+              DGB_STATUS="running"
+          fi
+
+      fi
+
+
+      ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+
+      # Check if there is an update for DigiByte Core
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+        DGB_UPDATE_AVAILABLE="no"
+      else
+        DGB_UPDATE_AVAILABLE="yes"
+      fi
+
+      # Check if there is an update for DigiNode Tools
+      if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+        DGNT_UPDATE_AVAILABLE="no"
+      else
+        DGNT_UPDATE_AVAILABLE="yes"
+      fi
+
+      # If there is actually a local version of NodeJS, check for an update
+      if [ "$NODEJS_VER_LOCAL" != "" ]; then
+          # Check if there is an update for NodeJS
+          if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
+            NODEJS_UPDATE_AVAILABLE="no"
+          else
+            NODEJS_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      # If there is actually a local version of Go-IPFS, check for an update
+      if [ "$IPFS_VER_LOCAL" != "" ]; then
+          # Check if there is an update for NodeJS
+          if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+            IPFS_UPDATE_AVAILABLE="no"
+          else
+            IPFS_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
+
+          # Check if there is an update for DigiAsset Node
+          if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
+            DGA_UPDATE_AVAILABLE="no"
+          else
+            DGA_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      # If SM_DISPLAY_VALUE is to to neither YES or NO, update diginode.settings
+    if [ "$SM_DISPLAY_BALANCE" != "YES" ] && [ "$SM_DISPLAY_BALANCE" != "NO" ]; then
+          # Log date of this Status Monitor run to diginode.settings
+          str="No value detected for displaying DigiByte wallet balance. Setting to YES..."
+          printf "%b %s" "${INFO}" "${str}"
+          SM_DISPLAY_BALANCE=YES
+          sed -i -e "/^SM_DISPLAY_BALANCE=/s|.*|SM_DISPLAY_BALANCE=YES|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
-  fi
 
-  # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
-  if [ "$DGB_STATUS" = "startingup" ]; then
-      
-      # Query if digibyte has finished starting up. Display error. Send success to null.
-      is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
-      if [ "$is_dgb_live_query" != "" ]; then
-          DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
-      else
-          DGB_STATUS="running"
-      fi
-
-  fi
-
-
-  ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
-
-  # Check if there is an update for DigiByte Core
-  if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-    DGB_UPDATE_AVAILABLE="no"
-  else
-    DGB_UPDATE_AVAILABLE="yes"
-  fi
-
-  # Check if there is an update for DigiNode Tools
-  if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
-    DGNT_UPDATE_AVAILABLE="no"
-  else
-    DGNT_UPDATE_AVAILABLE="yes"
-  fi
-
-  # If there is actually a local version of NodeJS, check for an update
-  if [ "$NODEJS_VER_LOCAL" != "" ]; then
-      # Check if there is an update for NodeJS
-      if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-        NODEJS_UPDATE_AVAILABLE="no"
-      else
-        NODEJS_UPDATE_AVAILABLE="yes"
-      fi
-  fi
-
-  # If there is actually a local version of Go-IPFS, check for an update
-  if [ "$IPFS_VER_LOCAL" != "" ]; then
-      # Check if there is an update for NodeJS
-      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-        IPFS_UPDATE_AVAILABLE="no"
-      else
-        IPFS_UPDATE_AVAILABLE="yes"
-      fi
-  fi
-
-  if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
-
-      # Check if there is an update for DigiAsset Node
-      if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-        DGA_UPDATE_AVAILABLE="no"
-      else
-        DGA_UPDATE_AVAILABLE="yes"
-      fi
-  fi
+    if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+        # Lookup current wallet balance
+        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+    fi
 
 
 
@@ -1513,9 +1528,13 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
         # Check if sync progress is not 100%
         if [ "$BLOCKSYNC_PERC" = "100 " ]; then
-           BLOCKSYNC_PROGRESS="synced"
+            BLOCKSYNC_PROGRESS="synced"
+            if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+                WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+            fi
         else
            BLOCKSYNC_PROGRESS="notsynced"
+           WALLET_BALANCE=""
         fi
     fi
   fi
@@ -1802,6 +1821,10 @@ printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIO
 fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
+if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then # Only display if digibyted is NOT running
+printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ WALLET   ║  " && printf "%-49s ║ \n" "$WALLET_BALANCE DGB"
+fi
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
