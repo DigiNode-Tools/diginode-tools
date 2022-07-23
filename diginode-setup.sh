@@ -155,7 +155,7 @@ for var in "$@"; do
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
-        "--skippkgupdatecheck" ) SKIP_PKG_UPDATE_CHECK=true;;
+        "--skipupdatepkgcache" ) SKIP_PKG_UPDATE_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -2098,7 +2098,7 @@ notify_package_updates_available() {
 
 update_package_cache() {
 
-    # Skip this if the --skippkgupdatecheck flag is used
+    # Skip this if the --skipupdatepkgcache flag is used
     if [ "$SKIP_PKG_UPDATE_CHECK" != true ]; then
 
         # Running apt-get update/upgrade with minimal output can cause some issues with
@@ -2118,7 +2118,7 @@ update_package_cache() {
             printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
             printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can skip the package update check using the --skippkgupdatecheck flag.\\n" "${INDENT}"
+            printf "%b You can skip the package update check using the --skipupdatepkgcache flag.\\n" "${INDENT}"
             printf "\\n"
             return 1
         fi

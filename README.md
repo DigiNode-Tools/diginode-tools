@@ -130,9 +130,9 @@ These features are for advanced users and should be used with caution:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Skip Update Package Cache:** The --skippkgupdatecheck flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skippkgupdatecheck``` or
-- ```diginode-setup --skippkgupdatecheck```
+**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skipupdatepkgcache``` or
+- ```diginode-setup --skipupdatepkgcache```
 
 **Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --uninstall``` or
@@ -145,6 +145,8 @@ These features are for advanced users and should be used with caution:
 
 DigiNode Tools v0.4.3 - 2022-07-23
 - Improvement: Add flag for skipping package update check at startup (some VPS won't let you update)
+- Fix: When performing a DigiAsset Node Only setup, it now checks for NodeJS
+- Various other fixes to make it easy to run DigiNode Tools on a VPS
 
 DigiNode Tools v0.4.2 - 2022-07-23
 - Improvement: Current block count in Status Monitor now has thousands seperated by commas
