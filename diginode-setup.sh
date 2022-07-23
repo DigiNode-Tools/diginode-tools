@@ -4846,6 +4846,9 @@ install_digiasset_node_only() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
+    # Check if NodeJS installed, and if there is an upgrade available
+    nodejs_check
+
     # Check if DigiAssets Node is installed, and if there is an upgrade available
     digiasset_node_check
 
