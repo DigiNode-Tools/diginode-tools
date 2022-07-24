@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.4
+#           Name:  DigiNode Status Monitor v0.4.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.4
-# Last Updated: 2022-07-23
+DGNT_VER_LOCAL=0.4.5
+# Last Updated: 2022-07-24
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1216,6 +1216,10 @@ pre_loop() {
     if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
         # Lookup current wallet balance
         WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+        # If the wallet balance is 0, then set the value to "" so it is hidden
+        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+            WALLET_BALANCE=""
+        fi
     fi
 
 
@@ -1531,6 +1535,10 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
             BLOCKSYNC_PROGRESS="synced"
             if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
                 WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+                # If the wallet balance is 0, then set the value to "" so it is hidden
+                if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+                    WALLET_BALANCE=""
+                fi
             fi
         else
            BLOCKSYNC_PROGRESS="notsynced"
@@ -1821,7 +1829,8 @@ printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTI
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
-if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then # Only display if digibyted is NOT running
+# Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
+if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ WALLET BALANCE ║  " && printf "%-49s ║ \n" "$WALLET_BALANCE DGB"
 fi

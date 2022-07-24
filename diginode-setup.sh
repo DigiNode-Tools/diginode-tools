@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.4
+#           Name:  DigiNode Setup v0.4.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -507,6 +507,8 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
+# Note: The current wallet balance will only be displayed when (a) this variable is set to YES, and (b) the blockchain 
+# has completed syncing, and (c) there are actually funds in the wallet (i.e. the balance is > 0).
 SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
