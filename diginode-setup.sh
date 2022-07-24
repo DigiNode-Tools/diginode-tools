@@ -5565,15 +5565,13 @@ final_messages() {
         printf "\\n"
     fi
 
-    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall != true ]; then
-        printf "%b %bWARNING: One or more DigiNode upgrades could not be installed.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = false ]; then
+        printf "%b %bWARNING: One or more DigiNode updates could not be downloaded.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
         printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
         printf "\\n"
     fi
-
-    echo "NEW INSTALL: $NewInstall"
 
 }
 
