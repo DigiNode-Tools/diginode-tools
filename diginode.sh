@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.3
+#           Name:  DigiNode Status Monitor v0.4.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.3
+DGNT_VER_LOCAL=0.4.4
 # Last Updated: 2022-07-23
 
 # This is the command people will enter to run the install script.
@@ -1111,97 +1111,112 @@ firstrun_dganode_configs() {
 
 pre_loop() {
 
-  # Setup loopcounter - used for debugging
-  loopcounter=0
+      # Setup loopcounter - used for debugging
+      loopcounter=0
 
-  # Set timenow variable with the current time
-  TIME_NOW=$(date)
-  TIME_NOW_UNIX=$(date +%s)
+      # Set timenow variable with the current time
+      TIME_NOW=$(date)
+      TIME_NOW_UNIX=$(date +%s)
 
-  # Log date of this Status Monitor run to diginode.settings
-  str="Logging date of this run to diginode.settings file..."
-  printf "%b %s" "${INFO}" "${str}"
-  sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-  printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+      # Log date of this Status Monitor run to diginode.settings
+      str="Logging date of this run to diginode.settings file..."
+      printf "%b %s" "${INFO}" "${str}"
+      sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+      printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-  # Is DigiByte daemon starting up?
-  if [ "$DGB_STATUS" = "running" ]; then
-    BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
-    if [ "$BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
-      DGB_STATUS="startingup"
-    else
-      BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
-      BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
+      # Is DigiByte daemon starting up?
+      if [ "$DGB_STATUS" = "running" ]; then
+        BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
+        if [ "$BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
+          DGB_STATUS="startingup"
+        else
+          BLOCKCOUNT_LOCAL=$BLOCKCOUNT_LOCAL_QUERY
+          BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
 
-      # Query current version number of DigiByte Core
-      DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-      if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
-        DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+          # Query current version number of DigiByte Core
+          DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+          if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
+            DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+          fi
+
+        fi
       fi
 
+      # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
+      if [ "$DGB_STATUS" = "startingup" ]; then
+          
+          # Query if digibyte has finished starting up. Display error. Send success to null.
+          is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+          if [ "$is_dgb_live_query" != "" ]; then
+              DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+          else
+              DGB_STATUS="running"
+          fi
+
+      fi
+
+
+      ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+
+      # Check if there is an update for DigiByte Core
+      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+        DGB_UPDATE_AVAILABLE="no"
+      else
+        DGB_UPDATE_AVAILABLE="yes"
+      fi
+
+      # Check if there is an update for DigiNode Tools
+      if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+        DGNT_UPDATE_AVAILABLE="no"
+      else
+        DGNT_UPDATE_AVAILABLE="yes"
+      fi
+
+      # If there is actually a local version of NodeJS, check for an update
+      if [ "$NODEJS_VER_LOCAL" != "" ]; then
+          # Check if there is an update for NodeJS
+          if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
+            NODEJS_UPDATE_AVAILABLE="no"
+          else
+            NODEJS_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      # If there is actually a local version of Go-IPFS, check for an update
+      if [ "$IPFS_VER_LOCAL" != "" ]; then
+          # Check if there is an update for NodeJS
+          if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+            IPFS_UPDATE_AVAILABLE="no"
+          else
+            IPFS_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
+
+          # Check if there is an update for DigiAsset Node
+          if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
+            DGA_UPDATE_AVAILABLE="no"
+          else
+            DGA_UPDATE_AVAILABLE="yes"
+          fi
+      fi
+
+      # If SM_DISPLAY_VALUE is to to neither YES or NO, update diginode.settings
+    if [ "$SM_DISPLAY_BALANCE" != "YES" ] && [ "$SM_DISPLAY_BALANCE" != "NO" ]; then
+          # Log date of this Status Monitor run to diginode.settings
+          str="No value detected for displaying DigiByte wallet balance. Setting to YES..."
+          printf "%b %s" "${INFO}" "${str}"
+          SM_DISPLAY_BALANCE=YES
+          sed -i -e "/^SM_DISPLAY_BALANCE=/s|.*|SM_DISPLAY_BALANCE=YES|" $DGNT_SETTINGS_FILE
+          printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
-  fi
 
-  # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
-  if [ "$DGB_STATUS" = "startingup" ]; then
-      
-      # Query if digibyte has finished starting up. Display error. Send success to null.
-      is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
-      if [ "$is_dgb_live_query" != "" ]; then
-          DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
-      else
-          DGB_STATUS="running"
-      fi
-
-  fi
-
-
-  ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
-
-  # Check if there is an update for DigiByte Core
-  if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-    DGB_UPDATE_AVAILABLE="no"
-  else
-    DGB_UPDATE_AVAILABLE="yes"
-  fi
-
-  # Check if there is an update for DigiNode Tools
-  if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
-    DGNT_UPDATE_AVAILABLE="no"
-  else
-    DGNT_UPDATE_AVAILABLE="yes"
-  fi
-
-  # If there is actually a local version of NodeJS, check for an update
-  if [ "$NODEJS_VER_LOCAL" != "" ]; then
-      # Check if there is an update for NodeJS
-      if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-        NODEJS_UPDATE_AVAILABLE="no"
-      else
-        NODEJS_UPDATE_AVAILABLE="yes"
-      fi
-  fi
-
-  # If there is actually a local version of Go-IPFS, check for an update
-  if [ "$IPFS_VER_LOCAL" != "" ]; then
-      # Check if there is an update for NodeJS
-      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-        IPFS_UPDATE_AVAILABLE="no"
-      else
-        IPFS_UPDATE_AVAILABLE="yes"
-      fi
-  fi
-
-  if [ "$DGA_VER_MJR_LOCAL" != "" ]; then
-
-      # Check if there is an update for DigiAsset Node
-      if [ $(version $DGA_VER_MJR_LOCAL) -ge $(version $DGA_VER_MJR_RELEASE) ]; then
-        DGA_UPDATE_AVAILABLE="no"
-      else
-        DGA_UPDATE_AVAILABLE="yes"
-      fi
-  fi
+    if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+        # Lookup current wallet balance
+        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+    fi
 
 
 
@@ -1513,9 +1528,13 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
         # Check if sync progress is not 100%
         if [ "$BLOCKSYNC_PERC" = "100 " ]; then
-           BLOCKSYNC_PROGRESS="synced"
+            BLOCKSYNC_PROGRESS="synced"
+            if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+                WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+            fi
         else
            BLOCKSYNC_PROGRESS="notsynced"
+           WALLET_BALANCE=""
         fi
     fi
   fi
@@ -1793,82 +1812,86 @@ echo -e "      / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}║ MO
 echo -e "     /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}╚═════════╝${txtbld}"
 echo -e "                /____/                                  ${txtrst}"                         
 echo ""  
-printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
+printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
 if [ $DGB_CONNECTIONS -le 8 ]; then
-printf "  ║ CONNECTIONS   ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
+printf "  ║ CONNECTIONS    ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
 else
-printf "  ║ CONNECTIONS   ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
+printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 fi
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ BLOCK HEIGHT  ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ NODE UPTIME   ║  " && printf "%-49s ║ \n" "$uptime"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
+if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then # Only display if digibyted is NOT running
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ WALLET BALANCE ║  " && printf "%-49s ║ \n" "$WALLET_BALANCE DGB"
+fi
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ NODE UPTIME    ║  " && printf "%-49s ║ \n" "$uptime"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║               ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ IP ADDRESS    ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ IP ADDRESS     ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
-printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "running" ]; then
-printf "  ║ WEB UI        ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGA STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DGA STATUS    ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGA STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ RPC ACCESS    ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
-printf "  ║               ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ RPC ACCESS     ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
+printf "  ║                ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE      ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
+printf "  ║ SOFTWARE       ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
 else
-printf "  ║ SOFTWARE      ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+printf "  ║ SOFTWARE       ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
+printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
 else
-printf "  ║               ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+printf "  ║                ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║               ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║               ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║               ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
   else
-    printf "  ║               ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
   fi
 fi
-printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
+printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
 fi
@@ -1892,33 +1915,37 @@ printf "   indicates that things are working correctly. This message will disapp
 printf "   when the total connections is 9 or more.\\n"
 fi
 printf "\\n"
-printf "  ╔═══════════════╦════════════════════════════════════════════════════╗\\n"
+printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$MODEL" != "" ]; then
-printf "  ║ DEVICE        ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DEVICE         ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
-printf "  ║ DISK USAGE    ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ MEMORY USAGE  ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
+if [ "$DGB_DATA_DISKUSED_PERC_CLEAN" -ge "80" ]; then # Display current disk usage percentage in red if it is 80% or over
+printf "  ║ DISK USAGE     ║  " && printf "%-42s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${txtbred}$DGB_DATA_DISKUSED_PERC${txtrst} )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+else
+printf "  ║ DISK USAGE     ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+fi
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" != "0B" ]; then # only display the swap file status if there is one, and the current value is above 0B
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SWAP USAGE    ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SWAP USAGE     ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -gt 8 ]; then
 if [ "$temperature" != "" ]; then
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM TEMP    ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
 fi
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM TEMP   ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
-printf "  ╠═══════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM CLOCK  ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM TEMP    ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 fi
-printf "  ╚═══════════════╩════════════════════════════════════════════════════╝\\n"
+printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 # Display a random DigiFact
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then

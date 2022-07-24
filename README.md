@@ -143,13 +143,18 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.4.4 - 2022-07-24
+- New: Add option to display the wallet balance in the Status Monitor. You can choose not to display this by setting the SM_DISPLAY_BALANCE variable in diginode.settings
+- New: Status Monitor now displays the disk usage percentage in red if it is 80% or over
+- New: Add check to make sure the DigiByte Core download completes successfully.
+
 DigiNode Tools v0.4.3 - 2022-07-23
-- Improvement: Add flag for skipping package update check at startup (some VPS won't let you update)
+- New: Add ```--skipupdatepkgcache``` flag for skipping package update check at startup (some VPS won't let you update)
 - Fix: When performing a DigiAsset Node Only setup, it now checks for NodeJS
-- Various other fixes to make it easy to run DigiNode Tools on a VPS
+- Assorted fixes and improvements to make it easier to run DigiNode Tools on a VPS
 
 DigiNode Tools v0.4.2 - 2022-07-23
-- Improvement: Current block count in Status Monitor now has thousands seperated by commas
+- New: Current block count in Status Monitor now has thousands seperated by commas
 - Fix: Change mentions of 'go-ipfs' in Github download to 'kubo' - downloads have been renamed. Same with the install folder.
 - Fix: If Kubo download fails (maybe the download URL has changed?), restart the existing version and exit. This ensures that a change in the download URL will not break existing installs.
 

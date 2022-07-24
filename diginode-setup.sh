@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.3
+#           Name:  DigiNode Setup v0.4.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -368,6 +368,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     # OTHER SETTINGS
     DGB_MAX_CONNECTIONS=300
     SM_AUTO_QUIT=43200
+    SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
@@ -504,6 +505,9 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
 # e.g. To stop after 12 hours enter: 43200
 SM_AUTO_QUIT=$SM_AUTO_QUIT
+
+# Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
+SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If NO, it will install the latest release version
@@ -1051,7 +1055,7 @@ fi
 
 }
 
-# Lookup disk usage, and store in diginode.settins if present
+# Lookup disk usage, and store in diginode.settings if present
 update_disk_usage() {
 
         # Update current disk usage variables
@@ -1079,6 +1083,9 @@ update_disk_usage() {
         DGB_DATA_DISKUSED_PERC=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_HR=$(echo -e " \t $DGB_DATA_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+        # Get clean percentage (no percentage symbol)
+        DGB_DATA_DISKUSED_PERC_CLEAN=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | cut -d'%' -f1)
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
@@ -2385,7 +2392,7 @@ if [ "$INSTALL_AVAHI" = "YES" ]; then
 fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -3142,12 +3149,12 @@ fi
 swap_do_change() {
 
     # If in Unattended mode, and a swap file is needed, then proceed
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_NEEDED" = "YES" ]; then
+    if [[ $NewInstall = true ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_NEEDED" = "YES" ]; then
         SWAP_DO_CHANGE="YES"
     fi
 
     # If in Unattended mode, and the existing swap file is to small, then proceed
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_TOO_SMALL" = "YES" ]; then
+    if [[ $NewInstall = true ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_TOO_SMALL" = "YES" ]; then
         SWAP_DO_CHANGE="YES"
     fi
 
@@ -5537,7 +5544,7 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
-    elif [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = "true" ]; then
+    elif [ "$UNATTENDED_MODE" = true ] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
         if [ "$HOSTNAME" = "diginode" ]; then
@@ -5548,6 +5555,22 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
+    fi
+
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ]; then
+        printf "%b %bWARNING: One or more software downloads had errors!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b Your DigiNode may not be fully functional. Try running DigiNode Setup again.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = false ]; then
+        printf "%b %bWARNING: One or more DigiNode updates could not be downloaded.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
     fi
 
 }
@@ -5915,10 +5938,38 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+        # Re-enable and re-start DigiByte daemon service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+            DIGINODE_UPGRADED="YES"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
+    fi
 
     # If there is an old backup of DigiByte Core, delete it
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backuo" ]; then
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
         str="Deleting old backup of DigiByte Core v${DGB_VER_LOCAL}..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
@@ -6716,7 +6767,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         printf "\\n"
-        exit 1
+        INSTALL_ERROR="YES"
+        return 1
     fi
 
 
@@ -10015,43 +10067,43 @@ fi
 
 
 
-printf "  ╔════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-66s ║ \n" "              $DIGIFACT_TITLE"
-printf "  ╠════════════════════════════════════════════════════════════════════╣\\n"
+printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
+printf "  ║ " && printf "%-67s ║ \n" "              $DIGIFACT_TITLE"
+printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 
 if [ "$DIGIFACT_L1" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L1"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L1"
 fi
 
 if [ "$DIGIFACT_L2" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L2"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L2"
 fi
 
 if [ "$DIGIFACT_L3" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L3"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L3"
 fi
 
 if [ "$DIGIFACT_L4" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L4"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L4"
 fi
 
 if [ "$DIGIFACT_L5" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L5"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L5"
 fi
 
 if [ "$DIGIFACT_L6" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L6"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L6"
 fi
 
 if [ "$DIGIFACT_L7" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L7"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L7"
 fi
 
 if [ "$DIGIFACT_L8" != "" ]; then
-printf "  ║ " && printf "%-66s ║ \n" "$DIGIFACT_L8"
+printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L8"
 fi
 
-printf "  ╚════════════════════════════════════════════════════════════════════╝\\n"
+printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 
 }
