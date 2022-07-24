@@ -4942,8 +4942,10 @@ install_digiasset_node_only() {
         printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
     printf "\\n"
-    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-    printf "\\n"
+    if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
+        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+    fi
     printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
@@ -5508,8 +5510,10 @@ final_messages() {
             printf "%b You can access it at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
-        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"    
+        if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
+            printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
+        fi   
     fi
 
     if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
