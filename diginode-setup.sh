@@ -5573,6 +5573,8 @@ final_messages() {
         printf "\\n"
     fi
 
+    echo "NEW INSTALL: $NewInstall"
+
 }
 
 stop_service() {
