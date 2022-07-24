@@ -5433,8 +5433,15 @@ backup_reminder() {
     # Only display this once DigiNode is already installed
     if [ "$NewInstall" != true ]; then
 
+        # Lookup current wallet balance
+        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+        # If the wallet balance is 0, then set the value to "" so it is hidden
+        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+            WALLET_BALANCE=""
+        fi
+
         # If this is a full install, and no backup exists
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -5454,7 +5461,7 @@ backup_reminder() {
         fi
 
         # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
