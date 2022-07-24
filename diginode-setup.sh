@@ -5503,9 +5503,9 @@ final_messages() {
         printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b You can access it locally at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+            printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it locally at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b You can access it at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
         printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
