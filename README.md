@@ -146,6 +146,7 @@ These features are for advanced users and should be used with caution:
 DigiNode Tools v0.4.4 - 2022-07-24
 - New: Add option to display the wallet balance in the Status Monitor. You can choose not to display this by setting the SM_DISPLAY_BALANCE variable in diginode.settings
 - New: Status Monitor now displays the disk usage percentage in red if it is 80% or over
+- New: Add check to make sure the DigiByte Core download completes successfully.
 
 DigiNode Tools v0.4.3 - 2022-07-23
 - New: Add ```--skipupdatepkgcache``` flag for skipping package update check at startup (some VPS won't let you update)

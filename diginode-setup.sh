@@ -2392,7 +2392,7 @@ if [ "$INSTALL_AVAHI" = "YES" ]; then
 fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = "yes" ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -3149,12 +3149,12 @@ fi
 swap_do_change() {
 
     # If in Unattended mode, and a swap file is needed, then proceed
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_NEEDED" = "YES" ]; then
+    if [[ $NewInstall = true ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_NEEDED" = "YES" ]; then
         SWAP_DO_CHANGE="YES"
     fi
 
     # If in Unattended mode, and the existing swap file is to small, then proceed
-    if [[ $NewInstall = "yes" ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_TOO_SMALL" = "YES" ]; then
+    if [[ $NewInstall = true ]] && [[ "$UNATTENDED_MODE" = "true" ]] && [ "$SWAP_TOO_SMALL" = "YES" ]; then
         SWAP_DO_CHANGE="YES"
     fi
 
@@ -5544,7 +5544,7 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
-    elif [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = "true" ]; then
+    elif [ "$UNATTENDED_MODE" = true ] && [ $NewInstall = true ]; then
         printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
         printf "\\n"
         if [ "$HOSTNAME" = "diginode" ]; then
@@ -5555,6 +5555,22 @@ final_messages() {
         printf "\\n"
         sleep 5
         sudo reboot
+    fi
+
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ];; then
+        printf "%b %bWARNING: One or more software downloads had errors!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b Your DigiNode may not be fully functional. Try running DigiNode Setup again.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall != true ];; then
+        printf "%b %bWARNING: One or more DigiNode upgrades could not be installed.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
     fi
 
 }
@@ -5922,10 +5938,38 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+        # Re-enable and re-start DigiByte daemon service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+            DIGINODE_UPGRADED="YES"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
+    fi
 
     # If there is an old backup of DigiByte Core, delete it
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backuo" ]; then
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
         str="Deleting old backup of DigiByte Core v${DGB_VER_LOCAL}..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
@@ -6723,7 +6767,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
 
         printf "\\n"
-        exit 1
+        INSTALL_ERROR="YES"
+        return 1
     fi
 
 
