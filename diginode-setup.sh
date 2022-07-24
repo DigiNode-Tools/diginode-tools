@@ -5557,7 +5557,7 @@ final_messages() {
         sudo reboot
     fi
 
-    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ];; then
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ]; then
         printf "%b %bWARNING: One or more software downloads had errors!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b Your DigiNode may not be fully functional. Try running DigiNode Setup again.\\n" "${INDENT}"
@@ -5565,7 +5565,7 @@ final_messages() {
         printf "\\n"
     fi
 
-    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall != true ];; then
+    if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall != true ]; then
         printf "%b %bWARNING: One or more DigiNode upgrades could not be installed.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
