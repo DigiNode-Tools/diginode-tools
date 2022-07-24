@@ -1055,7 +1055,7 @@ fi
 
 }
 
-# Lookup disk usage, and store in diginode.settins if present
+# Lookup disk usage, and store in diginode.settings if present
 update_disk_usage() {
 
         # Update current disk usage variables
@@ -1083,6 +1083,9 @@ update_disk_usage() {
         DGB_DATA_DISKUSED_PERC=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_HR=$(echo -e " \t $DGB_DATA_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
+
+        # Get clean percentage (no percentage symbol)
+        DGB_DATA_DISKUSED_PERC_CLEAN=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | cut -d'%' -f1)
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then

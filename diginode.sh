@@ -1920,7 +1920,11 @@ if [ "$MODEL" != "" ]; then
 printf "  ║ DEVICE         ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
+if [ "$DGB_DATA_DISKUSED_PERC_CLEAN" -ge "80" ]; then # Display current disk usage percentage in red if it is 80% or over
+printf "  ║ DISK USAGE     ║  " && printf "%-42s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${txtbred}$DGB_DATA_DISKUSED_PERC${txtrst} )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+else
 printf "  ║ DISK USAGE     ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" != "0B" ]; then # only display the swap file status if there is one, and the current value is above 0B
