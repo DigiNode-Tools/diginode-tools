@@ -145,6 +145,7 @@ These features are for advanced users and should be used with caution:
 
 DigiNode Tools v0.4.5 - 2022-07-xx
 - New: Wallet balance will now only display if the balance is greater than 0.
+- New: Backup reminder will only be displayed if the wallet balance is greater than 0.
 
 DigiNode Tools v0.4.4 - 2022-07-24
 - New: Add option to display the wallet balance in the Status Monitor. You can choose not to display this by setting the SM_DISPLAY_BALANCE variable in diginode.settings

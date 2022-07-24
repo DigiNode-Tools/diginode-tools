@@ -805,7 +805,7 @@ is_avahi_installed() {
       printf "  %b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
-      printf "  %b avahi-daemon is installed. DigiNode URL: https://${HOSTNAME}.local:8090\\n"  "${TICK}"
+      printf "  %b avahi-daemon is installed. DigiNode URL: http://${HOSTNAME}.local:8090\\n"  "${TICK}"
       IS_AVAHI_INSTALLED="yes"
     fi
 }
