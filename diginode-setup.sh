@@ -4414,11 +4414,27 @@ usb_restore() {
 
     # ASK WHAT TO RESTORE
 
+    # Does a local wallet.dat file already exit?
+    if [ -f $DGB_SETTINGS_LOCATION/wallet.dat ]; then
+        IS_LOCAL_WALLET="YES"
+    else
+        IS_LOCAL_WALLET="NO"
+    fi
+
+    # Setup restore menu text for DigiByte Wallet
+    if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$IS_LOCAL_WALLET" = "YES" ]; then
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was likely created:\\n  $DGB_INSTALL_DATE\\n\\nWARNING: If you continue your current wallet will be replaced with the one from the USB backup stick and any funds will be lost."
+    elif [ "$IS_LOCAL_WALLET" = "NO" ]; then
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nNote: There is currently no existing wallet on this DigiNode."
+    else
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was previously backed up on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nWARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost."
+    fi
+
     # Ask to restore the DigiByte Core Wallet backup, if it exists
     if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
 
         # Ask if the user wants to restore their DigiByte wallet
-        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was created:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nWARNING: If you continue your current existing wallet will be replaced with the backup and any funds will be lost." --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "$restore_str" --yes-button "Yes" "${r}" "${c}"; then
 
             run_wallet_restore=true
         else
