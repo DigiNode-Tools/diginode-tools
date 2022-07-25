@@ -143,7 +143,7 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.4.5 - 2022-07-xx
+DigiNode Tools v0.4.5 - 2022-07-25
 - Change: Wallet balance will now only display if the balance is greater than 0.
 - Change: Backup reminder will only be displayed if the wallet balance is greater than 0.
 - Change: Improve messaging when restoring a DigiByte wallet from backup
