@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.4
+#           Name:  DigiNode Setup v0.4.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -507,6 +507,8 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
+# Note: The current wallet balance will only be displayed when (a) this variable is set to YES, and (b) the blockchain 
+# has completed syncing, and (c) there are actually funds in the wallet (i.e. the balance is > 0).
 SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
@@ -4412,11 +4414,27 @@ usb_restore() {
 
     # ASK WHAT TO RESTORE
 
+    # Does a local wallet.dat file already exit?
+    if [ -f $DGB_SETTINGS_LOCATION/wallet.dat ]; then
+        IS_LOCAL_WALLET="YES"
+    else
+        IS_LOCAL_WALLET="NO"
+    fi
+
+    # Setup restore menu text for DigiByte Wallet
+    if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$IS_LOCAL_WALLET" = "YES" ]; then
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was likely created:\\n  $DGB_INSTALL_DATE\\n\\nWARNING: If you continue your current wallet will be replaced with the one from the USB backup stick and any funds will be lost."
+    elif [ "$IS_LOCAL_WALLET" = "NO" ]; then
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nNote: There is currently no existing wallet on this DigiNode."
+    else
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was previously backed up on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nWARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost."
+    fi
+
     # Ask to restore the DigiByte Core Wallet backup, if it exists
     if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
 
         # Ask if the user wants to restore their DigiByte wallet
-        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was created:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nWARNING: If you continue your current existing wallet will be replaced with the backup and any funds will be lost." --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "$restore_str" --yes-button "Yes" "${r}" "${c}"; then
 
             run_wallet_restore=true
         else
@@ -4924,8 +4942,10 @@ install_digiasset_node_only() {
         printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
     printf "\\n"
-    printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-    printf "\\n"
+    if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
+        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+    fi
     printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
@@ -5431,8 +5451,15 @@ backup_reminder() {
     # Only display this once DigiNode is already installed
     if [ "$NewInstall" != true ]; then
 
+        # Lookup current wallet balance
+        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
+        # If the wallet balance is 0, then set the value to "" so it is hidden
+        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+            WALLET_BALANCE=""
+        fi
+
         # If this is a full install, and no backup exists
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -5452,7 +5479,7 @@ backup_reminder() {
         fi
 
         # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -5478,13 +5505,15 @@ final_messages() {
         printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b You can access it locally at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+            printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it locally at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b You can access it at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
-        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"    
+        if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
+            printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
+        fi   
     fi
 
     if [ "$PRUNE_BLOCKCHAIN" = "YES" ]; then
