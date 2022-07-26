@@ -5567,21 +5567,11 @@ final_messages() {
     fi
 
     if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-        printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+        printf "%b %bUnattended Mode: Your system will reboot automatically in 5 seconds...%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b You system will reboot now for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
         printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        sleep 5
-        sudo reboot
-    elif [ "$UNATTENDED_MODE" = true ] && [ $NewInstall = true ]; then
-        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-        printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
         printf "\\n"
         sleep 5
         sudo reboot
