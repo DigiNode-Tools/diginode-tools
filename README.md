@@ -147,10 +147,11 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.5.0 - 2022-07-xx
+DigiNode Tools v0.5.0 - 2022-07-26
 - New: DigiNode Status Monitor will now work with only a DigiAsset Node (i.e. DigiByte Core is not installed or not running)
 - New: Add IPFS Port test to Status Monitor
 - New: Add ```--locatedgb``` flag to the Status Monitor to let you specify the location of your existing DigiByte install folder.
+- New: While checking an existing DigiAsset Node, if there is no update available, but PM2 is not running for some reason, it will be restarted
 
 DigiNode Tools v0.4.5 - 2022-07-25
 - Change: Wallet balance will now only display if the balance is greater than 0.
