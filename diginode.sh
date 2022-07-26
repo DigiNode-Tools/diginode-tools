@@ -338,7 +338,6 @@ digibyte_check_official() {
     else
         printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b DigiNode Setup was unable to detect a DigiByte Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
         printf "%b For best results use DigiNode Tools to setup your DigiNode.\\n" "${INDENT}"
@@ -568,47 +567,26 @@ digiasset_check_official() {
     printf " =============== Checking: DigiAsset Node ===============================\\n\\n"
     # ===============================================================================
 
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-
-        if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
-          printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            is_dga_installed="yes"
-        elif [ -d "$DGA_INSTALL_LOCATION" ]; then
-            printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
-            printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
-            printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
-            printf "\\n"
-            is_dga_installed="maybe"
-        else
-            printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
-            printf "\\n"
-            is_dga_installed="no"
-        fi
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        is_dga_installed="yes"
+    elif [ -d "$DGA_INSTALL_LOCATION" ]; then
+        printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
+        printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
+        printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
+        printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
+        printf "\\n"
+        is_dga_installed="maybe"
     else
-        if [ -d "$DGA_INSTALL_LOCATION" ]; then
-            printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
-            printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
-            printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-            printf "%b For best results use DigiNode Setup.\\n" "${INDENT}"
-            printf "\\n"
-            is_dga_installed="maybe"
-        else
-            printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "\\n"
-            printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
-            printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
-            printf "\\n"
-            is_dga_installed="no"
-        fi
+        printf "%b Checking for DigiAsset Node: %bNOT INSTALLED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b A DigiAsset Node does not appear to be installed.\\n" "${INFO}"
+        printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
+        printf "\\n"
+        is_dga_installed="no"
     fi
 }
 
