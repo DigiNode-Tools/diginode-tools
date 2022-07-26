@@ -263,7 +263,7 @@ is_dganode_only_mode() {
         printf "\\n"
     fi
     if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b DigiAsset Node ONLY Mode: %bDisabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b FULL DigiNode Mode: %Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
