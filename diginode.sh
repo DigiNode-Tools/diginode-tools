@@ -684,7 +684,7 @@ is_dganode_installed() {
         nodejs_installed="yes"
     fi
 
-    # Let's check if Go-IPFS is already installed
+    # Let's check if Kobu is already installed
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         ipfs_installed="no"
@@ -1271,7 +1271,7 @@ pre_loop() {
           fi
       fi
 
-      # If there is actually a local version of Go-IPFS, check for an update
+      # If there is actually a local version of Kobu, check for an update
       if [ "$IPFS_VER_LOCAL" != "" ]; then
           # Check if there is an update for NodeJS
           if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
@@ -1829,8 +1829,8 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
       fi
     fi
 
-    # Check for new release of Go-IPFS
-    IPFS_VER_RELEASE_QUERY=$(curl -sfL https://dist.ipfs.io/go-ipfs/versions 2>/dev/null | sed '/rc/d' | tail -n 1 | sed 's/v//g')
+    # Check for new release of Kobu
+    IPFS_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -1943,9 +1943,9 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Go-IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kobu v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "Go-IPFS v$IPFS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-49s ║ \n" "Kobu v$IPFS_VER_LOCAL"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
