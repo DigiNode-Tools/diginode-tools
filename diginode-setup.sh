@@ -7733,6 +7733,23 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                     DGA_INSTALL_TYPE="none"
                     DGA_UPDATE_AVAILABLE=NO
                     printf "\\n"
+
+                    # Restart PM2 Service if it is not running and no upgrade is required
+                    if [ "$DGA_DO_INSTALL" = "NO" ] && [ "$DGA_INSTALL_TYPE" = "none" ] && [ "$DGA_UPDATE_AVAILABLE" = "NO" ] && [ "$DGA_STATUS" = "stopped" ]; then
+
+                        # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+                        printf "%b DigiAsset Node PM2 Service is not currently running. Starting Service...\\n" "${INFO}"
+                        cd $DGA_INSTALL_LOCATION
+                        is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+                        if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
+                            sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+                            printf "%b Saving PM2 process state..\\n" "${INFO}"
+                            sudo -u $USER_ACCOUNT pm2 save -force
+                        fi
+
+                    fi
+                    printf "\\n"
+
                     return
                   fi
             else        
@@ -7770,34 +7787,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     
     fi
 
-    echo "DGA_DO_INSTALL: $DGA_DO_INSTALL"
-    echo "DGA_INSTALL_TYPE: $DGA_INSTALL_TYPE"
-    echo "DGA_UPDATE_AVAILABLE: $DGA_UPDATE_AVAILABLE"
-    echo "DGA_STATUS: $DGA_STATUS"
-
-    # Restart PM2 Service if it is not running and no upgrade is required
-    if [ "$DGA_DO_INSTALL" = "NO" ] && [ "$DGA_INSTALL_TYPE" = "none" ] && [ "$DGA_UPDATE_AVAILABLE" = "NO" ] && [ "$DGA_STATUS" = "stopped" ]; then
-
-        # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
-        printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
-        cd $DGA_INSTALL_LOCATION
-        is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
-        if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
-            sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
-            printf "%b Saving PM2 process state..\\n" "${INFO}"
-            sudo -u $USER_ACCOUNT pm2 save -force
-            DIGINODE_UPGRADED="YES"
-        fi
-
-    fi
-
-
     printf "\\n"
 
 
 fi
 
-echo "doggy 2"
+
 
 }
 
