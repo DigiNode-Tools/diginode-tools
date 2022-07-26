@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.1
+#           Name:  DigiNode Setup v0.5.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -6218,7 +6218,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 fi
 
             else        
-                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                 DGNT_INSTALL_TYPE="upgrade"
                 DGNT_ASK_UPGRADE=YES
             fi
