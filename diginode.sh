@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.0
+#           Name:  DigiNode Status Monitor v0.5.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.0
+DGNT_VER_LOCAL=0.5.1
 # Last Updated: 2022-07-26
 
 # This is the command people will enter to run the install script.
@@ -1716,13 +1716,11 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
 
     # If we get a valid local branch, update the stored local branch
     if [ "$dgnt_branch_local_query" != "" ]; then
+        # If it returns head, set it to release
+        if [ "$dgnt_branch_local_query" = "HEAD" ]; then
+            dgnt_branch_local_query="release"
+        fi
         DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
-        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If it returns head, set it to release
-    if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
-        DGNT_BRANCH_LOCAL="release"
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.0
+#           Name:  DigiNode Setup v0.5.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -6332,6 +6332,8 @@ fi
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $DGNT_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            DGNT_VER_LOCAL_DISPLAY=""
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=|" $DGNT_SETTINGS_FILE
         fi
 
         # Next install the newest version
@@ -6386,6 +6388,9 @@ fi
 
         # If we get a valid local branch, update the stored local branch
         if [ "$dgnt_branch_local_query" != "" ]; then
+            if [ "$dgnt_branch_local_query" = "HEAD" ]; then
+                dgnt_branch_local_query="release"
+            fi
             DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
