@@ -473,6 +473,7 @@ is_dgbnode_installed() {
         maxconnections="125"
       fi
       printf "%b DigiByte Core max connections: $maxconnections\\n" "${INFO}"
+      printf "\\n"
     fi
 
     # Run checks to see DigiByte Core is running
@@ -546,7 +547,7 @@ is_dgbnode_installed() {
     # Display message if the DigiByte Node is running okay
 
     if [ "$find_dgb_folder" = "yes" ] && [ "$find_dgb_binaries" = "yes" ] && [ "$find_dgb_settings_folder" = "yes" ] && [ "$find_dgb_conf_file" = "yes" ] && [ "$DGB_STATUS" = "running" ]; then
-        printf "  %b %bDigiByte Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDigiByte Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
     if [ "$is_dgb_installed" = "no" ]; then
@@ -666,6 +667,7 @@ is_dganode_installed() {
 
     # Begin check to see that DigiAsset Node is installed
     printf "%b Looking for DigiAsset Node...\\n" "${INFO}"
+    printf "\\n"
 
     ###############################################################
     # Perform initial checks for required DigiAsset Node packages #
@@ -675,11 +677,11 @@ is_dganode_installed() {
     REQUIRED_PKG="nodejs"
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
-        printf "  %b NodeJS is NOT installed\\n" "${CROSS}"
+        printf "%b NodeJS is NOT installed\\n" "${CROSS}"
         nodejs_installed="no"
         STARTWAIT="yes"
     else
-        printf "  %b NodeJS is installed\\n" "${TICK}"
+        printf "%b NodeJS is installed\\n" "${TICK}"
         DGA_STATUS="nodejsinstalled"
         nodejs_installed="yes"
     fi
@@ -699,9 +701,9 @@ is_dganode_installed() {
       # Display if DigiAsset Node packages are installed
 
       if [ "$nodejs_installed" = "yes" ]; then 
-        printf "  %b DigiAsset Node packages are installed: ${TICK} Kubo ${TICK} NodeJS\\n" "${TICK}"
+        printf "%b DigiAsset Node packages are installed: ${TICK} Kubo ${TICK} NodeJS\\n" "${TICK}"
       else
-        printf "  %b DigiAsset Node packages are NOT installed:" "${CROSS}"
+        printf "%b DigiAsset Node packages are NOT installed:" "${CROSS}"
         if [ $ipfs_installed = "yes" ]; then
           printf "${TICK} Kubo"
         else
@@ -713,8 +715,8 @@ is_dganode_installed() {
           printf "${CROSS} NodeJS"
         fi
           printf "\\n"
-          printf "  %b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
-          printf "  %b You can install them using DigiNode Setup.\\n" "${INDENT}"
+          printf "%b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
+          printf "%b You can install them using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           STARTWAIT="yes"
           DGA_STATUS="not_detected"
@@ -725,11 +727,11 @@ is_dganode_installed() {
       # ps aux | grep ipfs
 
       if [ "" = "$(pgrep ipfs)" ]; then
-          printf "  %b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
+          printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
           ipfs_running="no"
           DGA_STATUS="not_detected"
       else
-          printf "  %b Kubo IPFS daemon is running\\n" "${TICK}"
+          printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
           if [ "$DGA_STATUS" = "nodejsinstalled" ]; then
             DGA_STATUS="ipfsrunning"
           fi
@@ -779,10 +781,19 @@ is_dganode_installed() {
           else
               # If that didn't work, check if it is running using PM2
               IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
+
+              echo ""
+              echo "IS_PM2_RUNNING: $IS_PM2_RUNNING"
+              echo ""
+
               # In case it has not been named, double check
               if [ "$IS_PM2_RUNNING" = "" ]; then
                   IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
               fi
+
+              echo ""
+              echo "IS_PM2_RUNNING: $IS_PM2_RUNNING"
+              echo ""
 
               if [ "$IS_PM2_RUNNING" = "" ]; then
                   DGA_STATUS="stopped"
