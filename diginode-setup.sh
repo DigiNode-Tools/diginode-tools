@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.5
+#           Name:  DigiNode Setup v0.5.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -263,7 +263,7 @@ is_dganode_only_mode() {
         printf "\\n"
     fi
     if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b DigiAsset Node ONLY Mode: %bDisabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b FULL DigiNode Mode: %Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -2342,6 +2342,7 @@ if [[ "$HOSTNAME" == "diginode" ]]; then
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
+    HOSTNAME_DO_CHANGE="NO"
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
@@ -2394,7 +2395,7 @@ if [ "$INSTALL_AVAHI" = "YES" ]; then
 fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -5493,7 +5494,7 @@ backup_reminder() {
 
 final_messages() {  
 
-    if [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+    if [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -5507,7 +5508,7 @@ final_messages() {
         if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
         if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
@@ -5566,21 +5567,11 @@ final_messages() {
     fi
 
     if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-        printf "%b You system will now reboot for the hostname change to take effect.\\n" "${INDENT}"
+        printf "%b %bUnattended Mode: Your system will reboot automatically in 5 seconds...%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b You system will reboot now for the hostname change to take effect.\\n" "${INDENT}"
         printf "\\n"
         printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        sleep 5
-        sudo reboot
-    elif [ "$UNATTENDED_MODE" = true ] && [ $NewInstall = true ]; then
-        printf "%b Unattended Mode: Your system will reboot automatically in 5 seconds...\\n" "${INFO}"
-        printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
         printf "\\n"
         sleep 5
         sudo reboot
@@ -7742,6 +7733,23 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                     DGA_INSTALL_TYPE="none"
                     DGA_UPDATE_AVAILABLE=NO
                     printf "\\n"
+
+                    # Restart PM2 Service if it is not running and no upgrade is required
+                    if [ "$DGA_DO_INSTALL" = "NO" ] && [ "$DGA_INSTALL_TYPE" = "none" ] && [ "$DGA_UPDATE_AVAILABLE" = "NO" ] && [ "$DGA_STATUS" = "stopped" ]; then
+
+                        # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+                        printf "%b DigiAsset Node PM2 Service is not currently running. Starting Service...\\n" "${INFO}"
+                        cd $DGA_INSTALL_LOCATION
+                        is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+                        if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
+                            sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+                            printf "%b Saving PM2 process state..\\n" "${INFO}"
+                            sudo -u $USER_ACCOUNT pm2 save -force
+                        fi
+
+                    fi
+                    printf "\\n"
+
                     return
                   fi
             else        
@@ -7783,6 +7791,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 
 fi
+
+
 
 }
 
@@ -9085,34 +9095,35 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+
+            # Ask to delete diginode.settings if it exists
+            if [ -f "$DGNT_SETTINGS_FILE" ]; then
+
+                # Delete diginode.settings
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+
+                    printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
+
+                    # Delete systemd service file
+                    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+                        str="Deleting diginode.settings file..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -f $DGNT_SETTINGS_FILE
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                else
+                    printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
+                fi
+                printf "\\n"
+            else
+                # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
+                printf "\\n"
+            fi  
+
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
         fi
-    fi
-
-    # Ask to delete diginode.settings if it exists
-    if [ -f "$DGNT_SETTINGS_FILE" ]; then
-
-        # Delete diginode.settings
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
-
-            printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
-
-            # Delete systemd service file
-            if [ -f "$DGNT_SETTINGS_FILE" ]; then
-                str="Deleting diginode.settings file..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGNT_SETTINGS_FILE
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-        else
-            printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
-        fi
-        printf "\\n"
-    else
-        # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
-        printf "\\n"
     fi
 
     printf "\\n"
@@ -9597,7 +9608,7 @@ if [ "$DIGIFACT" = "digifact35" ]; then
     DIGIFACT_TITLE="DigiFact # 35 - Did you know..."
     DIGIFACT_L1="Theres a mind boggling number of possible DigiByte addresses."
     DIGIFACT_L2="1,461,501,637,330,902,918,203,684,832,716,283,019,655,932,542,976"
-    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly   "
+    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly    "
     DIGIFACT_L4="generate trillions a second & never generate the same as"
     DIGIFACT_L5="somebody else."
     DIGIFACT_L6=""
