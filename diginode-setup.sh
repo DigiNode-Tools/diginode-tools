@@ -6388,6 +6388,9 @@ fi
 
         # If we get a valid local branch, update the stored local branch
         if [ "$dgnt_branch_local_query" != "" ]; then
+            if [ "$dgnt_branch_local_query" = "HEAD" ]; then
+                dgnt_branch_local_query="release"
+            fi
             DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi

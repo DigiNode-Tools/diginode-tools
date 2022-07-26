@@ -1716,13 +1716,11 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
 
     # If we get a valid local branch, update the stored local branch
     if [ "$dgnt_branch_local_query" != "" ]; then
+        # If it returns head, set it to release
+        if [ "$dgnt_branch_local_query" = "HEAD" ]; then
+            dgnt_branch_local_query="release"
+        fi
         DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
-        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If it returns head, set it to release
-    if [ "$DGNT_BRANCH_LOCAL" = "HEAD" ]; then
-        DGNT_BRANCH_LOCAL="release"
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
     fi
 

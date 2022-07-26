@@ -147,8 +147,8 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.5.1 - 2022-07-xx
-- 
+DigiNode Tools v0.5.1 - 2022-07-26
+- Fix: Local DGNT branch now detected correctly
 
 DigiNode Tools v0.5.0 - 2022-07-26
 - New: DigiNode Status Monitor will now work with only a DigiAsset Node (i.e. DigiByte Core is not installed or not running).
