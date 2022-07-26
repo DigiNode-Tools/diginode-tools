@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.4.5
+#           Name:  DigiNode Setup v0.5.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -5507,7 +5507,7 @@ final_messages() {
         if [ "$HOSTNAME" = "diginode" ]; then
             printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it at: ${txtbld}http://{$IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
         if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
@@ -9597,7 +9597,7 @@ if [ "$DIGIFACT" = "digifact35" ]; then
     DIGIFACT_TITLE="DigiFact # 35 - Did you know..."
     DIGIFACT_L1="Theres a mind boggling number of possible DigiByte addresses."
     DIGIFACT_L2="1,461,501,637,330,902,918,203,684,832,716,283,019,655,932,542,976"
-    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly   "
+    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly    "
     DIGIFACT_L4="generate trillions a second & never generate the same as"
     DIGIFACT_L5="somebody else."
     DIGIFACT_L6=""

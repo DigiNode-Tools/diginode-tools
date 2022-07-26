@@ -140,8 +140,17 @@ These features are for advanced users and should be used with caution:
 
 **Verbose Mode:** This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. This can be set using the ```--verboseon``` flags.
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
+- ```diginode-setup --uninstall```
+
+**Manually Locate DigiByte Core:** If you wish to use the DigiNode Status Monitor with your existing DigiByte Node (i.e. One not setup with DigiNode Tools), and the startup checks are not able to locate it automatically, use the ```--locatedgb``` flag at launch to manually specify the folder location.
+- ```diginode --locatedgb```
 
 ## Release Notes
+
+DigiNode Tools v0.5.0 - 2022-07-xx
+- New: DigiNode Status Monitor will now work with only a DigiAsset Node (i.e. DigiByte Core is not installed or not running)
+- New: Add IPFS Port test to Status Monitor
+- New: Add ```--locatedgb``` flag to the Status Monitor to let you specify the location of your existing DigiByte install folder.
 
 DigiNode Tools v0.4.5 - 2022-07-25
 - Change: Wallet balance will now only display if the balance is greater than 0.

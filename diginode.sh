@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.4.5
+#           Name:  DigiNode Status Monitor v0.5.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.4.5
-# Last Updated: 2022-07-24
+DGNT_VER_LOCAL=0.5.0
+# Last Updated: 2022-07-26
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -124,6 +124,7 @@ txtbld=$(tput bold) # Set bold mode
 # These are undocumented flags; 
 VERBOSE_MODE=false       # Set this to true to get more verbose feedback. Very useful for debugging.
 UNINSTALL=false
+LOCATE_DIGIBYTE=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -131,6 +132,7 @@ for var in "$@"; do
         "--uninstall" ) UNINSTALL=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
+        "--locatedgb" ) LOCATE_DIGIBYTE=true;;
     esac
 done
 
@@ -229,25 +231,37 @@ digimon_disclaimer() {
 }
 
 
-# This script will prompt the user to locate DigiByte core, or install it # banana
+# This script will prompt the user to locate DigiByte core, or install it
 locate_digibyte_node() {
 
         printf "\\n"
         printf "%b Please choose from the options below:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b 1. ${txtbld}Locate existing DigiByte Node${txtrst}\\n" "${INDENT}"
-        printf "%b    This will prompt you for absolute path of your existing DigiByte Core install folder\\n" "${INDENT}"
+        printf "%b 1. ${txtbld}Locate your existing DigiByte Node${txtrst}\\n" "${INDENT}"
+        printf "%b    This will prompt you for the absolute path of your existing DigiByte Core\\n" "${INDENT}"
+        printf "%b    installation folder.\\n" "${INDENT}"
         printf "\\n"
         printf "%b 2. ${txtbld}Setup a NEW DigiByte Node${txtrst}\\n" "${INDENT}"
-        printf "%b    If you don't already have a DigiByte Node installed, this will launch 'DigiNode Setup' so you can install one.\\n" "${INDENT}"
+        printf "%b    If you don't already have a DigiByte Node installed, this will launch\\n" "${INDENT}"
+        printf "%b    DigiNode Setup so you can install one.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b 3. ${txtbld}Exit${txtrst}\\n" "${INDENT}"
-        printf "%b    If you do not have a DigiByte Node installed, and don't want to install one, choose Exit.\\n" "${INDENT}"
+        printf "%b 3. ${txtbld}Skip detecting a DigiByte Node${txtrst}\\n" "${INDENT}"
+        printf "%b    If there is an existing DigiByte Node it not be monitored.\\n" "${INDENT}"
         printf "\\n"
-        read -p "                  Please choose option 1, 2 or 3: " -n 1 -r          
+        printf "%b 4. ${txtbld}EXIT${txtrst}\\n" "${INDENT}"
+        printf "%b    Exit DigiNode Status Monitor.\\n" "${INDENT}"
+        printf "\\n"
+        read -p "                  Please choose option 1, 2, 3 or 4: " -n 1 -r          
         printf "\\n" 
 
-      if [[ $REPLY =~ ^[2]$ ]]; then
+      if [[ $REPLY =~ ^[3]$ ]]; then
+        printf "\\n" 
+        printf "%b Skip locating DigiByte Core install folder...\\n" "${INFO}"
+        echo ""
+        is_dgb_installed="no"
+        DGB_STATUS="not_detected"
+        SKIP_DETECTING_DIGIBYTE="YES"
+      elif [[ $REPLY =~ ^[2]$ ]]; then
         printf "\\n" 
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
@@ -295,7 +309,7 @@ locate_digibyte_node() {
             printf "%b For example: ${txtbld}ln -s /usr/bin/digibyted ~/digibyte${txtrst}\\n" "${INDENT}"
             printf "\\n"
             exit
-        fi
+        fi      
 
       else
         printf "\\n" 
@@ -310,6 +324,30 @@ locate_digibyte_node() {
       printf "\\n"
 }
 
+# Check if this DigiNode was setup using the official install script
+# (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
+digibyte_check_official() {
+
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
+    # ==============================================================================
+
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        is_dgb_installed="yes"
+    else
+        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b DigiNode Setup was unable to detect a DigiByte Node.\\n" "${INFO}"
+        printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
+        printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
+        printf "%b For best results use DigiNode Tools to setup your DigiNode.\\n" "${INDENT}"
+        printf "\\n"
+        is_dgb_installed="maybe"
+    fi
+
+}
+
 
 # Run checks to be sure that digibyte node is installed and running
 is_dgbnode_installed() {
@@ -322,25 +360,33 @@ is_dgbnode_installed() {
     local find_dgb_service
 
     # Begin check to see that DigiByte Core is installed
-    printf "%b Looking for DigiByte Node...\\n" "${INFO}"
+    printf "%b Looking for DigiByte Core...\\n" "${INFO}"
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
       find_dgb_folder="yes"
+      is_dgb_installed="maybe"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b digibyte symbolic link found in home folder.\\n" "${TICK}"
+          printf "%b digibyte symbolic link found in home folder.\\n" "${TICK}"
       fi
     else
       if [ -e "$DGB_INSTALL_LOCATION" ]; then
       find_dgb_folder="yes"
+      is_dgb_installed="maybe"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b digibyte folder found in home folder.\\n" "${TICK}"
+          printf "%b digibyte folder found in home folder.\\n" "${TICK}"
       fi
       else
         printf "\\n"
-        printf "%b %bERROR: Unable to locate digibyte installation in home folder.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b This script is unable to find your DigiByte Core installation folder\\n" "${INDENT}"
-        locate_digibyte_node
+        printf "%b %bERROR: Unable to detect DigiByte Node install folder%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b This script is unable to detect your DigiByte Core installation folder\\n" "${INDENT}"
+        if [ "$LOCATE_DIGIBYTE" = true ]; then
+            is_dgb_installed="no"
+            locate_digibyte_node
+        else
+            printf "\\n"
+            is_dgb_installed="no"
+        fi
       fi
     fi
 
@@ -348,14 +394,20 @@ is_dgbnode_installed() {
 
     if [ -f "$DGB_DAEMON" -a -f "$DGB_CLI" ]; then
       find_dgb_binaries="yes"
+      is_dgb_installed="yes"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b Digibyte Core Binaries located: ${TICK} digibyted ${TICK} digibyte-cli\\n" "${TICK}"
+          printf "%b Digibyte Core Binaries located: ${TICK} digibyted ${TICK} digibyte-cli\\n" "${TICK}"
       fi
     else
-        printf "\\n"
         printf "%b %bERROR: Unable to locate DigiByte Core binaries.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b This script is unable to find your DigiByte Core binaries - digibyte & digibye-cli.\\n" "${INDENT}"
-        locate_digibyte_node
+        if [ "$LOCATE_DIGIBYTE" = true ] && [ "$SKIP_DETECTING_DIGIBYTE" != "YES" ]; then
+            is_dgb_installed="no"
+            locate_digibyte_node
+        else
+            printf "\\n"
+            is_dgb_installed="no"
+        fi
     fi
 
     # Check if digibyte core is configured to run as a service
@@ -363,18 +415,15 @@ is_dgbnode_installed() {
     if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
       find_dgb_service="yes"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b DigiByte daemon service file is installed\\n" "${TICK}"
+          printf "%b DigiByte daemon service file is installed\\n" "${TICK}"
       fi
     else
-        printf "  %b DigiByte daemon service file is NOT installed\\n" "${CROSS}"
-        printf "\\n"
         printf "%b %bWARNING: digibyted.service not found%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b To ensure your DigiByte Node stays running 24/7, it is a good idea to setup\\n" "${INDENT}"
         printf "%b DigiByte daemon to run as a service. If you already have a systemd service file\\n" "${INDENT}"
-        printf "%b to run 'digibyted', please, rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
-        printf "%b so that this script can find it.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b If you wish to setup your DigiByte Node as a service, please use DigiNode Setup.\\n" "${INDENT}"
+        printf "%b to run 'digibyted', you can rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
+        printf "%b so that this script can find it. If you wish to setup your DigiByte Node to run\\n" "${INDENT}"
+        printf "%b as a service, you can use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         local dgb_service_warning="yes"
     fi
@@ -384,17 +433,14 @@ is_dgbnode_installed() {
     if [ -d "$DGB_SETTINGS_LOCATION" ]; then
       find_dgb_settings_folder="yes"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b .digibyte settings folder located\\n" "${TICK}"
+          printf "%b ~/.digibyte settings folder located\\n" "${TICK}"
       fi
     else
-        printf "\\n"
-        printf "%b %bERROR: .digibyted data folder not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b The DigiByte Core data folder contains your wallet and digibyte.conf\\n" "${INDENT}"
+        printf "%b %bERROR: ~/.digibyte settings folder not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b The DigiByte settings folder contains your wallet and digibyte.conf\\n" "${INDENT}"
         printf "%b in addition to the blockchain data itself. The folder was not found in\\n" "${INDENT}"
         printf "%b the expected location here: $DGB_DATA_LOCATION\\n" "${INDENT}"
         printf "\\n"
-        printf "\\n"
-        exit 1
     fi
 
     # Check digibyte.conf file can be found
@@ -402,19 +448,21 @@ is_dgbnode_installed() {
     if [ -f "$DGB_CONF_FILE" ]; then
       find_dgb_conf_file="yes"
       if [ $VERBOSE_MODE = true ]; then
-          printf "  %b digibyte.conf file located\\n" "${TICK}"
+          printf "%b digibyte.conf file located\\n" "${TICK}"
            # Load digibyte.conf file to get variables
           printf "  %b Importing digibyte.conf\\n" "${TICK}"
           source $DGB_CONF_FILE
+          printf "\\n"
       fi
     else
-        printf "\\n"
         printf "%b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
         printf "%b your node. DigiNode Setup can help you create one.\\n" "${INDENT}"
         printf "%b The expected location is here: $DGB_CONF_FILE\\n" "${INDENT}"
         printf "\\n"
-        exit 1
+        if [ "$is_dgb_installed" = "yes" ]; then
+            exit 1
+        fi
     fi
 
     # Get maxconnections from digibyte.conf
@@ -501,6 +549,11 @@ is_dgbnode_installed() {
         printf "  %b %bDigiByte Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     fi
 
+    if [ "$is_dgb_installed" = "no" ]; then
+        printf "%b %bDigiByte Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        DGB_STATUS="not_detected"
+    fi
+
     printf "\\n"
 
 }
@@ -557,27 +610,10 @@ get_dgb_rpc_credentials() {
 
 # Check if this DigiNode was setup using the official install script
 # (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
-digibyte_check_official() {
-
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        is_dgb_installed="yes"
-    else
-        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b DigiNode Setup was unable to detect a DigiByte Node.\\n" "${INFO}"
-        printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
-        printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
-        printf "%b For best results use DigiNode Tools to setup your DigiNode.\\n" "${INDENT}"
-        printf "\\n"
-        is_dgb_installed="maybe"
-    fi
-}
-
-# Check if this DigiNode was setup using the official install script
-# (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
 digiasset_check_official() {
+
+    printf " =============== Checking: DigiAsset Node ===============================\\n\\n"
+    # ===============================================================================
 
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
@@ -625,60 +661,51 @@ digiasset_check_official() {
 
 
 
-# function to update the _config/main.json file with updated RPC credentials (if they have been changed)
-# update_dga_config() {
-# Only update if there are RPC get_rpc_credentials
-#  if [[ $RPC_CREDENTIALS_OK == "yes" ]]; then
-#    # need to write this one
-#    true
-#  fi
-# }
-
 # Check if the DigAssets Node is installed and running
 is_dganode_installed() {
 
-    # Begin check to see that DigiByte Core is installed
-    printf "%b Checking DigiAsset Node...\\n" "${INFO}"
+    # Begin check to see that DigiAsset Node is installed
+    printf "%b Looking for DigiAsset Node...\\n" "${INFO}"
 
-      ###############################################################
-      # Perform initial checks for required DigiAsset Node packages #
-      ###############################################################
+    ###############################################################
+    # Perform initial checks for required DigiAsset Node packages #
+    ###############################################################
 
+    # Check if nodejs is installed
+    REQUIRED_PKG="nodejs"
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+    if [ "" = "$PKG_OK" ]; then
+        printf "  %b NodeJS is NOT installed\\n" "${CROSS}"
+        nodejs_installed="no"
+        STARTWAIT="yes"
+    else
+        printf "  %b NodeJS is installed\\n" "${TICK}"
+        DGA_STATUS="nodejsinstalled"
+        nodejs_installed="yes"
+    fi
 
-      # Let's check if Go-IPFS is already installed
-      IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-      if [ "$IPFS_VER_LOCAL" = "" ]; then
-          ipfs_installed="no"
-          STARTWAIT="yes"
-      else
-          DGA_STATUS="ipfsinstalled"
-          ipfs_installed="yes"
-      fi
-
-      # Check if nodejs is installed
-
-      REQUIRED_PKG="nodejs"
-      PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-      if [ "" = "$PKG_OK" ]; then
-          nodejs_installed="no"
-          STARTWAIT="yes"
-      else
-          if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
-            DGA_STATUS="nodejsinstalled"
-          fi
-           nodejs_installed="yes"
+    # Let's check if Go-IPFS is already installed
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        ipfs_installed="no"
+        STARTWAIT="yes"
+    else
+        if [ "$DGA_STATUS" = "nodejsinstalled" ]; then
+            DGA_STATUS="ipfsinstalled"
+        fi
+        ipfs_installed="yes"
       fi
 
       # Display if DigiAsset Node packages are installed
 
       if [ "$nodejs_installed" = "yes" ]; then 
-        printf "  %b Required DigiAsset Node packages are installed: ${TICK} Go-IPFS ${TICK} NodeJS\\n" "${TICK}"
+        printf "  %b DigiAsset Node packages are installed: ${TICK} Kubo ${TICK} NodeJS\\n" "${TICK}"
       else
-        printf "  %b Required DigiAsset Node packages are NOT installed:" "${CROSS}"
+        printf "  %b DigiAsset Node packages are NOT installed:" "${CROSS}"
         if [ $ipfs_installed = "yes" ]; then
-          printf "${TICK} Go-IPFS"
+          printf "${TICK} Kubo"
         else
-          printf "${CROSS} Go-IPFS"
+          printf "${CROSS} Kubo"
         fi
         if [ $nodejs_installed = "yes" ]; then
           printf "${TICK} NodeJS"
@@ -698,21 +725,28 @@ is_dganode_installed() {
       # ps aux | grep ipfs
 
       if [ "" = "$(pgrep ipfs)" ]; then
-          printf "  %b IPFS daemon is NOT running%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-          printf "\\n"
-          printf "  %b You can install it with DigiNode Setup\\n" "${INFO}"
-          printf "\\n"
-          echo "You can set it up using DigiNode Setup."
-          printf "\\n"
+          printf "  %b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
           ipfs_running="no"
           DGA_STATUS="not_detected"
       else
-          printf "  %b IPFS daemon is running\\n" "${TICK}"
+          printf "  %b Kubo IPFS daemon is running\\n" "${TICK}"
           if [ "$DGA_STATUS" = "nodejsinstalled" ]; then
             DGA_STATUS="ipfsrunning"
           fi
           ipfs_running="yes"
       fi
+
+        # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
+        if [ "$ipfs_running" = "no" ] || [ "$DGA_STATUS" = "not_detected" ]; then
+
+            DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+            if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+                ipfs_running="yes"
+                DGA_STATUS="ipfsrunning"
+                printf "  %b js-IPFS is likely being used\\n" "${TICK}"
+            fi
+        fi
+
 
 
       # Check for 'digiasset_node' index.js file
@@ -771,6 +805,56 @@ is_dganode_installed() {
       elif [ "$DGA_STATUS" != "" ]; then
           printf "  %b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
       fi
+
+}
+
+# Query the DigiAsset Node console for the current status
+update_dga_console() {
+
+if [ "$DGA_STATUS" = "running" ]; then
+
+    DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+
+    if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+
+        DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2 | cut -d'\' -f 1)
+        DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
+        DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
+        DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
+
+    fi
+
+fi    
+
+}
+
+# Format the DigiAsset Node console data
+format_dga_console() {
+
+# Format Stream
+if [ "$DGA_CONSOLE_STREAM" = "Connected" ]; then
+    DGA_CONSOLE_STREAM="[✓] Stream"
+else
+    DGA_CONSOLE_STREAM="[✗] Stream"
+fi
+
+# Format Security
+if [ "$DGA_CONSOLE_SECURITY" = "Connected" ]; then
+    DGA_CONSOLE_SECURITY="[✓] Password"
+else
+    DGA_CONSOLE_SECURITY="[✗] Password"
+fi
+
+# Format Wallet
+if [ "$DGA_CONSOLE_WALLET" = "Connected" ]; then
+    DGA_CONSOLE_WALLET="[✓] Wallet"
+else
+    DGA_CONSOLE_WALLET="[✗] Wallet"
+fi
+
+printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
+printf "  ║                ║  " && printf "%-55s %-1s\n" "$DGA_CONSOLE_WALLET   $DGA_CONSOLE_STREAM   $DGA_CONSOLE_SECURITY" "║"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 
 }
 
@@ -845,9 +929,9 @@ if [ "$DGA_STATUS" = "running" ]; then
         WALLET_STATUS="enabled"
         printf "  %b %bDigiByte Wallet Status: ENABLED%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       fi
+      printf "\\n"
     fi
-  fi
-  printf "\\n"
+fi
 }
 
 # Install needed packages
@@ -1027,8 +1111,10 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
         sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     else
-        DGB_STATUS="startingup"
-        printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
+        if [ $DGB_STATUS != "not_detected" ]; then
+            DGB_STATUS="startingup"
+            printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
     fi
 
     # Log date of Status Monitor first run to diginode.settings
@@ -1159,11 +1245,13 @@ pre_loop() {
 
       ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
 
-      # Check if there is an update for DigiByte Core
-      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
-        DGB_UPDATE_AVAILABLE="no"
-      else
-        DGB_UPDATE_AVAILABLE="yes"
+      # If there is actually a local version of DigiByte Core, check for an update
+      if [ "$DGB_VER_LOCAL" != "" ]; then
+          if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+            DGB_UPDATE_AVAILABLE="no"
+          else
+            DGB_UPDATE_AVAILABLE="yes"
+          fi
       fi
 
       # Check if there is an update for DigiNode Tools
@@ -1213,7 +1301,7 @@ pre_loop() {
           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+    if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
         # Lookup current wallet balance
         WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
         # If the wallet balance is 0, then set the value to "" so it is hidden
@@ -1222,7 +1310,8 @@ pre_loop() {
         fi
     fi
 
-
+    # Query the DigiAsset Node console
+    update_dga_console
 
   # Choose a random DigiFact
   digifact_randomize
@@ -1231,58 +1320,11 @@ pre_loop() {
 
 
 
-######################################################
-######### PERFORM STARTUP CHECKS #####################
-######################################################
-
-startup_checks() {
-
-  # Note: Some of these functions are found in the diginode-setup.sh file
-  
-  digimon_title_box                # Clear screen and display title box
-# digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
-  get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
-  import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
-  diginode_tools_import_settings   # Import diginode.settings file
-  diginode_logo_v3                 # Display DigiNode logo
-  is_verbose_mode                  # Display a message if Verbose Mode is enabled
-  sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
-  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
-  set_sys_variables                # Set various system variables once we know we are on linux
-# load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
-  diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
-  diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
-  swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
-# install_diginode_tools           # install or upgrade the DigiNode tools scripts
-  digibyte_check_official          # check if this is an official install of DigiByte Core
-  is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
-  digiasset_check_official         # check if this is an official install of DigiAsset Node
-  is_dganode_installed             # Run checks to see if DigiAsset Node is present. Warn if it isn't.
-  get_dgb_rpc_credentials          # Get the RPC username and password from digibyte.conf file. Warn if not present.
-  is_wallet_enabled                # Check that the DigiByte Core wallet is enabled
-  is_avahi_installed               # Check if avahi-daemon is installed
-  is_jq_installed                  # Check if jq is installed
-  install_required_pkgs            # Install jq
-  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
-  firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
-  startup_waitpause                # Wait for key press or pause for a few seconds 
-}
-
-
-
-
-######################################################
-######### RUN SCRIPT FROM HERE #######################
-######################################################
-
-startup_checks              # Performs all necessary startup checks
-pre_loop                    # Run this just before starting the loop
-
-
-
 ######################################################################################
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
 ######################################################################################
+
+status_loop() {
 
 while :
 do
@@ -1335,38 +1377,43 @@ fi
 #    UPDATE EVERY 1 SECOND - DIGIBYTE CORE 
 # ------------------------------------------------------------------------------
 
-# Is digibyted running as a service?
-systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="checkagain"
+# Check DigiByte Node provided it is actually installed
+if [ $DGB_STATUS != "not_detected" ]; then
 
-# If it is not running as a service, check if digibyted is running via the command line
-if [ "$DGB_STATUS" = "checkagain" ]; then
-  if [ "" != "$(pgrep digibyted)" ]; then
-    DGB_STATUS="running"
-  fi
-fi
+    # Is digibyted running as a service?
+    systemctl is-active --quiet digibyted && DGB_STATUS="running" || DGB_STATUS="checkagain"
 
-# If digibyted is not running via the command line, check if digibyte-qt is running
-if [ "$DGB_STATUS" = "checkagain" ]; then
-  if [ "" != "$(pgrep digibyte-qt)" ]; then
-    DGB_STATUS="running"
-  else
-    DGB_STATUS="stopped"
-  fi
-fi
-
-# If we think the blockchain is running, check the blockcount
-if [ "$DGB_STATUS" = "running" ]; then
-
-    # If the blockchain is not yet synced, get blockcount
-    if [ "$BLOCKSYNC_PROGRESS" = "" ] || [ "$BLOCKSYNC_PROGRESS" = "notsynced" ]; then
-      BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
-      BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
-
-      # If we don't get a response, assume it is starting up
-      if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-        DGB_STATUS="startingup"
+    # If it is not running as a service, check if digibyted is running via the command line
+    if [ "$DGB_STATUS" = "checkagain" ]; then
+      if [ "" != "$(pgrep digibyted)" ]; then
+        DGB_STATUS="running"
       fi
     fi
+
+    # If digibyted is not running via the command line, check if digibyte-qt is running
+    if [ "$DGB_STATUS" = "checkagain" ]; then
+      if [ "" != "$(pgrep digibyte-qt)" ]; then
+        DGB_STATUS="running"
+      else
+        DGB_STATUS="stopped"
+      fi
+    fi
+
+    # If we think the blockchain is running, check the blockcount
+    if [ "$DGB_STATUS" = "running" ]; then
+
+        # If the blockchain is not yet synced, get blockcount
+        if [ "$BLOCKSYNC_PROGRESS" = "" ] || [ "$BLOCKSYNC_PROGRESS" = "notsynced" ]; then
+          BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+          BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
+
+          # If we don't get a response, assume it is starting up
+          if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+            DGB_STATUS="startingup"
+          fi
+        fi
+    fi
+
 fi
 
 
@@ -1484,6 +1531,9 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
+    # Query the DigiAsset Node console
+    update_dga_console
+
     SAVED_TIME_15SEC="$(date +%s)"
     sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
@@ -1533,7 +1583,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         # Check if sync progress is not 100%
         if [ "$BLOCKSYNC_PERC" = "100 " ]; then
             BLOCKSYNC_PROGRESS="synced"
-            if [ "$SM_DISPLAY_BALANCE" = "YES" ]; then
+            if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
                 WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
                 # If the wallet balance is 0, then set the value to "" so it is hidden
                 if [ "$WALLET_BALANCE" = "0.00000000" ]; then
@@ -1839,11 +1889,15 @@ printf "  ║ NODE UPTIME    ║  " && printf "%-49s ║ \n" "$uptime"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+fi
+if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT detected
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiByte Node detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DGB STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
 printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
@@ -1852,29 +1906,39 @@ printf "  ╠════════════════╬═════�
 if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+format_dga_console
+fi
 elif [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+format_dga_console
+fi
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DGA STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DGA STATUS     ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not installed.${txtrst}"
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}No DigiAsset Node detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
+if [ -f "$DGB_CONF_FILE" ]; then
 printf "  ║ RPC ACCESS     ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
 printf "  ║                ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE       ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
+fi
+if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
+printf "  ║ SOFTWARE       ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
 else
-printf "  ║ SOFTWARE       ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+printf "  ║ SOFTWARE       ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
-if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
-else
-printf "  ║                ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+if [ "$DGB_VER_LOCAL" != "" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
+    else
+    printf "  ║                ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+    fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
@@ -1903,6 +1967,11 @@ fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
+fi
+if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
+printf "   NOTE: A DigiByte Node could not be detected. If your system is already\\n"
+printf "         running DigiByte Core you can manually specify the location of the\\n"
+printf "         install folder by entering: ${txtbld}diginode --locatedgb${txtrst}\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
@@ -1960,18 +2029,41 @@ printf "\\n"
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
 digifact_display
 fi
-printf "                 Press Ctrl-C to quit and stop monitoring\\n"
+if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
+digifact_display
+fi
+printf "             Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 printf "\\n"
 
 )
 
 # end output double buffer
-
 echo "$output"
-sleep 0.5
 
 # Display the quit message on exit
 trap quit_message EXIT
+
+# sleep 0.5
+read -t 0.5 -n 1 input
+
+    case "$input" in
+        "Q")
+            echo "Quit..."
+            exit
+            ;;
+        "q")
+            echo "Quit..."
+            exit
+            ;;
+        "P")
+            echo "Running Port test..."
+            port_test
+            ;;
+        "p")
+            echo "Running Port test..."
+            port_test
+            ;;
+    esac
 
 # read -rsn1 input
 # if [ "$input" = "q" ]; then
@@ -1982,3 +2074,118 @@ trap quit_message EXIT
 # fi
 
 done
+
+}
+
+
+# This will run the port test
+port_test() {
+
+clear -x
+
+echo -e "${txtbld}"
+echo -e "         ____   _         _   _   __            __     "             
+echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
+echo -e "       / / / // // __ '// / /  |/ // __ \ / __  // _ \  ${txtrst}║ STATUS  ║${txtbld}"
+echo -e "      / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}║ MONITOR ║${txtbld}"
+echo -e "     /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}╚═════════╝${txtbld}"
+echo -e "                /____/                                  ${txtrst}"                         
+echo "" 
+printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
+printf "  ║                     ABOUT PORT FORWARDING                           ║\\n"
+printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
+printf "  ║ For your DigiNode to work correctly you need to open the following  ║\\n"
+printf "  ║ ports on your router so the that other nodes on the Internet can    ║\\n"
+printf "  ║ connect to it:                                                      ║\\n"
+printf "  ╠═══════════════════════════╦═════════════════════════════════════════╣\\n"
+printf "  ║ SOFTWARE                  ║ PORT                                    ║\\n"
+printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
+printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
+printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
+printf "  ║ IPFS                      ║ 4001                                    ║\\n"
+printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
+printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
+printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
+echo ""
+
+echo "     Running Port Tests..."
+echo ""
+
+str="Is IPFS port open? ... "
+printf "%b %s" "${INFO}" "${str}" 
+
+DGA_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+
+if [ $? -eq 0 ]; then
+
+    if [ "$DGA_PORT_TEST_QUERY" = "true" ]; then
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
+        IPFS_PORT_TEST="PASSED"
+    fi
+
+    if [ "$DGA_PORT_TEST_QUERY" = "false" ]; then
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
+        IPFS_PORT_TEST="FAILED"
+    fi
+
+else
+    printf "%b%b %s ERROR! Port Test Failed - DigiAsset Node is not running!\\n" "${WARN}" "${CROSS}" "${str}"
+fi
+
+sleep 3
+
+status_loop
+
+
+}
+
+
+######################################################
+######### PERFORM STARTUP CHECKS #####################
+######################################################
+
+startup_checks() {
+
+  # Note: Some of these functions are found in the diginode-setup.sh file
+  
+  digimon_title_box                # Clear screen and display title box
+# digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
+  get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
+  import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
+  diginode_tools_import_settings   # Import diginode.settings file
+  diginode_logo_v3                 # Display DigiNode logo
+  is_verbose_mode                  # Display a message if Verbose Mode is enabled
+  sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
+  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+  set_sys_variables                # Set various system variables once we know we are on linux
+# load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
+  diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
+  diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
+  swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
+# install_diginode_tools           # install or upgrade the DigiNode tools scripts
+  digibyte_check_official          # check if this is an official install of DigiByte Core
+  is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
+  is_wallet_enabled                # Check that the DigiByte Core wallet is enabled
+  digiasset_check_official         # check if this is an official install of DigiAsset Node
+  is_dganode_installed             # Run checks to see if DigiAsset Node is present. Warn if it isn't.
+  get_dgb_rpc_credentials          # Get the RPC username and password from digibyte.conf file. Warn if not present.
+  is_avahi_installed               # Check if avahi-daemon is installed
+  is_jq_installed                  # Check if jq is installed
+  install_required_pkgs            # Install jq
+  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
+  firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
+  startup_waitpause                # Wait for key press or pause for a few seconds 
+}
+
+
+
+
+######################################################
+######### RUN SCRIPT FROM HERE #######################
+######################################################
+
+startup_checks              # Performs all necessary startup checks
+pre_loop                    # Run this just before starting the loop
+status_loop                 # Run the status monitor loop
+
+
