@@ -7797,7 +7797,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 fi
 
-echo "doggy"
+echo "doggy 2"
 
 }
 
