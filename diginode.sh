@@ -361,6 +361,7 @@ is_dgbnode_installed() {
 
     # Begin check to see that DigiByte Core is installed
     printf "%b Looking for DigiByte Core...\\n" "${INFO}"
+    printf "\\n"
 
     # Check for digibyte core install folder in home folder (either 'digibyte' folder itself, or a symbolic link pointing to it)
     if [ -h "$DGB_INSTALL_LOCATION" ]; then
@@ -559,55 +560,6 @@ is_dgbnode_installed() {
 
 }
 
-# Get RPC CREDENTIALS from digibyte.conf
-get_dgb_rpc_credentials() {
-    if [ -f "$DGB_CONF_FILE" ]; then
-      RPC_USER=$(cat $DGB_CONF_FILE | grep rpcuser= | cut -d'=' -f 2)
-      RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword= | cut -d'=' -f 2)
-      RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport= | cut -d'=' -f 2)
-      if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
-        RPC_CREDENTIALS_OK="yes"
-        printf "  %b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n" "${TICK}"
-      else
-        RPC_CREDENTIALS_OK="NO"
-        printf "  %b %bERROR: DigiByte RPC credentials are missing:%b" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        if [ "$RPC_USER" != "" ]; then
-          printf "${TICK}"
-        else
-          printf "${CROSS}"
-        fi
-        printf " Username     "
-        if [ "$RPC_PASS" != "" ]; then
-          printf "${TICK}"
-        else
-          printf "${CROSS}"
-        fi
-        printf " Password     "
-        if [ "$RPC_PORT" != "" ]; then
-          printf "${TICK}"
-        else
-          printf "${CROSS}"
-        fi
-        printf " Port\\n"
-        printf "\\n"
-        printf "%b You need to add the missing DigiByte Core RPC credentials to your digibyte.conf file.\\n" "${INFO}"
-        printf   "%b Without them your DigiAsset Node is unable to communicate with your DigiByte Node.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Add the following:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
-        printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
-        printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
-        printf "\\n"
-        exit 1
-      fi
-    fi
-}
-
 
 # Check if this DigiNode was setup using the official install script
 # (Looks for a hidden file in the 'digibyte' install directory - .officialdiginode)
@@ -732,7 +684,7 @@ is_dganode_installed() {
           DGA_STATUS="not_detected"
       else
           printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
-          if [ "$DGA_STATUS" = "nodejsinstalled" ]; then
+          if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
             DGA_STATUS="ipfsrunning"
           fi
           ipfs_running="yes"
@@ -745,10 +697,9 @@ is_dganode_installed() {
             if [ "$DGA_CONSOLE_QUERY" != "" ]; then
                 ipfs_running="yes"
                 DGA_STATUS="ipfsrunning"
-                printf "  %b js-IPFS is likely being used\\n" "${TICK}"
+                printf "%b js-IPFS is likely being used\\n" "${TICK}"
             fi
         fi
-
 
 
       # Check for 'digiasset_node' index.js file
@@ -757,12 +708,13 @@ is_dganode_installed() {
         if [ "$DGA_STATUS" = "ipfsrunning" ]; then
            DGA_STATUS="installed" 
         fi
-        printf "  %b DigiAsset Node software is installed.\\n" "${TICK}"
+        printf "%b DigiAsset Node software is installed.\\n" "${TICK}"
+        printf "\\n"
       else
-          printf "  %b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "%b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
-          printf "  %b DigiAsset Node software does not appear to be installed.\\n" "${INFO}"
-          printf "  %b You can install it using DigiNode Setup.\\n" "${INDENT}"
+          printf "%b DigiAsset Node software does not appear to be installed.\\n" "${INFO}"
+          printf "%b You can install it using DigiNode Setup.\\n" "${INDENT}"
           printf "\\n"
           DGA_STATUS="not_detected"
           STARTWAIT="yes"
@@ -777,46 +729,94 @@ is_dganode_installed() {
           if [ "$IS_DGANODE_RUNNING" != "" ]; then
               DGA_STATUS="running"
               IS_DGANODE_RUNNING="yes"
-              printf "  %b %bDigiAsset Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+              printf "%b %bDigiAsset Node Status: RUNNING%b [ Using 'node index.js' ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           else
               # If that didn't work, check if it is running using PM2
               IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
-
-              echo ""
-              echo "IS_PM2_RUNNING: $IS_PM2_RUNNING"
-              echo ""
 
               # In case it has not been named, double check
               if [ "$IS_PM2_RUNNING" = "" ]; then
                   IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
               fi
 
-              echo ""
-              echo "IS_PM2_RUNNING: $IS_PM2_RUNNING"
-              echo ""
-
               if [ "$IS_PM2_RUNNING" = "" ]; then
                   DGA_STATUS="stopped"
                   IS_PM2_RUNNING="NO"
                   STARTWAIT="yes"
-                  printf "  %b DigiAsset Node Status: NOT RUNNING\\n" "${CROSS}"
+                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 service does not exist ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
               elif [ "$IS_PM2_RUNNING" = "0" ]; then
                   DGA_STATUS="stopped"
                   IS_PM2_RUNNING="NO"
                   STARTWAIT="yes"
-                  printf "  %b DigiAsset Node Status: NOT RUNNING  [ PM2 is stopped ]\\n" "${CROSS}"
+                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 is stopped ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
               else
                   DGA_STATUS="running"
                   IS_PM2_RUNNING="yes"
-                  printf "  %b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                  printf "%b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
               fi    
           fi
       elif [ "$DGA_STATUS" = "not_detected" ]; then
-          printf "  %b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
       elif [ "$DGA_STATUS" != "" ]; then
-          printf "  %b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+          printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
       fi
 
+      printf "\\n"
+
+}
+
+# Get RPC CREDENTIALS from digibyte.conf
+get_dgb_rpc_credentials() {
+    if [ -f "$DGB_CONF_FILE" ]; then
+
+      RPC_USER=$(cat $DGB_CONF_FILE | grep rpcuser= | cut -d'=' -f 2)
+      RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword= | cut -d'=' -f 2)
+      RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport= | cut -d'=' -f 2)
+      if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
+        RPC_CREDENTIALS_OK="yes"
+        printf "%b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n\\n" "${TICK}"
+      else
+        RPC_CREDENTIALS_OK="NO"
+        printf "%b %bERROR: DigiByte RPC credentials are missing:%b" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        if [ "$RPC_USER" != "" ]; then
+          printf "${TICK}"
+        else
+          printf "${CROSS}"
+        fi
+        printf " Username     "
+        if [ "$RPC_PASS" != "" ]; then
+          printf "${TICK}"
+        else
+          printf "${CROSS}"
+        fi
+        printf " Password     "
+        if [ "$RPC_PORT" != "" ]; then
+          printf "${TICK}"
+        else
+          printf "${CROSS}"
+        fi
+        printf " Port\\n"
+        printf "\\n"
+
+        # Exit if there a missing RPC credentials and the DigiAsset Node is running
+        if [ "$DGA_STATUS" = "running" ]; then
+            printf "%b You need to add the missing DigiByte Core RPC credentials to your digibyte.conf file.\\n" "${INFO}"
+            printf "%b Without them your DigiAsset Node is unable to communicate with your DigiByte Node.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Add the following:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
+            printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
+            printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
+            printf "\\n"
+            exit 1
+        fi
+      fi
+    fi
 }
 
 # Query the DigiAsset Node console for the current status
@@ -885,22 +885,25 @@ load_diginode_settings() {
 ## Check if avahi-daemon is installed
 is_avahi_installed() {
 
+    printf " =============== Checking: Dependencies =================================\\n\\n"
+    # ===============================================================================
+
     # Begin check to see that DigiByte Core is installed
     printf "%b Checking for missing packages...\\n" "${INFO}"
 
     REQUIRED_PKG="avahi-daemon"
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
-      printf "  %b %bavahi-daemon is not currently installed.%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+      printf "%b %bavahi-daemon is not currently installed.%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
       printf "\\n"
-      printf "  %b Installing avahi-daemon is recommended if you are using a dedicated\\n" "${INFO}"
-      printf "  %b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
-      printf "  %b you can you can access it at the address ${HOSTNAME}.local\\n" "${INDENT}"
-      printf "  %b instead of having to remember the IP address. DigiNode Setup\\n" "${INDENT}"
-      printf "  %b can set this up for for you.\\n" "${INDENT}"
+      printf "%b Installing avahi-daemon is recommended if you are using a dedicated\\n" "${INFO}"
+      printf "%b device to run your DigiNode such as a Raspberry Pi. It means\\n" "${INDENT}"
+      printf "%b you can you can access it at the address ${HOSTNAME}.local\\n" "${INDENT}"
+      printf "%b instead of having to remember the IP address. DigiNode Setup\\n" "${INDENT}"
+      printf "%b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
-      printf "  %b avahi-daemon is installed. DigiNode URL: http://${HOSTNAME}.local:8090\\n"  "${TICK}"
+      printf "%b avahi-daemon is installed. DigiNode URL: http://${HOSTNAME}.local:8090\\n"  "${TICK}"
       IS_AVAHI_INSTALLED="yes"
     fi
 }
@@ -910,14 +913,14 @@ is_jq_installed() {
     REQUIRED_PKG="jq"
     PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
-      printf "  %b jq is NOT installed.\\n"  "${CROSS}"
+      printf "%b jq is NOT installed.\\n"  "${CROSS}"
       printf "\\n"
-      printf "  %b jq is a required package and will be installed. It is required for this\\n"  "${INFO}"
-      printf "  %b script to be able to retrieve data from the DigiAsset Node.\\n"  "${INDENT}"
+      printf "%b jq is a required package and will be installed. It is required for this\\n"  "${INFO}"
+      printf "%b script to be able to retrieve data from the DigiAsset Node.\\n"  "${INDENT}"
       install_jq="yes"
       printf "\\n"
     else
-      printf "  %b jq is installed.\\n"  "${TICK}"
+      printf "%b jq is installed.\\n"  "${TICK}"
     fi
     printf "\\n"
 }
@@ -925,24 +928,32 @@ is_jq_installed() {
 
 # Check if digibyte core wallet is enabled
 is_wallet_enabled() {
-if [ "$DGA_STATUS" = "running" ]; then
+
+if [ "$DGB_STATUS" = "running" ]; then
+
+    printf " =============== Checking: DigiByte Wallet ==============================\\n\\n"
+    # ===============================================================================
+
     if [ -f "$DGB_CONF_FILE" ]; then
       WALLET_STATUS=$(cat $DGB_CONF_FILE | grep disablewallet | cut -d'=' -f 2)
       if [ "$WALLET_STATUS" = "1" ]; then
         WALLET_STATUS="disabled"
-        printf "  %b %bDigiByte Wallet Status: DISABLED%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "  %b The DigiByte Core wallet is required if you want to create DigiAssets\\n" "${INFO}"
-        printf "  %b from within the web UI. You can enable it by editing the digibyte.conf\\n" "${INDENT}"
-        printf "  %b file and removing the disablewallet=1 flag.\\n" "${INDENT}"
+        printf "%b %bDigiByte Wallet Status: DISABLED%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        if [ "$DGA_STATUS" = "running" ]; then
+            printf "\\n"
+            printf "%b The DigiByte Core wallet is required if you want to create DigiAssets\\n" "${INFO}"
+            printf "%b from within the web UI. You can enable it by editing the digibyte.conf\\n" "${INDENT}"
+            printf "%b file and removing the disablewallet=1 flag.\\n" "${INDENT}"
+        fi
         STARTWAIT="yes"
       else
         WALLET_STATUS="enabled"
-        printf "  %b %bDigiByte Wallet Status: ENABLED%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDigiByte Wallet Status: ENABLED%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       fi
       printf "\\n"
     fi
 fi
+
 }
 
 # Install needed packages
@@ -2176,9 +2187,9 @@ startup_checks() {
 # install_diginode_tools           # install or upgrade the DigiNode tools scripts
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
-  is_wallet_enabled                # Check that the DigiByte Core wallet is enabled
   digiasset_check_official         # check if this is an official install of DigiAsset Node
   is_dganode_installed             # Run checks to see if DigiAsset Node is present. Warn if it isn't.
+  is_wallet_enabled                # Check that the DigiByte Core wallet is enabled
   get_dgb_rpc_credentials          # Get the RPC username and password from digibyte.conf file. Warn if not present.
   is_avahi_installed               # Check if avahi-daemon is installed
   is_jq_installed                  # Check if jq is installed
