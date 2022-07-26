@@ -6332,6 +6332,8 @@ fi
             printf "%b %s" "${INFO}" "${str}"
             rm -rf $DGNT_LOCATION
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            DGNT_VER_LOCAL_DISPLAY=""
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=|" $DGNT_SETTINGS_FILE
         fi
 
         # Next install the newest version
