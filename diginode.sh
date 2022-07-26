@@ -996,6 +996,9 @@ quit_message() {
       #Share backup reminder
       backup_reminder
 
+      # Display reminder that you can manually specify the location of the DigiByte install folder
+      exit_locate_digibyte_reminder
+
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
   elif [ "$DONATION_PLEA" = "yes" ]; then
@@ -1006,6 +1009,9 @@ quit_message() {
 
       #Share backup reminder
       backup_reminder
+
+      # Display reminder that you can manually specify the location of the DigiByte install folder
+      exit_locate_digibyte_reminder
 
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
@@ -1023,10 +1029,28 @@ quit_message() {
 
       #Share backup reminder
       backup_reminder
+
+      # Display reminder that you can manually specify the location of the DigiByte install folder
+      exit_locate_digibyte_reminder
   fi
 
   # Display cursor again
   tput cnorm
+}
+
+exit_locate_digibyte_reminder() {
+
+if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
+    printf "  %b %bNote: A DigiByte Node could not be detected. %b\\n"  "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\n" "${INDENT}"
+    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\n" "${INDENT}"
+    printf "\\n"
+    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\n" "${INDENT}"
+    printf "\\n"          
+fi
+
+
 }
 
 startup_waitpause() {
@@ -1967,11 +1991,6 @@ fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
 printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
-fi
-if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
-printf "   NOTE: A DigiByte Node could not be detected. If your system is already\\n"
-printf "         running DigiByte Core you can manually specify the location of the\\n"
-printf "         install folder by entering: ${txtbld}diginode --locatedgb${txtrst}\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
