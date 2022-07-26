@@ -9085,34 +9085,35 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+
+            # Ask to delete diginode.settings if it exists
+            if [ -f "$DGNT_SETTINGS_FILE" ]; then
+
+                # Delete diginode.settings
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+
+                    printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
+
+                    # Delete systemd service file
+                    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+                        str="Deleting diginode.settings file..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -f $DGNT_SETTINGS_FILE
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                else
+                    printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
+                fi
+                printf "\\n"
+            else
+                # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
+                printf "\\n"
+            fi  
+
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
         fi
-    fi
-
-    # Ask to delete diginode.settings if it exists
-    if [ -f "$DGNT_SETTINGS_FILE" ]; then
-
-        # Delete diginode.settings
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
-
-            printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
-
-            # Delete systemd service file
-            if [ -f "$DGNT_SETTINGS_FILE" ]; then
-                str="Deleting diginode.settings file..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGNT_SETTINGS_FILE
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-        else
-            printf "%b You chose not to delete your diginode.settings file.\\n" "${INFO}"
-        fi
-        printf "\\n"
-    else
-        # Insert a line break because this is the end of the Uninstall DigiNode Tools section    
-        printf "\\n"
     fi
 
     printf "\\n"
