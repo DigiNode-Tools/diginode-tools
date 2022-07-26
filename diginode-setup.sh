@@ -2342,6 +2342,7 @@ if [[ "$HOSTNAME" == "diginode" ]]; then
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
+    HOSTNAME_DO_CHANGE="NO"
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
@@ -2394,7 +2395,7 @@ if [ "$INSTALL_AVAHI" = "YES" ]; then
 fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]]; then
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]]; then
     HOSTNAME_DO_CHANGE="YES"
 fi
 
@@ -5493,7 +5494,7 @@ backup_reminder() {
 
 final_messages() {  
 
-    if [ "$HOSTNAME_DO_CHANGE" = "YES" ] ; then
+    if [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
