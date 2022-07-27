@@ -983,14 +983,14 @@ quit_message() {
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "yes" ] && [ "$updates_installed" = "no" ]; then
+      if [ "$DONATION_PLEA" = "YES" ] && [ "$updates_installed" = "no" ]; then
 
         #Display donation QR code
         donation_qrcode
 
         # Don't show the donation plea again for at least 15 minutes
-        DONATION_PLEA="wait15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
+        DONATION_PLEA="WAIT15"
+        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
       fi
 
       #Share backup reminder
@@ -1001,7 +1001,7 @@ quit_message() {
 
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "yes" ]; then
+  elif [ "$DONATION_PLEA" = "YES" ]; then
       printf "\\n"
 
       #Display donation QR code
@@ -1015,8 +1015,8 @@ quit_message() {
 
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
-      DONATION_PLEA="wait15"
-      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
+      DONATION_PLEA="WAIT15"
+      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
   else
 
       # Choose a random DigiFact
@@ -1149,8 +1149,8 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # When the user quits, enable showing a donation plea
-    DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
+    DONATION_PLEA="YES"
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -1337,8 +1337,30 @@ pre_loop() {
     # Query the DigiAsset Node console
     update_dga_console
 
-  # Choose a random DigiFact
-  digifact_randomize
+    # Choose a random DigiFact
+    digifact_randomize
+
+    # If the IPFS port test is disabled, check if the external IP address has changed
+    if [ "$IPFS_PORT_TEST_ENABLED" = "NO" ]; then
+
+        # If the External IP address has changed since the last port test was run, reset and re-enable the port test
+        if [ "$IPFS_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
+
+            printf "%b External IP address has changed. Re-enabling Port Test...\n" "${INDENT}"
+            printf "\\n"
+
+            IPFS_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_FWD_STATUS=""
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+    fi
 
 }
 
@@ -1737,8 +1759,8 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
     fi
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
-    DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
+    DONATION_PLEA=YES
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
 
     SAVED_TIME_15MIN="$(date +%s)"
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
@@ -2049,7 +2071,11 @@ fi
 if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
-printf "             Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
+    printf "             Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+else
+    printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
+fi
 printf "\\n"
 
 )
@@ -2063,24 +2089,43 @@ trap quit_message EXIT
 # sleep 0.5
 read -t 0.5 -n 1 input
 
-    case "$input" in
-        "Q")
-            echo "Quit..."
-            exit
-            ;;
-        "q")
-            echo "Quit..."
-            exit
-            ;;
-        "P")
-            echo "Running Port test..."
-            port_test
-            ;;
-        "p")
-            echo "Running Port test..."
-            port_test
-            ;;
-    esac
+    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
+
+        case "$input" in
+            "Q")
+                echo "Quit..."
+                exit
+                ;;
+            "q")
+                echo "Quit..."
+                exit
+                ;;
+            "P")
+                echo "Running Port test..."
+                port_test
+                ;;
+            "p")
+                echo "Running Port test..."
+                port_test
+                ;;
+        esac
+
+    else
+
+        case "$input" in
+            "Q")
+                echo "Quit..."
+                exit
+                ;;
+            "q")
+                echo "Quit..."
+                exit
+                ;;
+        esac
+
+    fi
+
+
 
 # read -rsn1 input
 # if [ "$input" = "q" ]; then
@@ -2131,28 +2176,42 @@ echo ""
 str="Is IPFS port open? ... "
 printf "%b %s" "${INFO}" "${str}" 
 
-DGA_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+IPFS_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
 if [ $? -eq 0 ]; then
 
-    if [ "$DGA_PORT_TEST_QUERY" = "true" ]; then
+    if [ "$IPFS_PORT_TEST_QUERY" = "true" ]; then
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
-        IPFS_PORT_TEST="PASSED"
+        IPFS_PORT_TEST_ENABLED="NO"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_FWD_STATUS="OPEN"
+        sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_PASS_DATE=$(date)
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+        sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
     fi
 
-    if [ "$DGA_PORT_TEST_QUERY" = "false" ]; then
+    if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
-        IPFS_PORT_TEST="FAILED"
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_FWD_STATUS="CLOSED"
+        sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_PASS_DATE=$(date)
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+        sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
     fi
 
 else
     printf "%b%b %s ERROR! Port Test Failed - DigiAsset Node is not running!\\n" "${WARN}" "${CROSS}" "${str}"
 fi
 
-sleep 3
+sleep 5
 
 status_loop
-
 
 }
 

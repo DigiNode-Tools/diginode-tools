@@ -385,7 +385,8 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
-    DONATION_PLEA="yes"
+    DONATION_PLEA=YES
+    IPFS_PORT_TEST_ENABLED=YES
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -700,11 +701,12 @@ DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
 SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
-# Store when an open port test last ran successfully
-# Note: If you want to run a port test again, remove the status and date from here
-# If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
-IPFS_PORT_TEST_STATUS="$IPFS_PORT_TEST_STATUS"
-IPFS_PORT_TEST_DATE="$IPFS_PORT_TEST_DATE"
+# Stores when an open port test last ran successfully. (i.e. the IPFS port was open)
+# If you wish to re-enable the port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
+IPFS_PORT_TEST_ENABLED="$IPFS_PORT_TEST_ENABLED"
+IPFS_PORT_FWD_STATUS="$IPFS_PORT_FWD_STATUS"
+IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
+IPFS_PORT_TEST_EXTERNAL_IP=$IPFS_PORT_TEST_EXTERNAL_IP"
 
 # Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
 DONATION_PLEA="$DONATION_PLEA"
