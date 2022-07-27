@@ -811,7 +811,7 @@ if [ "$DGA_STATUS" = "running" ]; then
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
 
-        IPFS_PORT_NUMER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
+        IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
     fi
 
