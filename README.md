@@ -147,6 +147,9 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.5.3 - 2022-07-xx
+- 
+
 DigiNode Tools v0.5.2 - 2022-07-27
 - New: DigiByte Core port 12024 is now added to the port test flow
 - New: Port test(s) now get hidden after the ports are detected to be open. The IPFS port is retrieved directly from the DigiAsset Node console.
