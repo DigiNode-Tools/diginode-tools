@@ -701,15 +701,22 @@ DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
 SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
-# Stores when an open port test last ran successfully. (i.e. the IPFS port was open)
-# If you wish to re-enable the port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
+# Stores when an IPFS port test last ran successfully.
+# If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
 IPFS_PORT_TEST_ENABLED="$IPFS_PORT_TEST_ENABLED"
 IPFS_PORT_NUMBER="$IPFS_PORT_NUMBER"
 IPFS_PORT_FWD_STATUS="$IPFS_PORT_FWD_STATUS"
 IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
 IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
 
-# Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+# Stores when an DigiByte Core port test last ran successfully.
+# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
+DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
+DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
+DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
+DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
+
+# Do not display donation plea more than once every 15 mins (value should be YES or WAIT15)
 DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
