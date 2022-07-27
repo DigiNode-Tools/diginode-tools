@@ -1407,8 +1407,26 @@ pre_loop() {
             sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
             IPFS_PORT_TEST_EXTERNAL_IP=""
             sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-            IPFS_PORT_NUMBER=""
-            sed -i -e "/^IPFS_PORT_NUMBER=/s|.*|IPFS_PORT_NUMBER=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_NUMBER_SAVED=""
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
+        elif [ "$IPFS_PORT_NUMBER" != "$IPFS_PORT_NUMBER_SAVED" ]; then
+
+            printf "\\n"
+            printf "%b IPFS port number has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
+            printf "\\n"
+
+            IPFS_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_FWD_STATUS=""
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_NUMBER_SAVED=""
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
 
         fi
 
@@ -2253,7 +2271,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         DGB_PORT_TEST_ENABLED="NO"
         sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
         DGB_PORT_FWD_STATUS="OPEN"
-        sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
         sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
@@ -2273,19 +2291,19 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
 
         printf "\\n"
-        printf "   IMPORTANT: You need to forward port 12024 on your router so that other\\n"
-        printf "   DigiByte Nodes on the network can find it, otherwise the number of potential\\n"
-        printf "   inbound connections is limited to 8. For help, visit: https://portforward.com\\n"
+        printf "%b IMPORTANT: You need to forward port 12024 on your router so that other\\n" "${INFO}"
+        printf "%b DigiByte Nodes on the network can find it, otherwise the number of potential\\n" "${INDENT}"
+        printf "%b inbound connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
         printf "\\n"
-        printf "   If you have already forwarded port 12024 and are still seeing this message,\\n"
-        printf "   wait a few minutes - the connection count should start gradually increasing.\\n"
-        printf "   If the number of connections is above 8, this indicates that things\\n"
-        printf "   are working correctly.\\n"
-        printf "   \\n"
-        printf "   To be certain that port 12024 is being forwarded correctly, visit:\\n"
-        printf "   https://opennodes.digibyte.link and enter your external IP address in the\\n"
-        printf "   form at the bottom of the page. If the port is open, it should should display\\n"
-        printf "   your DigiByte version number and approximate location.\\n"
+        printf "%b If you have already forwarded port 12024 and are still seeing this message,\\n" "${INDENT}"
+        printf "%b wait a few minutes - the connection count should start gradually increasing.\\n" "${INDENT}"
+        printf "%b If the number of connections is above 8, this indicates that the port is open\\n" "${INDENT}"
+        printf "%b and your DigiByte Node is working correctly.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To be certain that port 12024 is being forwarded correctly, visit:\\n" "${INDENT}"
+        printf "%b https://opennodes.digibyte.link and enter your external IP address in the\\n" "${INDENT}"
+        printf "%b form at the bottom of the page. If the port is open, it should should display\\n" "${INDENT}"
+        printf "%b your DigiByte version number and approximate location.\\n" "${INDENT}"
         printf "\\n"
 
     fi
@@ -2352,7 +2370,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
             IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
             sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
 
-            sed -i -e "/^IPFS_PORT_NUMBER=/s|.*|IPFS_PORT_NUMBER=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
             printf "\\n"
         fi
 
