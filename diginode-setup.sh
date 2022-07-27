@@ -705,10 +705,10 @@ SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
 IPFS_PORT_TEST_ENABLED="$IPFS_PORT_TEST_ENABLED"
-IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 IPFS_PORT_FWD_STATUS="$IPFS_PORT_FWD_STATUS"
 IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
 IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
+IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 
 # Stores when an DigiByte Core port test last ran successfully.
 # If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
