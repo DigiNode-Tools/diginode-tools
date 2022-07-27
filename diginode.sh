@@ -2185,7 +2185,7 @@ printf "  ╠══════════════════════�
 printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
 printf "  ║ IPFS                      ║ $IPFS_PORT_NUMBER                       ║\\n"
-printf "  ║ IPFS                      ║ " && printf "%-22s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
+printf "  ║ IPFS                      ║ " && printf "%-32s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
 printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
 printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
@@ -2232,7 +2232,11 @@ else
     printf "%b%b %s ERROR! Port Test Failed - DigiAsset Node is not running!\\n" "${WARN}" "${CROSS}" "${str}"
 fi
 
-sleep 5
+echo ""
+echo "                 < Wait for 10 seconds >"
+echo ""
+
+sleep 10
 
 status_loop
 
