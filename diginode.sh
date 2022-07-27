@@ -2315,7 +2315,7 @@ elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; t
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b Your DigiByte Node is in the prcess of starting up. Try again in a minute...\\n" "${INDENT}"
+        printf "%b Your DigiByte Node is in the process of starting up. Try again in a few minutes...\\n" "${INDENT}"
         printf "\\n"
 
 elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
