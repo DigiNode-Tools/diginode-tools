@@ -811,6 +811,8 @@ if [ "$DGA_STATUS" = "running" ]; then
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
 
+        IPFS_PORT_NUMER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
+
     fi
 
 fi    
@@ -1367,6 +1369,8 @@ pre_loop() {
             sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
             IPFS_PORT_TEST_EXTERNAL_IP=""
             sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_NUMBER=""
+            sed -i -e "/^IPFS_PORT_NUMBER=/s|.*|IPFS_PORT_NUMBER=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
 
         fi
 
@@ -2155,6 +2159,12 @@ port_test() {
 
 clear -x
 
+# Set IPFS port number
+if [ "$IPFS_PORT_NUMBER" = "" ]; then
+    IPFS_PORT_NUMBER="4001"
+fi
+
+
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
 echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
@@ -2168,13 +2178,14 @@ printf "  ║                     ABOUT PORT FORWARDING                         
 printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 printf "  ║ For your DigiNode to work correctly you need to open the following  ║\\n"
 printf "  ║ ports on your router so the that other nodes on the Internet can    ║\\n"
-printf "  ║ connect to it:                                                      ║\\n"
+printf "  ║ find it:                                                            ║\\n"
 printf "  ╠═══════════════════════════╦═════════════════════════════════════════╣\\n"
 printf "  ║ SOFTWARE                  ║ PORT                                    ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
 printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
-printf "  ║ IPFS                      ║ 4001                                    ║\\n"
+printf "  ║ IPFS                      ║ $IPFS_PORT_NUMBER                       ║\\n"
+printf "  ║ IPFS                      ║ " && printf "%-22s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
 printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
 printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
@@ -2193,13 +2204,15 @@ if [ $? -eq 0 ]; then
     if [ "$IPFS_PORT_TEST_QUERY" = "true" ]; then
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
         IPFS_PORT_TEST_ENABLED="NO"
-        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
         IPFS_PORT_FWD_STATUS="OPEN"
         sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
         IPFS_PORT_TEST_PASS_DATE=$(date)
         sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
         IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
         sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        sed -i -e "/^IPFS_PORT_NUMBER=/s|.*|IPFS_PORT_NUMBER=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
     fi
 
     if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
