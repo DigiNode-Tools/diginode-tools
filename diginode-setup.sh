@@ -178,6 +178,7 @@ TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+SKIP="  [${COL_BOLD_WHITE}-${COL_NC}]"
 EMPTY="  [ ]"
 INDENT="     "
 # shellcheck disable=SC2034
