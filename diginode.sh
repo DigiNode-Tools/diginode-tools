@@ -2085,8 +2085,8 @@ fi
 if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
-if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
-    printf "             Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
+    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
     printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
 fi
@@ -2103,7 +2103,7 @@ trap quit_message EXIT
 # sleep 0.5
 read -t 0.5 -n 1 input
 
-    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
+    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
         case "$input" in
             "Q")
@@ -2184,7 +2184,6 @@ printf "  ║ SOFTWARE                  ║ PORT                                
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
 printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
-printf "  ║ IPFS                      ║ $IPFS_PORT_NUMBER                       ║\\n"
 printf "  ║ IPFS                      ║ " && printf "%-37s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
 printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
 printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
@@ -2221,19 +2220,19 @@ if [ $? -eq 0 ]; then
         sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
         IPFS_PORT_FWD_STATUS="CLOSED"
         sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
-        IPFS_PORT_TEST_PASS_DATE=$(date)
-        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
-        IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+        IPFS_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_EXTERNAL_IP=""
         sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
 
     fi
 
 else
-    printf "%b%b %s ERROR! Port Test Failed - DigiAsset Node is not running!\\n" "${WARN}" "${CROSS}" "${str}"
+    printf "%b%b %s ERROR! DigiAsset Node is not running!\\n" "${OVER}" "${CROSS}" "${str}" 
 fi
 
 echo ""
-echo "                           < Wait for 10 seconds >"
+echo "                        < Wait for 10 seconds >"
 echo ""
 
 sleep 10
