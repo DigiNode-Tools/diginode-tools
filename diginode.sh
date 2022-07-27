@@ -251,7 +251,7 @@ locate_digibyte_node() {
         printf "%b 4. ${txtbld}EXIT${txtrst}\\n" "${INDENT}"
         printf "%b    Exit DigiNode Status Monitor.\\n" "${INDENT}"
         printf "\\n"
-        read -p "                  Please choose option 1, 2, 3 or 4: " -n 1 -r          
+        read -n 1 -r -s -p "                  Please choose option 1, 2, 3 or 4: "        
         printf "\\n" 
 
       if [[ $REPLY =~ ^[3]$ ]]; then
@@ -970,7 +970,7 @@ quit_message() {
 
       printf "  %b %bThere are software updates available for your DigiNode.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       printf "\\n"
-      read -p "         Would you like to install them now? (Y/N)" -n 1 -r
+      read -n 1 -r -s -p "         Would you like to install them now? (Y/N)"
       printf "\\n"
 
       if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -2085,7 +2085,7 @@ fi
 if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
-if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
+if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
     printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
     printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
@@ -2101,9 +2101,9 @@ echo "$output"
 trap quit_message EXIT
 
 # sleep 0.5
-read -t 0.5 -n 1 input
+read -t 0.5 -s -n 1 input
 
-    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
+    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
 
         case "$input" in
             "Q")
@@ -2159,12 +2159,6 @@ port_test() {
 
 clear -x
 
-# Set IPFS port number
-if [ "$IPFS_PORT_NUMBER" = "" ]; then
-    IPFS_PORT_NUMBER="4001"
-fi
-
-
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
 echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
@@ -2193,7 +2187,7 @@ echo ""
 echo "                         Running Port Tests..."
 echo ""
 
-str="Is IPFS port open? ... "
+str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
 printf "%b %s" "${INFO}" "${str}" 
 
 IPFS_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
@@ -2232,10 +2226,8 @@ else
 fi
 
 echo ""
-echo "                        < Wait for 10 seconds >"
 echo ""
-
-sleep 10
+read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
 
 status_loop
 
