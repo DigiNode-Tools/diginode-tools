@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.1
+#           Name:  DigiNode Setup v0.5.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -178,6 +178,7 @@ TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+SKIP="  [${COL_BOLD_WHITE}-${COL_NC}]"
 EMPTY="  [ ]"
 INDENT="     "
 # shellcheck disable=SC2034
@@ -385,7 +386,8 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
-    DONATION_PLEA="yes"
+    DONATION_PLEA=YES
+    IPFS_PORT_TEST_ENABLED=YES
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -700,13 +702,22 @@ DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
 SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
-# Store when an open port test last ran successfully
-# Note: If you want to run a port test again, remove the status and date from here
-# If you wish to re-run the port test, you can delete the word 'passed' from IPFS_PORT_TEST_STATUS below.
-IPFS_PORT_TEST_STATUS="$IPFS_PORT_TEST_STATUS"
-IPFS_PORT_TEST_DATE="$IPFS_PORT_TEST_DATE"
+# Stores when an IPFS port test last ran successfully.
+# If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
+IPFS_PORT_TEST_ENABLED="$IPFS_PORT_TEST_ENABLED"
+IPFS_PORT_FWD_STATUS="$IPFS_PORT_FWD_STATUS"
+IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
+IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
+IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 
-# Do not display donation plea more than once every 15 mins (value should be 'yes' or 'wait15')
+# Stores when an DigiByte Core port test last ran successfully.
+# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
+DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
+DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
+DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
+DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
+
+# Do not display donation plea more than once every 15 mins (value should be YES or WAIT15)
 DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
@@ -6218,7 +6229,7 @@ printf " =============== Checking: DigiNode Tools ==============================
                 fi
 
             else        
-                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiNode Tools can be upgraded from v${DGNT_VER_LOCAL} to v${DGNT_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                 DGNT_INSTALL_TYPE="upgrade"
                 DGNT_ASK_UPGRADE=YES
             fi

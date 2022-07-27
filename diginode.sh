@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.1
+#           Name:  DigiNode Status Monitor v0.5.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,7 +58,7 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.1
+DGNT_VER_LOCAL=0.5.2
 # Last Updated: 2022-07-26
 
 # This is the command people will enter to run the install script.
@@ -81,6 +81,7 @@ TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
 INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+SKIP="  [${COL_BOLD_WHITE}-${COL_NC}]"
 INDENT="     "
 # shellcheck disable=SC2034
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
@@ -251,7 +252,7 @@ locate_digibyte_node() {
         printf "%b 4. ${txtbld}EXIT${txtrst}\\n" "${INDENT}"
         printf "%b    Exit DigiNode Status Monitor.\\n" "${INDENT}"
         printf "\\n"
-        read -p "                  Please choose option 1, 2, 3 or 4: " -n 1 -r          
+        read -n 1 -r -s -p "                  Please choose option 1, 2, 3 or 4: "        
         printf "\\n" 
 
       if [[ $REPLY =~ ^[3]$ ]]; then
@@ -616,7 +617,7 @@ is_dganode_installed() {
         nodejs_installed="yes"
     fi
 
-    # Let's check if Kobu is already installed
+    # Let's check if Kubo is already installed
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         ipfs_installed="no"
@@ -811,6 +812,8 @@ if [ "$DGA_STATUS" = "running" ]; then
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
 
+        IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
+
     fi
 
 fi    
@@ -968,7 +971,7 @@ quit_message() {
 
       printf "  %b %bThere are software updates available for your DigiNode.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       printf "\\n"
-      read -p "         Would you like to install them now? (Y/N)" -n 1 -r
+      read -n 1 -r -s -p "         Would you like to install them now? (Y/N)"
       printf "\\n"
 
       if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -983,14 +986,14 @@ quit_message() {
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "yes" ] && [ "$updates_installed" = "no" ]; then
+      if [ "$DONATION_PLEA" = "YES" ] && [ "$updates_installed" = "no" ]; then
 
         #Display donation QR code
         donation_qrcode
 
         # Don't show the donation plea again for at least 15 minutes
-        DONATION_PLEA="wait15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
+        DONATION_PLEA="WAIT15"
+        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
       fi
 
       #Share backup reminder
@@ -1001,7 +1004,7 @@ quit_message() {
 
 
   # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "yes" ]; then
+  elif [ "$DONATION_PLEA" = "YES" ]; then
       printf "\\n"
 
       #Display donation QR code
@@ -1015,8 +1018,8 @@ quit_message() {
 
       printf "\\n"
       # Don't show the donation plea again for at least 15 minutes
-      DONATION_PLEA="wait15"
-      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"wait15\"|" $DGNT_SETTINGS_FILE
+      DONATION_PLEA="WAIT15"
+      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
   else
 
       # Choose a random DigiFact
@@ -1149,8 +1152,8 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # When the user quits, enable showing a donation plea
-    DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
+    DONATION_PLEA="YES"
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -1295,7 +1298,7 @@ pre_loop() {
           fi
       fi
 
-      # If there is actually a local version of Kobu, check for an update
+      # If there is actually a local version of Kubo, check for an update
       if [ "$IPFS_VER_LOCAL" != "" ]; then
           # Check if there is an update for NodeJS
           if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
@@ -1337,8 +1340,97 @@ pre_loop() {
     # Query the DigiAsset Node console
     update_dga_console
 
-  # Choose a random DigiFact
-  digifact_randomize
+    # Choose a random DigiFact
+    digifact_randomize
+
+
+    # Enable the DigiByte Core port test if it seems it has never run before
+    if [ "$DGB_PORT_TEST_ENABLED" != "YES" ] && [ "$DGB_PORT_TEST_ENABLED" != "NO" ]; then
+
+        printf "\\n"
+        printf "%b Enabling DigiByte Core Port Test...\n" "${INFO}"
+        printf "\\n"
+
+        DGB_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Enable the IPFS port test if it seems it has never run before
+    if [ "$IPFS_PORT_TEST_ENABLED" != "YES" ] && [ "$IPFS_PORT_TEST_ENABLED" != "NO" ]; then
+
+        printf "\\n"
+        printf "%b Enabling IPFS Port Test...\n" "${INFO}"
+        printf "\\n"
+
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If the DigiByte Core port test is disabled, check if the external IP address has changed
+    if [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
+
+        # If the External IP address has changed since the last port test was run, reset and re-enable the port test
+        if [ "$DGB_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
+
+            printf "\\n"
+            printf "%b External IP address has changed. Re-enabling DigiByte Core Port Test...\n" "${INFO}"
+            printf "\\n"
+
+            DGB_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_FWD_STATUS=""
+            sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+    fi
+
+    # If the IPFS port test is disabled, check if the external IP address has changed
+    if [ "$IPFS_PORT_TEST_ENABLED" = "NO" ]; then
+
+        # If the External IP address has changed since the last port test was run, reset and re-enable the port test
+        if [ "$IPFS_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
+
+            printf "\\n"
+            printf "%b External IP address has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
+            printf "\\n"
+
+            IPFS_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_FWD_STATUS=""
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_NUMBER_SAVED=""
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
+        elif [ "$IPFS_PORT_NUMBER" != "$IPFS_PORT_NUMBER_SAVED" ]; then
+
+            printf "\\n"
+            printf "%b IPFS port number has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
+            printf "\\n"
+
+            IPFS_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_FWD_STATUS=""
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_NUMBER_SAVED=""
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+    fi
 
 }
 
@@ -1737,8 +1829,8 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
     fi
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
-    DONATION_PLEA="yes"
-    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=\"yes\"|" $DGNT_SETTINGS_FILE
+    DONATION_PLEA=YES
+    sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
 
     SAVED_TIME_15MIN="$(date +%s)"
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
@@ -1851,7 +1943,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
       fi
     fi
 
-    # Check for new release of Kobu
+    # Check for new release of Kubo
     IPFS_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
@@ -1965,9 +2057,9 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kobu v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "Kobu v$IPFS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-49s ║ \n" "Kubo v$IPFS_VER_LOCAL"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -1997,17 +2089,12 @@ printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
-printf "   IMPORTANT: You need to forward port 12024 on your router so that other\\n"
-printf "   DigiByte nodes on the network can find it, otherwise the number of potential\\n"
-printf "   inbound connections is limited to 8. For help, visit: https://portforward.com\\n"
-printf "\\n"
-printf "   To check that port 12024 is being forwarded correctly, visit:\\n"
-printf "   https://opennodes.digibyte.link and enter your external IP address in the\\n"
-printf "   form at the bottom of the page. If the port is open, it should should display\\n"
-printf "   your DigiByte version number and approximate location. The connection count\\n"
-printf "   above should also gradually start increasing. If the number is above 8, this\\n"
-printf "   indicates that things are working correctly. This message will disappear\\n"
-printf "   when the total connections is 9 or more.\\n"
+printf "   WARNING: Your current connection count is low. Have you forwarded port\\n"
+printf "            12024 on your router? If yes, wait a few minutes. This message\\n"
+printf "            will disappear when the total connections reaches 9 or more.\\n"
+if [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
+printf "            For help with port forwarding, press ${txtbld}P${txtrst} to run a Port Test.\\n"
+fi
 fi
 printf "\\n"
 printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
@@ -2026,20 +2113,12 @@ if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SWAP USAGE     ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
 fi 
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -gt 8 ]; then
 if [ "$temperature" != "" ]; then
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM TEMP    ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
-fi
-if [ "$DGB_STATUS" = "startingup" ]; then
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM TEMP    ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
-fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 # Display a random DigiFact
@@ -2049,7 +2128,13 @@ fi
 if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
-printf "             Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
+    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
+    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+else
+    printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
+fi
 printf "\\n"
 
 )
@@ -2061,26 +2146,66 @@ echo "$output"
 trap quit_message EXIT
 
 # sleep 0.5
-read -t 0.5 -n 1 input
+read -t 0.5 -s -n 1 input
 
-    case "$input" in
-        "Q")
-            echo "Quit..."
-            exit
-            ;;
-        "q")
-            echo "Quit..."
-            exit
-            ;;
-        "P")
-            echo "Running Port test..."
-            port_test
-            ;;
-        "p")
-            echo "Running Port test..."
-            port_test
-            ;;
-    esac
+    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
+
+        case "$input" in
+            "Q")
+                echo "Quit..."
+                exit
+                ;;
+            "q")
+                echo "Quit..."
+                exit
+                ;;
+            "P")
+                echo "Running Port test..."
+                port_test
+                ;;
+            "p")
+                echo "Running Port test..."
+                port_test
+                ;;
+        esac
+
+    elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
+
+        case "$input" in
+            "Q")
+                echo "Quit..."
+                exit
+                ;;
+            "q")
+                echo "Quit..."
+                exit
+                ;;
+            "P")
+                echo "Running Port test..."
+                port_test
+                ;;
+            "p")
+                echo "Running Port test..."
+                port_test
+                ;;
+        esac
+
+    else
+
+        case "$input" in
+            "Q")
+                echo "Quit..."
+                exit
+                ;;
+            "q")
+                echo "Quit..."
+                exit
+                ;;
+        esac
+
+    fi
+
+
 
 # read -rsn1 input
 # if [ "$input" = "q" ]; then
@@ -2113,46 +2238,196 @@ printf "  ║                     ABOUT PORT FORWARDING                         
 printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 printf "  ║ For your DigiNode to work correctly you need to open the following  ║\\n"
 printf "  ║ ports on your router so the that other nodes on the Internet can    ║\\n"
-printf "  ║ connect to it:                                                      ║\\n"
+printf "  ║ find it:                                                            ║\\n"
 printf "  ╠═══════════════════════════╦═════════════════════════════════════════╣\\n"
 printf "  ║ SOFTWARE                  ║ PORT                                    ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
+if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ]; then
 printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
-printf "  ║ IPFS                      ║ 4001                                    ║\\n"
+fi
+if [ "$DGA_STATUS" = "running" ]; then
+printf "  ║ IPFS                      ║ " && printf "%-37s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
 printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
+fi
 printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
 echo ""
 
-echo "     Running Port Tests..."
+echo "                         Running Port Tests..."
 echo ""
 
-str="Is IPFS port open? ... "
-printf "%b %s" "${INFO}" "${str}" 
+PORT_TEST_DATE=$(date)
 
-DGA_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
-if [ $? -eq 0 ]; then
+if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-    if [ "$DGA_PORT_TEST_QUERY" = "true" ]; then
+    str="Is DigiByte Core port 12024 open? ... "
+    printf "%b %s" "${INFO}" "${str}" 
+
+    if [ $DGB_CONNECTIONS -gt 8 ]; then
+
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
-        IPFS_PORT_TEST="PASSED"
+        DGB_PORT_TEST_ENABLED="NO"
+        sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+        DGB_PORT_FWD_STATUS="OPEN"
+        sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
+        sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+        sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        printf "\\n"
+    
+    else
+
+        printf "%b%b %s POSSIBLY NOT!\\n" "${OVER}" "${CROSS}" "${str}"           
+        DGB_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        DGB_PORT_FWD_STATUS="CLOSED"
+        sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+        DGB_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        printf "\\n"
+        printf "%b IMPORTANT: You need to forward port 12024 on your router so that other\\n" "${INFO}"
+        printf "%b DigiByte Nodes on the network can find it, otherwise the number of potential\\n" "${INDENT}"
+        printf "%b inbound connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b If you have already forwarded port 12024 and are still seeing this message,\\n" "${INDENT}"
+        printf "%b wait a few minutes - the connection count should start gradually increasing.\\n" "${INDENT}"
+        printf "%b If the number of connections is above 8, this indicates that the port is open\\n" "${INDENT}"
+        printf "%b and your DigiByte Node is working correctly.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To be certain that port 12024 is being forwarded correctly, visit:\\n" "${INDENT}"
+        printf "%b https://opennodes.digibyte.link and enter your external IP address in the\\n" "${INDENT}"
+        printf "%b form at the bottom of the page. If the port is open, it should should display\\n" "${INDENT}"
+        printf "%b your DigiByte version number and approximate location.\\n" "${INDENT}"
+        printf "\\n"
+
     fi
 
-    if [ "$DGA_PORT_TEST_QUERY" = "false" ]; then
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
-        IPFS_PORT_TEST="FAILED"
-    fi
+elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-else
-    printf "%b%b %s ERROR! Port Test Failed - DigiAsset Node is not running!\\n" "${WARN}" "${CROSS}" "${str}"
+        str="Is DigiByte Core port 12024 open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b Your DigiByte Node is in the process of starting up. Try again in a few minutes...\\n" "${INDENT}"
+        printf "\\n"
+
+elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
+
+        str="Is DigiByte Core port 12024 open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b Your DigiByte Node is not running.\\n" "${INDENT}"
+        printf "\\n"
+
+elif [ "$DGB_STATUS" = "not_detected" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
+
+        str="Is DigiByte Core port 12024 open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b A DigiByte Node is not detected.\\n" "${INDENT}"
+        printf "\\n"
+
+elif [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
+
+        str="Is DigiByte Core port 12024 open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "\\n"
+
 fi
 
-sleep 3
+if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
+
+    str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+    printf "%b %s" "${INFO}" "${str}" 
+
+    IPFS_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+
+    if [ $? -eq 0 ]; then
+
+        if [ "$IPFS_PORT_TEST_QUERY" = "true" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
+            IPFS_PORT_TEST_ENABLED="NO"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+            IPFS_PORT_FWD_STATUS="OPEN"
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+            sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
+            printf "\\n"
+        fi
+
+        if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
+            IPFS_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_FWD_STATUS="CLOSED"
+            sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+            IPFS_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+    else
+        printf "%b%b %s ERROR! DigiAsset Node is not running!\\n" "${OVER}" "${CROSS}" "${str}" 
+    fi
+
+elif [ "$DGA_STATUS" = "stopped" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
+
+        str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b Your DigiAsset Node is not running.\\n" "${INDENT}"
+        printf "\\n"
+
+elif [ "$DGA_STATUS" = "not_detected" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
+
+        str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b A DigiAsset Node is not detected.\\n" "${INDENT}"
+        printf "\\n"
+
+elif [ "$DGA_PORT_TEST_ENABLED" = "NO" ]; then
+
+        str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+        printf "%b %s" "${INFO}" "${str}" 
+
+        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
+        printf "\\n"
+        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "\\n"
+
+fi
+
+echo ""
+echo ""
+read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
 
 status_loop
-
 
 }
 
