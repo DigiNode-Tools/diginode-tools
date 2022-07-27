@@ -1340,6 +1340,16 @@ pre_loop() {
     # Choose a random DigiFact
     digifact_randomize
 
+    # Enable the port test if it seems it has never run before
+    if [ "$IPFS_PORT_TEST_ENABLED" != "YES" ] && [ "$IPFS_PORT_TEST_ENABLED" != "NO" ]; then
+
+        printf "%b Enabling Port Test...\n" "${INDENT}"
+        printf "\\n"
+
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
     # If the IPFS port test is disabled, check if the external IP address has changed
     if [ "$IPFS_PORT_TEST_ENABLED" = "NO" ]; then
 
