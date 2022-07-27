@@ -10484,7 +10484,7 @@ main() {
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
                         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
                     elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                        sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --dganodeonly --unattended
+                        sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
                     fi    
                     printf "\\n"
                     exit
