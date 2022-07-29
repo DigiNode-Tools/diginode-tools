@@ -7605,11 +7605,11 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 if [ "$IS_PM2_RUNNING" = "0" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO"
-                    printf "%b%b %s NO! [ PM2 digiasset is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO! [ PM2 digiasset process is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
                 elif [ "$IS_PM2_RUNNING" = "" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO" 
-                    printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO!  [ PM2 digiasset process does not exist ]\\n" "${OVER}" "${CROSS}" "${str}"
                 else
                     DGA_STATUS="running"
                     IS_PM2_RUNNING="YES"
