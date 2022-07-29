@@ -7265,22 +7265,36 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
 
         # Is this Debian or Ubuntu?
-        local is_debian=$(cat /etc/os-release | grep ID_LIKE | grep debian -Eo)
-        local is_ubuntu=$(cat /etc/os-release | grep ID_LIKE | grep ubuntu -Eo)
+        local is_debian=$(cat /etc/os-release | grep ID | grep debian -Eo)
+        local is_ubuntu=$(cat /etc/os-release | grep ID | grep ubuntu -Eo)
+        local is_fedora=$(cat /etc/os-release | grep ID | grep fedora -Eo)
+        local is_centos=$(cat /etc/os-release | grep ID | grep centos -Eo)
 
         # Set correct PPA repository
-        if [ "$is_debian" = "debian" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-        fi
         if [ "$is_ubuntu" = "ubuntu" ]; then
             printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_debian" = "debian" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_fedora" = "fedora" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Fedora...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_centos" = "centos" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for CentOS...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        else
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for unknown distro...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
         fi
 
 
         # Update variable in diginode.settings so this does not run again
-        NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
     else
         printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
