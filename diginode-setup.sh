@@ -7561,6 +7561,40 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     printf " =============== Checking: DigiAsset Node ==============================\\n\\n"
     # ==============================================================================
 
+    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+
+    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
+        NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
+    fi
+
+    # Get current NodeJS major version
+    str="Is NodeJS installed and at least version 16?..."
+    NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
+    if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
+            printf "\\n"
+            printf "%b%b ${txtred}ERROR: NodeJS 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
+            printf "\\n"
+            printf "%b You need to install the correct Nodesource PPA for your distro.\\n" "${INFO}"
+            printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
+            printf "\\n"
+            exit 1
+        else
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: NodeJS is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b You need to install NodeJS. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
+    fi
+
     # Let's check if this is an Official DigiAsset Node is already installed. This file is created after a succesful previous installation with DigiNode Setup.
     str="Is DigiAsset Node already installed?..."
     printf "%b %s" "${INFO}" "${str}"
