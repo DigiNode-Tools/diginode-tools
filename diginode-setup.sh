@@ -7958,7 +7958,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     if [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
 
         # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
-        is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+        is_pm2_digiasset_running=$(sudo -u $USER_ACCOUNT pm2 status digiasset | grep -Eo -m 1 digiasset)
         if [ "$is_pm2_digiasset_running" = "digiasset" ]; then
             printf "%b Preparing Upgrade: Stopping DigiAsset Node PM2 process...\\n" "${INFO}"
             sudo -u $USER_ACCOUNT pm2 stop digiasset
@@ -8119,7 +8119,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Clone the development version if develop flag is set, and this is a new install
     if [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
-        str="Installing: Cloning DigiAsset Node development branch from Github repository..."
+        str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
@@ -8127,7 +8127,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Fetch the development version if develop flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
-        str="Upgrading: Cloning DigiAsset Node development branch from Github repository..."
+        str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
@@ -8135,7 +8135,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Clone the release version if main flag is set, and this is a new install
     elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
-        str="Installing: Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
@@ -8143,7 +8143,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Fetch the release version if main flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
-        str="Upgrading: Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
@@ -8181,7 +8181,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
-    is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+    is_pm2_digiasset_running=$(sudo -u $USER_ACCOUNT pm2 status digiasset | grep -Eo -m 1 digiasset)
     if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
         sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
         printf "%b Saving PM2 process state..\\n" "${INFO}"
