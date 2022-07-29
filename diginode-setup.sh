@@ -7819,7 +7819,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
+        elif [ "$DGA_LOCAL_BRANCH" = "development" ]; then
             printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
@@ -7925,7 +7925,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # If we are in Reset Mode and PM2 is running let's stop it
     if [ "$DGA_STATUS" = "running" ] && [ "$IS_PM2_RUNNING" = "YES" ] && [ "$DGA_INSTALL_TYPE" = "reset" ]; then
        printf "%b Reset Mode: Stopping PM2 digiasset service...\\n" "${INFO}"
-       pm2 stop index
+       pm2 stop digiasset
        DGA_STATUS="stopped"
     fi
 
@@ -7950,6 +7950,19 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+    fi
+
+
+    if [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
+
+    # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+    is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+    if [ "$is_pm2_digiasset_running" = "digiasset" ]; then
+        printf "%b Preparing Upgrade: Stopping DigiAsset Node PM2 process...\\n" "${INFO}"
+        sudo -u $USER_ACCOUNT pm2 stop digiasset
+        printf "%b Preparing Upgrade: Deleting DigiAsset Node PM2 process...\\n" "${INFO}"
+        sudo -u $USER_ACCOUNT pm2 stop digiasset
+        DGA_STATUS="stopped"
     fi
 
 
@@ -8073,7 +8086,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     cd $USER_HOME
 
     # Clone the development version if develop flag is set, and this is a new install
-    if [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
+    if [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
@@ -8081,7 +8094,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the development version if develop flag is set, and this is an update
-    elif [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+    elif [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         str="Pulling DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
@@ -8089,7 +8102,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Clone the release version if main flag is set, and this is a new install
-    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
+    elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
@@ -8097,7 +8110,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the release version if main flag is set, and this is an update
-    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
+    elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
