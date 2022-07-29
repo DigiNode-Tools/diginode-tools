@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.2
+#           Name:  DigiNode Status Monitor v0.5.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.2
-# Last Updated: 2022-07-26
+DGNT_VER_LOCAL=0.5.3
+# Last Updated: 2022-07-27
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -2328,16 +2328,6 @@ elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         printf "%b Your DigiByte Node is not running.\\n" "${INDENT}"
         printf "\\n"
 
-elif [ "$DGB_STATUS" = "not_detected" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
-
-        str="Is DigiByte Core port 12024 open? ... "
-        printf "%b %s" "${INFO}" "${str}" 
-
-        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
-        printf "\\n"
-        printf "%b A DigiByte Node is not detected.\\n" "${INDENT}"
-        printf "\\n"
-
 elif [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
 
         str="Is DigiByte Core port 12024 open? ... "
@@ -2399,16 +2389,6 @@ elif [ "$DGA_STATUS" = "stopped" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
         printf "%b Your DigiAsset Node is not running.\\n" "${INDENT}"
-        printf "\\n"
-
-elif [ "$DGA_STATUS" = "not_detected" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
-
-        str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
-        printf "%b %s" "${INFO}" "${str}" 
-
-        printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
-        printf "\\n"
-        printf "%b A DigiAsset Node is not detected.\\n" "${INDENT}"
         printf "\\n"
 
 elif [ "$DGA_PORT_TEST_ENABLED" = "NO" ]; then

@@ -147,6 +147,11 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.5.3 - 2022-07-29
+- Fix: Improve detection for when to add Nodesource PPA. It will now be re-added automatically if the current NodeJS version is < 16.
+- Fix: When running DigiNode Setup locally, upgrading from DigiAsset Node to full DigiNode now works as intended.
+- Fix: DigiAsset Node will now only be installed if NodeJS is at least v16
+
 DigiNode Tools v0.5.2 - 2022-07-27
 - New: DigiByte Core port 12024 is now added to the port test flow
 - New: Port test(s) now get hidden after the ports are detected to be open. The IPFS port is retrieved directly from the DigiAsset Node console.

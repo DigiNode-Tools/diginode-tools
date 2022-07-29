@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.2
+#           Name:  DigiNode Setup v0.5.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -264,7 +264,7 @@ is_dganode_only_mode() {
         printf "\\n"
     fi
     if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b FULL DigiNode Mode: %Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b FULL DigiNode Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -7261,26 +7261,54 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Get current NodeJS major version
+    str="Is NodeJS at least version 16?..."
+    NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
+    if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
+            NODEJS_PPA_ADDED="NO"
+            printf "%b%b %s NO! NodeSource PPA will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
+        else
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+
     # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
     if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
 
         # Is this Debian or Ubuntu?
-        local is_debian=$(cat /etc/os-release | grep ID_LIKE | grep debian -Eo)
-        local is_ubuntu=$(cat /etc/os-release | grep ID_LIKE | grep ubuntu -Eo)
+        local is_debian=$(cat /etc/os-release | grep ID | grep debian -Eo)
+        local is_ubuntu=$(cat /etc/os-release | grep ID | grep ubuntu -Eo)
+        local is_fedora=$(cat /etc/os-release | grep ID | grep fedora -Eo)
+        local is_centos=$(cat /etc/os-release | grep ID | grep centos -Eo)
 
         # Set correct PPA repository
-        if [ "$is_debian" = "debian" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-        fi
         if [ "$is_ubuntu" = "ubuntu" ]; then
             printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
             curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_debian" = "debian" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_fedora" = "fedora" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for Fedora...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        elif [ "$is_centos" = "centos" ]; then
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for CentOS...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
+        else
+            printf "%b Adding NodeSource PPA for NodeJS LTS version for unknown distro...\\n" "${INFO}"
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
+            NODEJS_PPA_ADDED=YES
         fi
 
 
         # Update variable in diginode.settings so this does not run again
-        NODEJS_PPA_ADDED=YES
         sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
     else
         printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
@@ -7858,6 +7886,40 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf " =============== Reset: DigiAsset Node =================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
+    fi
+
+    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+
+    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
+        NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
+    fi
+
+    # Get current NodeJS major version
+    str="Is NodeJS installed and at least version 16?..."
+    NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
+    if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
+            printf "\\n"
+            printf "%b%b ${txtred}ERROR: NodeJS 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
+            printf "\\n"
+            printf "%b You need to install the correct Nodesource PPA for your distro.\\n" "${INFO}"
+            printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
+            printf "\\n"
+            exit 1
+        else
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: NodeJS is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b You need to install NodeJS. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
+        printf "\\n"
+        exit 1
     fi
 
     # If we are in Reset Mode and PM2 is running let's stop it
@@ -10484,7 +10546,7 @@ main() {
                     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
                         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
                     elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                        exec diginode-setup --dganodeonly --unattended
+                        sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
                     fi    
                     printf "\\n"
                     exit
