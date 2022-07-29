@@ -8472,7 +8472,8 @@ digiasset_node_create_settings() {
       "pass":         "$rpcpassword",
       "host":         "127.0.0.1",
       "port":         $rpcport
-    }
+    },
+    "ipfs":           "http://127.0.0.1:5001/api/v0/"
 }
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"

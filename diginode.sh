@@ -424,7 +424,7 @@ is_dgbnode_installed() {
         printf "%b DigiByte daemon to run as a service. If you already have a systemd service file\\n" "${INDENT}"
         printf "%b to run 'digibyted', you can rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
         printf "%b so that this script can find it. If you wish to setup your DigiByte Node to run\\n" "${INDENT}"
-        printf "%b as a service, you can use DigdiginodeiNode Setup.\\n" "${INDENT}"
+        printf "%b as a service, you can use DigiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         local dgb_service_warning="yes"
     fi
