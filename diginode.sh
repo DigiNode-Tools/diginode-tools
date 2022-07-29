@@ -424,7 +424,7 @@ is_dgbnode_installed() {
         printf "%b DigiByte daemon to run as a service. If you already have a systemd service file\\n" "${INDENT}"
         printf "%b to run 'digibyted', you can rename it to /etc/systemd/system/digibyted.service\\n" "${INDENT}"
         printf "%b so that this script can find it. If you wish to setup your DigiByte Node to run\\n" "${INDENT}"
-        printf "%b as a service, you can use DigiNode Setup.\\n" "${INDENT}"
+        printf "%b as a service, you can use DigdiginodeiNode Setup.\\n" "${INDENT}"
         printf "\\n"
         local dgb_service_warning="yes"
     fi
@@ -807,10 +807,11 @@ if [ "$DGA_STATUS" = "running" ]; then
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
-        DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
+
+        DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
