@@ -7925,7 +7925,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # If we are in Reset Mode and PM2 is running let's stop it
     if [ "$DGA_STATUS" = "running" ] && [ "$IS_PM2_RUNNING" = "YES" ] && [ "$DGA_INSTALL_TYPE" = "reset" ]; then
        printf "%b Reset Mode: Stopping PM2 digiasset service...\\n" "${INFO}"
-       pm2 stop digiasset
+       sudo -u $USER_ACCOUNT pm2 stop digiasset
        DGA_STATUS="stopped"
     fi
 
@@ -7953,16 +7953,48 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     fi
 
 
+    # Prepare UPGRADE - delete PM2 service, backup DigiAsset Node Settings, dete DigiAsset Node folder
+
     if [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
 
-    # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
-    is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
-    if [ "$is_pm2_digiasset_running" = "digiasset" ]; then
-        printf "%b Preparing Upgrade: Stopping DigiAsset Node PM2 process...\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT pm2 stop digiasset
-        printf "%b Preparing Upgrade: Deleting DigiAsset Node PM2 process...\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT pm2 stop digiasset
-        DGA_STATUS="stopped"
+        # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+        is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
+        if [ "$is_pm2_digiasset_running" = "digiasset" ]; then
+            printf "%b Preparing Upgrade: Stopping DigiAsset Node PM2 process...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT pm2 stop digiasset
+            printf "%b Preparing Upgrade: Deleting DigiAsset Node PM2 process...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT pm2 delete digiasset
+            DGA_STATUS="stopped"
+        fi
+
+        # create ~/dga_config_backup/ folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+            str="Preparing Upgrade: Creating ~/dga_config_backup/ backup folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    
+        # Delete asset_settings folder
+        str="Preparing Upgrade: Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Preparing Upgrade: Deleting ~/digiasset_node folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        DGA_LOCAL_BRANCH=""
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
+        DGA_VER_LOCAL=""
+        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MJR_LOCAL=""
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MNR_LOCAL=""
+        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
     fi
 
 
@@ -8056,7 +8088,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b pm2 cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"   
     else
-        printf "%b%b %s Found: v${PM2_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: pm2 v${PM2_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # If an pm2 local version already exists.... (i.e. we have a local version number)
@@ -8087,23 +8119,23 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Clone the development version if develop flag is set, and this is a new install
     if [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
-        str="Cloning DigiAsset Node development branch from Github repository..."
+        str="Installing: Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the development version if develop flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
-        str="Pulling DigiAsset Node development branch from Github repository..."
+        str="Upgrading: Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Clone the release version if main flag is set, and this is a new install
     elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
-        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        str="Installing: Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
@@ -8111,9 +8143,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
 
     # Fetch the release version if main flag is set, and this is an update
     elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
-        str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+        str="Upgrading: Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
