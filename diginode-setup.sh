@@ -7261,6 +7261,20 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Get current NodeJS major version
+    str="Is NodeJS at least version 16?..."
+    NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
+    if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
+        printf "%b %s" "${INFO}" "${str}"
+        if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
+            NODEJS_PPA_ADDED="NO"
+            printf "%b%b %s NO! NodeSource PPA will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
+        else
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+
     # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
     if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
 
