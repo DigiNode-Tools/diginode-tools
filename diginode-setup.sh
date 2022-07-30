@@ -8181,13 +8181,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
-    is_pm2_digiasset_running=$(sudo -u $USER_ACCOUNT pm2 status digiasset | grep -Eo -m 1 digiasset)
-    if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
-        sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
-        printf "%b Saving PM2 process state..\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT pm2 save -force
-        DIGINODE_UPGRADED="YES"
-    fi
+    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+    printf "%b Saving PM2 process state..\\n" "${INFO}"
+    sudo -u $USER_ACCOUNT pm2 save -force
+
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
@@ -8197,6 +8194,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+        DIGINODE_UPGRADED="YES"
     fi
 
     # Reset DGA Install and Upgrade Variables
