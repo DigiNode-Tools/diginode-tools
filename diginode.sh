@@ -816,9 +816,9 @@ if [ "$DGA_STATUS" = "running" ]; then
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
         # Is the IPFS port blocked
-        if [ "echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked" = "Blocked" ]; then
+        if [ $(echo "$DGA_CONSOLE_IPFS" | grep -Eo 'Blocked') = "Blocked" ]; then
             IPFS_PORT_STATUS_CONSOLE="BLOCKED"
-        elif [ "echo "$DGA_CONSOLE_IPFS" | grep -Eo 'Running on port'" = "Running on port" ]; then
+        elif [ $(echo $DGA_CONSOLE_IPFS | grep -Eo 'Running on port') = "Running on port" ]; then
             IPFS_PORT_STATUS_CONSOLE="OPEN"
         fi
     fi
@@ -853,7 +853,7 @@ fi
 
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
 else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi
