@@ -10406,7 +10406,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
     # Cloning from GitHub
     str="Pulling latest Argon One Daemon from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    cd $USER_ACCOUNT/argon-one-daemon
+    cd $USER_HOME/argon-one-daemon
     sudo -u $USER_ACCOUNT git pull -q
 
     # If the command completed without error, then assume IPFS downloaded correctly
@@ -10426,14 +10426,15 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 fi
 
 # Make install script executable
-str="Making Argone One Daemon install script executable..."
-printf "%b %s" "${INFO}" "${str}"
-chmod +x $USER_ACCOUNT/argon-one-daemon/install
-printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+# str="Making Argone One Daemon install script executable..."
+# printf "%b %s" "${INFO}" "${str}"
+# chmod +x $USER_HOME/argon-one-daemon/install
+# printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
 # Install/upgrade daemon
 printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
-sudo -u $USER_ACCOUNT $USER_ACCOUNT/argon-one-daemon/install
+cd $USER_HOME/argon-one-daemon
+sudo -u $USER_ACCOUNT $USER_HOME/argon-one-daemon/install
 
 # Set fan to auto
 str="Setting Fan to Auto Mode..."
@@ -10446,11 +10447,11 @@ printf "\\n"
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
     printf "%b %bArgon One Daemon has been installed and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b The automatic values are:\\n" "${INDENT}"
-    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
-    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
-    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
-    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
+    printf "%b The automatic mode values are:\\n" "${INDENT}"
+    echo "      - Above 55℃ the fan runs at 10%."
+    echo "      - Above 60℃ the speed increases to 55%."
+    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - The default hysteresis is 3℃."
     printf "\\n"
     printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
     printf "\\n"
@@ -10460,11 +10461,11 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
     printf "%b %bArgon One Daemon has been upgraded and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b The automatic values are:\\n" "${INDENT}"
-    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
-    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
-    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
-    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
+    printf "%b The automatic mode values are:\\n" "${INDENT}"
+    echo "      - Above 55℃ the fan runs at 10%."
+    echo "      - Above 60℃ the speed increases to 55%."
+    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - The default hysteresis is 3℃."
     printf "\\n"
     printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
     printf "\\n"
