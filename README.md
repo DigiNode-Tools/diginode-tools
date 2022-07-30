@@ -147,6 +147,13 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.5.4 - 2022-07-30
+- Fix: Improvements to the DigiAsset Node upgrade process - fix rare incidence when PM2 processes get duplicated
+- New: Add IPFS URL to main.json template so DigiAsset Node will use Kubo rather than js-IPFS
+- New: Status Monitor display IPFS status in red if the port is blocked
+- Fix: DigiAsset Node blocked port issue seems to have been resolved
+- New: Add new 'Extras' menu with an option to install the Argone One Daemon fan software
+
 DigiNode Tools v0.5.3 - 2022-07-29
 - Fix: Improve detection for when to add Nodesource PPA. It will now be re-added automatically if the current NodeJS version is < 16.
 - Fix: When running DigiNode Setup locally, upgrading from DigiAsset Node to full DigiNode now works as intended.
