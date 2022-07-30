@@ -5079,7 +5079,7 @@ extras_menu() {
     # ==============================================================================
 
     opt1a="Argon One Daemon"
-    opt1b="Install the fan software for the Argon ONE M.2 case for the Raspberry Pi 4."
+    opt1b="Install fan software for Argon ONE RPi4 case."
 
     opt2a="Main Menu"
     opt2b="Return to the main menu."
