@@ -815,10 +815,13 @@ if [ "$DGA_STATUS" = "running" ]; then
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
+        is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
+        is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
+
         # Is the IPFS port blocked
-        if [ $(echo "$DGA_CONSOLE_IPFS" | grep -Eo 'Blocked') = "Blocked" ]; then
+        if [ "$is_blocked" = "Blocked" ]; then
             IPFS_PORT_STATUS_CONSOLE="BLOCKED"
-        elif [ $(echo $DGA_CONSOLE_IPFS | grep -Eo 'Running on port') = "Running on port" ]; then
+        elif [ "$is_running" = "Running" ]; then
             IPFS_PORT_STATUS_CONSOLE="OPEN"
         fi
     fi
