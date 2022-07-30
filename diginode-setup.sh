@@ -5075,7 +5075,7 @@ menu_existing_install() {
 # Function to display the extras menu, which is used to install optional software for the DigiNode
 extras_menu() {
 
-    printf " =============== MAIN MENU =============================================\\n\\n"
+    printf " =============== EXTRAS MENU ===========================================\\n\\n"
     # ==============================================================================
 
     opt1a="Argon One Daemon"
@@ -5096,9 +5096,8 @@ extras_menu() {
     case ${UpdateCmd} in
         # Update, or
         ${opt1a})
-            printf "%b You selected the UPDATE option.\\n" "${INFO}"
+            printf "%b You selected the ARGONE ONE DAEMON option.\\n" "${INFO}"
             printf "\\n"
-
             install_argon_one_fan_software
             ;;
         # USB Stick Backup
@@ -10319,6 +10318,166 @@ printf "\\n"
 }
 
 
+
+####################################
+######## EXTRAS ####################
+####################################
+
+# This function will install or upgrade the fan Argon One Daemon, a replacement daemon
+# for controlling the fan in the Argon One cases for the Raspberry Pi 4.
+#
+# More info here: https://github.com/iandark/argon-one-daemon
+
+install_argon_one_fan_software() {
+
+# Is this an upgrade or an install?
+if [ -d "$USER_HOME/argon-one-daemon" ]; then
+    ARGONFAN_INSTALL_TYPE="upgrade"
+else
+    ARGONFAN_INSTALL_TYPE="new"
+fi
+
+# Display section break
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+    printf " =============== Install: Argon One Daemon =============================\\n\\n"
+    # ==============================================================================
+elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+    printf " =============== Upgrade: Argon One Daemon =============================\\n\\n"
+    # ==============================================================================
+fi
+
+
+# Display INSTALL dialog
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+
+    # Explain the need for a static address
+    if whiptail --defaultno --backtitle "" --title "Install Argon One Daemon" --yesno "Would you like to install the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\\n\\nMore info: https://github.com/iandark/argon-one-daemon\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    #Nothing to do, continue
+      printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+    else
+      printf "%b You choose not to INSTALL the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+      menu_existing_install
+    fi
+
+elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+
+    # Explain the need for a static address
+    if whiptail --defaultno --backtitle "" --title "Upgrade Argon One Daemon" --yesno "Would you like to upgrade the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    #Nothing to do, continue
+      printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+    else
+      printf "%b You choose not to UPGRADE the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+      menu_existing_install
+    fi
+
+fi
+
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+
+    # Cloning from GitHub
+    str="Cloning Argon One Daemon from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/iandark/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: Argone One Daemon Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b Argon One Daemon could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "\\n"
+
+        exit
+    fi
+
+fi
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+
+    # Cloning from GitHub
+    str="Pulling latest Argon One Daemon from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    cd $USER_ACCOUNT/argon-one-daemon
+    sudo -u $USER_ACCOUNT git pull -q
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: Argon One Daemon Upgrade Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b Argon One Daemon could not be upgraded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "\\n"
+
+        exit
+    fi
+
+fi
+
+# Make install script executable
+str="Making Argone One Daemon install script executable..."
+printf "%b %s" "${INFO}" "${str}"
+chmod +x $USER_ACCOUNT/argon-one-daemon/install
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+# Install/upgrade daemon
+printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
+sudo -u $USER_ACCOUNT $USER_ACCOUNT/argon-one-daemon/install
+
+# Set fan to auto
+str="Setting Fan to Auto Mode..."
+printf "%b %s" "${INFO}" "${str}"
+argonone-cli --auto
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+printf "\\n"
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+    printf "%b %bArgon One Daemon has been installed and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b The automatic values are:\\n" "${INDENT}"
+    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
+    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
+    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
+    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    exit
+fi
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+    printf "%b %bArgon One Daemon has been upgraded and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b The automatic values are:\\n" "${INDENT}"
+    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
+    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
+    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
+    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    exit
+fi
+
+printf "\\n"
+
+}
+
+
+
+
 #####################################################################################################
 ### FUNCTIONS - MAIN - THIS IS WHERE THE HEAVY LIFTING HAPPENS
 #####################################################################################################
@@ -10904,164 +11063,6 @@ install_or_upgrade() {
 if [[ "$RUN_SETUP" != "NO" ]] ; then
     main "$@"
 fi
-
-
-
-####################################
-######## EXTRAS ####################
-####################################
-
-# This function will install or upgrade the fan Argon One Daemon, a replacement daemon
-# for controlling the fan in the Argon One cases for the Raspberry Pi 4.
-#
-# More info here: https://github.com/iandark/argon-one-daemon
-
-install_argon_one_fan_software() {
-
-# Is this an upgrade or an install?
-if [ -d "$USER_HOME/argon-one-daemon" ]; then
-    ARGONFAN_INSTALL_TYPE="upgrade"
-else
-    ARGONFAN_INSTALL_TYPE="new"
-fi
-
-# Display section break
-if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
-    printf " =============== Install: Argon One Daemon =============================\\n\\n"
-    # ==============================================================================
-elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
-    printf " =============== Upgrade: Argon One Daemon =============================\\n\\n"
-    # ==============================================================================
-fi
-
-
-# Display INSTALL dialog
-
-if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
-
-    # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Install Argon One Daemon" --yesno "Would you like to install the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\\n\\nMore info: https://github.com/iandark/argon-one-daemon\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-    #Nothing to do, continue
-      printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
-      printf "\\n"
-    else
-      printf "%b You choose not to INSTALL the Argon One Daemon.\\n" "${INFO}"
-      printf "\\n"
-      menu_existing_install
-    fi
-
-elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
-
-    # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Upgrade Argon One Daemon" --yesno "Would you like to upgrade the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-    #Nothing to do, continue
-      printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
-      printf "\\n"
-    else
-      printf "%b You choose not to UPGRADE the Argon One Daemon.\\n" "${INFO}"
-      printf "\\n"
-      menu_existing_install
-    fi
-
-fi
-
-
-if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
-
-    # Cloning from GitHub
-    str="Cloning Argon One Daemon from Github repository..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/iandark/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
-
-    # If the command completed without error, then assume IPFS downloaded correctly
-    if [ $? -eq 0 ]; then
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf "\\n"
-        printf "%b%b ${txtred}ERROR: Argone One Daemon Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
-        printf "\\n"
-        printf "%b Argon One Daemon could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
-        printf "\\n"
-
-        exit
-    fi
-
-fi
-
-if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
-
-    # Cloning from GitHub
-    str="Pulling latest Argon One Daemon from Github repository..."
-    printf "%b %s" "${INFO}" "${str}"
-    cd $USER_ACCOUNT/argon-one-daemon
-    sudo -u $USER_ACCOUNT git pull -q
-
-    # If the command completed without error, then assume IPFS downloaded correctly
-    if [ $? -eq 0 ]; then
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        printf "\\n"
-        printf "%b%b ${txtred}ERROR: Argon One Daemon Upgrade Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
-        printf "\\n"
-        printf "%b Argon One Daemon could not be upgraded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
-        printf "\\n"
-
-        exit
-    fi
-
-fi
-
-# Make install script executable
-str="Making Argone One Daemon install script executable..."
-printf "%b %s" "${INFO}" "${str}"
-chmod +x $USER_ACCOUNT/argon-one-daemon/install
-printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-# Install/upgrade daemon
-printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
-sudo -u $USER_ACCOUNT $USER_ACCOUNT/argon-one-daemon/install
-
-# Set fan to auto
-str="Setting Fan to Auto Mode..."
-printf "%b %s" "${INFO}" "${str}"
-argonone-cli --auto
-printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-printf "\\n"
-
-if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
-    printf "%b %bArgon One Daemon has been installed and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b The automatic values are:\\n" "${INDENT}"
-    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
-    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
-    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
-    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    exit
-fi
-
-if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
-    printf "%b %bArgon One Daemon has been upgraded and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b The automatic values are:\\n" "${INDENT}"
-    printf "%b - Above 55℃ the fan runs at 10%.\\n" "${INDENT}"
-    printf "%b - Above 60℃ the speed increases to 55%.\\n" "${INDENT}"
-    printf "%b - Above 65℃ the fan will spin at 100% 60℃.\\n" "${INDENT}"
-    printf "%b - The default hysteresis is 3℃.\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    exit
-fi
-
-printf "\\n"
-
-}
 
 
 
