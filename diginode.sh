@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.3
+#           Name:  DigiNode Status Monitor v0.5.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.3
-# Last Updated: 2022-07-27
+DGNT_VER_LOCAL=0.5.4
+# Last Updated: 2022-07-29
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -807,13 +807,23 @@ if [ "$DGA_STATUS" = "running" ]; then
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
-        DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
 
+        DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
+
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
+        is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
+        is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
+
+        # Is the IPFS port blocked
+        if [ "$is_blocked" = "Blocked" ]; then
+            IPFS_PORT_STATUS_CONSOLE="BLOCKED"
+        elif [ "$is_running" = "Running" ]; then
+            IPFS_PORT_STATUS_CONSOLE="OPEN"
+        fi
     fi
 
 fi    
@@ -844,7 +854,12 @@ else
     DGA_CONSOLE_WALLET="[✗] Wallet"
 fi
 
+# Display IPFS Status in red if the port is blocked
+if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
+else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
+fi
 printf "  ║                ║  " && printf "%-55s %-1s\n" "$DGA_CONSOLE_WALLET   $DGA_CONSOLE_STREAM   $DGA_CONSOLE_SECURITY" "║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 

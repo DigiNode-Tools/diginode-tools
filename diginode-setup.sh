@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.3
+#           Name:  DigiNode Setup v0.5.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -4958,16 +4958,16 @@ install_digiasset_node_only() {
         printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
-    printf "%b %b'DigiNode Setup' can be used to upgrade or uninstall your DigiAsset Node.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+    printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
     printf "\\n"
     printf "%b Please note:\\n" "${INFO}"
     printf "\\n"
-    printf "%b - If this is your first time installing DigiNode Tools, the above alias will not work yet.\\n" "${INDENT}"
+    printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
     printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b - You cannot use 'DigiNode Status Monitor' with only a DigiAsset Node - it needs a DigiByte Node to work.\\n" "${INDENT}"
     printf "\\n"
 
     exit
@@ -5003,21 +5003,25 @@ menu_existing_install() {
 
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
-    
-    opt4a="Reset"
-    opt4b="Reset all settings and reinstall DigiNode software."
 
-    opt5a="Uninstall"
-    opt5b="Remove DigiNode from your system."
+    opt4a="Extras"
+    opt4b="Install optional extras for your DigiNode."
+    
+    opt5a="Reset"
+    opt5b="Reset all settings and reinstall DigiNode software."
+
+    opt6a="Uninstall"
+    opt6b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 6 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
-    "${opt5a}"  "${opt5b}" 4>&3 3>&2 2>&1 1>&3) || \
+    "${opt5a}"  "${opt5b}" \
+    "${opt6a}"  "${opt6b}" 3>&2 2>&1 1>&3) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
 
 
@@ -5046,18 +5050,61 @@ menu_existing_install() {
             printf "\\n"
             usb_restore
             ;;
-        # Reset,
+        # USB Stick Restore
         ${opt4a})
+            printf "%b You selected the EXTRAS option.\\n" "${INFO}"
+            printf "\\n"
+            extras_menu
+            ;;
+        # Reset,
+        ${opt5a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt5a})
+        ${opt6a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
+            ;;
+    esac
+}
+
+# Function to display the extras menu, which is used to install optional software for the DigiNode
+extras_menu() {
+
+    printf " =============== EXTRAS MENU ===========================================\\n\\n"
+    # ==============================================================================
+
+    opt1a="Argon One Daemon"
+    opt1b="Install fan software for Argon ONE RPi4 case."
+
+    opt2a="Main Menu"
+    opt2b="Return to the main menu."
+
+
+    # Display the information to the user
+    UpdateCmd=$(whiptail --title "EXTRAS MENU" --menu "\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
+    "${opt1a}"  "${opt1b}" \
+    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+
+
+    # Set the variable based on if the user chooses
+    case ${UpdateCmd} in
+        # Update, or
+        ${opt1a})
+            printf "%b You selected the ARGONE ONE DAEMON option.\\n" "${INFO}"
+            printf "\\n"
+            install_argon_one_fan_software
+            ;;
+        # USB Stick Backup
+        ${opt2a})
+            printf "%b You selected the MAIN MENU option.\\n" "${INFO}"
+            printf "\\n"
+            menu_existing_install
             ;;
     esac
 }
@@ -7605,11 +7652,11 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 if [ "$IS_PM2_RUNNING" = "0" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO"
-                    printf "%b%b %s NO! [ PM2 digiasset is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO! [ PM2 digiasset process is stopped ]\\n" "${OVER}" "${CROSS}" "${str}"
                 elif [ "$IS_PM2_RUNNING" = "" ]; then
                     DGA_STATUS="stopped"
                     IS_PM2_RUNNING="NO" 
-                    printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+                    printf "%b%b %s NO!  [ PM2 digiasset process does not exist ]\\n" "${OVER}" "${CROSS}" "${str}"
                 else
                     DGA_STATUS="running"
                     IS_PM2_RUNNING="YES"
@@ -7819,7 +7866,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             printf "%b %bDigiAsset Node v${DGA_VER_LOCAL} will be replaced with the development branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
-        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
+        elif [ "$DGA_LOCAL_BRANCH" = "development" ]; then
             printf "%b %bDigiAsset Node development branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGA_INSTALL_TYPE="upgrade"
             DGA_DO_INSTALL=YES
@@ -7925,7 +7972,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # If we are in Reset Mode and PM2 is running let's stop it
     if [ "$DGA_STATUS" = "running" ] && [ "$IS_PM2_RUNNING" = "YES" ] && [ "$DGA_INSTALL_TYPE" = "reset" ]; then
        printf "%b Reset Mode: Stopping PM2 digiasset service...\\n" "${INFO}"
-       pm2 stop index
+       sudo -u $USER_ACCOUNT pm2 stop digiasset
        DGA_STATUS="stopped"
     fi
 
@@ -7949,6 +7996,51 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
             rm $DGA_INSTALL_LOCATION/*.json
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+    fi
+
+
+    # Prepare UPGRADE - delete PM2 service, backup DigiAsset Node Settings, dete DigiAsset Node folder
+
+    if [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
+
+        # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
+        is_pm2_digiasset_running=$(sudo -u $USER_ACCOUNT pm2 status digiasset | grep -Eo -m 1 digiasset)
+        if [ "$is_pm2_digiasset_running" = "digiasset" ]; then
+            printf "%b Preparing Upgrade: Stopping DigiAsset Node PM2 process...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT pm2 stop digiasset
+            printf "%b Preparing Upgrade: Deleting DigiAsset Node PM2 process...\\n" "${INFO}"
+            sudo -u $USER_ACCOUNT pm2 delete digiasset
+            DGA_STATUS="stopped"
+        fi
+
+        # create ~/dga_config_backup/ folder if it does not already exist
+        if [ ! -d $DGA_SETTINGS_BACKUP_LOCATION ]; then #
+            str="Preparing Upgrade: Creating ~/dga_config_backup/ backup folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGA_SETTINGS_BACKUP_LOCATION
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    
+        # Delete asset_settings folder
+        str="Preparing Upgrade: Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
+        printf "%b %s" "${INFO}" "${str}"
+        mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Preparing Upgrade: Deleting ~/digiasset_node folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        DGA_LOCAL_BRANCH=""
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
+        DGA_VER_LOCAL=""
+        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MJR_LOCAL=""
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MNR_LOCAL=""
+        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -8043,7 +8135,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b pm2 cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"   
     else
-        printf "%b%b %s Found: v${PM2_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: pm2 v${PM2_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # If an pm2 local version already exists.... (i.e. we have a local version number)
@@ -8073,23 +8165,23 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     cd $USER_HOME
 
     # Clone the development version if develop flag is set, and this is a new install
-    if [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
+    if [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
         str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the development version if develop flag is set, and this is an update
-    elif [ "$DGA_BRANCH" = "development" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
-        str="Pulling DigiAsset Node development branch from Github repository..."
+    elif [ "$DGA_BRANCH" = "development" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
+        str="Cloning DigiAsset Node development branch from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git fetch --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch development https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"development\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Clone the release version if main flag is set, and this is a new install
-    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "new" ]; then
+    elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "new" ]; then
         str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
@@ -8097,10 +8189,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Fetch the release version if main flag is set, and this is an update
-    elif [ "$DGA_BRANCH" = "main" ] && [ $DGA_INSTALL_TYPE = "update" ]; then
-        str="Pulling DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
+    elif [ "$DGA_BRANCH" = "main" ] && [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
+        str="Cloning DigiAsset Node v${DGA_VER_RELEASE} from Github repository..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git pull --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/digiassetX/digiasset_node.git
         sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=\"main\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
@@ -8136,13 +8228,10 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
     # Start DigiAsset Node, and tell it to save the current setup. This will ensure it runs the digiasset node automatically when PM2 starts.
     printf "%b Starting DigiAsset Node with PM2...\\n" "${INFO}"
     cd $DGA_INSTALL_LOCATION
-    is_pm2_digiasset_running=$(pm2 status digiasset | grep -Eo -m 1 digiasset)
-    if [ "$is_pm2_digiasset_running" != "digiasset" ]; then
-        sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
-        printf "%b Saving PM2 process state..\\n" "${INFO}"
-        sudo -u $USER_ACCOUNT pm2 save -force
-        DIGINODE_UPGRADED="YES"
-    fi
+    sudo -u $USER_ACCOUNT PM2_HOME=$USER_HOME/.pm2 pm2 start index.js -f --name digiasset -- --log
+    printf "%b Saving PM2 process state..\\n" "${INFO}"
+    sudo -u $USER_ACCOUNT pm2 save -force
+
 
 
     # Update diginode.settings with new DigiAsset Node version number and the install/upgrade date
@@ -8152,6 +8241,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGA_INSTALL_TYPE" = "upgrade" ]; then
         sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+        DIGINODE_UPGRADED="YES"
     fi
 
     # Reset DGA Install and Upgrade Variables
@@ -8472,7 +8562,8 @@ digiasset_node_create_settings() {
       "pass":         "$rpcpassword",
       "host":         "127.0.0.1",
       "port":         $rpcport
-    }
+    },
+    "ipfs":           "http://127.0.0.1:5001/api/v0/"
 }
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -10225,6 +10316,167 @@ printf "  ╚══════════════════════�
 printf "\\n"
 
 }
+
+
+
+####################################
+######## EXTRAS ####################
+####################################
+
+# This function will install or upgrade the fan Argon One Daemon, a replacement daemon
+# for controlling the fan in the Argon One cases for the Raspberry Pi 4.
+#
+# More info here: https://github.com/iandark/argon-one-daemon
+
+install_argon_one_fan_software() {
+
+# Is this an upgrade or an install?
+if [ -d "$USER_HOME/argon-one-daemon" ]; then
+    ARGONFAN_INSTALL_TYPE="upgrade"
+else
+    ARGONFAN_INSTALL_TYPE="new"
+fi
+
+# Display section break
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+    printf " =============== Install: Argon One Daemon =============================\\n\\n"
+    # ==============================================================================
+elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+    printf " =============== Upgrade: Argon One Daemon =============================\\n\\n"
+    # ==============================================================================
+fi
+
+
+# Display INSTALL dialog
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+
+    # Explain the need for a static address
+    if whiptail --defaultno --backtitle "" --title "Install Argon One Daemon" --yesno "Would you like to install the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\\n\\nMore info: https://github.com/iandark/argon-one-daemon\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    #Nothing to do, continue
+      printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+    else
+      printf "%b You choose not to INSTALL the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+      menu_existing_install
+    fi
+
+elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+
+    # Explain the need for a static address
+    if whiptail --defaultno --backtitle "" --title "Upgrade Argon One Daemon" --yesno "Would you like to upgrade the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    #Nothing to do, continue
+      printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+    else
+      printf "%b You choose not to UPGRADE the Argon One Daemon.\\n" "${INFO}"
+      printf "\\n"
+      menu_existing_install
+    fi
+
+fi
+
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+
+    # Cloning from GitHub
+    str="Cloning Argon One Daemon from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/iandark/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: Argone One Daemon Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b Argon One Daemon could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "\\n"
+
+        exit
+    fi
+
+fi
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+
+    # Cloning from GitHub
+    str="Pulling latest Argon One Daemon from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    cd $USER_HOME/argon-one-daemon
+    sudo -u $USER_ACCOUNT git pull -q
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: Argon One Daemon Upgrade Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b Argon One Daemon could not be upgraded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "\\n"
+
+        exit
+    fi
+
+fi
+
+# Make install script executable
+# str="Making Argone One Daemon install script executable..."
+# printf "%b %s" "${INFO}" "${str}"
+# chmod +x $USER_HOME/argon-one-daemon/install
+# printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+# Install/upgrade daemon
+printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
+cd $USER_HOME/argon-one-daemon
+sudo -u $USER_ACCOUNT $USER_HOME/argon-one-daemon/install
+
+# Set fan to auto
+str="Setting Fan to Auto Mode..."
+printf "%b %s" "${INFO}" "${str}"
+argonone-cli --auto
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+printf "\\n"
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
+    printf "%b %bArgon One Daemon has been installed and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b The automatic mode values are:\\n" "${INDENT}"
+    echo "      - Above 55℃ the fan runs at 10%."
+    echo "      - Above 60℃ the speed increases to 55%."
+    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - The default hysteresis is 3℃."
+    printf "\\n"
+    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    exit
+fi
+
+if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
+    printf "%b %bArgon One Daemon has been upgraded and set to automatic mode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b The automatic mode values are:\\n" "${INDENT}"
+    echo "      - Above 55℃ the fan runs at 10%."
+    echo "      - Above 60℃ the speed increases to 55%."
+    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - The default hysteresis is 3℃."
+    printf "\\n"
+    printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+    exit
+fi
+
+printf "\\n"
+
+}
+
+
 
 
 #####################################################################################################
