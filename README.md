@@ -6,7 +6,9 @@
 A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
 
 ### What are DigiNode Tools?
-DigiNode Tools are a suite of linux bash scripts that make it easy to setup, monitor and manage your DigiNode via the linux command line.
+DigiNode Tools are a suite of linux bash scripts that make it easy to setup, monitor and manage your DigiNode via the linux command line:
+- DigiNode Setup - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
+- DigiNode Status Monitor - Provides a live dashboard to quickly check the status of your DigiNode.
 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
@@ -15,7 +17,19 @@ DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compat
 
 If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Ubuntu Server 64-bit** or **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
 
-## DigiNode Setup
+## Disclaimer
+
+These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
+
+## Get Started
+
+To get started, run DigiNode Setup by entering the following command in the terminal:
+
+## ```curl -sSL diginode-setup.digibyte.help | bash```
+
+This will guide you through the installation process.
+
+## About DigiNode Setup
 
 DigiNode Setup helps you to setup and manage your DigiNode:
 
@@ -36,7 +50,7 @@ To get started, see the Instructions section below. Once installed, DigiNode Set
 
 ![DigiNode Setup](images/diginode_setup.png)
 
-## DigiNode Status Monitor
+## About DigiNode Status Monitor
 
 DigiNode Status Monitor let's you monitor your DigiNode from the command line:
 
@@ -92,16 +106,6 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ![DigiByte Donation QR Code](images/donation_qr_code.png)
 
-## Disclaimer
-
-These tools are provided as is. Use at your own risk. Always maintain a backup of your DigiByte wallet. 
-
-## Instructions
-
-To get started, run DigiNode Setup by entering the following command in the terminal:
-
-## ```curl -sSL diginode-setup.digibyte.help | bash```
-
 ## Support
 
 If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
@@ -145,10 +149,15 @@ These features are for advanced users and should be used with caution:
 **Manually Locate DigiByte Core:** If you wish to use the DigiNode Status Monitor with your existing DigiByte Node (i.e. One not setup with DigiNode Tools), and the startup checks are not able to locate it automatically, use the ```--locatedgb``` flag at launch to manually specify the folder location.
 - ```diginode --locatedgb```
 
+**Developer Mode:** To install the development branch of DigiNode Tools, use the ```--dgntdev``` flag at launch. The ```--dgadev``` flag can be used to install the development branch of the DigiAsset Node. WARNING: These should only be used for testing, and occasionally may not run.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dgntdev --dgadev``` or
+- ```diginode-setup --dgntdev --dgadev```
+
 ## Release Notes
 
 DigiNode Tools v0.5.5 - 2022-07-xx
-- 
+- Fix: The Status Monitor can now better detect if the DigiAsset Node is running
+- Updated README
 
 DigiNode Tools v0.5.4 - 2022-07-30
 - Fix: Improvements to the DigiAsset Node upgrade process - fix rare incidence when PM2 processes get duplicated
