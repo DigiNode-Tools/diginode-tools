@@ -3818,8 +3818,13 @@ usb_backup() {
             printf "%b %s" "${INFO}" "${str}"
             touch /media/usbbackup/diginode_backup/diginode_backup.info
             cat <<EOF > /media/usbbackup/diginode_backup/diginode_backup.info
+# Latest DigiNode Backup
 DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""
 DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""
+
+# Old DigiNode Backup (Created if you overwrite an existing backup)
+DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=""
+DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=""
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -3982,6 +3987,8 @@ EOF
                     printf "%b %s" "${INFO}" "${str}" 
                     mv /media/usbbackup/diginode_backup/wallet.dat /media/usbbackup/diginode_backup/wallet.dat.old
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Renaming existing wallet.dat backup to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    sed -i -e "/^DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=\"$DGB_WALLET_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
@@ -4140,6 +4147,8 @@ EOF
                     printf "%b %s" "${INFO}" "${str}" 
                     mv /media/usbbackup/diginode_backup/dga_config_backup /media/usbbackup/diginode_backup/dga_config_backup_old
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Renaming existing dga_config_backup folder to dga_config_backup_old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    sed -i -e "/^DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=\"$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
