@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.4
+#           Name:  DigiNode Status Monitor v0.5.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.4
-# Last Updated: 2022-07-29
+DGNT_VER_LOCAL=0.5.5
+# Last Updated: 2022-07-30
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -537,7 +537,7 @@ is_dgbnode_installed() {
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
-            printf "%b %bThe RPC port has been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bThe RPC credentials have been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
             printf "\\n"
@@ -631,7 +631,7 @@ is_dganode_installed() {
 
       # Display if DigiAsset Node packages are installed
 
-      if [ "$nodejs_installed" = "yes" ]; then 
+      if [ "$nodejs_installed" = "yes" ] && [ "$ipfs_installed" = "yes" ]; then 
         printf "%b DigiAsset Node packages are installed: ${TICK} Kubo ${TICK} NodeJS\\n" "${TICK}"
       else
         printf "%b DigiAsset Node packages are NOT installed:" "${CROSS}"
@@ -646,27 +646,35 @@ is_dganode_installed() {
           printf "${CROSS} NodeJS"
         fi
           printf "\\n"
-          printf "%b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
-          printf "%b You can install them using DigiNode Setup.\\n" "${INDENT}"
-          printf "\\n"
+          if [ "$nodejs_installed" = "no" ]; then
+              printf "%b NodeJS is required to run a DigiAsset Node and is not currently installed.\\n" "${INFO}"
+          fi
+          if [ "$ipfs_installed" = "no" ]; then
+              printf "%b Kubo is not installed. JS-IPFS will be used.\\n" "${INFO}"
+          fi
+
           STARTWAIT="yes"
-          DGA_STATUS="not_detected"
         fi
 
       # Check if ipfs service is running. Required for DigiAssets server.
 
       # ps aux | grep ipfs
 
-      if [ "" = "$(pgrep ipfs)" ]; then
-          printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
-          ipfs_running="no"
-          DGA_STATUS="not_detected"
-      else
-          printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
-          if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
-            DGA_STATUS="ipfsrunning"
+      # If Kubo is installed, check if the daemon is running
+      if [ "$ipfs_installed" = "yes" ]; then
+
+          if [ "" = "$(pgrep ipfs)" ]; then
+              printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
+              ipfs_running="no"
+              DGA_STATUS="not_detected"
+          else
+              printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
+              if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
+                DGA_STATUS="ipfsrunning"
+              fi
+              ipfs_running="yes"
           fi
-          ipfs_running="yes"
+
       fi
 
         # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
@@ -684,11 +692,8 @@ is_dganode_installed() {
       # Check for 'digiasset_node' index.js file
 
       if [ -f "$DGA_INSTALL_LOCATION/index.js" ]; then
-        if [ "$DGA_STATUS" = "ipfsrunning" ]; then
-           DGA_STATUS="installed" 
-        fi
+        DGA_STATUS="installed" 
         printf "%b DigiAsset Node software is installed.\\n" "${TICK}"
-        printf "\\n"
       else
           printf "%b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
@@ -703,44 +708,55 @@ is_dganode_installed() {
     # If we know DigiAsset Node is installed, let's check if it is actually running
     # First we'll see if it is running using the command: node index.js
 
-      if [ "$DGA_STATUS" = "installed" ]; then
-          IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
-          if [ "$IS_DGANODE_RUNNING" != "" ]; then
-              DGA_STATUS="running"
-              IS_DGANODE_RUNNING="yes"
-              printf "%b %bDigiAsset Node Status: RUNNING%b [ Using 'node index.js' ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          else
-              # If that didn't work, check if it is running using PM2
-              IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
+    if [ "$DGA_STATUS" = "installed" ]; then
+        IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
+        if [ "$IS_DGANODE_RUNNING" != "" ]; then
+            DGA_STATUS="running"
+            IS_DGANODE_RUNNING="yes"
+            do_pm2_check=false
+            printf "%b DigiAsset Node is running with 'node index.js'\\n\\n" "${INFO}"
+            printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        else
+            printf "%b DigiAsset Node is not running with 'node index.js'\\n" "${INFO}"
+            do_pm2_check=true
+        fi
 
-              # In case it has not been named, double check
-              if [ "$IS_PM2_RUNNING" = "" ]; then
-                  IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
-              fi
+         # If that didn't work, check if it is running using PM2
 
-              if [ "$IS_PM2_RUNNING" = "" ]; then
-                  DGA_STATUS="stopped"
-                  IS_PM2_RUNNING="NO"
-                  STARTWAIT="yes"
-                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 service does not exist ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-              elif [ "$IS_PM2_RUNNING" = "0" ]; then
-                  DGA_STATUS="stopped"
-                  IS_PM2_RUNNING="NO"
-                  STARTWAIT="yes"
-                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 is stopped ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-              else
-                  DGA_STATUS="running"
-                  IS_PM2_RUNNING="yes"
-                  printf "%b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-              fi    
-          fi
-      elif [ "$DGA_STATUS" = "not_detected" ]; then
-          printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-      elif [ "$DGA_STATUS" != "" ]; then
-          printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-      fi
+        if [ "$do_pm2_check" = true ]; then
+           
+            IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
 
-      printf "\\n"
+            # In case it has not been named, double check
+            if [ "$IS_PM2_RUNNING" = "" ]; then
+                IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
+            fi
+
+            if [ "$IS_PM2_RUNNING" = "" ]; then
+                DGA_STATUS="stopped"
+                STARTWAIT="yes"
+                printf "%b DigiAsset Node PM2 Service does not exist.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            elif [ "$IS_PM2_RUNNING" = "0" ]; then
+                DGA_STATUS="stopped"
+                STARTWAIT="yes"
+                printf "%b DigiAsset Node PM2 Service is stopped.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            else
+                DGA_STATUS="running"
+                printf "%b DigiAsset Node PM2 Service is running.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            fi    
+        fi
+    elif [ "$DGA_STATUS" = "not_detected" ]; then
+        printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        STARTWAIT="yes"
+    elif [ "$DGA_STATUS" != "" ]; then
+        printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        STARTWAIT="yes"
+    fi
+
+    printf "\\n"
 
 }
 
@@ -801,11 +817,13 @@ get_dgb_rpc_credentials() {
 # Query the DigiAsset Node console for the current status
 update_dga_console() {
 
-if [ "$DGA_STATUS" = "running" ]; then
+if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
     DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+
+        DGA_STATUS="running"
 
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
@@ -821,9 +839,17 @@ if [ "$DGA_STATUS" = "running" ]; then
         # Is the IPFS port blocked
         if [ "$is_blocked" = "Blocked" ]; then
             IPFS_PORT_STATUS_CONSOLE="BLOCKED"
+            IPFS_PORT_STATUS_COLOR=""
         elif [ "$is_running" = "Running" ]; then
             IPFS_PORT_STATUS_CONSOLE="OPEN"
+            IPFS_PORT_STATUS_COLOR=""
+        else
+            IPFS_PORT_STATUS_CONSOLE="OPEN"
+            IPFS_PORT_STATUS_COLOR="YELLOW"
         fi
+
+    else
+        DGA_STATUS="stopped"
     fi
 
 fi    
@@ -857,6 +883,8 @@ fi
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
+elif [ "$IPFS_PORT_STATUS_COLOR" = "YELLOW" ]; then
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbylw}$DGA_CONSOLE_IPFS${txtrst}" "║"
 else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi

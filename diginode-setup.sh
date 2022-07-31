@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.4
+#           Name:  DigiNode Setup v0.5.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -388,6 +388,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
     DONATION_PLEA=YES
     IPFS_PORT_TEST_ENABLED=YES
+    IPFS_KUBO_API_URL=http://127.0.0.1:5001/api/v0/
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -663,6 +664,7 @@ IPFS_VER_LOCAL="$IPFS_VER_LOCAL"
 IPFS_VER_RELEASE="$IPFS_VER_RELEASE"
 IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
 IPFS_UPGRADE_DATE="$IPFS_UPGRADE_DATE"
+IPFS_KUBO_API_URL=$IPFS_KUBO_API_URL
 
 # Store NodeJS installation details:
 NODEJS_VER_LOCAL="$NODEJS_VER_LOCAL"
@@ -3818,8 +3820,13 @@ usb_backup() {
             printf "%b %s" "${INFO}" "${str}"
             touch /media/usbbackup/diginode_backup/diginode_backup.info
             cat <<EOF > /media/usbbackup/diginode_backup/diginode_backup.info
+# Latest DigiNode Backup
 DGB_WALLET_BACKUP_DATE_ON_USB_STICK=""
 DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=""
+
+# Old DigiNode Backup (Created if you overwrite an existing backup)
+DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=""
+DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=""
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -3982,6 +3989,8 @@ EOF
                     printf "%b %s" "${INFO}" "${str}" 
                     mv /media/usbbackup/diginode_backup/wallet.dat /media/usbbackup/diginode_backup/wallet.dat.old
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Renaming existing wallet.dat backup to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    sed -i -e "/^DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=\"$DGB_WALLET_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
@@ -4140,6 +4149,8 @@ EOF
                     printf "%b %s" "${INFO}" "${str}" 
                     mv /media/usbbackup/diginode_backup/dga_config_backup /media/usbbackup/diginode_backup/dga_config_backup_old
                     echo "$NEW_BACKUP_DATE DigiAsset Settings: Renaming existing dga_config_backup folder to dga_config_backup_old" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    sed -i -e "/^DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_OLD_BACKUP_DATE_ON_USB_STICK=\"$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=/s|.*|DGA_CONFIG_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
@@ -8418,6 +8429,58 @@ digiasset_node_create_settings() {
         fi
     fi
 
+    # If live main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
+    if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
+
+        str="Checking if Kubo IPFS API URL needs updating..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        local ipfsurl_json_cur
+
+        # Let's get the current IPFS URL from the main.json file
+
+        ipfsurl_json_cur=$(cat $DGA_SETTINGS_FILE | jq '.ipfs' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$ipfsurl_json_cur" != "$IPFS_KUBO_API_URL" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update"
+            ipfs_api_url_change=true
+        fi
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+    # If backup main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
+    if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
+
+        str="Checking if Kubo IPFS API URL needs updating..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        local ipfsurl_json_cur
+
+        # Let's get the current IPFS URL from the main.json file
+
+        ipfsurl_json_cur=$(cat $DGA_SETTINGS_BACKUP_FILE | jq '.ipfs' | tr -d '"')
+
+        # Compare them with the digibyte.conf values to see if they need updating
+
+        if [ "$ipfsurl_json_cur" != "$IPFS_KUBO_API_URL" ]; then
+            DGA_SETTINGS_CREATE=YES
+            DGA_SETTINGS_CREATE_TYPE="update_restore"
+            ipfs_api_url_change=true
+        fi
+        if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
+            printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
 
     if [ "$DGA_SETTINGS_CREATE" = "YES" ]; then
 
@@ -8485,6 +8548,14 @@ digiasset_node_create_settings() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+            if [ "$ipfs_api_url_change" = true ]; then
+                str="Updating IPFS URL in main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_ipfsurl="$(jq ".ipfs = \"$IPFS_KUBO_API_URL\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_ipfsurl}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
         fi
 
         # If the backup main.json file already exists, update the rpc user and password if they have changed
@@ -8511,6 +8582,14 @@ digiasset_node_create_settings() {
                 printf "%b %s" "${INFO}" "${str}"
                 update_rpcport="$(jq ".wallet.port = $rpcport" $DGA_SETTINGS_BACKUP_FILE)" && \
                 echo -E "${update_rpcport}" > $DGA_SETTINGS_BACKUP_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            if [ "$ipfs_api_url_change" = true ]; then
+                str="Updating IPFS URL in backup main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_ipfsurl="$(jq ".ipfs = \"$IPFS_KUBO_API_URL\"" $DGA_SETTINGS_BACKUP_FILE)" && \
+                echo -E "${update_ipfsurl}" > $DGA_SETTINGS_BACKUP_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -9034,6 +9113,7 @@ uninstall_do_now() {
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
                 IPFS_VER_LOCAL=""
+                delete_kubo="yes"
                 sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
                 IPFS_INSTALL_DATE=""
                 sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
@@ -9042,21 +9122,41 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+            # Set IPFS URL in main.json to true (this will ensure that it uses js-IPFS is used now that Kubo is uninstalled)
+            if [ -f $DGA_SETTINGS_FILE ]; then
+                str="Setting IPFS to 'true' in main.json..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_ipfsurl="$(jq ".ipfs = true" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_ipfsurl}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete IPFS settings
+            if [ -d "$USER_HOME/.ipfs" ]; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your Kubo IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs\\n\\nThis folder contains all the settings and metadata related to your Kubo IPFS node." "${r}" "${c}"; then
+                    str="Deleting ~/.ipfs settings folder..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -r $USER_HOME/.ipfs
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b You chose not to delete the Kubo IPFS settings folder (~/.ipfs).\\n" "${INFO}"
+                fi
+            fi
+
+            # Restart the DigiAsset Node, if we uninstalled Kobu. This is to force it to switch over to using JS-IPFS
+            if [ "$delete_kubo" = "yes" ] && [ "$delete_dga" = "no" ]; then
+                str="Restarting DigiAsset Node so it switches from using Kubo to JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT pm2 restart digiasset
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+
         else
             printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
+            delete_kubo="no"
         fi
 
-        # Delete IPFS settings
-        if [ -d "$USER_HOME/.ipfs" ]; then
-            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs" "${r}" "${c}"; then
-                str="Deleting ~/.ipfs settings folder..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -r $USER_HOME/.ipfs
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                printf "%b You chose not to delete the IPFS settings folder (~/.ipfs).\\n" "${INFO}"
-            fi
-        fi
         printf "\\n"
     fi
 
@@ -9135,6 +9235,46 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+            # Ask to delete digibyte.conf if it exists
+            if [ -f "$DGB_CONF_FILE" ]; then
+
+                # Do you want to delete digibyte.conf?
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
+
+                    # Delete digibyte.conf
+                    str="Deleting digibyte.conf file..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f $DGB_CONF_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                else
+                    printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
+                fi
+            fi
+
+            # Only prompt to delete the blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION" ]; then
+                        str="Deleting DigiByte Core blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/indexes
+                        rm -rf $DGB_DATA_LOCATION/chainstate
+                        rm -rf $DGB_DATA_LOCATION/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+                    printf "\\n"
+
+                else
+                    printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
+                    printf "\\n"
+                fi
+
+            fi
+
         else
             printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
         fi
@@ -9142,45 +9282,7 @@ uninstall_do_now() {
     fi
 
 
-    # Ask to delete digibyte.conf if it exists
-    if [ -f "$DGB_CONF_FILE" ]; then
 
-        # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
-
-            # Delete digibyte.conf
-            str="Deleting digibyte.conf file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $DGB_CONF_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b You chose not to delete your digibyte.conf settings file.\\n" "${INFO}"
-        fi
-    fi
-
-    # Only prompt to delete the blockchain data if it already exists
-    if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
-
-        # Delete DigiByte blockchain data
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte blockchain data?\\n\\nIf you re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
-
-            # Delete systemd service file
-            if [ -d "$DGB_DATA_LOCATION" ]; then
-                str="Deleting DigiByte Core blockchain data..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -rf $DGB_DATA_LOCATION/indexes
-                rm -rf $DGB_DATA_LOCATION/chainstate
-                rm -rf $DGB_DATA_LOCATION/blocks
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-            printf "\\n"
-
-        else
-            printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
-            printf "\\n"
-        fi
-
-    fi
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
 
@@ -10450,7 +10552,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
     printf "%b The automatic mode values are:\\n" "${INDENT}"
     echo "      - Above 55℃ the fan runs at 10%."
     echo "      - Above 60℃ the speed increases to 55%."
-    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - Above 65℃ the fan will spin at 100%."
     echo "      - The default hysteresis is 3℃."
     printf "\\n"
     printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
@@ -10464,7 +10566,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
     printf "%b The automatic mode values are:\\n" "${INDENT}"
     echo "      - Above 55℃ the fan runs at 10%."
     echo "      - Above 60℃ the speed increases to 55%."
-    echo "      - Above 65℃ the fan will spin at 100% 60℃."
+    echo "      - Above 65℃ the fan will spin at 100%."
     echo "      - The default hysteresis is 3℃."
     printf "\\n"
     printf "%b These can be changed using the CLI tool: ${txtbld}argonone-cli --help${txtrst}\\n" "${INDENT}"
