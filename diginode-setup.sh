@@ -9113,6 +9113,7 @@ uninstall_do_now() {
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
                 IPFS_VER_LOCAL=""
+                delete_kubo="yes"
                 sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
                 IPFS_INSTALL_DATE=""
                 sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
@@ -9142,8 +9143,18 @@ uninstall_do_now() {
                 fi
             fi
 
+            # Restart the DigiAsset Node, if we uninstalled Kobu. This is to force it to switch over to using JS-IPFS
+            if [ "$delete_kubo" = "yes" ] && [ "$delete_dga" = "no" ]; then
+                str="Restarting DigiAsset Node so it switches from using Kubo to JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT pm2 restart digiasset
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+
         else
             printf "%b You chose not to uninstall IPFS.\\n" "${INFO}"
+            delete_kubo="no"
         fi
 
         printf "\\n"
