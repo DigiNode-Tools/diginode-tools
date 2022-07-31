@@ -703,60 +703,23 @@ is_dganode_installed() {
     # If we know DigiAsset Node is installed, let's check if it is actually running
     # First we'll see if it is running using the command: node index.js
 
-      if [ "$DGA_STATUS" = "installed" ]; then
-          IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
-          if [ "$IS_DGANODE_RUNNING" != "" ]; then
-              DGA_STATUS="running"
-              IS_DGANODE_RUNNING="yes"
-              printf "%b %bDigiAsset Node Status: RUNNING%b [ Using 'node index.js' ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          else
-              # If that didn't work, check if it is running using PM2
-              IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
-
-              # In case it has not been named, double check
-              if [ "$IS_PM2_RUNNING" = "" ]; then
-                  IS_PM2_RUNNING=$(pm2 pid index 2>/dev/null)
-              fi
-
-              if [ "$IS_PM2_RUNNING" = "" ]; then
-                  DGA_STATUS="stopped"
-                  IS_PM2_RUNNING="NO"
-                  STARTWAIT="yes"
-                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 service does not exist ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-              elif [ "$IS_PM2_RUNNING" = "0" ]; then
-                  DGA_STATUS="stopped"
-                  IS_PM2_RUNNING="NO"
-                  STARTWAIT="yes"
-                  printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 is stopped ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-              else
-                  DGA_STATUS="running"
-                  IS_PM2_RUNNING="yes"
-                  printf "%b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-              fi    
-          fi
-      elif [ "$DGA_STATUS" = "not_detected" ]; then
-          printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-      elif [ "$DGA_STATUS" != "" ]; then
-          printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-      fi
-
-    # If we know DigiAsset Node is installed, let's check if it is actually running
-    # First we'll see if it is running using the command: node index.js
-
     if [ "$DGA_STATUS" = "installed" ]; then
         IS_DGANODE_RUNNING=$(pgrep -f "node index.js")
         if [ "$IS_DGANODE_RUNNING" != "" ]; then
             DGA_STATUS="running"
             IS_DGANODE_RUNNING="yes"
             do_pm2_check=false
-            printf "%b %bDigiAsset Node Status: RUNNING%b [ Using 'node index.js' ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b DigiAsset Node is running with 'node index.js'\\n\\n" "${INFO}"
+            printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         else
             printf "%b DigiAsset Node is not running with 'node index.js'\\n" "${INFO}"
             do_pm2_check=true
         fi
 
+         # If that didn't work, check if it is running using PM2
+
         if [ "$do_pm2_check" = true ]; then
-            # If that didn't work, check if it is running using PM2
+           
             IS_PM2_RUNNING=$(pm2 pid digiasset 2>/dev/null)
 
             # In case it has not been named, double check
@@ -766,24 +729,26 @@ is_dganode_installed() {
 
             if [ "$IS_PM2_RUNNING" = "" ]; then
                 DGA_STATUS="stopped"
-                IS_PM2_RUNNING="NO"
                 STARTWAIT="yes"
-                printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 service does not exist ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b DigiAsset Node PM2 Service does not exist.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             elif [ "$IS_PM2_RUNNING" = "0" ]; then
                 DGA_STATUS="stopped"
-                IS_PM2_RUNNING="NO"
                 STARTWAIT="yes"
-                printf "%b %bDigiAsset Node Status: NOT RUNNING%b [ PM2 is stopped ]\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b DigiAsset Node PM2 Service is stopped.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             else
                 DGA_STATUS="running"
-                IS_PM2_RUNNING="yes"
-                printf "%b %bDigiAsset Node Status: RUNNING%b [ PM2 is running ]\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b DigiAsset Node PM2 Service is running.\\n\\n" "${INFO}"
+                printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             fi    
         fi
     elif [ "$DGA_STATUS" = "not_detected" ]; then
         printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        STARTWAIT="yes"
     elif [ "$DGA_STATUS" != "" ]; then
         printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        STARTWAIT="yes"
     fi
 
     printf "\\n"
