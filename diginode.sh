@@ -631,7 +631,7 @@ is_dganode_installed() {
 
       # Display if DigiAsset Node packages are installed
 
-      if [ "$nodejs_installed" = "yes" ]; then 
+      if [ "$nodejs_installed" = "yes" ] && [ "$ipfs_installed" = "yes" ]; then 
         printf "%b DigiAsset Node packages are installed: ${TICK} Kubo ${TICK} NodeJS\\n" "${TICK}"
       else
         printf "%b DigiAsset Node packages are NOT installed:" "${CROSS}"
@@ -646,27 +646,35 @@ is_dganode_installed() {
           printf "${CROSS} NodeJS"
         fi
           printf "\\n"
-          printf "%b Some packages required to run the DigiAsset Node are not currently installed.\\n" "${INFO}"
-          printf "%b You can install them using DigiNode Setup.\\n" "${INDENT}"
-          printf "\\n"
+          if [ "$nodejs_installed" = "no" ]; then
+              printf "%b NodeJS is required to run a DigiAsset Node and is not currently installed.\\n" "${INFO}"
+          fi
+          if [ "$ipfs_installed" = "no" ]; then
+              printf "%b Kubo is not installed. JS-IPFS will be used.\\n" "${INFO}"
+          fi
+
           STARTWAIT="yes"
-          DGA_STATUS="not_detected"
         fi
 
       # Check if ipfs service is running. Required for DigiAssets server.
 
       # ps aux | grep ipfs
 
-      if [ "" = "$(pgrep ipfs)" ]; then
-          printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
-          ipfs_running="no"
-          DGA_STATUS="not_detected"
-      else
-          printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
-          if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
-            DGA_STATUS="ipfsrunning"
+      # If Kubo is installed, check if the daemon is running
+      if [ "$ipfs_installed" = "yes" ]; then
+
+          if [ "" = "$(pgrep ipfs)" ]; then
+              printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
+              ipfs_running="no"
+              DGA_STATUS="not_detected"
+          else
+              printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
+              if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
+                DGA_STATUS="ipfsrunning"
+              fi
+              ipfs_running="yes"
           fi
-          ipfs_running="yes"
+
       fi
 
         # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
@@ -684,11 +692,8 @@ is_dganode_installed() {
       # Check for 'digiasset_node' index.js file
 
       if [ -f "$DGA_INSTALL_LOCATION/index.js" ]; then
-        if [ "$DGA_STATUS" = "ipfsrunning" ]; then
-           DGA_STATUS="installed" 
-        fi
+        DGA_STATUS="installed" 
         printf "%b DigiAsset Node software is installed.\\n" "${TICK}"
-        printf "\\n"
       else
           printf "%b DigiAsset Node software cannot be found.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
           printf "\\n"
