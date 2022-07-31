@@ -7,8 +7,8 @@ A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node a
 
 ### What are DigiNode Tools?
 DigiNode Tools are a suite of linux bash scripts that make it easy to setup, monitor and manage your DigiNode via the linux command line:
-- DigiNode Setup - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
-- DigiNode Status Monitor - Provides a live dashboard to quickly check the status of your DigiNode.
+- **DigiNode Setup** - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
+- **DigiNode Status Monitor** - Provides a live dashboard to quickly check the status of your DigiNode.
 
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
