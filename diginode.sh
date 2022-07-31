@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.5
+#           Name:  DigiNode Status Monitor v0.5.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.5
-# Last Updated: 2022-07-30
+DGNT_VER_LOCAL=0.5.6
+# Last Updated: 2022-07-31
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -820,6 +820,7 @@ update_dga_console() {
 if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
     DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+    DGA_PORT_QUERY=$(curl localhost:8090/api/status/port.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
@@ -832,6 +833,11 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
+
+        # If the console didn't provide a port number, get it direct from the port query
+        if [ "$IPFS_PORT_NUMBER" = "" ] && [ "$DGA_PORT_QUERY" != "" ]; then
+            IPFS_PORT_NUMBER=$DGA_PORT_QUERY
+        fi
 
         is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
         is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)

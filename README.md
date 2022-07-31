@@ -157,6 +157,9 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.5.6 - 2022-08-01
+- 
+
 DigiNode Tools v0.5.5 - 2022-07-31
 - Fix: The Status Monitor can now better detect if the DigiAsset Node is running.
 - New: Status Monitor will now detect if the DigiAsset Node goes offline and when it comes back online again.

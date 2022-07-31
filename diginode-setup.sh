@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.5
+#           Name:  DigiNode Setup v0.5.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8034,8 +8034,8 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         fi
     
         # Delete asset_settings folder
-        str="Preparing Upgrade: Backing up the DigiAssets settings from ~/digiasset_node/_config to ~/dga_config_backup"
-        printf "%b %s" "${INFO}" "${str}"
+        str="Preparing Upgrade: Backing up DigiAsset settings to ~/dga_config_backup"
+        printf "%b %s" "${INFO}" "${str}" 
         mv $DGA_SETTINGS_LOCATION/*.json $DGA_SETTINGS_BACKUP_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
