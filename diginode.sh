@@ -736,23 +736,23 @@ is_dganode_installed() {
                 DGA_STATUS="stopped"
                 STARTWAIT="yes"
                 printf "%b DigiAsset Node PM2 Service does not exist.\\n\\n" "${INFO}"
-                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             elif [ "$IS_PM2_RUNNING" = "0" ]; then
                 DGA_STATUS="stopped"
                 STARTWAIT="yes"
                 printf "%b DigiAsset Node PM2 Service is stopped.\\n\\n" "${INFO}"
-                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             else
                 DGA_STATUS="running"
                 printf "%b DigiAsset Node PM2 Service is running.\\n\\n" "${INFO}"
-                printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiAsset Node Status: RUNNING%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             fi    
         fi
     elif [ "$DGA_STATUS" = "not_detected" ]; then
-        printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bDigiAsset Node Status: NOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         STARTWAIT="yes"
     elif [ "$DGA_STATUS" != "" ]; then
-        printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bDigiAsset Node Status: NOT RUNNING%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         STARTWAIT="yes"
     fi
 
