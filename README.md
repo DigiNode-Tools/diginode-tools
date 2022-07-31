@@ -15,7 +15,9 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below.
 
-If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Ubuntu Server 64-bit** or **Raspberry Pi OS Lite 64-bit**. See [here](docs/suggested_hardware.md) for the parts you need.
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Ubuntu Server 64-bit** or **Raspberry Pi OS Lite 64-bit**. 
+
+See [here](docs/suggested_hardware.md) for the parts you need.
 
 ## Disclaimer
 
