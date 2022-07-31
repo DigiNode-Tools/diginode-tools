@@ -817,11 +817,13 @@ get_dgb_rpc_credentials() {
 # Query the DigiAsset Node console for the current status
 update_dga_console() {
 
-if [ "$DGA_STATUS" = "running" ]; then
+if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
     DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
+
+        DGA_STATUS="running"
 
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
@@ -840,6 +842,9 @@ if [ "$DGA_STATUS" = "running" ]; then
         elif [ "$is_running" = "Running" ]; then
             IPFS_PORT_STATUS_CONSOLE="OPEN"
         fi
+
+    else
+        DGA_STATUS="stopped"
     fi
 
 fi    
