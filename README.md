@@ -157,8 +157,11 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.5.5 - 2022-07-xx
-- Fix: The Status Monitor can now better detect if the DigiAsset Node is running
+DigiNode Tools v0.5.5 - 2022-07-31
+- Fix: The Status Monitor can now better detect if the DigiAsset Node is running.
+- New: Status Monitor will now detect if the DigiAsset Node goes offline and when it comes back online again.
+- New: Status Monitor IPFS status now shows in yellow when starting up etc.
+- New: Kubo API URL gets added to main.json when Kubo is installed and removed when it is deleted. DigiAsset Node restarts when Kubo is removed to ensure it switches to using JS-IPFS.
 - Updated README
 
 DigiNode Tools v0.5.4 - 2022-07-30
