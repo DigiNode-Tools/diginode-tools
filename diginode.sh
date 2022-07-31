@@ -839,8 +839,13 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         # Is the IPFS port blocked
         if [ "$is_blocked" = "Blocked" ]; then
             IPFS_PORT_STATUS_CONSOLE="BLOCKED"
+            IPFS_PORT_STATUS_COLOR=""
         elif [ "$is_running" = "Running" ]; then
             IPFS_PORT_STATUS_CONSOLE="OPEN"
+            IPFS_PORT_STATUS_COLOR=""
+        else
+            IPFS_PORT_STATUS_CONSOLE="OPEN"
+            IPFS_PORT_STATUS_COLOR="YELLOW"
         fi
 
     else
@@ -878,6 +883,8 @@ fi
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
+elif [ "$IPFS_PORT_STATUS_COLOR" = "YELLOW" ]; then
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbylw}$DGA_CONSOLE_IPFS${txtrst}" "║"
 else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi
