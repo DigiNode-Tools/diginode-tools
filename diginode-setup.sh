@@ -388,6 +388,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
     DONATION_PLEA=YES
     IPFS_PORT_TEST_ENABLED=YES
+    IPFS_KUBO_API_URL=http://127.0.0.1:5001/api/v0/
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -663,7 +664,7 @@ IPFS_VER_LOCAL="$IPFS_VER_LOCAL"
 IPFS_VER_RELEASE="$IPFS_VER_RELEASE"
 IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
 IPFS_UPGRADE_DATE="$IPFS_UPGRADE_DATE"
-IPFS_KUBO_API_URL=http://127.0.0.1:5001/api/v0/
+IPFS_KUBO_API_URL=$IPFS_KUBO_API_URL
 
 # Store NodeJS installation details:
 NODEJS_VER_LOCAL="$NODEJS_VER_LOCAL"
@@ -8431,7 +8432,7 @@ digiasset_node_create_settings() {
     # If live main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
     if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking Kubo IPFS API URL..."
+        str="Checking if Kubo IPFS API URL needs updating..."
         printf "%b %s" "${INFO}" "${str}"
 
         local ipfsurl_json_cur
@@ -8448,7 +8449,7 @@ digiasset_node_create_settings() {
             ipfs_api_url_change=true
         fi
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
-            printf "%b%b %s Yes! Kubo IPFS API URL need updating.\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -8457,7 +8458,7 @@ digiasset_node_create_settings() {
     # If backup main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking Kubo IPFS API URL..."
+        str="Checking if Kubo IPFS API URL needs updating..."
         printf "%b %s" "${INFO}" "${str}"
 
         local ipfsurl_json_cur
@@ -8474,7 +8475,7 @@ digiasset_node_create_settings() {
             ipfs_api_url_change=true
         fi
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
-            printf "%b%b %s Yes! Kubo IPFS API URL need updating.\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" != "update_restore" ]; then
             printf "%b%b %s No!\\n" "${OVER}" "${TICK}" "${str}"
         fi
