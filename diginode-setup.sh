@@ -8987,6 +8987,18 @@ uninstall_do_now() {
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # Delete JS-IPFS settings
+    if [ -d "$USER_HOME/.jsipfs" ]; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your JS-IPFS settings folder?\\n\\nThis will delete the folder: ~/.jsipfs\\n\\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." "${r}" "${c}"; then
+            str="Deleting ~/.jsipfs settings folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/.jsipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete the JS-IPFS settings folder (~/.jsipfs).\\n" "${INFO}"
+        fi
+    fi
+
     # Ask to delete PM2 service, if it exists
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
