@@ -1377,6 +1377,9 @@ whitelist=127.0.0.1
 # Accept incoming connections from peers.
 listen=1
 
+# Use UPnP to map the listening port.
+upnp=1
+
 
 # [rpc]
 # RPC user
@@ -9284,6 +9287,7 @@ uninstall_do_now() {
 
         else
             printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
+            printf "\\n"
         fi
 
     fi
