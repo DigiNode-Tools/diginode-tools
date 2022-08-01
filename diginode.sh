@@ -1707,14 +1707,30 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
     # update external IP if it is offline
     if [ $IP4_EXTERNAL = "OFFLINE" ]; then
-        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
-        if [ $IP4_EXTERNAL_QUERY != "" ]; then
-            IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
-            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
-        else
-            IP4_EXTERNAL="OFFLINE"
-            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+
+        # Check if the DigiNode has gone offline
+        wget -q --spider http://google.com
+        if [ $? -eq 0 ]; then
+
+            IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
+            if [ $IP4_EXTERNAL_QUERY != "" ]; then
+                IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+                sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+            fi
         fi
+    fi
+
+    # update external IP, unless it is offline
+    if [ "$IP4_INTERNAL" = "OFFLINE" ]; then
+
+          IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+          if [ $IP4_INTERNAL_QUERY != "" ]; then
+            IP4_INTERNAL=$IP4_INTERNAL_QUERY
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+          else
+            IP4_INTERNAL="OFFLINE"
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+          fi
     fi
 
     # Lookup disk usage, and store in diginode.settings if present
@@ -1789,12 +1805,27 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
   # Choose a random DigiFact
   digifact_randomize
 
-  # Update local IP address if it has changed
-  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-  if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
-    IP4_INTERNAL = $IP4_INTERNAL_NEW
-    sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
-  fi
+    # update external IP, unless it is offline
+    if [ "$IP4_INTERNAL" != "OFFLINE" ]; then
+
+          IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+          if [ $IP4_INTERNAL_QUERY != "" ]; then
+            IP4_INTERNAL=$IP4_INTERNAL_QUERY
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+          else
+            IP4_INTERNAL="OFFLINE"
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+          fi
+    fi
+
+
+    # Check if the DigiNode has gone offline
+    wget -q --spider http://google.com
+    if [ $? -ne 0 ]; then
+        IP4_EXTERNAL="OFFLINE"
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+    fi
+
 
   # Update diginode.settings with when Status Monitor last ran
   DGNT_MONITOR_LAST_RUN=$(date)
