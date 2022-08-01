@@ -2069,7 +2069,7 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiB
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
 printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
