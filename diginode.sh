@@ -820,16 +820,17 @@ update_dga_console() {
 if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
     DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
-    DGA_PORT_QUERY=$(curl localhost:8090/api/status/port.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
         DGA_STATUS="running"
 
+        DGA_PORT_QUERY=$(curl --max-time 0.01 localhost:8090/api/status/port.json 2>/dev/null)
+        DGA_PAYOUT_ADDRESS=$(cat $DGA_SETTINGS_FILE | jq .optIn.payout | sed 's/"//g')
+
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
-
         DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
@@ -858,7 +859,7 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         DGA_STATUS="stopped"
     fi
 
-fi    
+fi  
 
 }
 
@@ -886,6 +887,14 @@ else
     DGA_CONSOLE_WALLET="[✗] Wallet"
 fi
 
+if [ "$DGA_PAYOUT_ADDRESS" = "null" ] || [ "$DGA_PAYOUT_ADDRESS" = "" ]; then
+    DGA_PAYOUT_ADDRESS_STATUS="[✗] Payout"
+else
+    DGA_PAYOUT_ADDRESS_STATUS="[✓] Payout"
+fi
+
+
+
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
@@ -894,7 +903,7 @@ printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbylw}$D
 else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi
-printf "  ║                ║  " && printf "%-55s %-1s\n" "$DGA_CONSOLE_WALLET   $DGA_CONSOLE_STREAM   $DGA_CONSOLE_SECURITY" "║"
+printf "  ║                ║  " && printf "%-57s %-1s\n" "$DGA_CONSOLE_WALLET  $DGA_CONSOLE_STREAM  $DGA_CONSOLE_SECURITY  $DGA_PAYOUT_ADDRESS_STATUS" "║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 
 }
