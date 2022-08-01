@@ -160,7 +160,8 @@ These features are for advanced users and should be used with caution:
 ## Release Notes
 
 DigiNode Tools v0.5.6 - 2022-08-01
-- 
+- New: When using Unattended mode, you can now use the --skipcustommsg to skip the option to customize diginode.settings at first run.
+- New: Status Monitor now includes if there is a payout address for the DigiAsset Node
 
 DigiNode Tools v0.5.5 - 2022-07-31
 - Fix: The Status Monitor can now better detect if the DigiAsset Node is running.
