@@ -9891,7 +9891,7 @@ fi
 if [ "$DIGIFACT" = "digifact34" ]; then
     DIGIFACT_TITLE="DigiFact # 34 - Did you know..."
     DIGIFACT_L1="You can build second-layer networks on top of DigiByte such as"
-    DIGIFACT_L2="DigiAssets , Lightning Networks, ICOs, Tokens, assets and more."
+    DIGIFACT_L2="DigiAssets, Lightning Networks, ICOs, Tokens, assets and more."
     DIGIFACT_L3=""
     DIGIFACT_L4=""
     DIGIFACT_L5=""
