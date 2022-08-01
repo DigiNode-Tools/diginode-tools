@@ -1145,10 +1145,13 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # update external IP address and save to settings file
     str="Looking up external IP address..."
     printf "  %b %s" "${INFO}" "${str}"
-    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
+    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
     if [ $IP4_EXTERNAL_QUERY != "" ]; then
         IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
         sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    else
+        IP4_EXTERNAL="OFFLINE"
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
     fi
     printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
 
@@ -1702,6 +1705,18 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
     fi
 
+    # update external IP if it is offline
+    if [ $IP4_EXTERNAL = "OFFLINE" ]; then
+        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
+        if [ $IP4_EXTERNAL_QUERY != "" ]; then
+            IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+        else
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        fi
+    fi
+
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
@@ -1800,11 +1815,17 @@ TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
 if [ $TIME_DIF_15MIN -ge 300 ]; then
 
-    # update external IP if it has changed
-    IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    if [ "$IP4_EXTERNAL_NEW" != "$IP4_EXTERNAL" ]; then
-      IP4_EXTERNAL=$IP4_EXTERNAL_NEW
-      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    # update external IP, unless it is offline
+    if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+
+        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
+        if [ $IP4_EXTERNAL_QUERY != "" ]; then
+            IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+        else
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        fi
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -2073,7 +2094,15 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte
 printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
+if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-71s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
+elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: $IP4_INTERNAL  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
+elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: $IP4_EXTERNAL" "║" 
+else
 printf "  ║ IP ADDRESS     ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
+fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
