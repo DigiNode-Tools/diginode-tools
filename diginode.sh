@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.5
+#           Name:  DigiNode Status Monitor v0.5.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.5
-# Last Updated: 2022-07-30
+DGNT_VER_LOCAL=0.5.6
+# Last Updated: 2022-07-31
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -825,13 +825,20 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
         DGA_STATUS="running"
 
+        DGA_PORT_QUERY=$(curl --max-time 0.01 localhost:8090/api/status/port.json 2>/dev/null)
+        DGA_PAYOUT_ADDRESS=$(cat $DGA_SETTINGS_FILE | jq .optIn.payout | sed 's/"//g')
+
         DGA_CONSOLE_WALLET=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Wallet: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
-
         DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
+
+        # If the console didn't provide a port number, get it direct from the port query
+        if [ "$IPFS_PORT_NUMBER" = "" ] && [ "$DGA_PORT_QUERY" != "" ]; then
+            IPFS_PORT_NUMBER=$DGA_PORT_QUERY
+        fi
 
         is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
         is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
@@ -852,7 +859,7 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         DGA_STATUS="stopped"
     fi
 
-fi    
+fi  
 
 }
 
@@ -880,6 +887,14 @@ else
     DGA_CONSOLE_WALLET="[✗] Wallet"
 fi
 
+if [ "$DGA_PAYOUT_ADDRESS" = "null" ] || [ "$DGA_PAYOUT_ADDRESS" = "" ]; then
+    DGA_PAYOUT_ADDRESS_STATUS="[✗] Payout"
+else
+    DGA_PAYOUT_ADDRESS_STATUS="[✓] Payout"
+fi
+
+
+
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
@@ -888,7 +903,7 @@ printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbylw}$D
 else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi
-printf "  ║                ║  " && printf "%-55s %-1s\n" "$DGA_CONSOLE_WALLET   $DGA_CONSOLE_STREAM   $DGA_CONSOLE_SECURITY" "║"
+printf "  ║                ║  " && printf "%-57s %-1s\n" "$DGA_CONSOLE_WALLET  $DGA_CONSOLE_STREAM  $DGA_CONSOLE_SECURITY  $DGA_PAYOUT_ADDRESS_STATUS" "║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 
 }

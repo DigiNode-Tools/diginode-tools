@@ -120,9 +120,11 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 These features are for advanced users and should be used with caution:
 
-**Unattended Mode:** This is useful for installing the script completely unattended. Run this only having customized the unattended install settings in the ~/.digibyte/diginode.settings file. The settings file will be created the first time you run DigiNode Setup. To run in unattended mode, use the --unattended flag at launch.
+**Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. (Note: The first time you run DigiNode Setup in Unattended mode, it will create the settings file (~/.digibyte/diginode.settings) and exit, giving you the opportunity to customize your install before proceeding. You can skip this step by also including the --skipcustommsg flag.)
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended```
+- ```diginode-setup --unattended --skipcustommsg```
 
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly``` or
@@ -156,6 +158,12 @@ These features are for advanced users and should be used with caution:
 - ```diginode-setup --dgntdev --dgadev```
 
 ## Release Notes
+
+DigiNode Tools v0.5.6 - 2022-08-01
+- Fix: Staus Monitor - if port.js
+- New: Status Monitor now quits automatically after one hour by default
+- New: When using Unattended mode, you can now use the --skipcustommsg to skip the option to customize diginode.settings at first run.
+- New: Status Monitor now includes if there is a payout address for the DigiAsset Node
 
 DigiNode Tools v0.5.5 - 2022-07-31
 - Fix: The Status Monitor can now better detect if the DigiAsset Node is running.
