@@ -144,6 +144,7 @@ SKIP_PKG_UPDATE_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
 DGANODE_ONLY=
+SKIP_CUSTOM_MSG=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -163,6 +164,7 @@ for var in "$@"; do
         "--runremote" ) DGNT_RUN_LOCATION="remote";;
         "--dganodeonly" ) DGANODE_ONLY=true;;
         "--fulldiginode" ) DGANODE_ONLY=false;;
+        "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
     esac
 done
 
@@ -248,10 +250,12 @@ where_are_we() {
 is_unattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        if test -f "$DGNT_SETTINGS_FILE"; then
+        if [ test -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
-        else
-            printf "%b   diginode.settings file not found - it will be created\\n" "${INDENT}"
+        elif [ "$SKIP_CUSTOM_MSG" = true ]; then
+            printf "%b   diginode.settings file not found - it will be created and the default values used\\n" "${INDENT}"
+        elif [ "$SKIP_CUSTOM_MSG" = false ]; then
+            printf "%b   diginode.settings file not found - it will be created and setup will exit so you can customize your install\\n" "${INDENT}"
         fi
         printf "\\n"
     fi
@@ -402,7 +406,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     IS_DIGINODE_SETTINGS_FILE_NEW="YES"
 
     # If we are running unattended, then exit now so the user can customize diginode.settings, since it just been created
-    if [ "$UNATTENDED_MODE" = true ]; then
+    if [ "$UNATTENDED_MODE" = true ] && [ "$SKIP_CUSTOM_MSG" = false ]; then
         printf "\\n"
         printf "%b %bIMPORTANT: Customize your Unattended Install before running this again!!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b Since this is the first time running DigiNode Setup, a settings file used for\\n" "${INDENT}"
@@ -417,6 +421,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b   $TEXTEDITOR $DGNT_SETTINGS_FILE\\n" "${INDENT}"
             printf "\\n"
         fi
+        printf "%b Note: If you wish to skip displaying this message at first run in future, \\n" "${INDENT}"
+        printf "%b       use the --skipcustommsg flag\\n" "${INDENT}"
+        printf "\\n"
         exit
     fi
 
@@ -506,7 +513,7 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
 # Stop the DigiNode Status Monitor automatically if it is left running
 # Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
-# e.g. To stop after 12 hours enter: 43200
+# e.g. To stop after 1 hour enter: 3600
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
