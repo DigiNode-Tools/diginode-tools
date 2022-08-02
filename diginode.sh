@@ -680,7 +680,7 @@ is_dganode_installed() {
         # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
         if [ "$ipfs_running" = "no" ] || [ "$DGA_STATUS" = "not_detected" ]; then
 
-            DGA_CONSOLE_QUERY=$(curl --max-time 1 localhost:8090/api/status/console.json 2>/dev/null)
+            DGA_CONSOLE_QUERY=$(curl --max-time 4 localhost:8090/api/status/console.json 2>/dev/null)
             if [ "$DGA_CONSOLE_QUERY" != "" ]; then
                 ipfs_running="yes"
                 DGA_STATUS="ipfsrunning"
@@ -819,7 +819,7 @@ update_dga_console() {
 
 if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
-    DGA_CONSOLE_QUERY=$(curl --max-time 1 localhost:8090/api/status/console.json 2>/dev/null)
+    DGA_CONSOLE_QUERY=$(curl --max-time 4 localhost:8090/api/status/console.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
@@ -1229,7 +1229,7 @@ firstrun_dganode_configs() {
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 1 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 4 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -1863,7 +1863,7 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
       # Next let's try and get the minor version, which may or may not be available yet
       # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 1 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 4 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -2348,18 +2348,18 @@ PORT_TEST_DATE=$(date)
 
 if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-    str="Is DigiByte Core port 12024 open? ... "
+    str="Is DigiByte Core port 12024 OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
     # Setup DigiByte Port Test Query
     DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 5 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
-    DGB_PORT_TEST_QUERY_CMD_2=$(echo "$IP4_EXTERNAL")
+    DGB_PORT_TEST_QUERY_CMD_2=$IP4_EXTERNAL
     DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"12024\"}' https://digipixel.me/api/scan"
 
     DGB_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}"
 
     # Query Renzo's DigiByte Port tester - http://digipixel.me/
-    DGB_PORT_TEST_QUERY=$($DGB_PORT_TEST_QUERY_CMD)
+    DGB_PORT_TEST_QUERY=$(eval $DGB_PORT_TEST_QUERY_CMD) 
 
     # Port Test - Is the server busy?
     DGB_PORT_TEST_QUERY_BUSY=$(echo $DGB_PORT_TEST_QUERY | grep -Eo "busy")  
@@ -2370,7 +2370,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
 
     DGB_PORT_TEST_QUERY_VERSION=$(echo $DGB_PORT_TEST_QUERY | jq .version | sed 's/"//g')
-    DGB_PORT_TEST_QUERY_SUBVERSION=$(echo $DGB_PORT_TEST_QUERY | jq .subversion | sed 's/"//g' | sed 's/^\///;s/\// /g' | sed 's/:/ /g')
+    DGB_PORT_TEST_QUERY_SUBVERSION=$(echo $DGB_PORT_TEST_QUERY | jq .subversion | sed 's/"//g' | sed 's/^\///;s/\// /g' | sed 's/:/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//')
     DGB_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_PORT_TEST_QUERY | jq .height | sed 's/"//g')
     DGB_PORT_TEST_QUERY_BLOCKCOUNT=$(printf "%'d" $DGB_PORT_TEST_QUERY_BLOCKCOUNT)
     DGB_PORT_TEST_QUERY_UNAVAILABLE=$(echo $DGB_PORT_TEST_QUERY | jq .error | sed 's/"//g')
@@ -2394,10 +2394,15 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
         printf "\\n" 
-        printf "%b Success! Port 12024 is OPEN.\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
         printf "\\n" 
-        printf "%b $DGB_PORT_TEST_QUERY_SUBVERSION was found at IP address $IP4_EXTERNAL.\\n" "${INDENT}"
+        printf "%b A DigiByte Node was found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
         printf "\\n" 
+        printf "%b   Subversion:  $DGB_PORT_TEST_QUERY_SUBVERSION\\n" "${INDENT}"
+        printf "%b      Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
+        printf "%b Block Height:  $DGB_PORT_TEST_QUERY_BLOCKCOUNT\\n" "${INDENT}"
+        printf "\\n"
+
 
         sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
         DGB_PORT_TEST_ENABLED="NO"
@@ -2412,7 +2417,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
         printf "\\n" 
-        printf "%b Port 12024 is CLOSED.\\n" "${INDENT}"
+        printf "%b ${txtbred}Fail! Port 12024 is CLOSED.${txtbld}\\n" "${INDENT}"
         printf "\\n"   
 
         DGB_PORT_TEST_ENABLED="YES"
@@ -2432,9 +2437,11 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
             printf "\\n"
+            printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
             printf "%b NOTE: The port testing service is currently unavailable. However,\\n" "${INFO}"
-            printf "%b       your current connection count is more than 8 which means\\n" "${INDENT}"
-            printf "%b       port 12024 is OPEN and your DigiByte Node is working currectly.\\n" "${INDENT}"
+            printf "%b       your connection count is currently more than 8 which means\\n" "${INDENT}"
+            printf "%b       port 12024 is definitely open.\\n" "${INDENT}"
             printf "\\n"
 
             DGB_PORT_TEST_ENABLED="NO"
@@ -2449,7 +2456,9 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         
         else
 
-            printf "%b%b %s POSSIBLY NOT! Low connection count detected.\\n" "${OVER}" "${WARN}" "${str}"
+            printf "%b%b %s POSSIBLY NOT!\\n" "${OVER}" "${WARN}" "${str}"
+            printf "\\n" 
+            printf "%b ${txtbylw}Warning: Low connection count detected - the port may not be open.${txtrst}\\n" "${INDENT}" 
             printf "\\n"
             printf "%b NOTE: The port testing service is currently down, so the port cannot be tested. \\n" "${INFO}"
             printf "\\n"
@@ -2496,7 +2505,7 @@ elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; t
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b Your DigiByte Node is in the process of starting up. Try again in a few minutes...\\n" "${INDENT}"
+        printf "%b ${txtbylw}Your DigiByte Node is in the process of starting up. Try again in a few minutes...${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
@@ -2516,22 +2525,26 @@ elif [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Port 12024 is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 fi
 
 if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
 
-    str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+    str="Is IPFS port $IPFS_PORT_NUMBER OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    IPFS_PORT_TEST_QUERY=$(curl --max-time 1 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+    IPFS_PORT_TEST_QUERY=$(curl --max-time 4 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
     if [ $? -eq 0 ]; then
 
         if [ "$IPFS_PORT_TEST_QUERY" = "true" ]; then
-            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
+            printf "\\n"
+            printf "%b ${txtbgrn}Success! Port $IPFS_PORT_NUMBER is OPEN.${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+
             IPFS_PORT_TEST_ENABLED="NO"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
             IPFS_PORT_FWD_STATUS="OPEN"
@@ -2542,11 +2555,14 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
             sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
 
             sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
-            printf "\\n"
         fi
 
         if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
-            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbred}Fail! Port $IPFS_PORT_NUMBER is CLOSED.${txtbld}\\n" "${INDENT}"
+            printf "\\n"   
+
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
             IPFS_PORT_FWD_STATUS="CLOSED"
@@ -2579,7 +2595,7 @@ elif [ "$IPFS_PORT_TEST_ENABLED" = "NO" ]; then
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Port $IPFS_PORT_NUMBER is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 fi
