@@ -159,8 +159,12 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.5.7 - 2022-08-xx
+- New: Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
+- New: DigiByte startup message is now in yellow to indicate a transitory issue
+- New: Improve detection of when DigiNode internet connection is online/offline
+
 DigiNode Tools v0.5.6 - 2022-08-01
-- Fix: Staus Monitor - if port.js
 - New: Status Monitor now quits automatically after one hour by default
 - New: When using Unattended mode, you can now use the --skipcustommsg to skip the option to customize diginode.settings at first run.
 - New: Status Monitor now includes if there is a payout address for the DigiAsset Node
