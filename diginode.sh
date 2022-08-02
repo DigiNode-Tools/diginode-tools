@@ -680,7 +680,7 @@ is_dganode_installed() {
         # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
         if [ "$ipfs_running" = "no" ] || [ "$DGA_STATUS" = "not_detected" ]; then
 
-            DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+            DGA_CONSOLE_QUERY=$(curl --max-time 1 localhost:8090/api/status/console.json 2>/dev/null)
             if [ "$DGA_CONSOLE_QUERY" != "" ]; then
                 ipfs_running="yes"
                 DGA_STATUS="ipfsrunning"
@@ -819,7 +819,7 @@ update_dga_console() {
 
 if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
-    DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+    DGA_CONSOLE_QUERY=$(curl --max-time 1 localhost:8090/api/status/console.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
@@ -1229,7 +1229,7 @@ firstrun_dganode_configs() {
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 1 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -1645,7 +1645,6 @@ if [ "$DGB_STATUS" = "running" ]; then
   fi
 fi 
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 15 seconds (approx once every block).
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
@@ -1709,7 +1708,7 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
     if [ "$IP4_EXTERNAL" = "OFFLINE" ]; then
 
         # Check if the DigiNode has gone offline
-        wget -q --spider http://google.com
+        wget -q --connect-timeout=0.5 --spider http://google.com
         if [ $? -eq 0 ]; then
 
             IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
@@ -1820,7 +1819,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
 
     # Check if the DigiNode has gone offline
-    wget -q --spider http://google.com
+    wget -q --connect-timeout=0.5 --spider http://google.com
     if [ $? -ne 0 ]; then
         IP4_EXTERNAL="OFFLINE"
         sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
@@ -1836,7 +1835,6 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
 fi
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 15 minutes
 #    Update the Internal & External IP
@@ -1849,8 +1847,8 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
     # update external IP, unless it is offline
     if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
 
-        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
-        if [ $IP4_EXTERNAL_QUERY != "" ]; then
+        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short +timeout=5 2>/dev/null)
+        if [ "$IP4_EXTERNAL_QUERY" != "" ]; then
             IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
             sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
         else
@@ -1865,7 +1863,7 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
       # Next let's try and get the minor version, which may or may not be available yet
       # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 1 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -1946,7 +1944,6 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 24 hours
 #    Check for new version of DigiByte Core
@@ -1966,7 +1963,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
     # Check for new release of DigiByte Core on Github
-    DGB_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
       DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
       sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -1990,7 +1987,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -2021,7 +2018,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
     # Check for new release of DigiAsset Node
-    DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
+    DGA_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
     if [ $DGA_VER_RELEASE_QUERY != "" ]; then
       DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
       DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
@@ -2054,7 +2051,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of Kubo
-    IPFS_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    IPFS_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -2249,7 +2246,7 @@ fi
 if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
     printf "               Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
-    printf "           Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
     printf "                         Press ${txtbld}Ctrl-C${txtrst} to Quit.\\n"
 fi
@@ -2355,7 +2352,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     printf "%b %s" "${INFO}" "${str}" 
 
     # Setup DigiByte Port Test Query
-    DGB_PORT_TEST_QUERY_CMD_1="curl --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
+    DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 5 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
     DGB_PORT_TEST_QUERY_CMD_2=$(echo "$IP4_EXTERNAL")
     DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"12024\"}' https://digipixel.me/api/scan"
 
@@ -2529,7 +2526,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
     str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    IPFS_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+    IPFS_PORT_TEST_QUERY=$(curl --max-time 1 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
     if [ $? -eq 0 ]; then
 
