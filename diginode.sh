@@ -2247,11 +2247,11 @@ if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
 if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
-    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "               Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
-    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
-    printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
+    printf "                         Press ${txtbld}Ctrl-C${txtrst} to Quit.\\n"
 fi
 printf "\\n"
 
@@ -2269,14 +2269,6 @@ read -t 0.5 -s -n 1 input
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
         case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
-                ;;
             "P")
                 echo "Running Port test..."
                 port_test
@@ -2290,14 +2282,6 @@ read -t 0.5 -s -n 1 input
     elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
         case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
-                ;;
             "P")
                 echo "Running Port test..."
                 port_test
@@ -2305,19 +2289,6 @@ read -t 0.5 -s -n 1 input
             "p")
                 echo "Running Port test..."
                 port_test
-                ;;
-        esac
-
-    else
-
-        case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
                 ;;
         esac
 
@@ -2379,8 +2350,6 @@ PORT_TEST_DATE=$(date)
 
 
 if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
-
-# if [ "$DGB_STATUS" = "running" ]; then
 
     str="Is DigiByte Core port 12024 open? ... "
     printf "%b %s" "${INFO}" "${str}" 
@@ -2466,8 +2435,9 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
             printf "\\n"
-            printf "%b NOTE: The port testing service is currently unavailable. However your connection count\\n" "${INFO}"
-            printf "%b       is above 8 which means port 12024 is OPEN and your DigiByte Node is working currectly.\\n" "${INDENT}"
+            printf "%b NOTE: The port testing service is currently unavailable. However,\\n" "${INFO}"
+            printf "%b       your current connection count is more than 8 which means\\n" "${INDENT}"
+            printf "%b       port 12024 is OPEN and your DigiByte Node is working currectly.\\n" "${INDENT}"
             printf "\\n"
 
             DGB_PORT_TEST_ENABLED="NO"
