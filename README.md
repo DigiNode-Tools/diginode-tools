@@ -138,7 +138,7 @@ These features are for advanced users and should be used with caution:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
+**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. (Some VPS won't let you update.)
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skipupdatepkgcache``` or
 - ```diginode-setup --skipupdatepkgcache```
 
@@ -160,9 +160,9 @@ These features are for advanced users and should be used with caution:
 ## Release Notes
 
 DigiNode Tools v0.5.7 - 2022-08-xx
-- New: Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
-- New: DigiByte startup message is now in yellow to indicate a transitory issue
-- New: Improve detection of when DigiNode internet connection is online/offline
+- New: DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
+- New: Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
+- New: Status Monitor - Improve detection of when DigiNode internet connection is online/offline
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default
