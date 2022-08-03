@@ -1118,20 +1118,10 @@ startup_waitpause() {
 
 # Optionally require a key press to continue, or a long 5 second pause. Otherwise wait 3 seconds before starting monitoring. 
 
-echo ""
 if [ "$STARTPAUSE" = "yes" ]; then
+  echo ""
   read -n 1 -s -r -p "      < Press any key to continue >"
-else
-
-  if [ "$STARTWAIT" = "yes" ]; then
-    echo "               < Wait for 5 seconds >"
-    sleep 5
-  else 
-    echo "               < Wait for 3 seconds >"
-    sleep 3
-  fi
 fi
-echo ""
 
 }
 
@@ -1285,6 +1275,9 @@ firstrun_dganode_configs() {
 
 pre_loop() {
 
+    printf " =============== Performing Startup Checks ==============================\\n\\n"
+    # ===============================================================================
+
       # Setup loopcounter - used for debugging
       loopcounter=0
 
@@ -1292,11 +1285,9 @@ pre_loop() {
       TIME_NOW=$(date)
       TIME_NOW_UNIX=$(date +%s)
 
-      # Log date of this Status Monitor run to diginode.settings
-      str="Logging date of this run to diginode.settings file..."
-      printf "%b %s" "${INFO}" "${str}"
-      sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-      printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+      if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "running" ]; then
+        printf "%b Checking DigiByte Core...\\n" "${INFO}"
+      fi
 
       # Is DigiByte daemon starting up?
       if [ "$DGB_STATUS" = "running" ]; then
@@ -1332,6 +1323,8 @@ pre_loop() {
 
 
       ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+
+      printf "%b Checking Software Versions...\\n" "${INFO}"
 
       # If there is actually a local version of DigiByte Core, check for an update
       if [ "$DGB_VER_LOCAL" != "" ]; then
@@ -1398,19 +1391,23 @@ pre_loop() {
         fi
     fi
 
+    if [ "$DGA_STATUS" = "running" ]; then
+        printf "%b Checking DigiAsset Node...\\n" "${INFO}"
+    fi
+
     # Query the DigiAsset Node console
     update_dga_console
 
     # Choose a random DigiFact
     digifact_randomize
 
+    printf "\\n"
 
     # Enable the DigiByte Core port test if it seems it has never run before
     if [ "$DGB_PORT_TEST_ENABLED" != "YES" ] && [ "$DGB_PORT_TEST_ENABLED" != "NO" ]; then
 
-        printf "\\n"
+        
         printf "%b Enabling DigiByte Core Port Test...\n" "${INFO}"
-        printf "\\n"
 
         DGB_PORT_TEST_ENABLED="YES"
         sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1419,9 +1416,7 @@ pre_loop() {
     # Enable the IPFS port test if it seems it has never run before
     if [ "$IPFS_PORT_TEST_ENABLED" != "YES" ] && [ "$IPFS_PORT_TEST_ENABLED" != "NO" ]; then
 
-        printf "\\n"
         printf "%b Enabling IPFS Port Test...\n" "${INFO}"
-        printf "\\n"
 
         IPFS_PORT_TEST_ENABLED="YES"
         sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1433,9 +1428,7 @@ pre_loop() {
         # If the External IP address has changed since the last port test was run, reset and re-enable the port test
         if [ "$DGB_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
 
-            printf "\\n"
             printf "%b External IP address has changed. Re-enabling DigiByte Core Port Test...\n" "${INFO}"
-            printf "\\n"
 
             DGB_PORT_TEST_ENABLED="YES"
             sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1456,9 +1449,7 @@ pre_loop() {
         # If the External IP address has changed since the last port test was run, reset and re-enable the port test
         if [ "$IPFS_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
 
-            printf "\\n"
             printf "%b External IP address has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
-            printf "\\n"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1474,9 +1465,7 @@ pre_loop() {
         # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
         elif [ "$IPFS_PORT_NUMBER" != "$IPFS_PORT_NUMBER_SAVED" ]; then
 
-            printf "\\n"
             printf "%b IPFS port number has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
-            printf "\\n"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1492,6 +1481,9 @@ pre_loop() {
         fi
 
     fi
+
+    # Enable displaying startup messaging for first loop
+    STARTUP_LOOP=true
 
 }
 
@@ -1518,6 +1510,10 @@ if [ $SM_AUTO_QUIT -gt 0 ]; then
       echo ""
       exit
   fi
+fi
+
+if [ "$STARTUP_LOOP" = "true" ]; then
+    printf "%b Running Status Loop: Every 1 Second...\\n" "${INFO}"
 fi
 
 
@@ -1654,6 +1650,10 @@ TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 15 Seconds...\\n" "${INFO}"
+    fi
+
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
     if [ "$DGB_STATUS" = "startingup" ]; then
         
@@ -1752,6 +1752,10 @@ TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 
 if [ $TIME_DIF_1MIN -ge 60 ]; then
 
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 1 Minute...\\n" "${INFO}"
+    fi
+
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
 
@@ -1843,6 +1847,10 @@ fi
 TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
 if [ $TIME_DIF_15MIN -ge 300 ]; then
+
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 15 Minutes...\\n" "${INFO}"
+    fi
 
     # update external IP, unless it is offline
     if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
@@ -1951,7 +1959,11 @@ fi
 
 TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 
-if [ $TIME_DIF_1DAY -ge 86400 ]; then 
+if [ $TIME_DIF_1DAY -ge 86400 ]; then
+
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 24 Hours...\\n" "${INFO}"
+    fi
 
     # items to repeat every 24 hours go here
 
@@ -2073,6 +2085,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date +%s)"
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+fi
+
+if [ "$STARTUP_LOOP" = "true" ]; then
+    printf "%b Generating Display output...\\n" "${INFO}"
 fi
 
 
@@ -2254,6 +2270,31 @@ printf "\\n"
 
 )
 
+if [ "$STARTUP_LOOP" = "true" ]; then
+
+    printf "%b Startup loop completed.\\n" "${INFO}"
+
+    printf "\\n"
+
+    # Log date of this Status Monitor run to diginode.settings
+    str="Logging date of this run to diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
+    sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    printf "\\n"
+
+  if [ "$STARTWAIT" = "yes" ]; then
+    echo "               < Wait for 5 seconds >"
+    sleep 5
+  else 
+    echo "               < Wait for 3 seconds >"
+    sleep 3
+  fi
+
+    STARTUP_LOOP=false
+
+fi
+
 # end output double buffer
 echo "$output"
 
@@ -2396,11 +2437,11 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         printf "\\n" 
         printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
         printf "\\n" 
-        printf "%b A DigiByte Node was found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
+        printf "%b Your DigiByte Node was found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
         printf "\\n" 
-        printf "%b   Subversion:  $DGB_PORT_TEST_QUERY_SUBVERSION\\n" "${INDENT}"
-        printf "%b      Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
-        printf "%b Block Height:  $DGB_PORT_TEST_QUERY_BLOCKCOUNT\\n" "${INDENT}"
+        printf "%b     Subversion:  $DGB_PORT_TEST_QUERY_SUBVERSION\\n" "${INDENT}"
+        printf "%b        Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
+        printf "%b   Block Height:  $DGB_PORT_TEST_QUERY_BLOCKCOUNT\\n" "${INDENT}"
         printf "\\n"
 
 
