@@ -5078,7 +5078,7 @@ menu_existing_install() {
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="UPnP Status"
+    opt4a="Ports"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
     opt5a="Extras"
