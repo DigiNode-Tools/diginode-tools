@@ -5909,9 +5909,9 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]
-        local upnp_current_status_2 " - UPnP is currently ENABLED for your DigiByte Node.\\n"
+        local upnp_current_status_2=" - UPnP is currently ENABLED for your DigiByte Node.\\n"
     if [ "$UPNP_DGB_CURRENT" = "0" ]
-        local upnp_current_status_2 " - UPnP is currently DISABLED for your DigiByte Node.\\n"
+        local upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
     fi
 
     upnp_current_status="$upnp_current_status_1$upnp_current_status_2"
