@@ -5868,10 +5868,10 @@ if [ -f "$DGB_CONF_FILE" ]; then
         # Update upnp status in settings if it exists and is blank, otherwise append it
         if grep -q "upnp=1" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
-            upnp_current=1
+            UPNP_DGB_CURRENT=1
         elif grep -q "upnp=0" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
-            upnp_current=0
+            UPNP_DGB_CURRENT=0
         elif grep -q "upnp=" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="yes"
         else
@@ -5902,11 +5902,25 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
+    # Set up a string to display the current UPnP status
+
+    if [ "$UPNP_DGB_CURRENT" != "" ] && [ "$UPNP_IPFS_CURRENT" != "" ]; then
+        local upnp_current_status_1="\\n\\nNote:\\n"
+    fi
+
+    if [ "$UPNP_DGB_CURRENT" = "1" ]
+        local upnp_current_status_2 " - UPnP is currently ENABLED for your DigiByte Node.\\n"
+    if [ "$UPNP_DGB_CURRENT" = "0" ]
+        local upnp_current_status_2 " - UPnP is currently DISABLED for your DigiByte Node.\\n"
+    fi
+
+    upnp_current_status="$upnp_current_status_1$upnp_current_status_2"
+
 
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.$upnp_current_status\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -5921,7 +5935,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.$upnp_current_status\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -5938,7 +5952,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
 
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nFThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nFThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.$upnp_current_status\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
             DGB_ENABLE_UPNP="SKIP"
             IPFS_ENABLE_UPNP="NO"
