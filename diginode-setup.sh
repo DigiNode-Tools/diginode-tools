@@ -5198,8 +5198,44 @@ change_upnp_status() {
 
     FORCE_DISPLAY_UPNP_MENU=true
 
-    # Check on the status of the digibyte node
-    digibyte_check
+    printf " =============== Port Forwarding =======================================\\n\\n"
+    # ==============================================================================
+
+    # Let's check if DigiByte Node is already installed
+    str="Is DigiByte Core already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        DGB_STATUS="installed"
+        printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
+    else
+        DGB_STATUS="not_detected"
+    fi
+
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        if [ -f $DGB_CLI ]; then
+            DGB_STATUS="installed"
+            printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_STATUS="not_detected"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        fi
+    fi
+
+    # Next let's check if DigiByte daemon is running
+    if [ "$DGB_STATUS" = "installed" ]; then
+      str="Is DigiByte Core running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted"; then
+          DGB_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          DGB_STATUS="notrunning"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
 
     # Prompt to change upnp status
     menu_ask_upnp
