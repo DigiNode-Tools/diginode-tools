@@ -5129,26 +5129,26 @@ menu_existing_install() {
             usb_restore
             ;;
         # Change Port forwarding
-        ${opt3a})
+        ${opt4a})
             printf "%b You selected the PORT FORWARDING option.\\n" "${INFO}"
             printf "\\n"
             change_upnp_status
             ;;
         # USB Stick Restore
-        ${opt4a})
+        ${opt5a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
             menu_extras
             ;;
         # Reset,
-        ${opt5a})
+        ${opt6a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt6a})
+        ${opt7a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
