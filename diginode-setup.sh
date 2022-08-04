@@ -5211,7 +5211,7 @@ change_upnp_status() {
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
 
         # Restart Digibyted if the upnp status has just been changed
-        if [ "$DGB_STATUS" = "running" ] && [ "$DGB_STATUS" = "startingup" ]; then
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ]; then
             printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
             restart_service digibyted
         fi
