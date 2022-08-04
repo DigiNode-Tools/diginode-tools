@@ -2310,7 +2310,8 @@ os_check() {
                 printf "%b %bUnable to determine if the detected OS (%s %s) is supported%b\\n"  "${INDENT}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
                 printf "%b Possible causes for this include:\\n" "${INDENT}" 
                 printf "%b  - Firewall blocking certain DNS lookups from DigiNode device\\n" "${INDENT}" 
-                printf "%b  - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from ${DGNT_VERSIONS_URL} containing supported OS)\\n" "${INDENT}" 
+                printf "%b  - Google DNS (8.8.8.8) being blocked\\n" "${INDENT}" 
+                printf "%b    (Required to obtain TXT record from ${DGNT_VERSIONS_URL} containing supported OS)\\n" "${INDENT}" 
                 printf "%b  - Other internet connectivity issues\\n" "${INDENT}"
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
@@ -2322,7 +2323,7 @@ os_check() {
             printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
             printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
-            printf "%b   %bcurl -sSL $DGNT_SETUP_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   %bcurl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
             printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
