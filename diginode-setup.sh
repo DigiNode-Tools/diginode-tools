@@ -4954,6 +4954,9 @@ install_digiasset_node_only() {
     # Set variable to install DigiAsset Node stuff
     DO_FULL_INSTALL="YES"
 
+    # Prompt for upnp
+    menu_ask_upnp
+
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
@@ -5935,9 +5938,85 @@ if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$FORCE_DISPLAY_UPNP_MENU" = true ];
 fi
 
 
+
+
+# IF THIS IS A FULL INSTALL CHECK FOR KUBO IPFS
+
+if [ "$DO_FULL_INSTALL" = "YES" ]; then
+
+    local try_for_jsipfs="no"
+
+    # If there are not any IPFS config files, show the menu
+    if [ ! -f "$USER_HOME/.ipfs/config" ] && [ ! -f "$USER_HOME/.jsipfs/config" ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+    # Is there a working version of Kubo available?
+    if [ -f "$USER_HOME/.ipfs/config" ]; then
+
+        local test_kubo_query
+
+        test_kubo_query=$(curl -X POST http://127.0.0.1:5001/api/v0/id 2>/dev/null)
+        test_kubo_query=$(echo $test_kubo_query | jq .AgentVersion | grep -Eo kubo)
+
+        # If this is Kubo, check the current UPNP status, otherwise test for JS-IPFS
+        if [ "$test_kubo_query" = "kubo" ]; then
+
+            # Is Kubo installed and running, and what is the upnp status?
+            query_ipfs_upnp_status=$(ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
+
+            if [ "$query_ipfs_upnp_status" != "" ]; then
+                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
+            else
+                try_for_jsipfs="yes"
+            fi
+
+        fi
+
+    fi
+
+    # Ok, there is no Kubo. Is there a JS-IPFS config file available?
+    if [ -f "$USER_HOME/.jsipfs/config" ] && [ -f "$try_for_jsipfs" = "yes" ]; then
+
+        # Test if JS-IPFS is in use
+        is_jsipfs_in_use=$(cat $DGA_SETTINGS_FILE | jq .ipfs | sed 's/"//g')
+
+        # If yes, then get the current JS-IPFS upnp status
+        if [ "$is_jsipfs_in_use" = "true" ]; then
+
+            # Get JS-IPFS upnp status
+            query_jsipfs_upnp_status=$(cat ~/.jsipfs/config | jq .Swarm.DisableNatPortMap)
+
+            if [ "$query_ipfs_upnp_status" != "" ]; then
+                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
+            fi
+ 
+        else
+
+            show_ipfs_upnp_menu="yes"
+
+        fi
+
+    fi
+
+    # If this is a new install, show the upnp prompt menu regardless
+    if [ "$DGANODE_ONLY" = true ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+    # If we are running this from the main menu, always show the menu prompts
+    if [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+fi
+
+
+
+# SHOW UPNP MENU
+
 # Don't ask if we are running unattended
 if [ ! "$UNATTENDED_MODE" == true ]; then
-
 
     # Display upnp section break
     if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
@@ -5963,9 +6042,9 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
     fi
 
-    if [ "$UPNP_IPFS_CURRENT" = "1" ]; then
+    if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
         upnp_current_status_3=" - UPnP is currently ENABLED for IPFS.\\n"
-    elif [ "$UPNP_IPFS_CURRENT" = "0" ]; then
+    elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
         upnp_current_status_3=" - UPnP is currently DISABLED for IPFS.\\n"
     fi
 
@@ -7304,6 +7383,33 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
 
+    # Set the upnp values, if we are enabling/disabling the UPnP status
+    if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
+        str="Enabling UPnP port forwarding for Kubo IPFS..."
+        printf "%b %s" "${INFO}" "${str}"
+        ipfs config --bool Swarm.DisableNatPortMap "false"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ -f "$USER_HOME/.jsips/config" ]; then
+            str="Enabling UPnP port forwarding for JS-IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"false\"" $DGA_SETTINGS_FILE)" && \
+            echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
+        str="Disabling UPnP port forwarding for Kubo IPFS..."
+        printf "%b %s" "${INFO}" "${str}"
+        ipfs config --bool Swarm.DisableNatPortMap "true"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ -f "$USER_HOME/.jsips/config" ]; then
+            str="Disabling UPnP port forwarding for JS-IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"true\"" $DGA_SETTINGS_FILE)" && \
+            echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi 
+
     # Re-enable and re-start IPFS service after reset/upgrade
     if [ "$IPFS_STATUS" = "stopped" ]; then
 
@@ -7645,6 +7751,8 @@ EOF
 fi
 
 }
+
+
 
 # This function will check if NodeJS is installed, and if it is, check if there is an update available
 # LAtest distrbutions can be checked here: https://github.com/nodesource/distributions 
