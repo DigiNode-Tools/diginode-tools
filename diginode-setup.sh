@@ -7482,6 +7482,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Set the upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
+        sleep 2
         str="Enabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
         ipfs config --bool Swarm.DisableNatPortMap "false"
@@ -7494,6 +7495,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
+        sleep 2
         str="Disabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
         ipfs config --bool Swarm.DisableNatPortMap "true"
