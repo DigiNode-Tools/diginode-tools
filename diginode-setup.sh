@@ -1347,7 +1347,7 @@ digibyte_create_conf() {
             if [ "$upnp" = "0" ]; then
                 echo "$INDENT   UPnP will be disabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         fi
@@ -1357,7 +1357,7 @@ digibyte_create_conf() {
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         fi
@@ -1366,7 +1366,7 @@ digibyte_create_conf() {
         if grep -q "upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "" ]; then
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
             fi
         else
             echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
@@ -2111,7 +2111,7 @@ if is_command apt-get ; then
     # Packages required to run this setup script (stored as an array)
     SETUP_DEPS=(git "${iproute_pkg}" whiptail bc)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo)
+    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -2145,7 +2145,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc)
+    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
 else
