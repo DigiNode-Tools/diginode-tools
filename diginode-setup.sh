@@ -1342,6 +1342,26 @@ digibyte_create_conf() {
         fi
         printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
+        # Change upnp status from enabled to disabled
+        if grep -q "upnp=1" $DGB_CONF_FILE; then
+            if [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        fi
+
+        # Change upnp status from disabled to enabled
+        if grep -q "upnp=0" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        fi
+
         #Update upnp status in settings if it exists and is blank, otherwise append it
         if grep -q "upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "" ]; then
@@ -1352,6 +1372,7 @@ digibyte_create_conf() {
             echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
             echo "upnp=$upnp" >> $DGB_CONF_FILE
         fi
+
 
     else
 
@@ -5057,24 +5078,28 @@ menu_existing_install() {
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="Extras"
-    opt4b="Install optional extras for your DigiNode."
-    
-    opt5a="Reset"
-    opt5b="Reset all settings and reinstall DigiNode software."
+    opt4a="Port Forwarding"
+    opt4b="Enable or disable UPnP to automatically forward ports."
 
-    opt6a="Uninstall"
-    opt6b="Remove DigiNode from your system."
+    opt5a="Extras"
+    opt5b="Install optional extras for your DigiNode."
+    
+    opt6a="Reset"
+    opt6b="Reset all settings and reinstall DigiNode software."
+
+    opt7a="Uninstall"
+    opt7b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 6 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 7 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" \
-    "${opt6a}"  "${opt6b}" 3>&2 2>&1 1>&3 ) || \
+    "${opt6a}"  "${opt6b}" \
+    "${opt7a}"  "${opt7b}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
 
 
@@ -5102,6 +5127,12 @@ menu_existing_install() {
             printf "%b You selected the RESTORE option.\\n" "${INFO}"
             printf "\\n"
             usb_restore
+            ;;
+        # Change Port forwarding
+        ${opt3a})
+            printf "%b You selected the PORT FORWARDING option.\\n" "${INFO}"
+            printf "\\n"
+            change_upnp_status
             ;;
         # USB Stick Restore
         ${opt4a})
@@ -5160,6 +5191,38 @@ menu_extras() {
             menu_existing_install
             ;;
     esac
+}
+
+# Function to change the current upnp forwarding
+change_upnp_status() {
+
+    FORCE_DISPLAY_UPNP_MENU=true
+
+    # Check on the status of the digibyte node
+    digibyte_check
+
+    # Prompt to change upnp status
+    menu_ask_upnp
+
+    # Update digibyte.conf
+    digibyte_create_conf
+
+    # Restart DigiByte daemon if upn status has changed
+    if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart Digibyted if the upnp status has just been changed
+        if [ "$DGB_STATUS" = "running" ] && [ "$DGB_STATUS" = "startingup" ]; then
+            printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted
+        fi
+
+    fi
+
+    FORCE_DISPLAY_UPNP_MENU=false
+    DGB_UPNP_STATUS_UPDATED=""
+
+    menu_existing_install
+
 }
 
 
@@ -5805,8 +5868,10 @@ if [ -f "$DGB_CONF_FILE" ]; then
         # Update upnp status in settings if it exists and is blank, otherwise append it
         if grep -q "upnp=1" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
+            upnp_current=1
         elif grep -q "upnp=0" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
+            upnp_current=0
         elif grep -q "upnp=" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="yes"
         else
@@ -5816,6 +5881,11 @@ fi
 
 # If this is a new install and the upnp values already exist
 if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+# If we are running this from the main menu, always show the menu prompts
+if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
     show_dgb_upnp_menu="yes"
 fi
 
