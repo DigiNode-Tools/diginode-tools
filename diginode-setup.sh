@@ -5100,7 +5100,7 @@ menu_existing_install() {
     "${opt5a}"  "${opt5b}" \
     "${opt6a}"  "${opt6b}" \
     "${opt7a}"  "${opt7b}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -5173,7 +5173,7 @@ menu_extras() {
     UpdateCmd=$(whiptail --title "EXTRAS MENU" --menu "\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -5732,12 +5732,8 @@ final_messages() {
             printf "\\n"
         fi
 
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-        fi
+        display_system_updates_reminder
+
     fi
 
     if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
@@ -5764,6 +5760,17 @@ final_messages() {
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
         printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+}
+
+display_system_updates_reminder() {
+
+    if [ "$system_updates_available" = "yes" ]; then
+        printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -9141,6 +9148,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
           printf "\\n"
+          display_system_updates_reminder
           exit
         fi
 
