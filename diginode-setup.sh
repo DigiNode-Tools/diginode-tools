@@ -6153,7 +6153,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -6168,7 +6168,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -6185,7 +6185,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
 
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
             DGB_ENABLE_UPNP="SKIP"
             IPFS_ENABLE_UPNP="NO"
@@ -7479,6 +7479,45 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT ipfs init
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
+
+    # wait for ~/.ipfs folder to be created
+    every5secs=0
+    progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+    printf "%b %bIPFS is initializing.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    str="Please wait..."
+    printf "%b %s" "${INDENT}" "${str}"
+    tput civis
+    while [ ! -d "$USER_HOME/.ipfs" ]; do
+
+        # Show Spinner while waiting for IPFS settings folder to be created
+        if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+        elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+          progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        fi 
+
+        if [ "$every5secs" -ge 10 ]; then
+            # Query if IPFS settings . Display error. Send success to null.
+            if [ -d "$USER_HOME/.ipfs" ]; then
+                dgb_error_msg=""
+                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+                every5secs=0
+                sleep 0.5
+            else
+                DGB_STATUS="running"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                tput cnorm
+            fi
+        else
+            every5secs=$((every5secs + 1))
+            printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
+            sleep 0.5
+        fi
+    done
 
     # Set the upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
