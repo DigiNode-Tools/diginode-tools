@@ -5836,13 +5836,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
-        To make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n \
-          DigiByte Node:    12024 TCP\\n \
-          DigiAsset Node:   4001 TCP\\n\\n \
-        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\n \
-        The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n \
-        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -5857,12 +5851,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
-        To make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n \
-          DigiByte Node:    12024 TCP\\n\\n \
-        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\n \
-        The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n \
-        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -5879,12 +5868,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
 
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
-        To make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n \
-          DigiAsset Node:   4001 TCP\\n\\n \
-        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nF \
-        The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n \
-        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nFThe alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
             DGB_ENABLE_UPNP="SKIP"
             IPFS_ENABLE_UPNP="NO"
@@ -9103,7 +9087,7 @@ fi
 # Perform uninstall if requested
 uninstall_do_now() {
 
-    printf " =============== UNINSTALLING DIGINODE =================================\\n\\n"
+    printf " =============== Uninstall DigiNode ====================================\\n\\n"
     # ==============================================================================
 
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
@@ -11300,6 +11284,9 @@ install_or_upgrade() {
 
     fi
 
+    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
+    menu_ask_upnp
+
     ### INSTALL DIGINODE DEPENDENCIES ###
 
     # Install packages used by the actual software
@@ -11314,9 +11301,6 @@ install_or_upgrade() {
     unset dep_install_list
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
-
-    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
-    menu_ask_upnp
 
     # Create/update digibyte.conf file
     digibyte_create_conf
