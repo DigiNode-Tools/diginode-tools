@@ -378,6 +378,8 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     INSTALL_SYS_UPGRADES=NO
 
     # UNATTENDED SETUP
+    UI_DGB_ENABLE_UPNP=NO
+    UI_IPFS_ENABLE_UPNP=NO
     UI_ENFORCE_DIGIBYTE_USER=YES
     UI_HOSTNAME_SET=YES
     UI_FIREWALL_SETUP=YES
@@ -536,6 +538,12 @@ INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 # INSTRUCTIONS: 
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run DigiNode Setup with the --unattended flag set.
+
+# Choose whther to have the script enable upnp. This can be set for DigiByte Core and for IPFS
+# If set to NO, port forwarding will need to be setup manually. This is the recommended method.
+# If set to YES, UPnP will be open the required ports automatically.
+UI_DGB_ENABLE_UPNP=$UI_DGB_ENABLE_UPNP
+UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
 
 # Decide whether to have the script enforce using user: digibyte (Set to YES/NO)
 # If set to YES DigiNode Setup will only proceed if the the user is: digibyte
@@ -1191,6 +1199,23 @@ digibyte_create_conf() {
         printf "%b %s" "${INFO}" "${str}"
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If the digibyte.conf file already exists
+    elif [ -f "$DGB_CONF_FILE" ]; then
+
+        # Import variables from digibyte.conf settings file
+        str="Located digibyte.conf file. Importing..."
+        printf "%b %s" "${INFO}" "${str}"
+        source $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Set the upnp values, if we are enabling/disabling the UPnP status
+    if [ "$DGB_ENABLE_UPNP" = "YES" ]; then
+        upnp=1
+    elif [ "$DGB_ENABLE_UPNP" = "NO" ]; then
+        upnp=0
     fi
 
     # create .digibyte settings folder if it does not already exist
@@ -1203,12 +1228,6 @@ digibyte_create_conf() {
 
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
-
-        # Import variables from digibyte.conf settings file
-        str="Located digibyte.conf file. Importing..."
-        printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         printf "%b Checking digibyte.conf settings...\\n" "${INFO}"
         
@@ -1323,7 +1342,19 @@ digibyte_create_conf() {
         fi
         printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
+        #Update upnp status in settings if it exists and is blank, otherwise append it
+        if grep -q "upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^rpcuser=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+            echo "upnp=$upnp" >> $DGB_CONF_FILE
+        fi
+
     else
+
         # Create a new digibyte.conf file
         str="Creating ~/.diginode/digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -1378,7 +1409,7 @@ whitelist=127.0.0.1
 listen=1
 
 # Use UPnP to map the listening port.
-upnp=1
+upnp=$upnp
 
 
 # [rpc]
@@ -5042,7 +5073,7 @@ menu_existing_install() {
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" \
-    "${opt6a}"  "${opt6b}" 3>&2 2>&1 1>&3) || \
+    "${opt6a}"  "${opt6b}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
 
 
@@ -5075,7 +5106,7 @@ menu_existing_install() {
         ${opt4a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
-            extras_menu
+            menu_extras
             ;;
         # Reset,
         ${opt5a})
@@ -5094,7 +5125,7 @@ menu_existing_install() {
 }
 
 # Function to display the extras menu, which is used to install optional software for the DigiNode
-extras_menu() {
+menu_extras() {
 
     printf " =============== EXTRAS MENU ===========================================\\n\\n"
     # ==============================================================================
@@ -5748,6 +5779,197 @@ check_service_active() {
 
 # Function to compare two version numbers
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+
+
+
+
+
+# This function will ask the user if they want to install the system upgrades that have been found
+menu_ask_upnp() {
+
+local show_dgb_upnp_menu="no"
+local show_ipfs_upnp_menu="no"
+
+# FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
+
+# If digibyte.conf file does not exist yet, show the upnp menu
+if [ ! -f "$DGB_CONF_FILE" ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+# If digibyte.conf file already exists, show the upnp menu if it does not contain upnp variables
+if [ -f "$DGB_CONF_FILE" ]; then
+
+        # Update upnp status in settings if it exists and is blank, otherwise append it
+        if grep -q "upnp=1" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="maybe"
+        elif grep -q "upnp=0" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="maybe"
+        elif grep -q "upnp=" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="yes"
+        else
+            show_dgb_upnp_menu="yes"
+        fi
+fi
+
+# If this is a new install and the upnp values already exist
+if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+
+# Don't ask if we are running unattended
+if [ ! "$UNATTENDED_MODE" == true ]; then
+
+
+    # Display upnp section break
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+            printf " =============== UPnP MENU =============================================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+
+    # SHOW THE DGB + IPFS UPnP MENU
+    if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
+        
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
+        To make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n \
+          DigiByte Node:    12024 TCP\\n \
+          DigiAsset Node:   4001 TCP\\n\\n \
+        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\n \
+        The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n \
+        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="NO"
+            IPFS_ENABLE_UPNP="NO"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="YES"
+            IPFS_ENABLE_UPNP="YES"
+        fi
+        printf "\\n"
+
+    # SHOW THE DGB ONLY UPnP MENU
+    elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
+        To make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n \
+          DigiByte Node:    12024 TCP\\n\\n \
+        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\n \
+        The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n \
+        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
+            DGB_ENABLE_UPNP="NO"
+            IPFS_ENABLE_UPNP="SKIP"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for DigiByte Core\\n" "${INFO}"
+            DGB_ENABLE_UPNP="YES"
+            IPFS_ENABLE_UPNP="SKIP"
+        fi
+        printf "\\n"
+
+
+    # SHOW THE IPFS ONLY UPnP MENU
+    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\n \
+        To make your device discoverable by other nodes on the network, you need to forward the followng port on your router:\\n\\n \
+          DigiAsset Node:   4001 TCP\\n\\n \
+        If you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nF \
+        The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n \
+        For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually (Recommended)" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+            IPFS_ENABLE_UPNP="NO"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+            IPFS_ENABLE_UPNP="YES"
+        fi
+        printf "\\n"
+
+    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+
+        DGB_ENABLE_UPNP="SKIP"
+        IPFS_ENABLE_UPNP="SKIP"
+
+    fi
+
+else
+
+    # If we are running unattended, and the script wants to prompt the user with the upnp menu, then get the values from diginode.settings
+
+    # Display upnp section break
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+            printf " =============== Unattended Mode: Configuring UPnP =====================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+    if [ "$show_dgb_upnp_menu" = "yes" ]; then
+
+        if [ "$UI_DGB_ENABLE_UPNP" = "YES" ]; then
+
+            printf "%b Unattended Mode: UPnP will be ENABLED for DigiByte Core\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            DGB_ENABLE_UPNP="YES"
+
+        elif [ "$UI_DGB_ENABLE_UPNP" = "NO" ]; then
+
+            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core" "${INFO}"
+            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            DGB_ENABLE_UPNP="NO"
+
+        else
+
+            printf "%b Unattended Mode: Skipping setting up UPnP for DigiByte Core. It is already configured.\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+
+        fi
+    fi
+
+    if [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+        if [ "$UI_IPFS_ENABLE_UPNP" = "YES" ]; then
+
+            printf "%b Unattended Mode: UPnP will be ENABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            IPFS_ENABLE_UPNP="YES"
+
+        elif [ "$UI_IPFS_ENABLE_UPNP" = "NO" ]; then
+
+            printf "%b Unattended Mode: UPnP will be DISABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+
+            IPFS_ENABLE_UPNP="NO"
+
+        else
+
+            printf "%b Unattended Mode: Skipping setting up UPnP for IPFS. It is already configured.\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+
+        fi
+    fi
+
+    # Insert blank row if anything was displayed above
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then  
+        printf "\\n"
+    fi
+
+
+fi
+
+}
+
+
 
 
 
@@ -8234,7 +8456,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        str="Removing DigiAsset configuration backup folder: ~/dga_config_backup ..."
+        str="Removing DigiAsset configuration local backup folder: ~/dga_config_backup ..."
         printf "%b %s" "${INFO}" "${str}"
         rmdir $DGA_SETTINGS_BACKUP_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -10503,6 +10725,8 @@ elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 fi
 
 
+
+
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Cloning from GitHub
@@ -10560,6 +10784,14 @@ fi
 printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
 cd $USER_HOME/argon-one-daemon
 sudo -u $USER_ACCOUNT $USER_HOME/argon-one-daemon/install
+
+# If there was an error
+if [ $? -ne 0 ]; then
+    printf "\\n"
+    printf "%b Installing Argon One Daemon failed. Please install any missing dependencies and run this again.\\n" "${INFO}"
+    printf "\\n"
+    exit 1
+fi
 
 # Set fan to auto
 str="Setting Fan to Auto Mode..."
@@ -11081,6 +11313,9 @@ install_or_upgrade() {
     unset dep_install_list
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
+
+    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
+    menu_ask_upnp
 
     # Create/update digibyte.conf file
     digibyte_create_conf
