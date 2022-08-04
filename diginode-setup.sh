@@ -5198,7 +5198,7 @@ change_upnp_status() {
 
     FORCE_DISPLAY_UPNP_MENU=true
 
-    printf " =============== Port Forwarding =======================================\\n\\n"
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
     # ==============================================================================
 
     # Let's check if DigiByte Node is already installed
@@ -5236,6 +5236,8 @@ change_upnp_status() {
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
       fi
     fi
+
+    printf "\\n"
 
     # Prompt to change upnp status
     menu_ask_upnp
