@@ -5235,12 +5235,60 @@ change_upnp_status() {
           DGB_STATUS="running"
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
       else
-          DGB_STATUS="notrunning"
+          DGB_STATUS="stopped"
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
       fi
     fi
 
     printf "\\n"
+
+    printf " =============== Checking: IPFS Node ===================================\\n\\n"
+    # ==============================================================================
+
+    # Get the local version number of Kubo (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Let's check if Kubo is already installed
+    str="Is Kubo already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Next let's check if IPFS daemon is running with upstart
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+      str="Is Kubo daemon upstart service running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          IPFS_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    # Next let's check if IPFS daemon is running with systemd
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        str="Is Kubo daemon systemd service running?..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Check if it is running or not #CHECKLATER
+        systemctl is-active --quiet ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
+
+        if [ "$IPFS_STATUS" = "running" ]; then
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$IPFS_STATUS" = "stopped" ]; then
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
 
     # Prompt to change upnp status
     menu_ask_upnp
@@ -5252,15 +5300,64 @@ change_upnp_status() {
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
 
         # Restart Digibyted if the upnp status has just been changed
-        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ]; then
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
             restart_service digibyted
         fi
 
     fi
 
+        # Set the upnp values, if we are enabling/disabling the UPnP status
+    if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
+        if [ "$UPNP_IPFS_CURRENT" != "false" ]; then
+            str="Enabling UPnP port forwarding for Kubo IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            ipfs config --bool Swarm.DisableNatPortMap "false"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            if [ -f "$USER_HOME/.jsips/config" ]; then
+                str="Enabling UPnP port forwarding for JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"false\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            IPFS_UPNP_STATUS_UPDATED="YES"
+        fi
+    elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
+        if [ "$UPNP_IPFS_CURRENT" != "true" ]; then
+            str="Disabling UPnP port forwarding for Kubo IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            ipfs config --bool Swarm.DisableNatPortMap "true"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            if [ -f "$USER_HOME/.jsips/config" ]; then
+                str="Disabling UPnP port forwarding for JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"true\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            IPFS_UPNP_STATUS_UPDATED="YES"
+        fi
+    fi 
+
+    if [ "$IPFS_UPNP_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart Digibyted if the upnp status has just been changed
+        if [ "$IPFS_STATUS" = "running" ] || [ "$DGB_STATUS" = "stopped" ]; then
+
+            # Restart IPFS if the upnp status has just been changed
+            printf "%b IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            restart_service ipfs
+        fi
+
+    fi
+
+
+
+
     FORCE_DISPLAY_UPNP_MENU=false
     DGB_UPNP_STATUS_UPDATED=""
+    IPFS_UPNP_STATUS_UPDATED=""
 
     menu_existing_install
 
