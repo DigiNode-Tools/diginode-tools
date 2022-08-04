@@ -5917,8 +5917,8 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     local upnp_current_status_3
     local upnp_current_status
 
-    if [ "$UPNP_DGB_CURRENT" != "" ] && [ "$UPNP_IPFS_CURRENT" != "" ]; then
-        upnp_current_status_1="\\n\\nNote:\\n"
+    if [ "$UPNP_DGB_CURRENT" != "" ] || [ "$UPNP_IPFS_CURRENT" != "" ]; then
+        upnp_current_status_1="Note:\\n"
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
@@ -5927,13 +5927,13 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
     fi
 
-    upnp_current_status="$upnp_current_status_1$upnp_current_status_2"
+    upnp_current_status="$upnp_current_status_1$upnp_current_status_2\\n"
 
 
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.$upnp_current_status\\n\\nFor help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the network, you need to forward the followng ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to setup port forwarding manually.\\n\\nThe alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding: $DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
