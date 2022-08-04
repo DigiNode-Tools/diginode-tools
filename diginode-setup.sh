@@ -5910,7 +5910,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
         local upnp_current_status_2=" - UPnP is currently ENABLED for your DigiByte Node.\\n"
-    elif [ "$UPNP_DGB_CURRENT" = "0" ]
+    elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
         local upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
     fi
 
