@@ -5909,8 +5909,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
-    echo "cheese"
-
     # Set up a string to display the current UPnP status
     local upnp_current_status_1
     local upnp_current_status_2
