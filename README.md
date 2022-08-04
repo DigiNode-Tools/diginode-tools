@@ -163,6 +163,7 @@ DigiNode Tools v0.5.7 - 2022-08-xx
 - New: DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
 - New: Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
 - New: Status Monitor - Improve detection of when DigiNode internet connection is online/offline
+- New: Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default
