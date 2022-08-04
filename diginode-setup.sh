@@ -5902,16 +5902,22 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
+    echo "cheese"
+
     # Set up a string to display the current UPnP status
+    local upnp_current_status_1
+    local upnp_current_status_2
+    local upnp_current_status_3
+    local upnp_current_status
 
     if [ "$UPNP_DGB_CURRENT" != "" ] && [ "$UPNP_IPFS_CURRENT" != "" ]; then
-        local upnp_current_status_1="\\n\\nNote:\\n"
+        upnp_current_status_1="\\n\\nNote:\\n"
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
-        local upnp_current_status_2=" - UPnP is currently ENABLED for your DigiByte Node.\\n"
+        upnp_current_status_2=" - UPnP is currently ENABLED for your DigiByte Node.\\n"
     elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
-        local upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
+        upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
     fi
 
     upnp_current_status="$upnp_current_status_1$upnp_current_status_2"
