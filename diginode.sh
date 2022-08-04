@@ -2437,7 +2437,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         printf "\\n" 
         printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
         printf "\\n" 
-        printf "%b Your DigiByte Node was found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
+        printf "%b DigiByte Node found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
         printf "\\n" 
         printf "%b     Subversion:  $DGB_PORT_TEST_QUERY_SUBVERSION\\n" "${INDENT}"
         printf "%b        Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
