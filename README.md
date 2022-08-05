@@ -161,6 +161,9 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.6.1 - 2022-08-xx
+- 
+
 DigiNode Tools v0.6.0 - 2022-08-05
 - Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It queries an external API then tests if your port is open.
 - DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
