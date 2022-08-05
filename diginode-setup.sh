@@ -377,9 +377,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
-    # UNATTENDED SETUP
-    UI_DGB_ENABLE_UPNP=NO
-    UI_IPFS_ENABLE_UPNP=NO
+    # UNATTENDED INSTALL
     UI_ENFORCE_DIGIBYTE_USER=YES
     UI_HOSTNAME_SET=YES
     UI_FIREWALL_SETUP=YES
@@ -389,12 +387,16 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DISKSPACE_OVERRIDE=NO
     UI_TOR_SETUP=YES
     UI_DO_FULL_INSTALL=YES
+    UI_DGB_ENABLE_UPNP=NO
+    UI_IPFS_ENABLE_UPNP=NO
+    UI_IPFS_SERVER_PROFILE=NO
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
-    DONATION_PLEA=YES
-    IPFS_PORT_TEST_ENABLED=YES
     IPFS_KUBO_API_URL=http://127.0.0.1:5001/api/v0/
+    DGB_PORT_TEST_ENABLED=YES
+    IPFS_PORT_TEST_ENABLED=YES
+    DONATION_PLEA=YES
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -532,18 +534,12 @@ INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 
 
 #####################################
-####### UNATTENDED SETUP ########
+####### UNATTENDED INSTALL ##########
 #####################################
 
 # INSTRUCTIONS: 
 # These variables are used during an unattended install to automatically configure your DigiNode.
 # Set these variables and then run DigiNode Setup with the --unattended flag set.
-
-# Choose whther to have the script enable upnp. This can be set for DigiByte Core and for IPFS
-# If set to NO, port forwarding will need to be setup manually. This is the recommended method.
-# If set to YES, UPnP will be open the required ports automatically.
-UI_DGB_ENABLE_UPNP=$UI_DGB_ENABLE_UPNP
-UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
 
 # Decide whether to have the script enforce using user: digibyte (Set to YES/NO)
 # If set to YES DigiNode Setup will only proceed if the the user is: digibyte
@@ -584,6 +580,18 @@ UI_TOR_SETUP=$UI_TOR_SETUP
 # Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
 # Choose NO to install DigiByte Core only
 UI_DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
+
+# Choose whther to have the script enable upnp. This can be set for DigiByte Core and for IPFS
+# If set to NO, port forwarding will need to be setup manually. This is the recommended method.
+# If set to YES, UPnP will be open the required ports automatically.
+UI_DGB_ENABLE_UPNP=$UI_DGB_ENABLE_UPNP
+UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
+
+# Optionally use the Server Profile for IPFS. Set to YES or NO. Default is NO.
+# The IPFS Server profile disables local host discovery, which is recommended when running a
+# DigiAsset Node on a machine with a public IPv4 address, such as on a cloud VPS.
+# Learn more: https://github.com/ipfs/kubo/blob/master/docs/config.md#profiles 
+UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 
 
 #############################################
@@ -715,9 +723,12 @@ IP4_EXTERNAL="$IP4_EXTERNAL"
 DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_DIGINODE"
 DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 
-# Store number of available system updates so the script only checks this occasionally
-SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
-SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
+# Stores when an DigiByte Core port test last ran successfully.
+# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
+DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
+DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
+DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
+DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
 
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
@@ -727,18 +738,15 @@ IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
 IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
 IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 
-# Stores when an DigiByte Core port test last ran successfully.
-# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
-DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
-DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
-DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
-DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
-
 # Do not display donation plea more than once every 15 mins (value should be YES or WAIT15)
 DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
 BLOCKSYNC_VALUE="$BLOCKSYNC_VALUE"
+
+# Store number of available system updates so the script only checks this occasionally
+SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
+SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
 EOF
 
@@ -7476,9 +7484,43 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Initialize IPFS, if it has not already been done so
     if [ ! -d "$USER_HOME/.ipfs" ]; then
         export IPFS_PATH=$USER_ACCOUNT/.ipfs
-        sudo -u $USER_ACCOUNT ipfs init
+
+        local use_ipfs_server_profile
+
+        # If we are in unattended mode setup whether we are using the server profile
+        if [ "$UNATTENDED_MODE" == true ]; then
+            if [ "$UI_IPFS_SERVER_PROFILE" = "YES" ]; then
+                printf "%b Unattended Mode: The IPFS Server profile will be used.\\n" "${INFO}"
+                use_ipfs_server_profile="yes"
+            elif [ "$UI_IPFS_SERVER_PROFILE" = "NO" ]; then
+                printf "%b Unattended Mode: The IPFS Server profile will NOT be used.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            else
+                printf "%b Unattended Mode: The IPFS Server profile will NO be used.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            fi
+        else
+            # Ask the user if they want to use the server profile
+            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno  --defaultno -"Do you want to use the IPFS Server profile?\\n\\nThe Server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
+                printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
+                use_ipfs_server_profile="yes"
+            else
+                printf "%b You chose NOT to enable the IPFS Server profile.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            fi
+
+        fi
+
+        if [ "$use_ipfs_server_profile" = "yes" ]; then
+            sudo -u $USER_ACCOUNT ipfs init -p server
+        elif [ "$use_ipfs_server_profile" = "no" ]; then
+            sudo -u $USER_ACCOUNT ipfs init
+        fi
+
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
+
+    # banana
 
     # wait for ~/.ipfs folder to be created
     every5secs=0
