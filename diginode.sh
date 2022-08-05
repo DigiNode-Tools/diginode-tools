@@ -2613,7 +2613,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
         if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
             printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
             printf "\\n" 
-            printf "%b ${txtbred}Fail! Port $IPFS_PORT_NUMBER is CLOSED.${txtbld}\\n" "${INDENT}"
+            printf "%b ${txtbred}Fail! Port $IPFS_PORT_NUMBER is CLOSED.${txtrst}\\n" "${INDENT}"
             printf "\\n"   
 
             IPFS_PORT_TEST_ENABLED="YES"
