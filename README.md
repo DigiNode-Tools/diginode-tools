@@ -164,6 +164,8 @@ DigiNode Tools v0.5.7 - 2022-08-xx
 - New: Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
 - New: Status Monitor - Improve detection of when DigiNode internet connection is online/offline
 - New: Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
+- New: DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
+- New: DigiNode Setup - The user is now asked if they want to enable the IPFS Server profile when first installed. The Server profile disables local host discovery - ueful when running a DigiAsset Node on a server with a public IP address. In unattended mode its gets this value from diginode.settings. 
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default

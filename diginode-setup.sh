@@ -7513,18 +7513,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
-            printf "\\n"
         elif [ "$use_ipfs_server_profile" = "no" ]; then
             sudo -u $USER_ACCOUNT ipfs init
-            printf "\\n"
         fi
 
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+        printf "\\n"
     fi
 
     # Set the upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
-        sleep 2
         str="Enabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
@@ -7537,7 +7535,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
-        sleep 2
         str="Disabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
