@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.5.6
+#           Name:  DigiNode Setup v0.6.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -372,12 +372,12 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # OTHER SETTINGS
     DGB_MAX_CONNECTIONS=300
-    SM_AUTO_QUIT=3600
+    SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
-    # UNATTENDED SETUP
+    # UNATTENDED INSTALL
     UI_ENFORCE_DIGIBYTE_USER=YES
     UI_HOSTNAME_SET=YES
     UI_FIREWALL_SETUP=YES
@@ -387,12 +387,16 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DISKSPACE_OVERRIDE=NO
     UI_TOR_SETUP=YES
     UI_DO_FULL_INSTALL=YES
+    UI_DGB_ENABLE_UPNP=NO
+    UI_IPFS_ENABLE_UPNP=NO
+    UI_IPFS_SERVER_PROFILE=NO
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
-    DONATION_PLEA=YES
-    IPFS_PORT_TEST_ENABLED=YES
     IPFS_KUBO_API_URL=http://127.0.0.1:5001/api/v0/
+    DGB_PORT_TEST_ENABLED=YES
+    IPFS_PORT_TEST_ENABLED=YES
+    DONATION_PLEA=YES
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -511,9 +515,9 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
-# Stop the DigiNode Status Monitor automatically if it is left running
-# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
-# e.g. To stop after 1 hour enter: 3600
+# Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
+# Set to 0 to run indefinitely, or enter the number of minutes before it stops automatically.
+# e.g. To stop after 1 hour enter: 60
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
@@ -530,7 +534,7 @@ INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 
 
 #####################################
-####### UNATTENDED SETUP ########
+####### UNATTENDED INSTALL ##########
 #####################################
 
 # INSTRUCTIONS: 
@@ -576,6 +580,18 @@ UI_TOR_SETUP=$UI_TOR_SETUP
 # Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
 # Choose NO to install DigiByte Core only
 UI_DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
+
+# Choose whther to have the script enable upnp. This can be set for DigiByte Core and for IPFS
+# If set to NO, port forwarding will need to be setup manually. This is the recommended method.
+# If set to YES, UPnP will be open the required ports automatically.
+UI_DGB_ENABLE_UPNP=$UI_DGB_ENABLE_UPNP
+UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
+
+# Optionally use the Server Profile for IPFS. Set to YES or NO. Default is NO.
+# The IPFS Server profile disables local host discovery, which is recommended when running a
+# DigiAsset Node on a machine with a public IPv4 address, such as on a cloud VPS.
+# Learn more: https://github.com/ipfs/kubo/blob/master/docs/config.md#profiles 
+UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 
 
 #############################################
@@ -707,9 +723,12 @@ IP4_EXTERNAL="$IP4_EXTERNAL"
 DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_DIGINODE"
 DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 
-# Store number of available system updates so the script only checks this occasionally
-SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
-SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
+# Stores when an DigiByte Core port test last ran successfully.
+# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
+DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
+DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
+DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
+DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
 
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
@@ -719,18 +738,15 @@ IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
 IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
 IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 
-# Stores when an DigiByte Core port test last ran successfully.
-# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
-DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
-DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
-DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
-DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
-
 # Do not display donation plea more than once every 15 mins (value should be YES or WAIT15)
 DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
 BLOCKSYNC_VALUE="$BLOCKSYNC_VALUE"
+
+# Store number of available system updates so the script only checks this occasionally
+SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
+SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
 EOF
 
@@ -1191,6 +1207,23 @@ digibyte_create_conf() {
         printf "%b %s" "${INFO}" "${str}"
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # If the digibyte.conf file already exists
+    elif [ -f "$DGB_CONF_FILE" ]; then
+
+        # Import variables from digibyte.conf settings file
+        str="Located digibyte.conf file. Importing..."
+        printf "%b %s" "${INFO}" "${str}"
+        source $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Set the upnp values, if we are enabling/disabling the UPnP status
+    if [ "$DGB_ENABLE_UPNP" = "YES" ]; then
+        upnp=1
+    elif [ "$DGB_ENABLE_UPNP" = "NO" ]; then
+        upnp=0
     fi
 
     # create .digibyte settings folder if it does not already exist
@@ -1203,12 +1236,6 @@ digibyte_create_conf() {
 
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
-
-        # Import variables from digibyte.conf settings file
-        str="Located digibyte.conf file. Importing..."
-        printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         printf "%b Checking digibyte.conf settings...\\n" "${INFO}"
         
@@ -1323,7 +1350,40 @@ digibyte_create_conf() {
         fi
         printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
+        # Change upnp status from enabled to disabled
+        if grep -q "upnp=1" $DGB_CONF_FILE; then
+            if [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        fi
+
+        # Change upnp status from disabled to enabled
+        if grep -q "upnp=0" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        fi
+
+        #Update upnp status in settings if it exists and is blank, otherwise append it
+        if grep -q "upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+            echo "upnp=$upnp" >> $DGB_CONF_FILE
+        fi
+
+
     else
+
         # Create a new digibyte.conf file
         str="Creating ~/.diginode/digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
@@ -1376,6 +1436,9 @@ whitelist=127.0.0.1
 
 # Accept incoming connections from peers.
 listen=1
+
+# Use UPnP to map the listening port.
+upnp=$upnp
 
 
 # [rpc]
@@ -2056,7 +2119,7 @@ if is_command apt-get ; then
     # Packages required to run this setup script (stored as an array)
     SETUP_DEPS=(git "${iproute_pkg}" whiptail bc)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo)
+    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -2090,7 +2153,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc)
+    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -2276,21 +2339,25 @@ os_check() {
                 printf "%b %bUnable to determine if the detected OS (%s %s) is supported%b\\n"  "${INDENT}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
                 printf "%b Possible causes for this include:\\n" "${INDENT}" 
                 printf "%b  - Firewall blocking certain DNS lookups from DigiNode device\\n" "${INDENT}" 
-                printf "%b  - Google DNS (8.8.8.8) being blocked (required to obtain TXT record from ${DGNT_VERSIONS_URL} containing supported OS)\\n" "${INDENT}" 
+                printf "%b  - Google DNS (8.8.8.8) being blocked\\n" "${INDENT}" 
+                printf "%b    (Required to obtain TXT record from ${DGNT_VERSIONS_URL} containing supported OS)\\n" "${INDENT}" 
                 printf "%b  - Other internet connectivity issues\\n" "${INDENT}"
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
-                printf "%b If you are seeing this message and you believe your OS should be supported, please contact @digibytehelp on Twitter.\\n" "${INDENT}" 
+                printf "%b If you are seeing this message and you believe your OS should be supported\\n" "${INDENT}" 
+                printf "%b please contact @digibytehelp on Twitter or ask in the DigiNode Tools Telegram group.\\n" "${INDENT}" 
             fi
             printf "\\n"
             printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
+            printf "%b If you wish to attempt to continue anyway, you can try one of the\\n" "${INDENT}" 
+            printf "%b following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
             printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
-            printf "%b   %bcurl -sSL $DGNT_SETUP_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   %bcurl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
+            printf "%b It is possible that the installation will still fail at this stage\\n" "${INDENT}" 
+            printf "%b due to an unsupported configuration.\\n" "${INDENT}" 
             printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
@@ -4802,18 +4869,18 @@ menu_first_install() {
     opt1a="Full DigiNode "
     opt1b=" Install DigiByte & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Node ONLY "
-    opt2b=" DigiAsset Node will NOT be installed."
+    opt2a="DigiByte Node"
+    opt2b=" Install a DigiByte Node ONLY."
 
-    opt3a="DigiAsset Node ONLY "
-    opt3b=" DigiByte Node will NOT be installed."
+    opt3a="DigiAsset Node"
+    opt3b=" Install a DigiAsset Node ONLY."
 
-    opt4a="DigiNode Tools ONLY "
+    opt4a="DigiNode Tools"
     opt4b=" Use Status Monitor with an existing DigiByte Node."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose whether you would like to perform a full DigiNode install, or setup ONLY a DigiByte Node or ONLY a DigiAsset Node. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nYou can also choose to install only DigiNode Tools to use the Status Monitor with your existing DigiByte Node.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the Status Monitor with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -4897,6 +4964,9 @@ install_digiasset_node_only() {
 
     # Set variable to install DigiAsset Node stuff
     DO_FULL_INSTALL="YES"
+
+    # Prompt for upnp
+    menu_ask_upnp
 
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
@@ -5022,25 +5092,29 @@ menu_existing_install() {
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="Extras"
-    opt4b="Install optional extras for your DigiNode."
-    
-    opt5a="Reset"
-    opt5b="Reset all settings and reinstall DigiNode software."
+    opt4a="Ports"
+    opt4b="Enable or disable UPnP to automatically forward ports."
 
-    opt6a="Uninstall"
-    opt6b="Remove DigiNode from your system."
+    opt5a="Extras"
+    opt5b="Install optional extras for your DigiNode."
+    
+    opt6a="Reset"
+    opt6b="Reset all settings and reinstall DigiNode software."
+
+    opt7a="Uninstall"
+    opt7b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 6 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 7 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" \
-    "${opt6a}"  "${opt6b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+    "${opt6a}"  "${opt6b}" \
+    "${opt7a}"  "${opt7b}" 3>&2 2>&1 1>&3 ) || \
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -5068,21 +5142,27 @@ menu_existing_install() {
             printf "\\n"
             usb_restore
             ;;
-        # USB Stick Restore
+        # Change Port forwarding
         ${opt4a})
+            printf "%b You selected the PORT FORWARDING option.\\n" "${INFO}"
+            printf "\\n"
+            change_upnp_status
+            ;;
+        # USB Stick Restore
+        ${opt5a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
-            extras_menu
+            menu_extras
             ;;
         # Reset,
-        ${opt5a})
+        ${opt6a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt6a})
+        ${opt7a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -5091,7 +5171,7 @@ menu_existing_install() {
 }
 
 # Function to display the extras menu, which is used to install optional software for the DigiNode
-extras_menu() {
+menu_extras() {
 
     printf " =============== EXTRAS MENU ===========================================\\n\\n"
     # ==============================================================================
@@ -5107,7 +5187,7 @@ extras_menu() {
     UpdateCmd=$(whiptail --title "EXTRAS MENU" --menu "\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -5125,6 +5205,193 @@ extras_menu() {
             menu_existing_install
             ;;
     esac
+}
+
+# Function to change the current upnp forwarding
+change_upnp_status() {
+
+    FORCE_DISPLAY_UPNP_MENU=true
+
+    # If DigiAssets Node is installed, we already know this is a full install
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        DO_FULL_INSTALL=YES
+    fi
+
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
+    # ==============================================================================
+
+    # Let's check if DigiByte Node is already installed
+    str="Is DigiByte Core already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        DGB_STATUS="installed"
+        printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
+    else
+        DGB_STATUS="not_detected"
+    fi
+
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        if [ -f $DGB_CLI ]; then
+            DGB_STATUS="installed"
+            printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_STATUS="not_detected"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        fi
+    fi
+
+    # Next let's check if DigiByte daemon is running
+    if [ "$DGB_STATUS" = "installed" ]; then
+      str="Is DigiByte Core running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted"; then
+          DGB_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          DGB_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    printf "\\n"
+
+    printf " =============== Checking: IPFS Node ===================================\\n\\n"
+    # ==============================================================================
+
+    # Get the local version number of Kubo (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Let's check if Kubo is already installed
+    str="Is Kubo already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Next let's check if IPFS daemon is running with upstart
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+      str="Is Kubo daemon upstart service running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          IPFS_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    # Next let's check if IPFS daemon is running with systemd
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        str="Is Kubo daemon systemd service running?..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Check if it is running or not #CHECKLATER
+        systemctl is-active --quiet ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
+
+        if [ "$IPFS_STATUS" = "running" ]; then
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$IPFS_STATUS" = "stopped" ]; then
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
+    printf "\\n"
+
+    # Prompt to change upnp status
+    menu_ask_upnp
+
+    # Update digibyte.conf
+    digibyte_create_conf
+
+    # Restart DigiByte daemon if upn status has changed
+    if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart Digibyted if the upnp status has just been changed
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted
+        fi
+
+    fi
+
+    # Set the IPFS upnp values, if we are enabling/disabling the UPnP status
+    if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
+        if [ "$UPNP_IPFS_CURRENT" != "false" ]; then
+            str="Enabling UPnP port forwarding for Kubo IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            if [ -f "$USER_HOME/.jsips/config" ]; then
+                str="Enabling UPnP port forwarding for JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"false\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                local jsipfs_upnp_updated="yes"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            IPFS_UPNP_STATUS_UPDATED="YES"
+        fi
+    elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
+        if [ "$UPNP_IPFS_CURRENT" != "true" ]; then
+            str="Disabling UPnP port forwarding for Kubo IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            if [ -f "$USER_HOME/.jsips/config" ]; then
+                str="Disabling UPnP port forwarding for JS-IPFS..."
+                printf "%b %s" "${INFO}" "${str}"
+                update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"true\"" $DGA_SETTINGS_FILE)" && \
+                echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                local jsipfs_upnp_updated="yes"
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+            IPFS_UPNP_STATUS_UPDATED="YES"
+        fi
+    fi 
+
+    if [ "$IPFS_UPNP_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart Kubo IPFS if the upnp status has just been changed
+        if [ "$IPFS_STATUS" = "running" ] || [ "$DGB_STATUS" = "stopped" ]; then
+
+            # Restart IPFS if the upnp status has just been changed
+            printf "%b Kubo IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            restart_service ipfs
+        fi
+
+        # Restart DigiAsset Node if the JS-IPFS upnp status has just been changed
+        if [ "$jsipfs_upnp_updated" = "yes" ]; then
+
+            # Restart IPFS if the upnp status has just been changed
+            printf "%b JS-IPFS UPnP status has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
+            pm2 restart digiasset
+        fi
+
+
+
+    fi
+
+    printf "\\n"
+
+
+    FORCE_DISPLAY_UPNP_MENU=false
+    DGB_UPNP_STATUS_UPDATED=""
+    IPFS_UPNP_STATUS_UPDATED=""
+    jsipfs_upnp_updated=""
+
+    menu_existing_install
+
 }
 
 
@@ -5634,12 +5901,8 @@ final_messages() {
             printf "\\n"
         fi
 
-        if [ "$system_updates_available" = "yes" ]; then
-            printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "\\n"
-            printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-        fi
+        display_system_updates_reminder
+
     fi
 
     if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
@@ -5666,6 +5929,17 @@ final_messages() {
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
         printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+}
+
+display_system_updates_reminder() {
+
+    if [ "$system_updates_available" = "yes" ]; then
+        printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -5745,6 +6019,290 @@ check_service_active() {
 
 # Function to compare two version numbers
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+
+
+
+
+
+# This function will ask the user if they want to install the system upgrades that have been found
+menu_ask_upnp() {
+
+local show_dgb_upnp_menu="no"
+local show_ipfs_upnp_menu="no"
+
+# FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
+
+# If digibyte.conf file does not exist yet, show the upnp menu
+if [ ! -f "$DGB_CONF_FILE" ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+# If digibyte.conf file already exists, show the upnp menu if it does not contain upnp variables
+if [ -f "$DGB_CONF_FILE" ]; then
+
+        # Update upnp status in settings if it exists and is blank, otherwise append it
+        if grep -q "upnp=1" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="maybe"
+            UPNP_DGB_CURRENT=1
+        elif grep -q "upnp=0" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="maybe"
+            UPNP_DGB_CURRENT=0
+        elif grep -q "upnp=" $DGB_CONF_FILE; then
+            show_dgb_upnp_menu="yes"
+        else
+            show_dgb_upnp_menu="yes"
+        fi
+fi
+
+# If this is a new install and the upnp values already exist
+if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+# If we are running this from the main menu, always show the menu prompts
+if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+
+
+
+# IF THIS IS A FULL INSTALL CHECK FOR KUBO IPFS
+
+if [ "$DO_FULL_INSTALL" = "YES" ]; then
+
+    local try_for_jsipfs="no"
+
+    # If there are not any IPFS config files, show the menu
+    if [ ! -f "$USER_HOME/.ipfs/config" ] && [ ! -f "$USER_HOME/.jsipfs/config" ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+    # Is there a working version of Kubo available?
+    if [ -f "$USER_HOME/.ipfs/config" ]; then
+
+        local test_kubo_query
+
+        test_kubo_query=$(curl -X POST http://127.0.0.1:5001/api/v0/id 2>/dev/null)
+        test_kubo_query=$(echo $test_kubo_query | jq .AgentVersion | grep -Eo kubo)
+
+        # If this is Kubo, check the current UPNP status, otherwise test for JS-IPFS
+        if [ "$test_kubo_query" = "kubo" ]; then
+
+            # Is Kubo installed and running, and what is the upnp status?
+            query_ipfs_upnp_status=$(sudo -u $USER_ACCOUNT ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
+
+            if [ "$query_ipfs_upnp_status" != "" ]; then
+                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
+            else
+                try_for_jsipfs="yes"
+            fi
+
+        fi
+
+    fi
+
+    # Ok, there is no Kubo. Is there a JS-IPFS config file available?
+    if [ -f "$USER_HOME/.jsipfs/config" ] && [ -f "$try_for_jsipfs" = "yes" ]; then
+
+        # Test if JS-IPFS is in use
+        is_jsipfs_in_use=$(cat $DGA_SETTINGS_FILE | jq .ipfs | sed 's/"//g')
+
+        # If yes, then get the current JS-IPFS upnp status
+        if [ "$is_jsipfs_in_use" = "true" ]; then
+
+            # Get JS-IPFS upnp status
+            query_jsipfs_upnp_status=$(cat ~/.jsipfs/config | jq .Swarm.DisableNatPortMap)
+
+            if [ "$query_ipfs_upnp_status" != "" ]; then
+                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
+            fi
+ 
+        else
+
+            show_ipfs_upnp_menu="yes"
+
+        fi
+
+    fi
+
+    # If this is a new install, show the upnp prompt menu regardless
+    if [ "$DGANODE_ONLY" = true ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+    # If we are running this from the main menu, always show the menu prompts
+    if [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
+        show_ipfs_upnp_menu="yes"
+    fi
+
+fi
+
+
+
+# SHOW UPNP MENU
+
+# Don't ask if we are running unattended
+if [ ! "$UNATTENDED_MODE" == true ]; then
+
+    # Display upnp section break
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+            printf " =============== UPnP MENU =============================================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+    # Set up a string to display the current UPnP status
+    local upnp_current_status_1
+    local upnp_current_status_2
+    local upnp_current_status_3
+    local upnp_current_status
+
+    if [ "$UPNP_DGB_CURRENT" != "" ] || [ "$UPNP_IPFS_CURRENT" != "" ]; then
+        upnp_current_status_1="Note:\\n"
+    fi
+
+    if [ "$UPNP_DGB_CURRENT" = "1" ]; then
+        upnp_current_status_2=" - UPnP is currently ENABLED for DigiByte Core\\n"
+    elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
+        upnp_current_status_2=" - UPnP is currently DISABLED for DigiByte Core\\n"
+    fi
+
+    if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
+        upnp_current_status_3=" - UPnP is currently ENABLED for IPFS\\n"
+    elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
+        upnp_current_status_3=" - UPnP is currently DISABLED for IPFS\\n"
+    fi
+
+    if [ "$upnp_current_status_2" != "" ] || [ "$upnp_current_status_3" != "" ]; then
+        upnp_current_status="$upnp_current_status_1$upnp_current_status_2$upnp_current_status_3\\n"
+    fi
+
+
+    # SHOW THE DGB + IPFS UPnP MENU
+    if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
+        
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="NO"
+            IPFS_ENABLE_UPNP="NO"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="YES"
+            IPFS_ENABLE_UPNP="YES"
+        fi
+        printf "\\n"
+
+    # SHOW THE DGB ONLY UPnP MENU
+    elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
+            DGB_ENABLE_UPNP="NO"
+            IPFS_ENABLE_UPNP="SKIP"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for DigiByte Core\\n" "${INFO}"
+            DGB_ENABLE_UPNP="YES"
+            IPFS_ENABLE_UPNP="SKIP"
+        fi
+        printf "\\n"
+
+
+    # SHOW THE IPFS ONLY UPnP MENU
+    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+            printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+            IPFS_ENABLE_UPNP="NO"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to ENABLE UPnP for IPFS\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+            IPFS_ENABLE_UPNP="YES"
+        fi
+        printf "\\n"
+
+    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+
+        DGB_ENABLE_UPNP="SKIP"
+        IPFS_ENABLE_UPNP="SKIP"
+
+    fi
+
+else
+
+    # If we are running unattended, and the script wants to prompt the user with the upnp menu, then get the values from diginode.settings
+
+    # Display upnp section break
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+            printf " =============== Unattended Mode: Configuring UPnP =====================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+    if [ "$show_dgb_upnp_menu" = "yes" ]; then
+
+        if [ "$UI_DGB_ENABLE_UPNP" = "YES" ]; then
+
+            printf "%b Unattended Mode: UPnP will be ENABLED for DigiByte Core\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            DGB_ENABLE_UPNP="YES"
+
+        elif [ "$UI_DGB_ENABLE_UPNP" = "NO" ]; then
+
+            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core" "${INFO}"
+            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            DGB_ENABLE_UPNP="NO"
+
+        else
+
+            printf "%b Unattended Mode: Skipping setting up UPnP for DigiByte Core. It is already configured.\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+
+        fi
+    fi
+
+    if [ "$show_ipfs_upnp_menu" = "yes" ]; then
+
+        if [ "$UI_IPFS_ENABLE_UPNP" = "YES" ]; then
+
+            printf "%b Unattended Mode: UPnP will be ENABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+            IPFS_ENABLE_UPNP="YES"
+
+        elif [ "$UI_IPFS_ENABLE_UPNP" = "NO" ]; then
+
+            printf "%b Unattended Mode: UPnP will be DISABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
+
+            IPFS_ENABLE_UPNP="NO"
+
+        else
+
+            printf "%b Unattended Mode: Skipping setting up UPnP for IPFS. It is already configured.\\n" "${INFO}"
+            DGB_ENABLE_UPNP="SKIP"
+
+        fi
+    fi
+
+    # Insert blank row if anything was displayed above
+    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then  
+        printf "\\n"
+    fi
+
+
+fi
+
+}
+
+
 
 
 
@@ -6949,9 +7507,69 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     # Initialize IPFS, if it has not already been done so
     if [ ! -d "$USER_HOME/.ipfs" ]; then
         export IPFS_PATH=$USER_ACCOUNT/.ipfs
-        sudo -u $USER_ACCOUNT ipfs init
+
+        local use_ipfs_server_profile
+
+        # If we are in unattended mode setup whether we are using the server profile
+        if [ "$UNATTENDED_MODE" == true ]; then
+            if [ "$UI_IPFS_SERVER_PROFILE" = "YES" ]; then
+                printf "%b Unattended Mode: The IPFS Server profile will be used.\\n" "${INFO}"
+                use_ipfs_server_profile="yes"
+            elif [ "$UI_IPFS_SERVER_PROFILE" = "NO" ]; then
+                printf "%b Unattended Mode: The IPFS Server profile will NOT be used.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            else
+                printf "%b Unattended Mode: The IPFS Server profile will NO be used.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            fi
+        else
+            # Ask the user if they want to use the server profile
+            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS Server profile?\\n\\nThe Server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
+                printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
+                use_ipfs_server_profile="yes"
+            else
+                printf "%b You chose NOT to enable the IPFS Server profile.\\n" "${INFO}"
+                use_ipfs_server_profile="no"
+            fi
+
+        fi
+
+        if [ "$use_ipfs_server_profile" = "yes" ]; then
+            sudo -u $USER_ACCOUNT ipfs init -p server
+        elif [ "$use_ipfs_server_profile" = "no" ]; then
+            sudo -u $USER_ACCOUNT ipfs init
+        fi
+
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+        printf "\\n"
     fi
+
+    # Set the upnp values, if we are enabling/disabling the UPnP status
+    if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
+        str="Enabling UPnP port forwarding for Kubo IPFS..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ -f "$USER_HOME/.jsips/config" ]; then
+            str="Enabling UPnP port forwarding for JS-IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"false\"" $DGA_SETTINGS_FILE)" && \
+            echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
+        str="Disabling UPnP port forwarding for Kubo IPFS..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ -f "$USER_HOME/.jsips/config" ]; then
+            str="Disabling UPnP port forwarding for JS-IPFS..."
+            printf "%b %s" "${INFO}" "${str}"
+            update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"true\"" $DGA_SETTINGS_FILE)" && \
+            echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi 
 
     # Re-enable and re-start IPFS service after reset/upgrade
     if [ "$IPFS_STATUS" = "stopped" ]; then
@@ -7294,6 +7912,8 @@ EOF
 fi
 
 }
+
+
 
 # This function will check if NodeJS is installed, and if it is, check if there is an update available
 # LAtest distrbutions can be checked here: https://github.com/nodesource/distributions 
@@ -8231,7 +8851,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         mv $DGA_SETTINGS_BACKUP_LOCATION/*.json $DGA_SETTINGS_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        str="Removing DigiAsset configuration backup folder: ~/dga_config_backup ..."
+        str="Removing DigiAsset configuration local backup folder: ~/dga_config_backup ..."
         printf "%b %s" "${INFO}" "${str}"
         rmdir $DGA_SETTINGS_BACKUP_LOCATION
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -8841,6 +9461,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
           printf "\\n"
+          display_system_updates_reminder
           exit
         fi
 
@@ -8877,7 +9498,7 @@ fi
 # Perform uninstall if requested
 uninstall_do_now() {
 
-    printf " =============== UNINSTALLING DIGINODE =================================\\n\\n"
+    printf " =============== Uninstall DigiNode ====================================\\n\\n"
     # ==============================================================================
 
     printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
@@ -8982,6 +9603,18 @@ uninstall_do_now() {
         DGA_FIRST_RUN=""
         sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Delete JS-IPFS settings
+    if [ -d "$USER_HOME/.jsipfs" ]; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your JS-IPFS settings folder?\\n\\nThis will delete the folder: ~/.jsipfs\\n\\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." "${r}" "${c}"; then
+            str="Deleting ~/.jsipfs settings folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/.jsipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b You chose not to delete the JS-IPFS settings folder (~/.jsipfs).\\n" "${INFO}"
+        fi
     fi
 
     # Ask to delete PM2 service, if it exists
@@ -9177,7 +9810,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nThis step uninstalls the DigiByte Core software only - your wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
@@ -9284,6 +9917,7 @@ uninstall_do_now() {
 
         else
             printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
+            printf "\\n"
         fi
 
     fi
@@ -9875,7 +10509,7 @@ fi
 if [ "$DIGIFACT" = "digifact34" ]; then
     DIGIFACT_TITLE="DigiFact # 34 - Did you know..."
     DIGIFACT_L1="You can build second-layer networks on top of DigiByte such as"
-    DIGIFACT_L2="DigiAssets , Lightning Networks, ICOs, Tokens, assets and more."
+    DIGIFACT_L2="DigiAssets, Lightning Networks, ICOs, Tokens, assets and more."
     DIGIFACT_L3=""
     DIGIFACT_L4=""
     DIGIFACT_L5=""
@@ -10487,6 +11121,8 @@ elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 fi
 
 
+
+
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Cloning from GitHub
@@ -10544,6 +11180,14 @@ fi
 printf "%b Installing/upgrading Argone One Daemon...\\n" "${INFO}"
 cd $USER_HOME/argon-one-daemon
 sudo -u $USER_ACCOUNT $USER_HOME/argon-one-daemon/install
+
+# If there was an error
+if [ $? -ne 0 ]; then
+    printf "\\n"
+    printf "%b Installing Argon One Daemon failed. Please install any missing dependencies and run this again.\\n" "${INFO}"
+    printf "\\n"
+    exit 1
+fi
 
 # Set fan to auto
 str="Setting Fan to Auto Mode..."
@@ -11050,6 +11694,9 @@ install_or_upgrade() {
         menu_ask_install_digiasset_node
 
     fi
+
+    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
+    menu_ask_upnp
 
     ### INSTALL DIGINODE DEPENDENCIES ###
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.5.6
+#           Name:  DigiNode Status Monitor v0.6.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.5.6
-# Last Updated: 2022-07-31
+DGNT_VER_LOCAL=0.6.0
+# Last Updated: 2022-08-05
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -680,7 +680,7 @@ is_dganode_installed() {
         # Check to see if the DigiAsset Node is running, even if IPFS isn't running or installed (this means it is likely using js-IPFS)
         if [ "$ipfs_running" = "no" ] || [ "$DGA_STATUS" = "not_detected" ]; then
 
-            DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+            DGA_CONSOLE_QUERY=$(curl --max-time 4 localhost:8090/api/status/console.json 2>/dev/null)
             if [ "$DGA_CONSOLE_QUERY" != "" ]; then
                 ipfs_running="yes"
                 DGA_STATUS="ipfsrunning"
@@ -819,7 +819,7 @@ update_dga_console() {
 
 if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
-    DGA_CONSOLE_QUERY=$(curl localhost:8090/api/status/console.json 2>/dev/null)
+    DGA_CONSOLE_QUERY=$(curl --max-time 4 localhost:8090/api/status/console.json 2>/dev/null)
 
     if [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
@@ -1015,7 +1015,7 @@ quit_message() {
     NewInstall=False
 
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ] && [ "$auto_quit" != true ]; then
 
       # Install updates now
 
@@ -1095,6 +1095,16 @@ quit_message() {
       exit_locate_digibyte_reminder
   fi
 
+if [ "$auto_quit" = true ]; then
+    echo ""
+    printf "%b DigiNode Status Monitor quit automatically as it was left running\\n" "${INFO}"
+    printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
+    printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
+    echo ""
+    printf "%b To edit it: $TEXTEDITOR ~/.digibyte/diginode.settings\\n" "${INDENT}"
+    echo ""
+fi
+
   # Display cursor again
   tput cnorm
 }
@@ -1104,10 +1114,10 @@ exit_locate_digibyte_reminder() {
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
     printf "  %b %bNote: A DigiByte Node could not be detected. %b\\n"  "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\n" "${INDENT}"
-    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\n" "${INDENT}"
+    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\\n" "${INDENT}"
+    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\n" "${INDENT}"
+    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
     printf "\\n"          
 fi
 
@@ -1118,20 +1128,10 @@ startup_waitpause() {
 
 # Optionally require a key press to continue, or a long 5 second pause. Otherwise wait 3 seconds before starting monitoring. 
 
-echo ""
 if [ "$STARTPAUSE" = "yes" ]; then
+  echo ""
   read -n 1 -s -r -p "      < Press any key to continue >"
-else
-
-  if [ "$STARTWAIT" = "yes" ]; then
-    echo "               < Wait for 5 seconds >"
-    sleep 5
-  else 
-    echo "               < Wait for 3 seconds >"
-    sleep 3
-  fi
 fi
-echo ""
 
 }
 
@@ -1145,10 +1145,13 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # update external IP address and save to settings file
     str="Looking up external IP address..."
     printf "  %b %s" "${INFO}" "${str}"
-    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short)
+    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
     if [ $IP4_EXTERNAL_QUERY != "" ]; then
         IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
         sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    else
+        IP4_EXTERNAL="OFFLINE"
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
     fi
     printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
 
@@ -1226,7 +1229,7 @@ firstrun_dganode_configs() {
     # Next let's try and get the minor version, which may or may not be available yet
     # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 4 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -1282,6 +1285,9 @@ firstrun_dganode_configs() {
 
 pre_loop() {
 
+    printf " =============== Performing Startup Checks ==============================\\n\\n"
+    # ===============================================================================
+
       # Setup loopcounter - used for debugging
       loopcounter=0
 
@@ -1289,11 +1295,9 @@ pre_loop() {
       TIME_NOW=$(date)
       TIME_NOW_UNIX=$(date +%s)
 
-      # Log date of this Status Monitor run to diginode.settings
-      str="Logging date of this run to diginode.settings file..."
-      printf "%b %s" "${INFO}" "${str}"
-      sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
-      printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+      if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "running" ]; then
+        printf "%b Checking DigiByte Core...\\n" "${INFO}"
+      fi
 
       # Is DigiByte daemon starting up?
       if [ "$DGB_STATUS" = "running" ]; then
@@ -1329,6 +1333,8 @@ pre_loop() {
 
 
       ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+
+      printf "%b Checking Software Versions...\\n" "${INFO}"
 
       # If there is actually a local version of DigiByte Core, check for an update
       if [ "$DGB_VER_LOCAL" != "" ]; then
@@ -1395,19 +1401,23 @@ pre_loop() {
         fi
     fi
 
+    if [ "$DGA_STATUS" = "running" ]; then
+        printf "%b Checking DigiAsset Node...\\n" "${INFO}"
+    fi
+
     # Query the DigiAsset Node console
     update_dga_console
 
     # Choose a random DigiFact
     digifact_randomize
 
+    printf "\\n"
 
     # Enable the DigiByte Core port test if it seems it has never run before
     if [ "$DGB_PORT_TEST_ENABLED" != "YES" ] && [ "$DGB_PORT_TEST_ENABLED" != "NO" ]; then
 
-        printf "\\n"
+        
         printf "%b Enabling DigiByte Core Port Test...\n" "${INFO}"
-        printf "\\n"
 
         DGB_PORT_TEST_ENABLED="YES"
         sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1416,9 +1426,7 @@ pre_loop() {
     # Enable the IPFS port test if it seems it has never run before
     if [ "$IPFS_PORT_TEST_ENABLED" != "YES" ] && [ "$IPFS_PORT_TEST_ENABLED" != "NO" ]; then
 
-        printf "\\n"
         printf "%b Enabling IPFS Port Test...\n" "${INFO}"
-        printf "\\n"
 
         IPFS_PORT_TEST_ENABLED="YES"
         sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1430,9 +1438,7 @@ pre_loop() {
         # If the External IP address has changed since the last port test was run, reset and re-enable the port test
         if [ "$DGB_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
 
-            printf "\\n"
             printf "%b External IP address has changed. Re-enabling DigiByte Core Port Test...\n" "${INFO}"
-            printf "\\n"
 
             DGB_PORT_TEST_ENABLED="YES"
             sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1453,9 +1459,7 @@ pre_loop() {
         # If the External IP address has changed since the last port test was run, reset and re-enable the port test
         if [ "$IPFS_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
 
-            printf "\\n"
             printf "%b External IP address has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
-            printf "\\n"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1471,9 +1475,7 @@ pre_loop() {
         # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
         elif [ "$IPFS_PORT_NUMBER" != "$IPFS_PORT_NUMBER_SAVED" ]; then
 
-            printf "\\n"
             printf "%b IPFS port number has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
-            printf "\\n"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1489,6 +1491,9 @@ pre_loop() {
         fi
 
     fi
+
+    # Enable displaying startup messaging for first loop
+    STARTUP_LOOP=true
 
 }
 
@@ -1508,13 +1513,19 @@ do
 
 # Quit status monitor automatically based on the time set in diginode.settings
 # Status Monitor will run indefinitely if the value is set to 0
+
+# First convert SM_AUTO_QUIT from minutes into seconds
+
 if [ $SM_AUTO_QUIT -gt 0 ]; then
-  if [ $loopcounter -gt 43200 ]; then
-      echo ""
-      echo "DigiNode Status Monitor quit automatically as it was left running for more than 12 hours."
-      echo ""
+  auto_quit_seconds=$(( $SM_AUTO_QUIT*60 ))
+  if [ $loopcounter -gt $auto_quit_seconds ]; then
+      auto_quit=true
       exit
   fi
+fi
+
+if [ "$STARTUP_LOOP" = "true" ]; then
+    printf "%b Running Status Loop: Every 1 Second...\\n" "${INFO}"
 fi
 
 
@@ -1642,7 +1653,6 @@ if [ "$DGB_STATUS" = "running" ]; then
   fi
 fi 
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 15 seconds (approx once every block).
 #    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
@@ -1651,6 +1661,10 @@ fi
 TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
+
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 15 Seconds...\\n" "${INFO}"
+    fi
 
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
     if [ "$DGB_STATUS" = "startingup" ]; then
@@ -1702,6 +1716,34 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
     fi
 
+    # update external IP if it is offline
+    if [ "$IP4_EXTERNAL" = "OFFLINE" ]; then
+
+        # Check if the DigiNode has gone offline
+        wget -q --connect-timeout=0.5 --spider http://google.com
+        if [ $? -eq 0 ]; then
+
+            IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
+            if [ $IP4_EXTERNAL_QUERY != "" ]; then
+                IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+                sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+            fi
+        fi
+    fi
+
+    # update external IP, unless it is offline
+    if [ "$IP4_INTERNAL" = "OFFLINE" ]; then
+
+          IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+          if [ $IP4_INTERNAL_QUERY != "" ]; then
+            IP4_INTERNAL=$IP4_INTERNAL_QUERY
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+          else
+            IP4_INTERNAL="OFFLINE"
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+          fi
+    fi
+
     # Lookup disk usage, and store in diginode.settings if present
     update_disk_usage
 
@@ -1721,6 +1763,10 @@ fi
 TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 
 if [ $TIME_DIF_1MIN -ge 60 ]; then
+
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 1 Minute...\\n" "${INFO}"
+    fi
 
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
@@ -1774,12 +1820,27 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
   # Choose a random DigiFact
   digifact_randomize
 
-  # Update local IP address if it has changed
-  IP4_INTERNAL_NEW=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-  if [ $IP4_INTERNAL_NEW != $IP4_INTERNAL ]; then
-    IP4_INTERNAL = $IP4_INTERNAL_NEW
-    sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
-  fi
+    # update external IP, unless it is offline
+    if [ "$IP4_INTERNAL" != "OFFLINE" ]; then
+
+          IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+          if [ $IP4_INTERNAL_QUERY != "" ]; then
+            IP4_INTERNAL=$IP4_INTERNAL_QUERY
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+          else
+            IP4_INTERNAL="OFFLINE"
+            sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+          fi
+    fi
+
+
+    # Check if the DigiNode has gone offline
+    wget -q --connect-timeout=0.5 --spider http://google.com
+    if [ $? -ne 0 ]; then
+        IP4_EXTERNAL="OFFLINE"
+        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+    fi
+
 
   # Update diginode.settings with when Status Monitor last ran
   DGNT_MONITOR_LAST_RUN=$(date)
@@ -1790,7 +1851,6 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
 fi
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 15 minutes
 #    Update the Internal & External IP
@@ -1800,11 +1860,21 @@ TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
 if [ $TIME_DIF_15MIN -ge 300 ]; then
 
-    # update external IP if it has changed
-    IP4_EXTERNAL_NEW=$(dig @resolver4.opendns.com myip.opendns.com +short)
-    if [ "$IP4_EXTERNAL_NEW" != "$IP4_EXTERNAL" ]; then
-      IP4_EXTERNAL=$IP4_EXTERNAL_NEW
-      sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 15 Minutes...\\n" "${INFO}"
+    fi
+
+    # update external IP, unless it is offline
+    if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+
+        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short +timeout=5 2>/dev/null)
+        if [ "$IP4_EXTERNAL_QUERY" != "" ]; then
+            IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+        else
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        fi
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -1813,7 +1883,7 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
       # Next let's try and get the minor version, which may or may not be available yet
       # If DigiAsset Node is running we can get it directly from the web server
 
-      DGA_VER_MNR_LOCAL_QUERY=$(curl localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
+      DGA_VER_MNR_LOCAL_QUERY=$(curl --max-time 4 localhost:8090/api/version/list.json 2>/dev/null | jq .current | sed 's/"//g')
       if [ "$DGA_VER_MNR_LOCAL_QUERY" = "NA" ]; then
           # This is a beta so the minor version doesn't exist
           DGA_VER_MNR_LOCAL="beta"
@@ -1894,7 +1964,6 @@ if [ $TIME_DIF_15MIN -ge 300 ]; then
     sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
-
 # ------------------------------------------------------------------------------
 #    Run once every 24 hours
 #    Check for new version of DigiByte Core
@@ -1902,7 +1971,11 @@ fi
 
 TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 
-if [ $TIME_DIF_1DAY -ge 86400 ]; then 
+if [ $TIME_DIF_1DAY -ge 86400 ]; then
+
+    if [ "$STARTUP_LOOP" = "true" ]; then
+        printf "%b Running Status Loop: Every 24 Hours...\\n" "${INFO}"
+    fi
 
     # items to repeat every 24 hours go here
 
@@ -1914,7 +1987,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
     # Check for new release of DigiByte Core on Github
-    DGB_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
       DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
       sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -1938,7 +2011,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -1969,7 +2042,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
     # Check for new release of DigiAsset Node
-    DGA_VER_RELEASE_QUERY=$(curl -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
+    DGA_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
     if [ $DGA_VER_RELEASE_QUERY != "" ]; then
       DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
       DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
@@ -2002,7 +2075,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of Kubo
-    IPFS_VER_RELEASE_QUERY=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    IPFS_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
     if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
         IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -2024,6 +2097,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date +%s)"
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+fi
+
+if [ "$STARTUP_LOOP" = "true" ]; then
+    printf "%b Generating Display output...\\n" "${INFO}"
 fi
 
 
@@ -2069,11 +2146,19 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiB
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
 printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
+if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-71s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
+elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: $IP4_INTERNAL  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
+elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: $IP4_EXTERNAL" "║" 
+else
 printf "  ║ IP ADDRESS     ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
+fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
 printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
@@ -2186,16 +2271,41 @@ fi
 if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
-if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
-    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
+    printf "               Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
-    printf "               Press ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
-    printf "                             Press ${txtbld}Q${txtrst} to Quit.\\n"
+    printf "                         Press ${txtbld}Ctrl-C${txtrst} to Quit.\\n"
 fi
 printf "\\n"
 
 )
+
+if [ "$STARTUP_LOOP" = "true" ]; then
+
+    printf "%b Startup loop completed.\\n" "${INFO}"
+
+    printf "\\n"
+
+    # Log date of this Status Monitor run to diginode.settings
+    str="Logging date of this run to diginode.settings file..."
+    printf "%b %s" "${INFO}" "${str}"
+    sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    printf "\\n"
+
+  if [ "$STARTWAIT" = "yes" ]; then
+    echo "               < Wait for 5 seconds >"
+    sleep 5
+  else 
+    echo "               < Wait for 3 seconds >"
+    sleep 3
+  fi
+
+    STARTUP_LOOP=false
+
+fi
 
 # end output double buffer
 echo "$output"
@@ -2206,17 +2316,9 @@ trap quit_message EXIT
 # sleep 0.5
 read -t 0.5 -s -n 1 input
 
-    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ]; then
+    if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
         case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
-                ;;
             "P")
                 echo "Running Port test..."
                 port_test
@@ -2227,17 +2329,9 @@ read -t 0.5 -s -n 1 input
                 ;;
         esac
 
-    elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
+    elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
         case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
-                ;;
             "P")
                 echo "Running Port test..."
                 port_test
@@ -2245,19 +2339,6 @@ read -t 0.5 -s -n 1 input
             "p")
                 echo "Running Port test..."
                 port_test
-                ;;
-        esac
-
-    else
-
-        case "$input" in
-            "Q")
-                echo "Quit..."
-                exit
-                ;;
-            "q")
-                echo "Quit..."
-                exit
                 ;;
         esac
 
@@ -2320,25 +2401,78 @@ PORT_TEST_DATE=$(date)
 
 if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-    str="Is DigiByte Core port 12024 open? ... "
+    str="Is DigiByte Core port 12024 OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    if [ $DGB_CONNECTIONS -gt 8 ]; then
+    # Setup DigiByte Port Test Query
+    DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 5 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
+    DGB_PORT_TEST_QUERY_CMD_2=$IP4_EXTERNAL
+    DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"12024\"}' https://digipixel.me/api/scan"
 
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
+    DGB_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}"
+
+    # Query Renzo's DigiByte Port tester - http://digipixel.me/
+    DGB_PORT_TEST_QUERY=$(eval $DGB_PORT_TEST_QUERY_CMD) 
+
+    # Port Test - Is the server busy?
+    DGB_PORT_TEST_QUERY_BUSY=$(echo $DGB_PORT_TEST_QUERY | grep -Eo "busy")  
+    if [ "$DGB_PORT_TEST_QUERY_BUSY" = "busy" ]; then
+        DGB_PORT_FWD_STATUS="TEST_ERROR"
+        DGB_PORT_TEST_QUERY=""
+    fi
+
+
+    DGB_PORT_TEST_QUERY_VERSION=$(echo $DGB_PORT_TEST_QUERY | jq .version | sed 's/"//g')
+    DGB_PORT_TEST_QUERY_SUBVERSION=$(echo $DGB_PORT_TEST_QUERY | jq .subversion | sed 's/"//g' | sed 's/^\///;s/\// /g' | sed 's/:/ /g' | sed 's/^[ \t]*//;s/[ \t]*$//')
+    DGB_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_PORT_TEST_QUERY | jq .height | sed 's/"//g')
+    DGB_PORT_TEST_QUERY_BLOCKCOUNT=$(printf "%'d" $DGB_PORT_TEST_QUERY_BLOCKCOUNT)
+    DGB_PORT_TEST_QUERY_UNAVAILABLE=$(echo $DGB_PORT_TEST_QUERY | jq .error | sed 's/"//g')
+
+    # Port test - IS port open?
+    if [ "$DGB_PORT_TEST_QUERY_VERSION" = "null" ]; then
+        DGB_PORT_FWD_STATUS="TEST_ERROR"
+    elif [ "$DGB_PORT_TEST_QUERY_VERSION" = "" ]; then
+        DGB_PORT_FWD_STATUS="TEST_ERROR"
+    elif [ "$DGB_PORT_TEST_QUERY_VERSION" != "" ]; then
+        DGB_PORT_FWD_STATUS="OPEN"
+    fi
+
+    # Port test - Is port closed?
+    if [ "$DGB_PORT_TEST_QUERY_UNAVAILABLE" = "Node unavailable" ]; then
+        DGB_PORT_FWD_STATUS="CLOSED"
+    fi
+
+
+    if [ "$DGB_PORT_FWD_STATUS" = "OPEN" ]; then
+
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
+        printf "\\n" 
+        printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
+        printf "\\n" 
+        printf "%b DigiByte Node found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
+        printf "\\n" 
+        printf "%b     Subversion:  $DGB_PORT_TEST_QUERY_SUBVERSION\\n" "${INDENT}"
+        printf "%b        Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
+        printf "%b   Block Height:  $DGB_PORT_TEST_QUERY_BLOCKCOUNT\\n" "${INDENT}"
+        printf "\\n"
+
+
+        sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
         DGB_PORT_TEST_ENABLED="NO"
         sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
-        DGB_PORT_FWD_STATUS="OPEN"
-        sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
         sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
         sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-        printf "\\n"
-    
-    else
+        printf "\\n"  
 
-        printf "%b%b %s POSSIBLY NOT!\\n" "${OVER}" "${CROSS}" "${str}"           
+    elif [ "$DGB_PORT_FWD_STATUS" = "CLOSED" ]; then
+
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
+        printf "\\n" 
+        printf "%b ${txtbred}Fail! Port 12024 is CLOSED.${txtbld}\\n" "${INDENT}"
+        printf "\\n"   
+
         DGB_PORT_TEST_ENABLED="YES"
         sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_FWD_STATUS="CLOSED"
@@ -2347,6 +2481,57 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_EXTERNAL_IP=""
         sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+        display_port_forward_instructions="yes"
+
+    elif [ "$DGB_PORT_FWD_STATUS" = "TEST_ERROR" ]; then
+
+        if [ $DGB_CONNECTIONS -gt 8 ]; then    
+
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
+            printf "\\n"
+            printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
+            printf "%b NOTE: The port testing service is currently unavailable. However,\\n" "${INFO}"
+            printf "%b       your connection count is currently more than 8 which means\\n" "${INDENT}"
+            printf "%b       port 12024 is definitely open.\\n" "${INDENT}"
+            printf "\\n"
+
+            DGB_PORT_TEST_ENABLED="NO"
+            sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+            DGB_PORT_FWD_STATUS="OPEN"
+            sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
+            sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+            sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            printf "\\n"
+        
+        else
+
+            printf "%b%b %s POSSIBLY NOT!\\n" "${OVER}" "${WARN}" "${str}"
+            printf "\\n" 
+            printf "%b ${txtbylw}Warning: Low connection count detected - the port may not be open.${txtrst}\\n" "${INDENT}" 
+            printf "\\n"
+            printf "%b NOTE: The port testing service is currently down, so the port cannot be tested. \\n" "${INFO}"
+            printf "\\n"
+
+            DGB_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_FWD_STATUS="CLOSED"
+            sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+            display_port_forward_instructions="yes"
+
+        fi
+
+    fi
+
+    if [ "$display_port_forward_instructions" = "yes" ]; then
 
         printf "\\n"
         printf "%b IMPORTANT: You need to forward port 12024 on your router so that other\\n" "${INFO}"
@@ -2373,7 +2558,7 @@ elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; t
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b Your DigiByte Node is in the process of starting up. Try again in a few minutes...\\n" "${INDENT}"
+        printf "%b ${txtbylw}Your DigiByte Node is in the process of starting up. Try again in a few minutes...${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
@@ -2393,22 +2578,26 @@ elif [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Port 12024 is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 fi
 
 if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
 
-    str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
+    str="Is IPFS port $IPFS_PORT_NUMBER OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    IPFS_PORT_TEST_QUERY=$(curl localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+    IPFS_PORT_TEST_QUERY=$(curl --max-time 10 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
     if [ $? -eq 0 ]; then
 
         if [ "$IPFS_PORT_TEST_QUERY" = "true" ]; then
-            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"           
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
+            printf "\\n"
+            printf "%b ${txtbgrn}Success! Port $IPFS_PORT_NUMBER is OPEN.${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+
             IPFS_PORT_TEST_ENABLED="NO"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
             IPFS_PORT_FWD_STATUS="OPEN"
@@ -2419,11 +2608,14 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
             sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
 
             sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER\"|" $DGNT_SETTINGS_FILE
-            printf "\\n"
         fi
 
         if [ "$IPFS_PORT_TEST_QUERY" = "false" ]; then
-            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"           
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbred}Fail! Port $IPFS_PORT_NUMBER is CLOSED.${txtbld}\\n" "${INDENT}"
+            printf "\\n"   
+
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
             IPFS_PORT_FWD_STATUS="CLOSED"
@@ -2436,10 +2628,10 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
         fi
 
     else
-        printf "%b%b %s ERROR! DigiAsset Node is not running!\\n" "${OVER}" "${CROSS}" "${str}" 
+        printf "%b %bERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
     fi
 
-elif [ "$DGA_STATUS" = "stopped" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
+elif [ "$DGA_STATUS" = "stopped" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
 
         str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
         printf "%b %s" "${INFO}" "${str}" 
@@ -2449,14 +2641,14 @@ elif [ "$DGA_STATUS" = "stopped" ] && [ "$DGA_PORT_TEST_ENABLED" = "YES" ]; then
         printf "%b Your DigiAsset Node is not running.\\n" "${INDENT}"
         printf "\\n"
 
-elif [ "$DGA_PORT_TEST_ENABLED" = "NO" ]; then
+elif [ "$IPFS_PORT_TEST_ENABLED" = "NO" ]; then
 
         str="Is IPFS port $IPFS_PORT_NUMBER open? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b You have already passed this test.\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Port $IPFS_PORT_NUMBER is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 fi
@@ -2485,6 +2677,7 @@ startup_checks() {
   diginode_tools_import_settings   # Import diginode.settings file
   diginode_logo_v3                 # Display DigiNode logo
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
+  set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
   set_sys_variables                # Set various system variables once we know we are on linux

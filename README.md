@@ -50,7 +50,7 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 
 To get started, see the Instructions section below. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
 
-![DigiNode Setup](images/diginode_setup.png)
+![DigiNode Setup](images/diginode_install_menu.png)
 
 ## About DigiNode Status Monitor
 
@@ -78,10 +78,12 @@ Once your DigiNode has been installed, you can access additional features from t
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Ports**: Enable/disable using UPnP to forward required ports.
+- **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
-![DigiNode Menu](images/diginode_menu.png)
+![DigiNode Main Menu](images/diginode_main_menu.png)
 
 ## Compatibility
 
@@ -96,7 +98,7 @@ DigiNode has been tested and known to work with the following systems:
 | **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.                                            |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is a known issue with this release of Ubuntu that causes the menus become unresponsive. If you experience this, you may want to try using Raspberry Pi OS instead. |
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
 
@@ -138,7 +140,7 @@ These features are for advanced users and should be used with caution:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. Proceed with caution.
+**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. (Some VPS won't let you update.)
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skipupdatepkgcache``` or
 - ```diginode-setup --skipupdatepkgcache```
 
@@ -159,8 +161,18 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.6.0 - 2022-08-05
+- Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It will 
+- DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
+- DigiNode Setup - The user is now asked if they want to enable the IPFS Server profile when first installed. The server profile disables IPFS local host discovery - ueful when running a DigiAsset Node on a server with a public IP address. In unattended mode its gets this value from diginode.settings. 
+- DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
+- Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
+- Status Monitor - Improve detection of when DigiNode internet connection is online/offline
+- Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
+- Status Monitor - To ovoid putting extended strain on the server, the Status Monitor now quits automatically after 20 minutes.
+- Status Monitor - The auto-quit duration now defaults to 20 minutes to minimise putting undue strain on the server. The duration is now set in minutes rather than seconds. A message is now displayed when it auto-quits.
+
 DigiNode Tools v0.5.6 - 2022-08-01
-- Fix: Staus Monitor - if port.js
 - New: Status Monitor now quits automatically after one hour by default
 - New: When using Unattended mode, you can now use the --skipcustommsg to skip the option to customize diginode.settings at first run.
 - New: Status Monitor now includes if there is a payout address for the DigiAsset Node
