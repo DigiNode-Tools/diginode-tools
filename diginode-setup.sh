@@ -4866,18 +4866,18 @@ menu_first_install() {
     opt1a="Full DigiNode "
     opt1b=" Install DigiByte & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Node ONLY "
-    opt2b=" DigiAsset Node will NOT be installed."
+    opt2a="DigiByte Node"
+    opt2b=" Install a DigiByte Node ONLY."
 
-    opt3a="DigiAsset Node ONLY "
-    opt3b=" DigiByte Node will NOT be installed."
+    opt3a="DigiAsset Node"
+    opt3b=" Install a DigiAsset Node ONLY."
 
-    opt4a="DigiNode Tools ONLY "
+    opt4a="DigiNode Tools"
     opt4b=" Use Status Monitor with an existing DigiByte Node."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose whether you would like to perform a full DigiNode install, or setup ONLY a DigiByte Node or ONLY a DigiAsset Node. A full install is recommended.\\n\\nRunning a DigiAsset Node supports the network by helping to decentralize DigiAsset metadata. It also gives you the ability to create your own DigiAssets, and earn DigiByte for hosting other people's metadata.\\n\\nYou can also choose to install only DigiNode Tools to use the Status Monitor with your existing DigiByte Node.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the Status Monitor with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -9790,7 +9790,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nYour wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nThis step uninstalls the DigiByte Core software only - your wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
