@@ -7501,7 +7501,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
         else
             # Ask the user if they want to use the server profile
-            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno  --defaultno -"Do you want to use the IPFS Server profile?\\n\\nThe Server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS Server profile?\\n\\nThe Server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
                 printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
                 use_ipfs_server_profile="yes"
             else
@@ -7513,60 +7513,21 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
+            printf "\\n"
         elif [ "$use_ipfs_server_profile" = "no" ]; then
             sudo -u $USER_ACCOUNT ipfs init
+            printf "\\n"
         fi
 
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
     fi
-
-    # banana
-
-    # wait for ~/.ipfs folder to be created
-    every5secs=0
-    progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-    printf "%b %bIPFS is initializing.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    str="Please wait..."
-    printf "%b %s" "${INDENT}" "${str}"
-    tput civis
-    while [ ! -d "$USER_HOME/.ipfs" ]; do
-
-        # Show Spinner while waiting for IPFS settings folder to be created
-        if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
-          progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
-        elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
-          progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
-        elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
-          progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
-        elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
-          progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-        fi 
-
-        if [ "$every5secs" -ge 10 ]; then
-            # Query if IPFS settings . Display error. Send success to null.
-            if [ -d "$USER_HOME/.ipfs" ]; then
-                dgb_error_msg=""
-                printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
-                every5secs=0
-                sleep 0.5
-            else
-                DGB_STATUS="running"
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                tput cnorm
-            fi
-        else
-            every5secs=$((every5secs + 1))
-            printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
-            sleep 0.5
-        fi
-    done
 
     # Set the upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
         sleep 2
         str="Enabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
-        ipfs config --bool Swarm.DisableNatPortMap "false"
+        sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         if [ -f "$USER_HOME/.jsips/config" ]; then
             str="Enabling UPnP port forwarding for JS-IPFS..."
@@ -7579,7 +7540,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sleep 2
         str="Disabling UPnP port forwarding for Kubo IPFS..."
         printf "%b %s" "${INFO}" "${str}"
-        ipfs config --bool Swarm.DisableNatPortMap "true"
+        sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         if [ -f "$USER_HOME/.jsips/config" ]; then
             str="Disabling UPnP port forwarding for JS-IPFS..."
