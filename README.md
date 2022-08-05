@@ -162,15 +162,14 @@ These features are for advanced users and should be used with caution:
 ## Release Notes
 
 DigiNode Tools v0.6.0 - 2022-08-05
-- Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It will 
+- Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It queries an external API then tests if your port is open.
 - DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
 - DigiNode Setup - The user is now asked if they want to enable the IPFS Server profile when first installed. The server profile disables IPFS local host discovery - ueful when running a DigiAsset Node on a server with a public IP address. In unattended mode its gets this value from diginode.settings. 
 - DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
 - Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
 - Status Monitor - Improve detection of when DigiNode internet connection is online/offline
 - Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
-- Status Monitor - To ovoid putting extended strain on the server, the Status Monitor now quits automatically after 20 minutes.
-- Status Monitor - The auto-quit duration now defaults to 20 minutes to minimise putting undue strain on the server. The duration is now set in minutes rather than seconds. A message is now displayed when it auto-quits.
+- Status Monitor - To ovoid putting extended strain on the server, the Status Monitor now quits automatically after 20 minutes. The duration is now set in minutes rather than seconds. A message is now displayed when it auto-quits.
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default
@@ -311,3 +310,39 @@ DigiNode Tools v0.2.1 - 2022-06-29
 - Status monitor now displays more detail while waiting for DigiByte daemon to finish starting up
 - Version number has been bumped to reflect new features added
 - Note: Due to changes in how the Status Monitor tracks time, you may need to delete your existing diginode.settings file before use
+
+DigiNode Tools v0.0.9 - 2022-05-27
+- Fixes for the DigiNode Tools version checker
+- Pushed out several releases to test its ability to detect and install new versions.
+
+DigiNode Tools v0.0.8 - 2022-05-26
+- Another attempt to fix DigiNode Tools verion checks
+
+DigiNode Tools v0.0.7 - 2022-05-26
+- Another attempt to fix DigiNode Tools version checks
+
+DigiNode Tools v0.0.6 - 2022-05-26
+- Reboot is hopefully no longer required after first install
+- diginode.settings variables now get reset during an uninstall
+- backup reminder is displayed until you have made one
+- lots of fixes and improvements to backup function
+
+DigiNode Tools v0.0.5 - 2022-05-19
+- USB Backup feature now backs up DigiAsset settings as well as DigiByte Wallet
+- DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the update bug mentioned in v0.0.4
+- Fixes to diginode.settings to better store variables
+- Any changes made to the RPC credentials (user/password/port) in digibyte.conf are now automatically updated in the DigiAssets settings file (main.json) file when running an 'Update' from the DigiNode Setup menu.
+Countless bug fixes and improvements
+
+DigiNode Tools v0.0.4 - 2022-05-10
+- Fixed several bugs relating to the Status Monitor being able to check for software updates
+- Install URL has changed to diginode-setup.digibyte.help
+- Implemented backup feature for prelimanry testing
+- Renamed every mention of "DigiNode Installer to "DigiNode Setup"
+- WARNING: There is currently a bug with the DigiAsset Node updater that will erase your configuration. I am currently working to fix this.  
+
+DigiNode Tools v0.0.2 - 2021-11-14
+- Test Release for the update mechanism
+
+DigiNode Tools v0.0.1 - 2021-11-12
+- First text release
