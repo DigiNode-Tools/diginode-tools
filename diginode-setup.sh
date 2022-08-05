@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.0
+#           Name:  DigiNode Setup v0.6.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8435,6 +8435,22 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^DGA_VER_MJR_RELEASE=/s|.*|DGA_VER_MJR_RELEASE=\"$DGA_VER_MJR_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
+
+    ###############################################################################
+    # TEMPORARY FIX TO UPGRADE v3 RELEASE TO USE DEV VERSION UNTIL v4 IS RELEASED #
+    ###############################################################################
+
+    if [ "$DGA_VER_MJR_RELEASE" = "3" ]; then
+        printf "%b ${txtbylw}DigiAsset Node v3.x release version found. Requesting development version instead...${txtrst}\\n" "${INFO}"
+        printf "%b (DigiNode Tools now requires at least DigiAsset Node v4 so the development version\\n" "${INDENT}"
+        printf "%b  will automatically be installed until v4 is officially released.)\\n" "${INDENT}"
+        DGA_BRANCH="development"
+    fi
+
+    ###############################################################################
+    # END TEMPORARY FIX
+    ###############################################################################
+
     # Requested branch
     if [ "$DGA_BRANCH" = "development" ]; then
         printf "%b DigiAsset Node development version requested.\\n" "${INFO}"
@@ -11189,7 +11205,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+sleep 5
+
 # Set fan to auto
+printf "\\n"
 str="Setting Fan to Auto Mode..."
 printf "%b %s" "${INFO}" "${str}"
 argonone-cli --auto
