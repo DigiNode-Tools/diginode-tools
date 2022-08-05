@@ -2344,17 +2344,20 @@ os_check() {
                 printf "%b  - Other internet connectivity issues\\n" "${INDENT}"
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
-                printf "%b If you are seeing this message and you believe your OS should be supported, please contact @digibytehelp on Twitter.\\n" "${INDENT}" 
+                printf "%b If you are seeing this message and you believe your OS should be supported\\n" "${INDENT}" 
+                printf "%b please contact @digibytehelp on Twitter or ask in the DigiNode Tools Telegram group.\\n" "${INDENT}" 
             fi
             printf "\\n"
             printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b If you wish to attempt to continue anyway, you can try one of the following commands to skip this check:\\n" "${INDENT}" 
+            printf "%b If you wish to attempt to continue anyway, you can try one of the\\n" "${INDENT}" 
+            printf "%b following commands to skip this check:\\n" "${INDENT}" 
             printf "\\n"
             printf "%b e.g: If you are seeing this message on a fresh install, you can run:\\n" "${INDENT}" 
             printf "%b   %bcurl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b It is possible that the installation will still fail at this stage due to an unsupported configuration.\\n" "${INDENT}" 
+            printf "%b It is possible that the installation will still fail at this stage\\n" "${INDENT}" 
+            printf "%b due to an unsupported configuration.\\n" "${INDENT}" 
             printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
@@ -5209,6 +5212,11 @@ change_upnp_status() {
 
     FORCE_DISPLAY_UPNP_MENU=true
 
+    # If DigiAssets Node is installed, we already know this is a full install
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        DO_FULL_INSTALL=YES
+    fi
+
     printf " =============== Checking: DigiByte Node ===============================\\n\\n"
     # ==============================================================================
 
@@ -5298,6 +5306,8 @@ change_upnp_status() {
         fi
     fi
 
+    printf "\\n"
+
     # Prompt to change upnp status
     menu_ask_upnp
 
@@ -5315,18 +5325,19 @@ change_upnp_status() {
 
     fi
 
-        # Set the upnp values, if we are enabling/disabling the UPnP status
+    # Set the IPFS upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
         if [ "$UPNP_IPFS_CURRENT" != "false" ]; then
             str="Enabling UPnP port forwarding for Kubo IPFS..."
             printf "%b %s" "${INFO}" "${str}"
-            ipfs config --bool Swarm.DisableNatPortMap "false"
+            sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             if [ -f "$USER_HOME/.jsips/config" ]; then
                 str="Enabling UPnP port forwarding for JS-IPFS..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"false\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                local jsipfs_upnp_updated="yes"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             IPFS_UPNP_STATUS_UPDATED="YES"
@@ -5335,13 +5346,14 @@ change_upnp_status() {
         if [ "$UPNP_IPFS_CURRENT" != "true" ]; then
             str="Disabling UPnP port forwarding for Kubo IPFS..."
             printf "%b %s" "${INFO}" "${str}"
-            ipfs config --bool Swarm.DisableNatPortMap "true"
+            sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             if [ -f "$USER_HOME/.jsips/config" ]; then
                 str="Disabling UPnP port forwarding for JS-IPFS..."
                 printf "%b %s" "${INFO}" "${str}"
                 update_upnp_now="$(jq ".Swarm.DisableNatPortMap = \"true\"" $DGA_SETTINGS_FILE)" && \
                 echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
+                local jsipfs_upnp_updated="yes"
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             IPFS_UPNP_STATUS_UPDATED="YES"
@@ -5350,22 +5362,33 @@ change_upnp_status() {
 
     if [ "$IPFS_UPNP_STATUS_UPDATED" = "YES" ]; then
 
-        # Restart Digibyted if the upnp status has just been changed
+        # Restart Kubo IPFS if the upnp status has just been changed
         if [ "$IPFS_STATUS" = "running" ] || [ "$DGB_STATUS" = "stopped" ]; then
 
             # Restart IPFS if the upnp status has just been changed
-            printf "%b IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            printf "%b Kubo IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
             restart_service ipfs
         fi
 
+        # Restart DigiAsset Node if the JS-IPFS upnp status has just been changed
+        if [ "$jsipfs_upnp_updated" = "yes" ]; then
+
+            # Restart IPFS if the upnp status has just been changed
+            printf "%b JS-IPFS UPnP status has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
+            pm2 restart digiasset
+        fi
+
+
+
     fi
 
-
+    printf "\\n"
 
 
     FORCE_DISPLAY_UPNP_MENU=false
     DGB_UPNP_STATUS_UPDATED=""
     IPFS_UPNP_STATUS_UPDATED=""
+    jsipfs_upnp_updated=""
 
     menu_existing_install
 
@@ -6068,7 +6091,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         if [ "$test_kubo_query" = "kubo" ]; then
 
             # Is Kubo installed and running, and what is the upnp status?
-            query_ipfs_upnp_status=$(ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
+            query_ipfs_upnp_status=$(sudo -u $USER_ACCOUNT ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
 
             if [ "$query_ipfs_upnp_status" != "" ]; then
                 UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
@@ -6142,15 +6165,15 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
-        upnp_current_status_2=" - UPnP is currently ENABLED for your DigiByte Node.\\n"
+        upnp_current_status_2=" - UPnP is currently ENABLED for DigiByte Core\\n"
     elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
-        upnp_current_status_2=" - UPnP is currently DISABLED for your DigiByte Node.\\n"
+        upnp_current_status_2=" - UPnP is currently DISABLED for DigiByte Core\\n"
     fi
 
     if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
-        upnp_current_status_3=" - UPnP is currently ENABLED for IPFS.\\n"
+        upnp_current_status_3=" - UPnP is currently ENABLED for IPFS\\n"
     elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
-        upnp_current_status_3=" - UPnP is currently DISABLED for IPFS.\\n"
+        upnp_current_status_3=" - UPnP is currently DISABLED for IPFS\\n"
     fi
 
     if [ "$upnp_current_status_2" != "" ] || [ "$upnp_current_status_3" != "" ]; then
@@ -6161,7 +6184,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -6176,7 +6199,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
