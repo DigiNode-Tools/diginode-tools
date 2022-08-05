@@ -162,12 +162,15 @@ These features are for advanced users and should be used with caution:
 ## Release Notes
 
 DigiNode Tools v0.6.0 - 2022-08-05
-- New: DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
-- New: DigiNode Setup - The user is now asked if they want to enable the IPFS Server profile when first installed. The server profile disables IPFS local host discovery - ueful when running a DigiAsset Node on a server with a public IP address. In unattended mode its gets this value from diginode.settings. 
-- New: DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
-- New: Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
-- New: Status Monitor - Improve detection of when DigiNode internet connection is online/offline
-- New: Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
+- Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It will 
+- DigiNode Setup - Added uPnP Menu which asks to enable/disable UPnP for DigiByte Core and IPFS during first install. In unattended mode its gets the values from diginode.settings. Once installed, you can enable/disable UPnP via the main menu.
+- DigiNode Setup - The user is now asked if they want to enable the IPFS Server profile when first installed. The server profile disables IPFS local host discovery - ueful when running a DigiAsset Node on a server with a public IP address. In unattended mode its gets this value from diginode.settings. 
+- DigiNode Setup - Add option to delete the ~/.jsipfs folder when uninstalling DigiAsset Node
+- Status Monitor - DigiByte 'starting up' messages are now in yellow to indicate a temporary issue
+- Status Monitor - Improve detection of when DigiNode internet connection is online/offline
+- Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
+- Status Monitor - To ovoid putting extended strain on the server, the Status Monitor now quits automatically after 20 minutes.
+- Status Monitor - The auto-quit duration now defaults to 20 minutes to minimise putting undue strain on the server. The duration is now set in minutes rather than seconds. A message is now displayed when it auto-quits.
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default

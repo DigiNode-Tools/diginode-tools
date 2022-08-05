@@ -1015,7 +1015,7 @@ quit_message() {
     NewInstall=False
 
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ] && [ "$auto_quit" != true ]; then
 
       # Install updates now
 
@@ -1095,6 +1095,16 @@ quit_message() {
       exit_locate_digibyte_reminder
   fi
 
+if [ "$auto_quit" = true ]; then
+    echo ""
+    printf "%b DigiNode Status Monitor quit automatically as it was left running\\n" "${INFO}"
+    printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
+    printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
+    echo ""
+    printf "%b To edit it: $TEXTEDITOR ~/.digibyte/diginode.settings\\n" "${INDENT}"
+    echo ""
+fi
+
   # Display cursor again
   tput cnorm
 }
@@ -1104,10 +1114,10 @@ exit_locate_digibyte_reminder() {
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
     printf "  %b %bNote: A DigiByte Node could not be detected. %b\\n"  "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\n" "${INDENT}"
-    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\n" "${INDENT}"
+    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\\n" "${INDENT}"
+    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\n" "${INDENT}"
+    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
     printf "\\n"          
 fi
 
@@ -1503,11 +1513,13 @@ do
 
 # Quit status monitor automatically based on the time set in diginode.settings
 # Status Monitor will run indefinitely if the value is set to 0
+
+# First convert SM_AUTO_QUIT from minutes into seconds
+
 if [ $SM_AUTO_QUIT -gt 0 ]; then
-  if [ $loopcounter -gt 43200 ]; then
-      echo ""
-      echo "DigiNode Status Monitor quit automatically as it was left running for more than 12 hours."
-      echo ""
+  auto_quit_seconds=$(( $SM_AUTO_QUIT*60 ))
+  if [ $loopcounter -gt $auto_quit_seconds ]; then
+      auto_quit=true
       exit
   fi
 fi
@@ -2665,6 +2677,7 @@ startup_checks() {
   diginode_tools_import_settings   # Import diginode.settings file
   diginode_logo_v3                 # Display DigiNode logo
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
+  set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
   set_sys_variables                # Set various system variables once we know we are on linux

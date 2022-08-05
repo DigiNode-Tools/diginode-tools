@@ -372,7 +372,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # OTHER SETTINGS
     DGB_MAX_CONNECTIONS=300
-    SM_AUTO_QUIT=3600
+    SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
@@ -515,9 +515,9 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
-# Stop the DigiNode Status Monitor automatically if it is left running
-# Set to 0 to run indefinitely, or enter the number of seconds before it stops automatically.
-# e.g. To stop after 1 hour enter: 3600
+# Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
+# Set to 0 to run indefinitely, or enter the number of minutes before it stops automatically.
+# e.g. To stop after 1 hour enter: 60
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
