@@ -2576,7 +2576,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
     str="Is IPFS port $IPFS_PORT_NUMBER OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    IPFS_PORT_TEST_QUERY=$(curl --max-time 4 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
+    IPFS_PORT_TEST_QUERY=$(curl --max-time 10 localhost:8090/api/digiassetX/ipfs/check.json 2>/dev/null)
 
     if [ $? -eq 0 ]; then
 
@@ -2616,7 +2616,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
         fi
 
     else
-        printf "%b%b %s ERROR! DigiAsset Node is not running!\\n" "${OVER}" "${CROSS}" "${str}" 
+        printf "%b %bERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
     fi
 
 elif [ "$DGA_STATUS" = "stopped" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
