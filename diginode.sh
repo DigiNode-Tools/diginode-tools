@@ -466,6 +466,21 @@ is_dgbnode_installed() {
         fi
     fi
 
+    # Get listening port from digibyte.conf
+
+    if [ -f "$DGB_CONF_FILE" ]; then
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ]; then
+            if [ "$port" != "12024" ]; then
+                DGB_LISTEN_PORT="$port"
+            else
+                DGB_LISTEN_PORT="12024"
+            fi
+        fi
+        printf "%b DigiByte Core listening port: $DGB_LISTEN_PORT\\n" "${INFO}"
+        printf "\\n"
+    fi
+
     # Get maxconnections from digibyte.conf
 
     if [ -f "$DGB_CONF_FILE" ]; then
@@ -1814,6 +1829,17 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
            BLOCKSYNC_PROGRESS="notsynced"
            WALLET_BALANCE=""
         fi
+
+        # Get current listening port
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ]; then
+            if [ "$port" != "12024" ]; then
+                DGB_LISTEN_PORT="$port"
+            else
+                DGB_LISTEN_PORT="12024"
+            fi
+        fi
+
     fi
   fi
 
@@ -2233,7 +2259,7 @@ fi
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
 printf "   WARNING: Your current connection count is low. Have you forwarded port\\n"
-printf "            12024 on your router? If yes, wait a few minutes. This message\\n"
+printf "            $DGB_LISTEN_PORT on your router? If yes, wait a few minutes. This message\\n"
 printf "            will disappear when the total connections reaches 9 or more.\\n"
 if [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 printf "            For help with port forwarding, press ${txtbld}P${txtrst} to run a Port Test.\\n"
@@ -2382,7 +2408,7 @@ printf "  ╠══════════════════════�
 printf "  ║ SOFTWARE                  ║ PORT                                    ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
 if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ]; then
-printf "  ║ DigiByte Core             ║ 12024                                   ║\\n"
+printf "  ║ DigiByte Core             ║ $DGB_LISTEN_PORT                                   ║\\n"
 printf "  ╠═══════════════════════════╬═════════════════════════════════════════╣\\n"
 fi
 if [ "$DGA_STATUS" = "running" ]; then
@@ -2401,13 +2427,13 @@ PORT_TEST_DATE=$(date)
 
 if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-    str="Is DigiByte Core port 12024 OPEN? ... "
+    str="Is DigiByte Core port $DGB_LISTEN_PORT OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
     # Setup DigiByte Port Test Query
     DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 5 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
     DGB_PORT_TEST_QUERY_CMD_2=$IP4_EXTERNAL
-    DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"12024\"}' https://digipixel.me/api/scan"
+    DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"$DGB_LISTEN_PORT\"}' https://digipixel.me/api/scan"
 
     DGB_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}"
 
@@ -2447,7 +2473,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
         printf "\\n" 
-        printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Success! Port $DGB_LISTEN_PORT is OPEN.${txtrst}\\n" "${INDENT}"
         printf "\\n" 
         printf "%b DigiByte Node found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
         printf "\\n" 
@@ -2470,7 +2496,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
         printf "\\n" 
-        printf "%b ${txtbred}Fail! Port 12024 is CLOSED.${txtbld}\\n" "${INDENT}"
+        printf "%b ${txtbred}Fail! Port $DGB_LISTEN_PORT is CLOSED.${txtbld}\\n" "${INDENT}"
         printf "\\n"   
 
         DGB_PORT_TEST_ENABLED="YES"
@@ -2490,11 +2516,11 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"  
             printf "\\n"
-            printf "%b ${txtbgrn}Success! Port 12024 is OPEN.${txtrst}\\n" "${INDENT}"
+            printf "%b ${txtbgrn}Success! Port $DGB_LISTEN_PORT is OPEN.${txtrst}\\n" "${INDENT}"
             printf "\\n" 
             printf "%b NOTE: The port testing service is currently unavailable. However,\\n" "${INFO}"
             printf "%b       your connection count is currently more than 8 which means\\n" "${INDENT}"
-            printf "%b       port 12024 is definitely open.\\n" "${INDENT}"
+            printf "%b       port $DGB_LISTEN_PORT is definitely open.\\n" "${INDENT}"
             printf "\\n"
 
             DGB_PORT_TEST_ENABLED="NO"
@@ -2534,16 +2560,16 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     if [ "$display_port_forward_instructions" = "yes" ]; then
 
         printf "\\n"
-        printf "%b IMPORTANT: You need to forward port 12024 on your router so that other\\n" "${INFO}"
+        printf "%b IMPORTANT: You need to forward port $DGB_LISTEN_PORT on your router so that other\\n" "${INFO}"
         printf "%b DigiByte Nodes on the network can find it, otherwise the number of potential\\n" "${INDENT}"
         printf "%b inbound connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
         printf "\\n"
-        printf "%b If you have already forwarded port 12024 and are still seeing this message,\\n" "${INDENT}"
+        printf "%b If you have already forwarded port $DGB_LISTEN_PORT and are still seeing this message,\\n" "${INDENT}"
         printf "%b wait a few minutes - the connection count should start gradually increasing.\\n" "${INDENT}"
         printf "%b If the number of connections is above 8, this indicates that the port is open\\n" "${INDENT}"
         printf "%b and your DigiByte Node is working correctly.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b To be certain that port 12024 is being forwarded correctly, visit:\\n" "${INDENT}"
+        printf "%b To be certain that port $DGB_LISTEN_PORT is being forwarded correctly, visit:\\n" "${INDENT}"
         printf "%b https://opennodes.digibyte.link and enter your external IP address in the\\n" "${INDENT}"
         printf "%b form at the bottom of the page. If the port is open, it should should display\\n" "${INDENT}"
         printf "%b your DigiByte version number and approximate location.\\n" "${INDENT}"
@@ -2553,7 +2579,7 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
 elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte Core port 12024 open? ... "
+        str="Is DigiByte Core port $DGB_LISTEN_PORT open? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -2563,7 +2589,7 @@ elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; t
 
 elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte Core port 12024 open? ... "
+        str="Is DigiByte Core port $DGB_LISTEN_PORT open? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -2573,12 +2599,12 @@ elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
 
 elif [ "$DGB_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte Core port 12024 open? ... "
+        str="Is DigiByte Core port $DGB_LISTEN_PORT open? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b ${txtbgrn}Port 12024 is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
+        printf "%b ${txtbgrn}Port $DGB_LISTEN_PORT is OPEN. You have already passed this test.${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 fi
