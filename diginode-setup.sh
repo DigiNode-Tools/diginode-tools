@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.1
+#           Name:  DigiNode Setup v0.6.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8739,7 +8739,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
             printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
             printf "\\n"   
         else
-            printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Found: npm v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If an npm local version already exists.... (i.e. we have a local version number)

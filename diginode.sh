@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.1
+#           Name:  DigiNode Status Monitor v0.6.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.1
-# Last Updated: 2022-08-05
+DGNT_VER_LOCAL=0.6.2
+# Last Updated: 2022-08-06
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -2190,7 +2190,7 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiB
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-58s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
 printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
