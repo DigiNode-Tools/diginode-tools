@@ -161,8 +161,11 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.6.1 - 2022-08-05
-- DigiNode Tools now requires DigiAsset Node v4. Until v4 is released, it will now install the development branch automatically. (DigiAsset Node v3 does not work correctly with Kubo IPFS, but this issue has been fixed in the development version.)
+DigiNode Tools v0.6.1 - 2022-08-06
+- DigiNode Tools now requires DigiAsset Node v4. Until v4 is released, it will now install the development branch automatically. (DigiAsset Node v3 does not work correctly with Kubo IPFS, but this issue has been fixed in v4 development version.)
+- Fix DigiByte port tester to not display an error  when the testing site is down or busy.
+- DigiByte port test is now automatically re-enabled if the port has changed since it last successfully passed the test.
+- Port tester can now handle using a non-standard listening port (i.e. not port 12024)
 
 DigiNode Tools v0.6.0 - 2022-08-05
 - Status Monitor - Add DigiByte port test developed by Renzo Diaz for the DigiByte Alliance. This makes it easy to quickly test if port 12024 is open. It queries an external API then tests if your port is open.

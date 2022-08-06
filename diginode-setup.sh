@@ -729,6 +729,7 @@ DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
 DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
 DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
 DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
+DGB_PORT_NUMBER_SAVED="$DGB_PORT_NUMBER_SAVED"
 
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
@@ -1439,6 +1440,9 @@ listen=1
 
 # Use UPnP to map the listening port.
 upnp=$upnp
+
+# Listen for incoming connections on non-default port. Default is 12024.
+# port=12024
 
 
 # [rpc]
