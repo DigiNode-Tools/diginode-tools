@@ -447,14 +447,9 @@ is_dgbnode_installed() {
     # Check digibyte.conf file can be found
 
     if [ -f "$DGB_CONF_FILE" ]; then
-      find_dgb_conf_file="yes"
-      if [ $VERBOSE_MODE = true ]; then
-          printf "%b digibyte.conf file located\\n" "${TICK}"
-           # Load digibyte.conf file to get variables
-          printf "  %b Importing digibyte.conf\\n" "${TICK}"
-          source $DGB_CONF_FILE
-          printf "\\n"
-      fi
+        find_dgb_conf_file="yes"
+        printf "%b digibyte.conf file located. Importing...\\n" "${TICK}"
+        source $DGB_CONF_FILE
     else
         printf "%b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
@@ -471,14 +466,13 @@ is_dgbnode_installed() {
     if [ -f "$DGB_CONF_FILE" ]; then
         DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
         if  [ "$DGB_LISTEN_PORT" = "" ]; then
-            if [ "$port" != "12024" ]; then
-                DGB_LISTEN_PORT="$port"
-            else
+            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
+            else
+                DGB_LISTEN_PORT="$port"   
             fi
         fi
         printf "%b DigiByte Core listening port: $DGB_LISTEN_PORT\\n" "${INFO}"
-        printf "\\n"
     fi
 
     # Get maxconnections from digibyte.conf
@@ -489,8 +483,9 @@ is_dgbnode_installed() {
         maxconnections="125"
       fi
       printf "%b DigiByte Core max connections: $maxconnections\\n" "${INFO}"
-      printf "\\n"
     fi
+
+    printf "\\n"
 
     # Run checks to see DigiByte Core is running
 
@@ -543,7 +538,8 @@ is_dgbnode_installed() {
         IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
-            printf "%b %bThe RPC credentials have been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bThe RPC credentials have been changed.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
             printf "\\n"
             printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
             printf "\\n"
@@ -1463,6 +1459,24 @@ pre_loop() {
             sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
             DGB_PORT_TEST_EXTERNAL_IP=""
             sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_NUMBER_SAVED=""
+            sed -i -e "/^DGB_PORT_NUMBER_SAVED=/s|.*|DGB_PORT_NUMBER_SAVED=\"$DGB_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
+        elif [ "$DGB_LISTEN_PORT" != "$DGB_PORT_NUMBER_SAVED" ]; then
+
+            printf "%b DigiByte listening port number has changed. Re-enabling DigiByte Core Port Test...\n" "${INFO}"
+
+            DGB_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_FWD_STATUS=""
+            sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_TEST_EXTERNAL_IP=""
+            sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_NUMBER_SAVED=""
+            sed -i -e "/^DGB_PORT_NUMBER_SAVED=/s|.*|DGB_PORT_NUMBER_SAVED=\"$DGB_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
 
         fi
 
@@ -1833,10 +1847,14 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         # Get current listening port
         DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
         if  [ "$DGB_LISTEN_PORT" = "" ]; then
-            if [ "$port" != "12024" ]; then
-                DGB_LISTEN_PORT="$port"
-            else
+            # Re-source config file
+            if [ -f "$DGB_CONF_FILE" ]; then
+                source $DGB_CONF_FILE
+            fi
+            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
+            else
+                DGB_LISTEN_PORT="$port"   
             fi
         fi
 
@@ -2431,11 +2449,13 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     printf "%b %s" "${INFO}" "${str}" 
 
     # Setup DigiByte Port Test Query
-    DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 5 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
+    DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 6 --silent -X POST -H \"Content-Type: application/json\" -d '{\"ip\":\""
     DGB_PORT_TEST_QUERY_CMD_2=$IP4_EXTERNAL
-    DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\"$DGB_LISTEN_PORT\"}' https://digipixel.me/api/scan"
+    DGB_PORT_TEST_QUERY_CMD_3="\",\"port\":\""
+    DGB_PORT_TEST_QUERY_CMD_4=$DGB_LISTEN_PORT
+    DGB_PORT_TEST_QUERY_CMD_5="\"}' https://diginodes.org/api/scan 2>/dev/null"
 
-    DGB_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}"
+    DGB_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_PORT_TEST_QUERY_CMD_4}${DGB_PORT_TEST_QUERY_CMD_5}"
 
     # Query Renzo's DigiByte Port tester - http://digipixel.me/
     DGB_PORT_TEST_QUERY=$(eval $DGB_PORT_TEST_QUERY_CMD) 
@@ -2443,6 +2463,12 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     # Port Test - Is the server busy?
     DGB_PORT_TEST_QUERY_BUSY=$(echo $DGB_PORT_TEST_QUERY | grep -Eo "busy")  
     if [ "$DGB_PORT_TEST_QUERY_BUSY" = "busy" ]; then
+        DGB_PORT_FWD_STATUS="TEST_ERROR"
+        DGB_PORT_TEST_QUERY=""
+    fi
+
+    DGB_PORT_TEST_QUERY_BUSY=$(echo $DGB_PORT_TEST_QUERY | grep -Eo "error")
+    if [ "$DGB_PORT_TEST_QUERY_BUSY" = "error" ] || [ "$DGB_PORT_TEST_QUERY_BUSY" = "" ]; then
         DGB_PORT_FWD_STATUS="TEST_ERROR"
         DGB_PORT_TEST_QUERY=""
     fi
@@ -2481,6 +2507,8 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         printf "%b        Version:  $DGB_PORT_TEST_QUERY_VERSION\\n" "${INDENT}"
         printf "%b   Block Height:  $DGB_PORT_TEST_QUERY_BLOCKCOUNT\\n" "${INDENT}"
         printf "\\n"
+#       printf "%b DigiByte Port Test provided by: https://diginodes.org\\n" "${INDENT}"
+#       printf "\\n"
 
 
         sed -i -e "/^DGB_PORT_FWD_STATUS=/s|.*|DGB_PORT_FWD_STATUS=\"$DGB_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
@@ -2531,15 +2559,14 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
             sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
             DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
             sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-            printf "\\n"
         
         else
 
             printf "%b%b %s POSSIBLY NOT!\\n" "${OVER}" "${WARN}" "${str}"
             printf "\\n" 
-            printf "%b ${txtbylw}Warning: Low connection count detected - the port may not be open.${txtrst}\\n" "${INDENT}" 
-            printf "\\n"
-            printf "%b NOTE: The port testing service is currently down, so the port cannot be tested. \\n" "${INFO}"
+            printf "%b NOTE: The port testing service is currently unavailable. Your connection count \\n" "${INFO}"
+            printf "%b       is also currently 8 or lower so it is not possible to determine if\\n" "${INDENT}"
+            printf "%b       port $DGB_LISTEN_PORT is open or not. Try running the test again later.\\n" "${INDENT}"
             printf "\\n"
 
             DGB_PORT_TEST_ENABLED="YES"
@@ -2560,12 +2587,12 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     if [ "$display_port_forward_instructions" = "yes" ]; then
 
         printf "\\n"
-        printf "%b IMPORTANT: You need to forward port $DGB_LISTEN_PORT on your router so that other\\n" "${INFO}"
-        printf "%b DigiByte Nodes on the network can find it, otherwise the number of potential\\n" "${INDENT}"
-        printf "%b inbound connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
+        printf "%b IMPORTANT: For other DigiByte Nodes on the network to find this one, you need to forward\\n" "${INFO}"
+        printf "%b port $DGB_LISTEN_PORT on your router. If not, the number of potential inbound\\n" "${INDENT}"
+        printf "%b connections is limited to 8. For help setting up port forwarding, visit: https://portforward.com\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have already forwarded port $DGB_LISTEN_PORT and are still seeing this message,\\n" "${INDENT}"
-        printf "%b wait a few minutes - the connection count should start gradually increasing.\\n" "${INDENT}"
+        printf "%b wait a while - the connection count should start to increase with time.\\n" "${INDENT}"
         printf "%b If the number of connections is above 8, this indicates that the port is open\\n" "${INDENT}"
         printf "%b and your DigiByte Node is working correctly.\\n" "${INDENT}"
         printf "\\n"
