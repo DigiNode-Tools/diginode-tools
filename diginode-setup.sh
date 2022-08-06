@@ -518,7 +518,7 @@ DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 # Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
 # To avoid putting unnecessary strain on your device, it is inadvisable to run the Status Monitor for
 # long periods. Enter the number of minutes before it exits automatically, or set to 0 to run indefinitely.
-e.g. To stop after 1 hour enter: 60 
+# e.g. To stop after 1 hour enter: 60 
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
