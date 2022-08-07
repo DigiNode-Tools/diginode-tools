@@ -1719,6 +1719,9 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
           DGB_STATUS="startingup"
+        else
+            # Get the algo used for the current block
+            BLOCK_CURRENT_ALGO=$(tail ~/.digibyte/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
         fi
     fi
 
@@ -2375,10 +2378,12 @@ read -t 0.5 -s -n 1 input
         case "$input" in
             "P")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
         esac
@@ -2388,10 +2393,12 @@ read -t 0.5 -s -n 1 input
         case "$input" in
             "P")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
         esac
@@ -2714,7 +2721,10 @@ fi
 
 echo ""
 echo ""
+
 read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
+
+loopcounter=0
 
 status_loop
 

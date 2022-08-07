@@ -9522,7 +9522,7 @@ uninstall_do_now() {
     printf " =============== Uninstall DigiNode ====================================\\n\\n"
     # ==============================================================================
 
-    printf "%b DigiNode will now be uninstalled from your system. Your DigiByte wallet file will not be harmed.\\n" "${INFO}"
+    printf "%b DigiNode will now be uninstalled from your system.\\n" "${INFO}"
     printf "\\n"
 
 
@@ -9567,10 +9567,9 @@ uninstall_do_now() {
     if [ "$delete_dga" = "yes" ]; then
 
         # Stop digiasset PM2 service
-        str="Stopping DigiAsset Node PM2 service..."
-        printf "%b %s" "${INFO}" "${str}"
+        printf "Deleting DigiAsset Node PM2 service...\\n"
         sudo -u $USER_ACCOUNT pm2 delete digiasset
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
 
     fi
 
@@ -9892,7 +9891,7 @@ uninstall_do_now() {
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing path for DigiByte binaries
                 sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
-                sed -i '/digibyte/bin/d' $USER_HOME/.bashrc
+                sed -i "/digibyte/bin/d" $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
