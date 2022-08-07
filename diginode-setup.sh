@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.1
+#           Name:  DigiNode Setup v0.6.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -516,8 +516,9 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
 # Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
-# Set to 0 to run indefinitely, or enter the number of minutes before it stops automatically.
-# e.g. To stop after 1 hour enter: 60
+# To avoid putting unnecessary strain on your device, it is inadvisable to run the Status Monitor for
+# long periods. Enter the number of minutes before it exits automatically, or set to 0 to run indefinitely.
+# e.g. To stop after 1 hour enter: 60 
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
@@ -8739,7 +8740,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
             printf "%b npm cannot be upgraded at this time. Skipping...\\n" "${INFO}"
             printf "\\n"   
         else
-            printf "%b%b %s Found: v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+            printf "%b%b %s Found: npm v${NPM_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If an npm local version already exists.... (i.e. we have a local version number)

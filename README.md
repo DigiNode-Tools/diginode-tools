@@ -31,6 +31,14 @@ To get started, run DigiNode Setup by entering the following command in the term
 
 This will guide you through the installation process.
 
+## Donations
+
+Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
+
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
+
 ## About DigiNode Setup
 
 DigiNode Setup helps you to setup and manage your DigiNode:
@@ -102,14 +110,6 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
 
-## Donations
-
-Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
-
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
-
-![DigiByte Donation QR Code](images/donation_qr_code.png)
-
 ## Support
 
 If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
@@ -160,6 +160,11 @@ These features are for advanced users and should be used with caution:
 - ```diginode-setup --dgntdev --dgadev```
 
 ## Release Notes
+
+DigiNode Tools v0.6.2 - 2022-08-07
+- Fix: Improve Status Monitor auto-quit instructions
+- Fix: Hide key press codes when scrolling in status monitor
+- Fix: Renable port test when DigiByte port changes
 
 DigiNode Tools v0.6.1 - 2022-08-06
 - DigiNode Tools now requires DigiAsset Node v4. Until v4 is released, it will now install the development branch automatically. (DigiAsset Node v3 does not work correctly with Kubo IPFS, but this issue has been fixed in v4 development version.)
