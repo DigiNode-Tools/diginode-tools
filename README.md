@@ -161,8 +161,10 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.6.2 - 2022-08-xx
-- 
+DigiNode Tools v0.6.2 - 2022-08-07
+- Fix: Improve Status Monitor auto-quit instructions
+- Fix: Hide key press codes when scrolling in status monitor
+- Fix: Renable port test when DigiByte port changes
 
 DigiNode Tools v0.6.1 - 2022-08-06
 - DigiNode Tools now requires DigiAsset Node v4. Until v4 is released, it will now install the development branch automatically. (DigiAsset Node v3 does not work correctly with Kubo IPFS, but this issue has been fixed in v4 development version.)
