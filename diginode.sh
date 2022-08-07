@@ -1019,6 +1019,7 @@ install_required_pkgs() {
 # Quit message
 quit_message() {
 
+    stty echo
     tput sgr0
     tput rmcup
 
@@ -1048,6 +1049,9 @@ quit_message() {
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
         exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
+        
+        # Display cursor again
+        tput cnorm
         updates_installed="yes"
         exit
       else
@@ -1465,7 +1469,7 @@ pre_loop() {
         # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
         elif [ "$DGB_LISTEN_PORT" != "$DGB_PORT_NUMBER_SAVED" ]; then
 
-            printf "%b DigiByte listening port number has changed. Re-enabling DigiByte Core Port Test...\n" "${INFO}"
+            printf "%b DigiByte listening port number has changed. Enabling DigiByte Port Test...\n" "${INFO}"
 
             DGB_PORT_TEST_ENABLED="YES"
             sed -i -e "/^DGB_PORT_TEST_ENABLED=/s|.*|DGB_PORT_TEST_ENABLED=\"$DGB_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1488,7 +1492,7 @@ pre_loop() {
         # If the External IP address has changed since the last port test was run, reset and re-enable the port test
         if [ "$IPFS_PORT_TEST_EXTERNAL_IP" != "$IP4_EXTERNAL" ]; then
 
-            printf "%b External IP address has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
+            printf "%b External IP address has changed. Enabling IPFS Port Test...\n" "${INFO}"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -1504,7 +1508,7 @@ pre_loop() {
         # If the current IPFS port has changed since the last port test was run, reset and re-enable the port test
         elif [ "$IPFS_PORT_NUMBER" != "$IPFS_PORT_NUMBER_SAVED" ]; then
 
-            printf "%b IPFS port number has changed. Re-enabling IPFS Port Test...\n" "${INFO}"
+            printf "%b IPFS port number has changed. Enabling IPFS Port Test...\n" "${INFO}"
 
             IPFS_PORT_TEST_ENABLED="YES"
             sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
@@ -2153,10 +2157,7 @@ fi
 ###################################################################
 
 # Double buffer output to reduce display flickering
-output=$(clear -x;
-tput smcup
-tput civis
-
+output=$(clear;
 
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
@@ -2342,13 +2343,19 @@ if [ "$STARTUP_LOOP" = "true" ]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     printf "\\n"
 
-  if [ "$STARTWAIT" = "yes" ]; then
-    echo "               < Wait for 5 seconds >"
-    sleep 5
-  else 
-    echo "               < Wait for 3 seconds >"
-    sleep 3
-  fi
+    if [ "$STARTWAIT" = "yes" ]; then
+        echo "               < Wait for 5 seconds >"
+        sleep 5
+    else 
+        echo "               < Wait for 3 seconds >"
+        sleep 3
+    fi
+
+    tput smcup
+    tput civis
+
+    # Hide user input
+    stty -echo
 
     STARTUP_LOOP=false
 
@@ -2391,15 +2398,6 @@ read -t 0.5 -s -n 1 input
 
     fi
 
-
-
-# read -rsn1 input
-# if [ "$input" = "q" ]; then
-#  echo ""
-#  printf "%b Q Key Pressed. Exiting DigiNode Status Monitor...\\n" "${INDENT}"
-#  echo ""
-#  exit
-# fi
 
 done
 
@@ -2521,6 +2519,8 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
         DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
         sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        DGB_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
+        sed -i -e "/^DGB_PORT_NUMBER_SAVED=/s|.*|DGB_PORT_NUMBER_SAVED=\"$DGB_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
         printf "\\n"  
 
     elif [ "$DGB_PORT_FWD_STATUS" = "CLOSED" ]; then
@@ -2562,6 +2562,8 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
             sed -i -e "/^DGB_PORT_TEST_PASS_DATE=/s|.*|DGB_PORT_TEST_PASS_DATE=\"$DGB_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
             DGB_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
             sed -i -e "/^DGB_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_PORT_TEST_EXTERNAL_IP=\"$DGB_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            DGB_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
+            sed -i -e "/^DGB_PORT_NUMBER_SAVED=/s|.*|DGB_PORT_NUMBER_SAVED=\"$DGB_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
         
         else
 
@@ -2590,9 +2592,9 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
     if [ "$display_port_forward_instructions" = "yes" ]; then
 
         printf "\\n"
-        printf "%b IMPORTANT: For other DigiByte Nodes on the network to find this one, you need to forward\\n" "${INFO}"
-        printf "%b port $DGB_LISTEN_PORT on your router. If not, the number of potential inbound\\n" "${INDENT}"
-        printf "%b connections is limited to 8. For help setting up port forwarding, visit: https://portforward.com\\n" "${INDENT}"
+        printf "%b IMPORTANT: For other DigiByte Nodes on the network to find this one, you need\\n" "${INFO}"
+        printf "%b to forward port $DGB_LISTEN_PORT on your router. If not, the number of potential inbound\\n" "${INDENT}"
+        printf "%b connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have already forwarded port $DGB_LISTEN_PORT and are still seeing this message,\\n" "${INDENT}"
         printf "%b wait a while - the connection count should start to increase with time.\\n" "${INDENT}"
@@ -2614,7 +2616,8 @@ elif [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; t
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
         printf "\\n"
-        printf "%b ${txtbylw}Your DigiByte Node is in the process of starting up. Try again in a few minutes...${txtrst}\\n" "${INDENT}"
+        printf "%b ${txtbylw}Your DigiByte Node is in the process of starting up.${txtrst}\\n" "${INDENT}"
+        printf "%b ${txtbylw}Try again in a few minutes...${txtrst}\\n" "${INDENT}"
         printf "\\n"
 
 elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
