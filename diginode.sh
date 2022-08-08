@@ -1558,7 +1558,7 @@ if [ $SM_AUTO_QUIT -gt 0 ]; then
 fi
 
 if [ "$STARTUP_LOOP" = "true" ]; then
-    printf "%b Running Status Loop: Every 1 Second...\\n" "${INFO}"
+    printf "%b Updating Status: 1 Second Loop...\\n" "${INFO}"
 fi
 
 
@@ -1696,7 +1696,7 @@ TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 15 Seconds...\\n" "${INFO}"
+    printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
     fi
 
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
@@ -1801,7 +1801,7 @@ TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 if [ $TIME_DIF_1MIN -ge 60 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 1 Minute...\\n" "${INFO}"
+    printf "%b Updating Status: 1 Minute Loop...\\n" "${INFO}"
     fi
 
   # Update DigiByte Core sync progress every minute, if it is running
@@ -1912,7 +1912,7 @@ TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 if [ $TIME_DIF_15MIN -ge 300 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 15 Minutes...\\n" "${INFO}"
+    printf "%b Updating Status: 15 Minute Loop...\\n" "${INFO}"
     fi
 
     # update external IP, unless it is offline
@@ -2025,7 +2025,7 @@ TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 24 Hours...\\n" "${INFO}"
+    printf "%b Updating Status: 24 Hour Loop...\\n" "${INFO}"
     fi
 
     # items to repeat every 24 hours go here
@@ -2335,7 +2335,7 @@ printf "\\n"
 
 if [ "$STARTUP_LOOP" = "true" ]; then
 
-    printf "%b Startup loop completed.\\n" "${INFO}"
+    printf "%b Startup Loop Completed.\\n" "${INFO}"
 
     printf "\\n"
 

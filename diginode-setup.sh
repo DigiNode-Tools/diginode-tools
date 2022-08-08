@@ -1196,7 +1196,7 @@ digibyte_create_conf() {
         if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
             str="System RAM exceeds 7GB. Setting dbcache to 2Gb..."
             printf "%b %s" "${INFO}" "${str}"
-            set_dbcache=2048
+            set_dbcache=1024
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         else
             set_dbcache=450
