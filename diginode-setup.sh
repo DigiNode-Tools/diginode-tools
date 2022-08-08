@@ -2920,7 +2920,7 @@ swap_check() {
     # Note: these checks on the current swap size use the lower Kibibyte value
     # so that if the recomended swap size is 4Gb, and they enter 4 Gigabytes or 4 Gibibytes
     # the size check will come out the same for either
-    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le 6835938 ];  then
+    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="7Gb"
         SWAP_REC_SIZE_MB=7000
