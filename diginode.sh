@@ -1019,9 +1019,9 @@ install_required_pkgs() {
 # Quit message
 quit_message() {
 
+    tput rmcup
     stty echo
     tput sgr0
-    tput rmcup
 
     #Set this so the backup reminder works
     NewInstall=False
@@ -1551,7 +1551,8 @@ do
 
 if [ $SM_AUTO_QUIT -gt 0 ]; then
   auto_quit_seconds=$(( $SM_AUTO_QUIT*60 ))
-  if [ $loopcounter -gt $auto_quit_seconds ]; then
+  auto_quit_half_seconds=$(( $auto_quit_seconds*2 ))
+  if [ $loopcounter -gt $auto_quit_half_seconds ]; then
       auto_quit=true
       exit
   fi
@@ -1575,6 +1576,7 @@ loopcounter=$((loopcounter+1))
 RAMUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3)
 RAMAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6)
 SWAPUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
+SWAPAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f4)
 
 # Get current system temp
 temperature=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -2303,9 +2305,9 @@ printf "  ║ DISK USAGE     ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DIS
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
-if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" != "0B" ]; then # only display the swap file status if there is one, and the current value is above 0B
+if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SWAP USAGE     ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
+printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
 fi 
 if [ "$temperature" != "" ]; then
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
@@ -2370,7 +2372,7 @@ echo "$output"
 # Display the quit message on exit
 trap quit_message EXIT
 
-# sleep 0.5
+# sleep 1
 read -t 0.5 -s -n 1 input
 
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
@@ -2405,6 +2407,10 @@ read -t 0.5 -s -n 1 input
 
     fi
 
+# Any key press resets the loopcounter
+if [ "${#input}" != 0 ]; then
+    loopcounter=0
+fi
 
 done
 
