@@ -95,8 +95,8 @@ Once your DigiNode has been installed, you can access additional features from t
 
 ## Compatibility
 
-- A DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync. For this reason, a device with at least 8Gb RAM is strongly recommended. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. This is fine for testing, but definitely not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.)
-- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM it is inadvisable to run a DigiByte Node, but you can still support the network by running a DigiAsset Node on its own.
+- A DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync. For this reason, a device with at least 8Gb RAM is strongly recommended. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. This is fine for testing, but definitely not recommended for long term use. Less than 4Gb RAM is definitely not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.)
+- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM it is inadvisable to run a DigiByte Node, but you can still support the network by running a DigiAsset Node only.
 - A DigiByte Node and DigiAsset Node together often exceed 8GB RAM so a SWAP file is needed on any device with 8Gb RAM or less. DigiNode Setup can configure this for you.
 - As of July 2022, the DigiByte blockchain currently requires around 40Gb of disk space. If you are setting up a DigiNode, a minimum 80Gb of free disk space is recommended.
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
@@ -162,6 +162,11 @@ These features are for advanced users and should be used with caution:
 - ```diginode-setup --dgntdev --dgadev```
 
 ## Release Notes
+
+DigiNode Tools v0.6.3 - 2022-08-10
+- DigiNode Setup now prompts the user to create a swap file if RAM + SWAP <12Gb. This is to ensure that DigiByte Nodes and DigiAsset Node can work smoothly on the same device. This solves a problem of DigiByte Core running out of memory on a 8Gb device that is also running a DigiAsset Node.
+- Automatic swap file creation is now supported on Debian as well as Ubuntu. The recommended total memory (swap + ram) has been increased from 8Gb to 16Gb. This means if you have a 8Gb device it will recomend creating an 8Gb swap file.
+- Status Monitor: Swap Usage now shows how much swap is free.
 
 DigiNode Tools v0.6.2 - 2022-08-07
 - Fix: Improve Status Monitor auto-quit instructions
