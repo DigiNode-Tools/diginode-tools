@@ -1194,7 +1194,7 @@ digibyte_create_conf() {
         # Initial sync times are significantly faster with a larger dbcache.
         local set_dbcache
         if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
-            str="System RAM exceeds 7GB. Setting dbcache to 2Gb..."
+            str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
             printf "%b %s" "${INFO}" "${str}"
             set_dbcache=1024
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3115,11 +3115,11 @@ swap_check() {
     TOTALMEM_KB=$(( $RAMTOTAL_KB + $SWAPTOTAL_KB ))
 
     if [ $RAMTOTAL_KB -gt 15800000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system has more than 16Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system has at least 16Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     elif [ $TOTALMEM_KB -gt 15800000 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 16Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined is at least 16Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     elif [ $RAMTOTAL_KB -gt 11800000 ] && [ "$SWAPTOTAL_KB" = 0 ]; then
-        printf "%b Swap Check: %bPASSED%b   Your system has more than 12Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Swap Check: %bPASSED%b   Your system has at least 12Gb RAM so a swap file is not required.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b A DigiByte Node typically requires ~6Gb RAM but this can be higher during the\\n" "${INDENT}"
         printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n" "${INDENT}"
@@ -3128,7 +3128,7 @@ swap_check() {
         printf "%b a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at\\n" "${INDENT}"
         printf "%b least 16Gb of total memory to work with.\\n" "${INDENT}"
     elif [ $TOTALMEM_KB -gt 11800000 ]; then
-         printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined exceed 12Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+         printf "%b Swap Check: %bPASSED%b   Your system RAM and SWAP combined is at least 12Gb.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"  
         printf "%b A DigiByte Node typically requires ~6Gb RAM but this can be higher during the\\n" "${INDENT}"
         printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n" "${INDENT}"
