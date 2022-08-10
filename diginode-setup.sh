@@ -3142,8 +3142,8 @@ swap_check() {
     printf "\\n"
 }
 
-# banana
-exit
+
+
 
 # If a swap file is needed, this will ask the user to confirm that they want to create one or increase the size of an existing one
 swap_ask_change() {
