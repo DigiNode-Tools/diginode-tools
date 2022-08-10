@@ -2994,9 +2994,6 @@ swap_check() {
         SWAP_MIN_SIZE_HR="1Gb"
         SWAP_MIN_SIZE_MB=1000
 
-    echo "RAMTOTAL_KB -  $RAMTOTAL_KB"
-    echo "SWAPTOTAL_KB - $SWAPTOTAL_KB"
-
     # If there is no swap file present, calculate recomended swap file size
 
     # OLD
@@ -3081,14 +3078,14 @@ swap_check() {
         printf "\\n"
         printf "%b %bWARNING: You need to create a swap file.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b A DigiByte Node typically requires ~6Gb RAM but this can be higher during the\\n" "${INDENT}"
-        printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n" "${INDENT}"
+        printf "%b A DigiByte Node typically requires around 6Gb RAM but this can be higher during the\\n" "${INDENT}"
+        printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n" "${INDENT}"
         printf "%b It is always advisable to have a swap file even if your system has enough RAM.\\n" "${INDENT}"
         printf "%b Since a full DigiNode can require up to 10Gb RAM, as a bare minimum you should\\n" "${INDENT}"
         printf "%b ensure that your RAM and SWAP file combined is not less than 12Gb.\\n" "${INDENT}"          
         printf "%b Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to create\\n" "${INDENT}"
-        printf "%b a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at\\n" "${INDENT}"
-        printf "%b least 16Gb of total memory to work with.\\n" "${INDENT}"
+        printf "%b a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at least\\n" "${INDENT}"
+        printf "%b 16Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
         if [[ "$RUN_SETUP" = "NO" ]] ; then
             printf "%b The official DigiNode Setup can setup the swap file for you.\\n" "${INDENT}"
@@ -3101,12 +3098,12 @@ swap_check() {
         printf "\\n"
         printf "%b %bWARNING: Your swap file is too small%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b A DigiByte Node typically requires ~6Gb RAM but this can be higher during the\\n" "${INDENT}"
-        printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n" "${INDENT}"
+        printf "%b A DigiByte Node typically requires around 6Gb RAM but this can be higher during the\\n" "${INDENT}"
+        printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n" "${INDENT}"
         printf "%b It is always advisable to have a swap file even if your system has enough RAM.\\n" "${INDENT}"
-        printf "%b Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase\\n" "${INDENT}"
-        printf "%b the size of your swap file to at least $SWAP_REC_SIZE_HR. This will give your\\n" "${INDENT}"
-        printf "%b system at least 16Gb of total memory to work with.\\n" "${INDENT}"
+        printf "%b Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase the\\n" "${INDENT}"
+        printf "%b size of your swap file to at least $SWAP_REC_SIZE_HR. This will give your system at\\n" "${INDENT}"
+        printf "%b least 16Gb of total memory to work with.\\n" "${INDENT}"
         # Only display this line when using digimon.sh
         if [[ "$RUN_SETUP" = "NO" ]] ; then
             printf "%b The official DigiNode Setup can setup the swap file for you.\\n" "${INDENT}"
