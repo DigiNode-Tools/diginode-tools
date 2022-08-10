@@ -3155,7 +3155,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             # Ask the user if they want to create a swap file now, or exit
-            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. A full DigiNode can require up to 10Gb RAM, so as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap file to $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. A full DigiNode can require up to 10Gb RAM, so as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap file to $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to exit to create a new swap file.\\n" "${INFO}"
@@ -3174,7 +3174,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires ~3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. Since a full DigiNode can require up to 10Gb RAM, as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires  around 6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. Since a full DigiNode can require up to 10Gb RAM, as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -3430,7 +3430,7 @@ swap_do_change() {
 
                 # Disable existing swap file
                 str="Disable existing swap file..."
-                printf "\\n%b %s..." "${INFO}" "${str}"
+                printf "%b %s..." "${INFO}" "${str}"
                 dphys-swapfile swapoff
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -3438,22 +3438,22 @@ swap_do_change() {
 
             # Find CONF_SWAPSIZE value and update it
             str="Updating CONF_SWAPSIZE value..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
+            printf "%b %s..." "${INFO}" "${str}"
 
             # Look for a line that starts with CONF_SWAPSWIZE
-            if [ $(cat /etc/dphys-swapfile | grep -Eo ^CONF_SWAPSIZE=) = "CONF_SWAPSIZE=" ]; then
+            if [ "$(cat /etc/dphys-swapfile | grep -Eo ^CONF_SWAPSIZE=)" = "CONF_SWAPSIZE=" ]; then
     
                 sed -i -e "/^CONF_SWAPSIZE=/s|.*|CONF_SWAPSIZE=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Look for a line that starts with #CONF_SWAPSWIZE
-            elif [ $(cat /etc/dphys-swapfile | grep -Eo ^#CONF_SWAPSIZE=) = "#CONF_SWAPSIZE=" ]; then
+            elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^#CONF_SWAPSIZE=)" = "#CONF_SWAPSIZE=" ]; then
 
                 sed -i -e "/^#CONF_SWAPSIZE=/s|.*|CONF_SWAPSIZE=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Look for a line that starts with # CONF_SWAPSWIZE
-            elif [ $(cat /etc/dphys-swapfile | grep -Eo ^# CONF_SWAPSIZE=) = "# CONF_SWAPSIZE=" ]; then
+            elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^# CONF_SWAPSIZE=)" = "# CONF_SWAPSIZE=" ]; then
 
                 sed -i -e "/^# CONF_SWAPSIZE=/s|.*|CONF_SWAPSIZE=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3473,19 +3473,19 @@ swap_do_change() {
             printf "\\n%b %s..." "${INFO}" "${str}"
 
             # Look for a line that starts with CONF_MAXSWAP
-            if [ $(cat /etc/dphys-swapfile | grep -Eo ^CONF_MAXSWAP=) = "CONF_MAXSWAP=" ]; then
+            if [ "$(cat /etc/dphys-swapfile | grep -Eo ^CONF_MAXSWAP=)" = "CONF_MAXSWAP=" ]; then
     
                 sed -i -e "/^CONF_MAXSWAP=/s|.*|CONF_MAXSWAP=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Look for a line that starts with #CONF_MAXSWAP
-            elif [ $(cat /etc/dphys-swapfile | grep -Eo ^#CONF_MAXSWAP=) = "#CONF_MAXSWAP=" ]; then
+            elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^#CONF_MAXSWAP=)" = "#CONF_MAXSWAP=" ]; then
 
                 sed -i -e "/^#CONF_MAXSWAP=/s|.*|CONF_MAXSWAP=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Look for a line that starts with # CONF_MAXSWAP
-            elif [ $(cat /etc/dphys-swapfile | grep -Eo ^# CONF_MAXSWAP=) = "# CONF_MAXSWAP=" ]; then
+            elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^# CONF_MAXSWAP=)" = "# CONF_MAXSWAP=" ]; then
 
                 sed -i -e "/^# CONF_MAXSWAP=/s|.*|CONF_MAXSWAP=$SWAP_TARG_SIZE_MB|" /etc/dphys-swapfile
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3509,19 +3509,19 @@ swap_do_change() {
                 printf "\\n%b %s..." "${INFO}" "${str}"
 
                 # Look for a line that starts with CONF_MAXSWAP
-                if [ $(cat /etc/dphys-swapfile | grep -Eo ^CONF_SWAPFILE=) = "CONF_SWAPFILE=" ]; then
+                if [ "$(cat /etc/dphys-swapfile | grep -Eo ^CONF_SWAPFILE=)" = "CONF_SWAPFILE=" ]; then
         
                     sed -i -e "/^CONF_SWAPFILE=/s|.*|CONF_SWAPFILE=$SWAP_FILE|" /etc/dphys-swapfile
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Look for a line that starts with #CONF_MAXSWAP
-                elif [ $(cat /etc/dphys-swapfile | grep -Eo ^#CONF_SWAPFILE=) = "#CONF_SWAPFILE=" ]; then
+                elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^#CONF_SWAPFILE=)" = "#CONF_SWAPFILE=" ]; then
 
                     sed -i -e "/^#CONF_SWAPFILE=/s|.*|CONF_SWAPFILE=$SWAP_FILE|" /etc/dphys-swapfile
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 # Look for a line that starts with # CONF_MAXSWAP
-                elif [ $(cat /etc/dphys-swapfile | grep -Eo ^# CONF_SWAPFILE=) = "# CONF_SWAPFILE=" ]; then
+                elif [ "$(cat /etc/dphys-swapfile | grep -Eo ^# CONF_SWAPFILE=)" = "# CONF_SWAPFILE=" ]; then
 
                     sed -i -e "/^# CONF_SWAPFILE=/s|.*|CONF_SWAPFILE=$SWAP_FILE|" /etc/dphys-swapfile
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -3539,16 +3539,12 @@ swap_do_change() {
             fi
 
             # Setup the swap file on the USB stick
-            str="Initializing swap file..."
-            printf "%b %s..." "${INFO}" "${str}"
+            printf "%b Initializing swap file...\\n" "${INFO}"
             dphys-swapfile setup
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
             # Get the UUID of the USB stick with the swap file
-            str="Turn on the swap file..."
-            printf "%b %s..." "${INFO}" "${str}"
-            dphys-swapfile setup
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
+            printf "%b Turning on the swap file...\\n" "${INFO}"
+            dphys-swapfile swapon
 
             # Tell user the swap file has been created
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
@@ -3645,6 +3641,8 @@ swap_do_change() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
             fi
+
+            REBOOT_NEEDED="YES"
 
         else
 
