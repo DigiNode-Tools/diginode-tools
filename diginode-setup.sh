@@ -2927,67 +2927,67 @@ swap_check() {
     echo "RAMTOTAL_KB -  $RAMTOTAL_KB"
     echo "SWAPTOTAL_KB - $SWAPTOTAL_KB"
 
-    if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "10742187" ];  then
+    if [ "$RAMTOTAL_KB" -le "800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "10742187" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="15Gb"
         SWAP_REC_SIZE_MB=15000
         SWAP_MIN_SIZE_HR="11Gb"
         SWAP_MIN_SIZE_MB=11000
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "9765625" ];  then
+    elif [ "$RAMTOTAL_KB" -le "1800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "9765625" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="14Gb"
         SWAP_REC_SIZE_MB=14000
         SWAP_MIN_SIZE_HR="10Gb"
         SWAP_MIN_SIZE_MB=10000
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "8789062" ];  then
+    elif [ "$RAMTOTAL_KB" -le "2800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "8789062" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="13Gb"
         SWAP_REC_SIZE_MB=13000
         SWAP_MIN_SIZE_HR="9Gb"
         SWAP_MIN_SIZE_MB=9000
-    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "7812500" ];  then
+    elif [ "$RAMTOTAL_KB" -le "3800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "7812500" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="12Gb"
         SWAP_REC_SIZE_MB=12000
         SWAP_MIN_SIZE_HR="8Gb"
         SWAP_MIN_SIZE_MB=8000
-    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
+    elif [ "$RAMTOTAL_KB" -le "4800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "6835938" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="11Gb"
         SWAP_REC_SIZE_MB=11000
         SWAP_MIN_SIZE_HR="7Gb"
         SWAP_MIN_SIZE_MB=7000
-    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
+    elif [ "$RAMTOTAL_KB" -le "5800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "5859375" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="10Gb"
         SWAP_REC_SIZE_MB=10000
         SWAP_MIN_SIZE_HR="6Gb"
         SWAP_MIN_SIZE_MB=6000
-    elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
+    elif [ "$RAMTOTAL_KB" -le "6800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "4882813" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="9Gb"
         SWAP_REC_SIZE_MB=9000
         SWAP_MIN_SIZE_HR="5Gb"
         SWAP_MIN_SIZE_MB=5000
-    elif [ "$RAMTOTAL_KB" -le "8000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
+    elif [ "$RAMTOTAL_KB" -le "7800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "3906250" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="8Gb"
         SWAP_REC_SIZE_MB=8000
         SWAP_MIN_SIZE_HR="4Gb"
         SWAP_MIN_SIZE_MB=4000
-    elif [ "$RAMTOTAL_KB" -le "9000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
+    elif [ "$RAMTOTAL_KB" -le "8800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "2929688" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="7Gb"
         SWAP_REC_SIZE_MB=7000
         SWAP_MIN_SIZE_HR="3Gb"
         SWAP_MIN_SIZE_MB=3000
-    elif [ "$RAMTOTAL_KB" -le "10000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "1953125" ];  then
+    elif [ "$RAMTOTAL_KB" -le "98000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "1953125" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="6Gb"
         SWAP_REC_SIZE_MB=6000
         SWAP_MIN_SIZE_HR="2Gb"
         SWAP_MIN_SIZE_MB=2000
-    elif [ "$RAMTOTAL_KB" -le "11000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
+    elif [ "$RAMTOTAL_KB" -le "10800000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "976562" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="5Gb"
         SWAP_REC_SIZE_MB=5000
@@ -3000,73 +3000,73 @@ swap_check() {
 
     # OLD
 
-    elif [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="15Gb"
         SWAP_REC_SIZE_MB=15000
         SWAP_MIN_SIZE_HR="11Gb"
         SWAP_MIN_SIZE_MB=11000
-    elif [ "$RAMTOTAL_KB" -le "2000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "1800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="14Gb"
         SWAP_REC_SIZE_MB=14000
         SWAP_MIN_SIZE_HR="10Gb"
         SWAP_MIN_SIZE_MB=10000
-    elif [ "$RAMTOTAL_KB" -le "3000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "2800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="13Gb"
         SWAP_REC_SIZE_MB=13000
         SWAP_MIN_SIZE_HR="9Gb"
         SWAP_MIN_SIZE_MB=9000
-    elif [ "$RAMTOTAL_KB" -le "4000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "3800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="12Gb"
         SWAP_REC_SIZE_MB=12000
         SWAP_MIN_SIZE_HR="8Gb"
         SWAP_MIN_SIZE_MB=8000
-    elif [ "$RAMTOTAL_KB" -le "5000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "4800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="11Gb"
         SWAP_REC_SIZE_MB=11000
         SWAP_MIN_SIZE_HR="7Gb"
         SWAP_MIN_SIZE_MB=7000
-    elif [ "$RAMTOTAL_KB" -le "6000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "5800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="10Gb"
         SWAP_REC_SIZE_MB=10000
         SWAP_MIN_SIZE_HR="6Gb"
         SWAP_MIN_SIZE_MB=6000
-    elif [ "$RAMTOTAL_KB" -le "7000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "6800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="9Gb"
         SWAP_REC_SIZE_MB=9000
         SWAP_MIN_SIZE_HR="5Gb"
         SWAP_MIN_SIZE_MB=5000
-    elif [ "$RAMTOTAL_KB" -le "8000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "7800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="8Gb"
         SWAP_REC_SIZE_MB=8000
         SWAP_MIN_SIZE_HR="4Gb"
         SWAP_MIN_SIZE_MB=4000
-    elif [ "$RAMTOTAL_KB" -le "9000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "8800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="7Gb"
         SWAP_REC_SIZE_MB=7000
         SWAP_MIN_SIZE_HR="3Gb"
         SWAP_MIN_SIZE_MB=3000
-    elif [ "$RAMTOTAL_KB" -le "10000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "9800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="6Gb"
         SWAP_REC_SIZE_MB=6000
         SWAP_MIN_SIZE_HR="2Gb"
         SWAP_MIN_SIZE_MB=2000
-    elif [ "$RAMTOTAL_KB" -le "11000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "10800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="5Gb"
         SWAP_REC_SIZE_MB=5000
         SWAP_MIN_SIZE_HR="1Gb"
         SWAP_MIN_SIZE_MB=1000
-    elif [ "$RAMTOTAL_KB" -le "12000000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
+    elif [ "$RAMTOTAL_KB" -le "11800000" ] && [ "$SWAPTOTAL_KB" = "0" ]; then
         SWAP_NEEDED="YES"
         SWAP_REC_SIZE_HR="4Gb"
         SWAP_REC_SIZE_MB=4000
