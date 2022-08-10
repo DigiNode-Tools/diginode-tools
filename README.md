@@ -95,10 +95,12 @@ Once your DigiNode has been installed, you can access additional features from t
 
 ## Compatibility
 
-- A device with at least 8Gb RAM is strongly recommended. DigiByte Core requires >5Gb to run. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. Fine for testing, not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.) 
-- As of July 2022, the DigiByte blockchain currently requires around 40Gb of disk space. If you are setting up a DigiNode, a minimum 80Gb of free disk space is recommended. 
+- A DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync. For this reason, a device with at least 8Gb RAM is strongly recommended. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. This is fine for testing, but definitely not recommended for long term use. Less than 4Gb RAM is not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.)
+- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM it is inadvisable to run a DigiByte Node, but you can still support the network by running a DigiAsset Node on its own.
+- A DigiByte Node and DigiAsset Node together often exceed 8GB RAM so a SWAP file is needed on any device with 8Gb RAM or less. DigiNode Setup can configure this for you.
+- As of July 2022, the DigiByte blockchain currently requires around 40Gb of disk space. If you are setting up a DigiNode, a minimum 80Gb of free disk space is recommended.
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
-- DigiNode should work with most Ubuntu or Debian based systems with at last 6GB RAM available. A 64bit OS is required. It has been designed with headless operation in mind.
+- DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. It has been designed with headless operation in mind.
 - If you are interested in building your own DigiNode using a Raspberry Pi 4, see [here](docs/suggested_hardware.md) for the parts you need.
 
 DigiNode has been tested and known to work with the following systems:
