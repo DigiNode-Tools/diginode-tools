@@ -2994,7 +2994,8 @@ swap_check() {
         SWAP_MIN_SIZE_HR="1Gb"
         SWAP_MIN_SIZE_MB=1000
 
-
+    echo "RAMTOTAL_KB -  $RAMTOTAL_KB"
+    echo "SWAPTOTAL_KB - $SWAPTOTAL_KB"
 
     # If there is no swap file present, calculate recomended swap file size
 
