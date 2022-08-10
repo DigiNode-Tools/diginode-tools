@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.2
+#           Name:  DigiNode Status Monitor v0.6.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.2
-# Last Updated: 2022-08-06
+DGNT_VER_LOCAL=0.6.3
+# Last Updated: 2022-08-10
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -1019,9 +1019,9 @@ install_required_pkgs() {
 # Quit message
 quit_message() {
 
+    tput rmcup
     stty echo
     tput sgr0
-    tput rmcup
 
     #Set this so the backup reminder works
     NewInstall=False
@@ -1551,14 +1551,15 @@ do
 
 if [ $SM_AUTO_QUIT -gt 0 ]; then
   auto_quit_seconds=$(( $SM_AUTO_QUIT*60 ))
-  if [ $loopcounter -gt $auto_quit_seconds ]; then
+  auto_quit_half_seconds=$(( $auto_quit_seconds*2 ))
+  if [ $loopcounter -gt $auto_quit_half_seconds ]; then
       auto_quit=true
       exit
   fi
 fi
 
 if [ "$STARTUP_LOOP" = "true" ]; then
-    printf "%b Running Status Loop: Every 1 Second...\\n" "${INFO}"
+    printf "%b Updating Status: 1 Second Loop...\\n" "${INFO}"
 fi
 
 
@@ -1575,6 +1576,7 @@ loopcounter=$((loopcounter+1))
 RAMUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f3)
 RAMAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f6)
 SWAPUSED_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f3)
+SWAPAVAIL_HR=$(free --mega -h | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f4)
 
 # Get current system temp
 temperature=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
@@ -1696,7 +1698,7 @@ TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 15 Seconds...\\n" "${INFO}"
+    printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
     fi
 
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
@@ -1719,6 +1721,9 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
           DGB_STATUS="startingup"
+        else
+            # Get the algo used for the current block
+            BLOCK_CURRENT_ALGO=$(tail ~/.digibyte/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
         fi
     fi
 
@@ -1798,7 +1803,7 @@ TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 if [ $TIME_DIF_1MIN -ge 60 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 1 Minute...\\n" "${INFO}"
+    printf "%b Updating Status: 1 Minute Loop...\\n" "${INFO}"
     fi
 
   # Update DigiByte Core sync progress every minute, if it is running
@@ -1909,7 +1914,7 @@ TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 if [ $TIME_DIF_15MIN -ge 300 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 15 Minutes...\\n" "${INFO}"
+    printf "%b Updating Status: 15 Minute Loop...\\n" "${INFO}"
     fi
 
     # update external IP, unless it is offline
@@ -2022,7 +2027,7 @@ TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Running Status Loop: Every 24 Hours...\\n" "${INFO}"
+    printf "%b Updating Status: 24 Hour Loop...\\n" "${INFO}"
     fi
 
     # items to repeat every 24 hours go here
@@ -2300,9 +2305,9 @@ printf "  ║ DISK USAGE     ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DIS
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
-if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ] && [ "$SWAPUSED_HR" != "0B" ]; then # only display the swap file status if there is one, and the current value is above 0B
+if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SWAP USAGE     ║  " && printf "%-47s %-3s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"  "  ║"
+printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
 fi 
 if [ "$temperature" != "" ]; then
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
@@ -2332,7 +2337,7 @@ printf "\\n"
 
 if [ "$STARTUP_LOOP" = "true" ]; then
 
-    printf "%b Startup loop completed.\\n" "${INFO}"
+    printf "%b Startup Loop Completed.\\n" "${INFO}"
 
     printf "\\n"
 
@@ -2367,7 +2372,7 @@ echo "$output"
 # Display the quit message on exit
 trap quit_message EXIT
 
-# sleep 0.5
+# sleep 1
 read -t 0.5 -s -n 1 input
 
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
@@ -2375,10 +2380,12 @@ read -t 0.5 -s -n 1 input
         case "$input" in
             "P")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
         esac
@@ -2388,16 +2395,22 @@ read -t 0.5 -s -n 1 input
         case "$input" in
             "P")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
+                loopcounter=0
                 port_test
                 ;;
         esac
 
     fi
 
+# Any key press resets the loopcounter
+if [ "${#input}" != 0 ]; then
+    loopcounter=0
+fi
 
 done
 
@@ -2714,7 +2727,10 @@ fi
 
 echo ""
 echo ""
+
 read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
+
+loopcounter=0
 
 status_loop
 
