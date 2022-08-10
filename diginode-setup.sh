@@ -2924,9 +2924,6 @@ swap_check() {
     # These check for a minimum total of 12Gb, but recommend a total of 16Gb. THe user can then choose how big they want.
     #
 
-    echo "RAMTOTAL_KB -  $RAMTOTAL_KB"
-    echo "SWAPTOTAL_KB - $SWAPTOTAL_KB"
-
     if [ "$RAMTOTAL_KB" -le "1000000" ] && [ "$SWAPTOTAL_KB" -gt "0" ] && [ "$SWAPTOTAL_KB" -le "10742187" ];  then
         SWAP_TOO_SMALL="YES"
         SWAP_REC_SIZE_HR="15Gb"
