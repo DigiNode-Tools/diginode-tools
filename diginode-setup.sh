@@ -6407,7 +6407,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # Ok, there is no Kubo. Is there a JS-IPFS config file available?
-    if [ -f "$USER_HOME/.jsipfs/config" ] && [ -f "$try_for_jsipfs" = "yes" ]; then
+    if [ -f "$USER_HOME/.jsipfs/config" ] && [ "$try_for_jsipfs" = "yes" ]; then
 
         # Test if JS-IPFS is in use
         is_jsipfs_in_use=$(cat $DGA_SETTINGS_FILE | jq .ipfs | sed 's/"//g')
