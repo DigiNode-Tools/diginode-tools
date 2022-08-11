@@ -6160,6 +6160,8 @@ final_messages() {
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
+        printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work until you reboot.\\n" "${INDENT}"
+        printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
@@ -6186,7 +6188,7 @@ final_messages() {
     fi
 
     # Display restart messages, if needed
-    if [ "$UNATTENDED_MODE" = false ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
+    if [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
         printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -6197,7 +6199,7 @@ final_messages() {
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
-    elif [ "$UNATTENDED_MODE" = false ] && [ "$REBOOT_NEEDED" = "YES" ]; then
+    elif [ "$REBOOT_NEEDED" = "YES" ]; then
         printf "%b %bYou need to reboot now for your swap file change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -6208,17 +6210,8 @@ final_messages() {
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"       
-    elif [ "$UNATTENDED_MODE" = false ] && [ $NewInstall = true ]; then
-        printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-        printf "%b       To complete your installation, you need to restart your system.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b       To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"       
-    fi
-
-
-    if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    elif [ $NewInstall = true ]; then
+        printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -6227,7 +6220,7 @@ final_messages() {
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
-        printf "\\n"
+        printf "\\n"       
     fi
 
     if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ]; then
