@@ -3152,7 +3152,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             # Ask the user if they want to create a swap file now, or exit
-            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. A full DigiNode can require up to 10Gb RAM, so as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to increase your swap file to $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a full DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to exit to create a new swap file.\\n" "${INFO}"
@@ -3171,7 +3171,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires  around 6Gb RAM but this can be higher during the intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. Since a full DigiNode can require up to 10Gb RAM, as a bare minimum you should ensure that your RAM and SWAP file combined is not less than 12Gb. Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at least 16Gb of total memory to work with.\\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a full DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -3195,7 +3195,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
 
                 # Ask the user if they want to create a swap file now, or exit
-                if whiptail --title "USB stick required." --yesno "You need a USB stick to store your swap file.\\n\\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your swap file:\\n\\n - Minimum 16Gb.\\n - For best performance it should support USB 3.0 or greater.\\n - WARNING: The existing contents will be erased.\\n\\nDo not insert the USB stick into the Pi yet. If it is already plugged in, please UNPLUG it before continuing.\\n\\nChoose CONTINUE once you are ready, with the USB stick unplugged.\\n\\nChoose EXIT to quit DigiNode Setup and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+                if whiptail --title "USB stick required." --yesno "You need a USB stick to store your swap file.\\n\\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your swap file:\\n\\n - Minimum capacity is 16Gb.\\n - For best performance it should support USB 3.0 or greater.\\n - WARNING: The existing contents will be erased.\\n\\nDo not insert the USB stick into the Pi yet. If it is already plugged in, please UNPLUG it before continuing.\\n\\nChoose CONTINUE once you are ready, with the USB stick unplugged.\\n\\nChoose EXIT to quit DigiNode Setup and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                     #Nothing to do, continue
                     printf "%b You chose to continue and begin preparing the swap file on a USB stick.\\n" "${INFO}"
@@ -3327,7 +3327,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
 
         # Ask the user what size of swap file they want
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "\\nPlease enter the desired swap file size in MB.\\n\\nNote: Running a DigiNode requires approximately 12Gb RAM but it is recommended to ensure your total memory adds up to approximately 16Gb. Since your system only has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR or more.\\n\\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size" 3>&1 1>&2 2>&3) 
+        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "\\nPlease enter the desired swap file size in MB.\\n\\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\\n\\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size" 3>&1 1>&2 2>&3) 
 
         # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
         # Meaning instead of return the error code, it returns the value entered
@@ -3467,7 +3467,7 @@ swap_do_change() {
 
             # Find CONF_MAXSWAP value and update it
             str="Updating CONF_MAXSWAP value..."
-            printf "\\n%b %s..." "${INFO}" "${str}"
+            printf "%b %s..." "${INFO}" "${str}"
 
             # Look for a line that starts with CONF_MAXSWAP
             if [ "$(cat /etc/dphys-swapfile | grep -Eo ^CONF_MAXSWAP=)" = "CONF_MAXSWAP=" ]; then
@@ -3503,7 +3503,7 @@ swap_do_change() {
 
                 # Find CONF_SWAPFILE value and update it
                 str="Using USB Stick for Swap. Updating CONF_SWAPFILE location to $SWAP_FILE ..."
-                printf "\\n%b %s..." "${INFO}" "${str}"
+                printf "%b %s..." "${INFO}" "${str}"
 
                 # Look for a line that starts with CONF_MAXSWAP
                 if [ "$(cat /etc/dphys-swapfile | grep -Eo ^CONF_SWAPFILE=)" = "CONF_SWAPFILE=" ]; then
@@ -3540,8 +3540,10 @@ swap_do_change() {
             dphys-swapfile setup
 
             # Get the UUID of the USB stick with the swap file
-            printf "%b Turning on the swap file...\\n" "${INFO}"
+            str="Turning on the swap file..."
+            printf "\\n%b %s..." "${INFO}" "${str}"
             dphys-swapfile swapon
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Tell user the swap file has been created
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
@@ -5738,8 +5740,7 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
     if whiptail --backtitle "" --title "Do you want to customize your DigiNode installation?" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\\n\\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\\n\\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\\n\\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\\n\\n\\nTo proceed with the defaults, choose Continue (Recommended)\\n\\nTo exit and customize your installation, choose Exit" --no-button "Exit" --yes-button "Continue" "${r}" "${c}"; then
     #Nothing to do, continue
-      printf "%b You chose to proceed without customizing your install.\\n" "${INFO}"
-      printf "\\n"
+      printf ""
     else
         printf "%b You exited the installler at the customization message.\\n" "${INFO}"
         printf "\\n"
@@ -6190,15 +6191,23 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        if [ "$HOSTNAME" = "diginode" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
         printf "\\n"
     elif [ "$UNATTENDED_MODE" = false ] && [ "$REBOOT_NEEDED" = "YES" ]; then
         printf "%b %bYou need to reboot now for your swap file change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
-        printf "\\n"        
+        if [ "$HOSTNAME" = "diginode" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
+        printf "\\n"       
     elif [ "$UNATTENDED_MODE" = false ] && [ $NewInstall = true ]; then
         printf "%b Note: If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
         printf "%b       To complete your installation, you need to restart your system.\\n" "${INDENT}"
@@ -6209,14 +6218,16 @@ final_messages() {
 
 
     if [ "$UNATTENDED_MODE" = true ] && [ "$NewInstall" = true ] && [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b %bUnattended Mode: Your system will reboot automatically in 5 seconds...%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bYou need to reboot now for your hostname change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b You system will reboot now for the hostname change to take effect.\\n" "${INDENT}"
+        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        if [ "$HOSTNAME" = "diginode" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+        fi
         printf "\\n"
-        sleep 5
-        sudo reboot
     fi
 
     if [ "$INSTALL_ERROR" = "YES" ] && [ $NewInstall = true ]; then

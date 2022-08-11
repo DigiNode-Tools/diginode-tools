@@ -2307,7 +2307,11 @@ printf "  ╠════════════════╬═════�
 printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$SWAPUSED_HR" = "0B" ]; then # If swap used is 0B, drop the added b, used for Gb or Mb
+printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR} of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+else
 printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+fi    
 fi 
 if [ "$temperature" != "" ]; then
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
