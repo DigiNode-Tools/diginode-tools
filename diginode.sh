@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.3
+#           Name:  DigiNode Status Monitor v0.6.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.3
-# Last Updated: 2022-08-10
+DGNT_VER_LOCAL=0.6.4
+# Last Updated: 2022-08-11
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -2325,11 +2325,11 @@ if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
 if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
-    printf "               Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "               Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
-    printf "                         Press ${txtbld}Ctrl-C${txtrst} to Quit.\\n"
+    printf "                         Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit.\\n"
 fi
 printf "\\n"
 
@@ -2388,6 +2388,14 @@ read -t 0.5 -s -n 1 input
                 loopcounter=0
                 port_test
                 ;;
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
+                ;;
         esac
 
     elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
@@ -2402,6 +2410,27 @@ read -t 0.5 -s -n 1 input
                 echo "Running Port test..."
                 loopcounter=0
                 port_test
+                ;;
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
+                ;;
+        esac
+
+    else
+
+        case "$input" in
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
                 ;;
         esac
 
