@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.3
+#           Name:  DigiNode Status Monitor v0.6.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.3
-# Last Updated: 2022-08-10
+DGNT_VER_LOCAL=0.6.4
+# Last Updated: 2022-08-11
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -780,7 +780,7 @@ get_dgb_rpc_credentials() {
       RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport= | cut -d'=' -f 2)
       if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
         RPC_CREDENTIALS_OK="yes"
-        printf "%b DigiByte RPC credentials found:  ${TICK} Username ${TICK} Password ${TICK} Port\\n\\n" "${TICK}"
+        printf "%b DigiByte RPC credentials found: ${TICK} User ${TICK} Password ${TICK} Port\\n\\n" "${TICK}"
       else
         RPC_CREDENTIALS_OK="NO"
         printf "%b %bERROR: DigiByte RPC credentials are missing:%b" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -953,7 +953,7 @@ is_avahi_installed() {
       printf "%b can set this up for for you.\\n" "${INDENT}"
       printf "\\n"
     else
-      printf "%b avahi-daemon is installed. DigiNode URL: http://${HOSTNAME}.local:8090\\n"  "${TICK}"
+      printf "%b avahi-daemon is installed. URL: http://${HOSTNAME}.local:8090\\n"  "${TICK}"
       IS_AVAHI_INSTALLED="yes"
     fi
 }
@@ -1023,6 +1023,9 @@ quit_message() {
     stty echo
     tput sgr0
 
+    # Enabling line wrapping.
+    printf '\e[?7h'
+
     #Set this so the backup reminder works
     NewInstall=False
 
@@ -1053,6 +1056,10 @@ quit_message() {
         # Display cursor again
         tput cnorm
         updates_installed="yes"
+
+        # Enabling line wrapping.
+        printf '\e[?7h'
+
         exit
       else
         updates_installed="no"
@@ -1121,7 +1128,14 @@ if [ "$auto_quit" = true ]; then
 fi
 
   # Display cursor again
-  tput cnorm
+#  tput cnorm
+
+# Showing the cursor.
+printf '\e[?25h'
+
+# Enabling line wrapping.
+printf '\e[?7h'
+
 }
 
 exit_locate_digibyte_reminder() {
@@ -1292,6 +1306,8 @@ firstrun_dganode_configs() {
       DGA_FIRST_RUN=$(date)
       sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=\"$DGA_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
       printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+      printf "\\n"
 
   fi
 
@@ -2162,7 +2178,7 @@ fi
 ###################################################################
 
 # Double buffer output to reduce display flickering
-output=$(clear;
+output=$(printf '\e[2J\e[H';
 
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
@@ -2184,10 +2200,10 @@ printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_F
 # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
 if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ WALLET BALANCE ║  " && printf "%-49s ║ \n" "$WALLET_BALANCE DGB"
+printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE DGB" " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ NODE UPTIME    ║  " && printf "%-49s ║ \n" "$uptime"
+printf "  ║ NODE UPTIME    ║  " && printf "%-48s %-4s\n" "$uptime" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi # end check to see of digibyted is running
 if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
@@ -2240,14 +2256,14 @@ fi
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
 printf "  ║ SOFTWARE       ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
 else
-printf "  ║ SOFTWARE       ║  " && printf "%-49s ║ \n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+printf "  ║ SOFTWARE       ║  " && printf "%-48s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" " ║"
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
     printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
     else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "DigiByte Core v$DGB_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║"
     fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -2255,7 +2271,7 @@ if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
     printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "Kubo v$IPFS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo v$IPFS_VER_LOCAL" " ║"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -2263,7 +2279,7 @@ if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
     printf "  ║                ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "NodeJS v$NODEJS_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" " ║"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -2271,7 +2287,7 @@ if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
     printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-49s ║ \n" "DigiAsset Node v$DGA_VER_LOCAL"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" " ║"
   fi
 fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
@@ -2307,7 +2323,11 @@ printf "  ╠════════════════╬═════�
 printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$SWAPUSED_HR" = "0B" ]; then # If swap used is 0B, drop the added b, used for Gb or Mb
+printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR} of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+else
 printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+fi    
 fi 
 if [ "$temperature" != "" ]; then
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
@@ -2325,11 +2345,11 @@ if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
 digifact_display
 fi
 if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
-    printf "               Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
 else
-    printf "                         Press ${txtbld}Ctrl-C${txtrst} to Quit.\\n"
+    printf "                         Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit.\\n"
 fi
 printf "\\n"
 
@@ -2357,7 +2377,13 @@ if [ "$STARTUP_LOOP" = "true" ]; then
     fi
 
     tput smcup
-    tput civis
+#   tput civis
+
+    # Hide the cursor.
+    printf '\e[?25l'
+
+    # Disabling line wrapping.
+    printf '\e[?7l'
 
     # Hide user input
     stty -echo
@@ -2388,6 +2414,14 @@ read -t 0.5 -s -n 1 input
                 loopcounter=0
                 port_test
                 ;;
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
+                ;;
         esac
 
     elif [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
@@ -2402,6 +2436,27 @@ read -t 0.5 -s -n 1 input
                 echo "Running Port test..."
                 loopcounter=0
                 port_test
+                ;;
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
+                ;;
+        esac
+
+    else
+
+        case "$input" in
+            "Q")
+                echo "Exiting..."
+                exit
+                ;;
+            "q")
+                echo "Exiting..."
+                exit
                 ;;
         esac
 
