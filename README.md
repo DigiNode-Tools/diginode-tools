@@ -163,8 +163,9 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
-DigiNode Tools v0.6.4 - 2022-08-xx
-- Status Monitor: Bring back pressing Q to Quit, in case Ctrl-C doesn't work. 
+DigiNode Tools v0.6.4 - 2022-08-12  
+- Status Monitor: Bring back the ability to press Q to Quit, in case Ctrl-C doesn't work. 
+- Lots of bug fixes and formatting issues
 
 DigiNode Tools v0.6.3 - 2022-08-10
 - DigiNode Setup now prompts the user to create a swap file if RAM + SWAP <12Gb. This is to ensure that DigiByte Nodes and DigiAsset Node can work smoothly on the same device. This solves a problem of DigiByte Core running out of memory on a 8Gb device that is also running a DigiAsset Node.
