@@ -226,6 +226,13 @@ txtbld=$(tput bold) # Set bold mode
 ### FUNCTIONS
 #####################################################################################################
 
+# This will get the size of the current terminal window
+get_term_size() {
+    # Get terminal size ('stty' is POSIX and always available).
+    # This can't be done reliably across all bash versions in pure bash.
+    read -r LINES COLUMNS < <(stty size)
+}
+
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
     if [ "$VERBOSE_MODE" = true ]; then
@@ -7699,6 +7706,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ $? -eq 0 ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
+        printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
         printf "%b%b ${txtred}ERROR: Kubo Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
@@ -7736,9 +7744,6 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         INSTALL_ERROR="YES"
         return 1
     fi
-
-
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # If there is an existing Go-IPFS install folder, delete it
     if [ -d "$USER_HOME/go-ipfs" ]; then
@@ -7831,7 +7836,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
         else
             # Ask the user if they want to use the server profile
-            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS Server profile?\\n\\nThe Server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS server profile?\\n\\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
                 printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
                 use_ipfs_server_profile="yes"
             else
@@ -11342,39 +11347,39 @@ fi
 
 
 printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-67s ║ \n" "              $DIGIFACT_TITLE"
+printf "  ║ " && printf "%-66s %-4s\n" "              $DIGIFACT_TITLE" " ║"
 printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 
 if [ "$DIGIFACT_L1" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L1"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L1" " ║"
 fi
 
 if [ "$DIGIFACT_L2" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L2"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L2" " ║"
 fi
 
 if [ "$DIGIFACT_L3" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L3"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L3" " ║"
 fi
 
 if [ "$DIGIFACT_L4" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L4"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L4" " ║"
 fi
 
 if [ "$DIGIFACT_L5" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L5"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L5" " ║"
 fi
 
 if [ "$DIGIFACT_L6" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L6"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L6" " ║"
 fi
 
 if [ "$DIGIFACT_L7" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L7"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L7" " ║"
 fi
 
 if [ "$DIGIFACT_L8" != "" ]; then
-printf "  ║ " && printf "%-67s ║ \n" "$DIGIFACT_L8"
+printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L8" " ║"
 fi
 
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
