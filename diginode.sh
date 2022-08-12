@@ -1307,6 +1307,8 @@ firstrun_dganode_configs() {
       sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=\"$DGA_FIRST_RUN\"|" $DGNT_SETTINGS_FILE
       printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+      printf "\\n"
+
   fi
 
 }
