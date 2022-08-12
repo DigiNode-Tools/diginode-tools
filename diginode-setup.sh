@@ -10198,7 +10198,7 @@ uninstall_do_now() {
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing path for DigiByte binaries
                 sed -i "/# Add DigiByte binary folder to path/d" $USER_HOME/.bashrc
-                sed -i "/digibyte/bin/d" $USER_HOME/.bashrc
+                sed -i "/export PATH+=:\/home\/$USER_ACCOUNT\/digibyte\/bin/d" $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
