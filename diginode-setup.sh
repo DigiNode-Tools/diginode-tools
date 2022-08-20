@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.4
+#           Name:  DigiNode Setup v0.6.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -3561,12 +3561,11 @@ swap_do_change() {
 
 
 
-        ######################################
-        ### SETUP SWAP FILE ON UBUNTU
-        ######################################
+        ###################################################################
+        ### SETUP SWAP FILE ON UBUNTU (OR DEBIAN WITH NO DPHYS-SWAPFILE) ##
+        ###################################################################
 
-        # If this is UBUNTU and it uses dphys-swapfile...
-        elif [ "$detected_os" = "ubuntu" ]; then
+        elif [ "$detected_os" = "ubuntu" ] || [ "$detected_os" = "debian" ]; then
 
             # Append M units to target swap file size
             SWAP_TARG_SIZE_MB="${SWAP_TARG_SIZE_MB}M"
@@ -3657,9 +3656,9 @@ swap_do_change() {
             printf "\\n"
             printf "%b Swap setup for your Linux distro is not currently supported.\\n" "${INFO}"
             printf "%b Please post a message in the 'DigiNode Tools' Telegram group including\\n" "${INDENT}"
-            printf "%b the distro you are running ( $detected_os ):\\n" "${INDENT}"
+            printf "%b the distro you are running ($detected_os).\\n" "${INDENT}"
             printf "\\n"
-            printf "%b Join here: https://t.me/+ked2VGZsLPAyN2Jk\\n" "${INFO}"
+            printf "%b Go here: https://t.me/+ked2VGZsLPAyN2Jk\\n" "${INFO}"
             printf "\\n"
             exit 1
 

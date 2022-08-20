@@ -163,6 +163,9 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.6.5 - 2022-08-20
+- Fix creating a swap file in Debian 11 
+
 DigiNode Tools v0.6.4 - 2022-08-12  
 - Status Monitor: Bring back the ability to press Q to Quit, in case Ctrl-C doesn't work. 
 - Lots of bug fixes and formatting issues
