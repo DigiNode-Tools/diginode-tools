@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.5
+#           Name:  DigiNode Setup v0.6.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
 #                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall @saltedlolly
 #
@@ -89,9 +89,9 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size of the blockchain increases over time
 # It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
-# Last Updated: 2022-07-08
-DGB_DATA_REQUIRED_HR="40Gb"
-DGB_DATA_REQUIRED_KB="40000000"
+# Last Updated: 2022-12-12
+DGB_DATA_REQUIRED_HR="45Gb"
+DGB_DATA_REQUIRED_KB="45000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -257,7 +257,7 @@ where_are_we() {
 is_unattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        if [ test -f "$DGNT_SETTINGS_FILE" ]; then
+        if [ -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
         elif [ "$SKIP_CUSTOM_MSG" = true ]; then
             printf "%b   diginode.settings file not found - it will be created and the default values used\\n" "${INDENT}"
@@ -10465,15 +10465,16 @@ array[71]="digifact72"
 array[72]="digifact73"
 array[73]="digifact74"
 array[74]="digifact75"
-array[75]="digifact75"
-array[76]="social1"
-array[77]="social2"
-array[78]="help1"
-array[79]="help2"
-array[80]="help3"
-array[81]="help4"
-array[82]="help5"
-array[82]="help6"
+array[75]="digifact76"
+array[76]="digifact77"
+array[77]="social1"
+array[78]="social2"
+array[79]="help1"
+array[80]="help2"
+array[81]="help3"
+array[82]="help4"
+array[83]="help5"
+array[84]="help6"
 
 size=${#array[@]}
 index=$(($RANDOM % $size))
@@ -10724,10 +10725,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact23" ]; then
     DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
-    DIGIFACT_L1="DigiByte has a known founder, Jared Tate. Unlike many other"
-    DIGIFACT_L2="blockchain founders who abandon their project, Jared is still"
-    DIGIFACT_L3="active after 6 years with contributions on the DigiByte code-base"
-    DIGIFACT_L4="to this day."
+    DIGIFACT_L1="DigiByte has a known founder, Jared Tate. Jared is still"
+    DIGIFACT_L2="active in the community and contributes code to the DigiByte code-base."
+    DIGIFACT_L3=""
+    DIGIFACT_L4=""
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi
@@ -11260,6 +11261,16 @@ if [ "$DIGIFACT" = "digifact76" ]; then
     DIGIFACT_L4="Go here:"
     DIGIFACT_L5=""
     DIGIFACT_L6="https://digisweep.digiassetx.com/"
+fi
+
+if [ "$DIGIFACT" = "digifact77" ]; then
+    DIGIFACT_TITLE="DigiFact # 76 - Did you know..."
+    DIGIFACT_L1="The DigiByte Alliance is a public non-profit foundation founded"
+    DIGIFACT_L2="in Wyoming in March 2021. Its mission is to to accelerate the"
+    DIGIFACT_L3="growth and adoption of DigiByte."
+    DIGIFACT_L4=""
+    DIGIFACT_L5="Learn more: https://www.dgballiance.org/"
+    DIGIFACT_L6=""
 fi
 
 if [ "$DIGIFACT" = "social1" ]; then
