@@ -29,7 +29,9 @@ To get started, run DigiNode Setup by entering the following command in the term
 
 ## ```curl -sSL diginode-setup.digibyte.help | bash```
 
-This will guide you through the installation process.
+This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below.
+
+Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor (see below) with your existing DigiByte Node, or want to inspect the DigiNode Setup scripts before using them. (They will be installed at ~/diginode-tools)
 
 ## Donations
 
@@ -41,26 +43,25 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ## About DigiNode Setup
 
-DigiNode Setup helps you to setup and manage your DigiNode:
-
-- Intuitively walks you though the process of setting up a DigiByte Full Node and/or DigiAsset Node.
-- You can also choose to install DigiNode Tools only, so you can use the Status Monitor (see below) with your existing DigiByte Node, or want to inspect the DigiNode Setup scripts before using them. (They will be installed at ```~/diginode-tools```)
-- Almost no linux experience required. It does all the work for you. It's as plug-and-play as possible.
-- Automatically checks hardware and OS at launch - it lets you know if your system is compatible.
-- Detects compatible Raspberry Pi hardware (if present).
-- Creates a swap file on low memory devices, and checks if any existing swap file is large enough.
-- Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
-- Creates or updates a digibyte.conf settings file with optimal settings.
-- Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
-- Creates or updates your DigiAsset Node configuration file with your RPC credentioals. This ensures you can always access your wallet from the web UI to mint DigiAssets.
-- Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'.
-- Enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
-
-To get started, see the Instructions section below. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
-
 ![DigiNode Setup](images/diginode_install_menu.png)
 
+DigiNode Setup helps you to setup and manage your DigiNode:
+
+- Intuitively walks you though the process of setting up a DigiByte Full Node, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
+- Almost no linux command line experience required. It does all the work for you. It's as plug-and-play as possible.
+- Automatically checks hardware and OS at launch - it detects compatible Raspberry Pi hardware (if present) and lets you know if your system is compatible, and that there is enough disk space and memory to a DigiNode.
+- Checks if the existing swap file is large enough, and helps create one on low memory devices.
+- Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
+- Creates or updates the digibyte.conf settings file with optimal settings.
+- Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
+- Creates or updates your DigiAsset Node configuration file with your RPC credentioals. (This ensures you can always access your wallet from the web UI to mint DigiAssets.)
+- Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'. It also enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
+
+To get started, see the "Get Started" section above. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
+
 ## About DigiNode Status Monitor
+
+![DigiNode Status Monitor](images/diginode_status_monitor.png)
 
 DigiNode Status Monitor let's you monitor your DigiNode from the command line:
 
@@ -73,13 +74,13 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line:
     + Web UI address 
     + Node uptime
     + Disk, RAM and swap usage
-- Periodically checks for software updates (not more than once every 24 hours) and helps you install them.
+- Periodically checks for software updates to your DigiNode (not more than once every 24 hours) and helps you install them.
 
 Once installed, DigiNode Status Monitor can be run from the command line by entering: ```diginode```
 
-![DigiNode Status Monitor](images/diginode_status_monitor.png)
-
 ## Additional Features
+
+![DigiNode Main Menu](images/diginode_main_menu.png)
 
 Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
 
@@ -90,8 +91,6 @@ Once your DigiNode has been installed, you can access additional features from t
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
-
-![DigiNode Main Menu](images/diginode_main_menu.png)
 
 ## Compatibility
 
@@ -124,10 +123,11 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 These features are for advanced users and should be used with caution:
 
-**Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. (Note: The first time you run DigiNode Setup in Unattended mode, it will create the settings file (~/.digibyte/diginode.settings) and exit, giving you the opportunity to customize your install before proceeding. You can skip this step by also including the --skipcustommsg flag.)
+**Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended```
+Note: The first time you run DigiNode Setup in Unattended mode, it will create the DigiNode settings file (~/.digibyte/diginode.settings) and exit, giving you the opportunity to customize your install before proceeding. You can skip this step by also including the --skipcustommsg flag.
+- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended --skipcustommsg```
 
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
@@ -163,6 +163,10 @@ These features are for advanced users and should be used with caution:
 
 ## Release Notes
 
+DigiNode Tools v0.6.6 - 2022-12-12
+- Fix bug when running unattended update from DigiNode Status Monitor
+- Improvements to this documentation.
+
 DigiNode Tools v0.6.5 - 2022-08-20
 - Fix creating a swap file in Debian 11 
 
@@ -195,6 +199,8 @@ DigiNode Tools v0.6.0 - 2022-08-05
 - Status Monitor - Improve detection of when DigiNode internet connection is online/offline
 - Status Monitor - Improve startup messaging. It now displays each step that is being processed when running though the status loop for the first time. It shows that it is actually doing something, rather than having the user stare at a frozen screen.
 - Status Monitor - To ovoid putting extended strain on the server, the Status Monitor now quits automatically after 20 minutes. The duration is now set in minutes rather than seconds. A message is now displayed when it auto-quits.
+
+DigiNode Tools v0.5.6 - 2022-08-01
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default

@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.5
+#           Name:  DigiNode Setup v0.6.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
 #                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall @saltedlolly
 #
@@ -257,7 +257,7 @@ where_are_we() {
 is_unattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
         printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        if [ test -f "$DGNT_SETTINGS_FILE" ]; then
+        if [ -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
         elif [ "$SKIP_CUSTOM_MSG" = true ]; then
             printf "%b   diginode.settings file not found - it will be created and the default values used\\n" "${INDENT}"
