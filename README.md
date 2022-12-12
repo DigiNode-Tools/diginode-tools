@@ -15,7 +15,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below.
 
-If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Ubuntu Server 64-bit** or **Raspberry Pi OS Lite 64-bit**. 
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. 
 
 See [here](docs/suggested_hardware.md) for the parts you need.
 
@@ -56,8 +56,23 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
 - Creates or updates your DigiAsset Node configuration file with your RPC credentioals. (This ensures you can always access your wallet from the web UI to mint DigiAssets.)
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'. It also enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
+- Installs DigiNode Tools (these setup scripts) and the DigiNode Status Monitor. (see below)
 
 To get started, see the "Get Started" section above. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
+
+## Additional Features
+
+![DigiNode Main Menu](images/diginode_main_menu.png)
+
+Once DigiNode Tools have been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
+
+- **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
+- **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
+- **Restore**: Helps you to restore your DigiNode from an existing backup.
+- **Ports**: Enable/disable using UPnP to forward required ports.
+- **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
+- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
+- **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
 ## About DigiNode Status Monitor
 
@@ -76,28 +91,14 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line:
     + Disk, RAM and swap usage
 - Periodically checks for software updates to your DigiNode (not more than once every 24 hours) and helps you install them.
 
-Once installed, DigiNode Status Monitor can be run from the command line by entering: ```diginode```
-
-## Additional Features
-
-![DigiNode Main Menu](images/diginode_main_menu.png)
-
-Once your DigiNode has been installed, you can access additional features from the DigiNode Setup menu by entering: ```diginode-setup```
-
-- **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
-- **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
-- **Restore**: Helps you to restore your DigiNode from an existing backup.
-- **Ports**: Enable/disable using UPnP to forward required ports.
-- **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
-- **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
-- **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
+DigiNode Status Monitor can be run from the command line by entering: ```diginode```
 
 ## Compatibility
 
 - A DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync. For this reason, a device with at least 8Gb RAM is strongly recommended. A device with 4Gb RAM will work with a SWAP file but performance will suffer considerably. This is fine for testing, but definitely not recommended for long term use. Less than 4Gb RAM is definitely not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.)
-- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM it is inadvisable to run a DigiByte Node, but you can still support the network by running a DigiAsset Node only.
-- A DigiByte Node and DigiAsset Node together often exceed 8GB RAM so a SWAP file is needed on any device with 8Gb RAM or less. DigiNode Setup can configure this for you.
-- As of July 2022, the DigiByte blockchain currently requires around 40Gb of disk space. If you are setting up a DigiNode, a minimum 80Gb of free disk space is recommended.
+- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM it is inadvisable to run a DigiByte Node, but you can still support the network by running a DigiAsset Node on its own.
+- A DigiByte Node and DigiAsset Node together often exceed 8GB RAM so a SWAP file is required on any device with 8Gb RAM or less. DigiNode Setup can help configure this for you.
+- As of December 2022, the DigiByte blockchain currently requires around 43Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - When using a Raspberry Pi, booting from an SSD is highly recommended. Using a microSD is inadvisable.
 - DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. It has been designed with headless operation in mind.
 - If you are interested in building your own DigiNode using a Raspberry Pi 4, see [here](docs/suggested_hardware.md) for the parts you need.
@@ -107,8 +108,8 @@ DigiNode has been tested and known to work with the following systems:
 | **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is a known issue with this release of Ubuntu that causes the menus become unresponsive. If you experience this, you may want to try using Raspberry Pi OS instead. |
-| Raspberry Pi 4 4Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Requires swap file. Runs slowly.                                                                            |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is a known issue with this release of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or first cloning DigiNode Tool sto your home folder, and running diginode-setup.sh locally. |
+| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                            |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
 
 ## Support
@@ -126,7 +127,8 @@ These features are for advanced users and should be used with caution:
 **Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. 
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
 - ```diginode-setup --unattended```
-Note: The first time you run DigiNode Setup in Unattended mode, it will create the DigiNode settings file (~/.digibyte/diginode.settings) and exit, giving you the opportunity to customize your install before proceeding. You can skip this step by also including the --skipcustommsg flag.
+Note: The first time you run DigiNode Setup in Unattended mode, it will create the required diginode.settings file and then exit. If you wish to customize your installation further, you can edit this file before proceeding. It is located here: ~/.digibyte/diginode.settings
+If you want to skip this step, and simply use the default settings, include the --skipcustommsg flag:
 - ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended --skipcustommsg```
 

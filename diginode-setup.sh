@@ -89,9 +89,9 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size of the blockchain increases over time
 # It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
-# Last Updated: 2022-07-08
-DGB_DATA_REQUIRED_HR="40Gb"
-DGB_DATA_REQUIRED_KB="40000000"
+# Last Updated: 2022-12-12
+DGB_DATA_REQUIRED_HR="45Gb"
+DGB_DATA_REQUIRED_KB="45000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
