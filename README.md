@@ -33,6 +33,10 @@ This will perform some system checks before displaying the setup menu that will 
 
 Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor (see below) with your existing DigiByte Node, or want to inspect the DigiNode Setup scripts before using them. (They will be installed at ~/diginode-tools)
 
+## Support
+
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+
 ## Donations
 
 Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
@@ -108,13 +112,9 @@ DigiNode has been tested and known to work with the following systems:
 | **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is a known issue with this release of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or first cloning DigiNode Tool sto your home folder, and running diginode-setup.sh locally. |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with this release of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or alternatively first clone the DigiNode Tools repo to your home folder, before running the diginode-setup.sh script locally. |
 | Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                            |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
-
-## Support
-
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
 
 ## License
 
