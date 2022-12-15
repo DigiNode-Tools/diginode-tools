@@ -18,9 +18,11 @@ Disclaimer: This page includes affiliate links. By purchasing your equipment fro
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
-The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. DigiByte Core requires at least 5Gb RAM to run. For this reason, the 8Gb model Pi 4 is highly reccomended. While the 4Gb model will work, it requires a swap file which will work the SSD hard and performance will be very sluggish. Fine for testing, but not recommended for long term use. The 2Gb and 1Gb models are definitely not recommended.
+The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. DigiByte Core requires at least 5Gb RAM to run. For this reason, only the 8Gb model Pi 4 is recommended. The 4Gb model will run, but performance will be very sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use. The 2Gb and 1Gb Pi 4 models are definitely not supported.
 
-As of July 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD. 
+As of December 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). 
+
+**Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD.**
 
 Purchase:
 - [Amazon.com](https://amzn.to/3nIH6Pq)
@@ -87,7 +89,7 @@ Purchase:
 
 Depending on which Argon M.2 case you choose, you need to choose the correct type of M.2 SSD - SATA or NVME. NVME is newer technology and faster, but SATA is more than adequate for a DigiNode, unless you want the extra performance. Note that M.2 NVME and M.2 SATA connectors are different - SATA connectors have two gaps whereas NVME connectors have one. Learn more about the diference between NVME and SATA [here](https://www.pcguide.com/ssd/guide/nvme-vs-m-2-vs-sata/). The links below are for a SATA SSD.
 
-As of July 2022, a DigiNode requires approximately 40GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
+As of December 2022, a DigiNode requires approximately 44GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
 
 Purchase:
 - [Amazon.com](https://amzn.to/3OZoVAK)
@@ -166,7 +168,7 @@ Purchase:
 ## Crucial 2.5" SSD
 ![Crucial 2.5" SSD](/images/crucial_2.5_ssd.jpg)
 
-As of July 2022, DigiNode requires approximately 40GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
+As of December 2022, DigiNode requires approximately 45GB of space. You can choose any size of SSD you want that is larger than this. A 250Gb SSD would be an excellent choice, or 500Gb to be more future proof.
 
 Purchase:
 - [Amazon.com](https://amzn.to/3ORS4hq)
