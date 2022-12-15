@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.6
+#           Name:  DigiNode Setup v0.6.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -1404,6 +1404,9 @@ digibyte_create_conf() {
 # This template is based on the Bitcoin Core Config Generator by Jameson Lopp
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
+# [chain]
+# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = Testnet is disabled and Mainnet is used)
+testnet=0
 
 # [core]
 # Run in the background as a daemon and accept commands.
