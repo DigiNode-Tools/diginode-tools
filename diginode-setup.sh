@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.6.7
+#           Name:  DigiNode Setup v0.7.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -397,6 +397,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DGB_ENABLE_UPNP=NO
     UI_IPFS_ENABLE_UPNP=NO
     UI_IPFS_SERVER_PROFILE=NO
+    UI_DGB_NETWORK=MAINNET
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
@@ -601,20 +602,23 @@ UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
 # Learn more: https://github.com/ipfs/kubo/blob/master/docs/config.md#profiles 
 UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 
+# Choose which DigiByte Blockchain Network to use. (Set to MAINNET or TESTNET. Default is MAINNET)
+UI_DGB_NETWORK=$UI_DGB_NETWORK
+
 
 #############################################
 ####### SYSTEM VARIABLES ####################
 #############################################
 
 # IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and the Status Monitor.
-# Changing them will likely break your install, as the changes will be overwritten a new version of DigiNode Tools is released.
+# Changing them will likely break your install, as the changes will be overwritten whenever a new version of DigiNode Tools is released.
 
 # DIGIBYTE NODE LOCATION:
 # This references a symbolic link that points at the actual install folder. Please do not change this.
 # If you are using DigiNode Setup to manage your node there is no reason to change this.
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
-# Be aware that DigiNode Setup upgrades will likely not work if you do this. The Status Monitor script will help you create one
+# Be aware that DigiNode Setup upgrades will likely not work if you do this. The Status Monitor script will help you create one.
 #  
 DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
 
@@ -1235,6 +1239,13 @@ digibyte_create_conf() {
         upnp=0
     fi
 
+    # Set the dgb network values, if we are enabling/disabling the UPnP status
+    if [ "$DGB_SET_NETWORK" = "TESTNET" ]; then
+        testnet=1
+    elif [ "$DGB_SET_NETWORK" = "MAINNET" ]; then
+        testnet=0
+    fi
+
     # create .digibyte settings folder if it does not already exist
     if [ ! -d $DGB_SETTINGS_LOCATION ]; then
         str="Creating ~/.digibyte folder..."
@@ -1379,7 +1390,7 @@ digibyte_create_conf() {
             fi
         fi
 
-        #Update upnp status in settings if it exists and is blank, otherwise append it
+        # Update upnp status in settings if it exists and is blank, otherwise append it
         if grep -q "upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "" ]; then
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
@@ -1388,6 +1399,37 @@ digibyte_create_conf() {
         else
             echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
             echo "upnp=$upnp" >> $DGB_CONF_FILE
+        fi
+
+        # Change dgb network from TESTNET to MAINNET
+        if grep -q "testnet=1" $DGB_CONF_FILE; then
+            if [ "$testnet" = "0" ]; then
+                echo "$INDENT   Changing DigiByte Core network from TESTNET to MAINNET"
+                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+                DGB_NETWORK_CHANGED="YES"
+            fi
+        fi
+
+        # Change dgb network from MAINNET to TESTNET
+        if grep -q "testnet=0" $DGB_CONF_FILE; then
+            if [ "$testnet" = "1" ]; then
+                echo "$INDENT   Changing DigiByte Core network from MAINNET to TESTNET"
+                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+                DGB_NETWORK_CHANGED="YES"
+            fi
+        fi
+
+        # Update dgb network in settings if it exists and is blank, otherwise append it
+        if grep -q "testnet=" $DGB_CONF_FILE; then
+            if [ "$testnet" = "" ]; then
+                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+            echo "testnet=$testnet" >> $DGB_CONF_FILE
         fi
 
 
@@ -1405,8 +1447,8 @@ digibyte_create_conf() {
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
 # [chain]
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = Testnet is disabled and Mainnet is used)
-testnet=0
+# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = DigiByte testnet is disabled and mainnet is used)
+testnet=$testnet
 
 # [core]
 # Run in the background as a daemon and accept commands.
@@ -5395,25 +5437,29 @@ menu_existing_install() {
     opt4a="Ports"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
-    opt5a="Extras"
-    opt5b="Install optional extras for your DigiNode."
-    
-    opt6a="Reset"
-    opt6b="Reset all settings and reinstall DigiNode software."
+    opt5a="Network"
+    opt5b="Choose which DigiByte network to use - mainnet or testnet."
 
-    opt7a="Uninstall"
-    opt7b="Remove DigiNode from your system."
+    opt6a="Extras"
+    opt6b="Install optional extras for your DigiNode."
+    
+    opt7a="Reset"
+    opt7b="Reset all settings and reinstall DigiNode software."
+
+    opt8a="Uninstall"
+    opt8b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 7 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 8 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
     "${opt5a}"  "${opt5b}" \
     "${opt6a}"  "${opt6b}" \
-    "${opt7a}"  "${opt7b}" 3>&2 2>&1 1>&3 ) || \
+    "${opt7a}"  "${opt7b}" \
+    "${opt8a}"  "${opt8b}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
@@ -5448,21 +5494,27 @@ menu_existing_install() {
             printf "\\n"
             change_upnp_status
             ;;
-        # USB Stick Restore
+        # Change DigiByte Network - mainet or testnet
         ${opt5a})
+            printf "%b You selected the DIGIBYTE NETWORK option.\\n" "${INFO}"
+            printf "\\n"
+            change_dgb_network
+            ;;
+        # Extras
+        ${opt6a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
             menu_extras
             ;;
         # Reset,
-        ${opt6a})
+        ${opt7a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt7a})
+        ${opt8a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -5614,7 +5666,7 @@ change_upnp_status() {
     # Update digibyte.conf
     digibyte_create_conf
 
-    # Restart DigiByte daemon if upn status has changed
+    # Restart DigiByte daemon if upnp status has changed
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
 
         # Restart Digibyted if the upnp status has just been changed
@@ -5689,6 +5741,84 @@ change_upnp_status() {
     DGB_UPNP_STATUS_UPDATED=""
     IPFS_UPNP_STATUS_UPDATED=""
     jsipfs_upnp_updated=""
+
+    menu_existing_install
+
+}
+
+# Function to change the current DigiByte Network between MAINNET and TESTNET
+change_dgb_network() {
+
+    FORCE_DISPLAY_DGB_NETWORK_MENU=true
+
+    # If DigiAssets Node is installed, we already know this is a full install
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        DO_FULL_INSTALL=YES
+    fi
+
+    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
+    # ==============================================================================
+
+    # Let's check if DigiByte Node is already installed
+    str="Is DigiByte Core already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        DGB_STATUS="installed"
+        printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
+    else
+        DGB_STATUS="not_detected"
+    fi
+
+    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        if [ -f $DGB_CLI ]; then
+            DGB_STATUS="installed"
+            printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_STATUS="not_detected"
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            DGB_VER_LOCAL=""
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        fi
+    fi
+
+    # Next let's check if DigiByte daemon is running
+    if [ "$DGB_STATUS" = "installed" ]; then
+      str="Is DigiByte Core running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted"; then
+          DGB_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          DGB_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    printf "\\n"
+
+    # Prompt to change dgb network
+    menu_ask_dgb_network
+
+    # Update digibyte.conf
+    digibyte_create_conf
+
+    # Restart DigiByte daemon if dgb network has changed
+    if [ "$DGB_NETWORK_CHANGED" = "YES" ]; then
+
+        # Restart Digibyted if the upnp status has just been changed
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core network has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted
+        fi
+
+    fi
+
+    printf "\\n"
+
+
+    FORCE_DISPLAY_DGB_NETWORK_MENU=false
+    DGB_NETWORK_CHANGED=""
 
     menu_existing_install
 
@@ -6338,6 +6468,136 @@ function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4
 
 
 
+# This function will ask the user if they want to install a DigiByte testnode node or just a mainnet node
+menu_ask_dgb_network() {
+
+local show_dgb_network_menu="no"
+
+# FIRST DECIDE WHTHER TO SHOW THE DGB NETWORK MENU
+
+# If digibyte.conf file does not exist yet, show the dgb network menu
+if [ ! -f "$DGB_CONF_FILE" ]; then
+    show_dgb_network_menu="yes"
+fi
+
+# If digibyte.conf file already exists, show the dgb network menu if it does not contain the testnet variable
+if [ -f "$DGB_CONF_FILE" ]; then
+
+        # Update testnet status in settings if it exists and is blank, otherwise append it
+        if grep -q "testnet=1" $DGB_CONF_FILE; then
+            show_dgb_network_menu="maybe"
+            DGB_NETWORK_CURRENT=1
+        elif grep -q "testnet=0" $DGB_CONF_FILE; then
+            show_dgb_network_menu="maybe"
+            DGB_NETWORK_CURRENT=0
+        elif grep -q "testnet=" $DGB_CONF_FILE; then
+            show_dgb_network_menu="yes"
+        else
+            show_dgb_network_menu="yes"
+        fi
+fi
+
+# If this is a new install and the testnet values already exist
+if [ "$show_dgb_network_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+    show_dgb_network_menu="yes"
+fi
+
+# If we are running this from the main menu, always show the menu prompts
+if [ "$show_dgb_network_menu" = "maybe" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = true ]; then
+    show_dgb_network_menu="yes"
+fi
+
+
+
+# SHOW DGB NETWORK MENU
+
+# Don't ask if we are running unattended
+if [ ! "$UNATTENDED_MODE" == true ]; then
+
+    # Display dgb network section break
+    if [ "$show_dgb_network_menu" = "yes" ]; then
+
+            printf " =============== DIGIBYTE NETWORK SELECTION ============================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+    # Set up a string to display the current DigiByte Network status
+    local dgb_network_current_status_1
+    local dgb_network_current_status_2
+    local dgb_network_current_status
+
+    if [ "$DGB_NETWORK_CURRENT" != "" ]; then
+        dgb_network_current_status_1="Note:\\n"
+    fi
+
+    if [ "$DGB_NETWORK_CURRENT" = "1" ]; then
+        dgb_network_current_status_2=" - DigiByte Core is currently running on the TESTNET network.\\n"
+    elif [ "$DGB_NETWORK_CURRENT" = "0" ]; then
+        dgb_network_current_status_2=" - DigiByte Core is currently running on the MAINNET network.\\n"
+    fi
+
+    dgb_network_current_status="$dgb_network_current_status_1$dgb_network_current_status_2\\n"
+
+
+    # SHOW THE DGB NETWORK MENU
+    if [ "$show_dgb_network_menu" = "yes" ]; then
+
+        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run this DigiByte full node on mainnet or testnet?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless. Unless you are a developer, your first priority is always to run a mainnet node. If you want to support the DigiByte network even further, you can also run a testnet node. This will help developers building on the DigiByte blockchain.\\n\\n${dgb_network_current_status}" --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
+            printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
+            DGB_SET_NETWORK="MAINNET"
+        #Nothing to do, continue
+        else
+            printf "%b You chose to setup DigiByte Core on TESTNET.\\n" "${INFO}"
+            DGB_SET_NETWORK="TESTNET"
+        fi
+        printf "\\n"
+
+
+    elif [ "$show_dgb_network_menu" = "no" ]; then
+
+        DGB_SET_NETWORK="SKIP"
+
+    fi
+
+else
+
+
+    # If we are running unattended, and the script wants to prompt the user with the dgb network menu, then get the values from diginode.settings
+
+    # Display digibyte network section break
+    if [ "$show_dgb_network_menu" = "yes" ]; then
+
+        printf " =============== Unattended Mode: Set DigiByte Core Network ============\\n\\n"
+        # ==============================================================================
+
+
+        if [ "$UI_DGB_NETWORK" = "MAINNET" ]; then
+
+            printf "%b Unattended Mode: DigiByte Core will run MAINNET\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+            DGB_SET_NETWORK="MAINNET"
+
+        elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
+
+            printf "%b Unattended Mode: DigiByte Core will run TESTNET" "${INFO}"
+            printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+            DGB_SET_NETWORK="TESTNET"
+
+        else
+
+            printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It is already configured.\\n" "${INFO}"
+            DGB_SET_NETWORK="SKIP"
+
+        fi
+
+        printf "\\n"
+    
+    fi
+
+fi
+
+}
 
 
 
@@ -12037,6 +12297,9 @@ install_or_upgrade() {
         menu_ask_install_digiasset_node
 
     fi
+
+    # Ask if you user wants to setup a testnet DigiByte Node
+    menu_ask_testnet
 
     # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
     menu_ask_upnp

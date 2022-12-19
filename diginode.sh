@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.7
+#           Name:  DigiNode Status Monitor v0.7.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.7
-# Last Updated: 2022-12-15
+DGNT_VER_LOCAL=0.7.0
+# Last Updated: 2022-12-18
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -224,8 +224,7 @@ digimon_title_box() {
 # Show a disclaimer text during testing phase
 digimon_disclaimer() {
     printf "%b %bWARNING: This script is currently in public beta.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Please join the Telegram support group to report any bugs and share feeback:\\n" "${INDENT}"
-    printf "%b not even run. Please use for testing only until further notice.\\n" "${INDENT}"
+    printf "%b Please join the Telegram support group to report any bugs and share feedback.\\n" "${INDENT}"
     printf "\\n"
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
     printf "\\n\\n"
@@ -2809,13 +2808,11 @@ startup_checks() {
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
-  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it is compatible.
   set_sys_variables                # Set various system variables once we know we are on linux
-# load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
-# install_diginode_tools           # install or upgrade the DigiNode tools scripts
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
   digiasset_check_official         # check if this is an official install of DigiAsset Node
