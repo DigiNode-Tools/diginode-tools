@@ -557,7 +557,8 @@ UI_ENFORCE_DIGIBYTE_USER=$UI_ENFORCE_DIGIBYTE_USER
 
 # Choose whether to change the system hostname to: diginode (Set to YES/NO)
 # If you are running a dedicated device (e.g. Raspberry Pi) as your DigiNode then you probably want to do this.
-# If it is running on a Linux box with a load of other stuff, then probably not.
+# If it is running on a Linux box with a load of other stuff, then maybe not.
+# If you are running a DigiByte testnet, then the hostname will be set to diginode-testnet instead
 UI_HOSTNAME_SET=$UI_HOSTNAME_SET
 
 # Choose whether to setup the local ufw firewall (Set to YES/NO) [NOT WORKING YET]
@@ -1494,7 +1495,7 @@ listen=1
 # Use UPnP to map the listening port.
 upnp=$upnp
 
-# Listen for incoming connections on non-default port. Default is 12024.
+# Listen for incoming connections on non-default port. Mainnet default is 12024. Testnet default is 12026.
 # port=12024
 
 
@@ -2482,11 +2483,44 @@ hostname_check() {
     printf " =============== Checking: Hostname ====================================\\n\\n"
     # ==============================================================================
 
-if [[ "$HOSTNAME" == "diginode" ]]; then
-    printf "%b Hostname Check: %bPASSED%b   Hostname is set to 'diginode'\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]]; then
+
+    printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
     HOSTNAME_DO_CHANGE="NO"
+
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]]; then
+
+    printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    INSTALL_AVAHI="YES"
+    HOSTNAME_DO_CHANGE="NO"
+
+elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
+ 
+    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to running a DigiByte testnet node\\n"  "${INDENT}"
+    printf "%b it is advisable to change the hostname to 'diginode-testnet' . This is optional but recommended, since\\n"  "${INDENT}"
+    printf "%b it will ensure the current hostname does not conflict with another DigiByte mainnet node on your network.\\n"  "${INDENT}"
+    printf "%b If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET,\\n"  "${INDENT}"
+    printf "%b it is advisable to give them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+    printf "\\n"
+    HOSTNAME_ASK_CHANGE="YES"
+    printf "\\n"
+
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
+ 
+    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to running a DigiByte mainnet node\\n"  "${INDENT}"
+    printf "%b it is advisable to change the hostname to 'diginode' . This is optional but recommended, since\\n"  "${INDENT}"
+    printf "%b it will ensure the current hostname does not conflict with another DigiByte testnet node on your network.\\n"  "${INDENT}"
+    printf "%b If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET,\\n"  "${INDENT}"
+    printf "%b it is advisable to give them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+    printf "\\n"
+    HOSTNAME_ASK_CHANGE="YES"
+    printf "\\n"
+
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
@@ -2495,6 +2529,19 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
     exit 1
+
+elif [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]] then
+    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INDENT}"
+    printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
+    printf "%b https://diginode-testnet.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
+    printf "%b If you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET\\n"  "${INDENT}"
+    printf "%b and the other on TESTNET, it is advisable to give them different hostnames on your\\n"  "${INDENT}"
+    printf "%b network so they are easier to identify and do not conflict with one another.\\n"  "${INDENT}"
+    printf "\\n"
+    HOSTNAME_ASK_CHANGE="YES"
+    printf "\\n"
+
 else
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
@@ -2512,11 +2559,58 @@ hostname_ask_change() {
 
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
-    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]]; then
+    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will ensure the current hostname does not conflict with another DigiByte mainnet node on your network. If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+
+            HOSTNAME_DO_CHANGE="YES"
+            HOSTNAME_CHANGE_TO="diginode-testnet"
+            INSTALL_AVAHI="YES"
+
+            printf "%b You chose to change your hostname to: diginode-testnet\\n" "${INFO}"
+            printf "\\n"
+        else
+            printf "%b You chose not to change your hostname to: diginode-testnet (it will remain as diginode).\\n" "${INFO}"
+            printf "\\n"
+        fi
+
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
+
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will ensure the current hostname does not conflict with another DigiByte testnet node on your network. If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+
+            HOSTNAME_DO_CHANGE="YES"
+            HOSTNAME_CHANGE_TO="diginode"
+            INSTALL_AVAHI="YES"
+
+            printf "%b You chose to change your hostname to: diginode\\n" "${INFO}"
+            printf "\\n"
+        else
+            printf "%b You chose not to change your hostname to: diginode (it will remain as diginode-testnet).\\n" "${INFO}"
+            printf "\\n"
+        fi
+
+
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
+
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET, and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify and do not conflict with one another.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+
+            HOSTNAME_DO_CHANGE="YES"
+            HOSTNAME_CHANGE_TO="diginode-testnet"
+            INSTALL_AVAHI="YES"
+
+            printf "%b You chose to change your hostname to: diginode-testnet\\n" "${INFO}"
+            printf "\\n"
+        else
+            printf "%b You chose not to change your hostname to: diginode-testnet.\\n" "${INFO}"
+            printf "\\n"
+        fi
+
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]]; then
+
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
+          HOSTNAME_CHANGE_TO="diginode"
           INSTALL_AVAHI="YES"
 
           printf "%b You chose to change your hostname to: digibyte.\\n" "${INFO}"
@@ -2525,6 +2619,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
           printf "%b You chose not to change your hostname to: digibyte.\\n" "${INFO}"
           printf "\\n"
         fi
+
     fi
 fi
 
@@ -2539,20 +2634,27 @@ if [ "$INSTALL_AVAHI" = "YES" ]; then
 fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
-if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]]; then
-    HOSTNAME_DO_CHANGE="YES"
+
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_NETWORK" = "MAINNET" ] && [[ "$HOSTNAME" != "digibyte" ]]; then
+
+        HOSTNAME_DO_CHANGE="YES"
+
+elif [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_NETWORK" = "TESTNET" ] && [[ "$HOSTNAME" != "digibyte-testnet" ]]; then
+
+        HOSTNAME_DO_CHANGE="YES"
+
 fi
+
 
 # Only change the hostname if the user has agreed to do so (either via prompt or via UI setting)
 if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
-    # if the current hostname if not 'diginode' then go ahead and change it
-    if [[ ! "$HOSTNAME" == "diginode" ]]; then
+    # if the current hostname if not the hostname we want to change to then go ahead and change it
+    if [[ ! "$HOSTNAME" == "$HOSTNAME_CHANGE_TO" ]]; then
 
         # Save current and new hostnames to a variable
         CUR_HOSTNAME=$HOSTNAME
-        NEW_HOSTNAME="diginode"
-
+        NEW_HOSTNAME=$HOSTNAME_CHANGE_TO
         str="Changing Hostname from '$CUR_HOSTNAME' to '$NEW_HOSTNAME'..."
         printf "\\n%b %s" "${INFO}" "${str}"
 
@@ -5816,11 +5918,18 @@ change_dgb_network() {
 
     printf "\\n"
 
+    # Check hostname
+    hostname_check
+
+    hostname_ask_change
+
+    hostname_do_change
+
 
     FORCE_DISPLAY_DGB_NETWORK_MENU=false
     DGB_NETWORK_CHANGED=""
 
-    menu_existing_install
+    exit
 
 }
 
@@ -6760,7 +6869,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP (or 12026 for a testnet node)\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -6775,7 +6884,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP (or 12026 for a testnet node)\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
