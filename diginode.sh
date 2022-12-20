@@ -460,6 +460,7 @@ is_dgbnode_installed() {
         fi
     fi
 
+
     # Get listening port from digibyte.conf
 
     if [ -f "$DGB_CONF_FILE" ]; then
@@ -1345,6 +1346,12 @@ pre_loop() {
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
           fi
 
+          # Query if DigiByte Core is running the testnet or mainnet chain
+          DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+          if [ "$DGB_NETWORK_CHAIN" != "" ]; then
+            DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+          fi
+
         fi
       fi
 
@@ -1725,6 +1732,13 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
         else
             DGB_STATUS="running"
+
+            # Query if DigiByte Core is running the testnet or mainnet chain
+            DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+            if [ "$DGB_NETWORK_CHAIN" != "" ]; then
+                DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+            fi
+
         fi
 
     fi
@@ -2193,6 +2207,11 @@ if [ $DGB_CONNECTIONS -le 8 ]; then
 printf "  ║ CONNECTIONS    ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
 else
 printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
+fi
+# Display if we are using the testnet chain
+if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "testnet" " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
