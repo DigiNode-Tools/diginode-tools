@@ -1685,6 +1685,9 @@ if [ "$DGB_STATUS" = "running" ]; then
        sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
     fi
 
+    echo "start-slug" 
+    echo "BLOCKSYNC_VALUE: $BLOCKSYNC_VALUE"
+
     # Calculate blockchain sync percentage
     if [ "$BLOCKSYNC_VALUE" = "0" ]; then
         BLOCKSYNC_PERC="0.00"
@@ -1692,7 +1695,7 @@ if [ "$DGB_STATUS" = "running" ]; then
         BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
     fi
 
-    echo "start-grape"
+    echo "stop"
 
     # Round blockchain sync percentage to two decimal places
     BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
@@ -1702,8 +1705,6 @@ if [ "$DGB_STATUS" = "running" ]; then
       BLOCKSYNC_PERC="100 "
       BLOCKSYNC_PROGRESS="synced"
     fi
-
-    echo "stop"
     
 
   fi
