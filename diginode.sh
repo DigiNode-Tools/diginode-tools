@@ -1686,7 +1686,11 @@ if [ "$DGB_STATUS" = "running" ]; then
     fi
 
     # Calculate blockchain sync percentage
-    BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+    if [ "$BLOCKSYNC_VALUE" = "0" ]; then
+        BLOCKSYNC_PERC="0.00"
+    else
+        BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+    fi
 
     echo "start-grape"
 
@@ -2219,7 +2223,7 @@ fi
 # Display if we are using the testnet chain
 if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "TESTNET [Thanks for supporting DigiByte developers!] " " ║"
+printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "TESTNET [Thanks for supporting DigiByte devs!] " " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
