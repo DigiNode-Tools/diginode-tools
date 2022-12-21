@@ -1892,7 +1892,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
         # Get current listening port
         DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ]; then
+        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
             # Re-source config file
             if [ -f "$DGB_CONF_FILE" ]; then
                 source $DGB_CONF_FILE
