@@ -2530,7 +2530,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 
-elif [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]] then
+elif [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
     printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INDENT}"
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
