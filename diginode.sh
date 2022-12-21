@@ -1672,6 +1672,8 @@ if [ "$DGB_STATUS" = "running" ]; then
     else
         BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
     fi
+
+    echo "start"
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -1696,6 +1698,8 @@ if [ "$DGB_STATUS" = "running" ]; then
       BLOCKSYNC_PERC="100 "
       BLOCKSYNC_PROGRESS="synced"
     fi
+
+    echo "stop"
     
 
   fi
@@ -2215,7 +2219,7 @@ fi
 # Display if we are using the testnet chain
 if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "testnet" " ║"
+printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "TESTNET [Thanks for supporting DigiByte developers!] " " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
