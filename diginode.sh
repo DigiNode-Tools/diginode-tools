@@ -1685,17 +1685,12 @@ if [ "$DGB_STATUS" = "running" ]; then
        sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
     fi
 
-    echo "start-slug" 
-    echo "BLOCKSYNC_VALUE: $BLOCKSYNC_VALUE"
-
     # Calculate blockchain sync percentage
     if [ "$BLOCKSYNC_VALUE" = "" ] || [ "$BLOCKSYNC_VALUE" = "0" ]; then
         BLOCKSYNC_PERC="0.00"
     else
         BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
     fi
-
-    echo "stop"
 
     # Round blockchain sync percentage to two decimal places
     BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
@@ -1896,13 +1891,17 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         fi
 
         # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
         if  [ "$DGB_LISTEN_PORT" = "" ]; then
             # Re-source config file
             if [ -f "$DGB_CONF_FILE" ]; then
                 source $DGB_CONF_FILE
             fi
-            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
+            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12024"
+            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
             else
                 DGB_LISTEN_PORT="$port"   
@@ -2224,14 +2223,18 @@ fi
 # Display if we are using the testnet chain
 if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "TESTNET [Thanks for supporting DigiByte devs!] " " ║"
+printf "  ║ DGB CHAIN      ║  " && printf "%-48s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
 if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE TDGB" " ║"
+else
 printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE DGB" " ║"
+fi
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME    ║  " && printf "%-48s %-4s\n" "$uptime" " ║"
