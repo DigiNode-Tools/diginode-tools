@@ -6652,7 +6652,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB NETWORK MENU
     if [ "$show_dgb_network_menu" = "yes" ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run this DigiByte full node on mainnet or testnet?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless. Unless you are a developer, your first priority is always to run a mainnet node. If you want to support the DigiByte network even further, you can also run a testnet node. This will help developers building on the DigiByte blockchain.\\n\\n${dgb_network_current_status}" --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run this DigiByte full node on mainnet or testnet?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network.\\n\\n${dgb_network_current_status}" --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
             printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
             DGB_SET_NETWORK="MAINNET"
         #Nothing to do, continue

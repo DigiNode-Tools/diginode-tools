@@ -1667,7 +1667,11 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the sync progress value from debug.log. 
-    BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    else
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    fi
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -1735,7 +1739,7 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
             # Query if DigiByte Core is running the testnet or mainnet chain
             DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-            if [ "$DGB_NETWORK_CHAIN" != "" ]; then
+            if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
                 DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
             fi
 
