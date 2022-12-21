@@ -1679,13 +1679,13 @@ if [ "$DGB_STATUS" = "running" ]; then
        BLOCKSYNC_VALUE_QUERY=""
     fi
 
-    echo "start"
-
     # Only update the variable, if a new value is found
     if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
        BLOCKSYNC_VALUE=$BLOCKSYNC_VALUE_QUERY
        sed -i -e "/^BLOCKSYNC_VALUE=/s|.*|BLOCKSYNC_VALUE=\"$BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
     fi
+
+    echo "start-spud"
 
     # Calculate blockchain sync percentage
     BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
