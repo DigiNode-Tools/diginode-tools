@@ -1672,14 +1672,14 @@ if [ "$DGB_STATUS" = "running" ]; then
     else
         BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
     fi
-
-    echo "start"
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
     if ! [[ $BLOCKSYNC_VALUE_QUERY =~ $re ]] ; then
        BLOCKSYNC_VALUE_QUERY=""
     fi
+
+    echo "start"
 
     # Only update the variable, if a new value is found
     if [ "$BLOCKSYNC_VALUE_QUERY" != "" ]; then
