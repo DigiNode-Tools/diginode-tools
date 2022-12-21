@@ -5540,7 +5540,7 @@ menu_existing_install() {
     opt4b="Enable or disable UPnP to automatically forward ports."
 
     opt5a="Network"
-    opt5b="Choose which DigiByte network to use - mainnet or testnet."
+    opt5b="Change DigiByte network - mainnet or testnet."
 
     opt6a="Extras"
     opt6b="Install optional extras for your DigiNode."
