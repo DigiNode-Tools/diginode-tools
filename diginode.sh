@@ -1689,7 +1689,7 @@ if [ "$DGB_STATUS" = "running" ]; then
     echo "BLOCKSYNC_VALUE: $BLOCKSYNC_VALUE"
 
     # Calculate blockchain sync percentage
-    if [ "$BLOCKSYNC_VALUE" = "0" ]; then
+    if [ "$BLOCKSYNC_VALUE" = "" ] || [ "$BLOCKSYNC_VALUE" = "0" ]; then
         BLOCKSYNC_PERC="0.00"
     else
         BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
