@@ -12408,7 +12408,7 @@ install_or_upgrade() {
     fi
 
     # Ask if you user wants to setup a testnet DigiByte Node
-    menu_ask_testnet
+    menu_ask_dgb_network
 
     # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
     menu_ask_upnp
