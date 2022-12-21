@@ -461,12 +461,21 @@ is_dgbnode_installed() {
     fi
 
 
-    # Get listening port from digibyte.conf
+    # Get current listening port
 
     if [ -f "$DGB_CONF_FILE" ]; then
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ]; then
-            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
+        # Get current listening port
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
+            # Re-source config file
+            if [ -f "$DGB_CONF_FILE" ]; then
+                source $DGB_CONF_FILE
+            fi
+            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12024"
+            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
             else
                 DGB_LISTEN_PORT="$port"   
@@ -1901,7 +1910,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
                 DGB_LISTEN_PORT="12026"
             elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
-            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
+            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
             else
                 DGB_LISTEN_PORT="$port"   
@@ -2223,7 +2232,7 @@ fi
 # Display if we are using the testnet chain
 if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-49s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
+printf "  ║ DGB CHAIN      ║  " && printf "%-50s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
