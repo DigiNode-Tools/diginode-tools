@@ -12104,8 +12104,11 @@ main() {
 
         # if it's running unattended,
         if [[ "${UNATTENDED_MODE}" == true ]]; then
-            printf "%b Unattended Upgrade: Performing automatic upgrade - no whiptail dialogs will be displayed\\n" "${INFO}"
+
+            printf "%b %bUnattended Upgrade: Performing automatic upgrade%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b ${txtbld}No menus will be displayed${txtrst}\\n" "${INDENT}"
             printf "\\n"
+
             # Perform unattended upgrade
             UnattendedUpgrade=true
             # also disable debconf-apt-progress dialogs
@@ -12117,8 +12120,11 @@ main() {
     else
         NewInstall=true
         if [[ "${UNATTENDED_MODE}" == true ]]; then
-            printf "%b Unattended Install: Using diginode.settings file - no whiptail dialogs will be displayed\\n" "${INFO}"
+
+            printf "%b %bUnattended Install: Using options from diginode.settings%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b ${txtbld}No menus will be displayed${txtrst}\\n" "${INDENT}"
             printf "\\n"
+
             # Perform unattended upgrade
             UnattendedInstall=true
             # also disable debconf-apt-progress dialogs
