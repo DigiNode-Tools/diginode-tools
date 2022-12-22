@@ -1222,6 +1222,14 @@ digibyte_create_conf() {
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+        # Set the default rpcport
+        local set_rpcport
+        if [ "$DGB_SET_NETWORK" = "TESTNET" ]; then
+            set_rpcport=14023
+        elif [ "$DGB_SET_NETWORK" = "MAINNET" ]; then
+            set_rpcport=14022
+        fi
+
     # If the digibyte.conf file already exists
     elif [ -f "$DGB_CONF_FILE" ]; then
 
@@ -1240,7 +1248,7 @@ digibyte_create_conf() {
         upnp=0
     fi
 
-    # Set the dgb network values, if we are enabling/disabling the UPnP status
+    # Set the dgb network values, if we are changing between testnet and mainnet
     if [ "$DGB_SET_NETWORK" = "TESTNET" ]; then
         testnet=1
     elif [ "$DGB_SET_NETWORK" = "MAINNET" ]; then
@@ -1337,7 +1345,8 @@ digibyte_create_conf() {
             echo "server=1" >> $DGB_CONF_FILE
         fi
 
-        #Update rpcport variable in settings if it exists and is blank, otherwise append it
+        #Update rpcport variable in settings if it exists and is blank, otherwise append it. 
+        #The default rpcport varies depending on if we are running mainnet or testnet.
         if grep -q "rpcport=" $DGB_CONF_FILE; then
             if grep -q "testnet=1" $DGB_CONF_FILE; then
                 if [ "$rpcport" = "" ]; then
@@ -1455,6 +1464,12 @@ digibyte_create_conf() {
             echo "testnet=$testnet" >> $DGB_CONF_FILE
         fi
 
+        # Re-import variables from digibyte.conf in case they have changed
+        str="Reimporting digibyte.conf values, as they may have changed..."
+        printf "%b %s" "${INFO}" "${str}"
+        source $DGB_CONF_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
 
     else
 
@@ -1537,7 +1552,7 @@ server=1
 rpcbind=127.0.0.1
 
 # Listen for JSON-RPC connections on this port
-rpcport=14022
+rpcport=$set_rpcport
 
 # Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
 # a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
@@ -5947,6 +5962,15 @@ change_dgb_network() {
     hostname_ask_change
 
     hostname_do_change
+
+    # Display alert box informing the user that listening port and rpcport have changed.
+    if [ "$DGB_NETWORK_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
+        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 10 "${c}"
+    elif [ "$DGB_NETWORK_CHANGED" = "YES" ]; then
+        if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
+            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 10 "${c}"
+        fi    
+    fi
 
 
     FORCE_DISPLAY_DGB_NETWORK_MENU=false
