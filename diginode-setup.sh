@@ -2713,7 +2713,7 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
         # Change hostname using hostnamectl
         if is_command hostnamectl ; then
-            sudo hostnamectl set-hostname diginode 2>/dev/null
+            sudo hostnamectl set-hostname $NEW_HOSTNAME 2>/dev/null
             printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "\\n%b %bUnable to change hostname using hostnamectl (command not present). Trying manual method...%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
