@@ -5958,6 +5958,15 @@ change_dgb_network() {
 
     printf "\\n"
 
+    # Get the default listening port number, if it is not manually set in digibyte.conf
+    if [ "$port" = "" ]; then
+        if [ "$testnet" = "1" ]; then
+            port="12026"
+        else
+            port="12024"
+        fi
+    fi 
+
     # Display alert box informing the user that listening port and rpcport have changed.
     if [ "$DGB_NETWORK_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
         whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
