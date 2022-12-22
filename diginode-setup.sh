@@ -2531,14 +2531,14 @@ hostname_check() {
     printf " =============== Checking: Hostname ====================================\\n\\n"
     # ==============================================================================
 
-if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]]; then
+if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]] && [ "$DGB_SET_NETWORK" = "MAINNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
     HOSTNAME_DO_CHANGE="NO"
 
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YES" ]] && [ "$DGB_SET_NETWORK" = "TESTNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -6789,7 +6789,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on TESTNET. Returning to menu...\\n" "${INFO}"
-            DGB_SET_NETWORK="SKIP"
+            DGB_SET_NETWORK="TESTNET"
             menu_existing_install 
         fi
         printf "\\n"
@@ -6803,14 +6803,18 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on MAINNET. Returning to menu...\\n" "${INFO}"
-            DGB_SET_NETWORK="SKIP"
+            DGB_SET_NETWORK="MAINNET"
             menu_existing_install 
         fi
         printf "\\n"
 
     elif [ "$show_dgb_network_menu" = "no" ]; then
 
-        DGB_SET_NETWORK="SKIP"
+        if [ "$DGB_NETWORK_CURRENT" = "mainnet" ]; then
+            DGB_SET_NETWORK="MAINNET"
+        elif [ "$DGB_NETWORK_CURRENT" = "testnet" ]; then
+            DGB_SET_NETWORK="TESTNET"
+        fi
 
     fi
 
@@ -6841,7 +6845,12 @@ else
         else
 
             printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It is already configured.\\n" "${INFO}"
-            DGB_SET_NETWORK="SKIP"
+
+            if [ "$DGB_NETWORK_CURRENT" = "mainnet" ]; then
+                DGB_SET_NETWORK="MAINNET"
+            elif [ "$DGB_NETWORK_CURRENT" = "testnet" ]; then
+                DGB_SET_NETWORK="TESTNET"
+            fi
 
         fi
 
