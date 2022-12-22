@@ -2611,7 +2611,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since now that you are running a DigiByte testnet node, it will ensure the hostname continues to match the DigiByte network that the device is running. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname continues to reflect the DigiByte network that the device is running, now that you have switched to testnet. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2626,7 +2626,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since now that you are running a DigiByte mainnet node, it will ensure the hostname continues to match the DigiByte network that the device is running. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname continues to reflect the DigiByte network that the device is running, now that you have switched to mainnet. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -2640,9 +2640,9 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         fi
 
 
-    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET, and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify and do not conflict with one another.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET, and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify and do not conflict with one another.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2655,9 +2655,9 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "\\n"
         fi
 
-    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]]; then
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode"
