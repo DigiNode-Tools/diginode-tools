@@ -1390,7 +1390,6 @@ digibyte_create_conf() {
             echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
             echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
         fi
-        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
         # Change upnp status from enabled to disabled
         if grep -q "upnp=1" $DGB_CONF_FILE; then
@@ -1469,6 +1468,8 @@ digibyte_create_conf() {
         printf "%b %s" "${INFO}" "${str}"
         source $DGB_CONF_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
 
     else
@@ -2537,11 +2538,12 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YE
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched\\n"  "${INDENT}"
-    printf "%b to running a DigiByte testnet node it is advisable to change the hostname to 'diginode-testnet'.\\n"  "${INDENT}"
-    printf "%b This is optional but recommended, since it will ensure the current hostname does not conflict\\n"  "${INDENT}"
-    printf "%b with another DigiByte mainnet node on your network. If you are planning to run two DigiNodes\\n"  "${INDENT}"
-    printf "%b on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
+    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
+    printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
+    printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
+    printf "%b the current hostname does not conflict with another DigiByte mainnet node on\\n"  "${INDENT}"
+    printf "%b your network. If you are planning to run two DigiNodes on your network,\\n"  "${INDENT}"
+    printf "%b one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
     printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
@@ -2599,7 +2601,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since it will ensure the hostname matches the DigiByte network the device is running now that you are running a DigiByte testnet node. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since now that you are running a DigiByte testnet node, it will ensure the hostname continues to match the DigiByte network that the device is running. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2614,7 +2616,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since it will ensure the hostname continues to match the DigiByte network the device is running now that you are running a DigiByte mainnet node. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since now that you are running a DigiByte mainnet node, it will ensure the hostname continues to match the DigiByte network that the device is running. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -5958,13 +5960,13 @@ change_dgb_network() {
 
     # Display alert box informing the user that listening port and rpcport have changed.
     if [ "$DGB_NETWORK_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 10 "${c}"
+        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
 
             # Prompt to delete the mainnet blockchain data if it already exists
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                     if [ -d "$DGB_DATA_LOCATION" ]; then
                         str="Deleting DigiByte Core mainnet blockchain data..."
@@ -5984,13 +5986,13 @@ change_dgb_network() {
 
     elif [ "$DGB_NETWORK_CHANGED" = "YES" ]; then
         if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
-            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 10 "${c}"
+            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
             # Prompt to delete the testnet blockchain data if it already exists
             if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                         str="Deleting DigiByte Core mainnet blockchain data..."
@@ -6469,19 +6471,34 @@ backup_reminder() {
 
 final_messages() {  
 
+    # Deduce what they new hostname will be after reboot
+    if [ "$NEW_HOSTNAME" = "diginode" ]; then
+        HOSTNAME_AFTER_REBOOT="diginode"
+    elif [ "$NEW_HOSTNAME" = "diginode-testnet" ]; then
+        HOSTNAME_AFTER_REBOOT="diginode-testnet"
+    elif [ "$HOSTNAME" = "diginode" ]; then
+        HOSTNAME_AFTER_REBOOT="diginode"
+    elif [ "$HOSTNAME" = "diginode-testnet" ]; then
+        HOSTNAME_AFTER_REBOOT="diginode-testnet"
+    fi
+
+
     if [ "$DO_FULL_INSTALL" = "YES" ]; then 
         printf "\\n"
         printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+
+        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
+            printf "%b You can access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst}\\n" "${INDENT}"
         else
             printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
-        if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
-            printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-            printf "\\n" 
+        if [ "$HOSTNAME_AFTER_REBOOT" != "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" != "diginode-testnet" ]; then
+            if [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
+                printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+                printf "\\n" 
+            fi
         fi   
     fi
 
@@ -6535,8 +6552,8 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -6546,8 +6563,8 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -6557,8 +6574,8 @@ final_messages() {
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        if [ "$HOSTNAME" = "diginode" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@diginode.local${txtrst}\\n" "${INDENT}"
+        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
+            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
