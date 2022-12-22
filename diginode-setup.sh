@@ -1339,13 +1339,25 @@ digibyte_create_conf() {
 
         #Update rpcport variable in settings if it exists and is blank, otherwise append it
         if grep -q "rpcport=" $DGB_CONF_FILE; then
-            if [ "$rpcport" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+            if grep -q "testnet=1" $DGB_CONF_FILE; then
+                if [ "$rpcport" = "" ]; then
+                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
+                fi
+            else
+                if [ "$rpcport" = "" ]; then
+                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+                fi
             fi
         else
-            echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-            echo "rpcport=14022" >> $DGB_CONF_FILE
+            if grep -q "testnet=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+                echo "rpcport=14023" >> $DGB_CONF_FILE
+            else
+                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+                echo "rpcport=14022" >> $DGB_CONF_FILE
+            fi
         fi
 
         #Update rpcbind variable in settings if it exists and is blank, otherwise append it
@@ -1409,6 +1421,11 @@ digibyte_create_conf() {
                 echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
                 sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
                 DGB_NETWORK_CHANGED="YES"
+                # Change rpcport to mainnet default, if it is using testnet default
+                if grep -q "rpcport=14023" $DGB_CONF_FILE; then
+                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+                fi
             fi
         fi
 
@@ -1419,6 +1436,11 @@ digibyte_create_conf() {
                 echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
                 sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
                 DGB_NETWORK_CHANGED="YES"
+                # Change rpcport to testnet default, if it is using mainnet default
+                if grep -q "rpcport=14022" $DGB_CONF_FILE; then
+                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
+                fi
             fi
         fi
 
@@ -2500,11 +2522,12 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YE
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to running a DigiByte testnet node\\n"  "${INDENT}"
-    printf "%b it is advisable to change the hostname to 'diginode-testnet' . This is optional but recommended, since\\n"  "${INDENT}"
-    printf "%b it will ensure the current hostname does not conflict with another DigiByte mainnet node on your network.\\n"  "${INDENT}"
-    printf "%b If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET,\\n"  "${INDENT}"
-    printf "%b it is advisable to give them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched\\n"  "${INDENT}"
+    printf "%b to running a DigiByte testnet node it is advisable to change the hostname to 'diginode-testnet'.\\n"  "${INDENT}"
+    printf "%b This is optional but recommended, since it will ensure the current hostname does not conflict\\n"  "${INDENT}"
+    printf "%b with another DigiByte mainnet node on your network. If you are planning to run two DigiNodes\\n"  "${INDENT}"
+    printf "%b on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
+    printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
@@ -2561,7 +2584,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will ensure the current hostname does not conflict with another DigiByte mainnet node on your network. If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since it will ensure the hostname matches the DigiByte network the device is running now that you are running a DigiByte testnet node. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2576,7 +2599,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will ensure the current hostname does not conflict with another DigiByte testnet node on your network. If you are planning to run two DigiNodes on your network, one on DigiByte MAINNET and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nWould you like to change your hostname to 'diginode'?\\n\\nYour hostname is currently '$HOSTNAME'. If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended, since it will ensure the hostname continues to match the DigiByte network the device is running now that you are running a DigiByte mainnet node. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -5928,6 +5951,8 @@ change_dgb_network() {
 
     FORCE_DISPLAY_DGB_NETWORK_MENU=false
     DGB_NETWORK_CHANGED=""
+
+    final_messages
 
     exit
 
