@@ -1434,6 +1434,11 @@ digibyte_create_conf() {
                     echo "$INDENT   Updating digibyte.conf: rpcport=14022"
                     sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
                 fi
+                # Change listening port to mainnet default, if it is using testnet default
+                if grep -q "port=12026" $DGB_CONF_FILE; then
+                    echo "$INDENT   Updating digibyte.conf: port=12024"
+                    sed -i -e "/^port=/s|.*|port=12024|" $DGB_CONF_FILE
+                fi
             fi
         fi
 
@@ -1448,6 +1453,11 @@ digibyte_create_conf() {
                 if grep -q "rpcport=14022" $DGB_CONF_FILE; then
                     echo "$INDENT   Updating digibyte.conf: rpcport=14023"
                     sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
+                fi
+                # Change listening port to testnet default, if it is using mainnet default
+                if grep -q "port=12024" $DGB_CONF_FILE; then
+                    echo "$INDENT   Updating digibyte.conf: port=12026"
+                    sed -i -e "/^port=/s|.*|port=12026|" $DGB_CONF_FILE
                 fi
             fi
         fi
@@ -2537,7 +2547,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" != "YE
 
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "TESTNET" ]]; then
  
-    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
     printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
     printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
@@ -2551,7 +2561,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && 
 
 elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_CHANGED" = "YES" ]] && [[ "$DGB_SET_NETWORK" = "MAINNET" ]]; then
  
-    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to running a DigiByte mainnet node\\n"  "${INDENT}"
     printf "%b it is advisable to change the hostname to 'diginode' . This is optional but recommended, since\\n"  "${INDENT}"
     printf "%b it will ensure the current hostname does not conflict with another DigiByte testnet node on your network.\\n"  "${INDENT}"
@@ -2570,8 +2580,8 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 
-elif [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
-    printf "%b Hostname Check: %bFAILED%b   Reccomend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$testnet" = 1 ]]; then
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INDENT}"
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
     printf "%b https://diginode-testnet.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
@@ -2582,7 +2592,7 @@ elif [[ "$HOSTNAME" != "diginode" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] 
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
-else
+elif [[ "$HOSTNAME" != "diginode" ]]; then
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
     printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
