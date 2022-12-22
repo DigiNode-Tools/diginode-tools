@@ -5964,9 +5964,8 @@ change_dgb_network() {
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
 
-                    # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
                         str="Deleting DigiByte Core mainnet blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
@@ -5991,10 +5990,9 @@ change_dgb_network() {
             if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
 
-                    # Delete systemd service file
-                    if [ -d "$DGB_DATA_LOCATION" ]; then
+                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                         str="Deleting DigiByte Core mainnet blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
                         rm -rf $DGB_DATA_LOCATION/testnet4/indexes
@@ -10689,7 +10687,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your wallet will be unaffected." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte MAINNET blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
@@ -10703,7 +10701,31 @@ uninstall_do_now() {
                     printf "\\n"
 
                 else
-                    printf "%b You chose not to delete the existing DigiByte blockchain data.\\n" "${INFO}"
+                    printf "%b You chose not to keep the existing DigiByte MAINNET blockchain data.\\n" "${INFO}"
+                    printf "\\n"
+                fi
+
+            fi
+
+            # Only prompt to delete the testnet blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte TESTNET blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                        str="Deleting DigiByte Core TESTNET blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
+                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
+                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+                    printf "\\n"
+
+                else
+                    printf "%b You chose to keep the existing DigiByte TESTNET blockchain data.\\n" "${INFO}"
                     printf "\\n"
                 fi
 
