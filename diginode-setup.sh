@@ -5956,21 +5956,68 @@ change_dgb_network() {
 
     printf "\\n"
 
+    # Display alert box informing the user that listening port and rpcport have changed.
+    if [ "$DGB_NETWORK_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
+        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 10 "${c}"
+
+            # Prompt to delete the mainnet blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION" ]; then
+                        str="Deleting DigiByte Core mainnet blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/indexes
+                        rm -rf $DGB_DATA_LOCATION/chainstate
+                        rm -rf $DGB_DATA_LOCATION/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+                    printf "\\n"
+
+                else
+                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                    printf "\\n"
+                fi
+            fi
+
+    elif [ "$DGB_NETWORK_CHANGED" = "YES" ]; then
+        if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
+            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 10 "${c}"
+
+            # Prompt to delete the testnet blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION" ]; then
+                        str="Deleting DigiByte Core mainnet blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
+                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
+                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+                    printf "\\n"
+
+                else
+                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                    printf "\\n"
+                fi
+            fi
+        fi    
+    fi
+
     # Check hostname
     hostname_check
 
     hostname_ask_change
 
     hostname_do_change
-
-    # Display alert box informing the user that listening port and rpcport have changed.
-    if [ "$DGB_NETWORK_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 10 "${c}"
-    elif [ "$DGB_NETWORK_CHANGED" = "YES" ]; then
-        if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
-            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 10 "${c}"
-        fi    
-    fi
 
 
     FORCE_DISPLAY_DGB_NETWORK_MENU=false
