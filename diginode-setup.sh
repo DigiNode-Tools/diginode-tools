@@ -6073,7 +6073,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Setup is FREE and OPEN SOURCE" "If you find it useful, donations in DGB are much appreciated:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "Please donate to support future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -6416,14 +6416,15 @@ closing_banner_message() {
 
 donation_qrcode() {  
 
-    printf " ============== ${txtgrn}Please Donate to support DigiNode Tools${txtrst} ================\\n\\n"
+    printf " ============== ${txtgrn}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
     echo "    I have built DigiNode Tools because I want to make it easy for everyone"
     echo "    in the DigiByte community to operate their own full node. Thousands of"
-    echo "    unpaid hours have already gone into their development. If you find them"
-    echo "    useful, please make a donation to support future development."
+    echo "    unpaid hours have already gone into its development. If you find DigiNode"
+    echo "    Tools useful, please make a donation to support future development."
     echo "    Thank you for your support, Olly @saltedlolly"
+    echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
     echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
@@ -6854,7 +6855,7 @@ fi
 
 
 
-# This function will ask the user if they want to install the system upgrades that have been found
+# This function will ask the user if they want to enable or disbale upnp for digibyte core and/or ipfs
 menu_ask_upnp() {
 
 local show_dgb_upnp_menu="no"
