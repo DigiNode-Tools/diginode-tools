@@ -6816,7 +6816,7 @@ else
 
         else
 
-            printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It is already configured.\\n" "${INFO}"
+            printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
 
             if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
                 DGB_NETWORK_FINAL="MAINNET"
@@ -6827,6 +6827,18 @@ else
         fi
 
         printf "\\n"
+
+    else
+
+        # If we are not changing the DigiByte network, then set the final as current
+
+        printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
+
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_FINAL="MAINNET"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_NETWORK_FINAL="TESTNET"
+        fi
     
     fi
 
