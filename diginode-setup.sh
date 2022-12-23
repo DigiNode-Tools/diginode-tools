@@ -7248,7 +7248,7 @@ digibyte_check() {
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the testnet or mainnet chain
-        DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+        DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
         echo "DGB_NETWORK_CHAIN_QUERY: >>$DGB_NETWORK_CHAIN_QUERY<<"
         if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
             DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
