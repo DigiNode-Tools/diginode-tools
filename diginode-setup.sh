@@ -7244,17 +7244,14 @@ digibyte_check() {
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
 
         # Find out which DGB network is running - mainnet or testnet
-        str="Which DigiByte chain is running (mainnet or testnet)?..."
+        str="Checking which DigiByte chain is running (mainnet or testnet?)..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the testnet or mainnet chain
         DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-        echo "DGB_NETWORK_CHAIN_QUERY: >>$DGB_NETWORK_CHAIN_QUERY<<"
         if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
             DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
         fi
-
-        echo "DGB_NETWORK_CHAIN: >>$DGB_NETWORK_CHAIN<<"
 
         if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
             DGB_NETWORK_CURRENT="TESTNET"
