@@ -2532,6 +2532,17 @@ hostname_check() {
     printf " =============== Checking: Hostname ====================================\\n\\n"
     # ==============================================================================
 
+echoho ""
+echo "TROUBLESHOOTING HOSTNAME CHANGE"
+echo "HOSTNAME: $HOSTNAME"
+echo "DGB_NETWORK_IS_CHANGED: $DGB_NETWORK_IS_CHANGED"
+echo "DGB_NETWORK_CURRENT: $HOSTNAME"
+echo "DGB_NETWORK_FINAL: $DGB_NETWORK_FINAL"
+echo "INSTALL_AVAHI: $INSTALL_AVAHI"
+echo "HOSTNAME_DO_CHANGE: $HOSTNAME_DO_CHANGE"
+echo ""
+
+
 if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -5953,7 +5964,7 @@ change_dgb_network() {
                 if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                     if [ -d "$DGB_DATA_LOCATION" ]; then
-                        str="Deleting DigiByte Core mainnet blockchain data..."
+                        str="Deleting DigiByte Core MAINNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
                         rm -rf $DGB_DATA_LOCATION/indexes
                         rm -rf $DGB_DATA_LOCATION/chainstate
@@ -5979,7 +5990,7 @@ change_dgb_network() {
                 if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
-                        str="Deleting DigiByte Core mainnet blockchain data..."
+                        str="Deleting DigiByte Core TESTNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
                         rm -rf $DGB_DATA_LOCATION/testnet4/indexes
                         rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
