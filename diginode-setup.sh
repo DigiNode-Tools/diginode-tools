@@ -2532,16 +2532,6 @@ hostname_check() {
     printf " =============== Checking: Hostname ====================================\\n\\n"
     # ==============================================================================
 
-echo ""
-echo "TROUBLESHOOTING HOSTNAME CHANGE"
-echo "HOSTNAME: $HOSTNAME"
-echo "DGB_NETWORK_IS_CHANGED: $DGB_NETWORK_IS_CHANGED"
-echo "DGB_NETWORK_CURRENT: $DGB_NETWORK_CURRENT"
-echo "DGB_NETWORK_FINAL: $DGB_NETWORK_FINAL"
-echo "INSTALL_AVAHI: $INSTALL_AVAHI"
-echo "HOSTNAME_DO_CHANGE: $HOSTNAME_DO_CHANGE"
-echo ""
-
 
 if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
 
@@ -2559,7 +2549,9 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != 
 
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
-    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b %bYou DigiByte Node has successfully been changed from MAINNET to TESTNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
     printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
     printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
     printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
@@ -2573,7 +2565,9 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
 
 elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
  
-    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b %bYou DigiByte Node has successfully been changed from TESTNET to MAINNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
     printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
     printf "%b running a DigiByte mainnet node, it is advisable to change the hostname\\n"  "${INDENT}"
     printf "%b to 'diginode' . This is optional but recommended, since it will ensure\\n"  "${INDENT}"
@@ -2621,11 +2615,21 @@ fi
 # Display a request to change the hostname, if needed
 hostname_ask_change() {
 
+echo ""
+echo "TROUBLESHOOTING HOSTNAME CHANGE"
+echo "HOSTNAME: $HOSTNAME"
+echo "DGB_NETWORK_IS_CHANGED: $DGB_NETWORK_IS_CHANGED"
+echo "DGB_NETWORK_CURRENT: $DGB_NETWORK_CURRENT"
+echo "DGB_NETWORK_FINAL: $DGB_NETWORK_FINAL"
+echo "INSTALL_AVAHI: $INSTALL_AVAHI"
+echo "HOSTNAME_DO_CHANGE: $HOSTNAME_DO_CHANGE"
+echo ""
+
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname continues to reflect the DigiByte network that the device is running, now that you have switched to running a testnet node. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that device is running a DigiByte testnet node. It will also make it easier to identify, should you setup another DigiNode on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2640,7 +2644,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname continues to reflect the DigiByte network that the device is running, now that you have switched to mainnet. It will also make it easier to identify, should you setup other DigiNodes on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the device is no longer running a DigiByte testnet node. It will also make it easier to identify, should you setup another DigiNode on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -2737,6 +2741,10 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
 
     fi
 fi
+
+diginode-testnet-testnet
+
+sudo sed -i "s/diginode-testnet-testnet/diginode-testnet/g" /etc/hosts
 
 }
 
@@ -6014,11 +6022,29 @@ change_dgb_network() {
 
     hostname_do_change
 
+    ### WRAP UP ###
 
-    FORCE_DISPLAY_DGB_NETWORK_MENU=false
-    DGB_NETWORK_IS_CHANGED=""
+    # Display closing message
+    closing_banner_message
 
+    if [[ "${NewInstall}" == false ]]; then
+
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+    fi
+
+    # Display donation QR Code
+    donation_qrcode
+
+    # Show final messages - Display reboot message (and how to run Status Monitor)
     final_messages
+
+    # Share backup reminder
+    backup_reminder
 
     exit
 
@@ -6844,7 +6870,7 @@ else
         fi
   
         printf "\\n"
-    
+
     fi
 
 fi
