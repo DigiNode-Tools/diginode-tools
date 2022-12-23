@@ -6384,7 +6384,7 @@ donation_qrcode() {
     printf " ============== ${txtgrn}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have built DigiNode Tools because I want to make it easy for everyone"
+    echo "    I have built DigiNode Tools with the make it easy for everyone"
     echo "    in the DigiByte community to operate their own full node. Thousands of"
     echo "    unpaid hours have already gone into its development. If you find DigiNode"
     echo "    Tools useful, please make a donation to support future development."
@@ -7244,7 +7244,7 @@ digibyte_check() {
         printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
 
         # Find out which DGB network is running - mainnet or testnet
-        str="Querying digibyte-cli for which network DigiByte Core is running (mainnet or testnet)?..."
+        str="Which DigiByte chain is running (mainnet or testnet)?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the testnet or mainnet chain
@@ -7252,6 +7252,8 @@ digibyte_check() {
         if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
             DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
         fi
+
+        echo "DGB_NETWORK_CHAIN: >>$DGB_NETWORK_CHAIN<<"
 
         if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
             DGB_NETWORK_CURRENT="TESTNET"
