@@ -2532,11 +2532,11 @@ hostname_check() {
     printf " =============== Checking: Hostname ====================================\\n\\n"
     # ==============================================================================
 
-echoho ""
+echo ""
 echo "TROUBLESHOOTING HOSTNAME CHANGE"
 echo "HOSTNAME: $HOSTNAME"
 echo "DGB_NETWORK_IS_CHANGED: $DGB_NETWORK_IS_CHANGED"
-echo "DGB_NETWORK_CURRENT: $HOSTNAME"
+echo "DGB_NETWORK_CURRENT: $DGB_NETWORK_CURRENT"
 echo "DGB_NETWORK_FINAL: $DGB_NETWORK_FINAL"
 echo "INSTALL_AVAHI: $INSTALL_AVAHI"
 echo "HOSTNAME_DO_CHANGE: $HOSTNAME_DO_CHANGE"
