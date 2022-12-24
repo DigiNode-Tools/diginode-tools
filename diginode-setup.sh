@@ -2526,7 +2526,7 @@ checkSelinux() {
     fi
 }
 
-# Function to check if the hostname of the machine is set to 'diginode'
+# Function to check if the hostname of the machine is set to 'diginode' or 'diginode-testnet'
 hostname_check() {
 
     printf " =============== Checking: Hostname ====================================\\n\\n"
@@ -6823,7 +6823,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB NETWORK MENU FOR ANEW INSTALL
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run this DigiByte full node on mainnet or testnet?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
             printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
