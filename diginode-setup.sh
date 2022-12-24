@@ -2533,13 +2533,31 @@ hostname_check() {
     # ==============================================================================
 
 
-if [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+# This is a new mainnet install, and the hostname is already 'diginode'
+if [[ "$HOSTNAME" == "diginode" ]] && [[ "$NewInstall" = true ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     INSTALL_AVAHI="YES"
     HOSTNAME_DO_CHANGE="NO"
 
+# This is a new testnet install, and the hostname is already 'diginode-testnet'
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$NewInstall" = true ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+
+    printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    INSTALL_AVAHI="YES"
+    HOSTNAME_DO_CHANGE="NO"
+
+# This is an existing mainnet install, and the hostname is already 'diginode'
+elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+
+    printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    INSTALL_AVAHI="YES"
+    HOSTNAME_DO_CHANGE="NO"
+
+# This is an existing testnet install, and the hostname is already 'diginode-testnet'
 elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2547,6 +2565,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != 
     INSTALL_AVAHI="YES"
     HOSTNAME_DO_CHANGE="NO"
 
+# An existing mainnet install which has the hostname 'diginode' has been converted to mainnet
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
     printf "%b %bYou DigiByte Node has successfully been changed from MAINNET to TESTNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2563,6 +2582,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
+# An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
 elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
  
     printf "%b %bYou DigiByte Node has successfully been changed from TESTNET to MAINNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2579,6 +2599,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
+# Unable to discover the hostname
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
@@ -2588,6 +2609,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     exit 1
 
+# An existing install which has some random hostname has been converted to testnet
 elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INDENT}"
@@ -2600,6 +2622,7 @@ elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] 
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
+# An existing install which has some random hostname has been converted to mainnet
 elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
@@ -6032,7 +6055,7 @@ change_dgb_network() {
     fi
 
     # Get the default listening port number, if it is not manually set in digibyte.conf
-    if [ "$" = "" ]; then
+    if [ "$port" = "" ]; then
         if [ "$testnet" = "1" ]; then
             port="12026"
         else
@@ -7026,6 +7049,64 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 fi
 
 
+  # Get current digibyte listen port
+
+    if [ -f "$DGB_CONF_FILE" ]; then
+        # Get current listening port
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
+            # Re-source config file
+            if [ -f "$DGB_CONF_FILE" ]; then
+                source $DGB_CONF_FILE
+            fi
+            if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12024"
+            elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12024" ]; then
+                DGB_LISTEN_PORT="12024"
+            else
+                DGB_LISTEN_PORT="$port"   
+            fi
+        fi
+    fi
+
+# Get current ipfs listen port
+
+    # Lookup the current Kubo IPFS ports
+    if test -f "$USER_HOME/.ipfs/config"; then
+        IPFS_PORT_IP4=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
+    fi
+
+    # Lookup the current JS-IPFS ports
+    if test -f "$USER_HOME/.jsipfs/config"; then
+        JSIPFS_PORT_IP4=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
+    fi
+
+    IPFS_LISTEN_PORT=""
+
+    if [ "$IPFS_PORT_IP4" != "" ]; then
+        IPFS_LISTEN_PORT=$IPFS_PORT_IP4
+    fi
+    if [ "$IPFS_LISTEN_PORT" != "" ] && [ "$JSIPFS_PORT_IP4" != "" ]; then
+        IPFS_LISTEN_PORT=$JSIPFS_PORT_IP4
+    fi
+
+    if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$IPFS_LISTEN_PORT" = "" ]; then
+        IPFS_LISTEN_PORT="4004"
+    elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$IPFS_LISTEN_PORT" = "4001" ]; then
+        IPFS_LISTEN_PORT="4004"
+    elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$IPFS_LISTEN_PORT" = "" ]; then
+        IPFS_LISTEN_PORT="4001"
+    elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$IPFS_LISTEN_PORT" = "4004" ]; then
+        IPFS_LISTEN_PORT="4001"
+    else
+        IPFS_LISTEN_PORT="$IPFS_LISTEN_PORT"   
+    fi
+
+
 
 # SHOW UPNP MENU
 
@@ -7070,7 +7151,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    12024 TCP (or 12026 for a testnet node)\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -7085,7 +7166,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    12024 TCP (or 12026 for a testnet node)\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -7102,7 +7183,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
 
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   4001 TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
             DGB_ENABLE_UPNP="SKIP"
             IPFS_ENABLE_UPNP="NO"
