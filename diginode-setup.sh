@@ -5875,7 +5875,7 @@ change_upnp_status() {
     if [ "$IPFS_UPNP_STATUS_UPDATED" = "YES" ]; then
 
         # Restart Kubo IPFS if the upnp status has just been changed
-        if [ "$IPFS_STATUS" = "running" ] || [ "$DGB_STATUS" = "stopped" ]; then
+        if [ "$IPFS_STATUS" = "running" ] || [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Restart IPFS if the upnp status has just been changed
             printf "%b Kubo IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
@@ -8539,6 +8539,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             echo -E "${update_upnp_now}" > $DGA_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+    fi
 
 
     # Set the IPFS port based on whether we are using DigiByte mainnet or testnet. 
