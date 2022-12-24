@@ -8100,6 +8100,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         fi
     fi
 
+    echo "TROUBLESHOOITNG: $USER_HOME/.ipfs/config"
+
     # Lookup the current Kubo IPFS ports
     if [ -f "$USER_HOME/.ipfs/config" ]; then
         printf "%b Retrieving current port numbers for Kubo IPFS...\\n" "${INFO}"
