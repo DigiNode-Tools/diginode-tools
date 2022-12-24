@@ -7049,31 +7049,28 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 fi
 
 
-  # Get current digibyte listen port
-
-    if [ -f "$DGB_CONF_FILE" ]; then
-        # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
-            # Re-source config file
-            if [ -f "$DGB_CONF_FILE" ]; then
-                source $DGB_CONF_FILE
-            fi
-            if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12026"
-            elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
-                DGB_LISTEN_PORT="12026"
-            elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12024"
-            elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12024" ]; then
-                DGB_LISTEN_PORT="12024"
-            else
-                DGB_LISTEN_PORT="$port"   
-            fi
+    # Get current digibyte listen port
+    port=""
+    DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
+        # Re-source config file
+        if [ -f "$DGB_CONF_FILE" ]; then
+            source $DGB_CONF_FILE
+        fi
+        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="12026"
+        elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
+            DGB_LISTEN_PORT="12026"
+        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="12024"
+        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
+            DGB_LISTEN_PORT="12024"
+        else
+            DGB_LISTEN_PORT="$port"   
         fi
     fi
 
-# Get current ipfs listen port
+    # Get current ipfs listen port
 
     # Lookup the current Kubo IPFS ports
     if test -f "$USER_HOME/.ipfs/config"; then
