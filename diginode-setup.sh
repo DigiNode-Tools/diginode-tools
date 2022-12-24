@@ -6041,7 +6041,7 @@ change_dgb_network() {
 
     # Display alert box informing the user that the IPFS port changed.
     if [ "$kuboipfs_port_has_changed" = "yes" ] || [ "$jsipfs_port_has_changed" = "yes" ]; then
-        whiptail --msgbox --title "Your IPFS port has been changed!" "Your IPFS port has been changed to $ipfsport.\\n\\nIf you have not already done so, please open this port on your router.\\n\\nNote: This change is to ensure you can run both a mainnet DigiNode and a testnet DigiNode on the same network without them conflicting with each other." 10 "${c}"
+        whiptail --msgbox --title "Your IPFS port has been changed!" "Your IPFS port has been changed to $ipfsport.\\n\\nIf you have not already done so, please open this port on your router.\\n\\nNote: This change is to ensure you can run both a mainnet DigiNode and a testnet DigiNode on the same network without them conflicting with each other." 15 "${c}"
   
     fi
 
@@ -8697,6 +8697,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP4="4004"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8706,6 +8707,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP6="4004"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8715,6 +8717,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP4_QUIC="4004"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8724,6 +8727,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP6_QUIC="4004"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8735,6 +8739,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP4="4001"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8744,6 +8749,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP6="4001"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8753,6 +8759,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP4_QUIC="4001"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -8762,6 +8769,7 @@ ipfs_update_port() {
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
+            IPFS_PORT_IP6_QUIC="4001"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
