@@ -5940,8 +5940,9 @@ change_dgb_network() {
     # update IPFS ports
     ipfs_update_port
 
-
     if [ "$kuboipfs_port_has_changed" = "yes" ]; then
+
+        ipfsport=$IPFS_PORT_IP4
 
         # Restart Kubo IPFS if the IPFS port has just been changed
         if [ "$IPFS_STATUS" = "running" ] || [ "$IPFS_STATUS" = "stopped" ]; then
@@ -5954,6 +5955,8 @@ change_dgb_network() {
     fi
 
     if [ "$jsipfs_port_has_changed" = "yes" ]; then
+
+        ipfsport=$JSIPFS_PORT_IP4
 
         # Restart IPFS if the upnp status has just been changed
         printf "%b JS-IPFS port has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
@@ -6024,6 +6027,22 @@ change_dgb_network() {
                 fi
             fi
         fi    
+    fi
+
+    # Get the default listening port number, if it is not manually set in digibyte.conf
+    if [ "$" = "" ]; then
+        if [ "$testnet" = "1" ]; then
+            port="12026"
+        else
+            port="12024"
+        fi
+    fi 
+
+
+    # Display alert box informing the user that the IPFS port changed.
+    if [ "$kuboipfs_port_has_changed" = "yes" ] || [ "$jsipfs_port_has_changed" = "yes" ]; then
+        whiptail --msgbox --title "Your IPFS port has been changed!" "Your IPFS port has been changed to $ipfsport.\\n\\nIf you have not already done so, please open this port on your router.\\n\\nNote: This change is to ensure you can run both a mainnet DigiNode and a testnet DigiNode on the same network without them conflicting with each other." 10 "${c}"
+  
     fi
 
     # Check hostname
@@ -8099,8 +8118,6 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
         fi
     fi
-
-    echo "TROUBLESHOOITNG: $USER_HOME/.ipfs/config"
 
     # Lookup the current Kubo IPFS ports
     if test -f "$USER_HOME/.ipfs/config"; then
