@@ -8722,6 +8722,7 @@ ipfs_update_port() {
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
     fi
 
@@ -8805,6 +8806,7 @@ ipfs_update_port() {
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
     fi
 
