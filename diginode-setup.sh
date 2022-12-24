@@ -8103,7 +8103,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     echo "TROUBLESHOOITNG: $USER_HOME/.ipfs/config"
 
     # Lookup the current Kubo IPFS ports
-    if [ -f "$USER_HOME/.ipfs/config" ]; then
+    if test -f "$USER_HOME/.ipfs/config"; then
         printf "%b Retrieving current port numbers for Kubo IPFS...\\n" "${INFO}"
 
         str="Kubo IPFS IP4 Port:"
@@ -8129,7 +8129,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # Lookup the current JS-IPFS ports
-    if [ -f "$USER_HOME/.jsipfs/config" ]; then
+    if test -f "$USER_HOME/.jsipfs/config"; then
         printf "%b Retrieving current port numbers for JS-IPFS...\\n" "${INFO}"
 
         str="JS-IPFS IP4 Port:"
