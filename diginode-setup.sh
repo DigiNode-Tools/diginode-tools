@@ -8126,24 +8126,24 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b Retrieving current port numbers for Kubo IPFS...\\n" "${INFO}"
 
         str="Kubo IPFS IP4 Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP4=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $IPFS_PORT_IP4\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $IPFS_PORT_IP4\\n" "${OVER}" "${INFO}" "${str}"
         
         str="Kubo IPFS IP6 Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP6=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[1] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $IPFS_PORT_IP6\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $IPFS_PORT_IP6\\n" "${OVER}" "${INFO}" "${str}"
 
         str="Kubo IPFS IP4 Quic Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP4_QUIC=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[2] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $IPFS_PORT_IP4_QUIC\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $IPFS_PORT_IP4_QUIC\\n" "${OVER}" "${INFO}" "${str}"
         
         str="Kubo IPFS IP6 Quic Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP6_QUIC=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[3] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $IPFS_PORT_IP6_QUIC\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $IPFS_PORT_IP6_QUIC\\n" "${OVER}" "${INFO}" "${str}"
 
     fi
 
@@ -8152,24 +8152,24 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b Retrieving current port numbers for JS-IPFS...\\n" "${INFO}"
 
         str="JS-IPFS IP4 Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         JSIPFS_PORT_IP4=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $JSIPFS_PORT_IP4\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $JSIPFS_PORT_IP4\\n" "${OVER}" "${INFO}" "${str}"
         
         str="JS-IPFS IP6 Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         JSIPFS_PORT_IP6=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[1] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $JSIPFS_PORT_IP6\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $JSIPFS_PORT_IP6\\n" "${OVER}" "${INFO}" "${str}"
 
         str="JS-IPFS IP4 Quic Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         JSIPFS_PORT_IP4_QUIC=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[2] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $JSIPFS_PORT_IP4_QUIC\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $JSIPFS_PORT_IP4_QUIC\\n" "${OVER}" "${INFO}" "${str}"
         
         str="JS-IPFS IP6 Quic Port:"
-        printf "%b %s" "${INFO}" "${str}"
+        printf "  %b %s" "${INFO}" "${str}"
         JSIPFS_PORT_IP6_QUIC=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[3] | sed 's/"//g' | cut -d'/' -f5)
-        printf "%b%b %s $JSIPFS_PORT_IP6_QUIC\\n" "${OVER}" "${TICK}" "${str}"
+        printf "  %b%b %s $JSIPFS_PORT_IP6_QUIC\\n" "${OVER}" "${INFO}" "${str}"
 
     fi
 
