@@ -2638,6 +2638,15 @@ fi
 # Display a request to change the hostname, if needed
 hostname_ask_change() {
 
+echo ""
+echo "TROUBLESHOOTING HOSTNAME"
+echo "HOSTNAME: $HOSTNAME"
+echo "NewInstall: $NewInstall"
+echo "DGB_NETWORK_IS_CHANGED: $DGB_NETWORK_IS_CHANGED"
+echo "DGB_NETWORK_CURRENT: $DGB_NETWORK_CURRENT"
+echo "DGB_NETWORK_FINAL: $DGB_NETWORK_FINAL"
+echo ""
+
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
