@@ -5934,6 +5934,8 @@ change_dgb_network() {
 
     fi
 
+    printf "\\n"
+
     # Run IPFS cehck to discover the current ports that are being used
     ipfs_check
 
@@ -8685,6 +8687,11 @@ ipfs_update_port() {
 
     # If we are using Kubo IPFS
 
+            printf " =============== Starting: IPFS ========================================\\n\\n"
+        # ==============================================================================
+
+        printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
+
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
         # If using DigiByte testnet, change default Kubo IPFS port to 4004
@@ -8692,85 +8699,87 @@ ipfs_update_port() {
         local update_ipfsport_now
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP4" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing Kubo IPFS IP4 port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            printf "%b Using DigiByte testnet. Updating Kobo IPFS ports...\\n" "${INFO}"
+            str="Changing Kubo IPFS IP4 port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP4="4004"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP6" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing Kubo IPFS IP6 port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP6 port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP6="4004"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP4_QUIC" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing Kubo IPFS IP4 quic port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP4 quic port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP4_QUIC="4004"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP6_QUIC" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing Kubo IPFS IP6 quic port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP6 quic port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP6_QUIC="4004"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If using DigiByte mainnet, change default Kubo IPFS port to 4001
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP4" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing Kubo IPFS IP4 port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            printf "%b Using DigiByte mainnet. Updating Kobo IPFS ports...\\n" "${INFO}"
+            str="Changing Kubo IPFS IP4 port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP4="4001"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP6" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing Kubo IPFS IP6 port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP6 port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP6="4001"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP4_QUIC" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing Kubo IPFS IP4 quic port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP4 quic port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP4_QUIC="4001"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP6_QUIC" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing Kubo IPFS IP6 quic port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing Kubo IPFS IP6 quic port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
             kuboipfs_port_has_changed="yes"
             IPFS_PORT_IP6_QUIC="4001"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -8784,77 +8793,79 @@ ipfs_update_port() {
         local update_ipfsport_now
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$JSIPFS_PORT_IP4" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing JS-IPFS IP4 port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            printf "%b Using DigiByte testnet. Updating JS-IPFS ports...\\n" "${INFO}"
+            str="Changing JS-IPFS IP4 port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4004\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$JSIPFS_PORT_IP6" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing JS-IPFS IP6 port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP6 port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4004\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$JSIPFS_PORT_IP4_QUIC" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing JS-IPFS IP4 quic port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP4 quic port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4004/quic\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$JSIPFS_PORT_IP6_QUIC" = "4001" ]]; then
-            str="Using DigiByte testnet. Changing JS-IPFS IP6 quic port from 4001 to 4004..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP6 quic port from 4001 to 4004..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4004/quic\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If using DigiByte mainnet, change default JS-IPFS port to 4001
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$JSIPFS_PORT_IP4" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing JS-IPFS IP4 port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            printf "%b Using DigiByte mainnet. Updating JS-IPFS ports...\\n" "${INFO}"
+            str="Changing JS-IPFS IP4 port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4001\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$JSIPFS_PORT_IP6" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing JS-IPFS IP6 port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP6 port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4001\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$JSIPFS_PORT_IP4_QUIC" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing JS-IPFS IP4 quic port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP4 quic port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4001/quic\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$JSIPFS_PORT_IP6_QUIC" = "4004" ]]; then
-            str="Using DigiByte mainnet. Changing JS-IPFS IP6 quic port from 4004 to 4001..."
-            printf "%b %s" "${INFO}" "${str}"
+            str="Changing JS-IPFS IP6 quic port from 4004 to 4001..."
+            printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4001/quic\"" $USER_HOME/.jsipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.jsipfs/config
             jsipfs_port_has_changed="yes"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
