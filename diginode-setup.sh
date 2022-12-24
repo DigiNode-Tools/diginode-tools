@@ -8100,31 +8100,6 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         fi
     fi
 
-
-    # If a Kubo local version already exists.... (i.e. we have a local version number)
-    if [ ! $IPFS_VER_LOCAL = "" ]; then
-      # ....then check if an upgrade is required
-      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Kubo is already up to date.\\n" "${TICK}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
-            IPFS_INSTALL_TYPE="askreset"
-            IPFS_DO_INSTALL=YES
-          else
-            printf "%b Upgrade not required.\\n" "${INFO}"
-            IPFS_DO_INSTALL=NO
-            IPFS_INSTALL_TYPE="none"
-            IPFS_UPDATE_AVAILABLE=NO
-            printf "\\n"
-            return
-          fi
-      else
-          printf "%b %bKubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-          IPFS_INSTALL_TYPE="upgrade"
-          IPFS_ASK_UPGRADE=YES
-      fi
-    fi 
-
     # Lookup the current Kubo IPFS ports
     if [ -f "$USER_HOME/.ipfs/config" ]; then
         printf "%b Retrieving current port numbers for Kubo IPFS...\\n" "${INFO}"
@@ -8176,6 +8151,31 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s $JSIPFS_PORT_IP6_QUIC\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
+
+
+    # If a Kubo local version already exists.... (i.e. we have a local version number)
+    if [ ! $IPFS_VER_LOCAL = "" ]; then
+      # ....then check if an upgrade is required
+      if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+          printf "%b Kubo is already up to date.\\n" "${TICK}"
+          if [ "$RESET_MODE" = true ]; then
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            IPFS_INSTALL_TYPE="askreset"
+            IPFS_DO_INSTALL=YES
+          else
+            printf "%b Upgrade not required.\\n" "${INFO}"
+            IPFS_DO_INSTALL=NO
+            IPFS_INSTALL_TYPE="none"
+            IPFS_UPDATE_AVAILABLE=NO
+            printf "\\n"
+            return
+          fi
+      else
+          printf "%b %bKubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          IPFS_INSTALL_TYPE="upgrade"
+          IPFS_ASK_UPGRADE=YES
+      fi
+    fi 
 
 
     # If no current version is installed, then do a clean install
