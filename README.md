@@ -166,7 +166,7 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
-DigiNode Tools v0.7.0 - 2022-12-21
+DigiNode Tools v0.7.0 - 2022-12-24
 - Add new menu driven options to choose between running a DigiByte mainnet and testnet node during intitial setup
 - DigiByte network can also be specified via diginode.settings when performing an unattended install
 - Status Monitor displays when it is running a DigiByte testnet node
@@ -174,6 +174,7 @@ DigiNode Tools v0.7.0 - 2022-12-21
 - When running a testnet node, it will now offer to change the hostname to diginode-testnet. This is to make it easy to run two DigiNodes on the same network - one on mainnet and the other on testnet.
 - Switching between running mainet and testnet, also changes the rpcport if it using the default one
 - The uninstaller will now also prompt to delete the testnet blockchain data if it exists
+- If running testnet, IPFS with will now automatically switch to using port 4004. (By default it uses 4001.) This is to prevent two DigiNodes - one mainent and one testnet - running on the same network, from conflicting with each other. Even the IPFS config uses a port that differs from 4001 or 4004 the port will remain unchanged.
 
 DigiNode Tools v0.6.7 - 2022-12-15
 - Updated Recomended Hardware documentation
