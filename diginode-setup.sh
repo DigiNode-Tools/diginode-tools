@@ -8474,6 +8474,28 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
+
+    # Set default IPFS ports if this is the first time running Go-IPFS, and the config files do not exist
+    if [ ! -f "$USER_HOME/.ipfs/config" ]; then
+        str="Kubo IPFS config file does not exist. Storing default ports in variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        IPFS_PORT_IP4_TARGET="4001"
+        IPFS_PORT_IP6_TARGET="4001"
+        IPFS_PORT_IP4_QUIC_TARGET="4001"
+        IPFS_PORT_IP6_QUIC_TARGET="4001"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ ! -f "$USER_HOME/.jsipfs/config" ]; then
+        str="JS-IPFS config file does not exist. Storing default ports in variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        JSIPFS_PORT_IP4_TARGET="4001"
+        JSIPFS_PORT_IP6_TARGET="4001"
+        JSIPFS_PORT_IP4_QUIC_TARGET="4001"
+        JSIPFS_PORT_IP6_QUIC_TARGET="4001"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
     # Initialize IPFS, if it has not already been done so
     if [ ! -d "$USER_HOME/.ipfs" ]; then
         export IPFS_PATH=$USER_ACCOUNT/.ipfs
