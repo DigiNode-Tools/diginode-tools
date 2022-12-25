@@ -2550,7 +2550,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$NewInstall" = true ]] && [[
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing mainnet install, and the hostname is already 'diginode'
-elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -2558,7 +2558,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]]
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing testnet install, and the hostname is already 'diginode-testnet'
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -2802,10 +2802,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
           printf "%b You chose NOT to change your hostname to: diginode-testnet.\\n" "${INFO}"
           printf "\\n"
         fi
-
-
-
-
 
     fi
 fi
