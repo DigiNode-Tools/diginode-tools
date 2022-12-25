@@ -2581,7 +2581,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
         printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
         printf "\\n"
     else
-        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from 'diginode' to 'diginode-testnet'...\\n"  "${INFO}"
         printf "\\n"
     fi
     HOSTNAME_ASK_CHANGE="YES"
@@ -2603,7 +2603,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "
         printf "%b hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
         printf "\\n"
     else
-        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from 'diginode-testnet' to 'diginode'...\\n"  "${INFO}"
         printf "\\n"
     fi
     HOSTNAME_ASK_CHANGE="YES"
@@ -2632,7 +2632,7 @@ elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] 
         printf "%b and the other on TESTNET, it is advisable to give them different hostnames on your\\n"  "${INDENT}"
         printf "%b network so they are easier to identify and do not conflict with one another.\\n"  "${INDENT}"
     else
-        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from '$HOSTNAME' to 'diginode-testnet'...\\n"  "${INFO}"
     fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
@@ -2647,7 +2647,7 @@ elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] 
         printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
         printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
     else
-        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from '$HOSTNAME' to 'diginode'...\\n"  "${INFO}"
     fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
@@ -2665,7 +2665,7 @@ elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; t
         printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
         printf "%b testnet, this will ensure that they do not conflict with each other.\\n"  "${INDENT}"
     else
-        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from '$HOSTNAME' to 'diginode-testnet'...\\n"  "${INFO}"
     fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
@@ -2683,7 +2683,7 @@ elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNE
         printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
         printf "%b testnet, this will ensure that they do not conflict with each other.\\n"  "${INDENT}"
     else
-        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+        printf "%b Asking to change hostname from '$HOSTNAME' to 'diginode'...\\n"  "${INFO}"
     fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
