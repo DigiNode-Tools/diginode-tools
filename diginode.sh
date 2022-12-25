@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.6.7
+#           Name:  DigiNode Status Monitor v0.7.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.6.7
-# Last Updated: 2022-12-15
+DGNT_VER_LOCAL=0.7.0
+# Last Updated: 2022-12-18
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -224,8 +224,7 @@ digimon_title_box() {
 # Show a disclaimer text during testing phase
 digimon_disclaimer() {
     printf "%b %bWARNING: This script is currently in public beta.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Please join the Telegram support group to report any bugs and share feeback:\\n" "${INDENT}"
-    printf "%b not even run. Please use for testing only until further notice.\\n" "${INDENT}"
+    printf "%b Please join the Telegram support group to report any bugs and share feedback.\\n" "${INDENT}"
     printf "\\n"
     read -n 1 -s -r -p "   < Press Ctrl-C to quit, or any other key to Continue. >"
     printf "\\n\\n"
@@ -461,12 +460,22 @@ is_dgbnode_installed() {
         fi
     fi
 
-    # Get listening port from digibyte.conf
+
+    # Get current listening port
 
     if [ -f "$DGB_CONF_FILE" ]; then
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ]; then
-            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
+        # Get current listening port
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
+            # Re-source config file
+            if [ -f "$DGB_CONF_FILE" ]; then
+                source $DGB_CONF_FILE
+            fi
+            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12024"
+            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
             else
                 DGB_LISTEN_PORT="$port"   
@@ -1346,6 +1355,12 @@ pre_loop() {
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
           fi
 
+          # Query if DigiByte Core is running the testnet or mainnet chain
+          DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+          if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
+            DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+          fi
+
         fi
       fi
 
@@ -1661,7 +1676,11 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the sync progress value from debug.log. 
-    BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    else
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    fi
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -1676,7 +1695,11 @@ if [ "$DGB_STATUS" = "running" ]; then
     fi
 
     # Calculate blockchain sync percentage
-    BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+    if [ "$BLOCKSYNC_VALUE" = "" ] || [ "$BLOCKSYNC_VALUE" = "0" ]; then
+        BLOCKSYNC_PERC="0.00"
+    else
+        BLOCKSYNC_PERC=$(echo "scale=2 ;$BLOCKSYNC_VALUE*100"|bc)
+    fi
 
     # Round blockchain sync percentage to two decimal places
     BLOCKSYNC_PERC=$(printf "%.2f \n" $BLOCKSYNC_PERC)
@@ -1726,6 +1749,13 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
         else
             DGB_STATUS="running"
+
+            # Query if DigiByte Core is running the testnet or mainnet chain
+            DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+            if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
+                DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+            fi
+
         fi
 
     fi
@@ -1870,13 +1900,17 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         fi
 
         # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[1].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ]; then
+        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
             # Re-source config file
             if [ -f "$DGB_CONF_FILE" ]; then
                 source $DGB_CONF_FILE
             fi
-            if [ "$port" = "12024" ] || [ "$port" = "" ]; then
+            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12026"
+            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
+                DGB_LISTEN_PORT="12024"
+            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
                 DGB_LISTEN_PORT="12024"
             else
                 DGB_LISTEN_PORT="$port"   
@@ -2195,12 +2229,21 @@ printf "  ║ CONNECTIONS    ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTI
 else
 printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 fi
+# Display if we are using the testnet chain
+if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
+fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
 if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE TDGB" " ║"
+else
 printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE DGB" " ║"
+fi
 fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ NODE UPTIME    ║  " && printf "%-48s %-4s\n" "$uptime" " ║"
@@ -2809,13 +2852,11 @@ startup_checks() {
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
-  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it compatible.
+  rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it is compatible.
   set_sys_variables                # Set various system variables once we know we are on linux
-# load_diginode_settings           # Load the diginode.settings file. Create it if it does not exist.
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
-# install_diginode_tools           # install or upgrade the DigiNode tools scripts
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
   digiasset_check_official         # check if this is an official install of DigiAsset Node
