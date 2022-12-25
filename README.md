@@ -166,7 +166,7 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
-DigiNode Tools v0.7.0 - 2022-12-24
+DigiNode Tools v0.7.0 - 2022-12-25
 - Add new menu driven options to choose between running a DigiByte mainnet and testnet node during intitial setup
 - DigiByte network can also be specified via diginode.settings when performing an unattended install
 - Status Monitor displays when it is running a DigiByte testnet node
