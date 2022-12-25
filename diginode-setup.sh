@@ -2568,7 +2568,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TEST
 # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
-    printf "%b %bYou DigiByte Node has successfully been changed from MAINNET to TESTNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
         printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
@@ -2590,7 +2590,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
 # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
 elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
  
-    printf "%b %bYou DigiByte Node has successfully been changed from TESTNET to MAINNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
         printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
@@ -2659,7 +2659,7 @@ elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; t
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
         printf "%b Your hostname is currently '$HOSTNAME'. It is recommended to change this to 'diginode-testnet'.\\n"  "${INFO}"
-        printf "%b If you are running your DigiNode on a dedicated computer on your local network, \\n"  "${INDENT}"
+        printf "%b If you are running your DigiNode on a dedicated device on your local network, \\n"  "${INDENT}"
         printf "%b then this change is recommended. It will ensure that the hostname reflects that the\\n"  "${INDENT}"
         printf "%b DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to\\n"  "${INDENT}"
         printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
@@ -2677,7 +2677,7 @@ elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNE
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
         printf "%b Your hostname is currently '$HOSTNAME'. It is recommended to change this to 'diginode'.\\n"  "${INFO}"
-        printf "%b If you are running your DigiNode on a dedicated computer on your local network, \\n"  "${INDENT}"
+        printf "%b If you are running your DigiNode on a dedicated device on your local network, \\n"  "${INDENT}"
         printf "%b then this change is recommended. It will ensure that the hostname reflects that the\\n"  "${INDENT}"
         printf "%b DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to\\n"  "${INDENT}"
         printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
@@ -2710,7 +2710,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2726,7 +2726,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -6532,12 +6532,12 @@ closing_banner_message() {
         else
             if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ];then
                 printf " =======================================================================\\n"
-                printf " =============== ${txtbgrn}DigiByte Core is new running on MAINNET!{txtrst} ===============\\n"
+                printf " =============== ${txtbgrn}DigiByte Core is now running on MAINNET!${txtrst} =============\\n"
                 printf " =======================================================================\\n\\n"
                 # ==============================================================================
             elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ];then
                 printf " =======================================================================\\n"
-                printf " =============== ${txtbgrn}DigiByte Core is new running on TESTNET!{txtrst} ===============\\n"
+                printf " =============== ${txtbgrn}DigiByte Core is now running on TESTNET!${txtrst} =============\\n"
                 printf " =======================================================================\\n\\n"
                 # ==============================================================================
             else
@@ -6556,12 +6556,12 @@ closing_banner_message() {
         else
             if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ];then
                 printf " =======================================================================\\n"
-                printf " =============== ${txtbgrn}DigiByte Core is new running on MAINNET!{txtrst} ===============\\n"
+                printf " =============== ${txtbgrn}DigiByte Core is now running on MAINNET!${txtrst} =============\\n"
                 printf " =======================================================================\\n\\n"
                 # ==============================================================================
             elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ];then
                 printf " =======================================================================\\n"
-                printf " =============== ${txtbgrn}DigiByte Core is new running on TESTNET!{txtrst} ===============\\n"
+                printf " =============== ${txtbgrn}DigiByte Core is now running on TESTNET!${txtrst} =============\\n"
                 printf " =======================================================================\\n\\n"
                 # ==============================================================================
             else
