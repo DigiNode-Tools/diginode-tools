@@ -11332,18 +11332,17 @@ uninstall_do_now() {
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
-                        str="Deleting DigiByte Core blockchain data..."
+                        str="Deleting DigiByte Core MAINNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
                         rm -rf $DGB_DATA_LOCATION/indexes
                         rm -rf $DGB_DATA_LOCATION/chainstate
                         rm -rf $DGB_DATA_LOCATION/blocks
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
-                    printf "\\n"
+
 
                 else
                     printf "%b You chose not to keep the existing DigiByte MAINNET blockchain data.\\n" "${INFO}"
-                    printf "\\n"
                 fi
 
             fi
@@ -11363,23 +11362,20 @@ uninstall_do_now() {
                         rm -rf $DGB_DATA_LOCATION/testnet4/blocks
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
-                    printf "\\n"
 
                 else
                     printf "%b You chose to keep the existing DigiByte TESTNET blockchain data.\\n" "${INFO}"
-                    printf "\\n"
                 fi
 
             fi
 
         else
             printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
-            printf "\\n"
         fi
 
+        printf "\\n"
+
     fi
-
-
 
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
