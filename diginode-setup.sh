@@ -2565,20 +2565,25 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" != 
     INSTALL_AVAHI="YES"
     HOSTNAME_DO_CHANGE="NO"
 
-# An existing mainnet install which has the hostname 'diginode' has been converted to mainnet
+# An existing mainnet install which has the hostname 'diginode' has been converted to testnet
 elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
     printf "%b %bYou DigiByte Node has successfully been changed from MAINNET to TESTNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
-    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
-    printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
-    printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
-    printf "%b the current hostname does not conflict with another DigiByte mainnet node on\\n"  "${INDENT}"
-    printf "%b your network. If you are planning to run two DigiNodes on your network,\\n"  "${INDENT}"
-    printf "%b one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
-    printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
-    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
+        printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
+        printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
+        printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
+        printf "%b the current hostname does not conflict with another DigiByte mainnet node on\\n"  "${INDENT}"
+        printf "%b your network. If you are planning to run two DigiNodes on your network,\\n"  "${INDENT}"
+        printf "%b one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
+        printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+        printf "\\n"
+    else
+        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+        printf "\\n"
+    fi
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
@@ -2587,21 +2592,27 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "
  
     printf "%b %bYou DigiByte Node has successfully been changed from TESTNET to MAINNET%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
-    printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
-    printf "%b running a DigiByte mainnet node, it is advisable to change the hostname\\n"  "${INDENT}"
-    printf "%b to 'diginode' . This is optional but recommended, since it will ensure\\n"  "${INDENT}"
-    printf "%b the current hostname does not conflict with another DigiByte testnet node on\\n"  "${INDENT}"
-    printf "%b your network. If you are planning to run two DigiNodes on your network, one on\\n"  "${INDENT}"
-    printf "%b DigiByte MAINNET and the other on TESTNET, it is advisable to give them diferent\\n"  "${INDENT}"
-    printf "%b hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
-    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
+        printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
+        printf "%b running a DigiByte mainnet node, it is advisable to change the hostname\\n"  "${INDENT}"
+        printf "%b to 'diginode' . This is optional but recommended, since it will ensure\\n"  "${INDENT}"
+        printf "%b the current hostname does not conflict with another DigiByte testnet node on\\n"  "${INDENT}"
+        printf "%b your network. If you are planning to run two DigiNodes on your network, one on\\n"  "${INDENT}"
+        printf "%b DigiByte MAINNET and the other on TESTNET, it is advisable to give them diferent\\n"  "${INDENT}"
+        printf "%b hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+        printf "\\n"
+    else
+        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+        printf "\\n"
+    fi
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
 # Unable to discover the hostname
 elif [[ "$HOSTNAME" == "" ]]; then
     printf "%b Hostname Check: %bERROR%b   Unable to check hostname\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
     printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
@@ -2612,12 +2623,17 @@ elif [[ "$HOSTNAME" == "" ]]; then
 # An existing install which has some random hostname has been converted to testnet
 elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INDENT}"
-    printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
-    printf "%b https://diginode-testnet.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
-    printf "%b If you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET\\n"  "${INDENT}"
-    printf "%b and the other on TESTNET, it is advisable to give them different hostnames on your\\n"  "${INDENT}"
-    printf "%b network so they are easier to identify and do not conflict with one another.\\n"  "${INDENT}"
+    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode-testnet'.\\n"  "${INFO}"
+        printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
+        printf "%b https://diginode-testnet.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
+        printf "%b If you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET\\n"  "${INDENT}"
+        printf "%b and the other on TESTNET, it is advisable to give them different hostnames on your\\n"  "${INDENT}"
+        printf "%b network so they are easier to identify and do not conflict with one another.\\n"  "${INDENT}"
+    else
+        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+    fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
@@ -2625,12 +2641,54 @@ elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] 
 # An existing install which has some random hostname has been converted to mainnet
 elif [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
     printf "%b Hostname Check: %bFAILED%b   Hostname is not set to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-    printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INDENT}"
-    printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
-    printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
+    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Your hostname is currently '$HOSTNAME'. It is advisable to change this to 'diginode'.\\n"  "${INFO}"
+        printf "%b This is optional but recommended, since it will make the DigiAssets website available at\\n"  "${INDENT}"
+        printf "%b https://diginode.local which is obviously easier than remembering an IP address.\\n"  "${INDENT}"
+    else
+        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+    fi
     printf "\\n"
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
+
+# A new testnet install, and the hostname is still 'diginode' from a previous install
+elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Your hostname is currently '$HOSTNAME'. It is recommended to change this to 'diginode-testnet'.\\n"  "${INFO}"
+        printf "%b If you are running your DigiNode on a dedicated computer on your local network, \\n"  "${INDENT}"
+        printf "%b then this change is recommended. It will ensure that the hostname reflects that the\\n"  "${INDENT}"
+        printf "%b DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to\\n"  "${INDENT}"
+        printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
+        printf "%b testnet, this will ensure that they do not conflict with each other.\\n"  "${INDENT}"
+    else
+        printf "%b Asking to change hostname to 'diginode-testnet'...\\n"  "${INFO}"
+    fi
+    printf "\\n"
+    HOSTNAME_ASK_CHANGE="YES"
+    printf "\\n"
+
+# A new mainnet install, and the hostname is still 'diginode-testnet' from a previous install
+elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+    printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b Your hostname is currently '$HOSTNAME'. It is recommended to change this to 'diginode'.\\n"  "${INFO}"
+        printf "%b If you are running your DigiNode on a dedicated computer on your local network, \\n"  "${INDENT}"
+        printf "%b then this change is recommended. It will ensure that the hostname reflects that the\\n"  "${INDENT}"
+        printf "%b DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to\\n"  "${INDENT}"
+        printf "%b run two DigiNodes on your network, one on the DigiByte mainnet and the other on\\n"  "${INDENT}"
+        printf "%b testnet, this will ensure that they do not conflict with each other.\\n"  "${INDENT}"
+    else
+        printf "%b Asking to change hostname to 'diginode'...\\n"  "${INFO}"
+    fi
+    printf "\\n"
+    HOSTNAME_ASK_CHANGE="YES"
+    printf "\\n"
+
 fi
 
 }
@@ -2649,9 +2707,10 @@ echo ""
 
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
+    # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\n If you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that device is running a DigiByte testnet node. It will also make it easier to identify, should you setup another DigiNode on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2660,13 +2719,14 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose to change your hostname to: diginode-testnet\\n" "${INFO}"
             printf "\\n"
         else
-            printf "%b You chose not to change your hostname to: diginode-testnet (it will remain as diginode).\\n" "${INFO}"
+            printf "%b You chose NOT to change your hostname to: diginode-testnet (it will remain as diginode).\\n" "${INFO}"
             printf "\\n"
         fi
 
+    # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the device is no longer running a DigiByte testnet node. It will also make it easier to identify, should you setup another DigiNode on your network.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to do this."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated computer on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -2675,14 +2735,14 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose to change your hostname to: diginode\\n" "${INFO}"
             printf "\\n"
         else
-            printf "%b You chose not to change your hostname to: diginode (it will remain as diginode-testnet).\\n" "${INFO}"
+            printf "%b You chose NOT to change your hostname to: diginode (it will remain as diginode-testnet).\\n" "${INFO}"
             printf "\\n"
         fi
 
-
+    # An existing install which has some random hostname has been converted to testnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are planning to run two DigiNodes on your network, one on the DigiByte MAINNET, and the other on TESTNET, it is advisable to give them different hostnames on your network so they are easier to identify and do not conflict with one another.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -2691,10 +2751,11 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose to change your hostname to: diginode-testnet\\n" "${INFO}"
             printf "\\n"
         else
-            printf "%b You chose not to change your hostname to: diginode-testnet.\\n" "${INFO}"
+            printf "%b You chose NOT to change your hostname to: diginode-testnet.\\n" "${INFO}"
             printf "\\n"
         fi
 
+    # An existing install which has some random hostname has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
@@ -2703,12 +2764,48 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
           HOSTNAME_CHANGE_TO="diginode"
           INSTALL_AVAHI="YES"
 
-          printf "%b You chose to change your hostname to: digibyte.\\n" "${INFO}"
+          printf "%b You chose to change your hostname to: diginode.\\n" "${INFO}"
           printf "\\n"
         else
-          printf "%b You chose not to change your hostname to: digibyte.\\n" "${INFO}"
+          printf "%b You chose NOT to change your hostname to: diginode.\\n" "${INFO}"
           printf "\\n"
         fi
+
+    # A new mainnet install, and the hostname is still 'diginode-testnet' from a previous install
+    elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+
+          HOSTNAME_DO_CHANGE="YES"
+          HOSTNAME_CHANGE_TO="diginode"
+          INSTALL_AVAHI="YES"
+
+          printf "%b You chose to change your hostname to: diginode.\\n" "${INFO}"
+          printf "\\n"
+        else
+          printf "%b You chose NOT to change your hostname to: diginode.\\n" "${INFO}"
+          printf "\\n"
+        fi
+
+    # A new testnet install, and the hostname is still 'diginode' from a previous install
+    elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+
+        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+
+          HOSTNAME_DO_CHANGE="YES"
+          HOSTNAME_CHANGE_TO="diginode-testnet"
+          INSTALL_AVAHI="YES"
+
+          printf "%b You chose to change your hostname to: diginode-testnet.\\n" "${INFO}"
+          printf "\\n"
+        else
+          printf "%b You chose NOT to change your hostname to: diginode-testnet.\\n" "${INFO}"
+          printf "\\n"
+        fi
+
+
+
+
 
     fi
 fi
