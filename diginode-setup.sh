@@ -1479,7 +1479,13 @@ digibyte_create_conf() {
             fi
         else
             echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+            echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
+            echo "" >> $DGB_CONF_FILE
+            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = DigiByte testnet is disabled and mainnet is used)" >> $DGB_CONF_FILE
             echo "testnet=$testnet" >> $DGB_CONF_FILE
+            if [ "$testnet" = "1" ]; then
+                DGB_NETWORK_IS_CHANGED="YES"
+            fi
         fi
 
         # Re-import variables from digibyte.conf in case they have changed
@@ -5645,7 +5651,7 @@ install_digiasset_node_only() {
     ##### INSTALL THE MOTD MESSAGE ########
 
     # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
-    motd_do_install
+    motd_do_install_uninstall
 
 
     ### CHANGE THE HOSTNAME TO DIGINODE ###
@@ -5808,7 +5814,7 @@ menu_existing_install() {
             CUSTOM_MOTD_MENU="existing_install_menu"
             motd_check
             menu_ask_motd
-            motd_do_install
+            motd_do_install_uninstall
             menu_existing_install
             ;;
         # Extras
@@ -11037,7 +11043,7 @@ fi
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # Display dgb network section break
-    if [ "$show_dgb_network_menu" = "yes" ]; then
+    if [ "$show_motd_menu" = "yes" ]; then
 
             printf " =============== DigiNode Custom MOTD ==================================\\n\\n"
             # ==============================================================================
@@ -11153,10 +11159,8 @@ fi
 
 }
 
-# This function will install the custom DigiNode MOTD if it not yet installed
-motd_do_install() {
-
-    # banana
+# This function will install or uninstall the custom DigiNode MOTD
+motd_do_install_uninstall() {
 
 
 if [ "$MOTD_DO_INSTALL" = "YES" ]; then
@@ -13807,7 +13811,7 @@ menu_dganode_only(){
             CUSTOM_MOTD_MENU="dganode_only_menu"
             motd_check
             menu_ask_motd
-            motd_do_install
+            motd_do_install_uninstall
             menu_dganode_only
             ;;
         # Uninstall,
@@ -13925,7 +13929,7 @@ install_or_upgrade() {
     ##### INSTALL THE MOTD MESSAGE ########
 
     # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
-    motd_do_install
+    motd_do_install_uninstall
 
 
     ### CHANGE THE HOSTNAME TO DIGINODE ###
