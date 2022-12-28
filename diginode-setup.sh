@@ -765,7 +765,7 @@ DONATION_PLEA="$DONATION_PLEA"
 BLOCKSYNC_VALUE="$BLOCKSYNC_VALUE"
 
 # User has chosen to enable/disable the DigiNode custom MOTD. This is set to ENABLED or DISABLED automatically by the script.
-CUSTOM_MOTD_STATUS="$CUSTOM_MOTD_STATUS"
+MOTD_STATUS="$MOTD_STATUS"
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
@@ -5810,7 +5810,7 @@ menu_existing_install() {
         ${opt6a})
             printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
             printf "\\n"
-            CUSTOM_MOTD_STATUS="ASK"
+            MOTD_STATUS="ASK"
             CUSTOM_MOTD_MENU="existing_install_menu"
             motd_check
             menu_ask_motd
@@ -11054,7 +11054,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK TO INSTALL THE MOTD (displays during a new install or when accessed from the main menu)
     if [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
             printf "%b You chose to install the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL="YES"
             MOTD_DO_UNINSTALL=""
@@ -11101,7 +11101,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK WHETHER TO USE THE MOTD (if this is a new install, but the custom MOTD is already installed)
     elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" = "" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like keep the custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like keep the custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
             printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
@@ -11207,7 +11207,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create backup folder for system MOTD
-    if [ -f "$USER_HOME/.motdbackup" ]; then
+    if [ ! -d "$USER_HOME/.motdbackup" ]; then
         str="Create backup folder for system MOTD..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT mkdir $USER_HOME/.motdbackup
@@ -11238,7 +11238,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     printf "\\n"
 
     MOTD_STATUS="ENABLED"
-    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $MOTD_STATUS
+    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
 
 fi
 
@@ -11281,7 +11281,7 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
     fi
 
     MOTD_STATUS="DISABLED"
-    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $MOTD_STATUS
+    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
     if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
         whiptail --msgbox --title "DigiNode MOTD has been uninstalled!" "The DigiNode MOTD file has been successfully uninstalled." 10 "${c}"
@@ -12130,13 +12130,13 @@ uninstall_motd() {
             fi
 
             MOTD_STATUS="DISABLED"
-            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $MOTD_STATUS
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
         else
             printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
 
             MOTD_STATUS="DISABLED"
-            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $MOTD_STATUS
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
         fi
     fi
 
@@ -13807,7 +13807,7 @@ menu_dganode_only(){
         ${opt3a})
             printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
             printf "\\n"
-            CUSTOM_MOTD_STATUS="ASK"
+            MOTD_STATUS="ASK"
             CUSTOM_MOTD_MENU="dganode_only_menu"
             motd_check
             menu_ask_motd
