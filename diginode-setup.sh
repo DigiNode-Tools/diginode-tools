@@ -11973,9 +11973,9 @@ uninstall_do_now() {
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
 
-    uninstall_diginode_tools_now
-
     uninstall_motd
+
+    uninstall_diginode_tools_now
 
     printf " =======================================================================\\n"
     printf " ================== ${txtbgrn}DigiNode Uninstall Completed!${txtrst} ======================\\n"
