@@ -11174,6 +11174,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
         whiptail --msgbox --title "DigiNode MOTD install file not found!" "The DigiNode MOTD install file was not found. Please upgrade DigiNode Tools and then try again." 10 "${c}"
+        printf "\\n"
         return
     fi
 
