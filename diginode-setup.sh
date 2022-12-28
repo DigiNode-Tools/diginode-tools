@@ -1481,7 +1481,7 @@ digibyte_create_conf() {
             echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
             echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
             echo "" >> $DGB_CONF_FILE
-            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = DigiByte testnet is disabled and mainnet is used)" >> $DGB_CONF_FILE
+            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
             echo "testnet=$testnet" >> $DGB_CONF_FILE
             if [ "$testnet" = "1" ]; then
                 DGB_NETWORK_IS_CHANGED="YES"
@@ -1511,7 +1511,7 @@ digibyte_create_conf() {
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
 # [chain]
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = DigiByte testnet is disabled and mainnet is used)
+# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)
 testnet=$testnet
 
 # [core]

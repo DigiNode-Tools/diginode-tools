@@ -19,7 +19,8 @@
 #        Warning:  Any manual customisations that you make to this file will be lost whenever there is
 #                  a new version of DigiNode Tools - this file will be overwritten with a new version.
 #                  If you wish to add other information to your MOTD you are advised to put them in
-#                  a seperate MOTD file in the /etc/update-motd.d folder.  
+#                  a separate MOTD file in the /etc/update-motd.d folder. Also, for the scripts to work,
+#                  this file must be name '50-diginode'. Do not change the prefix number or it will break. 
 #
 # -----------------------------------------------------------------------------------------------------
 
