@@ -166,13 +166,18 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
+DigiNode Tools v0.7.1 - 2022-12-xx
+- Add DigiNode custom MOTD that displays when you login to the machine via SSH
+- The existing system MOTD is backed up to ~/.motdbackup and restored from there if you later uninstall the custom MOTD
+- You can install the custom MOTD on an existing DigiNode via the main menu
+
 DigiNode Tools v0.7.0 - 2022-12-25
 - Add new menu driven options to choose between running a DigiByte mainnet and testnet node
 - DigiByte network can also be specified via diginode.settings when performing an unattended install
 - Status Monitor now displays when it is monitoring a DigiByte testnet node
 - DigiNode Setup menu now lets you easilly switch between running a DigiByte testnet and mainnet nodes. It will also prompt you to delete the blockchain data for the unused chain.
 - When running a testnet node, it will now offer to change the hostname to diginode-testnet. This is to make it easy to run two DigiNodes on the same network - one on mainnet and the other on testnet.
-- Switching between running mainet and testnet, also changes the rpcport if it using the default one
+- Switching between running mainnet and testnet, also changes the rpcport if it using the default one
 - If running testnet, IPFS with will now automatically switch to using port 4004. (By default it uses 4001.) This is to prevent two DigiNodes - one mainent and one testnet - running on the same network, from conflicting with each other. (Note: If the IPFS config uses a port that differs from 4001 or 4004 the port will remain unchanged.)
 
 DigiNode Tools v0.6.7 - 2022-12-15
