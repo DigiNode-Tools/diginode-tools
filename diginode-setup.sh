@@ -11063,6 +11063,8 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose not to install the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="DISABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
             if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
                 CUSTOM_MOTD_MENU=""
@@ -11087,6 +11089,8 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose not to uninstall the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="ENABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
 
             if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
                 CUSTOM_MOTD_MENU=""
@@ -11101,10 +11105,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK WHETHER TO USE THE MOTD (if this is a new install, but the custom MOTD is already installed)
     elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" = "" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like keep the custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to keep the custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
             printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="ENABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
         #Nothing to do, continue
         else
             printf "%b You chose not to install the DigiNode Custom MOTD.\\n" "${INFO}"
