@@ -6932,22 +6932,22 @@ if [ ! -f "$DGB_CONF_FILE" ]; then
 fi
 
 # If digibyte.conf file already exists, show the dgb network menu if it does not contain the testnet variable
-if [ -f "$DGB_CONF_FILE" ]; then
+# if [ -f "$DGB_CONF_FILE" ]; then
 
         # Update testnet status in settings if it exists and is blank, otherwise append it
-        if grep -q "testnet=1" $DGB_CONF_FILE; then
-            show_dgb_network_menu="maybe"
-        elif grep -q "testnet=0" $DGB_CONF_FILE; then
-            show_dgb_network_menu="maybe"
-        elif grep -q "testnet=" $DGB_CONF_FILE; then
-            show_dgb_network_menu="yes"
-        else
-            show_dgb_network_menu="yes"
-        fi
-fi
+#        if grep -q "testnet=1" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        elif grep -q "testnet=0" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        elif grep -q "testnet=" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        else
+#            show_dgb_network_menu="yes"
+#        fi
+# fi
 
-# If this is a new install and the testnet values already exist
-if [ "$show_dgb_network_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+# If this is a new install, prompt for mainnet or testnet
+if [ "$NewInstall" = true ]; then
     show_dgb_network_menu="yes"
 fi
 
