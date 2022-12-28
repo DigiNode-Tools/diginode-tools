@@ -1,26 +1,26 @@
 #!/bin/bash
 #
-#           Name:  Custom DigiNode MOTD (Message ot the Day) for Ubuntu/Debian
+#            Name:  Custom DigiNode MOTD (Message ot the Day) for Ubuntu/Debian
 #
-#        Purpose:  Display the DigiNode logo and instructions in the terminal every time you login.
+#         Purpose:  Display the DigiNode logo and instructions in the terminal every time you login.
 #
-#         Author:  Olly Stedall @saltedlolly
+#          Author:  Olly Stedall @saltedlolly
 #
-#        Website:  https://diginode.digibyte.help
+#         Website:  https://diginode.digibyte.help
 #
-#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#         Support:  https://t.me/+ked2VGZsLPAyN2Jk
 #
-# Manual Install:  1. Copy file to motd folder:  cp ~/diginode-tools/50-diginode /etc/update-motd.d
-#                  2. Make executable:           sudo chmod +x /etc/update-motd.d/60-diginode
-#                  3. Change owner to root:      sudo chown root:root /etc/update-motd.d/60-diginode
-#                  4. Delete existing motd file:   sudo rm /etc/motd
-#                     (This step is optional. You may want to create a backup of the file first.)
+#  Manual Install:  1. Copy file to motd folder:  cp ~/diginode-tools/50-diginode /etc/update-motd.d
+#                   2. Make executable:           sudo chmod +x /etc/update-motd.d/60-diginode
+#                   3. Change owner to root:      sudo chown root:root /etc/update-motd.d/60-diginode
+#                   4. Delete existing motd file: sudo rm /etc/motd
+#                      (This step is optional. You may want to create a backup of the file first.)
 #
-#        Warning:  Any manual customisations that you make to this file will be lost whenever there is
-#                  a new version of DigiNode Tools - this file will be overwritten with a new version.
-#                  If you wish to add other information to your MOTD you are advised to put them in
-#                  a separate MOTD file in the /etc/update-motd.d folder. Also, for the scripts to work,
-#                  this file must be name '50-diginode'. Do not change the prefix number or it will break. 
+#         Warning:  Any manual customisations that you make to this file will be lost whenever there is
+#                   a new version of DigiNode Tools - this file will be overwritten with a new version.
+#                   If you wish to add other information to your MOTD you are advised to put them in
+#                   a separate MOTD file in the /etc/update-motd.d folder. Also, for the scripts to work,
+#                   this file must be name '50-diginode'. Do not change the prefix number or it will break. 
 #
 # -----------------------------------------------------------------------------------------------------
 
