@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+#            Name:  Custom DigiNode MOTD (Message ot the Day) for Ubuntu/Debian
+#
+#         Purpose:  Display the DigiNode logo and instructions in the terminal every time you login.
+#
+#          Author:  Olly Stedall @saltedlolly
+#
+#         Website:  https://diginode.digibyte.help
+#
+#         Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#
+#  Manual Install:  1. Copy file to motd folder:  cp ~/diginode-tools/50-diginode /etc/update-motd.d
+#                   2. Make executable:           sudo chmod +x /etc/update-motd.d/60-diginode
+#                   3. Change owner to root:      sudo chown root:root /etc/update-motd.d/60-diginode
+#                   4. Delete existing motd file: sudo rm /etc/motd
+#                      (This step is optional. You may want to create a backup of the file first.)
+#
+#         Warning:  Any manual customisations that you make to this file will be lost whenever there is
+#                   a new version of DigiNode Tools - this file will be overwritten with a new version.
+#                   If you wish to add other information to your MOTD you are advised to put them in
+#                   a separate MOTD file in the /etc/update-motd.d folder. Also, for the scripts to work,
+#                   this file must be name '50-diginode'. Do not change the prefix number or it will break. 
+#
+# -----------------------------------------------------------------------------------------------------
+
+
+export TERM=xterm-256color
+
+txtbld=$(tput bold) # Set bold mode
+txtblu=$(tput setaf 4) # Blue
+txtrst=$(tput sgr0) # Text reset.
+
+COL_NC='\e[0m' # No Color
+COL_BOLD_WHITE='\e[1;37m'
+INFO="  [${COL_BOLD_WHITE}i${COL_NC}]"
+INDENT="   "
+
+echo ""
+echo -e "${txtblu}
+                       ƊƊƊƊƊƊƊ
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+         ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+       ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊ${txtblu}Ɗ${txtrst}ƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊ
+     ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊ${txtblu}Ɗ${txtrst}ƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+    ƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ
+   ƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊ
+  ƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊ
+   ƊƊƊƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+    ƊƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+     ƊƊƊƊƊƊ${txtrst}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+       ƊƊƊƊƊƊƊ${txtrst}ƊƊƊƊ${txtblu}ƊƊ${txtrst}ƊƊƊ${txtblu}ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+         ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+            ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ
+                ƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊƊ   ${txtrst}${txtbld}"
+echo -e "       ____   _         _   _   __            __     "
+echo -e "      / __ \ (_)____ _ (_) / | / /____   ____/ /___  "
+echo -e "     / / / // // __ '// / /  |/ // __ \ / __  // _ \ "
+echo -e "    / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/ "
+echo -e "   /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/  "
+echo -e "              /____/                                 ${txtrst}"
+echo  ""
+printf "%b To run 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+printf "\\n"
+printf "%b To run 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+printf "\\n"

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.7.0
+#           Name:  DigiNode Setup v0.7.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -398,7 +398,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_IPFS_ENABLE_UPNP=NO
     UI_IPFS_SERVER_PROFILE=NO
     UI_DGB_NETWORK=MAINNET
-    UI_MOTD=YES
+    UI_SETUP_DIGINODE_MOTD=YES
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
@@ -406,6 +406,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_PORT_TEST_ENABLED=YES
     IPFS_PORT_TEST_ENABLED=YES
     DONATION_PLEA=YES
+    MOTD_STATUS=ASK
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -607,9 +608,9 @@ UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 # Choose which DigiByte Blockchain Network to use. (Set to MAINNET or TESTNET. Default is MAINNET)
 UI_DGB_NETWORK=$UI_DGB_NETWORK
 
-# Install the DigiNode MOTD. The will display the DigiNode logo when you connected to your DigiNode over SSH.
-# If your DigiNode is not running on a dedicated device, you may want to disable this.  [NOT WORKING YET]
-UI_MOTD=$UI_MOTD
+# Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
+# If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
+UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 
 
 #############################################
@@ -762,6 +763,9 @@ DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
 BLOCKSYNC_VALUE="$BLOCKSYNC_VALUE"
+
+# User has chosen to enable/disable the DigiNode custom MOTD. This is set to ENABLED or DISABLED automatically by the script.
+MOTD_STATUS="$MOTD_STATUS"
 
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
@@ -1475,7 +1479,13 @@ digibyte_create_conf() {
             fi
         else
             echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+            echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
+            echo "" >> $DGB_CONF_FILE
+            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
             echo "testnet=$testnet" >> $DGB_CONF_FILE
+            if [ "$testnet" = "1" ]; then
+                DGB_NETWORK_IS_CHANGED="YES"
+            fi
         fi
 
         # Re-import variables from digibyte.conf in case they have changed
@@ -1501,7 +1511,7 @@ digibyte_create_conf() {
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
 # [chain]
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. (Default: 0 = DigiByte testnet is disabled and mainnet is used)
+# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)
 testnet=$testnet
 
 # [core]
@@ -5591,6 +5601,10 @@ install_digiasset_node_only() {
     # Prompt for upnp
     menu_ask_upnp
 
+    # Prompt for motd
+    motd_check
+    menu_ask_motd
+
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
@@ -5632,6 +5646,13 @@ install_digiasset_node_only() {
 
     # Setup PM2 init service
     digiasset_node_create_pm2_service
+
+
+    ##### INSTALL THE MOTD MESSAGE ########
+
+    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
+    motd_do_install_uninstall
+
 
     ### CHANGE THE HOSTNAME TO DIGINODE ###
 
@@ -5721,18 +5742,21 @@ menu_existing_install() {
     opt5a="Network"
     opt5b="Change DigiByte network - mainnet or testnet."
 
-    opt6a="Extras"
-    opt6b="Install optional extras for your DigiNode."
-    
-    opt7a="Reset"
-    opt7b="Reset all settings and reinstall DigiNode software."
+    opt6a="MOTD"
+    opt6b="Enable or disable the DigiNode Custom MOTD."
 
-    opt8a="Uninstall"
-    opt8b="Remove DigiNode from your system."
+    opt7a="Extras"
+    opt7b="Install optional extras for your DigiNode."
+    
+    opt8a="Reset"
+    opt8b="Reset all settings and reinstall DigiNode software."
+
+    opt9a="Uninstall"
+    opt9b="Remove DigiNode from your system."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 8 \
+    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 9 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -5740,7 +5764,8 @@ menu_existing_install() {
     "${opt5a}"  "${opt5b}" \
     "${opt6a}"  "${opt6b}" \
     "${opt7a}"  "${opt7b}" \
-    "${opt8a}"  "${opt8b}" 3>&2 2>&1 1>&3 ) || \
+    "${opt8a}"  "${opt8b}" \
+    "${opt9a}"  "${opt9b}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
@@ -5781,21 +5806,32 @@ menu_existing_install() {
             printf "\\n"
             change_dgb_network
             ;;
-        # Extras
+        # DigiNode MOTD
         ${opt6a})
+            printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
+            printf "\\n"
+            MOTD_STATUS="ASK"
+            CUSTOM_MOTD_MENU="existing_install_menu"
+            motd_check
+            menu_ask_motd
+            motd_do_install_uninstall
+            menu_existing_install
+            ;;
+        # Extras
+        ${opt7a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
             menu_extras
             ;;
         # Reset,
-        ${opt7a})
+        ${opt8a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt8a})
+        ${opt9a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -6902,22 +6938,22 @@ if [ ! -f "$DGB_CONF_FILE" ]; then
 fi
 
 # If digibyte.conf file already exists, show the dgb network menu if it does not contain the testnet variable
-if [ -f "$DGB_CONF_FILE" ]; then
+# if [ -f "$DGB_CONF_FILE" ]; then
 
         # Update testnet status in settings if it exists and is blank, otherwise append it
-        if grep -q "testnet=1" $DGB_CONF_FILE; then
-            show_dgb_network_menu="maybe"
-        elif grep -q "testnet=0" $DGB_CONF_FILE; then
-            show_dgb_network_menu="maybe"
-        elif grep -q "testnet=" $DGB_CONF_FILE; then
-            show_dgb_network_menu="yes"
-        else
-            show_dgb_network_menu="yes"
-        fi
-fi
+#        if grep -q "testnet=1" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        elif grep -q "testnet=0" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        elif grep -q "testnet=" $DGB_CONF_FILE; then
+#            show_dgb_network_menu="maybe"
+#        else
+#            show_dgb_network_menu="yes"
+#        fi
+# fi
 
-# If this is a new install and the testnet values already exist
-if [ "$show_dgb_network_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
+# If this is a new install, prompt for mainnet or testnet
+if [ "$NewInstall" = true ]; then
     show_dgb_network_menu="yes"
 fi
 
@@ -8234,6 +8270,33 @@ fi
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Update the DigiNode custom MOTD, if it is already installed
+        if [ -f "/etc/update-motd.d/50-diginode" ]; then
+
+            # Copy MOTD file to correct location
+            str="Updating DigiNode Custom MOTD file in /etc/update-motd.d..."
+            printf "%b %s" "${INFO}" "${str}"
+            cp -f $DGNT_LOCATION/motd/50-diginode /etc/update-motd.d
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Change MOTD file owner to root
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
+                str="Changing updated Custom DigiNode MOTD file owner to root..."
+                printf "%b %s" "${INFO}" "${str}"
+                chown root:root /etc/update-motd.d/50-diginode
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Make DigiNode MOTD file executable
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
+                str="Make updated Custom DigiNode MOTD file executable..."
+                printf "%b %s" "${INFO}" "${str}"
+                chmod +x /etc/update-motd.d/50-diginode
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
         fi
 
         # Reset DGNT Install and Upgrade Variables
@@ -10925,6 +10988,540 @@ fi
 }
 
 
+
+# This function will check if the motd is currently enabled
+
+motd_check() {
+
+    printf " =============== Checking: DigiNode MOTD ===============================\\n\\n"
+    # ==============================================================================
+
+    # Let's check if DigiByte Node is already installed
+    str="Is the DigiNode custom MOTD installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
+        MOTD_STATUS_CURRENT="ENABLED"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        MOTD_STATUS_CURRENT="DISABLED"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    #
+
+    printf "\\n"
+
+}
+
+
+# This function will ask the user if they want to install a DigiByte testnode node or just a mainnet node
+menu_ask_motd() {
+
+local show_motd_menu="no"
+
+# If this is a brand new install, then display the motd menu
+if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+    show_motd_menu="yes"
+fi
+
+
+# If we don't know what the current MOTD status is (perhaps diginode.settings got deleted)
+if [ "$MOTD_STATUS" = "" ]; then
+    show_motd_menu="yes"
+fi
+
+# If this is being run from the main menu then always enable the menu
+if [ "$MOTD_STATUS" = "ASK" ]; then
+    show_motd_menu="yes"
+fi
+
+
+
+# SHOW MOTD MENU
+
+# Don't ask if we are running unattended
+if [ ! "$UNATTENDED_MODE" == true ]; then
+
+    # Display dgb network section break
+    if [ "$show_motd_menu" = "yes" ]; then
+
+            printf " =============== DigiNode Custom MOTD ==================================\\n\\n"
+            # ==============================================================================
+
+    fi
+
+
+    # ASK TO INSTALL THE MOTD (displays during a new install or when accessed from the main menu)
+    if [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
+
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+            printf "%b You chose to install the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL="YES"
+            MOTD_DO_UNINSTALL=""
+        #Nothing to do, continue
+        else
+            printf "%b You chose not to install the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL=""
+            MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="DISABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
+
+            if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
+                CUSTOM_MOTD_MENU=""
+                menu_existing_install
+            elif [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ]; then
+                CUSTOM_MOTD_MENU=""
+                menu_dganode_only
+            fi
+
+        fi
+        printf "\\n"
+
+    # ASK TO UNINSTALL THE MOTD (if accessed from the existing install menu, or the DigiNode only menu)
+    elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" != "" ]; then
+
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to remove the custom DigiNode MOTD?\\n\\nIf you answer YES, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored from the backup." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+            printf "%b You chose to uninstall the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL=""
+            MOTD_DO_UNINSTALL="YES"
+        #Nothing to do, continue
+        else
+            printf "%b You chose not to uninstall the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL=""
+            MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="ENABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+
+            if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
+                CUSTOM_MOTD_MENU=""
+                menu_existing_install
+            elif [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ]; then
+                CUSTOM_MOTD_MENU=""
+                menu_dganode_only
+            fi
+        fi
+        printf "\\n"
+
+    # ASK WHETHER TO USE THE MOTD (if this is a new install, but the custom MOTD is already installed)
+    elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" = "" ]; then
+
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to keep the custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+            printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL=""
+            MOTD_DO_UNINSTALL=""
+            MOTD_STATUS="ENABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+        #Nothing to do, continue
+        else
+            printf "%b You chose not to install the DigiNode Custom MOTD.\\n" "${INFO}"
+            MOTD_DO_INSTALL=""
+            MOTD_DO_UNINSTALL="YES"
+
+        fi
+        printf "\\n"
+
+    elif [ "$show_dgb_network_menu" = "no" ]; then
+
+        MOTD_DO_INSTALL=""
+        MOTD_DO_UNINSTALL=""
+
+    fi
+
+else
+
+
+    # If we are running unattended, and the script wants to prompt the user with the motd menu, then get the values from diginode.settings
+
+    printf " =============== Unattended Mode: DigiNode Custom MOTD =================\\n\\n"
+    # ==============================================================================
+
+
+    if [ "$UI_SETUP_DIGINODE_MOTD" = "YES" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ] && [ "$show_motd_menu" = "yes" ]; then
+
+        printf "%b Unattended Mode: DigiNode Custom MOTD will be ENABLED\\n" "${INFO}"
+        printf "%b                  (Set from UI_SETUP_DIGINODE_MOTD value in diginode.settings)\\n" "${INDENT}"
+        MOTD_DO_INSTALL="YES"
+        MOTD_DO_UNINSTALL=""
+
+    elif [ "$UI_SETUP_DIGINODE_MOTD" = "NO" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$show_motd_menu" = "yes" ]; then
+
+        printf "%b Unattended Mode: DigiNode Custom MOTD will be DISABLED\\n" "${INFO}"
+        printf "%b                  (Set from UI_SETUP_DIGINODE_MOTD value in diginode.settings)\\n" "${INDENT}"
+        MOTD_DO_INSTALL=""
+        MOTD_DO_UNINSTALL="YES"
+
+    else
+
+        printf "%b Unattended Mode: Skipping changing the MOTD message. It will remain $MOTD_STATUS_CURRENT.\\n" "${INFO}"
+        MOTD_DO_INSTALL=""
+        MOTD_DO_UNINSTALL=""
+
+    fi
+
+    printf "\\n"
+
+
+fi
+
+}
+
+# This function will install or uninstall the custom DigiNode MOTD
+motd_do_install_uninstall() {
+
+
+if [ "$MOTD_DO_INSTALL" = "YES" ]; then
+
+    printf " =============== Install: DigiNode Custom MOTD =========================\\n\\n"
+    # ==============================================================================
+
+
+    str="Is DigiNode MOTD install file available?..."
+    printf "%b %s" "${INFO}" "${str}"
+
+    # Is DigiNode MOTD install file available?
+    if [  -f "$DGNT_LOCATION/motd/50-diginode" ]; then
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        whiptail --msgbox --title "DigiNode MOTD install file not found!" "The DigiNode MOTD install file was not found. Please upgrade DigiNode Tools and then try again." 10 "${c}"
+        printf "\\n"
+        return
+    fi
+
+    # Copy MOTD file to correct location
+    if [ ! -f "/etc/update-motd.d/50-diginode" ]; then
+        str="Copying DigiNode Custom MOTD file to /etc/update-motd.d..."
+        printf "%b %s" "${INFO}" "${str}"
+        cp -f $DGNT_LOCATION/motd/50-diginode /etc/update-motd.d
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Change MOTD file owner to root
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
+        str="Changing Custom DigiNode MOTD file owner to root..."
+        printf "%b %s" "${INFO}" "${str}"
+        chown root:root /etc/update-motd.d/50-diginode
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Make DigiNode MOTD file executable
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
+        str="Make Custom DigiNode MOTD file executable..."
+        printf "%b %s" "${INFO}" "${str}"
+        chmod +x /etc/update-motd.d/50-diginode
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Create backup folder for system MOTD
+    if [ ! -d "$USER_HOME/.motdbackup" ]; then
+        str="Create backup folder for system MOTD..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $USER_HOME/.motdbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Backup system MOTD
+    if [ -f "/etc/motd" ]; then
+        str="Backup system MOTD file..."
+        printf "%b %s" "${INFO}" "${str}"
+        cp -f /etc/motd $USER_HOME/.motdbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Delete system MOTD
+    if [ -f "/etc/motd" ]; then
+        str="Delete system MOTD file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f /etc/motd $USER_HOME/.motdbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
+        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
+        return
+    fi
+
+    printf "\\n"
+
+    MOTD_STATUS="ENABLED"
+    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+
+fi
+
+
+if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
+
+    printf " =============== Uninstall: DigiNode Custom MOTD =======================\\n\\n"
+    # ==============================================================================
+
+    # Restore system MOTD from backup
+    if [ -f "$USER_HOME/.motdbackup/motd" ]; then
+        str="Restore system MOTD file from backup..."
+        printf "%b %s" "${INFO}" "${str}"
+        cp -f $USER_HOME/.motdbackup/motd /etc
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Change system MOTD file owner to root
+    if [ -f "/etc/motd" ]; then
+        str="Changing system MOTD file owner to root..."
+        printf "%b %s" "${INFO}" "${str}"
+        chown root:root /etc/motd
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Delete backup folder for system MOTD
+    if [ -d "$USER_HOME/.motdbackup" ]; then
+        str="Delete backup folder for system MOTD..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT rm -rf $USER_HOME/.motdbackup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Delete the custom MOTD file
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
+        str="Deleting the DigiNode Custom MOTD file in /etc/update-motd.d..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f /etc/update-motd.d/50-diginode
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    printf "\\n"
+
+    MOTD_STATUS="DISABLED"
+    sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
+
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
+        whiptail --msgbox --title "DigiNode MOTD has been uninstalled!" "The DigiNode MOTD file has been successfully uninstalled." 10 "${c}"
+        return
+    fi
+
+fi    
+
+
+}
+
+
+
+
+# This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
+# Note: It does not (re)start the digibyted.service automatically when done
+digibyte_do_install() {
+
+# If we are in unattended mode and an upgrade has been requested, do the install
+if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+    DGB_DO_INSTALL=YES
+fi
+
+# If we are in reset mode, ask the user if they want to reinstall DigiByte Core
+if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
+
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." "${r}" "${c}"; then
+        DGB_DO_INSTALL=YES
+        DGB_INSTALL_TYPE="reset"
+    else 
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="skipreset"
+        DGB_UPDATE_AVAILABLE=NO
+    fi
+
+fi
+
+if [ "$DGB_INSTALL_TYPE" = "skipreset" ]; then
+    printf " =============== Reset: DigiByte Node ==================================\\n\\n"
+    # ==============================================================================
+    printf "%b Reset Mode: You skipped re-installing DigiByte Core.\\n" "${INFO}"
+    printf "\\n"
+    return
+fi
+
+if [ "$DGB_DO_INSTALL" = "YES" ]; then
+
+    # Display section break
+    if [ "$DGB_INSTALL_TYPE" = "new" ]; then
+        printf " =============== Install: DigiByte Node ================================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        printf " =============== Upgrade: DigiByte Node ================================\\n\\n"
+        # ==============================================================================
+    elif [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        printf " =============== Reset: DigiByte Node ==================================\\n\\n"
+        # ==============================================================================
+        printf "%b Reset Mode: You chose to re-install DigiByte Core.\\n" "${INFO}"
+    fi
+
+
+    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
+    if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+       stop_service digibyted
+       DGB_STATUS="stopped"
+    elif [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
+       stop_service digibyted
+       DGB_STATUS="stopped"
+    fi
+    
+   # Delete old DigiByte Core tar files, if present
+    if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
+        str="Deleting old DigiByte Core tar.gz files from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Dispaly the download URL
+    if [ $VERBOSE_MODE = true ]; then
+        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
+    fi
+
+    # Downloading latest DigiByte Core binary from GitHub
+    str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+
+    # If the command completed without error, then assume IPFS downloaded correctly
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "\\n"
+        printf "%b%b ${txtred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+        # Re-enable and re-start DigiByte daemon service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+            DIGINODE_UPGRADED="YES"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
+    fi
+
+    # If there is an old backup of DigiByte Core, delete it
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
+        str="Deleting old backup of DigiByte Core v${DGB_VER_LOCAL}..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If an there is an existing version version, move it it to a backup version
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
+        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        printf "%b %s" "${INFO}" "${str}"
+        mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Extracting DigiByte Core binary
+    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete old ~/digibyte symbolic link
+    if [ -h "$USER_HOME/digibyte" ]; then
+        str="Deleting old 'digibyte' symbolic link from home folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm $USER_HOME/digibyte
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Create new symbolic link
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
+    printf "%b %s" "${INFO}" "${str}"
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Delete the backup version, now the new version has been installed
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
+        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    
+    # Delete DigiByte Core tar.gz file
+    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
+    printf "%b %s" "${INFO}" "${str}"
+    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
+    DGB_VER_LOCAL=$DGB_VER_RELEASE
+    sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    if [ "$DGB_INSTALL_TYPE" = "new" ]; then
+        sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Re-enable and re-start DigiByte daemon service after reset/upgrade
+    if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        printf "%b Upgrade Completed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+        enable_service digibyted
+        restart_service digibyted
+        DGB_STATUS="running"
+        DIGINODE_UPGRADED="YES"
+    elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        printf "%b Reset Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        enable_service digibyted
+        restart_service digibyted
+        DGB_STATUS="running"
+    fi
+
+    # Reset DGB Install and Upgrade Variables
+    DGB_INSTALL_TYPE=""
+    DGB_UPDATE_AVAILABLE=NO
+    DGB_POSTUPDATE_CLEANUP=YES
+
+    # Create hidden file to denote this version was installed with the official DigiNode Setup
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
+        str="Labeling as official DigiNode install..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.officialdiginode
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Add DigiByte binary folder to the path for now
+    if [ -f "$DGB_CLI" ]; then
+        str="Adding $DGB_CLI folder to path..."
+        printf "%b %s" "${INFO}" "${str}"
+        export PATH+=":$DGB_INSTALL_LOCATION/bin"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Add DigiByte binary folder to the path permanently (so it works after reboot)
+    str="Is DigiByte binary folder path already in .bashrc?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
+        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        # Append export path to .bashrc file
+        echo "" >> $USER_HOME/.bashrc
+        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
+        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
+        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
+    printf "\\n"
+
+fi
+
+}
+
+
 # Perform uninstall if requested
 uninstall_do_now() {
 
@@ -11376,6 +11973,8 @@ uninstall_do_now() {
 
     ################## UNINSTALL DIGINODE TOOLS #################################################
 
+    uninstall_motd
+
     uninstall_diginode_tools_now
 
     printf " =======================================================================\\n"
@@ -11484,6 +12083,68 @@ uninstall_diginode_tools_now() {
 
         else
             printf "%b You chose not to uninstall DigiNode Tools.\\n" "${INFO}"
+        fi
+    fi
+
+    printf "\\n"
+
+}
+
+
+# Uninstall Custom DigiNode MOTD
+uninstall_motd() {
+
+    # Show MOTD uninstall menu if it is installed
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
+
+        printf " =============== Uninstall: DigiNode Custom MOTD =======================\\n\\n"
+        # ==============================================================================
+
+        # Delete DigiNode Tools
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to remove the DigiNode Custom MOTD?\\n\\nThis is the DigiNode logo that you see whenever you SSH into your DigiNode via the terminal. Choosing YES will restore the default system MOTD." "${r}" "${c}"; then
+
+            printf "%b You chose to remove the DigiNode Custom MOTD.\\n" "${INFO}"
+
+            # Restore system MOTD from backup
+            if [ -f "$USER_HOME/.motdbackup/motd" ]; then
+                str="Restore system MOTD file from backup..."
+                printf "%b %s" "${INFO}" "${str}"
+                cp -f $USER_HOME/.motdbackup/motd /etc
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Change system MOTD file owner to root
+            if [ -f "/etc/motd" ]; then
+                str="Changing system MOTD file owner to root..."
+                printf "%b %s" "${INFO}" "${str}"
+                chown root:root /etc/motd
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete backup folder for system MOTD
+            if [ -d "$USER_HOME/.motdbackup" ]; then
+                str="Delete backup folder for system MOTD..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT rm -rf $USER_HOME/.motdbackup
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete the custom MOTD file to correct location
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
+                str="Deleting the DigiNode Custom MOTD file in /etc/update-motd.d..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f /etc/update-motd.d/50-diginode
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            MOTD_STATUS="DISABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
+
+        else
+            printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
+
+            MOTD_STATUS="DISABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
         fi
     fi
 
@@ -12983,58 +13644,8 @@ main() {
         # If DigiNode Tools is installed, offer to check for an update
         if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
             
-            printf " =============== DIGIASSET NODE ONLY - MAIN MENU =======================\\n\\n"
-            # ==============================================================================
-
-            opt1a="Update"
-            opt1b=" Check for updates to your DigiAsset Node"
-
-            opt2a="Setup DigiByte Node"
-            opt2b=" Upgrade to a full DigiNode"
-            
-            opt3a="Uninstall"
-            opt3b=" Remove DigiAsset Node from your system"
-
-
-
-
-            # Display the information to the user
-            UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a full DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
-            "${opt1a}"  "${opt1b}" \
-            "${opt2a}"  "${opt2b}" \
-            "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
-            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
-
-            # Set the variable based on if the user chooses
-            case ${UpdateCmd} in
-                # Install DigiNode Tools
-                ${opt1a})
-                    printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
-                    printf "\\n" 
-                    install_digiasset_node_only          
-                    ;;
-                # Add DigiByte Node,
-                ${opt2a})
-                    printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
-                    printf "\\n"
-                    if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
-                    elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                        sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
-                    fi    
-                    printf "\\n"
-                    exit
-                    ;;
-                # Uninstall,
-                ${opt3a})
-                    printf "%b You selected to UNINSTALL your DigiAsset Node.\\n" "${INFO}"
-                    printf "\\n"
-                    uninstall_do_now
-                    printf "\\n"
-                    exit
-                    ;;
-            esac
-            printf "\\n"
+            # Display main menu for when a DigiAsset Node ONLY is installed
+            menu_dganode_only
 
         # If DigiNode Tools is not installed), offer to install them
         else
@@ -13154,6 +13765,76 @@ main() {
 
 }
 
+menu_dganode_only(){
+
+    printf " =============== DIGIASSET NODE ONLY - MAIN MENU =======================\\n\\n"
+    # ==============================================================================
+
+    opt1a="Update"
+    opt1b=" Check for updates to your DigiAsset Node"
+
+    opt2a="Setup DigiByte Node"
+    opt2b=" Upgrade to a full DigiNode"
+
+    opt3a="MOTD"
+    opt3b="Enable or disable the DigiNode Custom MOTD."
+    
+    opt4a="Uninstall"
+    opt4b=" Remove DigiAsset Node from your system"
+
+
+    # Display the information to the user
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a full DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+    "${opt1a}"  "${opt1b}" \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" \
+    "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
+    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+
+    # Set the variable based on if the user chooses
+    case ${UpdateCmd} in
+        # Install DigiNode Tools
+        ${opt1a})
+            printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
+            printf "\\n" 
+            install_digiasset_node_only          
+            ;;
+        # Add DigiByte Node,
+        ${opt2a})
+            printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
+            printf "\\n"
+            if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+                exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
+            elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
+                sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
+            fi    
+            printf "\\n"
+            exit
+            ;;
+        # DigiNode MOTD
+        ${opt3a})
+            printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
+            printf "\\n"
+            MOTD_STATUS="ASK"
+            CUSTOM_MOTD_MENU="dganode_only_menu"
+            motd_check
+            menu_ask_motd
+            motd_do_install_uninstall
+            menu_dganode_only
+            ;;
+        # Uninstall,
+        ${opt4a})
+            printf "%b You selected to UNINSTALL your DigiAsset Node.\\n" "${INFO}"
+            printf "\\n"
+            uninstall_do_now
+            printf "\\n"
+            exit
+            ;;
+    esac
+    printf "\\n"
+
+}
+
 install_or_upgrade() {
 
     # If DigiByte Core is already install, display the update menu
@@ -13194,6 +13875,8 @@ install_or_upgrade() {
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
 
+    # Check if the DigiNode custom MOTD is already installed
+    motd_check
 
     ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
 
@@ -13201,13 +13884,19 @@ install_or_upgrade() {
     menu_ask_install_updates
 
 
-    ### INSTALL/UPGRADE DIGIBYTE CORE ###
+    ### ASK SETUP QUESTIONS ###
 
     # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node
     menu_ask_dgb_network
 
     # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
     menu_ask_upnp
+
+    # If this is a new install, ask to install the DigiNode MOTD
+    menu_ask_motd
+
+
+    ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create/update digibyte.conf file
     digibyte_create_conf
@@ -13217,7 +13906,6 @@ install_or_upgrade() {
 
     # Create digibyted.service
     digibyte_create_service
-
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
@@ -13244,6 +13932,12 @@ install_or_upgrade() {
 
     # Setup PM2 init service
     digiasset_node_create_pm2_service
+
+
+    ##### INSTALL THE MOTD MESSAGE ########
+
+    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
+    motd_do_install_uninstall
 
 
     ### CHANGE THE HOSTNAME TO DIGINODE ###

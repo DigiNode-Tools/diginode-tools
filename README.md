@@ -74,6 +74,8 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
 - **Ports**: Enable/disable using UPnP to forward required ports.
+- **Network**: Switch between running DigiByte Core on mainnet or testnet
+- **MOTD**: Enable the custom DigiNode MOTD. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
@@ -166,13 +168,19 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
+DigiNode Tools v0.7.1 - 2022-12-28
+- Add a custom DigiNode MOTD that displays when you login to the machine via the terminal. It includes the DigiNode logo and brief usage instructions to remind the user of the commands to launch 'DigiNode Setup' and 'DigiNode Status Monitor'.
+- During the first install, the user is asked whther or not they want to install the DigiNode MOTD.
+- The existing system MOTD is backed up to ~/.motdbackup and restored from there if you later uninstall the DigiNode MOTD
+- The DigiNode MOTD can also be installed/removed via the main menu.
+
 DigiNode Tools v0.7.0 - 2022-12-25
 - Add new menu driven options to choose between running a DigiByte mainnet and testnet node
 - DigiByte network can also be specified via diginode.settings when performing an unattended install
 - Status Monitor now displays when it is monitoring a DigiByte testnet node
 - DigiNode Setup menu now lets you easilly switch between running a DigiByte testnet and mainnet nodes. It will also prompt you to delete the blockchain data for the unused chain.
 - When running a testnet node, it will now offer to change the hostname to diginode-testnet. This is to make it easy to run two DigiNodes on the same network - one on mainnet and the other on testnet.
-- Switching between running mainet and testnet, also changes the rpcport if it using the default one
+- Switching between running mainnet and testnet, also changes the rpcport if it using the default one
 - If running testnet, IPFS with will now automatically switch to using port 4004. (By default it uses 4001.) This is to prevent two DigiNodes - one mainent and one testnet - running on the same network, from conflicting with each other. (Note: If the IPFS config uses a port that differs from 4001 or 4004 the port will remain unchanged.)
 
 DigiNode Tools v0.6.7 - 2022-12-15
