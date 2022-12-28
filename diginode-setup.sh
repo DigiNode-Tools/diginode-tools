@@ -11179,7 +11179,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     printf "%b %s" "${INFO}" "${str}"
 
     # Is DigiNode MOTD install file available?
-    if [  -f "$USER_HOME/diginode-tools/motd/50-diginode" ]; then
+    if [  -f "$DGNT_LOCATION/motd/50-diginode" ]; then
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
@@ -11192,7 +11192,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     if [ ! -f "/etc/update-motd.d/50-diginode" ]; then
         str="Copying DigiNode Custom MOTD file to /etc/update-motd.d..."
         printf "%b %s" "${INFO}" "${str}"
-        cp -f $USER_HOME/diginode-tools/motd/50-diginode /etc/update-motd.d
+        cp -f $DGNT_LOCATION/motd/50-diginode /etc/update-motd.d
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -11278,13 +11278,15 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Delete the custom MOTD file to correct location
+    # Delete the custom MOTD file
     if [ -f "/etc/update-motd.d/50-diginode" ]; then
         str="Deleting the DigiNode Custom MOTD file in /etc/update-motd.d..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /etc/update-motd.d/50-diginode
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+    printf "\\n"
 
     MOTD_STATUS="DISABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
