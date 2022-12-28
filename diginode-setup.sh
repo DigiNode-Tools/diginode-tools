@@ -8278,7 +8278,7 @@ fi
             # Copy MOTD file to correct location
             str="Updating DigiNode Custom MOTD file in /etc/update-motd.d..."
             printf "%b %s" "${INFO}" "${str}"
-            cp -f $USER_HOME/diginode-tools/50-diginode /etc/update-motd.d
+            cp -f $DGNT_LOCATION/motd/50-diginode /etc/update-motd.d
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Change MOTD file owner to root
