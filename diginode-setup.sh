@@ -8273,7 +8273,7 @@ fi
         fi
 
         # Update the DigiNode custom MOTD, if it is already installed
-        if [ -f "/etc/update-motd.d/60-diginode" ]; then
+        if [ -f "/etc/update-motd.d/50-diginode" ]; then
 
             # Copy MOTD file to correct location
             str="Updating DigiNode Custom MOTD file in /etc/update-motd.d..."
@@ -8282,18 +8282,18 @@ fi
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Change MOTD file owner to root
-            if [ -f "/etc/update-motd.d/60-diginode" ]; then
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
                 str="Changing updated Custom DigiNode MOTD file owner to root..."
                 printf "%b %s" "${INFO}" "${str}"
-                chown root:root /etc/update-motd.d/60-diginode
+                chown root:root /etc/update-motd.d/50-diginode
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
             # Make DigiNode MOTD file executable
-            if [ -f "/etc/update-motd.d/60-diginode" ]; then
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
                 str="Make updated Custom DigiNode MOTD file executable..."
                 printf "%b %s" "${INFO}" "${str}"
-                chmod +x /etc/update-motd.d/60-diginode
+                chmod +x /etc/update-motd.d/50-diginode
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
@@ -10999,7 +10999,7 @@ motd_check() {
     # Let's check if DigiByte Node is already installed
     str="Is the DigiNode custom MOTD installed?..."
     printf "%b %s" "${INFO}" "${str}"
-    if [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
         MOTD_STATUS_CURRENT="ENABLED"
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
@@ -11054,7 +11054,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK TO INSTALL THE MOTD (displays during a new install or when accessed from the main menu)
     if [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is a message that is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
             printf "%b You chose to install the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL="YES"
             MOTD_DO_UNINSTALL=""
@@ -11101,7 +11101,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK WHETHER TO USE THE MOTD (if this is a new install, but the custom MOTD is already installed)
     elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" = "" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like keep the custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is a message that is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like keep the custom DigiNode MOTD?\\n\\nOn linux systems, the MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\\n\\nIf you answer YES, the DigiNode custom MOTD will be kept.\\n\\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
             printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
@@ -11183,7 +11183,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     fi
 
     # Copy MOTD file to correct location
-    if [ ! -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ ! -f "/etc/update-motd.d/50-diginode" ]; then
         str="Copying DigiNode Custom MOTD file to /etc/update-motd.d..."
         printf "%b %s" "${INFO}" "${str}"
         cp -f $USER_HOME/diginode-tools/motd/50-diginode /etc/update-motd.d
@@ -11191,18 +11191,18 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     fi
 
     # Change MOTD file owner to root
-    if [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
         str="Changing Custom DigiNode MOTD file owner to root..."
         printf "%b %s" "${INFO}" "${str}"
-        chown root:root /etc/update-motd.d/60-diginode
+        chown root:root /etc/update-motd.d/50-diginode
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Make DigiNode MOTD file executable
-    if [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
         str="Make Custom DigiNode MOTD file executable..."
         printf "%b %s" "${INFO}" "${str}"
-        chmod +x /etc/update-motd.d/60-diginode
+        chmod +x /etc/update-motd.d/50-diginode
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -11230,7 +11230,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
         whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
         return
     fi
@@ -11273,17 +11273,17 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
     fi
 
     # Delete the custom MOTD file to correct location
-    if [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
         str="Deleting the DigiNode Custom MOTD file in /etc/update-motd.d..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f /etc/update-motd.d/60-diginode
+        rm -f /etc/update-motd.d/50-diginode
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     MOTD_STATUS="DISABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $MOTD_STATUS
 
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ ! -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
         whiptail --msgbox --title "DigiNode MOTD has been uninstalled!" "The DigiNode MOTD file has been successfully uninstalled." 10 "${c}"
         return
     fi
@@ -12087,7 +12087,7 @@ uninstall_diginode_tools_now() {
 uninstall_motd() {
 
     # Show MOTD uninstall menu if it is installed
-    if [ -f "/etc/update-motd.d/60-diginode" ]; then
+    if [ -f "/etc/update-motd.d/50-diginode" ]; then
 
         printf " =============== Uninstall: DigiNode Custom MOTD =======================\\n\\n"
         # ==============================================================================
@@ -12122,10 +12122,10 @@ uninstall_motd() {
             fi
 
             # Delete the custom MOTD file to correct location
-            if [ -f "/etc/update-motd.d/60-diginode" ]; then
+            if [ -f "/etc/update-motd.d/50-diginode" ]; then
                 str="Deleting the DigiNode Custom MOTD file in /etc/update-motd.d..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -f /etc/update-motd.d/60-diginode
+                rm -f /etc/update-motd.d/50-diginode
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
