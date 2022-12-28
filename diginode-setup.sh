@@ -11131,7 +11131,7 @@ else
         MOTD_DO_INSTALL="YES"
         MOTD_DO_UNINSTALL=""
 
-    elif [ "$UI_SETUP_DIGINODE_MOTD" = "NO" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$show_motd_menu" = "yes" ]; then; then
+    elif [ "$UI_SETUP_DIGINODE_MOTD" = "NO" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$show_motd_menu" = "yes" ]; then
 
         printf "%b Unattended Mode: DigiNode Custom MOTD will be DISABLED\\n" "${INFO}"
         printf "%b                  (Set from UI_SETUP_DIGINODE_MOTD value in diginode.settings)\\n" "${INDENT}"
