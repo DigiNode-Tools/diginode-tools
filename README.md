@@ -74,6 +74,8 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
 - **Ports**: Enable/disable using UPnP to forward required ports.
+- **Network**: Switch between running DigiByte Core on mainnet or testnet
+- **MOTD**: Enable the custom DigiNode MOTD. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
