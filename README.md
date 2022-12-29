@@ -168,6 +168,9 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
+DigiNode Tools v0.7.2 - YYYY-MM-DD
+- 
+
 DigiNode Tools v0.7.1 - 2022-12-28
 - Add a custom DigiNode MOTD that displays when you login to the machine via the terminal. It includes the DigiNode logo and brief usage instructions to remind the user of the commands to launch 'DigiNode Setup' and 'DigiNode Status Monitor'.
 - During the first install, the user is asked whther or not they want to install the DigiNode MOTD.
