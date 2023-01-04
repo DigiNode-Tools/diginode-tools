@@ -1,6 +1,6 @@
 # DigiNode Setup on Raspperry Pi - Instructions for macOS Users
 
-Note: These instructions are for Mac users. If you are using a PC, please follow the instructions here.
+Note: These instructions are for MacOS users. If you are using Windows, please follow the instructions here.
 
 ## Before You Begin
 
@@ -18,12 +18,12 @@ Depending on the type of enclosure you are using for your Raspberry Pi, you will
 
 ### 2.1 - Download 'Raspberry Pi Imager'
 Open Safari, and visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and click the 'Download for macOS' button to download the 'Raspberry Pi Imager' software
-![Download Raspberry Pi Imager for macOS](/images/macos_setup_1.png)
+![Download Raspberry Pi Imager for macOS](./images/macos_setup_2_1.png)
 
 ### 2.2 - Install 'Raspberry Pi Imager'
 Open the .dmg file you just downloaded in the previous step, and drag-and-drop the 'Rasperry Pi Imager' icon on to the Applications icon to install it in your Applications folder
-![Install Raspberry Pi Imager for macOS](/images/macos_setup_2.png)
+![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_2.png)
 
 ### 2.3 - Launch 'Raspberry Pi Imager'
 Double click the 'Applications' shortcut icon from the previous step, to open your system Applications folder. Find the 'Rasperry Pi Imager' application that you just Open the .dmg file you just downloaded in the previous step, and drag-and-drop the Rasperry Pi Imager icon, on to the Applications icon to install it
-![Install Raspberry Pi Imager for macOS](/images/macos_setup_1.png)
+![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_3.png)
