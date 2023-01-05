@@ -1,17 +1,15 @@
 # Build your own DigiNode
 
-The easiest and most cost effective way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets.
+Probably, the easiest way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets:
 
-The approximate prices are shown below. These may not be current, and there may be cheaper options out there if you look.
-
-| **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option B: Flirc Case w/ External SSD** | Price in USD (Approx) |
-|--------------------------------------------------|-----------------------|------------------------------------------|-----------------------|
-| Raspberry Pi 4 8Gb 				               | $75     	           | Raspberry Pi 4 8Gb 				      | $75     	          |
-| Raspberry Pi 4 Power Supply                      | $8	                   | Raspberry Pi 4 Power Supply              | $8   	              |
-| Argon One M.2 SATA Case      		               | $45	               | Flirc Case for Pi 4                      | $16     	          |
-| M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $20                   |
-| USB A to USB A Cable     		                   | $8		               | Crucial 2.5" SSD 250Gb	                  | $45                   |
-| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$164**              |
+| **Option A: Argon One M.2 Case w/ Internal SSD** | **Option B: Flirc Case w/ External SSD** |
+|--------------------------------------------------|------------------------------------------|
+| Raspberry Pi 4 8Gb 				               | Raspberry Pi 4 8Gb 				      |
+| Raspberry Pi 4 Power Supply                      | Raspberry Pi 4 Power Supply              |
+| Argon One M.2 SATA Case      		               | Flirc Case for Pi 4                      |
+| M.2 SATA SSD - 250Gb      		               | Orico USB 3.1 10Gbps USB-C SSD Enclosure |
+| USB A to USB A Cable     		                   | Crucial 2.5" SSD 250Gb	                  |
+| Ethernet cable                                   | Ethernet cable                           |
 
 Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.            
 
