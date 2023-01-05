@@ -65,6 +65,8 @@ Select the external SSD you are going to use for your DigiNode. (Note: You shoul
 
 !!! BE VERY CAREFUL TO SELECT THE CORRECT DRIVE: The contents of the drive will be completely erased in the next step !!!
 
+(In this example, we are using a Samsung SSD. The system also has a Time machine backup drive connected.)
+
 ![Choose Storage in Raspberry Pi Imager](/images/macos_setup_3_2b.png)
 
 You should now see the name of the external drive on the button. Double check it is correct.
