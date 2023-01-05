@@ -16,13 +16,13 @@ Depending on the type of enclosure you are using for your Raspberry Pi, you will
 
 'Raspberry Pi Imager' will be used to "burn" the operating system on to the SSD you are going to booting the Rasperry Pi from.
 
-### 2.1 - Download 'Raspberry Pi Imager'
+### Step 2.1 - Download 'Raspberry Pi Imager'
 
 Open Safari, and visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and click the 'Download for macOS' button to download the 'Raspberry Pi Imager' software to your computer
 
 ![Download Raspberry Pi Imager for macOS](/images/macos_setup_2_1.png)
 
-### 2.2 - Install 'Raspberry Pi Imager'
+### Step 2.2 - Install 'Raspberry Pi Imager'
 
 Click on the 'Downloads' icon in the top-right corner of the Safari window, and then click on the downloaded 'imager_x.x.x.dmg' install file to open it.
 
@@ -37,7 +37,7 @@ Drag and drop the 'Raspberry Pi Imager' icon on to the Applications icon to inst
 
 Open 'Raspberry Pi Imager'. (You can double-click the 'Applications' shortcut icon from the previous step, to open your Applications folder, and then find the 'Rasperry Pi Imager' application that you just installed and double-click the icon to open it.)
 
-### 3.1 - Choose Operating System: Raspberry Pi OS Lite (64-bit)
+### Step 3.1 - Choose Operating System: Raspberry Pi OS Lite (64-bit)
 
 Click the 'CHOOSE OS' button:
 
@@ -53,11 +53,11 @@ Scroll down and click 'Raspberry Pi OS Lite (64-bit):
 
 You should see 'RASPBERRY PI OS LITE (64-BIT) on the button. 
 
-IMPORTANT: Make sure you have selected the correct version of Raspberry Pi OS - it must be the LITE edition which includes no desktop OS, and must be 64-bit (the 32-bit OS will not work).
-
 ![Choose OS in Raspberry Pi Imager](/images/macos_setup_3_1d.png)
 
-### 3.2 - Choose Storage: External SSD drive
+IMPORTANT: Make sure you have selected the correct version of Raspberry Pi OS - it must be the LITE edition (includes no desktop OS), and must be 64-bit (the 32-bit OS will not work).
+
+### Step 3.2 - Choose Storage: External SSD drive
 
 Click the 'CHOOSE STORAGE' button:
 
@@ -75,15 +75,19 @@ You should now see the name of the external drive on the button. Double check it
 
 ![Choose Storage in Raspberry Pi Imager](/images/macos_setup_3_2c.png)
 
-### 3.3 - Pre-configure your Raspberry Pi OS install
+### Step 3.3 - Pre-configure your Raspberry Pi OS install
 
-Before you begin writing the operating system to the SSD, you first want to pre-configure it. This will make it easy to connect to the system from your main computer when it first boots up, without needing a keyboard, mouse and display attached to the Raspberry Pi.
+Before you begin "burning" the operating system to the SSD, you first want to pre-configure it. This will make it easy to connect to the system from your main computer when it first boots up, without needing a keyboard, mouse and display attached to the Raspberry Pi.
 
 Click the cog icon:
 
 ![Choose Configure in Raspberry Pi Imager](/images/macos_setup_3_3a.png)
 
-Next fill in the following options: (see screenshot below)
+You will see the advanced settings menu:
+
+![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
+
+Next fill in the following options:
 
 (1) For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node).
     Make sure that the checkbox is ticked.
@@ -106,8 +110,6 @@ Next fill in the following options: (see screenshot below)
     your setup, primarily concerning which OS image you installed. It does not collect your
     IP address. You can disable this feature by unticking it.
 
-More information about these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
+More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
 Click SAVE when you are done.
-
-![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
