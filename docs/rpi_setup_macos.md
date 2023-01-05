@@ -51,7 +51,9 @@ Scroll down and click 'Raspberry Pi OS Lite (64-bit):
 
 ![Choose OS in Raspberry Pi Imager](/images/macos_setup_3_1c.png)
 
-You should see 'RASPBERRY PI OS LITE (64-BIT) on the button. Make sure you have selected this version.
+You should see 'RASPBERRY PI OS LITE (64-BIT) on the button. 
+
+IMPORTANT: Make sure you have selected the correct version of Raspberry Pi OS - it must be the LITE edition which includes no desktop OS, and must be 64-bit (the 32-bit OS will not work).
 
 ![Choose OS in Raspberry Pi Imager](/images/macos_setup_3_1d.png)
 
