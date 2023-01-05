@@ -2,9 +2,7 @@
 
 Probably, the easiest way to build your own dedicated DigiNode is with a Raspberry Pi single-board computer. You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets. The Argon One holds an internal SSD whih makes the entire unit compact and self-contained. Using the Flirc case makes the entire build a bit cheaper, but the SSD uses a seperate external case.
 
-| **Option A: Argon One M.2 Case w/ Internal SSD** | **Option B: Flirc Case w/ External SSD** |
-|--------------------------------------------------|------------------------------------------|
-| Elegant self-contained unit with fan cooling     | Cheaper. Passively cooled. Less compact. |
+| **Option A: Argon One M.2 Case w/ Internal SSD** Elegant self-contained unit with fan cooling | **Option B: Flirc Case w/ External SSD** Cheaper. Passively cooled. Less compact. |
 |--------------------------------------------------|------------------------------------------|
 | Raspberry Pi 4 8Gb 				               | Raspberry Pi 4 8Gb 				      |
 | Raspberry Pi 4 Power Supply                      | Raspberry Pi 4 Power Supply              |
