@@ -1,16 +1,33 @@
 # DigiNode Setup on a Raspberry Pi - Instructions for macOS users
 
-Note: These instructions are for MacOS users. If you are using Windows, please follow the instructions [here](docs/rpi_setup_win.md) Windows users..
+Note: These instructions are for MacOS users. If you are using Windows, please follow the instructions [here](/docs/rpi_setup_win.md) Windows users..
 
 ## Before You Begin
 
-A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](docs/suggested_hardware.md)
+A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](/docs/suggested_hardware.md)
 
 These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. They have been written with less technical users in mind, and should hopefully be easy for anyone to follow. If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk) and ask for help.
 
 ## STEP 1 - Connect the DigiNode SSD to your computer
 
-Depending on the type of enclosure you are using for your Raspberry Pi, you will either have an regular laptop 3.5" SSD in an external enclosure, or it will be 
+To install the operating system for your DigiNode, you will first need to connect the SSD you are using to your Mac computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the drive.
+
+Depending on the type of enclosure you are using for your Raspberry Pi, your SSD will either be in an external case like have an SSD in a seperate external case, or it is built
+
+**External SSD**
+
+
+
+**Internal SSD**
+
+To connect the internal SSD to your Mac you will need a USB cable to connect it. Newer Macs only have USB-C ports, so you will need a USB-C to USB-A cable. If your Mac is older and has USB-A ports (the big rectangular one) , you can use to USB-A to USB-C cable. You can find these on Amazon etc. if you don't already have one.
+
+![USB Cable Types](/images/usb_cable_types.png)
+
+In the case of the Argon M.2 One case, you need to connect one end of the cable to the USB-A port for the SSD itself (see the image below). Then connect the other end of the cable to your Mac.
+
+![USB port for the internal SSD on the Argon M.2 One case](/images/argon_case_ports_ssd.jpg)
+
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
@@ -63,11 +80,13 @@ Click the 'CHOOSE STORAGE' button:
 
 ![Choose Storage in Raspberry Pi Imager](/images/macos_setup_3_2a.png)
 
-Select the external SSD you are going to use for your DigiNode. (Note: You should have already connected the SSD to your Mac in STEP 1. If you have not already done so, connect it now. It should show up in the list. If you still don't see it, try unplugging and reconnecting it. Once it appears, click on it to select it.)
+Select the external SSD you are going to use for your DigiNode. 
 
-!!! BE VERY CAREFUL TO SELECT THE CORRECT DRIVE: The contents of the drive will be completely erased in the next step !!!
+(Note: You should have already connected the SSD to your Mac in STEP 1. If you have not already done so, connect it now. It should show up in the list. If you still don't see it, try unplugging and reconnecting it. Once it appears, click on it to select it.)
 
-(In this example, we are using a Samsung SSD. The system also has a Time machine backup drive connected.)
+***!!! BE VERY CAREFUL TO SELECT THE CORRECT DRIVE: The contents of the drive will be completely erased in the next step !!!***
+
+(In this example, we are using a Samsung SSD. The system also has a Time Machine backup drive connected.)
 
 ![Choose Storage in Raspberry Pi Imager](/images/macos_setup_3_2b.png)
 
