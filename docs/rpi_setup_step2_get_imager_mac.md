@@ -1,10 +1,10 @@
 # DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
 
-Note: If you have not already connected your DigiNode SSD to you Mac, go [here](/docs/rpi_setup_step1_connect_ssd.md) to complete STEP 1.
+Note: If you have not already connected the SSD you are using with your Raspbeery Pi to your Mac computer, then go [here](/docs/rpi_setup_step1_connect_ssd.md) to complete STEP 1.
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
-'Raspberry Pi Imager' will be used to "burn" the operating system on to the SSD you are going to booting the Rasperry Pi from.
+'Raspberry Pi Imager' will be used to write the operating system on to the SSD you are going to booting the Rasperry Pi from.
 
 ### Step 2.1 - Download 'Raspberry Pi Imager'
 
@@ -22,5 +22,8 @@ Drag and drop the 'Raspberry Pi Imager' icon on to the Applications icon to inst
 
 ![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_2b.png)
 
+Open 'Raspberry Pi Imager'. You can double-click the 'Applications' shortcut icon from the previous step, to open your Applications folder, and then find the 'Rasperry Pi Imager' application that you just installed and double-click the icon to open it.
+
+![Raspberry Pi Imager for macOS](/images/macos_setup_2_2c.png)
 
 # NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD](/docs/rpi_setup_step3_burn_image.md)
