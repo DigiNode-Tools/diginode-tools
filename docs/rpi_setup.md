@@ -35,7 +35,9 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
 
-Open 'Raspberry Pi Imager' if it is not already running. Make sure you are running v1.7.3 or newer.
+Open 'Raspberry Pi Imager' if it is not already running. 
+
+Make sure you are running Raspberry Pi Imager v1.7.3 or newer.
 
 ![Raspberry Pi Imager v1.7.3](/images/macos_setup_3.png)
 
