@@ -4,7 +4,7 @@
 
 A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](/docs/suggested_hardware.md).
 
-These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, so hopefully it should be easy for everyone to follow. If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk) and ask for help.
+These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow. If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk) and ask for help.
 
 ## Summary of Steps
 
@@ -58,7 +58,7 @@ Click the cog icon, to open the advanced menu:
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
-Click SAVE. Click WRITE to begin burning the image to the SSD. Grab a coffee while it does its thing.
+Click SAVE when you are done, then click WRITE to begin burning the image to the SSD. Grab a coffee while it does its thing.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 
