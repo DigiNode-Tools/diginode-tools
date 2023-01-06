@@ -52,7 +52,7 @@ You should now see the name of the external drive on the button. Double check it
 
 ### Step 3.3 - Pre-configure your Raspberry Pi OS install
 
-Before you begin "burning" the operating system to the SSD, you first want to pre-configure it. This will make it easy to connect to the system from your main computer when it first boots up, without needing a keyboard, mouse and display attached to the Raspberry Pi.
+Before you begin to write the operating system to the SSD, you first want to pre-configure it. This will make it easy to connect to the system from your main computer when it first boots up, without needing a keyboard, mouse and display attached to the Raspberry Pi.
 
 Click the cog icon:
 
@@ -64,26 +64,12 @@ You will see the advanced settings menu:
 
 Next fill in the following options:
 
-(1) For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node).
-    Make sure that the checkbox is ticked.
-
-(2) You need to enable SSH so that you can remotely connect to the machine via the terminal when it first boots up.
-    Select 'Use password autentication'.
-    Make sure that the checkbox is ticked.
-
-(3) Set the username to 'digibyte' and enter a password. Do not forget it. You will need it to connect to and manage your DigiNode.
-	Make sure that the checkbox is ticked.
-
-(4) Configuring the wireless LAN is optional. Since your DigiNode is a server that needs a robust connection
-    to the internet, it is generally recommended to connect it to your router using a physical ethernet cable,
-    whenever possible, rather than using a wifi connection. If you would like use wifi, enter your
-    wifi network name (SSID), password and wireless LAN country here. Make sure that the checkbox is ticked.
-
-(5) Set your timezone and keyboard layout, in case you ever need to connect one.
-
-(6) 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about
-    your setup, primarily concerning which OS image you installed. It does not collect your
-    IP address. You can disable this feature by unticking it.
+1. For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node). Make sure that the checkbox is ticked.
+2. You need to enable SSH so that you can remotely connect to the machine via the terminal when it first boots up. Select 'Use password autentication'. Make sure that the checkbox is ticked.
+3. Set the username to 'digibyte' and enter a password. Do not forget it. You will need it to connect to and manage your DigiNode. Make sure that the checkbox is ticked.
+4. Configuring the wireless LAN is optional. Since your DigiNode is a server that needs a robust connection to the internet, it is generally recommended to connect it to your router using a physical ethernet cable, whenever possible, rather than using a wifi connection. If you would like use wifi, enter your wifi network name (SSID), password and wireless LAN country here. Make sure that the checkbox is ticked.
+5. Set your timezone and keyboard layout, in case you ever need to connect one.
+6. 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about your setup, primarily concerning which OS image you installed. It does not collect your IP address. You can disable this feature by unticking it.
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
