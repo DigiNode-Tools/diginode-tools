@@ -48,12 +48,12 @@ Click the cog icon, to open the advanced menu:
 
 ![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
 
-- (1) For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node).
-- (2) Enable SSH and select 'Use password autentication'.
-- (3) Set the username to 'digibyte' and enter a password. 
-- (4) Configuring the wireless LAN is optional. Using an ethernet cable is prefereable.
-- (5) Set your timezone and keyboard layout, in case you ever need to connect one.
-- (6) 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about
+1. For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node).
+2. Enable SSH and select 'Use password autentication'.
+3. Set the username to 'digibyte' and enter a password. 
+4. Configuring the wireless LAN is optional. Using an ethernet cable is prefereable.
+5. Set your timezone and keyboard layout, in case you ever need to connect one.
+6. 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about
     your setup. It does not collect your IP address. You can disable this feature by unticking it.
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
