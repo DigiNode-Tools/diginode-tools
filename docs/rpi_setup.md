@@ -11,25 +11,23 @@ These instructions will take you though all the steps required to setup your Dig
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
 1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows computer
-2. Use 'Raspberry Pi imager' to "burn" the Raspberry Pi Operating System to the SSD
+2. Use 'Raspberry Pi imager' to write the Raspberry Pi Operating System to the SSD
 3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
 4. Once the Pi has booted, SSH into it from your Mac or PC and run the DigiNode Setup scrript.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
-To install the operating system for your DigiNode, you will first need to connect the SSD you are using with your Raspberry Pi to your Mac or Windows computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the SSD.
+To install the operating system for your DigiNode, you need to connect the SSD you are using with your Raspberry Pi to your Mac or Windows computer. You can then use the 'Raspberry Pi Imager' software to write the operating system on to the SSD.
 
-If you are using an external SSD you should be able to use the cable it came with to plug it directyly into your computer. 
+If you are using an external SSD you should be able to use the cable it came with to plug it directly into your computer. 
 
-If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a USB-A to USB-A cable, or USB-A to USB-C cable, depending on the ports you have on your computer.
+If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a USB-A to USB-A cable, or USB-A to USB-C cable, depending on the USB ports you have on your computer.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
-'Raspberry Pi Imager' will be used to "burn" the operating system on to the SSD you are going to booting the Rasperry Pi from.
-
-Go to the Raspberry Pi website, download and install it for your system.
+Go to the Raspberry Pi website, and download and install the 'Raspberry Pi imager' software on to your computer.
 
 You can find it here: [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/)
 
