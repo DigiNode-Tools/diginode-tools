@@ -1,4 +1,4 @@
-# Instructions fo Setup a DigiNode on a Raspberry Pi
+# Instructions to Setup a DigiNode on a Raspberry Pi
 
 ## Before You Begin
 
