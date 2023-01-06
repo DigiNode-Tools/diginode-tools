@@ -6,7 +6,7 @@ Note: If you have not already installed the 'Raspberry Pi Imager' software, go a
 
 If it is not already running, open 'Raspberry Pi Imager'. Check you are using v1.7.3 or newer.
 
-![Raspberry Pi Imager v1.7.3](/images/macos_setup.png)
+![Raspberry Pi Imager v1.7.3](/images/macos_setup_3.png)
 
 Note: The screenshots on this page show the Mac version, but the software is the same if you are on Windows.
 
