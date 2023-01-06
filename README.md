@@ -31,7 +31,7 @@ To get started, run DigiNode Setup by entering the following command in the term
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below. 
 
-Detailed step-by-step instructions for setting up a DigiNode on a Raspberry Pi 4 can be found [here](docs/rpi_setup_macos.md) for MacOS users and [here](docs/rpi_setup_win.md) Windows users.
+Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).
 
 Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor with your existing DigiByte Node, or want to inspect the scripts before doing a full install. (They will be installed at ~/diginode-tools)
 

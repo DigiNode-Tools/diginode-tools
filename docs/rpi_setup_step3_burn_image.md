@@ -1,58 +1,14 @@
-# DigiNode Setup on a Raspberry Pi - Instructions for macOS users
+# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
 
-Note: These instructions are for MacOS users. If you are using Windows, please follow the instructions [here](/docs/rpi_setup_win.md) Windows users..
-
-## Before You Begin
-
-A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](/docs/suggested_hardware.md)
-
-These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. They have been written with less technical users in mind, and should hopefully be easy for anyone to follow. If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk) and ask for help.
-
-## STEP 1 - Connect the DigiNode SSD to your computer
-
-To install the operating system for your DigiNode, you will first need to connect the SSD you are using to your Mac computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the drive.
-
-Depending on the type of enclosure you are using for your Raspberry Pi, your SSD will either be in an external case like have an SSD in a seperate external case, or it is built
-
-**External SSD**
-
-
-
-**Internal SSD**
-
-To connect the internal SSD to your Mac you will need a USB cable to connect it. Newer Macs only have USB-C ports, so you will need a USB-C to USB-A cable. If your Mac is older and has USB-A ports (the big rectangular one) , you can use to USB-A to USB-C cable. You can find these on Amazon etc. if you don't already have one.
-
-![USB Cable Types](/images/usb_cable_types.png)
-
-In the case of the Argon M.2 One case, you need to connect one end of the cable to the USB-A port for the SSD itself (see the image below). Then connect the other end of the cable to your Mac.
-
-![USB port for the internal SSD on the Argon M.2 One case](/images/argon_case_ports_ssd.jpg)
-
-
-## STEP 2 - Download and install the 'Raspberry Pi Imager' software
-
-'Raspberry Pi Imager' will be used to "burn" the operating system on to the SSD you are going to booting the Rasperry Pi from.
-
-### Step 2.1 - Download 'Raspberry Pi Imager'
-
-Open Safari, and visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and click the 'Download for macOS' button to download the 'Raspberry Pi Imager' software to your computer
-
-![Download Raspberry Pi Imager for macOS](/images/macos_setup_2_1.png)
-
-### Step 2.2 - Install 'Raspberry Pi Imager'
-
-Click on the 'Downloads' icon in the top-right corner of the Safari window, and then click on the downloaded 'imager_x.x.x.dmg' install file to open it.
-
-![Open Raspberry Pi Imager installer for macOS](/images/macos_setup_2_2a.png)
-
-Drag and drop the 'Raspberry Pi Imager' icon on to the Applications icon to install it in your Applications folder. 
-
-![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_2b.png)
-
+Note: If you have not already installed the 'Raspberry Pi Imager' software, go and complete STEP 2 first. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you using Windows. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you are on a Mac.
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
 
-Open 'Raspberry Pi Imager'. (You can double-click the 'Applications' shortcut icon from the previous step, to open your Applications folder, and then find the 'Rasperry Pi Imager' application that you just installed and double-click the icon to open it.)
+If it is not already running, open 'Raspberry Pi Imager'. Check you are using v1.7.3 or newer.
+
+![Raspberry Pi Imager v1.7.3](/images/macos_setup.png)
+
+Note: The screenshots on this page show the Mac version, but the software is the same if you are on Windows.
 
 ### Step 3.1 - Choose Operating System: Raspberry Pi OS Lite (64-bit)
 
