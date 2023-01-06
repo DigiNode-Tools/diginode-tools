@@ -15,15 +15,15 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
 4. Once the Pi has booted, SSH into it from your Mac or PC and run the DigiNode Setup scrript.
 
-## STEP 1 - Connect the DigiNode SSD to your Windows or Mac computer
+## STEP 1 - Connect the SSD to your Windows or Mac computer
 
-To install the operating system for your DigiNode, you will first need to connect the SSD you are using to your computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the SSD.
+To install the operating system for your DigiNode, you will first need to connect the SSD you are using with your Raspberry Pi to your Mac or Windows computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the SSD.
 
-If you are using an external SSD you should be able to use the cable it came with to plug in into your computer. 
+If you are using an external SSD you should be able to use the cable it came with to plug it directyly into your computer. 
 
-If you are using an internal SSD, you may need to purchase a cable for this purpose, if you don't already have one. You will need a USB-A to USB-A cable, or USB-A to USB-C cable, depending on the ports you have on your computer.
+If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a USB-A to USB-A cable, or USB-A to USB-C cable, depending on the ports you have on your computer.
 
-More detailed instructions on how to complete this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
@@ -33,13 +33,13 @@ Go to the Raspberry Pi website, download and install it for your system.
 
 You can find it here: [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/)
 
-More detailed instructions on how to complete this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_win.md) for Mac.
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_win.md) for Mac.
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
 
 Open 'Raspberry Pi Imager' if it is not already running. Make sure you are running v1.7.3 or newer.
 
-![Raspberry Pi Imager v1.7.3](/images/macos_setup.png)
+![Raspberry Pi Imager v1.7.3](/images/macos_setup_3.png)
 
 Click 'CHOOSE OS' and select: **Raspberry Pi OS Lite (64-bit)**
 Click 'CHOOSE STORAGE' and select the SSD you are using for your DigiNode.
@@ -60,7 +60,7 @@ More information about all these settings can be found [here](https://talktech.i
 
 Click SAVE. Click WRITE to begin burning the image to the SSD. Grab a coffee while it does its thing.
 
-More detailed instructions on how to complete this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 
 ## STEP 4 - Connect the SSD to the Raspberry Pi amd power it on
 
