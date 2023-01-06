@@ -2,15 +2,17 @@
 
 ## STEP 1 - Connect the DigiNode SSD to your computer
 
-To install the operating system for your DigiNode, you will first need to connect the SSD you are using to your Mac computer. You can then use the 'Raspberry Pi Imager' software to "burn" the operating system on to the SSD.
+To install the operating system for your DigiNode, you will first need to connect the SSD you are using with your Raspberry Pi to your computer. You can then use the 'Raspberry Pi Imager' software to write the operating system on to the SSD.
 
 Depending on the type of enclosure you are using for your Raspberry Pi, your SSD will either be in an external case like have an SSD in a seperate external case, or it is built
 
 **External SSD**
 
-
+If you are using an external SSD you should be able to use the cable that it came with to plug it directly into your computer. 
 
 **Internal SSD**
+
+Some Raspberry Pi cases, such as the 'Argon ONE M.2' or the 'DeskPi Pro' have space for an SSD within the case. The SSD is then connected to the USB port the Raspberry Pi by way of a U-shaped USB dongle.
 
 To connect the internal SSD to your Mac you will need a USB cable to connect it. Newer Macs only have USB-C ports, so you will need a USB-C to USB-A cable. If your Mac is older and has USB-A ports (the big rectangular one) , you can use to USB-A to USB-C cable. You can find these on Amazon etc. if you don't already have one.
 

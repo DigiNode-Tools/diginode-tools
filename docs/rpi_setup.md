@@ -39,7 +39,7 @@ Open 'Raspberry Pi Imager' if it is not already running.
 
 Make sure you are running Raspberry Pi Imager v1.7.3 or newer.
 
-![Raspberry Pi Imager v1.7.3](/images/macos_setup_3.png)
+![Raspberry Pi Imager v1.7.3](/images/macos_setup_3_mm.png)
 
 - Click 'CHOOSE OS' and select: **Raspberry Pi OS Lite (64-bit)**
 - Click 'CHOOSE STORAGE' and select the SSD you are using for your DigiNode.
