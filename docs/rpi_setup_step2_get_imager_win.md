@@ -24,7 +24,7 @@ If you are using Google Chrome, it will be in the downloads bar at the bottom of
 
 When the window appears asking for permission for the app to make changes to your device, click 'Yes'.
 
-![Install Raspberry Pi Imager for Windows](/images/win_setup_2_2b.png)
+![Install Raspberry Pi Imager for Windows](/images/win_setup_2_2b.jpg)
 
 Click 'Install':
 
