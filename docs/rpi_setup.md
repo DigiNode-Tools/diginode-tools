@@ -10,10 +10,11 @@ These instructions will take you though all the steps required to setup your Dig
 
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
-1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows computer
-2. Use 'Raspberry Pi imager' to write the Raspberry Pi Operating System to the SSD
-3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
-4. Once the Pi has booted, SSH into it from your Mac or PC and run the DigiNode Setup scrript.
+1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows computer.
+2. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
+3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
+4. Once the Pi has booted up, connect to the system remotely from your Mac or Windows PC using SSH and run the DigiNode Setup script.
+5. Make sure the Raspberry Pi has a fixed IP address on your network and open the relevant ports on your router.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
