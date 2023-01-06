@@ -31,7 +31,7 @@ Go to the Raspberry Pi website, and download and install the 'Raspberry Pi image
 
 You can find it here: [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/)
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_win.md) for Mac.
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
 
