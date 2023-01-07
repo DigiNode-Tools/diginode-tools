@@ -77,7 +77,25 @@ Click SAVE when you are done.
 
 ### Step 3.4 - Write the OS to the SSD
 
-Click WRITE to begin writing the operating system to the SSD. Go grab a coffee. This will take a few minutes.
+Click WRITE to begin writing the operating system to the SSD. 
+
+![Write OS in Raspberry Pi Imager](/images/macos_setup_3_4a.png)
+
+It will ask you to confirm erasing the contents of the SSD.
+
+***!!! BE VERY CAREFUL YOU HAVE SELECTED THE CORRECT DRIVE !!!***
+
+Click YES to continue.
+
+![Write OS in Raspberry Pi Imager](/images/macos_setup_3_4b.png)
+
+If you are on a Mac, it will prompt you for your system password. (The password you enter when you sit down at your computer.) Enter it now and click 'OK'.
+
+![Write OS in Raspberry Pi Imager](/images/macos_setup_3_4c_mac.png)
 
 
-# NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi amd power it on](/docs/rpi_setup_step4_boot_pi.md)
+
+Raspberry Pi Imager will now download the operating system image file and write it to the SSD. Go grab a coffee. This will take a few minutes.
+
+
+# NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi and power it on](/docs/rpi_setup_step4_boot_pi.md)
