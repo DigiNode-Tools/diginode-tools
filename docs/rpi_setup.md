@@ -26,7 +26,7 @@ To install the operating system for your DigiNode, you need to connect the SSD y
 
 If you are using an external SSD you should be able to use the cable it came with to plug it directly into your computer. 
 
-If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a USB-A to USB-A cable, or USB-A to USB-C cable, depending on the USB ports you have on your computer.
+If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a [USB-A to USB-A cable](https://amzn.to/3GMWzs3), or [USB-A to USB-C cable](https://amzn.to/3ik2trg), depending on the type of USB port available on your computer.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 

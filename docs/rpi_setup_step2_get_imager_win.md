@@ -2,9 +2,11 @@
 
 Note: If you have not already connected the SSD you are using with your Raspbeery Pi to your Windows PC, then go [here](/docs/rpi_setup_step1_connect_ssd.md) to complete STEP 1.
 
-## STEP 2 - Download and install the 'Raspberry Pi Imager' software
+## STEP 2 - Download and install the 'Raspberry Pi Imager' software on Windows
 
-'Raspberry Pi Imager' will be used to "burn" the operating system on to the SSD you are going to booting the Rasperry Pi from.
+'Raspberry Pi Imager' will be used to write the operating system on to the SSD you are going to be using with your Rasperry Pi.
+
+(These are instructions are for Windows. If you on macOS, click [here](/docs/rpi_setup_step2_get_imager_mac.md).)
 
 ### Step 2.1 - Download 'Raspberry Pi Imager'
 
