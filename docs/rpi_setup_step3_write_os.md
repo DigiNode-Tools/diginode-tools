@@ -93,9 +93,16 @@ If you are on a Mac, it will prompt you for your system password. (The password 
 
 ![Write OS in Raspberry Pi Imager](/images/macos_setup_3_4c_mac.png)
 
+Raspberry Pi Imager will now download the operating system image file and write it to the SSD. Go grab a coffee. This may take a few minutes.
 
+![Write OS in Raspberry Pi Imager](/images/macos_setup_3_4d.png)
 
-Raspberry Pi Imager will now download the operating system image file and write it to the SSD. Go grab a coffee. This will take a few minutes.
+![Verify OS in Raspberry Pi Imager](/images/macos_setup_3_4e.png)
 
+If all goes to plan you should see this message:
+
+![OS Written in Raspberry Pi Imager](/images/macos_setup_3_4f.png)
+
+You can now click 'Continue', close Raspberry Pi imager, and disconnect the SSD from your computer.
 
 # NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi and power it on](/docs/rpi_setup_step4_boot_pi.md)
