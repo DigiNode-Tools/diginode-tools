@@ -4,7 +4,11 @@
 
 A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](/docs/suggested_hardware.md).
 
-These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow. If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk) and ask for help.
+These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow.
+
+If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools) and ask for help.
+
+Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be entirely managed from your Mac or Windows computer.
 
 ## Summary of Steps
 
@@ -45,13 +49,13 @@ Make sure you are running Raspberry Pi Imager v1.7.3 or newer.
 - Click 'CHOOSE OS' and select: **Raspberry Pi OS Lite (64-bit)**
 - Click 'CHOOSE STORAGE' and select the SSD you are using for your DigiNode.
 
-Click the cog icon, to open the advanced menu:
+Click the cog icon, to open the advanced options menu:
 
 ![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
 
-1. For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a Digibyte testnet node).
+1. For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a DigiByte testnet node).
 2. Enable SSH and select 'Use password autentication'.
-3. Set the username to 'digibyte' and enter a password. 
+3. Set the username to 'digibyte' and enter a password. (Don't forget it! You will need it to mage your DigiNode.)
 4. Configuring the wireless LAN is optional. Using an ethernet cable is prefereable.
 5. Set your timezone and keyboard layout, in case you ever need to connect one.
 6. 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about

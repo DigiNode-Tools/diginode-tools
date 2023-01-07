@@ -35,7 +35,7 @@ Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i
 
 ## Support
 
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
 
 ## Donations
 
@@ -51,7 +51,7 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 DigiNode Setup helps you to setup and manage your DigiNode:
 
-- Intuitively walks you though the process of setting up a DigiByte Full Node, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
+- Intuitively walks you though the process of setting up a full DigiNode, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
 - Almost no linux command line experience required. It does all the work for you. It's as plug-and-play as possible.
 - Automatically checks hardware and OS at launch - it detects compatible Raspberry Pi hardware (if present) and lets you know if your system is compatible, and that there is enough disk space and memory to a DigiNode.
 - Checks if the existing swap file is large enough, and helps create one on low memory devices.

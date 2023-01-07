@@ -40,3 +40,4 @@ Rasperry Pi Imager should open:
 
 # NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD](/docs/rpi_setup_step3_write_os.md)
 
+To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
