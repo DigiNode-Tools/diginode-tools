@@ -8,13 +8,17 @@ Depending on the type of enclosure you are using for your Raspberry Pi, your SSD
 
 **External SSD**
 
-If you are using an external SSD you should be able to use the cable that it came with to plug it directly into your computer. 
+If you are using an external SSD you should be able to use the cable(s) that it came with to plug it directly into your computer. 
+
+![SSD Enclosures](/images/ssd_enclosures.png)
 
 **Internal SSD**
 
 Some Raspberry Pi cases, such as the 'Argon ONE M.2' or the 'DeskPi Pro' have space for an SSD within the case. The SSD is then connected to the USB port the Raspberry Pi by way of a U-shaped USB dongle.
 
-To connect the internal SSD to your Mac you will need a USB cable to connect it. Newer Macs only have USB-C ports, so you will need a USB-C to USB-A cable. If your Mac is older and has USB-A ports (the big rectangular one) , you can use to USB-A to USB-C cable. You can find these on Amazon etc. if you don't already have one.
+To connect the internal SSD to your computer you will need a USB cable to connect it. Newer Macs and PCs frequently only have USB-C ports these days, so you will need a [USB-C to USB-A cable](https://amzn.to/3Cvlv4T) to connect the SSD.
+
+If your computer is older and has USB-A ports (the big rectangular one), you will need a [USB-A to USB-A](https://amzn.to/3X5TB7C) cable.
 
 ![USB Cable Types](/images/usb_cable_types.png)
 
