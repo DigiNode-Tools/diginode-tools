@@ -38,5 +38,5 @@ Rasperry Pi Imager should open:
 
 ![Raspberry Pi Imager for Windows](/images/win_setup_2_2e.png)
 
-# NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD](/docs/rpi_setup_step3_burn_image.md)
+# NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD](/docs/rpi_setup_step3_write_os.md)
 

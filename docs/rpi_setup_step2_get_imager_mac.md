@@ -26,4 +26,4 @@ Open 'Raspberry Pi Imager'. You can double-click the 'Applications' shortcut ico
 
 ![Raspberry Pi Imager for macOS](/images/macos_setup_2_2c.png)
 
-# NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD](/docs/rpi_setup_step3_burn_image.md)
+# NEXT: [STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD](/docs/rpi_setup_step3_burn_image.md)

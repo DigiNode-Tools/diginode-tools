@@ -1,8 +1,8 @@
 # DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
 
-Note: If you have not already installed the 'Raspberry Pi Imager' software, go and complete STEP 2 first. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you using Windows. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you are on a Mac.
+Note: If you have not already installed the 'Raspberry Pi Imager' software, go and complete STEP 2 first. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you using Windows. Go [here](/docs/rpi_setup_step2_get_imager_mac.md) if you are on a Mac.
 
-## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
+## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 
 If it is not already running, open 'Raspberry Pi Imager'. Check you are using v1.7.3 or newer.
 
@@ -74,3 +74,10 @@ Next fill in the following options:
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
 Click SAVE when you are done.
+
+### Step 3.4 - Write the OS to the SSD
+
+Click WRITE to begin writing the operating system to the SSD. Go grab a coffee. This will take a few minutes.
+
+
+# NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi amd power it on](/docs/rpi_setup_step4_boot_pi.md)

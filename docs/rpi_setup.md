@@ -14,7 +14,7 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 2. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
 3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
 4. Once the Pi has booted up, connect to the system remotely from your Mac or Windows PC using SSH and run the DigiNode Setup script.
-5. Make sure the Raspberry Pi has a fixed IP address on your network and open the relevant ports on your router.
+5. Assign the Raspberry Pi a fixed IP address on your network and open the relevant ports on your router.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
@@ -34,7 +34,7 @@ You can find it here: [https://www.raspberrypi.com/software/](https://www.raspbe
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 
-## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure and burn the operating system on to the SSD
+## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 
 Open 'Raspberry Pi Imager' if it is not already running. 
 
@@ -61,7 +61,7 @@ More information about all these settings can be found [here](https://talktech.i
 
 Click SAVE when you are done, then click WRITE to begin burning the image to the SSD. Grab a coffee while it does its thing.
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step3_write_os.md).
 
 ## STEP 4 - Connect the SSD to the Raspberry Pi amd power it on
 

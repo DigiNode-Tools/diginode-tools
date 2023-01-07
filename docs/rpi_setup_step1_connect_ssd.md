@@ -23,5 +23,5 @@ In the case of the Argon M.2 One case (see image below), you need to connect one
 ![USB port for the internal SSD on the Argon M.2 One case](/images/argon_case_ports_ssd.jpg)
 
 
-# NEXT: Step 2 - Download and Install the 'Raspberry Pi Imager' software. 
+# NEXT: STEP 2 - Download and Install the 'Raspberry Pi Imager' software. 
 Click [here](/docs/rpi_setup_step2_get_imager_win.md) if you using Windows. Click [here](/docs/rpi_setup_step2_get_imager_mac.md) if you are on a Mac.
