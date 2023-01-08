@@ -67,7 +67,7 @@ Click SAVE when you are done, and then click WRITE to begin burning the image to
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step3_write_os.md).
 
-## STEP 4 - Connect the SSD to the Raspberry Pi amd power it on
+## STEP 4 - Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
 
 - Connect the SSD to one of the blue USB3 ports on the Raspberry Pi.
 - Plug in an ethernet cable that is connected to your router. (unless you are using wifi)
