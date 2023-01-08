@@ -22,7 +22,7 @@ Click on the 'Downloads' icon in the top-right corner of the Safari window, and 
 
 Drag and drop the 'Raspberry Pi Imager' icon on to the Applications icon to install it in your Applications folder. 
 
-![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_2b.png)
+![Install Raspberry Pi Imager for macOS](/images/macos_setup_2_2b.gif)
 
 Open 'Raspberry Pi Imager'. You can double-click the 'Applications' shortcut icon from the previous step, to open your Applications folder, and then find the 'Rasperry Pi Imager' application that you just installed and double-click the icon to open it.
 
