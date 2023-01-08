@@ -1,6 +1,6 @@
 # DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
 
-Note: If you have not already installed the 'Raspberry Pi Imager' software, go and complete STEP 2 first. Go [here](/docs/rpi_setup_step2_get_imager_win.md) if you using Windows. Go [here](/docs/rpi_setup_step2_get_imager_mac.md) if you are on a Mac.
+IMPORTANT: If you have not already installed the 'Raspberry Pi Imager' software, please complete STEP 2 first. Click [here](/docs/rpi_setup_step2_get_imager_win.md) if you are on Windows, and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 

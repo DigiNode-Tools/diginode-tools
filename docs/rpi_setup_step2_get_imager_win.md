@@ -1,12 +1,12 @@
 # DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
 
-Note: If you have not already connected the SSD you are using with your Raspbeery Pi to your Windows PC, then go [here](/docs/rpi_setup_step1_connect_ssd.md) to complete STEP 1.
+IMPORTANT: If you have not already connected the SSD you are using with your Raspberry Pi to your Windows PC, then please click [here](/docs/rpi_setup_step1_connect_ssd.md) and complete STEP 1.
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software on Windows
 
-'Raspberry Pi Imager' will be used to write the operating system on to the SSD you are going to be using with your Rasperry Pi.
+The 'Raspberry Pi Imager' software will be used to write the Raspberry Pi operating system on to the SSD.
 
-(These are instructions are for Windows. If you on macOS, click [here](/docs/rpi_setup_step2_get_imager_mac.md).)
+(Note: The instructions on this page are for Windows. If you on macOS, click [here](/docs/rpi_setup_step2_get_imager_mac.md).)
 
 ### Step 2.1 - Download 'Raspberry Pi Imager'
 
