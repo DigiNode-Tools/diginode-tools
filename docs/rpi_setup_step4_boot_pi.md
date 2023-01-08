@@ -22,6 +22,6 @@ The Raspberry Pi should now boot from the SSD. The first time you do this, the o
 
 
 # NEXT: STEP 5 - Connect to the Pi over SSH from your Mac or Windows PC
-Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you using Windows. Click [here](/docs/rpi_setup_step5_ssh_in_mac.md) if you are on a Mac.
+Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you are on Windows. Click [here](/docs/rpi_setup_step5_ssh_in_mac.md) if you are on Mac.
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
