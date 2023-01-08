@@ -12,7 +12,7 @@ You will now connect to the Raspberry Pi from your main computer using SSH (Secu
 
 Rather than using the the built-in Terminal app to connect to your Raspberry Pi, it is recommended to use 'iTerm 2' which has better support for the text formatting used by DigiNode Tools.
 
-Open Safari, and visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and click the 'Download for macOS' button to download the 'Raspberry Pi Imager' software to your computer
+Open Safari, and visit [https://iterm2.com/](https://iterm2.com/) and click the 'Download' button to download 'iTerm 2'.
 
 ![Download iTerm 2](/images/macos_setup_5_1a.png)
 
