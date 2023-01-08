@@ -40,6 +40,8 @@ If you see the warning message, click 'Open'.
 
 At the command prompt in iTerm 2, type ```ssh digibyte@diginode.local``` and press return to connect to the Raspberry Pi.
 
+(If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
+
 ![SSH to DigiNode](/images/macos_setup_5_2c.png)
 
 
