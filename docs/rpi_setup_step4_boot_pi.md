@@ -2,7 +2,7 @@
 
 IMPORTANT: If you have not already setup the operating system on the SSD, then please go [here](/docs/rpi_setup_step3_write_os.md) and complete STEP 3.
 
-## STEP 4 - Plug the SSD, Ethernet and power cable in to the Raspberry Pi
+## STEP 4 - Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
 
 Connect the SSD to one of the free USB 3.0 ports on the the Raspbery Pi 4:
 

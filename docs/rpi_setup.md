@@ -63,7 +63,7 @@ Click the cog icon, to open the advanced options menu:
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
-Click SAVE when you are done, then click WRITE to begin burning the image to the SSD. Grab a coffee while it does its thing.
+Click SAVE when you are done, and then click WRITE to begin burning the image to the SSD. It'll take a few minutes.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step3_write_os.md).
 
@@ -73,6 +73,8 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 - Plug in an ethernet cable that is connected to your router. (unless you are using wifi)
 - Connect a genuine Raspberry Pi PSU and power on the device.
 - Wait a minute or two while it boots for the first time.
+
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step4_boot_pi.md).
 
 ## STEP 5 - Connect to the Pi over SSH from your Mac or PC
 

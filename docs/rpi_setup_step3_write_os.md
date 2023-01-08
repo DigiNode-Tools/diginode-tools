@@ -106,6 +106,6 @@ If all goes to plan you should see this message:
 
 You can now click 'Continue', close Raspberry Pi imager, and disconnect the SSD from your computer.
 
-# NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi and power it on](/docs/rpi_setup_step4_boot_pi.md)
+# NEXT: [STEP 4 - Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on](/docs/rpi_setup_step4_boot_pi.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
