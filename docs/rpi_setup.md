@@ -8,7 +8,7 @@ These instructions will take you though all the steps required to setup your Dig
 
 If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools) and ask for help.
 
-Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be entirely managed from your Mac or Windows computer.
+Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be setup and managed entirely from your Mac or Windows computer.
 
 ## Summary of Steps
 
