@@ -78,8 +78,14 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
 
-If this does not find your Raspberry Pi, you will need to connect using its IP address. If you don't know what it is, you may be able to find it by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Angry IP Scanner](https://angryip.org/) (Windows & macOS) or [LanScan](https://www.iwaxx.com/lanscan/) (macOS)
+(If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
+
+If this does not find your Raspberry Pi, you will need to connect using its IP address. You should be able to find out what it is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Angry IP Scanner](https://angryip.org/) (Windows & macOS) or [LanScan](https://www.iwaxx.com/lanscan/) (macOS)
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
 ## STEP 6 - Run DigiNode Setup
+
+To start DigiNode Setup, enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
+
+This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
