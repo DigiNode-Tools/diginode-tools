@@ -78,11 +78,9 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 - If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended.
 
-Connect to your DigiNode using the command:
+Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
 
-```ssh digibyte@diginode.local```
-
-If this does not find your Pi, you may need to lookup its IP address and connect that way. You can discover its IP address by logging into the web interface of your router, or by using an IP address scanner usch as [Angry IP Scanner](https://angryip.org/).
+If this does not find your Raspberry Pi, you will need to connect using its IP address. If you don't know what it is, you may be able to find it by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Angry IP Scanner](https://angryip.org/) (Windows & macOS) or [LanScan](https://www.iwaxx.com/lanscan/) (macOS)
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
