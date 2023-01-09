@@ -23,13 +23,13 @@ These tools are provided as is. Use at your own risk. Always keep a backup of yo
 
 ## Get Started
 
-To get started, run DigiNode Setup by entering the following command in the terminal:
+**Detailed instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
+
+Launch DigiNode Setup by entering the following command in the terminal:
 
 ## ```curl -sSL diginode-setup.digibyte.help | bash```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below. 
-
-Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).
 
 Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor with your existing DigiByte Node, or want to inspect the scripts before doing a full install. (They will be installed at ~/diginode-tools)
 
