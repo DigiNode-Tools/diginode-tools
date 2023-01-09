@@ -22,11 +22,9 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
-To install the operating system for your DigiNode, you need to connect the SSD you are using with your Raspberry Pi to your Mac or Windows computer. You can then use the 'Raspberry Pi Imager' software to write the operating system on to the SSD.
-
 If you are using an external SSD you should be able to use the cable it came with to plug it directly into your computer. 
 
-If you are using an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a [USB-A to USB-A cable](https://amzn.to/3GMWzs3), or [USB-A to USB-C cable](https://amzn.to/3ik2trg), depending on the type of USB port available on your computer.
+If you are using a case with an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a [USB-A to USB-A cable](https://amzn.to/3GMWzs3), or [USB-A to USB-C cable](https://amzn.to/3ik2trg), depending on the type of USB port available on your computer.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
 
