@@ -10,7 +10,7 @@ You will now connect to the Raspberry Pi from your main computer using SSH (Secu
 
 ### Step 5.1 - Download and install 'iTerm 2'
 
-Rather than using the the built-in Terminal app to connect to your Raspberry Pi, it is recommended to use 'iTerm 2' which has better support for the text formatting used by DigiNode Tools.
+Rather than using the the built-in Terminal app to connect to your Raspberry Pi, it is recommended to use 'iTerm 2' which has better support for the text formatting used by DigiNode Tools. It's free.
 
 Open Safari, and visit [https://iterm2.com/](https://iterm2.com/) and click the 'Download' button to download 'iTerm 2'.
 
@@ -30,7 +30,7 @@ To install iTerm 2, drag-and-drop it on to the Applications folder.
 
 ### Step 5.2 - Connect to the Raspberry Pi using SSH
 
-Launch iTerm 2. (You can do this by pressing '⌘ + Space' to open Spotlight search, then type 'iterm' and press enter.)
+Launch iTerm 2. (You can do this by pressing '⌘ + Space' to open Spotlight search, then type 'iterm' and press return.)
 
 ![Launch iTerm 2](/images/macos_setup_5_2a.png)
 
