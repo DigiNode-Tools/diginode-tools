@@ -23,7 +23,7 @@ These tools are provided as is. Use at your own risk. Always keep a backup of yo
 
 ## Get Started
 
-**Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
+**Detailed instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
 
 Launch DigiNode Setup by entering the following command in the terminal:
 
