@@ -6,9 +6,7 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 You will now connect to the Raspberry Pi from your Windows computer using SSH (Secure Shell). You will then be able to run the DigiNode Setup script.
 
-(Note: The instructions on this page are for Windows. If you on macOS, click [here](/docs/rpi_setup_step5_ssh_in_mac.md).)
-
-
+Instructions are coming very soon.
 
 
 # NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
