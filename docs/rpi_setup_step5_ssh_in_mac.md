@@ -44,9 +44,9 @@ At the command prompt in iTerm 2, type ```ssh digibyte@diginode.local``` and pre
 
 ![SSH to DigiNode](/images/macos_setup_5_2c.png)
 
-(NOTE: In the event that it is unable to find your Raspberry Pi, it may get stuck on the screen above. If that happens, press 'Ctrl + C' to cancel. You will need to connect using the IP address of the Pi. e.g. ```ssh digibyte@192.168.10```. If you don't know its IP address, go [here](/docs/rpi_setup_step5_ssh_in_mac_find_ip.md) for instructions on how to discover it.)
+(NOTE: If it is unable to find your Raspberry Pi on your local network, it may get stuck on the screen above. If that happens, press 'Ctrl + C' to cancel. In that event, you will need to connect using the IP address of the Pi. e.g. ```ssh digibyte@192.168.10```. If you don't already know its IP address, go [here](/docs/rpi_setup_step5_ssh_in_mac_find_ip.md) for instructions on how to discover it.)
 
-When it finds your Pi, it will then ask you if you want to confirm connecting. Type the word 'yes' at the prompt and press return. (It will only do this the first time.)
+When connecting for the first time, it will then ask you if you want to continue. Type the word 'yes' at the prompt and press return.
 
 ![SSH to DigiNode](/images/macos_setup_5_2d.png)
 
