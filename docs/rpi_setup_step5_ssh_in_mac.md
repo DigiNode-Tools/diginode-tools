@@ -44,8 +44,20 @@ At the command prompt in iTerm 2, type ```ssh digibyte@diginode.local``` and pre
 
 ![SSH to DigiNode](/images/macos_setup_5_2c.png)
 
+The first time you connect to your Pi, it will ask you if you want to confirm connecting. Type the word 'yes' at the prompt and press return.
 
+(NOTE: In the event that it is unable to find your Raspberry Pi, you will need to know its IP address on your network, and connect that way. If you already know what that is, connect using the IP address now - e.g. ```ssh digibyte@192.168.10```. If you don't know the IP address of the Pi, go [here](/docs/rpi_setup_step5_ssh_in_mac_find_ip.md) for instructions on how to discover it.)
 
-# NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
+![SSH to DigiNode](/images/macos_setup_5_2d.png)
+
+At the next prompt, enter the password you created in STEP 3 and press return.
+
+![SSH to DigiNode](/images/macos_setup_5_2e.png)
+
+You are now connected to your Pi. You should see the 'digibyte@diginode' prompt. (or 'digibyte@diginode-testnet')
+
+![SSH to DigiNode](/images/macos_setup_5_2f.png)
+
+# NEXT: [STEP 6 - Run the DigiNode Setup script on your Raspberry Pi](/docs/rpi_setup_step6_run_diginode_setup.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
