@@ -82,8 +82,8 @@ Connect to your DigiNode using the command:
 
 ```ssh digibyte@diginode.local```
 
-If this does not find your Pi, you may need to lookup its IP address and connect that way.
+If this does not find your Pi, you may need to lookup its IP address and connect that way. You can discover its IP address by logging into the web interface of your router, or by using an IP address scanner usch as [Angry IP Scanner](https://angryip.org/).
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_ssn_in_win.md) for Windows and [here](/docs/rpi_setup_step2_ssh_in_mac.md) for Mac.
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
 ## STEP 6 - Run DigiNode Setup

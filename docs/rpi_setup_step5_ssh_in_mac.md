@@ -12,7 +12,7 @@ You will now connect to the Raspberry Pi from your main computer using SSH (Secu
 
 Rather than using the the built-in Terminal app to connect to your Raspberry Pi, it is recommended to use 'iTerm 2' which has better support for the text formatting used by DigiNode Tools. It's free.
 
-Open Safari, and visit [https://iterm2.com/](https://iterm2.com/) and click the 'Download' button to download 'iTerm 2'.
+Open Safari, and visit [https://iterm2.com/](https://iterm2.com/) and click the 'Download' button.
 
 ![Download iTerm 2](/images/macos_setup_5_1a.png)
 
@@ -44,9 +44,9 @@ At the command prompt in iTerm 2, type ```ssh digibyte@diginode.local``` and pre
 
 ![SSH to DigiNode](/images/macos_setup_5_2c.png)
 
-The first time you connect to your Pi, it will ask you if you want to confirm connecting. Type the word 'yes' at the prompt and press return.
+(NOTE: In the event that it is unable to find your Raspberry Pi, it may get stuck on the screen above. If that happens, press 'Ctrl + C' to cancel. You will need to connect using the IP address of the Pi. e.g. ```ssh digibyte@192.168.10```. If you don't know its IP address, go [here](/docs/rpi_setup_step5_ssh_in_mac_find_ip.md) for instructions on how to discover it.)
 
-(NOTE: In the event that it is unable to find your Raspberry Pi, you will need to know its IP address on your network, and connect that way. If you already know what that is, connect using the IP address now - e.g. ```ssh digibyte@192.168.10```. If you don't know the IP address of the Pi, go [here](/docs/rpi_setup_step5_ssh_in_mac_find_ip.md) for instructions on how to discover it.)
+When it finds your Pi, it will then ask you if you want to confirm connecting. Type the word 'yes' at the prompt and press return. (It will only do this the first time.)
 
 ![SSH to DigiNode](/images/macos_setup_5_2d.png)
 
