@@ -15,9 +15,7 @@ For more information, visit: https://diginode.digibyte.help (website coming soon
 ### What do I need to run a DigiNode?
 DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below.
 
-If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**. 
-
-See [here](docs/suggested_hardware.md) for the parts you need.
+If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**.  See [here](/docs/suggested_hardware.md) for the parts you need.
 
 ## Disclaimer
 
@@ -29,17 +27,19 @@ To get started, run DigiNode Setup by entering the following command in the term
 
 ## ```curl -sSL diginode-setup.digibyte.help | bash```
 
-This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below.
+This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below. 
+
+Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).
 
 Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor with your existing DigiByte Node, or want to inspect the scripts before doing a full install. (They will be installed at ~/diginode-tools)
 
 ## Support
 
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/+ked2VGZsLPAyN2Jk). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
 
 ## Donations
 
-Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation in DGB to support development:
+Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation to support future development:
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
@@ -51,7 +51,7 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 DigiNode Setup helps you to setup and manage your DigiNode:
 
-- Intuitively walks you though the process of setting up a DigiByte Full Node, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
+- Intuitively walks you though the process of setting up a full DigiNode, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
 - Almost no linux command line experience required. It does all the work for you. It's as plug-and-play as possible.
 - Automatically checks hardware and OS at launch - it detects compatible Raspberry Pi hardware (if present) and lets you know if your system is compatible, and that there is enough disk space and memory to a DigiNode.
 - Checks if the existing swap file is large enough, and helps create one on low memory devices.
@@ -167,6 +167,9 @@ If you want to skip this step, and simply use the default settings, include the 
 - ```diginode-setup --dgntdev --dgadev```
 
 ## Release Notes
+
+DigiNode Tools v0.7.2 - YYYY-MM-DD
+- 
 
 DigiNode Tools v0.7.1 - 2022-12-28
 - Add a custom DigiNode MOTD that displays when you login to the machine via the terminal. It includes the DigiNode logo and brief usage instructions to remind the user of the commands to launch 'DigiNode Setup' and 'DigiNode Status Monitor'.

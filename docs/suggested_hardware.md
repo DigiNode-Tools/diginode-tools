@@ -1,26 +1,28 @@
 # Build your own DigiNode
 
-The easiest and most cost effective way to build your own dedicated DigiNode is with a Raspberry Pi SBC (single-board computer). You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets.
+Probably, the easiest way to build your own dedicated DigiNode is with a Raspberry Pi single-board computer. You will aso need a power supply, SSD (Solid State Drive) and case. Links for for all these items are below. For the case and SSD, two options have been provided to suit different budgets. The Argon One holds an internal SSD whih makes the entire unit compact and self-contained. Using the Flirc case makes the entire build a bit cheaper, but the SSD uses a seperate external case.
 
-The approximate prices are shown below. These may not be current, and there may be cheaper options out there if you look.
+Once you have all the parts you need, setup instructions are [here](/docs/rpi_setup.md).
 
-| **Option A: Argon One M.2 Case w/ Internal SSD** | Price in USD (Approx) | **Option B: Flirc Case w/ External SSD** | Price in USD (Approx) |
-|--------------------------------------------------|-----------------------|------------------------------------------|-----------------------|
-| Raspberry Pi 4 8Gb 				               | $75     	           | Raspberry Pi 4 8Gb 				      | $75     	          |
-| Raspberry Pi 4 Power Supply                      | $8	                   | Raspberry Pi 4 Power Supply              | $8   	              |
-| Argon One M.2 SATA Case      		               | $45	               | Flirc Case for Pi 4                      | $16     	          |
-| M.2 SATA SSD - 250Gb      		               | $52		           | Orico USB 3.1 10Gbps USB-C SSD Enclosure | $20                   |
-| USB A to USB A Cable     		                   | $8		               | Crucial 2.5" SSD 250Gb	                  | $45                   |
-| **TOTAL**                                        | **$188**              | **TOTAL**                                | **$164**              |
+### Shopping List
+
+| **Option A: Argon One M.2 Case with Internal SSD** - Elegant self-contained unit with fan cooling | **Option B: Flirc Case with External SSD** - Cheaper. Passively cooled. Less compact. |
+|--------------------------------------------------|------------------------------------------|
+| Raspberry Pi 4 8Gb 				               | Raspberry Pi 4 8Gb 				      |
+| Raspberry Pi 4 Power Supply                      | Raspberry Pi 4 Power Supply              |
+| Argon One M.2 SATA Case      		               | Flirc Case for Pi 4                      |
+| M.2 SATA SSD - 250Gb      		               | Orico USB 3.1 10Gbps USB-C SSD Enclosure |
+| USB A to USB A Cable     		                   | Crucial 2.5" SSD 250Gb	                  |
+| Ethernet cable                                   | Ethernet cable                           |
 
 Disclaimer: This page includes affiliate links. By purchasing your equipment from here, you are helping to support development of DigiNode Tools. Thanks for your support.            
 
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
-The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. DigiByte Core requires at least 5Gb RAM to run. For this reason, only the 8Gb model Pi 4 is recommended. The 4Gb model will run, but performance will be very sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use. The 2Gb and 1Gb Pi 4 models are definitely not supported.
+The Rasperry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. Only the 8Gb model Pi 4 is recommended for a full DigiNode. The 4Gb model will run, but performance will be very sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use. The 1Gb and 2Gb models do not have enough RAM to runa DigiNode and are not supported. Earlier models of the Raspberry Pi (3, Zero etc.) are also not supported.
 
-As of December 2022, due to the global chip shortage, the Raspberry Pi 4 is still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). 
+As of December 2022, due to the global chip shortage, Raspberry Pis are still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). According to reports, the situation should start to improve in 2023 Q2 and Pi's should be hopefully readily available again in 2023 Q3. For more info, see the interview [here](https://www.youtube.com/watch?v=P9vna9jao9I) with Raspberry Pi CEO, Eben Upton.
 
 **Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD.**
 
@@ -104,23 +106,28 @@ Purchase:
 - [Amazon.se](https://amzn.to/3Ax55bX)
 - [Amazon.sg](https://amzn.to/3RsBruL)
 
-## USB A to USB A Cable
-![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
+## USB-A to USB-A Cable (or USB-A to USB-C if you have a newer computer)
+![USB Cable Types](/images/usb_cable_types.png)
 
-Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from Raspberry Pi OS a microSD card and then burn the image on to the SSD from that making the setup process longer and more complicated. This cable makes the setup process much simpler, and avoids unnecesary headaches! It is optional but highly recommended. 
+Since the SSD is enclosed in the Argon One M.2 case, this cable helps you connect the SSD directly to your computer to write the operating system image. Without it you will likely need to first boot the Raspberry Pi from Raspberry Pi OS on a microSD card and then burn the image on to the SSD from that making the setup process longer and more complicated. This cable makes the setup process much simpler, and avoids unnecesary headaches! It is optional but highly recommended. 
 
-Purchase:
-- [Amazon.com](https://amzn.to/3ON6jV1)
-- [Amazon.com.au](https://amzn.to/3AuqEtK)
-- [Amazon.ca](https://amzn.to/3NMdoUs)
-- [Amazon.co.uk](https://amzn.to/3NNCfY3)
-- [Amazon.de](https://amzn.to/3OQDKFY)
-- [Amazon.es](https://amzn.to/3AuCGDk)
-- [Amazon.fr](https://amzn.to/3uw2qvj)
-- [Amazon.it](https://amzn.to/3ym7rrv)
-- [Amazon.nl](https://amzn.to/3nHppzF)
-- [Amazon.se](https://amzn.to/3yjpeQ9)
-- [Amazon.sg](https://amzn.to/3bVpuxg)
+If your comuter is newer, and only has USB-C ports (e.g. most new Macs) then you will need a USB-A to USB-C cable.
+
+| Purchase USB-A to USB-A Cable:                    | Purchase USB-A to USB-C Cable:			        | 
+|---------------------------------------------------|---------------------------------------------------|
+| - [Amazon.com](https://amzn.to/3ON6jV1)			| - [Amazon.com](https://amzn.to/3vLYxTb)           |
+| - [Amazon.com.au](https://amzn.to/3AuqEtK)    	| - [Amazon.com.au](https://amzn.to/3vLYxTb)        |
+| - [Amazon.ca](https://amzn.to/3NMdoUs)			| - [Amazon.ca](https://amzn.to/3vLKihr)	        |
+| - [Amazon.co.uk](https://amzn.to/3NNCfY3)			| - [Amazon.co.uk](https://amzn.to/3k4CFzZ)		 	|
+| - [Amazon.de](https://amzn.to/3OQDKFY)			| - [Amazon.de](https://amzn.to/3vQRfOa)            |
+| - [Amazon.es](https://amzn.to/3AuCGDk)			| - [Amazon.es](https://amzn.to/3GvYhwA)			|
+| - [Amazon.fr](https://amzn.to/3uw2qvj)			| - [Amazon.fr](https://amzn.to/3QonPQZ)			|
+| - [Amazon.it](https://amzn.to/3ym7rrv)			| - [Amazon.it](https://amzn.to/3GRJw8P)			|
+| - [Amazon.nl](https://amzn.to/3nHppzF)			| - [Amazon.nl](https://amzn.to/3vLYxTb)			|
+| - [Amazon.se](https://amzn.to/3yjpeQ9)			| - [Amazon.se](https://amzn.to/3vLYxTb)			|
+| - [Amazon.sg](https://amzn.to/3bVpuxg)			| - [Amazon.sg](https://amzn.to/3vLYxTb)			|
+
+
 
 # Option B: Flirc Case with external SSD
 
@@ -182,3 +189,5 @@ Purchase:
 - [Amazon.nl](https://amzn.to/3NT3Bvz)
 - [Amazon.se](https://amzn.to/3ImFHaF)
 - [Amazon.sg](https://amzn.to/3Irgc8j)
+
+

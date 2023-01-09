@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.7.1
+#           Name:  DigiNode Setup v0.7.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -567,16 +567,16 @@ UI_HOSTNAME_SET=$UI_HOSTNAME_SET
 UI_FIREWALL_SETUP=$UI_FIREWALL_SETUP
 
 # Choose whether to create or change the swap file size
-# The optimal swap size will be calculated to ensure there is 8Gb total memory.
-# e.g. If the system has 2Gb RAM, it will create a 6Gb swap file. Total: 8Gb.
-# If there is more than 8Gb RAM available, no swap will be created.
+# The optimal swap size will be calculated to ensure there is ~16Gb total memory (i.e. System RAM + SWAP = ~16Gb).
+# e.g. If the system has 8Gb RAM, it will create a 8Gb swap file. Total: 16Gb.
+# If there is more than 12Gb RAM available, no swap will be created.
 # You can override this by manually entering the desired size in UI_SWAP_SIZE_MB below.
 UI_SWAP_SETUP=$UI_SWAP_SETUP
 
 # You can optionally manually enter a desired swap file size here in MB.
 # The UI_SWAP_SETUP variable above must be set to YES for this to be used.
 # If you leave this value empty, the optimal swap file size will calculated by DigiNode Setup.
-# Enter the amount in MB only, without the units. (e.g. 4Gb = 4000 )
+# Enter the amount in MB only, without the units. (e.g. 8Gb = 8000 )
 UI_SWAP_SIZE_MB=$UI_SWAP_SIZE_MB
 
 # This is where the swap file will be located. You can change this to store it on an external drive
@@ -5800,7 +5800,7 @@ menu_existing_install() {
             printf "\\n"
             change_upnp_status
             ;;
-        # Change DigiByte Network - mainet or testnet
+        # Change DigiByte Network - mainnet or testnet
         ${opt5a})
             printf "%b You selected the DIGIBYTE NETWORK option.\\n" "${INFO}"
             printf "\\n"
@@ -6981,7 +6981,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB NETWORK MENU FOR ANEW INSTALL
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINNET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
             printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
@@ -11155,6 +11155,14 @@ else
         printf "%b Unattended Mode: Skipping changing the MOTD message. It will remain $MOTD_STATUS_CURRENT.\\n" "${INFO}"
         MOTD_DO_INSTALL=""
         MOTD_DO_UNINSTALL=""
+
+        if [ "$MOTD_STATUS_CURRENT" = "ENABLED" ]; then
+            MOTD_STATUS="ENABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+        elif [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
+            MOTD_STATUS="DISABLED"
+            sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
+        fi
 
     fi
 
