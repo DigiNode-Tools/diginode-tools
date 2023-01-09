@@ -30,9 +30,7 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
-Go to the Raspberry Pi website, and download and install the 'Raspberry Pi imager' software on to your computer.
-
-You can find it here: [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/)
+Visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and download and install the 'Raspberry Pi imager' software on to your computer.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 
