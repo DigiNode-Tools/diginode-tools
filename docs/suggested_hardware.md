@@ -106,19 +106,19 @@ Purchase:
 - [Amazon.se](https://amzn.to/3Ax55bX)
 - [Amazon.sg](https://amzn.to/3RsBruL)
 
-## USB-A to USB-A Cable (or to USB-C if you have a newer computer)
+## USB-A to USB-A Cable (or USB-A to USB-C if you have a newer computer)
 ![USB Cable Types](/images/usb_cable_types.png)
 
 Since the SSD is enclosed in the Argon One M.2 case, this cable helps you connect the SSD directly to your computer to write the operating system image. Without it you will likely need to first boot the Raspberry Pi from Raspberry Pi OS on a microSD card and then burn the image on to the SSD from that making the setup process longer and more complicated. This cable makes the setup process much simpler, and avoids unnecesary headaches! It is optional but highly recommended. 
 
 If your comuter is newer, and only has USB-C ports (e.g. most new Macs) then you will need a USB-A to USB-C cable.
 
-| Purchase USB-A to USB-A Cable:                    | Purchase USB-A to USB-C Cable:			         | 
-|---------------------------------------------------|----------------------------------------------------|
-| - [Amazon.com](https://amzn.to/3ON6jV1)			| - [Amazon.com](https://amzn.to/3vLYxTb)            |
-| - [Amazon.com.au](https://amzn.to/3AuqEtK)    	| - [Amazon.com.au](https://amzn.to/3vLYxTb)
-| - [Amazon.ca](https://amzn.to/3NMdoUs)			| 
-| - [Amazon.co.uk](https://amzn.to/3NNCfY3)			| 
+| Purchase USB-A to USB-A Cable:                    | Purchase USB-A to USB-C Cable:			        | 
+|---------------------------------------------------|---------------------------------------------------|
+| - [Amazon.com](https://amzn.to/3ON6jV1)			| - [Amazon.com](https://amzn.to/3vLYxTb)           |
+| - [Amazon.com.au](https://amzn.to/3AuqEtK)    	| - [Amazon.com.au](https://amzn.to/3vLYxTb)        |
+| - [Amazon.ca](https://amzn.to/3NMdoUs)			| - [Amazon.ca](https://amzn.to/3vLKihr)	        |
+| - [Amazon.co.uk](https://amzn.to/3NNCfY3)			| - [Amazon.co.uk](https://amzn.to/3k4CFzZ)		 	|
 | - [Amazon.de](https://amzn.to/3OQDKFY)			| 
 | - [Amazon.es](https://amzn.to/3AuCGDk)			| 
 | - [Amazon.fr](https://amzn.to/3uw2qvj)			| 
@@ -127,10 +127,7 @@ If your comuter is newer, and only has USB-C ports (e.g. most new Macs) then you
 | - [Amazon.se](https://amzn.to/3yjpeQ9)			| 
 | - [Amazon.sg](https://amzn.to/3bVpuxg)			| 
 
-## USB-A to USB-C Cable (if you have a newer computer)
-![USB A to USB A Cable](/images/usb_atoa_cable.jpg)
 
-Since the SSD is enclosed in the Argon One case, this cable makes it possible to connect the SSD directly to your computer to copy over the operating system image. Without it you will likely need to first boot the Raspberry Pi from Raspberry Pi OS a microSD card and then burn the image on to the SSD from that making the setup process longer and more complicated. This cable makes the setup process much simpler, and avoids unnecesary headaches! It is optional but highly recommended. 
 
 # Option B: Flirc Case with external SSD
 
