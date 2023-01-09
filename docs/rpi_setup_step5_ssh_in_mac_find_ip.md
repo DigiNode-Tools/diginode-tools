@@ -4,8 +4,6 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 ## STEP 5 - Connect to the Pi over SSH from macOS
 
-Since you are unable to connect to your Raspberry Pi at the diginode.local domain name, you need to lookup its IP address and connect that way.
-
 ### Step 5.3 - Discover the IP address of the Raspberry Pi
 
 You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner, which is the method we will be using here. We will be using the free software called 'Angry IP Scanner'.
