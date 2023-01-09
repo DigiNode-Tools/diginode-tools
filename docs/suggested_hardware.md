@@ -119,13 +119,13 @@ If your comuter is newer, and only has USB-C ports (e.g. most new Macs) then you
 | - [Amazon.com.au](https://amzn.to/3AuqEtK)    	| - [Amazon.com.au](https://amzn.to/3vLYxTb)        |
 | - [Amazon.ca](https://amzn.to/3NMdoUs)			| - [Amazon.ca](https://amzn.to/3vLKihr)	        |
 | - [Amazon.co.uk](https://amzn.to/3NNCfY3)			| - [Amazon.co.uk](https://amzn.to/3k4CFzZ)		 	|
-| - [Amazon.de](https://amzn.to/3OQDKFY)			| 
-| - [Amazon.es](https://amzn.to/3AuCGDk)			| 
-| - [Amazon.fr](https://amzn.to/3uw2qvj)			| 
-| - [Amazon.it](https://amzn.to/3ym7rrv)			| 
-| - [Amazon.nl](https://amzn.to/3nHppzF)			| 
-| - [Amazon.se](https://amzn.to/3yjpeQ9)			| 
-| - [Amazon.sg](https://amzn.to/3bVpuxg)			| 
+| - [Amazon.de](https://amzn.to/3OQDKFY)			| - [Amazon.de](https://amzn.to/3vQRfOa)            |
+| - [Amazon.es](https://amzn.to/3AuCGDk)			| - [Amazon.es](https://amzn.to/3GvYhwA)			|
+| - [Amazon.fr](https://amzn.to/3uw2qvj)			| - [Amazon.fr](https://amzn.to/3QonPQZ)			|
+| - [Amazon.it](https://amzn.to/3ym7rrv)			| - [Amazon.it](https://amzn.to/3GRJw8P)			|
+| - [Amazon.nl](https://amzn.to/3nHppzF)			| - [Amazon.nl](https://amzn.to/3vLYxTb)			|
+| - [Amazon.se](https://amzn.to/3yjpeQ9)			| - [Amazon.se](https://amzn.to/3vLYxTb)			|
+| - [Amazon.sg](https://amzn.to/3bVpuxg)			| - [Amazon.sg](https://amzn.to/3vLYxTb)			|
 
 
 
