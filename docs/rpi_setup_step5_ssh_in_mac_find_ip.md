@@ -4,9 +4,9 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 ## STEP 5 - Connect to the Pi over SSH from macOS
 
-### Step 5.3 - Discover the IP address of the Raspberry Pi: Install Angry IP Scanner
+You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. If you already know the IP address to the Raspberry Pi, skip to step 5.5 below. Alternatively, you can use an IP address scanner, which is the method we will be using here. We will be installing the free open-source software called 'Angry IP Scanner'. If you already have this installed, open it now, and skip to step 5.4 below. 
 
-You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner, which is the method we will be using here. We will be installing the free open-source software called 'Angry IP Scanner'. If you already have this installed, open it now, and skip to step 5.4 below.
+### Step 5.3 - Install Angry IP Scanner
 
 There are a few extra steps required to install it since the software is unsigned.
 
@@ -58,7 +58,7 @@ At the message warning that the developer cannot be verified, click 'Open'.
 
 'Angry IP Scanner' will open.
 
-### Step 5.4 - Discover the IP address of the Raspberry Pi: Scan your local network
+### Step 5.4 - Discover the IP address of the Raspberry Pi
 
 Close the 'Getting Started' dialog in 'Angry IP Scanner' if it is visible.
 
