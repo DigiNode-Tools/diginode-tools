@@ -55,6 +55,6 @@ You are now connected to your Pi. You should see the 'digibyte@diginode' prompt.
 ![SSH to DigiNode](/images/macos_setup_5_5c.png)
 
 
-# NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
+# NEXT: [STEP 6 - Run the DigiNode Setup script on your Raspberry Pi](/docs/rpi_setup_step6_run_diginode_setup.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).

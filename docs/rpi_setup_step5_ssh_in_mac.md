@@ -54,7 +54,7 @@ At the next prompt, enter the password you created in STEP 3 and press return.
 
 ![SSH to DigiNode](/images/macos_setup_5_2e.png)
 
-You are now connected to your Pi. You should see the 'digibyte@diginode' prompt. (or 'digibyte@diginode-testnet')
+You should then see the 'digibyte@diginode' (or 'digibyte@diginode-testnet') prompt. You are now connected to your Pi. 
 
 ![SSH to DigiNode](/images/macos_setup_5_2f.png)
 

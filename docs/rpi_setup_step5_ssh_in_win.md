@@ -98,7 +98,7 @@ It may prompt you to save the password, so you don't have to enter it every time
  
 ![SSH to DigiNode](/images/win_setup_5_2f.png)
 
-You are now connected to your Pi. You should see the 'digibyte@diginode' prompt. (or 'digibyte@diginode-testnet')
+You should then see the 'digibyte@diginode' (or 'digibyte@diginode-testnet') prompt. You are now connected to your Pi. 
 
 ![SSH to DigiNode](/images/win_setup_5_2g.png)
 
