@@ -2,15 +2,37 @@
 
 Note: If you have not already connected the SSD to your Raspberry Pi and powered it on, then go [here](/docs/rpi_setup_step4_boot_pi.md) to complete STEP 4.
 
-## STEP 5 - Connect to the Pi over SSH from macOS
+## STEP 5 - Connect to the Pi over SSH from Windows
 
-You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. If you already know its IP address, skip to step 5.5 below. Alternatively, you can find it using an IP address scanner, which is the method we will be using here. We will be uing 'LanScan' available from the Mac App Store. The basic version is free. 
+You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. If you already know its IP address, skip to step 5.5 below. Alternatively, you can find it using an IP address scanner, which is the method we will be using here. We will be uing 'Advanced IP Scanner'. It's free. 
 
-If you already have LanScan installed, open it now, and skip to step 5.4 below. 
+If you already have 'Advanced IP Scanner' installed, open it now, and skip to step 5.4 below. 
 
-### Step 5.3 - Install LanScan IP Network Scanner
+### Step 5.3 - Install Advanced IP Scanner
 
-Click [here](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) to open the LanScan page in the Mac App Store.
+Visit [https://www.advanced-ip-scanner.com/](https://www.advanced-ip-scanner.com/) in Microsoft Edge on Google Chrome and click the 'Free Download' button to download 'Advanced IP Scanner'.
+
+![Download Advanced IP Scanner](/images/win_setup_5_3a.png)
+
+If you are using Microsoft Edge, click on the 'Downloads' icon in the top-right corner of the browser window, and then click on the downloaded 'imager_1.7..3.dmg' install file to open it. (Your version number will likely differ)
+
+![Open Advanced IP Scanner installer for Window - Edge](/images/win_setup_5_3b_edge.png)
+
+If you are using Google Chrome, it will be in the downloads bar at the bottom of the window. Click on it to launch it.
+
+![Open Advanced IP Scanner installer for Window - Chrome](/images/win_setup_5_3b_chrome.png)
+
+When the window appears asking for permission for the app to make changes to your device, click 'Yes'.
+
+![Install Advanced IP Scanner for Windows](/images/win_setup_5_3c.jpg)
+
+Select your language and click 'Continue':
+
+![Install Advanced IP Scanner for Windows](/images/win_setup_5_3d.png)
+
+Select Install and click 'Next'.
+
+![Install Advanced IP Scanner for Windows](/images/win_setup_5_3e.png)
 
 Click on the blue 'Get' button. (It may also be labelled 'Install' or 'Update' if you have used LanScan before.)
 

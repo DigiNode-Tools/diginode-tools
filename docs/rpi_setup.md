@@ -80,7 +80,7 @@ Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
 
 (If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
 
-If this does not find your Raspberry Pi, you will need to connect using its IP address. You should be able to find out what it is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Angry IP Scanner](https://angryip.org/) (Windows & macOS) or [LanScan](https://www.iwaxx.com/lanscan/) (macOS)
+If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. You should be able to find out what its IP address is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan]([here](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12)) (macOS).
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
