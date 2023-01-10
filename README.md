@@ -13,7 +13,10 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 For more information, visit: https://diginode.digibyte.help (website coming soon)
 
 ### What do I need to run a DigiNode?
-DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below.
+
+DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below. 
+
+A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse - everything is setup and managed remotely, using the terminal.
 
 If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**.  See [here](/docs/suggested_hardware.md) for the parts you need.
 
@@ -25,7 +28,7 @@ These tools are provided as is. Use at your own risk. Always keep a backup of yo
 
 **Detailed instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
 
-Launch DigiNode Setup by entering the following command in the terminal:
+On your Debian or Ubuntu system, launch DigiNode Setup by entering the following command in the terminal:
 
 ## ```curl -sSL diginode-setup.digibyte.help | bash```
 
