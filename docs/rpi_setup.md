@@ -72,7 +72,7 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step4_boot_pi.md).
 
-## STEP 5 - Connect to the Pi over SSH from your Mac or PC
+## STEP 5 - Connect to the Raspberry Pi from your Mac or Windows PC
 
 - If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended.
 
@@ -84,7 +84,7 @@ If this does not find your Raspberry Pi, you will need to connect using its IP a
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
-## STEP 6 - Run DigiNode Setup
+## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
 To start DigiNode Setup, enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
 

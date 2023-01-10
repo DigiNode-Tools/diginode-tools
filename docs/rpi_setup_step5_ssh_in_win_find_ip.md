@@ -56,9 +56,7 @@ Look through the results, and locate the 'diginode' hostname, and note its IP ad
 
 ### Step 5.5 - Connect to the Raspberry Pi using SSH
 
-Return to iTerm 2, and at the command prompt, enter the ssh command with the IP address from the previous step e.g. ```ssh digibyte@192.168.1.22```.
-
-When connecting for the first time, it will then ask you if you want to continue. Type the word 'yes' at the prompt and press return.
+Return to MobaXterm, and at the command prompt, enter the ssh command with the IP address from the previous step e.g. ```ssh digibyte@192.168.1.22```.
 
 ![SSH to DigiNode](/images/win_setup_5_5a.png)
 
@@ -66,9 +64,13 @@ At the next prompt, enter the password you created in STEP 3 and press return.
 
 ![SSH to DigiNode](/images/win_setup_5_5b.png)
 
+It may prompt you to save the password, so you don't have to enter it every time.
+ 
+![SSH to DigiNode](/images/win_setup_5_5c.png)
+
 You are now connected to your Pi. You should see the 'digibyte@diginode' prompt. (or 'digibyte@diginode-testnet')
 
-![SSH to DigiNode](/images/win_setup_5_5c.png)
+![SSH to DigiNode](/images/win_setup_5_5d.png)
 
 
 # NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
