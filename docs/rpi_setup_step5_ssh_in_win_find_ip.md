@@ -10,11 +10,11 @@ If you already have 'Advanced IP Scanner' installed, open it now, and skip to st
 
 ### Step 5.3 - Install Advanced IP Scanner
 
-Visit [https://www.advanced-ip-scanner.com/](https://www.advanced-ip-scanner.com/) in Microsoft Edge on Google Chrome and click the 'Free Download' button to download 'Advanced IP Scanner'.
+Visit [https://www.advanced-ip-scanner.com/](https://www.advanced-ip-scanner.com/) in Microsoft Edge or Google Chrome and click the 'Free Download' button to download 'Advanced IP Scanner'.
 
 ![Download Advanced IP Scanner](/images/win_setup_5_3a.png)
 
-If you are using Microsoft Edge, click on the 'Downloads' icon in the top-right corner of the browser window, and then click on the downloaded 'imager_1.7..3.dmg' install file to open it. (Your version number will likely differ)
+If you are using Microsoft Edge, click on the 'Downloads' icon in the top-right corner of the browser window, and then click on the Advanced IP Scanner install file to open it.
 
 ![Open Advanced IP Scanner installer for Window - Edge](/images/win_setup_5_3b_edge.png)
 
@@ -34,31 +34,23 @@ Select Install and click 'Next'.
 
 ![Install Advanced IP Scanner for Windows](/images/win_setup_5_3e.png)
 
-Click on the blue 'Get' button. (It may also be labelled 'Install' or 'Update' if you have used LanScan before.)
+Accept the Agreement and click 'Install'.
 
-Note: If the button says 'Open' then the current version of LanScan is already installed. Click it and skip to Step 5.4 below.
+![Install Advanced IP Scanner for Windows](/images/win_setup_5_3f.png)
 
-![Install LanScan](/images/macos_setup_5_3a.png)
+Once installation has finished, make sure 'Run Advanced IP Scanner' is ticked, and click 'Finish'.
 
-If prompted, enter your Apple ID and password.
+![Install Advanced IP Scanner for Windows](/images/win_setup_5_3g.png)
 
-![Enter Apple ID and password](/images/macos_setup_5_3b.png)
+### Step 5.4 - Lookup the IP address of the Raspberry Pi
 
-You may next be prompted for your payment information. You will need to provide this in order to download Apps from the Mac App Store, even though this version of LanScan is free.
+Click the 'Scan' to scan the IP addresses on your local network.
 
-LanScan will then be downloaded. Once it has finished installing, click the 'Open' button, to launch it.
-
-![Open LanScan](/images/macos_setup_5_3c.png)
-
-### Step 5.4 - Lookup  the IP address of the Raspberry Pi
-
-Click the 'Start LanScan' to scan the IP addresses on your local network.
-
-![Start Scan in LanScan](/images/macos_setup_5_4a.png)
+![Start Scan in Advanced IP Scanner](/images/win_setup_5_4a.png)
 
 Look through the results, and locate the DigiNode hostname, and note its IP address. If you have the free version of LanScan the DigiNode hostname will only display the first three letters - e.g. 'dig***'. You should be able to identify it by also checking the Vendor column for 'Raspberry Pi Trading Ltd'. If nneeded, you can upgrade to the Pro edition of LanScan but it shouldn't be necessary.
 
-![Scan Completed in Angry IP Scanner](/images/macos_setup_5_4b.png)
+![Scan Completed in Advanced IP Scanner](/images/win_setup_5_4b.png)
 
 ### Step 5.5 - Connect to the Raspberry Pi using SSH
 
@@ -66,15 +58,15 @@ Return to iTerm 2, and at the command prompt, enter the ssh command with the IP 
 
 When connecting for the first time, it will then ask you if you want to continue. Type the word 'yes' at the prompt and press return.
 
-![SSH to DigiNode](/images/macos_setup_5_5a.png)
+![SSH to DigiNode](/images/win_setup_5_5a.png)
 
 At the next prompt, enter the password you created in STEP 3 and press return.
 
-![SSH to DigiNode](/images/macos_setup_5_5b.png)
+![SSH to DigiNode](/images/win_setup_5_5b.png)
 
 You are now connected to your Pi. You should see the 'digibyte@diginode' prompt. (or 'digibyte@diginode-testnet')
 
-![SSH to DigiNode](/images/macos_setup_5_5c.png)
+![SSH to DigiNode](/images/win_setup_5_5c.png)
 
 
 # NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
