@@ -88,7 +88,7 @@ At the command prompt in MobaXterm, type ```ssh digibyte@diginode.local``` and p
 
 ![SSH to DigiNode](/images/win_setup_5_2d.png)
 
-(NOTE: If it is unable to find your Raspberry Pi on your local network, it may get stuck on the screen above - press 'Ctrl + C' to cancel. In this event, you will need to connect using the IP address of the Pi instead. e.g. ```ssh digibyte@192.168.1.10```. If you don't already know its IP address, go [here](/docs/rpi_setup_step5_ssh_in_win_find_ip.md) for instructions on how to discover it.)
+(NOTE: If it is unable to find your Raspberry Pi on your local network, it may get stuck on the screen above - press 'Ctrl + C' to cancel. In this event, you will need to connect using the IP address of the Pi instead. e.g. ```ssh digibyte@192.168.1.10```. If you don't already know the IP address, go [here](/docs/rpi_setup_step5_ssh_in_win_find_ip.md) for instructions on how to find it.)
 
 Enter the password you created in STEP 3 and press return.
 
