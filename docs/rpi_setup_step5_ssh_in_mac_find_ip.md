@@ -4,7 +4,7 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 ## STEP 5 - Connect to the Pi over SSH from macOS
 
-You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. If you already know its IP address, skip to step 5.5 below. Alternatively, you can find it using an IP address scanner, which is the method we will be using here. We will be uing 'LanScan' available from the Mac App Store. The basic version is free. 
+If you don't already know the IP address of the Raspberry Pi, you may be able to discover it by logging into the web interface of your router and looking for it in the list of connected devices. (If you already know it, skip to step 5.5 below.) Alternatively, you can find it by using an IP address scanner, which is the method we will be using here. We will be uing 'LanScan' available from the Mac App Store. The basic version is free.
 
 If you already have LanScan installed, open it now, and skip to step 5.4 below. 
 

@@ -4,7 +4,7 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 ## STEP 5 - Connect to the Pi over SSH from Windows
 
-You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. If you already know its IP address, skip to step 5.5 below. Alternatively, you can find it using an IP address scanner, which is the method we will be using here. We will be uing 'Advanced IP Scanner'. It's free. 
+If you don't already know the IP address of the Raspberry Pi, you may be able to discover it by logging into the web interface of your router and looking for it in the list of connected devices. (If you already know it, skip to step 5.5 below.) Alternatively, you can find it by using an IP address scanner, which is the method we will be using here. We will be uing 'Advanced IP Scanner'. It's free. 
 
 If you already have 'Advanced IP Scanner' installed, open it now, and skip to step 5.4 below. 
 
@@ -41,6 +41,8 @@ Accept the Agreement and click 'Install'.
 Once installation has finished, make sure 'Run Advanced IP Scanner' is ticked, and click 'Finish'.
 
 ![Install Advanced IP Scanner for Windows](/images/win_setup_5_3g.png)
+
+Advanced IP Scanner will open.
 
 ### Step 5.4 - Lookup the IP address of the Raspberry Pi
 
