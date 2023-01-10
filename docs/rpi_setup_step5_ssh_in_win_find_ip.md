@@ -48,7 +48,7 @@ Click the 'Scan' to scan the IP addresses on your local network.
 
 ![Start Scan in Advanced IP Scanner](/images/win_setup_5_4a.png)
 
-Look through the results, and locate the DigiNode hostname, and note its IP address. If you have the free version of LanScan the DigiNode hostname will only display the first three letters - e.g. 'dig***'. You should be able to identify it by also checking the Vendor column for 'Raspberry Pi Trading Ltd'. If nneeded, you can upgrade to the Pro edition of LanScan but it shouldn't be necessary.
+Look through the results, and locate the 'diginode' hostname, and note its IP address. You should be able to identify it by also checking the Manufacturer column for 'Raspberry Pi Trading Ltd'.
 
 ![Scan Completed in Advanced IP Scanner](/images/win_setup_5_4b.png)
 
