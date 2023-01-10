@@ -168,7 +168,7 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
-DigiNode Tools v0.7.2 - YYYY-MM-DD
+DigiNode Tools v0.7.2 - 2023-01-XX
 - Add step-by-step instructions for setting up a DigiNode on a Raspberry Pi
 
 DigiNode Tools v0.7.1 - 2022-12-28
