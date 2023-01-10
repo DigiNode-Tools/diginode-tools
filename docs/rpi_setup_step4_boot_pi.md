@@ -21,7 +21,7 @@ IMPORTANT: It is highly recommeneded that you use a Genuine Raspberry Pi 4 PSU. 
 The Raspberry Pi should now boot from the SSD. The first time you do this, the operating system will need to configure itself and it will take a few minutes to complete.
 
 
-# NEXT: STEP 5 - Connect to the Pi over SSH from your Mac or Windows PC
-Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you are on Windows. Click [here](/docs/rpi_setup_step5_ssh_in_mac.md) if you are on Mac.
+# NEXT: STEP 5 - Connect to the Raspberry Pi from your Mac or Windows PC
+Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you are on Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) if you are on Mac.
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).

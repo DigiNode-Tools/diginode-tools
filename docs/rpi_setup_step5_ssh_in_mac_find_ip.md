@@ -4,77 +4,39 @@ Note: If you have not already connected the SSD to your Raspberry Pi and powered
 
 ## STEP 5 - Connect to the Pi over SSH from macOS
 
-### Step 5.3 - Discover the IP address of the Raspberry Pi: Install Angry IP Scanner
+If you don't already know the IP address of the Raspberry Pi, you may be able to discover it by logging into the web interface of your router and looking for it in the list of connected devices. (If you already know it, skip to step 5.5 below.) Alternatively, you can find it by using an IP address scanner, which is the method we will be using here. We will be uing 'LanScan' available from the Mac App Store. The basic version is free.
 
-You may be able to discover the IP address of the Raspberry Pi by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner, which is the method we will be using here. We will be installing the free open-source software called 'Angry IP Scanner'. If you already have this installed, open it now, and skip to step 5.4 below.
+If you already have LanScan installed, open it now, and skip to step 5.4 below. 
 
-There are a few extra steps required to install it since the software is unsigned.
+### Step 5.3 - Install LanScan IP Network Scanner
 
-Open Safari, and visit [https://angryip.org/](https://angryip.org/) and click the 'Free Download' button.
+Click [here](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) to open the LanScan page in the Mac App Store.
 
-![Download Angry IP Scanner](/images/macos_setup_5_3a.png)
+Click on the blue 'Get' button. (It may also be labelled 'Install' or 'Update' if you have used LanScan before.)
 
-Left-click on the download link for 'Mac Intel' or 'Mac ARM (M1/M2) depending on the type of Mac you are using.
+Note: If the button says 'Open' then the current version of LanScan is already installed. Click it and skip to Step 5.4 below.
 
-![Download Angry IP Scanner](/images/macos_setup_5_3b.png)
+![Install LanScan](/images/macos_setup_5_3a.png)
 
-If asked to allow downloads, click 'Allow':
+If prompted, enter your Apple ID and password.
 
-![Download Angry IP Scanner](/images/macos_setup_5_3c.png)
+![Enter Apple ID and password](/images/macos_setup_5_3b.png)
 
-Click on the 'Downloads' icon in the top-right corner of the Safari window, and then click on the magnifying glass icon next to the 'Angry IP Scanner' download to open the Downloads folder.
+You may next be prompted for your payment information. You will need to provide this in order to download Apps from the Mac App Store, even though this version of LanScan is free.
 
-![Download Angry IP Scanner](/images/macos_setup_5_3d.png)
+LanScan will then be downloaded. Once it has finished installing, click the 'Open' button, to launch it.
 
-To install Angry IP Scanner, drag-and-drop it on to the Applications folder.
+![Open LanScan](/images/macos_setup_5_3c.png)
 
-![Install Angry IP Scanner](/images/macos_setup_5_3e.gif)
+### Step 5.4 - Lookup  the IP address of the Raspberry Pi
 
-Launch 'Angry IP Scanner'. (You can do this by pressing '⌘ + Space' to open Spotlight search, then type 'angry ip', clicking on the app, and pressing return.)
+Click the 'Start LanScan' to scan the IP addresses on your local network.
 
-![Launch Angry IP Scanner](/images/macos_setup_5_3f.png)
+![Start Scan in LanScan](/images/macos_setup_5_4a.png)
 
-You may see the message below saying that it cannont be opened. This is because the app is unsigned. If so, click 'Cancel'.
+Look through the results, and locate the DigiNode hostname, and note its IP address. If you have the free version of LanScan the DigiNode hostname will only display the first three letters - e.g. 'dig***'. You should be able to identify it by also checking the Vendor column for 'Raspberry Pi Trading Ltd'. If nneeded, you can upgrade to the Pro edition of LanScan but it shouldn't be necessary.
 
-![Cannot Open Angry IP Scanner](/images/macos_setup_5_3g.png)
-
-To give it permission to open, open 'System Settings' (Click the cog icon in the Dock.)
-
-![Open System Settings](/images/macos_setup_5_3h.png)
-
-In System Settings, click on 'Privacy & Security' and then click 'Open Anyway' next to the message saying it was blocked from use.
-
-(Note: If you are running a version of macOS earlier than Ventura, you will have the old 'System Preferences' layout.)
-
-![Open System Settings](/images/macos_setup_5_3i.png)
-
-If prompted, enter your system password. (The password you enter when you sit down at your computer.) 
-
-![Enter System Password](/images/macos_setup_5_3j.png)
-
-At the message warning that the developer cannot be verified, click 'Open'.
-
-![Cannot Verify Developer dialog](/images/macos_setup_5_3k.png)
-
-'Angry IP Scanner' will open.
-
-### Step 5.4 - Discover the IP address of the Raspberry Pi: Scan your local network
-
-Close the 'Getting Started' dialog in 'Angry IP Scanner' if it is visible.
-
-![Close Getting Started in Angry IP Scanner](/images/macos_setup_5_4a.png)
-
-Click the 'Start' to scan the IP addresses on your local network.
-
-![Start Scan in Angry IP Scanner](/images/macos_setup_5_4b.png)
-
-When the Scanning Completed dialog appears, click 'Close'.
-
-![Scan Completed in Angry IP Scanner](/images/macos_setup_5_4c.png)
-
-Look through the results, and locate the DigiNode hostname, and note its IP address.
-
-![Scan Completed in Angry IP Scanner](/images/macos_setup_5_4d.png)
+![Scan Completed in Angry IP Scanner](/images/macos_setup_5_4b.png)
 
 ### Step 5.5 - Connect to the Raspberry Pi using SSH
 
@@ -93,6 +55,6 @@ You are now connected to your Pi. You should see the 'digibyte@diginode' prompt.
 ![SSH to DigiNode](/images/macos_setup_5_5c.png)
 
 
-# NEXT: [STEP 6 - Run the DigiNode Setup script](/docs/rpi_setup_step6_run_diginode_setup.md)
+# NEXT: [STEP 6 - Run the DigiNode Setup script on your Raspberry Pi](/docs/rpi_setup_step6_run_diginode_setup.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
