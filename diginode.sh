@@ -523,7 +523,7 @@ is_dgbnode_installed() {
           DGB_STATUS="running"
       else
         # Finally, check if digibyte-qt
-        if [ "" = "$(pgrep digibyte-qt)" ]; then
+        if [ "" != "$(pgrep digibyte-qt)" ]; then
             if [ $VERBOSE_MODE = true ]; then
               printf "%b digibyte-qt is running\\n" "${TICK}"
             fi
