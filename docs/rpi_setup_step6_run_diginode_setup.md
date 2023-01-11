@@ -2,7 +2,7 @@
 
 IMPORTANT: If you have not yet connected to your Raspberry Pi in the Terminal using SSH, please complete STEP 5 first. Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you are on Windows, and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
-## STEP 6 - Run DigiNode Setup
+## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
 To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL diginode-setup.digibyte.help | bash``` and press return.
 
