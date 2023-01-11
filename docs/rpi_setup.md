@@ -76,7 +76,7 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 ## STEP 5 - Connect to the Raspberry Pi from your Mac or Windows PC
 
-To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended. On Windows, use [MobXterm](https://mobaxterm.mobatek.net/).
+To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended. On Windows, you can use [MobXterm](https://mobaxterm.mobatek.net/).
 
 Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
 
