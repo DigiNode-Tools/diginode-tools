@@ -14,11 +14,13 @@ Note: A DigiNode is designed to operate "headless". This means you do not need a
 
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
-1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows computer.
-2. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
-3. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
-4. Once the Pi has booted up, connect to the system remotely from your Mac or Windows PC using SSH and run the DigiNode Setup script.
-5. Assign the Raspberry Pi a fixed IP address on your network and open the relevant ports on your router.
+1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
+2. Download and install Raspberry Pi Imager
+3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
+4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
+5. Once the Pi has booted up, connect to the system remotely from your Mac or Windows PC using SSH and
+6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node
+7. Assign the Raspberry Pi a fixed IP address on your network and open the relevant ports on your router.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
@@ -74,18 +76,30 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 ## STEP 5 - Connect to the Raspberry Pi from your Mac or Windows PC
 
-- If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended.
+To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended. On Windows, use [MobXterm](https://mobaxterm.mobatek.net/).
 
 Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
 
 (If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
 
-If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. You should be able to find out what its IP address is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan]([here](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12)) (macOS).
+If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. You should be able to find out what its IP address is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) (macOS).
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 
 ## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
-To start DigiNode Setup, enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
+To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
+
+## STEP 7 - Give the Raspberry Pi a fixed local IP, and setup port forwarding
+
+To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed IP address. This can typically be done via the web interface of your router. You also need to open two ports on your router.
+
+If you setup a mainnet DigiNode, the default ports you need to forward are:
+- DigiByte Core:		12024
+- IPFS					4001
+
+If you setup a testnet DigiNode, the default ports you need to forward are:
+- DigiByte Core:		12026
+- IPFS					4004
