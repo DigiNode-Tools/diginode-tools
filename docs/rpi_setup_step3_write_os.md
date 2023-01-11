@@ -2,13 +2,13 @@
 
 IMPORTANT: If you have not already installed the 'Raspberry Pi Imager' software, please complete STEP 2 first. Click [here](/docs/rpi_setup_step2_get_imager_win.md) if you are on Windows, and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 
+Note: The screenshots on this page show the Mac version, but the software is the same if you are on Windows.
+
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 
 If it is not already running, open 'Raspberry Pi Imager'. Check you are using v1.7.3 or newer.
 
 ![Raspberry Pi Imager v1.7.3](/images/macos_setup_3.png)
-
-Note: The screenshots on this page show the Mac version, but the software is the same if you are on Windows.
 
 ### Step 3.1 - Choose Operating System: Raspberry Pi OS Lite (64-bit)
 
