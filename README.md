@@ -1,4 +1,4 @@
-![DigiNode Logo](images/diginode_logo.png)
+![DigiNode Logo](images/diginode_tools_logo.png)
 
 # DigiNode Tools
 
