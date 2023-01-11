@@ -170,7 +170,7 @@ If you want to skip this step, and simply use the default settings, include the 
 ## Release Notes
 
 DigiNode Tools v0.7.2 - 2023-01-XX
-- Add step-by-step instructions for setting up a DigiNode on a Raspberry Pi
+- New: Add step-by-step instructions for setting up a DigiNode on a Raspberry Pi
 - Fix: Status Monitor now displays correct sync progress when running testnet
 - Fix: Status Monitor now starts correctly when digibyted is not running
 - Change: If system RAM exceeds 12Gb, dbcache is now set to 2Gb (aimed at machines with 16Gb RAM)
