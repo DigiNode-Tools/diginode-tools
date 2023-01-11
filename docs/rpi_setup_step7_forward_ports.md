@@ -8,7 +8,7 @@ Note: If you have not already completed DigiNode Setup on your Raspberry Pi, the
 
 ### Introduction to Port Forwarding
 
-These instructions are coming very soon.
+Instructions are coming very soon.
 
 
 
@@ -25,7 +25,7 @@ I have devoted thousands of unpaid hours to create DigiNode Tools. I did this be
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
-![DigiByte Donation QR Code](images/donation_qr_code.png)
+![DigiByte Donation QR Code](/images/donation_qr_code.png)
 
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
