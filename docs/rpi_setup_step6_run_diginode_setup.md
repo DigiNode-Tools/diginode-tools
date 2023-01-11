@@ -20,7 +20,7 @@ Once you reach the main menu, choose to install a 'Full DigiNode' and press retu
 
 ![Full Install in DigiNode Setup](/images/macos_setup_6_1d.png)
 
-When asked whether to use uPnP for portforwarding, choose 'Setup Manually'. Before doing so, make a note of the port numbers.
+When asked whether to use uPnP for portforwarding, choose 'Setup Manually'. Take note of the port numbers.
 
 In Step 7, you will learn how to forward these ports on your router.
 
@@ -48,7 +48,7 @@ It will prompt you for your password again. When it reconnects, you should then 
 
 ![IPFS Server Profile in DigiNode Setup](/images/macos_setup_6_1i.png)
 
-To check on the status of you DigiNode, launch the Status Monitor by typing ```diginode``` followed by return.
+To check on the status of your DigiNode, launch the Status Monitor by typing ```diginode``` followed by return.
 
 ![IPFS Server Profile in DigiNode Setup](/images/macos_setup_6_1j.png)
 
