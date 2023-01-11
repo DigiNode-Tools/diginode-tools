@@ -6264,7 +6264,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "Please donate to support future development:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "If you find these tools useful, kindly donate to support future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -6634,7 +6634,7 @@ donation_qrcode() {
     printf " ============== ${txtbylw}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have built DigiNode Tools with the objective of making it easy for everyone"
+    echo "    I created DigiNode Tools with the objective of making it easy for everyone"
     echo "    in the DigiByte community to run their own full node. Thousands of"
     echo "    unpaid hours have already gone into its development. If you find DigiNode"
     echo "    Tools useful, please make a donation to support future development."
