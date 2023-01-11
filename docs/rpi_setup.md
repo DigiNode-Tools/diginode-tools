@@ -97,9 +97,9 @@ This will perform some system checks before displaying the setup menu that will 
 To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed IP address. This can typically be done via the web interface of your router. You also need to open two ports on your router.
 
 If you setup a mainnet DigiNode, the default ports you need to forward are:
-- DigiByte Core:		12024
-- IPFS					4001
+- DigiByte Core: **12024**
+- IPFS: **4001**
 
 If you setup a testnet DigiNode, the default ports you need to forward are:
-- DigiByte Core:		12026
-- IPFS					4004
+- DigiByte Core: **12026**
+- IPFS: **4004**
