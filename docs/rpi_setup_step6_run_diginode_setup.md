@@ -70,6 +70,10 @@ If you are new to Linux, you may find these commands useful. You can type each o
 - ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.
+- ```sudo reboot``` - Reboot the system.
+- ```sudo systemctl restart digibyted``` - Restart DigiByte full node.
+- ```sudo systemctl restart ipfs``` - Restart IPFS.
+- ```pm2 restart digiasset``` - Restart DigiAsset Node.
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 
