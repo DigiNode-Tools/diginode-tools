@@ -56,7 +56,7 @@ Press Q to quit the status monitor.
 
 The final step is to setup port forwarding for the DigiNode.
 
-### Some Useful Linux Commands
+### Some Useful Commands
 
 If you are new to Linux, you may find these commands useful. You can type each one into the terminal and press return.
 
