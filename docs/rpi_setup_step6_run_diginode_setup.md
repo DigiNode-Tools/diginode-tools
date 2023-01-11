@@ -40,7 +40,7 @@ Note: At several points during the installation, it may look like it has frozen.
 
 ![IPFS Server Profile in DigiNode Setup](/images/macos_setup_6_1h.png)
 
-Next restart the Raspberry Pi, by entering: ```sudo reboot``` and press return.
+Next restart the Raspberry Pi, by typing ```sudo reboot``` followed by return.
 
 Wait a minute or two for the device to restart, and then reconnect over SSH again, using the same method from Step 5. e.g. ```ssh digbyte@diginode.local```
 
@@ -48,13 +48,30 @@ It will prompt you for your password again. When it reconnects, you should then 
 
 ![IPFS Server Profile in DigiNode Setup](/images/macos_setup_6_1i.png)
 
-To check on the status of you DigiNode, launch the Status Monitor by typing ```diginode``` and pressing return.
+To check on the status of you DigiNode, launch the Status Monitor by typing ```diginode``` followed by return.
 
 ![IPFS Server Profile in DigiNode Setup](/images/macos_setup_6_1j.png)
 
-The final step is to setup port forwarding for the DigiNode. Press Q to quit the status monitor.
+Press Q to quit the status monitor.
 
-Tip: Whenever you want to disconnect from the Raspberry Pi, type ```exit``` and press return.
+The final step is to setup port forwarding for the DigiNode.
+
+### Some Useful Linux Commands
+
+If you are new to Linux, you may find these commands useful. You can type each one into the terminal and press return.
+
+- ```exit``` - disconnect from the Raspberry Pi
+- ```ls``` - view the contents of the current directory
+- ```ls -all``` - view the contents of the current directory, including any hidden files or directories
+- ```cd <directory path>``` - Navigate into a directory. e.g. ```cd ~/.digibyte```
+- ```cd ..``` - Navigate out of the current directory.
+- ```cd ~``` - Return to the home folder.
+- ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
+- ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
+- ```sudo apt-get update``` - Check for system updates.
+- ```sudo apt-get upgrade``` - Install system updates.
+
+To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 
 # NEXT: STEP 7 - Enable Port Forwarding (Instructions Coming Soon)
 
