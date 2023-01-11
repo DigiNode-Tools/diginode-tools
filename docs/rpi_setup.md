@@ -92,6 +92,8 @@ To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
 
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step6_run_diginode_setup.md).
+
 ## STEP 7 - Give the Raspberry Pi a fixed local IP, and setup port forwarding
 
 To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed local IP address. This can typically be done via the web interface of your router. 
@@ -105,3 +107,5 @@ If you setup a mainnet DigiNode, the default ports you need to forward are:
 If you setup a testnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12026**
 - IPFS: **4004**
+
+More detailed instructions on completing this step are [here](/docs/rpi_setup_step7_forward_ports.md).
