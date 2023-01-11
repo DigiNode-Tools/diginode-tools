@@ -8,7 +8,7 @@ Note: If you have not already completed DigiNode Setup on your Raspberry Pi, the
 
 ### Introduction to Port Forwarding
 
-Instructions are coming very soon.
+These instructions are being worked on. Check back soon.
 
 
 
@@ -23,7 +23,7 @@ Did you find these instructions helpful?
 
 I have devoted thousands of unpaid hours to create DigiNode Tools. I did this because I wanted to make it easy for anyone to run a DigiByte full node. If they helped you, please make a donation to support my work. Many thanks, Olly  >> Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) <<
 
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+**[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)**
 
 ![DigiByte Donation QR Code](/images/donation_qr_code.png)
 
