@@ -1214,7 +1214,12 @@ digibyte_create_conf() {
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
         local set_dbcache
-        if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
+        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
+            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=2048
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
             str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
             printf "%b %s" "${INFO}" "${str}"
             set_dbcache=1024
