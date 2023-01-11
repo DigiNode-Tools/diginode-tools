@@ -523,7 +523,7 @@ is_dgbnode_installed() {
           DGB_STATUS="running"
       else
         # Finally, check if digibyte-qt
-        if [ "" = "$(pgrep digibyte-qt)" ]; then
+        if [ "" != "$(pgrep digibyte-qt)" ]; then
             if [ $VERBOSE_MODE = true ]; then
               printf "%b digibyte-qt is running\\n" "${TICK}"
             fi
@@ -537,7 +537,7 @@ is_dgbnode_installed() {
           printf "%b DigiNode Setup can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
           printf "%b so that it launches automatically at boot.\\n" "${INDENT}"
           printf "\\n"
-          exit 1
+          DGB_STATUS="stopped"
         fi
       fi
     fi
@@ -1768,8 +1768,12 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
           DGB_STATUS="startingup"
         else
-            # Get the algo used for the current block
-            BLOCK_CURRENT_ALGO=$(tail ~/.digibyte/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+            # Get the algo used for the current block (mainnet or testnet)
+            if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+                BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+            else
+                BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+            fi
         fi
     fi
 
@@ -1858,8 +1862,14 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
     if [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
 
-        # Query debug.log for the blockchain syn progress
-        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        # Lookup the sync progress value from debug.log (mainnet or testnet)
+        if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+            BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        else
+            BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        fi
+
+        #banana
      
         # Is the returned value numerical?
         re='^[0-9]+([.][0-9]+)?$'

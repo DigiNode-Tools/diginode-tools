@@ -1214,7 +1214,12 @@ digibyte_create_conf() {
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
         local set_dbcache
-        if [ "$RAMTOTAL_KB" -ge "7340032" ]; then
+        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
+            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=2048
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
             str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
             printf "%b %s" "${INFO}" "${str}"
             set_dbcache=1024
@@ -6264,7 +6269,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "Please donate to support future development:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "If you find these tools useful, kindly donate to support future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -6634,11 +6639,11 @@ donation_qrcode() {
     printf " ============== ${txtbylw}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I have built DigiNode Tools with the objective of making it easy for everyone"
+    echo "    I created DigiNode Tools with the objective of making it easy for everyone"
     echo "    in the DigiByte community to run their own full node. Thousands of"
     echo "    unpaid hours have already gone into its development. If you find DigiNode"
     echo "    Tools useful, please make a donation to support future development."
-    echo "    Thank you for your support, Olly.  >> Find me on Twitter @saltedlolly <<"
+    echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
