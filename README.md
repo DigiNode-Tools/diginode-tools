@@ -1,4 +1,4 @@
-![DigiNode Logo](images/diginode_logo.png)
+![DigiNode Logo](images/diginode_tools_logo.png)
 
 # DigiNode Tools
 
@@ -51,7 +51,6 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 ## About DigiNode Setup
 
 ![DigiNode Setup](images/diginode_install_menu.png)
-
 DigiNode Setup helps you to setup and manage your DigiNode:
 
 - Intuitively walks you though the process of setting up a full DigiNode, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
@@ -70,7 +69,6 @@ To get started, see the "Get Started" section above. Once installed, DigiNode Se
 ## Additional Features
 
 ![DigiNode Main Menu](images/diginode_main_menu.png)
-
 Once DigiNode Tools have been installed, you can access additional features via the DigiNode Setup menu by entering: ```diginode-setup```
 
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
