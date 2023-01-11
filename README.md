@@ -171,6 +171,7 @@ If you want to skip this step, and simply use the default settings, include the 
 
 DigiNode Tools v0.7.2 - 2023-01-XX
 - Add step-by-step instructions for setting up a DigiNode on a Raspberry Pi
+- Fix: Status Monitor now displays correct sync progress when running Testnet
 
 DigiNode Tools v0.7.1 - 2022-12-28
 - Add a custom DigiNode MOTD that displays when you login to the machine via the terminal. It includes the DigiNode logo and brief usage instructions to remind the user of the commands to launch 'DigiNode Setup' and 'DigiNode Status Monitor'.
