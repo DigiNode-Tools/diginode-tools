@@ -62,15 +62,15 @@ If you are new to Linux, you may find these commands useful. You can type each o
 
 - ```exit``` - disconnect from the Raspberry Pi
 - ```ls``` - view the contents of the current directory
-- ```ls -all``` - view the contents of the current directory, including any hidden files or directories
+- ```ls -all``` - view the contents of the current directory, including any hidden files or directories (Note: Hidden files or foldes start with a period.)
 - ```cd <directory path>``` - Navigate into a directory. e.g. ```cd ~/.digibyte```
 - ```cd ..``` - Navigate out of the current directory.
 - ```cd ~``` - Return to the home folder.
 - ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
-- ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
+- ```sudo reboot``` - Reboot the system. (sudo gives you elevated superuser permissions to execute that command. You will be prompted for your password.)
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.
-- ```sudo reboot``` - Reboot the system.
+- ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
 - ```sudo systemctl restart digibyted``` - Restart DigiByte full node.
 - ```sudo systemctl restart ipfs``` - Restart IPFS.
 - ```pm2 restart digiasset``` - Restart DigiAsset Node.
