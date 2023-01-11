@@ -6643,7 +6643,7 @@ donation_qrcode() {
     echo "    in the DigiByte community to run their own full node. Thousands of"
     echo "    unpaid hours have already gone into its development. If you find DigiNode"
     echo "    Tools useful, please make a donation to support future development."
-    echo "    Thank you for your support, Olly.  >> Find me on Twitter @saltedlolly <<"
+    echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
