@@ -50,7 +50,7 @@ Thousands of hours have gone into developing DigiNode Tools. If you find these t
 
 ## About DigiNode Setup
 
-![DigiNode Setup](images/diginode_install_menu.png)
+![DigiNode Setup](images/macos_setup_6_1d.png)
 
 DigiNode Setup helps you to setup and manage your DigiNode:
 
