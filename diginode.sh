@@ -537,7 +537,7 @@ is_dgbnode_installed() {
           printf "%b DigiNode Setup can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
           printf "%b so that it launches automatically at boot.\\n" "${INDENT}"
           printf "\\n"
-          exit 1
+          DGB_STATUS="stopped"
         fi
       fi
     fi
