@@ -94,7 +94,9 @@ This will perform some system checks before displaying the setup menu that will 
 
 ## STEP 7 - Give the Raspberry Pi a fixed local IP, and setup port forwarding
 
-To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed IP address. This can typically be done via the web interface of your router. You also need to open two ports on your router.
+To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed local IP address. This can typically be done via the web interface of your router. 
+
+Finally, you also need to open two ports on your router to make your device discoverable by other nodes. This step is very important if you want to help support the network.
 
 If you setup a mainnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12024**
