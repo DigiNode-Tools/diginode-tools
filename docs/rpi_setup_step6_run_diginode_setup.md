@@ -8,7 +8,7 @@ To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL
 
 ![Run DigiNode Setup](/images/macos_setup_6_1a.png)
 
-DigiNode Setup will start and perform some system checks.
+DigiNode Setup will start and perform some system checks, before taking you step-by-step with through the setup process.
 
 ![Run DigiNode Setup](/images/macos_setup_6_1b.png)
 
@@ -16,15 +16,13 @@ When prompted to customize your install, choose 'Continue' to stick with the def
 
 ![Customize DigiNode Setup](/images/macos_setup_6_1c.png)
 
-Once you reach the main menu, choose to install a 'Full DigiNode' and press return.
+Once you reach the main menu, choose to install a 'Full DigiNode' and press return. DigiNode Setup will then start to download and configure the required software.
 
 ![Full Install in DigiNode Setup](/images/macos_setup_6_1d.png)
 
-DigiNode Setup will start to download and configure the required software.
+When asked whether to use uPnP for portforwarding, choose 'Setup Manually'. Before doing so, make a note of the port numbers.
 
-When prompted whether to use uPnP for portwarding, make a note of the port numbers you need to forward on your router.
-
-Choose 'Setup Manually'. This tutorial will be covering how to do this in Step 7.
+In Step 7, you will learn how to forward these ports on your router.
 
 ![Port Forwarding in DigiNode Setup](/images/macos_setup_6_1e.png)
 
@@ -44,7 +42,7 @@ Note: At several points during the installation, it may look like it has frozen.
 
 Next restart the Raspberry Pi, by entering: ```sudo reboot``` and press return.
 
-Wait a minute or two for the device to restart, and then reconnect over SSH: ```ssh digbyte@diginode.local```
+Wait a minute or two for the device to restart, and then reconnect over SSH again, using the same method from Step 5. e.g. ```ssh digbyte@diginode.local```
 
 It will prompt you for your password again. When it reconnects, you should then see the DigiNode MOTD, reminding you of the commands to manage your DigiNode.
 
