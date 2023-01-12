@@ -3,7 +3,7 @@
 IMPORTANT: If you have not already completed DigiNode Setup on your Raspberry Pi, then please go [here](/docs/rpi_setup_step6_run_diginode_setup.md) and complete STEP 6.
 
 
-## STEP 7 - Give your DigiNode a static IP address, and setup port forwarding
+## STEP 7 - Give the Raspberry Pi a Static IP address and setup Port Forwarding
 
 Setting up port forwarding is probably the trickiest part of the entire process, but also the most important, since it makes it possible for other nodes on the Internet to discover yours. Without doing this, your node is not able to fully support the network.
 

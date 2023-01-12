@@ -77,6 +77,6 @@ If you are new to Linux, you may find these commands useful. You can type each o
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 
-# NEXT: STEP 7 - [Enable Port Forwarding](/docs/rpi_setup_step7_forward_ports.md)
+# NEXT: STEP 7 - [Give the Raspberry Pi a Static IP address and setup Port Forwarding](/docs/rpi_setup_step7_forward_ports.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
