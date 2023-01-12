@@ -61,8 +61,6 @@ The method for setting a Static IP address varies from router to router. The bes
 
 In the example below, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below that, enter the MAC address, along with the desired IP address for that device, and its hostname. Clicking the green '+' button will add the entry, and 'Save' will save the change. 
 
-For your changes to take effect, it may be required to restart the Raspberry Pi and/or the Router particularly if the IP address of the device has been changed.
-
 ![DHCP Range](/images/dhcp_static_lease.png)
 
 (Note: A Media Access Control address (MAC address) is a hardware identifier that uniquely identifies each device on a network. Primarily, the manufacturer assigns it. They are often found on a device’s network interface controller (NIC) card. A MAC address can also be referred to as a burned-in address, Ethernet hardware address, hardware address, or physical address.)
@@ -71,7 +69,9 @@ On some routers, like the BTHomeHub the process differs in that you need to clic
 
 ![DHCP Range](/images/dhcp_fixed_ip.jpg)
 
-You can run DigiNode Status monitor to quickly check the local IP address of the Raspberry Pi.
+For your changes to take effect, it may be required to restart the Raspberry Pi and/or the Router particularly if the IP address of the device has been changed.
+
+You can run DigiNode Status monitor at any time to quickly check the current local IP address of the Raspberry Pi.
 
 
 ### A Brief Primer on Port Forwarding
