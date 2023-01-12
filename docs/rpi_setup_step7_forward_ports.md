@@ -44,6 +44,7 @@ If you have not already done so, it can sometimes be helpful to adjust the range
 
 In the example above, IP addresses have been organised as follows:
 
+| IP Address Range              | Devices                   |
 |-------------------------------|---------------------------|
 | 192.168.1.1 - 192.168.1.30 	| Static IP addresses		|
 | 192.168.1.31 - 192.168.1.253	| Dynamic IP addresses		|
