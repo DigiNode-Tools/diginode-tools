@@ -38,7 +38,7 @@ Now that you are logged into your router's web interface you can now proceed wit
 
 ### Step 7.2 - Adjust the range of dynamic IP addresses [OPTIONAL]
 
-If you have not already done so, it can sometimes be helpful to adjust the range of dynamic IP addresses on your router, so you have some space outside of it to assign Static IP addresses. (Note: Sometimes, this step is unnecessary, but it can be helpful to keep things tidy.)
+If you have not already done so, it can sometimes be helpful to adjust the range of dynamic IP addresses on your router, so you have some space outside of it to assign Static IP addresses. (Note: This step is optional, but it can be helpful to keep things tidy.)
 
 ![DHCP Range](/images/dhcp_settings.png)
 
@@ -80,9 +80,9 @@ These instructions are being worked on. Check back soon.
 
 # NEXT: Please Donate to Support DigiNode Tools!
 
-Did you find these instructions helpful?
+Did you find this guide helpful?
 
-I have devoted thousands of unpaid hours to create DigiNode Tools. I did this because I wanted to make it easy for anyone to run a DigiByte full node. If they helped you, please make a donation to support my work. Many thanks, Olly  >> Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) <<
+I have devoted thousands of unpaid hours to create DigiNode Tools. I did this because I want to make it easy for everyone to run a DigiNode. If they have helped you, please make a donation to support my work. Many thanks, Olly  [ Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) ]
 
 **[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)**
 
