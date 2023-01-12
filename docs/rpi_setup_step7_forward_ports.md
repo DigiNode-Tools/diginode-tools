@@ -10,11 +10,11 @@ Setting up port forwarding is probably the trickiest part of the entire process,
 
 ### A Brief Primer on Dynamic vs Static IP Addresses
 
-Every single device on your network is identified by its IP address. By default, your router's Dynamic Host Control Protocol (DHCP) server assigns a dynamic IP Address to every device that connects to the network. Each connected device can then renew the lease on the IP address it has been given, but if it disappears from the network, the IP address is released for another device to use. This ensures that previously used IP addresses are released whenever a network device stops using them. However, this also means that a device on your network is not guaranteed to always be available at its current IP address.
+Every single device on your network is identified by its IP address. By default, your router's Dynamic Host Control Protocol (DHCP) server assigns a dynamic IP Address to every device that connects to the network. Each connected device can then renew the lease on the IP address it has been given, but if it disappears from the network, the IP address is released for another device to use. This helps prevent the router from running out of IP addresses. However, this also means that a device on your network is not guaranteed to always be available at its current IP address.
 
 IP addresses on a local network are typically in the range from 192.168.1.1 to 192.168.1.254. The router itself will usually take one of these (usually 192.168.1.1 or 192.168.1.254) and will then have DHCP allocate all or some of the remaining addresses for use by the other devices on your network.
 
-Sometimes it can be benficial for a device to always have the same IP address (i.e. a Static IP address) when it connects to the network. This is very useful for servers etc. In the case of your DigiNode, giving it a fixed IP means you will always be able to easily find it on your network, and more importantly forward internet traffic to it.
+Sometimes it can be beneficial for a device to always have the same IP address (i.e. a Static IP address) when it connects to the network. This is very useful for servers. In the case of your DigiNode, giving it a fixed IP means you will always be able to easily find it on your network, and more importantly forward internet traffic to it.
 
 In order to assign a static IP address to your DigiNode device, and to forward the required ports, you will need to gain access to your router's management interface.
 
@@ -59,11 +59,19 @@ By adjusting your DHCP server range, you can safely assign a Static IP addresses
 
 The method for setting a Static IP address varies from router to router. The best way to know how to do it for yours is to google the make and model with the words 'assign static ip'. 
 
-In the example below, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below, enter the MAC address, along with the desired IP address for that deice, and its hostname. Clicking the green '+' button will add the entry and 'Save' will save it. It may be required to restart the Pi and/or the Router particularly if the IP address is already in use by a dynamically assigned device.
+In the example below, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below that, enter the MAC address, along with the desired IP address for that device, and its hostname. Clicking the green '+' button will add the entry, and 'Save' will save the change. 
+
+For your changes to take effect, it may be required to restart the Raspberry Pi and/or the Router particularly if the IP address of the device has been changed.
 
 ![DHCP Range](/images/dhcp_static_lease.png)
 
-Note: A Media Access Control address (MAC address) is a hardware identifier that uniquely identifies each device on a network. Primarily, the manufacturer assigns it. They are often found on a device’s network interface controller (NIC) card. A MAC address can also be referred to as a burned-in address, Ethernet hardware address, hardware address, or physical address.
+(Note: A Media Access Control address (MAC address) is a hardware identifier that uniquely identifies each device on a network. Primarily, the manufacturer assigns it. They are often found on a device’s network interface controller (NIC) card. A MAC address can also be referred to as a burned-in address, Ethernet hardware address, hardware address, or physical address.)
+
+On some routers, like the BTHomeHub the process differs in that you need to click on the device in the list of connected devices and then set to always use this IP. (You can manually change the IP address itself above.)
+
+![DHCP Range](/images/dhcp_fixed_ip.png)
+
+You can run DigiNode Status monitor to quickly check the local IP address of the Raspberry Pi.
 
 
 ### A Brief Primer on Port Forwarding
@@ -72,7 +80,7 @@ These instructions are being worked on. Check back soon.
 
 
 
-### Step 7.3 - Enable Port Forwarding
+### Step 7.4 - Enable Port Forwarding
 
 These instructions are being worked on. Check back soon.
 
