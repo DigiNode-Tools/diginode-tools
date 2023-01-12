@@ -29,11 +29,11 @@ The sticker on your router, will hopefully tell you the website address (or IP a
 
 You can also try visiting: http://whatsmyrouterip.com/
 
-Once you have found the login credentials, enter the IP address or web address into your browser, and then login to the web interface using the username and password. Once you are successfully logged in you can continue on with the rest of the setup. 
+Once you have found the login credentials, enter the IP address or web address into your browser, and then login to the web interface using the username and password.
 
 If you are struggling to gain access, share your router make and model in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools), and someone will try and help you.
 
-Now that you are logged into your router's web interface you can now proceed with the giving your DigiNode a Static IP address and setting up port forwarding.
+Once you are successfully logged in you can continue on with the next step.
 
 
 ### Step 7.2 - Adjust the range of dynamic IP addresses [OPTIONAL]
