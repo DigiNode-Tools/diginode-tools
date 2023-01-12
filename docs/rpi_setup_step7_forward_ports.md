@@ -59,9 +59,9 @@ By adjusting your DHCP server range, you can safely assign a Static IP addresses
 
 The method for setting a Static IP address varies from router to router. The best way to know how to do it for yours is to google the make and model with the words 'assign static ip'. 
 
-![DHCP Range](/images/dhcp_static_lease.png)
+In the example below, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below, enter the MAC address, along with the desired IP address for that deice, and its hostname. Clicking the green '+' button will add the entry and 'Save' will save it. It may be required to restart the Pi and/or the Router particularly if the IP address is already in use by a dynamically assigned device.
 
-In the example above, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below
+![DHCP Range](/images/dhcp_static_lease.png)
 
 Note: A Media Access Control address (MAC address) is a hardware identifier that uniquely identifies each device on a network. Primarily, the manufacturer assigns it. They are often found on a device’s network interface controller (NIC) card. A MAC address can also be referred to as a burned-in address, Ethernet hardware address, hardware address, or physical address.
 
