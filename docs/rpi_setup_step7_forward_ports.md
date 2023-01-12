@@ -4,19 +4,17 @@ IMPORTANT: If you have not already completed DigiNode Setup on your Raspberry Pi
 
 ## STEP 7 - Give your DigiNode a static IP address, and setup port forwarding
 
-### A Brief Primer on IP Addresses
+### A Brief Primer on Dynamic vs Static IP Addresses
 
-Every single device on your home network can be identified by its IP addresses. By default, your router assigns a dynamic IP Address to every device that connects to it. This is managed by the DHCP (Dynamic Host Control Protocol) server that is built in to the router. Each device connected to your network can maintain its lease on the IP address it has been allocated by the DHCP server, but if it disappears from the network, the IP address is eventually released for another device to use.
+Every single device on your home network can be identified by its IP addresses. By default, your router's DHCP (Dynamic Host Control Protocol) server assigns a dynamic IP Address to every device that connects to the network. Each connected device can then renew the lease on the IP address it has been given, but if it disappears from the network, the IP address is released for another device to use. This ensures that previously used IP addresses are released whnever a network device stops using them.
 
 IP addresses on a local network are typically in the range from 192.168.1.1 to 192.168.1.254. The router itself will usually take one of these (usually 192.168.1.1 or 192.168.1.254) and will then have DHCP allocate all or some of the remaining addresses for use by the other devices on your network.
 
-Sometimes it can be benficial for a device to always have the same IP address (i.e. a Static IP address) when it connects to the network. In the case of the DigiNode, this means you will always be able to easily locate it on your network at the same IP address.
+Sometimes it can be benficial for a device to always have the same IP address (i.e. a Static IP address) when it connects to the network. This is very useful for servers etc. In the case of your DigiNode, giving it a fixed IP means you will always be able to easily find it on your network, and more importantly forward internet traffic to it.
 
 In order to assign a static IP address to your DigiNode device, and to forward the required ports, you will need to gain access to your router's management area.
 
 ### Step 7.1 - Login to the web interface of your router
-
-Before trying to access your router, make sure the computer you are using is connected to the same network. It should be connected to your router's wifi, or be plugged into it with a network cable. 
 
 Built into almost all routers is a web interface that can be used to manage it. (A notable exception is Apple's dicontinued Airport devices that use the 'Airport Utility' app to manage them.). The IP address, username and password to access this varies depending on your router manufacturer. In most cases, there is usually a sticker on the router itself telling you how to connect to it, similar to the example below.
 
