@@ -69,7 +69,7 @@ For your changes to take effect, it may be required to restart the Raspberry Pi 
 
 On some routers, like the BTHomeHub the process differs in that you need to click on the device in the list of connected devices and then set to always use this IP. (You can manually change the IP address itself above.)
 
-![DHCP Range](/images/dhcp_fixed_ip.png)
+![DHCP Range](/images/dhcp_fixed_ip.jpg)
 
 You can run DigiNode Status monitor to quickly check the local IP address of the Raspberry Pi.
 
