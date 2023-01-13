@@ -68,6 +68,7 @@ If you are new to Linux, you may find these commands useful. You can type each o
 - ```cd ~``` - Return to the home folder.
 - ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
 - ```sudo reboot``` - Reboot the system. (sudo gives you elevated superuser permissions to execute that command. You will be prompted for your password.)
+- ```sudo shutdown``` - Shutdown the system.
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.
 - ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)

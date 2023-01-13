@@ -6641,7 +6641,7 @@ donation_qrcode() {
 
     echo "    I created DigiNode Tools with the objective of making it easy for everyone"
     echo "    in the DigiByte community to run their own full node. Thousands of"
-    echo "    unpaid hours have already gone into its development. If you find DigiNode"
+    echo "    unpaid hours have gone into its development so far. If you find DigiNode"
     echo "    Tools useful, please make a donation to support future development."
     echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
     echo ""
