@@ -169,4 +169,4 @@ If you want to skip this step, and simply use the default settings, include the 
 
 ## Release Notes
 
-Go [here]((docs/release_nodes.md)) to view the release notes.
+Go [here](/docs/release_nodes.md) to view the release notes.
