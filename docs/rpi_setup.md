@@ -15,7 +15,7 @@ Note: A DigiNode is designed to operate "headless". This means you do not need a
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
 1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
-2. Download and install Raspberry Pi Imager
+2. Download and install 'Raspberry Pi Imager' from the Raspberry Pi website.
 3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
 4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
 5. Once the Pi has booted up, connect to it remotely from your Mac or Windows PC using SSH

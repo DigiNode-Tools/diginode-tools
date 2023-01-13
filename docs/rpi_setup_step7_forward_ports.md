@@ -21,7 +21,7 @@ In order to assign a static IP address to your DigiNode device, and to forward t
 
 ### Step 7.1 - Login to the web interface of your router
 
-Built into almost all routers is a web interface that can be used to manage it. (A notable exception is Apple's discontinued Airport devices that use the 'Airport Utility' app to manage them.). The IP address, username and password to access this varies depending on your router manufacturer. In most cases, there is usually a sticker on the router itself telling you how to connect to it, similar to the example below.
+Built into almost every router is a web interface that can be used to manage it. (A notable exception is Apple's discontinued Airport devices that use the 'Airport Utility' app to manage them.). The IP address, username and password to access this varies depending on your router manufacturer. In most cases, there is usually a sticker on the router itself telling you how to connect to it, similar to the example below.
 
 ![Router Label](/images/router_label.jpg)
 
@@ -61,9 +61,9 @@ The method for setting a Static IP address varies from router to router. The bes
 
 In the example below, the process involves locating the DigiNode device in the current list of active DHCP leases (the dynamic addresses) and copying its MAC address. Then, in the 'Static DHCP lease configuration' below that, enter the MAC address, along with the desired IP address for that device, and its hostname. Clicking the green '+' button will add the entry, and 'Save' will save the change. 
 
-![DHCP Range](/images/dhcp_static_lease.png)
-
 (Note: A Media Access Control address (MAC address) is a hardware identifier that uniquely identifies each device on a network. Primarily, the manufacturer assigns it. They are often found on a device’s network interface controller (NIC) card. A MAC address can also be referred to as a burned-in address, Ethernet hardware address, hardware address, or physical address.)
+
+![DHCP Range](/images/dhcp_static_lease.png)
 
 On some routers, like the BTHomeHub the process differs in that you need to click on the device in the list of connected devices and then set to always use this IP. (You can manually change the IP address itself above.)
 
@@ -71,7 +71,7 @@ On some routers, like the BTHomeHub the process differs in that you need to clic
 
 For your changes to take effect, it may be required to restart the Raspberry Pi and/or the Router particularly if the IP address of the device has been changed.
 
-You can run DigiNode Status monitor at any time to quickly check the current local IP address of the Raspberry Pi.
+At any point, you can run 'DigiNode Status Monitor' to quickly check the current local IP address of the Raspberry Pi.
 
 ### A Brief Primer on Port Forwarding
 
