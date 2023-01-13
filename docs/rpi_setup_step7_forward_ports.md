@@ -82,8 +82,25 @@ These instructions are being worked on. Check back soon.
 
 ### Step 7.4 - Enable Port Forwarding
 
-These instructions are being worked on. Check back soon.
+The final step is to open two ports on your router to make your DigiNode discoverable by other nodes. This step is very important if you want to help support the network. Without it, other DigiNodes on the internet will not be able to connect to yours driectly.
 
+If you setup a mainnet DigiNode, the default ports you need to forward are:
+- DigiByte Core: **12024** TCP
+- IPFS: **4001** TCP
+
+If you setup a testnet DigiNode, the default ports you need to forward are:
+- DigiByte Core: **12026**
+- IPFS: **4004**
+
+The method for opening these ports varies from router to router. Like the previous step, the best way to know how to do it for yours is to google the make and model with the words 'port forward' to find instructions specific to your router. 
+
+The principle involves creating a new port forwarding rule, that will take internet traffic arriving at your router on a specifc port (or ports), and redirect it on to a specific device within your network, typically on the same port(s). How the rule identifies your DigiNode device varies from router to router - it might ask you to simply select your DigiNode from a list of connected devices. It may alternatively ask for the MAC address, IP address or hostname of the DigiNode. 
+
+In the example screenshot below, it shows the two rules that have been created for the DigiNode. For 'DigiByte Core', the rule will take external traffic on the internet on port 12024 and redirect it internally to device 'diginode' also on port 12024. The rule is identifying the DigiNode by its hostname, in this instance. 
+
+![DigiNode Port Forwarding](/images/diginode_port_forwarding.png)
+
+If you mirror this settings of your router then they should work.
 
 
 # NEXT: Please Donate to Support DigiNode Tools!
