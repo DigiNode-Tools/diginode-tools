@@ -6,7 +6,7 @@ A Raspberry Pi offers one of the easiest setups on which to run a dedicated Digi
 
 These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow.
 
-If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools) and ask for help.
+For help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools).
 
 Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be setup and managed entirely from your Mac or Windows computer.
 
