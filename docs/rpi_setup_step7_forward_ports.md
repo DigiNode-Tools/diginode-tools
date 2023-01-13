@@ -73,16 +73,15 @@ For your changes to take effect, it may be required to restart the Raspberry Pi 
 
 You can run DigiNode Status monitor at any time to quickly check the current local IP address of the Raspberry Pi.
 
-
 ### A Brief Primer on Port Forwarding
 
-These instructions are being worked on. Check back soon.
+Port forwarding, sometimes called port mapping, allows computers or services on the public Internet to connect to a computer or service on your local private network. Your router has an external IP address on the public internet, and through port mapping, incoming requests from the internet along a specific port can be redirected to a specific local device on your network.
 
-
+Your router's public IP address can be thought of like the address of an office building, with the local IP addresses representing floors in the building, and port numbers representing specific rooms on each floor. Port forwarding rules help ensure that a message arriving at the building makes its way to the correct room of the building. In normal use, the public internet can only ever see the building, not what floors, and rooms it has available. Port forwarding lets you selectively make specific rooms available to the public internet, while keeping the rest of the building off-limits.
 
 ### Step 7.4 - Enable Port Forwarding
 
-The final step is to open two ports on your router to make your DigiNode discoverable by other nodes. This step is very important if you want to help support the network. Without it, other DigiNodes on the internet will not be able to connect to yours driectly.
+The DigiByte blockchain is made up of hundreds of other nodes like yours. In order, for these other nodes to be able to easilly connect to yours from the internet, it is essential that you enable port forwarding for your DigiByte full node and/or DigiAsset Node, so that it can accept incoming connections from. If you fail to do this, its ability to support the network will be severely restricted.
 
 If you setup a mainnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12024** TCP
@@ -94,7 +93,9 @@ If you setup a testnet DigiNode, the default ports you need to forward are:
 
 The method for opening these ports varies from router to router. Like the previous step, the best way to know how to do it for yours is to google the make and model with the words 'port forward' to find instructions specific to your router. 
 
-The principle involves creating a new port forwarding rule, that will take internet traffic arriving at your router on a specifc port (or ports), and redirect it on to a specific device within your network, typically on the same port(s). How the rule identifies your DigiNode device varies from router to router - it might ask you to simply select your DigiNode from a list of connected devices. It may alternatively ask for the MAC address, IP address or hostname of the DigiNode. 
+You can also try visiting: https://portforward.com/router.htm (Click on the manufacturer of your router for port forwarding instructions for your specific model.)
+
+The principle involves creating a new port forwarding rule, that will take internet traffic arriving at your router on a specific port (or ports), and redirect it on to a specific device within your network, typically on the same port(s). How the rule identifies your DigiNode device varies from router to router - it might ask you to simply select your DigiNode from a list of connected devices. It may alternatively ask for the MAC address, IP address or hostname of the DigiNode.
 
 In the example screenshot below, it shows the two rules that have been created for the DigiNode. For 'DigiByte Core', the rule will take external traffic on the internet on port 12024 and redirect it internally to device 'diginode' also on port 12024. The rule is identifying the DigiNode by its hostname, in this instance. 
 
