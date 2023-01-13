@@ -75,13 +75,13 @@ At any point, you can run 'DigiNode Status Monitor' to quickly check the current
 
 ### A Brief Primer on Port Forwarding
 
-Port forwarding, sometimes called port mapping, allows computers or services on the public Internet to connect to a computer or service on your local private network. Your router has an external IP address on the public internet, and through port mapping, incoming requests from the internet along a specific port can be redirected to a specific local device on your network.
+Port forwarding, sometimes called port mapping, allows computers or services on the public Internet to connect to a computer or service on your local private network. Your router has an external IP address on the public internet, and through port mapping, incoming requests from the internet to a specific port can be redirected to a specific local device on your network.
 
 Your router's public IP address can be thought of like the address of an office building, with the local IP addresses representing floors in the building, and port numbers representing specific rooms on each floor. Port forwarding rules help ensure that a message arriving at the building makes its way to the correct room of the building. In normal use, the public internet can only ever see the building, not what floors, and rooms it has available. Port forwarding lets you selectively make specific rooms available to the public internet, while keeping the rest of the building off-limits.
 
 ### Step 7.4 - Enable Port Forwarding
 
-The DigiByte blockchain is made up of hundreds of other nodes like yours. In order, for these other nodes to be able to easilly connect to yours from the internet, it is essential that you enable port forwarding for your DigiByte full node and/or DigiAsset Node, so that it can accept incoming connections from. If you fail to do this, its ability to support the network will be severely restricted.
+The DigiByte blockchain is made up of hundreds of other nodes like yours. To make it easy for these other nodes to connect to yours from the Internet, it is essential that you enable port forwarding for your DigiByte full node and/or DigiAsset Node. If you fail to do this, their ability to support the network will be severely limited.
 
 If you setup a mainnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12024** TCP
@@ -108,7 +108,9 @@ If you mirror this settings of your router then they should work.
 
 Did you find this guide helpful?
 
-I have devoted thousands of unpaid hours to create DigiNode Tools. I did this because I want to make it easy for everyone to run a DigiNode. If they have helped you, please make a donation to support my work. Many thanks, Olly  [ Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) ]
+I created DigiNode Tools because I want to make it easy for anyone who wants to to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If this guide has helped you, please make a donation to support my work. Many thanks, Olly
+
+PS You can find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly)
 
 **[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)**
 

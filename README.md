@@ -42,7 +42,7 @@ If you need help, please join the [DigiNode Tools Telegram group](https://t.me/D
 
 ## Donations
 
-Thousands of hours have gone into developing DigiNode Tools. If you find these tools useful, kindly make a donation to support future development:
+I created DigiNode Tools because I want to make it easy for anyone who wants to to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If you find these tools useful, please make a donation to support my work. Many thanks, Olly (Find me on Twitter @saltedlolly)
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
