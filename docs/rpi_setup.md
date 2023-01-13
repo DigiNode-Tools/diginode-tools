@@ -18,9 +18,9 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 2. Download and install Raspberry Pi Imager
 3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
 4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
-5. Once the Pi has booted up, connect to the system remotely from your Mac or Windows PC using SSH and
+5. Once the Pi has booted up, connect to it remotely from your Mac or Windows PC using SSH
 6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node
-7. Assign the Raspberry Pi a fixed IP address on your network and open the relevant ports on your router.
+7. Assign the Raspberry Pi a Static IP address on your network and open the relevant ports on your router.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
 
@@ -94,9 +94,9 @@ This will perform some system checks before displaying the setup menu that will 
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step6_run_diginode_setup.md).
 
-## STEP 7 - Give the Raspberry Pi a fixed local IP, and setup port forwarding
+## STEP 7 - Give the Raspberry Pi a Static IP address and setup Port Forwarding
 
-To make it easy to access your DigiNode on your local network. It is recommended to give your Raspberry Pi a fixed local IP address. This can typically be done via the web interface of your router. 
+To make it easy to access your DigiNode on your local network, it is recommended to give your Raspberry Pi a Static IP address. This can typically be done via the web interface of your router. 
 
 Finally, you also need to open two ports on your router to make your device discoverable by other nodes. This step is very important if you want to help support the network.
 

@@ -68,6 +68,7 @@ If you are new to Linux, you may find these commands useful. You can type each o
 - ```cd ~``` - Return to the home folder.
 - ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
 - ```sudo reboot``` - Reboot the system. (sudo gives you elevated superuser permissions to execute that command. You will be prompted for your password.)
+- ```sudo shutdown``` - Shutdown the system.
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.
 - ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
@@ -77,6 +78,6 @@ If you are new to Linux, you may find these commands useful. You can type each o
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 
-# NEXT: STEP 7 - [Enable Port Forwarding](/docs/rpi_setup_step7_forward_ports.md)
+# NEXT: STEP 7 - [Give the Raspberry Pi a Static IP address and setup Port Forwarding](/docs/rpi_setup_step7_forward_ports.md)
 
 To return to the less detailed instructions, click [here](/docs/rpi_setup.md).
