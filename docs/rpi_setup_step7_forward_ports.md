@@ -27,7 +27,7 @@ Built into almost all routers is a web interface that can be used to manage it. 
 
 The sticker on your router, will hopefully tell you the website address (or IP address) to access the admin page, along with the username and password. If it does not include these, try googling your router make and model to find out the default username and password.
 
-You can also try visiting: http://whatsmyrouterip.com/ or https://www.routerpasswords.com/
+You can also try visiting http://whatsmyrouterip.com/ or https://www.routerpasswords.com/ for help finding the default login and password for your router model.
 
 Once you have found the login credentials, enter the IP address or web address into your browser, and then login to the web interface using the username and password.
 
