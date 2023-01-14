@@ -32,13 +32,13 @@ Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. t
 
 ### DigiNode on Raspberry Pi
 
-**Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
+Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi.
 
 ### DigiNode on Debian
 
 On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
 
-## ```curl -sSL diginode-setup.digibyte.help | bash```
+```curl -sSL diginode-setup.digibyte.help | bash```
 
 ### DigiNode on Ubuntu
 
