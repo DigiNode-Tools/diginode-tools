@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.7.3 - 2023-01-xx
+- Coming Soon....
+
 DigiNode Tools v0.7.2 - 2023-01-14
 - New: Added step-by-step instructions for setting up a DigiNode on a Raspberry Pi
 - Fix: Status Monitor now displays correct sync progress when running testnet
