@@ -8092,6 +8092,14 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_DO_INSTALL=YES
         fi
     fi
+
+    # Ubuntu workaround detected - DigiNode Tools will be installed for the first time
+    if [[ -f "$DGNT_LOCATION/ubuntu-workaround" ]]; then
+        printf "%b Ubuntu workaround detected. DigiNode Tools will be re-installed to configure aliases etc.\\n" "${INFO}"
+        DGNT_INSTALL_TYPE="new"
+        DGNT_DO_INSTALL=YES
+    fi
+
     printf "\\n"
 
 }
@@ -8174,7 +8182,7 @@ fi
         elif [ "$DGNT_BRANCH_REMOTE" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
+            sudo -u $USER_ACCOUNT cd diginode-t
             DGNT_BRANCH_LOCAL="release"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
