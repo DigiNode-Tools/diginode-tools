@@ -26,19 +26,23 @@ These tools are provided as is. Use at your own risk. Always keep a backup of yo
 
 ## Get Started
 
-**Detailed instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
+To get started, follow the instuctions below for you specific system.
+
+Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools
+
+### DigiNode on Raspberry Pi
+
+**Step-by-step instructions for setting up a DigiNode on a Raspberry Pi can be found [here](docs/rpi_setup.md).**
+
+### DigiNode on Debian
 
 On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
 
 ## ```curl -sSL diginode-setup.digibyte.help | bash```
 
-This will perform some system checks before displaying the setup menu that will guide you through the installation process. To customize your setup, see the "Advanced Features" section below. 
+### DigiNode on Ubuntu
 
-Note: DigiNode Setup also gives you the option to install DigiNode Tools only (i.e. these scripts). This is so that you can use the DigiNode Status Monitor with your existing DigiByte Node, or want to inspect the scripts before doing a full install. (They will be installed at ~/diginode-tools)
-
-### Instructions for Ubuntu Users
-
-Due to a bug in the latest Ubuntu release, you cannot run the install script directly from Github - when you do the menus become unresponsive. (Press Ctrl-C to exit.) The workaround is to first download DigiNode Tools to your machine, and run it locally. Until a fix is released, copy and paste the following command into the terminal, to start DigiNode Setup on Ubuntu:
+Due to a bug in the latest Ubuntu release, you cannot currently run the install script directly from Github using the command above - if you do the menus become unresponsive. The current workaround is to download DigiNode Tools to your machine, and then run it locally. Until a fix is released, you can copy and paste the following command into the terminal, to begin DigiNode Setup on Ubuntu:
 
 ```cd ~ && LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/saltedlolly/diginode-tools/releases/latest) && LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/') && LATEST_VER_NUM=$(echo "$LATEST_VERSION" | sed -e "s/^v//") && RELEASE_TAR="https://github.com/saltedlolly/diginode-tools/archive/refs/tags/$LATEST_VERSION.tar.gz" && wget $RELEASE_TAR -P ~ -O - | tar -xz && mv ~/diginode-tools-$LATEST_VER_NUM ~/diginode-tools && chmod +x ~/diginode-tools/diginode-setup.sh && ~/diginode-tools/diginode-setup.sh```
 
