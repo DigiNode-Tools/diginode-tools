@@ -42,7 +42,7 @@ On your Debian system, launch DigiNode Setup by entering the following command i
 
 ### DigiNode on Ubuntu
 
-Due to a bug in the latest Ubuntu release, you cannot currently run the install script directly from Github using the command above - if you do the menus become unresponsive. The current workaround is to download DigiNode Tools to your machine, and then run it locally. Until a fix is released, you can copy and paste the following command into the terminal, to begin DigiNode Setup on Ubuntu:
+Due to a bug in the latest Ubuntu release, you are not currently able to run the install script directly from Github - when you do, the menus become unresponsive. The current workaround is to download DigiNode Tools to your machine first, and then run it locally. Until a fix is released, you can use the following command to begin DigiNode Setup on Ubuntu:
 
 ```cd ~ && LATEST_RELEASE=$(curl -L -s -H 'Accept: application/json' https://github.com/saltedlolly/diginode-tools/releases/latest) && LATEST_VERSION=$(echo $LATEST_RELEASE | sed -e 's/.*"tag_name":"\([^"]*\)".*/\1/') && LATEST_VER_NUM=$(echo "$LATEST_VERSION" | sed -e "s/^v//") && RELEASE_TAR="https://github.com/saltedlolly/diginode-tools/archive/refs/tags/$LATEST_VERSION.tar.gz" && wget $RELEASE_TAR -P ~ -O - | tar -xz && mv ~/diginode-tools-$LATEST_VER_NUM ~/diginode-tools && chmod +x ~/diginode-tools/diginode-setup.sh && ~/diginode-tools/diginode-setup.sh```
 
