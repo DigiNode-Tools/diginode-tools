@@ -12530,10 +12530,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact23" ]; then
     DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
-    DIGIFACT_L1="DigiByte has a known founder, Jared Tate. Jared is still"
-    DIGIFACT_L2="active in the community and contributes code to the DigiByte code-base."
-    DIGIFACT_L3=""
-    DIGIFACT_L4=""
+    DIGIFACT_L1="DigiByte was founded by Jared Tate in 2013 and the Genesis block"
+    DIGIFACT_L2="was mined on 10th January 2014. Jared has helped nurture the"
+    DIGIFACT_L3="project over the years and remains an active member of the"
+    DIGIFACT_L4="DigiByte community."
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi
