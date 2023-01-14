@@ -6,7 +6,7 @@ A Raspberry Pi offers one of the easiest setups on which to run a dedicated Digi
 
 These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow.
 
-If you get stuck, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools) and ask for help.
+For help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools).
 
 Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be setup and managed entirely from your Mac or Windows computer.
 
@@ -17,9 +17,9 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
 2. Download and install 'Raspberry Pi Imager' from the Raspberry Pi website.
 3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
-4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on.
-5. Once the Pi has booted up, connect to it remotely from your Mac or Windows PC using SSH
-6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node
+4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using).
+5. Power on the Pi and connect to it remotely from your Mac or Windows PC using SSH.
+6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node.
 7. Assign the Raspberry Pi a Static IP address on your network and open the relevant ports on your router.
 
 ## STEP 1 - Connect the SSD to your Windows or Mac computer
