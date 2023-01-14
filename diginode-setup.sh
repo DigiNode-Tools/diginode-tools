@@ -6963,7 +6963,7 @@ if [ "$NewInstall" = true ]; then
 fi
 
 # If we are running this from the main menu, always show the menu prompts
-if [ "$show_dgb_network_menu" = "maybe" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = true ]; then
+if [ "$show_dgb_network_menu" = "no" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = true ]; then
     show_dgb_network_menu="yes"
 fi
 

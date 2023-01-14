@@ -2808,7 +2808,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
         fi
 
     else
-        printf "%b %bERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
+        printf "%b %b ERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
     fi
 
 elif [ "$DGA_STATUS" = "stopped" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
