@@ -48,7 +48,7 @@ The current workaround is to first download it and then run it from your local m
 
 ```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && chmod +x ~/diginode-tools/diginode-setup.sh && touch ~/diginode-tools/ubuntu-workaround && ~/diginode-tools/diginode-setup.sh```
 
-This will download the latest DigiNode Tools release to ~/diginode-tools and then run DigiNode Setup. It only needs to be run once. If you exit before completing the installation, and need to run DigiNode Setup again, enter:
+This will download the latest DigiNode Tools release to ~/diginode-tools and then run DigiNode Setup locally. It only needs to be run once. If you exit before completing the installation, and need to run DigiNode Setup again, enter:
 
 ```~/diginode-tools/diginode-setup.sh```
 

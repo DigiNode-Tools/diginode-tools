@@ -8095,7 +8095,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 
     # Ubuntu workaround detected - DigiNode Tools will be installed for the first time
     if [[ -f "$DGNT_LOCATION/ubuntu-workaround" ]]; then
-        printf "%b Ubuntu workaround detected. DigiNode Tools will be re-installed to configure aliases etc.\\n" "${INFO}"
+        printf "%b %bUbuntu workaround detected. DigiNode Tools will be re-installed to configure aliases etc.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         DGNT_INSTALL_TYPE="new"
         DGNT_DO_INSTALL=YES
     fi
