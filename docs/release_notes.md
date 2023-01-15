@@ -2,6 +2,8 @@
 
 DigiNode Tools v0.7.3 - 2023-01-xx
 - Fix: Display testnet/mainnet selection menu correctly
+- Fix: Documentation tweaks and typos
+- Fix: Argon One fan installer script, under the 'Extras' menu, should now install correctly
 
 DigiNode Tools v0.7.2 - 2023-01-14
 - New: Added step-by-step instructions for setting up a DigiNode on a Raspberry Pi

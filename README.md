@@ -44,11 +44,11 @@ On your Debian system, launch DigiNode Setup by entering the following command i
 
 Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
 
-The current workaround will download DigiNode Tools to your machine, and then run it locally. Until a fix is released, you can use the following command to start DigiNode Setup on Ubuntu:
+The current workaround is to first download it and then run it from your local machine. Until a fix is released, you use the following command to start DigiNode Setup on Ubuntu:
 
 ```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && chmod +x ~/diginode-tools/diginode-setup.sh && touch ~/diginode-tools/ubuntu-workaround && ~/diginode-tools/diginode-setup.sh```
 
-The above will download the latest DigiNode Tools release to ~/diginode-tools and then run DigiNode Setup. It only needs to be run once. If you exit before completing the installation, and need to run DigiNode Setup again, enter:
+This will download the latest DigiNode Tools release to ~/diginode-tools and then run DigiNode Setup. It only needs to be run once. If you exit before completing the installation, and need to run DigiNode Setup again, enter:
 
 ```~/diginode-tools/diginode-setup.sh```
 
@@ -119,9 +119,10 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 ## Compatibility
 
 - DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. 
-- A DigiByte Node typically requires ~6Gb RAM but this can be higher during the intial sync. For this reason, a device with at least 8Gb RAM is strongly recommended. 4Gb RAM will work with a SWAP file but performance will be very sluggish - this is fine for testing, but definitely not recommended for long term use. Less than 4Gb RAM is definitely not recommended. (DigiByte Core's memory requirements exceed that of Bitcoin due to multi-algo.)
-- A DigiAsset Node requires ~2Gb RAM. If your device has less than 4Gb RAM, you can't run a DigiByte Node, but can still support the network by running a DigiAsset Node.
-- A DigiByte Node and DigiAsset Node together often exceed 8GB RAM so a SWAP file is required on any device with 8Gb RAM or less. DigiNode Setup can help configure this for you.
+- A full DigiNode (DigiByte + DigiAssets) typically requires a device with at least 8Gb RAM. 4Gb RAM will work with a SWAP file but performance will be very sluggish - this is fine for testing, but definitely not recommended for long term use.
+- If your device has 4Gb RAM, you should be able to run a DigiByte Node, or a DigiAsset Node, but probably not both together.
+- If your device has 2Gb RAM, you won't be able to run a DigiByte Node, but a DigiAsset Node should be fine. (A DigiAsset Node requires ~2Gb RAM.)
+- Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
 - As of December 2022, the DigiByte blockchain currently requires around 43Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - When using a Raspberry Pi 4, booting from an SSD via USB is highly recommended. If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.
 - If you are interested in building your own DigiNode using a Raspberry Pi 4, you can find a list of the parts you need [here](docs/suggested_hardware.md).
@@ -131,9 +132,9 @@ DigiNode has been tested and known to work with the following systems:
 | **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with this release of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or alternatively first clone the DigiNode Tools repo to your home folder, before running the diginode-setup.sh script locally. |
-| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                            |
-| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM.                                            |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with the recent releases of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or run the script locally with the workaround above. |
+| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                           |
+| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above.                                           |
 
 ## License
 

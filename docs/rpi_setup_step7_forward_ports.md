@@ -10,7 +10,7 @@ Setting up port forwarding is probably the trickiest part of the entire setup, s
 
 ### A Brief Primer on Dynamic vs Static IP Addresses
 
-Every single device on your LAN (Local Area Network) is identified by its IP address - a string of numbers separated by periods e.g. 192.168.1.125. By default, your router's DHCP (Dynamic Host Control Protocol) server assigns a dynamic IP Address to every device that connects to the network. Each connected device can then periodically renew the lease on the IP address it has been allocated, but should it disappear from the network, the IP address is released for another device to use. This helps prevent the router from running out of IP addresses. However, this also means that a device on your network is not guaranteed to always be available at its current IP address.
+Every single device on your LAN (Local Area Network) is identified by its IP address - a string of numbers separated by periods e.g. 192.168.1.125. By default, your router's DHCP (Dynamic Host Control Protocol) server assigns a dynamic IP Address to every device that connects to the network. Each connected device can periodically renew the lease on the IP address it has been allocated, but should it disappear from the network, the IP address is released for another device to use. This helps prevent the router from running out of IP addresses, but it means that a device on your network is not guaranteed to always be available at its current IP address.
 
 IP addresses on a local network are typically in the range from 192.168.1.1 to 192.168.1.254. The router itself will usually take one of these (usually 192.168.1.1 or 192.168.1.254) and will then have DHCP allocate all or some of the remaining addresses for use by the other devices on your network.
 
@@ -33,7 +33,7 @@ Once you have found the login credentials, enter the IP address or web address i
 
 If you are struggling to gain access, share your router make and model in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools), and someone will try and help you.
 
-Once you are successfully logged in you can continue on with the next step.
+Once you are successfully logged in to your router you can continue on with the next step.
 
 
 ### Step 7.2 - Adjust the range of dynamic IP addresses [OPTIONAL]
@@ -99,12 +99,21 @@ You can also try visiting: https://portforward.com/router.htm (Click on the manu
 
 The principle involves creating a new port forwarding rule, that will take internet traffic arriving at your router on a specific port (or ports), and redirect it on to a specific device within your network, typically on the same port(s). How the rule identifies your DigiNode device varies from router to router - it might ask you to simply select your DigiNode from a list of connected devices. It may alternatively ask for the MAC address, IP address or hostname of the DigiNode.
 
-In the example screenshot below, it shows the two rules that have been created for the DigiNode. For 'DigiByte Core', the rule will take external traffic on the internet on port 12024 and redirect it internally to device 'diginode' also on port 12024. The rule is identifying the DigiNode by its hostname, in this instance. 
+In the example screenshot below, it shows the two rules that have been created for the DigiNode. For 'DigiByte Core', the rule will take external traffic on the internet on port 12024 and redirect it internally to device 'diginode' also on port 12024. The rule is identifying the DigiNode by its hostname, in this instance. If you mirror these settings on your router then it should work.
 
 ![DigiNode Port Forwarding](/images/diginode_port_forwarding.png)
 
-If you mirror this settings of your router then they should work.
+Once you have successfully opened the required ports, you can run 'DigiNode Status Monitor' and monitor the connection count to check that it is working.
 
+### Step 7.5 Install Case Software for the fan and power button (if needed)
+
+If your Raspberry Pi case comes with a power button and/or fan, you may need to install some software so that they work properly. If you are using the 'Argon One M.2' case, DigiNode Setup can install this for you. Enter ```diginode-setup``` at the command line and choose 'Extras' from the main menu.
+
+### Wrapping Up: Please share your #DigiNode on social media!
+
+If you have followed all the steps, your DigiNode on your Raspberry Pi should now be up and running! 🍾🥂🚀
+
+To encourage others, please take a moment to share on social media that you are now running your own #DigiNode. The more people who run one, the more robust and decentralized the DigiByte network becomes. Also, please let us know in the [DigiNode Telegram Group](https://t.me/DigiNodeTools). Joining this group is a good way to be kept informed of software updates etc. You can also follow [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
 
 # NEXT: Please Donate to Support DigiNode Tools!
 
