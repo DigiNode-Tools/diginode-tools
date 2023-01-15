@@ -58,7 +58,9 @@ If you need help, please join the [DigiNode Tools Telegram group](https://t.me/D
 
 ## Donations
 
-I created DigiNode Tools because I want to make it easy for everyone to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If you find these tools useful, please make a donation to support my work. Many thanks, Olly (Find me on Twitter @saltedlolly)
+I created DigiNode Tools because I want to make it easy for everyone to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If you find these tools useful, please make a donation to support my work. 
+
+Many thanks, Olly   >> Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) <<
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
