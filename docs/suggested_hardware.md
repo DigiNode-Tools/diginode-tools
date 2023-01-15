@@ -20,9 +20,15 @@ Disclaimer: This page includes affiliate links. By purchasing your equipment fro
 ## Raspberry Pi 4 Model B 8Gb
 ![Raspberry Pi 4 Model B 8Gb](/images/rpi4_8gb.jpg)
 
-The Raspberry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. Only the 8Gb model is recommended for a DigiNode. The 4Gb model will run, but performance will be very sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use. The 1Gb and 2Gb models do not have enough RAM to run a DigiNode and are not supported. Earlier models of the Raspberry Pi (3, Zero etc.) are also not supported.
+The Raspberry Pi 4 Model B is available in 8Gb, 4Gb, 2Gb and 1Gb models. Only the 8Gb model is recommended for a full DigiNode. The 4Gb model will run, but performance will be very sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use. 
 
-As of December 2022, due to the global chip shortage, Raspberry Pis are still experiencing stock shortages, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). According to reports, the situation should start to improve in 2023 Q2 and Pi's should be hopefully readily available again in 2023 Q3. For more info, see the interview [here](https://www.youtube.com/watch?v=P9vna9jao9I) with Raspberry Pi CEO, Eben Upton.
+With a 4Gb Pi 4, you should be able to run a DigiByte Node, or a DigiAsset Node, but not both together.
+
+With a 2Gb Pi 4, you should be able to run a DigiAsset Node, but not a DigiByte Node.
+
+A 1Gb Pi4 does not have enough RAM and is not supported. Earlier models of the Raspberry Pi (3, Zero etc.) are also not supported.
+
+As of December 2022, due to the global chip shortage, Raspberry Pis are still experiencing supply problems, and may currently be unavailable at the provided links. You can monitor global stock availability at the [rpilocator website](https://rpilocator.com/). You can also sign up for stock alerts on [Twitter](https://twitter.com/rpilocator) or [Telegram](https://t.me/raspberry_alert_pi). According to reports, the situation should start to improve in 2023 Q2 and Pi's should be hopefully readily available again in 2023 Q3. For more info, see the interview [here](https://www.youtube.com/watch?v=P9vna9jao9I) with Raspberry Pi CEO, Eben Upton.
 
 **Be wary of price gouging - the MSRP of the Pi4 8Gb is $75 USD.**
 

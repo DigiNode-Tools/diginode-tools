@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.7.2
+#           Name:  DigiNode Setup v0.7.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -2244,7 +2244,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
@@ -2279,7 +2279,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
+    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -6963,7 +6963,7 @@ if [ "$NewInstall" = true ]; then
 fi
 
 # If we are running this from the main menu, always show the menu prompts
-if [ "$show_dgb_network_menu" = "maybe" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = true ]; then
+if [ "$show_dgb_network_menu" = "no" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = true ]; then
     show_dgb_network_menu="yes"
 fi
 
@@ -8095,7 +8095,7 @@ printf " =============== Checking: DigiNode Tools ==============================
 
     # Ubuntu workaround detected - DigiNode Tools will be installed for the first time
     if [[ -f "$DGNT_LOCATION/ubuntu-workaround" ]]; then
-        printf "%b Ubuntu workaround detected. DigiNode Tools will be re-installed to configure aliases etc.\\n" "${INFO}"
+        printf "%b %bUbuntu workaround detected. DigiNode Tools will be re-installed to configure aliases etc.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         DGNT_INSTALL_TYPE="new"
         DGNT_DO_INSTALL=YES
     fi
@@ -12530,10 +12530,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact23" ]; then
     DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
-    DIGIFACT_L1="DigiByte has a known founder, Jared Tate. Jared is still"
-    DIGIFACT_L2="active in the community and contributes code to the DigiByte code-base."
-    DIGIFACT_L3=""
-    DIGIFACT_L4=""
+    DIGIFACT_L1="DigiByte was founded by Jared Tate in 2013 and the Genesis block"
+    DIGIFACT_L2="was mined on 10th January 2014. Jared has helped nurture the"
+    DIGIFACT_L3="project over the years and remains an active member of the"
+    DIGIFACT_L4="DigiByte community."
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi

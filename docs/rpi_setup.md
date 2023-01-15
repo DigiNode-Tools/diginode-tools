@@ -14,7 +14,7 @@ Note: A DigiNode is designed to operate "headless". This means you do not need a
 
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
-1. Connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
+1. Assemble your case and connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
 2. Download and install 'Raspberry Pi Imager' from the Raspberry Pi website.
 3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
 4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using).
@@ -22,7 +22,11 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node.
 7. Assign the Raspberry Pi a Static IP address on your network and open the relevant ports on your router.
 
-## STEP 1 - Connect the SSD to your Windows or Mac computer
+## STEP 1 - Assemble the Raspberry Pi in its case and connect the SSD to your Windows or Mac computer
+
+Assemble the Raspberry Pi in its case. If your case has a power button, it may also have a jumper setting to have it boot automatically when the power is connected. It would be a good idea to enable this, so that your DigiNode will restart automatically after a power outage. (See the instructions that came with your case for how to do this.)
+
+Next, connect the SSD you are using with your Pi to your Windows or Mac computer.
 
 If you are using an external SSD you should be able to use the cable it came with to plug it directly into your computer. 
 
@@ -107,5 +111,7 @@ If you setup a mainnet DigiNode, the default ports you need to forward are:
 If you setup a testnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12026**
 - IPFS: **4004**
+
+Lastly, don't forget to install the fan software if your case has one. The software for the 'Argon One M.2' case can be installed directly from the 'DigiNode Setup' main menu. Run ```diginode-setup`` and find it under 'Extras'.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step7_forward_ports.md).

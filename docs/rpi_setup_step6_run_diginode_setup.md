@@ -4,6 +4,8 @@ IMPORTANT: If you have not yet connected to your Raspberry Pi in the Terminal us
 
 ## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
+*Tip: Sometimes when using DigiNode Tools it displays website URLs - to open these in your browser, you can hold the Command '⌘' key (Mac) or the Ctrl key (Windows) and then clicking on them.*
+
 To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL diginode-setup.digibyte.help | bash``` and press return.
 
 ![Run DigiNode Setup](/images/macos_setup_6_1a.png)
@@ -67,7 +69,8 @@ If you are new to Linux, you may find these commands useful. You can type each o
 - ```cd ..``` - Navigate out of the current directory.
 - ```cd ~``` - Return to the home folder.
 - ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
-- ```sudo reboot``` - Reboot the system. (sudo gives you elevated superuser permissions to execute that command. You will be prompted for your password.)
+- ```sudo``` - Prefix to other commands. It gives you elevated superuser permissions to execute that command. You will be prompted for your password.
+- ```sudo reboot``` - Reboot the system. 
 - ```sudo shutdown``` - Shutdown the system.
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.

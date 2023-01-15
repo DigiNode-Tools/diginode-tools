@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.7.2
+#           Name:  DigiNode Status Monitor v0.7.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -58,8 +58,8 @@
 # When a new release is made, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.7.2
-# Last Updated: 2022-12-29
+DGNT_VER_LOCAL=0.7.3
+# Last Updated: 2023-01-14
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
@@ -2808,7 +2808,7 @@ if [ "$DGA_STATUS" = "running" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
         fi
 
     else
-        printf "%b %bERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
+        printf "%b %b ERROR! Response timed out. Is DigiAsset Node running?%b\\n" "${OVER}" "${CROSS}" "${str}" 
     fi
 
 elif [ "$DGA_STATUS" = "stopped" ] && [ "$IPFS_PORT_TEST_ENABLED" = "YES" ]; then
