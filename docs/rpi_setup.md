@@ -24,7 +24,7 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 
 ## STEP 1 - Assemble the Raspberry Pi in its case and connect the SSD to your Windows or Mac computer
 
-Assemble the Raspberry Pi in its case. If your case has a power button, it may also have a jumper setting to have it boot automatically when the power is connected. It would be a good idea to enable this, so that your DigiNode will restart automatically after a power outage.
+Assemble the Raspberry Pi in its case. If your case has a power button, it may also have a jumper setting to have it boot automatically when the power is connected. It would be a good idea to enable this, so that your DigiNode will restart automatically after a power outage. (See the instructions that came with your case for how to do this.)
 
 Next, connect the SSD you are using with your Pi to your Windows or Mac computer.
 
