@@ -2244,7 +2244,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
@@ -2279,7 +2279,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git iproute procps-ng which chkconfig jq)
+    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
