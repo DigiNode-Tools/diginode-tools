@@ -44,15 +44,15 @@ On your Debian system, launch DigiNode Setup by entering the following command i
 
 Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
 
-The current workaround is to first download it and then run it from your local machine. Until a fix is released, you use the following command to download DigiNode Setup on Ubuntu:
+The current workaround is to first download it and then run it from your local machine. Until a fix is released, use the following command to download DigiNode Tools on Ubuntu:
 
-```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && chmod +x ~/diginode-tools/diginode-setup.sh && touch ~/diginode-tools/ubuntu-workaround```
+```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
 
-This will download the latest DigiNode Tools release to ~/diginode-tools. This command need only be run once. Once downloaded, you can run DigiNode Setup by entering:
+This command need only be run once. The latest DigiNode Tools release will be downloaded to ~/diginode-tools. Once downloaded, you can run DigiNode Setup by entering:
 
 ```~/diginode-tools/diginode-setup.sh```
 
-(Note: If needed, you can append any flags from the 'Advanced Features' section below to the command above.)
+(Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
 
 ## Support
 
@@ -137,8 +137,8 @@ DigiNode has been tested and known to work with the following systems:
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with the recent releases of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or run the script locally with the workaround above. |
-| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                           |
-| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above.                                           |
+| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
+| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
 
 ## License
 
