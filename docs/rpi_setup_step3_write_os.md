@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 IMPORTANT: If you have not already installed the 'Raspberry Pi Imager' software, please complete STEP 2 first. Click [here](/docs/rpi_setup_step2_get_imager_win.md) if you are on Windows, and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
 

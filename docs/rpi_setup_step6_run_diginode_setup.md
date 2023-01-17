@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 IMPORTANT: If you have not yet connected to your Raspberry Pi in the Terminal using SSH, please complete STEP 5 first. Click [here](/docs/rpi_setup_step5_ssh_in_win.md) if you are on Windows, and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
 

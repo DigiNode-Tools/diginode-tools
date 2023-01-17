@@ -44,13 +44,15 @@ On your Debian system, launch DigiNode Setup by entering the following command i
 
 Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
 
-The current workaround is to first download it and then run it from your local machine. Until a fix is released, you use the following command to start DigiNode Setup on Ubuntu:
+Until a fix is released, the workaround is to first download DigiNode Tools and then run it from your local machine. Enter the following command to download it:
 
-```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && chmod +x ~/diginode-tools/diginode-setup.sh && touch ~/diginode-tools/ubuntu-workaround && ~/diginode-tools/diginode-setup.sh```
+```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
 
-This will download the latest DigiNode Tools release to ~/diginode-tools and then run DigiNode Setup locally. It only needs to be run once. If you exit before completing the installation, and need to run DigiNode Setup again, enter:
+This command need only be run once. The latest release of DigiNode Tools will be downloaded to ~/diginode-tools. Once downloaded, you can run DigiNode Setup by entering:
 
 ```~/diginode-tools/diginode-setup.sh```
+
+(Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
 
 ## Support
 
@@ -94,7 +96,7 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
 - **Ports**: Enable/disable using UPnP to forward required ports.
 - **Network**: Switch between running DigiByte Core on mainnet or testnet
-- **MOTD**: Enable the custom DigiNode MOTD. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
+- **MOTD**: Enable the custom DigiNode Message of the Day. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
@@ -123,7 +125,7 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 - DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. 
 - A full DigiNode (DigiByte + DigiAssets) typically requires a device with at least 8Gb RAM. 4Gb RAM will work with a SWAP file but performance will be very sluggish - this is fine for testing, but definitely not recommended for long term use.
 - If your device has 4Gb RAM, you should be able to run a DigiByte Node, or a DigiAsset Node, but probably not both together.
-- If your device has 2Gb RAM, you won't be able to run a DigiByte Node, but a DigiAsset Node should be fine. (A DigiAsset Node requires ~2Gb RAM.)
+- If your device has 2Gb RAM, you won't be able to run a DigiByte Node, but a DigiAsset Node should be fine. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
 - Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
 - As of December 2022, the DigiByte blockchain currently requires around 43Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - When using a Raspberry Pi 4, booting from an SSD via USB is highly recommended. If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.
@@ -135,8 +137,8 @@ DigiNode has been tested and known to work with the following systems:
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
 | Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with the recent releases of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or run the script locally with the workaround above. |
-| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires swap file. Runs slowly. Fine for testing - not recommended for long-term use.                                                                           |
-| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above.                                           |
+| Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
+| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
 
 ## License
 

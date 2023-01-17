@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 IMPORTANT: If you have not already connected the SSD you are using with your Raspberry Pi to your Windows PC, then please click [here](/docs/rpi_setup_step1_connect_ssd.md) and complete STEP 1.
 
