@@ -44,7 +44,7 @@ On your Debian system, launch DigiNode Setup by entering the following command i
 
 Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
 
-The current workaround is to first download it and then run it from your local machine. Until a fix is released, use the following command to download DigiNode Tools on Ubuntu:
+Until a fix is released, the workaround is to first download DigiNode Tools and then run it from your local machine. Enter the following command to download it:
 
 ```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
 
