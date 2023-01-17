@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 ## STEP 1 - Assemble the Raspberry Pi in its case and connect the SSD to your Windows or Mac computer
 

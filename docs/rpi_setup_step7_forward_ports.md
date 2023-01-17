@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 IMPORTANT: If you have not already completed DigiNode Setup on your Raspberry Pi, then please go [here](/docs/rpi_setup_step6_run_diginode_setup.md) and complete STEP 6.
 
@@ -105,7 +105,7 @@ In the example screenshot below, it shows the two rules that have been created f
 
 Once you have successfully opened the required ports, you can run 'DigiNode Status Monitor' and monitor the connection count to check that it is working.
 
-### Step 7.5 Install Case Software for the fan and power button (if needed)
+### Step 7.5 - Install Case Software for the fan and power button (if needed)
 
 If your Raspberry Pi case comes with a power button and/or fan, you may need to install some software so that they work properly. If you are using the 'Argon One M.2' case, DigiNode Setup can install this for you. Enter ```diginode-setup``` at the command line and choose 'Extras' from the main menu.
 
@@ -119,7 +119,7 @@ To encourage others, please take a moment to share on social media that you are 
 
 Did you find this guide helpful?
 
-I created DigiNode Tools because I want to make it easy for anyone who wants to to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If this guide has helped you, please make a donation to support my work. Many thanks, Olly
+I created DigiNode Tools because I want to make it easy for everyone to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If this guide has helped you, please make a donation to support my work. Many thanks, Olly
 
 PS You can find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly)
 

@@ -1,4 +1,4 @@
-# DigiNode Setup on a Raspberry Pi - Step-by-Step Instructions
+# DigiNode Setup Guide for the Raspberry Pi - Step-by-Step Instructions
 
 IMPORTANT: If you have not already setup the operating system on the SSD, then please go [here](/docs/rpi_setup_step3_write_os.md) and complete STEP 3.
 
