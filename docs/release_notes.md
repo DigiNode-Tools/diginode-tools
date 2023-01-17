@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.7.4 - 2023-01-xx
+DigiNode Tools v0.7.4 - 2023-01-xx [COMING SOON]
 - More documentation tweaks
 
 DigiNode Tools v0.7.3 - 2023-01-15
