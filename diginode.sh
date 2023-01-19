@@ -245,8 +245,9 @@ locate_digibyte_node() {
         printf "%b    If you don't already have a DigiByte Node installed, this will launch\\n" "${INDENT}"
         printf "%b    DigiNode Setup so you can install one.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b 3. ${txtbld}Skip detecting a DigiByte Node${txtrst}\\n" "${INDENT}"
-        printf "%b    If there is an existing DigiByte Node it not be monitored.\\n" "${INDENT}"
+        printf "%b 3. ${txtbld}Skip locating an existing DigiByte Node${txtrst}\\n" "${INDENT}"
+        printf "%b    If there is an existing DigiByte Node installed on this system,\\n" "${INDENT}"
+        printf "%b    it will not be monitored.\\n" "${INDENT}"
         printf "\\n"
         printf "%b 4. ${txtbld}EXIT${txtrst}\\n" "${INDENT}"
         printf "%b    Exit DigiNode Status Monitor.\\n" "${INDENT}"
@@ -275,7 +276,7 @@ locate_digibyte_node() {
         printf "\\n" 
         printf "%b Prompting for absoute path of digibyte core install folder...\\n" "${INFO}"
 
-        DGB_CORE_PATH=$(whiptail --inputbox "Please enter the absolute path of your DigiByte Core install folder.\\n\\nExample: /usr/bin/digibyted" 8 78 --title "Enter the absolute path of your DigiByte Node." 3>&1 1>&2 2>&3)
+        DGB_CORE_PATH=$(whiptail --inputbox "Please enter the absolute path of your DigiByte Core install folder.\\n\\nExample: /usr/bin/digibyted" 10 78 --title "Enter the absolute path of your DigiByte Node." 3>&1 1>&2 2>&3)
                                                                             # A trick to swap stdout and stderr.
         # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
