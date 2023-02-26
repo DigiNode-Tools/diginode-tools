@@ -5482,6 +5482,17 @@ usb_restore() {
         # Now run the digiasset function, to update the RPC credentials in main.json if they are different to what is in digibyte.conf
         digiasset_node_create_settings
 
+
+        # Restart PM2 if it has not already been restarted.
+        if [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
+
+            printf "%b Re-starting DigiAsset Node...\\n" "${INFO}"
+
+            # Stop the DigiAsset Node now
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
+
+        fi
+
     fi
 
     # Unmount USB stick
@@ -6147,7 +6158,7 @@ change_upnp_status() {
 
             # Restart IPFS if the upnp status has just been changed
             printf "%b JS-IPFS UPnP status has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
-            pm2 restart digiasset
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
         fi
 
     fi
@@ -6222,7 +6233,7 @@ change_dgb_network() {
 
         # Restart IPFS if the upnp status has just been changed
         printf "%b JS-IPFS port has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
-        pm2 restart digiasset
+        sudo -u $USER_ACCOUNT pm2 restart digiasset
 
     fi
 
