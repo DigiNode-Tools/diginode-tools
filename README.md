@@ -123,9 +123,9 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 ## Compatibility
 
 - DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. 
-- A full DigiNode (DigiByte + DigiAssets) typically requires a device with at least 8Gb RAM. 4Gb RAM will work with a SWAP file but performance will be very sluggish - this is fine for testing, but definitely not recommended for long term use.
-- If your device has 4Gb RAM, you should be able to run a DigiByte Node, or a DigiAsset Node, but probably not both together.
-- If your device has 2Gb RAM, you won't be able to run a DigiByte Node, but a DigiAsset Node should be fine. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
+- With 8Gb RAM or more, you can safely run a full DigiNode (DigiByte + DigiAssets). This is the recommended minimum.
+- With 4Gb RAM, you can run a DigiByte Node, or a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use. Due the read/write demands placed on the SSD, its lifespan will be significantly decreased.)
+- With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
 - Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
 - As of December 2022, the DigiByte blockchain currently requires around 43Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - When using a Raspberry Pi 4, booting from an SSD via USB is highly recommended. If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.

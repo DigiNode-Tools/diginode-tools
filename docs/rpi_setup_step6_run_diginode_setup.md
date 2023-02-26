@@ -12,6 +12,8 @@ To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL
 
 DigiNode Setup will start and perform some system checks, before taking you step-by-step with through the setup process.
 
+IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8.
+
 ![Run DigiNode Setup](/images/macos_setup_6_1b.png)
 
 When prompted to customize your install, choose 'Continue' to stick with the defaults.

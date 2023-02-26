@@ -56,12 +56,12 @@ Click the cog icon, to open the advanced options menu:
 ![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
 
 1. For the hostname enter 'diginode' (or 'diginode-testnet' if you are planning to run a DigiByte testnet node).
-2. Enable SSH and select 'Use password autentication'.
-3. Set the username to 'digibyte' and enter a password. (Don't forget it! You will need it to mage your DigiNode.)
+2. Enable SSH and select 'Use password authentication'.
+3. Set the username to 'digibyte' and enter a password. (Don't forget it! You will need it to manage your DigiNode.)
 4. Configuring the wireless LAN is optional. Using an ethernet cable is prefereable.
 5. Set your timezone and keyboard layout, in case you ever need to connect one.
 6. 'Enable telemety' allows the Raspberry Pi Foundation to collect some anonymized data about
-    your setup. It does not collect your IP address. You can disable this feature by unticking it.
+    your setup, such as which OS yout installed. It does not collect your IP address. You can disable this feature by unticking it.
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
@@ -95,6 +95,8 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
+
+IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8.
 
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step6_run_diginode_setup.md).
 

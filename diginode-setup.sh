@@ -4703,6 +4703,7 @@ EOF
                     echo "$NEW_BACKUP_DATE DigiByte Wallet: Renaming existing wallet.dat backup to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
                     sed -i -e "/^DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=\"$DGB_WALLET_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
+                    DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=$DGB_WALLET_BACKUP_DATE_ON_USB_STICK
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
                 fi
@@ -4712,21 +4713,71 @@ EOF
                 printf "%b %s" "${INFO}" "${str}" 
                 cp $DGB_SETTINGS_LOCATION/wallet.dat /media/usbbackup/diginode_backup/
                 if [ $? -eq 0 ]; then
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"           
-                    echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
-                    local dgb_backup_result="ok"
-
-                    DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
-                    str="Log DigiByte wallet backup date on the USB stick... "
-                    printf "%b %s" "${INFO}" "${str}"          
-                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-                    DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
-                    str="Log DigiByte wallet backup date in the DigiNode settings... "
-                    printf "%b %s" "${INFO}" "${str}"          
-                    sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
-                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    # Genererate an MD5 hash of the local wallet
+                    str="Getting checksum of current wallet.dat ... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    wallet_current_md5=$(md5sum $DGB_SETTINGS_LOCATION/wallet.dat | cut -d' ' -f1)
+                    printf "%b%b %s: $wallet_current_md5\\n" "${OVER}" "${INFO}" "${str}"
+
+                    # Genererate an MD5 hash of the backup wallet
+                    str="Getting checksum of backup wallet.dat backup on USB stick ... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    wallet_new_backup_md5=$(md5sum /media/usbbackup/diginode_backup/wallet.dat | cut -d' ' -f1)
+                    printf "%b%b %s: $wallet_new_backup_md5\\n" "${OVER}" "${INFO}" "${str}"
+
+                    # Check if the local wallet matches the backup
+                    str="Does the backup wallet.dat match the local wallet? ... "
+                    printf "%b %s" "${INFO}" "${str}"
+
+                    if [ "$wallet_current_md5" = "$wallet_new_backup_md5" ]; then
+
+                        printf "%b%b %s YES! Checksums match!\\n" "${OVER}" "${TICK}" "${str}"
+
+                        DGB_WALLET_BACKUP_DATE_ON_USB_STICK="$NEW_BACKUP_DATE"
+                        str="Log DigiByte wallet backup date on the USB stick... "
+                        printf "%b %s" "${INFO}" "${str}"          
+                        sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$NEW_BACKUP_DATE\"|" /media/usbbackup/diginode_backup/diginode_backup.info
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                        DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$NEW_BACKUP_DATE" 
+                        str="Log DigiByte wallet backup date in the DigiNode settings... "
+                        printf "%b %s" "${INFO}" "${str}"          
+                        sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$NEW_BACKUP_DATE\"|" $DGNT_SETTINGS_FILE
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        local dgb_backup_result="ok"
+
+                    else
+
+                        printf "%b%b %s FAIL! Backup wallet.dat does not match local version.\\n" "${OVER}" "${CROSS}" "${str}"
+                        echo "$NEW_BACKUP_DATE DigiByte Wallet: Backup failed as the backup wallet.dat does not match the local version." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                        local dgb_backup_result="failed"
+
+                        # Delete wallet.dat backup on USB stick as the file is damaged
+                        if [ -f "/media/usbbackup/diginode_backup/wallet.dat" ]; then
+                            str="Deleting backup wallet.dat as it does not local version... "
+                            printf "%b %s" "${INFO}" "${str}" 
+                            rm /media/usbbackup/diginode_backup/wallet.dat
+                            echo "$NOW_DATE DigiByte Wallet: Deleted backup wallet.dat as it did not match local version" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                        fi
+
+                        # Rename existing wallet backup to .old
+                        if [ -f "/media/usbbackup/diginode_backup/wallet.dat.old" ]; then
+                            # Rename existing wallet backup to .old
+                            str="Renaming existing wallet.dat.old file on USB stick to wallet.dat ... "
+                            printf "%b %s" "${INFO}" "${str}" 
+                            mv /media/usbbackup/diginode_backup/wallet.dat.old /media/usbbackup/diginode_backup/wallet.dat
+                            echo "$NEW_BACKUP_DATE DigiByte Wallet: Renaming existing wallet.dat backup to wallet.dat.old." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                            sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_BACKUP_DATE_ON_USB_STICK=\"$DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK\"|" $DGNT_SETTINGS_FILE
+                            sed -i -e "/^DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=/s|.*|DGB_WALLET_OLD_BACKUP_DATE_ON_USB_STICK=\"\"|" $DGNT_SETTINGS_FILE
+                            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                        fi
+
+                    fi
 
                 else
                     printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
@@ -5158,11 +5209,11 @@ usb_restore() {
 
     # Setup restore menu text for DigiByte Wallet
     if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$IS_LOCAL_WALLET" = "YES" ]; then
-        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was likely created:\\n  $DGB_INSTALL_DATE\\n\\nWARNING: If you continue your current wallet will be replaced with the one from the USB backup stick and any funds will be lost."
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nYour local wallet was likely created:\\n  $DGB_INSTALL_DATE\\n\\nWARNING: If you continue your current wallet will be replaced with the one from the USB backup stick and any funds will be lost."
     elif [ "$IS_LOCAL_WALLET" = "NO" ]; then
         restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nNote: There is currently no existing wallet on this DigiNode."
     else
-        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nThe current wallet was previously backed up on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nWARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost."
+        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nYour local wallet was previously backed up on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nWARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost."
     fi
 
     # Ask to restore the DigiByte Core Wallet backup, if it exists
@@ -5252,32 +5303,79 @@ usb_restore() {
         cp /media/usbbackup/diginode_backup/wallet.dat $DGB_SETTINGS_LOCATION
         if [ $? -eq 0 ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"           
-            echo "$NOW_DATE DigiByte Wallet: Restore completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
-            local dgb_restore_result="ok"
 
-            DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" 
-            str="Logging the originating DigiByte wallet backup date in DigiNode settings... "
-            printf "%b %s" "${INFO}" "${str}"          
-            sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$DGB_WALLET_BACKUP_DATE_ON_DIGINODE\"|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Change file owner to user account
-            str="Changing owner of wallet.dat to $USER_ACCOUNT ... "
+            # Genererate an MD5 hash of the backup wallet
+            str="Getting checksum of backup wallet.dat backup on USB stick ... "
             printf "%b %s" "${INFO}" "${str}" 
-            chown $USER_ACCOUNT:$USER_ACCOUNT $DGB_SETTINGS_LOCATION/wallet.dat
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            wallet_backup_md5=$(md5sum /media/usbbackup/diginode_backup/wallet.dat | cut -d' ' -f1)
+            printf "%b%b %s: $wallet_backup_md5\\n" "${OVER}" "${INFO}" "${str}"
 
-            # Change file permissions to user read/write 600
-            str="Changing permissions of wallet.dat ... "
+            # Genererate an MD5 hash of the restored wallet
+            str="Getting checksum of restored wallet.dat ... "
             printf "%b %s" "${INFO}" "${str}" 
-            chmod 600 $DGB_SETTINGS_LOCATION/wallet.dat
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            wallet_restored_md5=$(md5sum $DGB_SETTINGS_LOCATION/wallet.dat | cut -d' ' -f1)
+            printf "%b%b %s: $wallet_restored_md5\\n" "${OVER}" "${INFO}" "${str}"
+
+            # Check if the restored wallet matches the backup
+            str="Does the restored wallet.dat match the backup? ... "
+            printf "%b %s" "${INFO}" "${str}"
+
+            if [ "$wallet_restored_md5" = "$wallet_backup_md5" ]; then
+
+                printf "%b%b %s YES! Checksums match!\\n" "${OVER}" "${TICK}" "${str}"
+
+                DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" 
+                str="Logging the originating DigiByte wallet backup date in DigiNode settings... "
+                printf "%b %s" "${INFO}" "${str}"          
+                sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$DGB_WALLET_BACKUP_DATE_ON_DIGINODE\"|" $DGNT_SETTINGS_FILE
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Change file owner to user account
+                str="Changing owner of wallet.dat to $USER_ACCOUNT ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                chown $USER_ACCOUNT:$USER_ACCOUNT $DGB_SETTINGS_LOCATION/wallet.dat
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                # Change file permissions to user read/write 600
+                str="Changing permissions of wallet.dat ... "
+                printf "%b %s" "${INFO}" "${str}" 
+                chmod 600 $DGB_SETTINGS_LOCATION/wallet.dat
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+                local dgb_restore_result="ok"
+                echo "$NOW_DATE DigiByte Wallet: Restore completed successfully." >> /media/usbbackup/diginode_backup/diginode_backup.log
+
+            else
+
+                printf "%b%b %s FAIL! Restored wallet.dat does not match USB backup.\\n" "${OVER}" "${CROSS}" "${str}"
+                echo "$NOW_DATE DigiByte Wallet: Restore failed as the restored wallet.dat does not match the USB backup." >> /media/usbbackup/diginode_backup/diginode_backup.log
+                local dgb_restore_result="failed"
+
+                # Delete previous secondary backup of existing wallet, if it exists
+                if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat" ]; then
+                    str="Deleting restored wallet.dat as it does not match backup... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    rm $DGB_SETTINGS_LOCATION/wallet.dat
+                    echo "$NOW_DATE DigiByte Wallet: Deleted restored wallet.dat as it did not match backup" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Rename existing wallet backup to .old
+                if [ -f "$DGB_SETTINGS_LOCATION/wallet.dat.old" ]; then
+                    str="Renaming existing local wallet.dat.old to wallet.dat ... "
+                    printf "%b %s" "${INFO}" "${str}" 
+                    mv $DGB_SETTINGS_LOCATION/wallet.dat.old $DGB_SETTINGS_LOCATION/wallet.dat
+                    echo "$NOW_DATE DigiByte Wallet: Renaming local wallet.dat.old to wallet.dat" >> /media/usbbackup/diginode_backup/diginode_backup.log
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+            fi
 
         else
-            printf "%b%b %s FAIL!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b%b %s FAIL! File could not be copied!\\n" "${OVER}" "${CROSS}" "${str}"
             echo "$NOW_DATE DigiByte Wallet: Restore failed due to an error." >> /media/usbbackup/diginode_backup/diginode_backup.log
             local dgb_restore_result="failed"
         fi
+
 
         # Stop the DigiByte service now
         restart_service digibyted
@@ -5383,6 +5481,17 @@ usb_restore() {
 
         # Now run the digiasset function, to update the RPC credentials in main.json if they are different to what is in digibyte.conf
         digiasset_node_create_settings
+
+
+        # Restart PM2 if it has not already been restarted.
+        if [ "$DGA_SETTINGS_CREATE_TYPE" != "update" ]; then
+
+            printf "%b Re-starting DigiAsset Node...\\n" "${INFO}"
+
+            # Stop the DigiAsset Node now
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
+
+        fi
 
     fi
 
@@ -6049,7 +6158,7 @@ change_upnp_status() {
 
             # Restart IPFS if the upnp status has just been changed
             printf "%b JS-IPFS UPnP status has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
-            pm2 restart digiasset
+            sudo -u $USER_ACCOUNT pm2 restart digiasset
         fi
 
     fi
@@ -6124,7 +6233,7 @@ change_dgb_network() {
 
         # Restart IPFS if the upnp status has just been changed
         printf "%b JS-IPFS port has been changed. DigiAsset Node will be restarted...\\n" "${INFO}"
-        pm2 restart digiasset
+        sudo -u $USER_ACCOUNT pm2 restart digiasset
 
     fi
 
