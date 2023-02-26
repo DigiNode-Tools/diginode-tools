@@ -1,7 +1,9 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.7.4 - 2023-01-xx [COMING SOON]
+DigiNode Tools v0.7.4 - 2023-02-xx [COMING SOON]
 - More documentation tweaks
+- Fix: Fixes to --locatedgb feature
+- Add checksum comparison when backing up or restoring wallet.dat to/from a USB stick. This verifies that the wallet file has been copied correctly, during a backup or restore.
 
 DigiNode Tools v0.7.3 - 2023-01-15
 - Fix: Display testnet/mainnet selection menu correctly

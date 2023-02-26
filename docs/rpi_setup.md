@@ -96,6 +96,8 @@ To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
 
+IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8.
+
 More detailed instructions on completing this step are [here](/docs/rpi_setup_step6_run_diginode_setup.md).
 
 ## STEP 7 - Give the Raspberry Pi a Static IP address and setup Port Forwarding
