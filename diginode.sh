@@ -10,11 +10,12 @@
 #
 #         Author:  Olly Stedall @saltedlolly
 #
-#        Website:  https://diginode.digibyte.help
+#        Website:  https://diginode.tools
 #
-#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#        Support:  Telegram - https://t.me/DigiNodeTools
+#                  Twitter -  https://twitter.com/digibytehelp
 #
-#    Get Started:  curl http://diginode-setup.digibyte.help | bash  
+#    Get Started:  curl http://setup.diginode.tools | bash  
 #  
 #                  Alternatively clone the repo to your home folder:
 #

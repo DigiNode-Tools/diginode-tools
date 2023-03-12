@@ -10,11 +10,12 @@
 #
 #         Author:  Olly Stedall @saltedlolly
 #
-#        Website:  https://diginode.digibyte.help
+#        Website:  https://diginode.tools
 #
-#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#        Support:  Telegram - https://t.me/DigiNodeTools
+#                  Twitter -  https://twitter.com/digibytehelp
 #
-#    Get Started:  curl http://diginode-setup.digibyte.help | bash  
+#    Get Started:  curl http://setup.diginode.tools | bash  
 #  
 #                  Alternatively clone the repo to your home folder:
 #
@@ -89,18 +90,19 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 # This variable stores the approximate amount of space required to download the entire DigiByte blockchain
 # This value needs updating periodically as the size of the blockchain increases over time
 # It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
-# Last Updated: 2022-12-12
-DGB_DATA_REQUIRED_HR="45Gb"
-DGB_DATA_REQUIRED_KB="45000000"
+# (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
+DGB_DATA_REQUIRED_DATE="March 2023" 
+DGB_DATA_REQUIRED_HR="50Gb"
+DGB_DATA_REQUIRED_KB="50000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
-DGNT_VERSIONS_URL=diginode-versions.digibyte.help    # Used to query TXT record containing compatible OS'es
-DGNT_SETUP_OFFICIAL_URL=https://diginode-setup.digibyte.help
-DGNT_SETUP_GITHUB_LATEST_RELEASE_URL=diginode-setup.digibyte.help
+DGNT_VERSIONS_URL=versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+DGNT_SETUP_OFFICIAL_URL=https://diginode.tools
+DGNT_SETUP_GITHUB_LATEST_RELEASE_URL=setup.diginode.tools
 DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-setup.sh
 DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-setup.sh
 
-# This is the Github repo for the DigiAsset Node (this only needs to be changed if you with to test a new version.)
+# This is the Github repo for the DigiAsset Node (this only needs to be changed if you wish to test a new version.)
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
 DGA_GITHUB_REPO_MAIN="--depth 1 https://github.com/digiassetX/digiasset_node.git"
 DGA_GITHUB_REPO_DEV="--branch development https://github.com/digiassetX/digiasset_node.git"
@@ -113,15 +115,14 @@ DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
 
 # DigiByte.Help URLs
-DGBH_URL_INTRO=https://www.digibyte.help/diginode/        # Link to introduction what a DigiNode is. Shown in welcome box.
-DGBH_URL_CUSTOM=https://www.digibyte.help/diginode/       # Information on customizing your install by editing diginode.settings
-DGBH_URL_RPIOS64=https://www.digibyte.help/diginode/      # Advice on switching to Raspberry Pi OS 64-bit kernel
-DGBH_URL_HARDWARE=https://www.digibyte.help/diginode/     # Advice on what hardware to get
-DGBH_URL_USERCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the username
-DGBH_URL_HOSTCHANGE=https://www.digibyte.help/diginode/   # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://www.digibyte.help/diginode/     # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://www.digibyte.help/diginode/      # Advice on how to forward ports with your router
-DGBH_URL_TWEET=https://www.digibyte.help/diginode/        # URL included in sample tweet.
+DGBH_URL_INTRO=https://diginode.tools                        # Link to introduction what a DigiNode is. Shown in welcome box.
+DGBH_URL_CUSTOM=https://digibyte.help/diginode-custom/       # Information on customizing your install by editing diginode.settings
+DGBH_URL_HARDWARE=https://digibyte.help/build-diginode/      # Advice on what hardware to get
+DGBH_URL_USERCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the username
+DGBH_URL_HOSTCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the hostname
+DGBH_URL_STATICIP=https://digibyte.help/diginode-staticip/   # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://digibyte.help/diginode-portfwd/     # Advice on how to forward ports with your router
+DGBH_URL_TWEET=https://digibyte.help/diginode/               # URL included in sample tweet.
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -5545,7 +5546,7 @@ disk_check() {
             printf "%b Disk Space Check: %bFAILED%b   Not enough space available\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             printf "%b %bWARNING: DigiByte blockchain data will not fit on this drive%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b The fully downloaded blockchain currently requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
+            printf "%b As of $DGB_DATA_REQUIRED_DATE, the full DigiByte blockchain requires approximately $DGB_DATA_REQUIRED_HR\\n" "${INDENT}"
             printf "%b The current location only has ${DGB_DATA_DISKFREE_HR}b free. You can change the location of where the\\n" "${INDENT}"
             printf "%b DigiByte blockchain data is stored by editing the diginode.settings file.\\n" "${INDENT}"
             printf "%b Alternatively, you can edit you digibyte.conf file to prune the blockchain data\\n" "${INDENT}"
@@ -6748,10 +6749,10 @@ donation_qrcode() {
     printf " ============== ${txtbylw}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I created DigiNode Tools with the objective of making it easy for everyone"
-    echo "    in the DigiByte community to run their own full node. Thousands of"
-    echo "    unpaid hours have gone into its development so far. If you find DigiNode"
-    echo "    Tools useful, please make a donation to support future development."
+    echo "    I created DigiNode Tools to make it easy for anyone in the DigiByte community"
+    echo "    to setup and manage their own DigiByte & DigiAsset Nodes. Thousands of hours"
+    echo "    have gone into its development. All funding is provided by users like you."
+    echo "    If you find it useful, please donate below so I can keep improving it."
     echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
@@ -13934,7 +13935,7 @@ menu_dganode_only(){
             printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
             if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                exec curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly --unattended
+                exec curl -sSL $DGNT_SETUP_GITHUB_LATEST_RELEASE_URL | bash -s -- --dganodeonly --unattended
             elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
                 sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
             fi    
