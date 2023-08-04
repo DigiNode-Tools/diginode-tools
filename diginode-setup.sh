@@ -259,10 +259,10 @@ display_help() {
         printf "%b Usage - replace %b--flag%b with the desired flag(s):\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGNT_RUN_LOCATION" = "local" ]; then
-            printf "%b   diginode-setup --help\\n" "${INDENT}"
+            printf "%b $ %bdiginode-setup --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-            printf "%b   curl -sSL setup.diginode.tools | bash -s -- --flag\\n" "${INDENT}"
+            printf "%b $ %bcurl -sSL setup.diginode.tools | bash -s -- --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "\\n"
         printf "\\n"
