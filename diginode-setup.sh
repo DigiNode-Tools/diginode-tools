@@ -146,6 +146,8 @@ DGA_BRANCH="main"
 STATUS_MONITOR=false
 DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
+INSTALL_DGB_PRERELEASE=false
+DISPLAY_HELP=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -157,7 +159,7 @@ for var in "$@"; do
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
-        "--skipupdatepkgcache" ) SKIP_PKG_UPDATE_CHECK=true;;
+        "--skippkgcache" ) SKIP_PKG_UPDATE_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -166,6 +168,9 @@ for var in "$@"; do
         "--dganodeonly" ) DGANODE_ONLY=true;;
         "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
+        "--dgbtestver" ) INSTALL_DGB_PRERELEASE=true;;
+        "--help" ) DISPLAY_HELP=true;;
+        "-h" ) DISPLAY_HELP=true;;
     esac
 done
 
@@ -226,6 +231,47 @@ txtbld=$(tput bold) # Set bold mode
 #####################################################################################################
 ### FUNCTIONS
 #####################################################################################################
+
+# Display help screen if the --help or -h flags was used
+display_help() {
+    if [ "$DISPLAY_HELP" = true ]; then
+        printf "\\n"
+        printf "%b %bDigiNode Setup Help%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b %b--unattended%b   - Run in unattended mode. No menus or prompts will be displayed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                      To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
+        printf "%b %b--dgbtestver%b   - Install the pre-release test version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dganodeonly%b  - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                      to run a DigiByte Node. Useful on low spec devices.\\n" "${INDENT}"
+        printf "%b %b--skiposcheck%b  - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--skippkgcache%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--verboseon%b    - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgntdev%b      - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgadev%b       - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                      WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
+        printf "%b %b--uninstall%b    - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--reset%b        - Reset your DigiNode settings and reinstall your DigiNode software.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "\\n"
+        printf "%b Replace --flag with the desired flag(s):\\n" "${INDENT}"
+        printf "\\n"
+        if [ "$DGNT_RUN_LOCATION" = "local" ]; then
+            printf "%b   diginode-setup --help\\n" "${INFO}"
+            printf "\\n"
+        fi
+        if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+            printf "%b   curl -sSL setup.diginode.tools | bash -s -- --flag\\n" "${INFO}"
+            printf "\\n"
+        fi
+        printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b For more help, visit: https://digibyte.help/diginode-tools/advanced-feature/\\n" "${INDENT}"
+        printf "\\n"
+        exit
+    fi
+}
 
 # This will get the size of the current terminal window
 get_term_size() {
@@ -7753,6 +7799,8 @@ digibyte_check() {
 
     fi
 
+    # Check for pre-release
+    # jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g'
 
     # Check Github repo to find the version number of the latest DigiByte Core release
     str="Checking GitHub repository for the latest release..."
@@ -13528,6 +13576,9 @@ main() {
         # Show the DigiNode logo
         diginode_logo_v3
         make_temporary_log
+
+        # Display the help screen if the --help or -h flags have been used
+        display_help
 
     else
         # show DigiNode Setup title box
