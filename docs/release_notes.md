@@ -1,7 +1,8 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.7.5 - 2023-02-xx [ COMING SOON ]
-- Change official URL to diginode.tools. Bash script now uses setup.diginode.tools
+DigiNode Tools v0.8.0 - 2023-08-xx [ COMING SOON ]
+- Change: Official URL is now diginode.tools. Bash script now uses setup.diginode.tools
+- New: Add --help flag to dignode-setup script which describes all the available flags
 
 DigiNode Tools v0.7.4 - 2023-02-26
 - More documentation tweaks
