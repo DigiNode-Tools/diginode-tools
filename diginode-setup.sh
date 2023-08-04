@@ -428,6 +428,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
+    DGB_PRERELEASE=NO
     INSTALL_SYS_UPGRADES=NO
 
     # UNATTENDED INSTALL
@@ -585,6 +586,10 @@ SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If NO, it will install the latest release version
 DGNT_DEV_BRANCH=$DGNT_DEV_BRANCH
+
+# Use the pre-release version of DigiByte Core, if available (Specify either YES or NO)
+# If NO, it will install the latest release version
+DGB_PRERELEASE=$DGB_PRERELEASE
 
 # This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
 INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
