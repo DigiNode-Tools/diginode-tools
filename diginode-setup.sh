@@ -168,7 +168,7 @@ for var in "$@"; do
         "--dganodeonly" ) DGANODE_ONLY=true;;
         "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
-        "--dgbtestver" ) INSTALL_DGB_PRERELEASE=true;;
+        "--dgbtest" ) INSTALL_DGB_PRERELEASE=true;;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
     esac
@@ -243,7 +243,7 @@ display_help() {
         printf "%b %b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--unattended%b   - Run in unattended mode. No menus or prompts will be displayed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                  To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
-        printf "%b %b--dgbtestver%b   - Install the pre-release test version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgbtest%b      - Install the pre-release test version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dganodeonly%b  - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                  to run a DigiByte Node. Useful on low spec devices.\\n" "${INDENT}"
         printf "%b %b--skiposcheck%b  - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
