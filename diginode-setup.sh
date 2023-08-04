@@ -259,13 +259,11 @@ display_help() {
         printf "\\n"
         if [ "$DGNT_RUN_LOCATION" = "local" ]; then
             printf "%b   diginode-setup --help\\n" "${INDENT}"
-            printf "\\n"
         fi
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
             printf "%b   curl -sSL setup.diginode.tools | bash -s -- --flag\\n" "${INDENT}"
-            printf "\\n"
         fi
-        printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
+        printf "\\n"
         printf "\\n"
         printf "%b For more help, visit: https://digibyte.help/diginode-tools/advanced-feature/\\n" "${INDENT}"
         printf "\\n"
