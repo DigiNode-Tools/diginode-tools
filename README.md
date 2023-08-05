@@ -148,6 +148,10 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 These features are for advanced users and should be used with caution:
 
+**DigiNode Setup Help:** This will display a list of all the available flags that can be used at launch:
+- ```curl -sSL setup.diginode.tools | bash -s -- --help``` or
+- ```diginode-setup --help```
+
 **Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. 
 - ```curl -sSL setup.diginode.tools | bash -s -- --unattended``` or
 - ```diginode-setup --unattended```
@@ -157,13 +161,13 @@ If you want to skip this step, and simply use the default settings, include the 
 - ```curl -sSL setup.diginode.tools | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended --skipcustommsg```
 
+**Install DigiByte Core Pre-release:** The --dgbpre flag can be used to install the pre-release version of DigiByte Core, if available: 
+- ```curl -sSL setup.diginode.tools | bash -s -- --dgbpre``` or
+- ```diginode-setup --dgbpre```
+
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
 - ```curl -sSL setup.diginode.tools | bash -s -- --dganodeonly``` or
 - ```diginode-setup --dganodeoonly```
-
-**Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
-- ```curl -sSL setup.diginode.tools | bash -s -- --reset``` or
-- ```diginode-setup --reset```
 
 **Skip OS Check:** The --skiposcheck flag will skip the OS check at startup in case you are having problems with your system. Proceed with caution.
 - ```curl -sSL setup.diginode.tools | bash -s -- --skiposcheck``` or
@@ -172,10 +176,6 @@ If you want to skip this step, and simply use the default settings, include the 
 **Skip Package Cache Update:** The --skippkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. (Some VPS won't let you update.)
 - ```curl -sSL setup.diginode.tools | bash -s -- --skippkgcache``` or
 - ```diginode-setup --skippkgcache```
-
-**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
-- ```curl -sSL setup.diginode.tools | bash -s -- --uninstall``` or
-- ```diginode-setup --uninstall```
 
 **Verbose Mode:** This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. This can be set using the ```--verboseon``` flags.
 - ```curl -sSL setup.diginode.tools | bash -s -- --verboseon```
@@ -187,6 +187,14 @@ If you want to skip this step, and simply use the default settings, include the 
 **Developer Mode:** To install the development branch of DigiNode Tools, use the ```--dgntdev``` flag at launch. The ```--dgadev``` flag can be used to install the development branch of the DigiAsset Node. WARNING: These should only be used for testing, and occasionally may not run.
 - ```curl -sSL setup.diginode.tools | bash -s -- --dgntdev --dgadev``` or
 - ```diginode-setup --dgntdev --dgadev```
+
+**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
+- ```curl -sSL setup.diginode.tools | bash -s -- --uninstall``` or
+- ```diginode-setup --uninstall```
+
+**Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
+- ```curl -sSL setup.diginode.tools | bash -s -- --reset``` or
+- ```diginode-setup --reset```
 
 ## Release Notes
 
