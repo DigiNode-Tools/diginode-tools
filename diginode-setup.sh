@@ -2458,7 +2458,7 @@ install_dependent_packages() {
 # Check that this OS is supported
 os_check() {
     if [ "$SKIP_OS_CHECK" != true ]; then
-        # This function gets a list of supported OS versions from a TXT record at diginode-versions.digibyte.help
+        # This function gets a list of supported OS versions from a TXT record at versions.diginode.tools
         # and determines whether or not the script is running on one of those systems
         local remote_os_domain valid_os valid_version valid_response detected_os detected_version display_warning cmdResult digReturnCode response
         remote_os_domain=${OS_CHECK_DOMAIN_NAME:-"$DGNT_VERSIONS_URL"}
