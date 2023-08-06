@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.7.5
+#           Name:  DigiNode Setup v0.8.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8,11 +8,12 @@
 #                  Other distros may not work at present. Please help test so that support can be added.
 #                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
 #
-#         Author:  Olly Stedall @saltedlolly
+#         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
+#                  Bluesky -  https://bsky.app/profile/digibyte.help
 #                  Twitter -  https://twitter.com/digibytehelp
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
@@ -91,9 +92,9 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 # This value needs updating periodically as the size of the blockchain increases over time
 # It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
 # (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
-DGB_DATA_REQUIRED_DATE="March 2023" 
-DGB_DATA_REQUIRED_HR="50Gb"
-DGB_DATA_REQUIRED_KB="50000000"
+DGB_DATA_REQUIRED_DATE="August 2023" 
+DGB_DATA_REQUIRED_HR="52Gb"
+DGB_DATA_REQUIRED_KB="52000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.digibyte.help    # Used to query TXT record containing compatible OS'es
@@ -146,8 +147,8 @@ DGA_BRANCH="main"
 STATUS_MONITOR=false
 DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
-INSTALL_DGB_PRERELEASE=false
 DISPLAY_HELP=false
+INSTALL_DGB_PRERELEASE=
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -169,6 +170,7 @@ for var in "$@"; do
         "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
         "--dgbpre" ) INSTALL_DGB_PRERELEASE=true;;
+        "--dgbnopre" ) INSTALL_DGB_PRERELEASE=false;;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
     esac
@@ -429,7 +431,6 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
-    DGB_PRERELEASE=NO
     INSTALL_SYS_UPGRADES=NO
 
     # UNATTENDED INSTALL
@@ -455,6 +456,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     IPFS_PORT_TEST_ENABLED=YES
     DONATION_PLEA=YES
     MOTD_STATUS=ASK
+    DGB_PRERELEASE=
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -588,10 +590,6 @@ SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
 # If NO, it will install the latest release version
 DGNT_DEV_BRANCH=$DGNT_DEV_BRANCH
 
-# Use the pre-release version of DigiByte Core, if available (Specify either YES or NO)
-# If NO, it will install the latest release version
-DGB_PRERELEASE=$DGB_PRERELEASE
-
 # This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
 INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 
@@ -718,6 +716,7 @@ DGB_UPGRADE_DATE="$DGB_UPGRADE_DATE"
 DGB_VER_RELEASE="$DGB_VER_RELEASE"
 DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
+DGB_PRERELEASE="$DGB_PRERELEASE"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. (Do not change this.)
@@ -7804,35 +7803,74 @@ digibyte_check() {
 
     fi
 
-    # Check for pre-release
-    # jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g'
+    # Check for latest pre-release version if it is currently being used or has been requested
+    if [ "$INSTALL_DGB_PRERELEASE" = true ] || [ "$DGB_PRERELEASE" = "YES" ]; then
 
-    # Check Github repo to find the version number of the latest DigiByte Core release
-    str="Checking GitHub repository for the latest release..."
-    printf "%b %s" "${INFO}" "${str}"
-    DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+        # Check Github repo to find the version number of the latest DigiByte Core release
+        str="Checking GitHub repository for the latest DigiByte Core pre-release..."
+        printf "%b %s" "${INFO}" "${str}"
 
-    # If can't get Github version number
-    if [ "$DGB_VER_RELEASE" = "" ]; then
-        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
-        printf "\\n"
-        printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-        printf "\\n"
-        DGB_DO_INSTALL=NO
-        DGB_INSTALL_TYPE="none"
-        DGB_UPDATE_AVAILABLE=NO
-        return     
-    else
-        printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        DGB_VER_RELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+
+        # If can't get Github version number, there is no prerelease version
+        if [ "$DGB_VER_RELEASE" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to check for pre-release version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+            printf "\\n"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
+            return     
+        elif [ "$DGB_VER_RELEASE" = "null" ]; then
+            printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
+            printf "%b Pre-release version of DigiByte Core is not available.\\n" "${INFO}"
+            printf "\\n"
+            INSTALL_DGB_PRERELEASE=false
+            return  
+        else
+            printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+            sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            if [ "$INSTALL_DGB_PRERELEASE" = "" ];then
+                INSTALL_DGB_PRERELEASE=true
+            fi
+        fi
+
+    fi
+
+    # Check for latest release version if it is currently being used or has been requested
+    if [ "$INSTALL_DGB_PRERELEASE" = false ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+
+        # Check Github repo to find the version number of the latest DigiByte Core release
+        str="Checking GitHub repository for the latest release..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+
+        # If can't get Github version number
+        if [ "$DGB_VER_RELEASE" = "" ]; then
+            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
+            printf "\\n"
+            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
+            printf "\\n"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
+            return     
+        else
+            printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+            sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            INSTALL_DGB_PRERELEASE=false
+        fi
+
     fi
 
 
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
-      if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+      if [ "$DGB_VER_LOCAL" = "$DGB_VER_RELEASE" ]; then
           printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
           if [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
@@ -8025,6 +8063,15 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGB_UPGRADE_DATE=/s|.*|DGB_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # Update diginode.settings to store whether this is the pre-release version
+    if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
+        DGB_PRERELEASE="NO"
+        sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+    elif [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+        DGB_PRERELEASE="YES"
+        sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+    fi
+
     # Re-enable and re-start DigiByte daemon service after reset/upgrade
     if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
         printf "%b Upgrade Completed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
@@ -8043,6 +8090,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     DGB_INSTALL_TYPE=""
     DGB_UPDATE_AVAILABLE=NO
     DGB_POSTUPDATE_CLEANUP=YES
+    INSTALL_DGB_PRERELEASE=""
 
     # Create hidden file to denote this version was installed with the official DigiNode Setup
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -12060,6 +12108,8 @@ uninstall_do_now() {
                 rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}
                 DGB_VER_LOCAL=""
                 sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                DGB_PRERELEASE=""
+                sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=|" $DGNT_SETTINGS_FILE
                 DGB_INSTALL_DATE=""
                 sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
                 DGB_UPGRADE_DATE=""

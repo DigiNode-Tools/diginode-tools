@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.7.5
+#           Name:  DigiNode Status Monitor v0.8.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8,11 +8,12 @@
 #                  Other distros may not work at present. Please help test so that support can be added.
 #                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
-#         Author:  Olly Stedall @saltedlolly
+#         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
+#                  Bluesky -  https://bsky.app/profile/digibyte.help
 #                  Twitter -  https://twitter.com/digibytehelp
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
@@ -56,14 +57,14 @@
 # Local variables will be in lowercase and will exist only within functions
 
 # This variable stores the version number of this release of 'DigiNode Tools'.
-# When a new release is made, this number gets updated to match the release number on GitHub.
+# Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.7.5
-# Last Updated: 2023-02-26
+DGNT_VER_LOCAL=0.8.0
+# Last Updated: 2023-08-05
 
 # This is the command people will enter to run the install script.
-DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
+DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
 
 ########################################################
 #### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
@@ -268,7 +269,7 @@ locate_digibyte_node() {
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --fulldiginode
+            exec curl -sSL setup.diginode.tools | bash -s -- --fulldiginode
         elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
             ~/diginode-tools/diginode-setup.sh --fulldiginode
         fi  
@@ -1062,7 +1063,7 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
+        exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
         
         # Display cursor again
         tput cnorm
