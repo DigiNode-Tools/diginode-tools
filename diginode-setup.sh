@@ -246,6 +246,7 @@ display_help() {
         printf "%b %b--unattended%b   - Run in unattended mode. No menus or prompts will be displayed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                  To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
         printf "%b %b--dgbpre%b       - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgbnopre%b     - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dganodeonly%b  - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                  to run a DigiByte Node. Useful on low spec devices. If you later decide to install\\n" "${INDENT}"
         printf "%b                  a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
@@ -7834,6 +7835,8 @@ digibyte_check() {
             sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
             if [ "$INSTALL_DGB_PRERELEASE" = "" ];then
                 INSTALL_DGB_PRERELEASE=true
+            elif [ "$INSTALL_DGB_PRERELEASE" = false ];then
+                printf "%b Downgrade to previous release version requested...\\n" "${INFO}"
             fi
         fi
 
