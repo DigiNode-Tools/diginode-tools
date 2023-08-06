@@ -97,7 +97,7 @@ DGB_DATA_REQUIRED_HR="52Gb"
 DGB_DATA_REQUIRED_KB="52000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
-DGNT_VERSIONS_URL=versions.digibyte.help    # Used to query TXT record containing compatible OS'es
+DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
 DGNT_SETUP_OFFICIAL_URL=https://diginode.tools
 DGNT_SETUP_GITHUB_LATEST_RELEASE_URL=setup.diginode.tools
 DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-setup.sh
