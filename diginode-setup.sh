@@ -7982,29 +7982,36 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     if [ $? -eq 0 ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
-        printf "\\n"
-        printf "%b%b ${txtred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
-        printf "\\n"
-        printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+        # Try alternative download
+        sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
-        # Re-enable and re-start DigiByte daemon service as the download failed
-        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
-            enable_service digibyted
-            restart_service digibyted
-            DGB_STATUS="running"
-            DIGINODE_UPGRADED="YES"
-        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
-            enable_service digibyted
-            restart_service digibyted
-            DGB_STATUS="running"
+        if [ $? -eq 0 ]; then
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "\\n"
+            printf "%b%b ${txtred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+            printf "\\n"
+            printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+            printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+            # Re-enable and re-start DigiByte daemon service as the download failed
+            if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+                printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+                enable_service digibyted
+                restart_service digibyted
+                DGB_STATUS="running"
+                DIGINODE_UPGRADED="YES"
+            elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+                printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+                enable_service digibyted
+                restart_service digibyted
+                DGB_STATUS="running"
+            fi
+
+            printf "\\n"
+            INSTALL_ERROR="YES"
+            return 1
         fi
-
-        printf "\\n"
-        INSTALL_ERROR="YES"
-        return 1
     fi
 
     # If there is an old backup of DigiByte Core, delete it

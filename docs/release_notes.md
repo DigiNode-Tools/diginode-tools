@@ -3,6 +3,7 @@
 DigiNode Tools v0.8.0 - 2023-08-xx [ COMING SOON ]
 - Change: Official URL is now diginode.tools. Bash script now uses setup.diginode.tools
 - New: Add --help flag to dignode-setup script which describes all the available flags
+- New: Now supports installing a pre-release version of DigiByte Core with the --dgpre flag
 
 DigiNode Tools v0.7.4 - 2023-02-26
 - More documentation tweaks
