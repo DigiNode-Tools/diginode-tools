@@ -8024,7 +8024,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If an there is an existing version version, move it it to a backup version
+    # If an there is an existing DigiByte install folder, move it to backup
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
         str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
         printf "%b %s" "${INFO}" "${str}"
