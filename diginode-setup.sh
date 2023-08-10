@@ -13825,7 +13825,7 @@ menu_dganode_only(){
     opt2b=" Upgrade to a full DigiNode"
 
     opt3a="MOTD"
-    opt3b="Enable or disable the DigiNode Custom MOTD."
+    opt3b=" Enable or disable the DigiNode Custom MOTD."
     
     opt4a="Uninstall"
     opt4b=" Remove DigiAsset Node from your system"
