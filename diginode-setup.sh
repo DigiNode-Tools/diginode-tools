@@ -8046,6 +8046,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # If this is 8.22.0-rc2, we need to manually rename the extracted directory name, since it is incorrect
+    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ ${DGB_VER_RELEASE} = "8.22.0-rc2 "]; then
+        str="Renaming 8.22.0-rc2 download folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
     # Delete old ~/digibyte symbolic link
     if [ -h "$USER_HOME/digibyte" ]; then
         str="Deleting old 'digibyte' symbolic link from home folder..."
