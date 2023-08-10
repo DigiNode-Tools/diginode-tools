@@ -7981,12 +7981,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # If the command completed without error, then assume IPFS downloaded correctly
     if [ $? -eq 0 ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        use_dgb_alt_download=false
     else
         # Try alternative download
         sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-v${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
         if [ $? -eq 0 ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            use_dgb_alt_download=true
         else
             printf "\\n"
             printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
@@ -8031,10 +8033,18 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Extracting DigiByte Core binary
-    str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
-    printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # If this is the alt url download, we need to add a v in the URL
+    if [ "$use_dgb_alt_download" == true ]; then
+        str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-v$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Delete old ~/digibyte symbolic link
     if [ -h "$USER_HOME/digibyte" ]; then
@@ -8061,8 +8071,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Delete DigiByte Core tar.gz file
     str="Deleting DigiByte Core install file: digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
-    rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
-    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # If this is the alt url download, we need to add a v in the URL
+    if [ "$use_dgb_alt_download" == true ]; then
+        rm -f $USER_HOME/digibyte-v$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_RELEASE
