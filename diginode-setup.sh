@@ -7732,12 +7732,10 @@ digibyte_check() {
         # If this is a pre-release version just use the version number from diginode.settings, otherwise query for it
         if [ "$DGB_PRERELEASE" = "YES" ]; then
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
-            echo "          -- testing --"
         else
             DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
-            echo "          -- testing --"
         fi
 
         # Find out which DGB network is running - mainnet or testnet
@@ -7822,12 +7820,7 @@ digibyte_check() {
 
     # Display if the user requested the latest pre-release version of DigiByte Core
     if [ "$INSTALL_DGB_PRERELEASE" = true ]; then
-        printf "%b DigiByte Core pre-release version requested using --dgbpre flag.\\n" "${INFO}"
-    fi
-
-    # Display if the user requested the latest release version of DigiByte Core
-    if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
-        printf "%b DigiByte Core release version requested using --dgbnopre flag.\\n" "${INFO}"
+        printf "%b ${txtbylw}DigiByte Core pre-release version requested using --dgbpre flag.${txtrst}\\n" "${INFO}"
     fi
 
     # Check for latest pre-release version if it is currently being used or has been requested
@@ -7859,10 +7852,10 @@ digibyte_check() {
         else
             printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
             sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            if [ "$INSTALL_DGB_PRERELEASE" = "" ];then
+            if [ "$INSTALL_DGB_PRERELEASE" = "" ]; then
                 INSTALL_DGB_PRERELEASE=true
             elif [ "$INSTALL_DGB_PRERELEASE" = false ];then
-                printf "%b Downgrade to previous release version requested...\\n" "${INFO}"
+                printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
             fi
         fi
 
@@ -7913,7 +7906,11 @@ digibyte_check() {
             return
           fi
       else
-          printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            if [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+                printf "%b %bDigiByte Core will be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            else
+                printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            fi
           DGB_INSTALL_TYPE="upgrade"
           DGB_ASK_UPGRADE=YES
       fi
