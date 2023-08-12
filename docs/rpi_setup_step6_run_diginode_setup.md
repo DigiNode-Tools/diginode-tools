@@ -6,7 +6,7 @@ IMPORTANT: If you have not yet connected to your Raspberry Pi in the Terminal us
 
 *Tip: Sometimes when using DigiNode Tools it displays website URLs - to open these in your browser, you can hold the Command '⌘' key (Mac) or the Ctrl key (Windows) and then clicking on them.*
 
-To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL diginode-setup.digibyte.help | bash``` and press return.
+To run the DigiNode Setup script, in the terminal type the command: ```curl -sSL setup.diginode.tools | bash``` and press return.
 
 ![Run DigiNode Setup](/images/macos_setup_6_1a.png)
 
