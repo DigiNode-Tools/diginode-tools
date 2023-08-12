@@ -7865,7 +7865,7 @@ digibyte_check() {
     if [ "$INSTALL_DGB_PRERELEASE" = false ] || [ "$DGB_PRERELEASE" = "NO" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repository for the latest release..."
+        str="Checking GitHub repository for the latest DigiByte Core release..."
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
