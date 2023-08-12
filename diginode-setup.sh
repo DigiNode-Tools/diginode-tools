@@ -148,7 +148,7 @@ STATUS_MONITOR=false
 DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
 DISPLAY_HELP=false
-INSTALL_DGB_PRERELEASE=""
+INSTALL_DGB_RELEASE_TYPE=""
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -169,8 +169,8 @@ for var in "$@"; do
         "--dganodeonly" ) DGANODE_ONLY=true;;
         "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
-        "--dgbpre" ) INSTALL_DGB_PRERELEASE=true;;
-        "--dgbnopre" ) INSTALL_DGB_PRERELEASE=false;;
+        "--dgbpre" ) INSTALL_DGB_RELEASE_TYPE="prerelease";;
+        "--dgbnopre" ) INSTALL_DGB_RELEASE_TYPE="release";;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
     esac
@@ -715,6 +715,7 @@ PM2_UPSTART_SERVICE_FILE=/etc/init/pm2-$USER_ACCOUNT.service
 DGB_INSTALL_DATE="$DGB_INSTALL_DATE"
 DGB_UPGRADE_DATE="$DGB_UPGRADE_DATE"
 DGB_VER_RELEASE="$DGB_VER_RELEASE"
+DGB_VER_PRERELEASE="$DGB_VER_PRERELEASE"
 DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 DGB_PRERELEASE="$DGB_PRERELEASE"
@@ -7812,28 +7813,28 @@ digibyte_check() {
     fi
 
     # If this is a new install, and the user did not choose to install the pre-release, then instruct it to install the release version
-    if [ "$DGB_STATUS" = "not_detected" ] && [ "$INSTALL_DGB_PRERELEASE" = "" ]; then
-        INSTALL_DGB_PRERELEASE=false
+    if [ "$DGB_STATUS" = "not_detected" ] && [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+        INSTALL_DGB_RELEASE_TYPE="release"
         DGB_PRERELEASE=""
         printf "%b New install. DigiByte Core release version will be used.\\n" "${INFO}"
     fi
 
     # Display if the user requested the latest pre-release version of DigiByte Core
-    if [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
         printf "%b ${txtbylw}DigiByte Core pre-release version requested using --dgbpre flag.${txtrst}\\n" "${INFO}"
     fi
 
     # Check for latest pre-release version if it is currently being used or has been requested
-    if [ "$INSTALL_DGB_PRERELEASE" = true ] || [ "$DGB_PRERELEASE" = "YES" ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
         str="Checking GitHub repository for the latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
-        DGB_VER_RELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
 
         # If can't get Github version number, there is no prerelease version
-        if [ "$DGB_VER_RELEASE" = "" ]; then
+        if [ "$DGB_VER_PRERELEASE" = "" ]; then
             printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
             printf "%b Unable to check for pre-release version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
             printf "\\n"
@@ -7843,18 +7844,19 @@ digibyte_check() {
             DGB_INSTALL_TYPE="none"
             DGB_UPDATE_AVAILABLE=NO
             return     
-        elif [ "$DGB_VER_RELEASE" = "null" ]; then
+        elif [ "$DGB_VER_PRERELEASE" = "null" ]; then
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
             printf "%b Pre-release version of DigiByte Core is not available.\\n" "${INFO}"
             printf "\\n"
-            INSTALL_DGB_PRERELEASE=false
+            INSTALL_DGB_RELEASE_TYPE="release"
             return  
         else
-            printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-            sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            if [ "$INSTALL_DGB_PRERELEASE" = "" ]; then
-                INSTALL_DGB_PRERELEASE=true
-            elif [ "$INSTALL_DGB_PRERELEASE" = false ];then
+            printf "%b%b %s Found: v${DGB_VER_PRERELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+                INSTALL_DGB_RELEASE_TYPE="prerelease"
+            elif [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ];then
                 printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
             fi
         fi
@@ -7862,7 +7864,7 @@ digibyte_check() {
     fi
 
     # Check for latest release version if it is currently being used or has been requested
-    if [ "$INSTALL_DGB_PRERELEASE" = false ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
         str="Checking GitHub repository for the latest DigiByte Core release..."
@@ -7883,19 +7885,26 @@ digibyte_check() {
         else
             printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
             sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_PRERELEASE=false
+            INSTALL_DGB_RELEASE_TYPE="release"
         fi
 
     fi
 
 
+    # Set DGB_VER_GITHUB to the version we are comparing against
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+        DGB_VER_GITHUB=$DGB_VER_RELEASE
+    elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+        DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+    fi
+
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
       # ....then check if a DigiByte Core upgrade is required
-      if [ "$DGB_VER_LOCAL" = "$DGB_VER_RELEASE" ]; then
+      if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
           else
             printf "%b Upgrade not required.\\n" "${INFO}"
@@ -7906,10 +7915,10 @@ digibyte_check() {
             return
           fi
       else
-            if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
-                printf "%b %bDigiByte Core will be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+                printf "%b %bDigiByte Core will be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             else
-                printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             fi
           DGB_INSTALL_TYPE="upgrade"
           DGB_ASK_UPGRADE=YES
@@ -7918,7 +7927,7 @@ digibyte_check() {
 
     # If no current version is installed, then do a clean install
     if [ $DGB_STATUS = "not_detected" ]; then
-      printf "%b %bDigiByte Core v${DGB_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bDigiByte Core v${DGB_VER_GITHUB} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
@@ -7993,13 +8002,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # display the download URL
     if [ $VERBOSE_MODE = true ]; then
-        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
+        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
     fi
 
     # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiByte Core v${DGB_VER_RELEASE} from Github repository..."
+    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
     # If the command completed without error, then assume IPFS downloaded correctly
     if [ $? -eq 0 ]; then
@@ -8007,7 +8016,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         use_dgb_alt_download=false
     else
         # Try alternative download
-        sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-v${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+        sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-v${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
         if [ $? -eq 0 ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -8058,19 +8067,19 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Extracting DigiByte Core binary
     # If this is the alt url download, we need to add a v in the URL
     if [ "$use_dgb_alt_download" == true ]; then
-        str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-v$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
+        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
-        str="Extracting DigiByte Core v${DGB_VER_RELEASE} ..."
+        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz -C $USER_HOME
+        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # If this is 8.22.0-rc2, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_RELEASE" = "8.22.0-rc2" ]; then
+    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc2" ]; then
         str="Renaming 8.22.0-rc2 download folder..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
@@ -8086,9 +8095,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_RELEASE ..."
+    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_RELEASE $USER_HOME/digibyte
+    sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
@@ -8100,19 +8109,19 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
     # If this is the alt url download, we need to add a v in the URL
     if [ "$use_dgb_alt_download" == true ]; then
-        rm -f $USER_HOME/digibyte-v$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+        rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
-        rm -f $USER_HOME/digibyte-$DGB_VER_RELEASE-$ARCH-linux-gnu.tar.gz
+        rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
-    DGB_VER_LOCAL=$DGB_VER_RELEASE
+    DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -8121,10 +8130,10 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Update diginode.settings to store whether this is the pre-release version
-    if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
         DGB_PRERELEASE="NO"
         sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-    elif [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+    elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
         DGB_PRERELEASE="YES"
         sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
     fi
@@ -8147,7 +8156,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     DGB_INSTALL_TYPE=""
     DGB_UPDATE_AVAILABLE=NO
     DGB_POSTUPDATE_CLEANUP=YES
-    INSTALL_DGB_PRERELEASE=""
+    INSTALL_DGB_RELEASE_TYPE=""
 
     # Create hidden file to denote this version was installed with the official DigiNode Setup
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -8293,7 +8302,7 @@ printf " =============== Checking: DigiNode Tools ==============================
             if  [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
 
                 if [ "$RESET_MODE" = true ]; then
-                    printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_RELEASE}.\\n" "${INFO}"
+                    printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiNode Tools v${DGNT_VER_RELEASE}.\\n" "${INFO}"
                     DGNT_INSTALL_TYPE="askreset"
                 else
                     printf "%b Upgrade not required.\\n" "${INFO}"
@@ -11198,7 +11207,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_RELEASE\\n"
+            local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_GITHUB\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_ipfs=" >> Kubo v$IPFS_VER_RELEASE\\n"

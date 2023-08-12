@@ -2118,20 +2118,21 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     # Check for latest pre-release version of DigiByte Core if it is currently being used
     if [ "$DGB_PRERELEASE" = "YES" ]; then
 
-        DGB_VER_RELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
 
         # If there is no pre-release version, then we will lookup the release version
-        if [ "$DGB_VER_RELEASE" = "null" ]; then
-            INSTALL_DGB_PRERELEASE=false
+        if [ "$DGB_VER_PRERELEASE" = "null" ]; then
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+            INSTALL_DGB_RELEASE_TYPE="release"
         else
-            sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_PRERELEASE=false
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            INSTALL_DGB_RELEASE_TYPE="prerelease"
         fi
     fi
 
 
     # Check for latest release version of DigiByte Core on Github
-    if [ "$INSTALL_DGB_PRERELEASE" = false ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
         DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
         if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
           DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
@@ -2148,8 +2149,17 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
 
+
+        # Set DGB_VER_GITHUB to the version we are comparing against
+        if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
+
+
         # Compare current DigiByte Core version with Github version to know if there is a new version available
-        if [ "$DGB_VER_LOCAL" = "$DGB_VER_RELEASE" ]; then
+        if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           DGB_UPDATE_AVAILABLE="no"
         else
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
@@ -2349,7 +2359,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst}" " ║"
     else
     printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║"
     fi
