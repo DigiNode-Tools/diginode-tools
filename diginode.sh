@@ -1395,9 +1395,16 @@ pre_loop() {
 
       printf "%b Checking Software Versions...\\n" "${INFO}"
 
+      # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
+
       # If there is actually a local version of DigiByte Core, check for an update
       if [ "$DGB_VER_LOCAL" != "" ]; then
-          if [ "$DGB_VER_LOCAL" = "$DGB_VER_RELEASE" ]; then
+          if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
             DGB_UPDATE_AVAILABLE="no"
           else
             DGB_UPDATE_AVAILABLE="yes"
@@ -1807,7 +1814,7 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         fi
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
-        if [ "$DGB_VER_LOCAL" = "$DGB_VER_RELEASE" ]; then
+        if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE="no"
@@ -2115,31 +2122,6 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
 
-    # Check for latest pre-release version of DigiByte Core if it is currently being used
-    if [ "$DGB_PRERELEASE" = "YES" ]; then
-
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
-
-        # If there is no pre-release version, then we will lookup the release version
-        if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="release"
-        else
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="prerelease"
-        fi
-    fi
-
-
-    # Check for latest release version of DigiByte Core on Github
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
-        DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-        if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-          DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-          sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-        fi
-    fi
-
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
 
@@ -2147,6 +2129,31 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         if [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Check for latest pre-release version of DigiByte Core if it is currently being used
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+
+            DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+
+            # If there is no pre-release version, then we will lookup the release version
+            if [ "$DGB_VER_PRERELEASE" = "null" ]; then
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="release"
+            else
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="prerelease"
+            fi
+        fi
+
+
+        # Check for latest release version of DigiByte Core on Github
+        if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+            if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
+              DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+              sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            fi
         fi
 
 
