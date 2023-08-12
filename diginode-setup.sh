@@ -7906,7 +7906,7 @@ digibyte_check() {
             return
           fi
       else
-            if [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+            if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
                 printf "%b %bDigiByte Core will be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             else
                 printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
