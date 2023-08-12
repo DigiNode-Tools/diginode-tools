@@ -148,7 +148,7 @@ STATUS_MONITOR=false
 DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
 DISPLAY_HELP=false
-INSTALL_DGB_PRERELEASE=
+INSTALL_DGB_PRERELEASE=""
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -7725,11 +7725,18 @@ digibyte_check() {
 
         # Get the version number of the current DigiByte Node and write it to to the settings file
     if [ "$DGB_STATUS" = "running" ]; then
+
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
-        DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+
+        # If this is a pre-release version just use the version number from diginode.settings, otherwise query for it
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+            printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
+        else
+            DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+        fi
 
         # Find out which DGB network is running - mainnet or testnet
         str="Checking which DigiByte chain is running (mainnet or testnet?)..."
@@ -7802,6 +7809,23 @@ digibyte_check() {
                 fi
         fi
 
+    fi
+
+    # If this is a new install, and the user did not choose to install the pre-release, then instruct it to install the release version
+    if [ "$DGB_STATUS" = "not_detected" ] && [ "$INSTALL_DGB_PRERELEASE" = "" ]; then
+        INSTALL_DGB_PRERELEASE=false
+        DGB_PRERELEASE=""
+        printf "%b New install. DigiByte Core release version will be used.\\n" "${INFO}"
+    fi
+
+    # Display if the user requested the latest pre-release version of DigiByte Core
+    if [ "$INSTALL_DGB_PRERELEASE" = true ]; then
+        printf "%b DigiByte Core pre-release version requested using --dgbpre flag.\\n" "${INFO}"
+    fi
+
+    # Display if the user requested the latest release version of DigiByte Core
+    if [ "$INSTALL_DGB_PRERELEASE" = false ]; then
+        printf "%b DigiByte Core release version requested using --dgbnopre flag.\\n" "${INFO}"
     fi
 
     # Check for latest pre-release version if it is currently being used or has been requested
@@ -7968,7 +7992,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Dispaly the download URL
+    # display the download URL
     if [ $VERBOSE_MODE = true ]; then
         printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_RELEASE}/digibyte-${DGB_VER_RELEASE}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
     fi
