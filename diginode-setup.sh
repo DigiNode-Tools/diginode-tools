@@ -7732,11 +7732,12 @@ digibyte_check() {
         # If this is a pre-release version just use the version number from diginode.settings, otherwise query for it
         if [ "$DGB_PRERELEASE" = "YES" ]; then
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
+            echo "          -- testing --"
         else
-            echo "banana"
             DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+            echo "          -- testing --"
         fi
 
         # Find out which DGB network is running - mainnet or testnet
