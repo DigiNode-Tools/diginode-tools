@@ -8054,7 +8054,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
         str="Deleting old backup of DigiByte Core v${DGB_VER_LOCAL}..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -8103,10 +8103,10 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
-    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD" ]; then
-        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-OLD ..."
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
+        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-backup ..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-OLD
+        rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     
