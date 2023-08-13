@@ -13863,7 +13863,7 @@ menu_dganode_only(){
     opt1a="Update"
     opt1b=" Check for updates to your DigiAsset Node"
 
-    opt2a="Setup DigiByte Node"
+    opt2a="Add DigiByte Node"
     opt2b=" Upgrade to a full DigiNode"
 
     opt3a="MOTD"
