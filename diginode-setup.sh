@@ -7825,7 +7825,7 @@ digibyte_check() {
     fi
 
     # Check for latest pre-release version if it is currently being used or has been requested
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
         str="Checking GitHub repository for the latest DigiByte Core pre-release..."
