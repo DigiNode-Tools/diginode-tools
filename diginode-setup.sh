@@ -7885,7 +7885,9 @@ digibyte_check() {
         else
             printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
             sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="release"
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+                INSTALL_DGB_RELEASE_TYPE="release"
+            fi
         fi
 
     fi
