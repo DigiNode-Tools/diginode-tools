@@ -13894,7 +13894,7 @@ menu_dganode_only(){
             printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
             if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                exec curl -sSL $DGNT_SETUP_GITHUB_LATEST_RELEASE_URL | bash -s -- --dganodeonly --unattended
+                exec curl -sSL $DGNT_SETUP_GITHUB_LATEST_RELEASE_URL | bash -s -- --fulldiginode --unattended
             elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
                 sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
             fi    
