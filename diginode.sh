@@ -2368,7 +2368,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %25s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-28s %30s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst}" " ║"
     else
     printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║"
     fi
