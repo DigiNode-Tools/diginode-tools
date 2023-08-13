@@ -1818,6 +1818,7 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             if [ -f "$DGB_CONF_FILE" ]; then
                 DGB_VER_LOCAL=$(cat $DGB_CONF_FILE | grep DGB_VER_LOCAL= | cut -d'=' -f 2)
             fi
+        fi
     fi
 
         fi
