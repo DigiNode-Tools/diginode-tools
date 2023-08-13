@@ -330,6 +330,20 @@ is_dganode_only_mode() {
     fi
 }
 
+# Inform user if DigiAsset Node ONLY is enable
+is_dgb_prerelease_mode() {
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+        printf "%b DigiByte Core: %bPre-release Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   If available, the pre-release version of DigiByte Core will be installed.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+        printf "%b DigiByte Core: %bRelease Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   DigiByte Core will be downgraded from the pre-release version to the latest release version.\\n" "${INDENT}"
+        printf "\\n"
+    fi
+}
+
 # Inform user if DigiAsset Dev Mode is enable
 is_dgadev_mode() {
     if [ "$DGA_BRANCH" = "development" ]; then
@@ -13465,6 +13479,9 @@ main() {
 
         # Display a message if Unattended Mode is enabled
         is_unattended_mode
+
+        # Display if the release/pre-release version of DigiByte Core has been specifically requested
+        is_dgb_prerelease_mode
 
         # Display if DigiAsset Node only mode is manually enabled or disable via the launch flag
         is_dganode_only_mode
