@@ -1813,6 +1813,13 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
               DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
               sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             fi
+        else
+            # Get the latest value of DGB_VER_LOCAL from diginode.settings
+            if [ -f "$DGB_CONF_FILE" ]; then
+                DGB_VER_LOCAL=$(cat $DGB_CONF_FILE | grep DGB_VER_LOCAL= | cut -d'=' -f 2)
+            fi
+    fi
+
         fi
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
