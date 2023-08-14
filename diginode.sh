@@ -1776,8 +1776,9 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
         else
+            echo "why is this triggering?"
+            sleep 3
             DGB_STATUS="running"
-            TEST_CONDITION=$TEST_CONDITION+1
 
             # Query if DigiByte Core is running the testnet or mainnet chain
             DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
@@ -2004,7 +2005,7 @@ fi
 
 TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
-if [ $TIME_DIF_15MIN -ge 300 ]; then
+if [ $TIME_DIF_15MIN -ge 900 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
     printf "%b Updating Status: 15 Minute Loop...\\n" "${INFO}"
@@ -2460,6 +2461,13 @@ printf "\\n"
 #####################################
 
 if [ "$VERBOSE_MODE" = true ]; then
+
+    TIME_DIF_15SEC_COUNTDOWN=$((15-$TIME_DIF_15SEC))
+    TIME_DIF_1MIN_COUNTDOWN=$((60-$TIME_DIF_1MIN))
+    TIME_DIF_15MIN_COUNTDOWN=$((900-$TIME_DIF_15MIN))
+    TIME_DIF_1DAY_COUNTDOWN=$((86400-$TIME_DIF_1DAY))
+
+
     printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
     printf "\\n"
     printf "                      DGB_STATUS: $DGB_STATUS\\n"
@@ -2470,7 +2478,10 @@ if [ "$VERBOSE_MODE" = true ]; then
     printf "                      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
     printf "                      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
     printf "\\n"
-    printf "                      TEST_CONDITION: $TEST_CONDITION\\n"
+    printf "                      TIME_DIF_15SEC: $TIME_DIF_15SEC_COUNTDOWN\\n"
+    printf "                      TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
+    printf "                      TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
+    printf "                      TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
     printf "\\n"
     printf "           ==================================================\\n\\n"
 fi
