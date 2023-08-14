@@ -8108,8 +8108,8 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "\\n"
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. It may be using a non-standard name.\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+        printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
         # Delete DigiByte Core tar.gz file
         str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
@@ -8123,7 +8123,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If an there is an existing DigiByte install folder, move it to backup
+        # If an there is an existing DigiByte Core backup folder, resture it
         if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
             str="Restoring the backup version of DigiByte Core v$DGB_VER_LOCAL ..."
             printf "%b %s" "${INFO}" "${str}"
