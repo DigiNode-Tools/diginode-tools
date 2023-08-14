@@ -8104,7 +8104,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # If we can't find the extracted folder because it is not using the standard folder name,
     # then we need to cancel the install and restore the previous version from backup
-    if [ -d "$USER_HOME/digibyte-$DGB_VER_GITHUB" ]; then
+    if [ ! -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
         printf "\\n"
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
