@@ -1583,7 +1583,7 @@ pre_loop() {
 
 }
 
-
+TEST_CONDITION=0
 
 ######################################################################################
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
@@ -1759,11 +1759,14 @@ TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-    printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
+        printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
     fi
 
     # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
     if [ "$DGB_STATUS" = "startingup" ]; then
+
+        # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
+        source $DGNT_SETTINGS_FILE
         
         # Query if digibyte has finished starting up. Display error. Send success to null.
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
@@ -1771,13 +1774,13 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
         else
             DGB_STATUS="running"
+            TEST_CONDITION=$TEST_CONDITION+1
 
             # Query if DigiByte Core is running the testnet or mainnet chain
             DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
             if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
                 DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
             fi
-
         fi
 
     fi
@@ -1806,17 +1809,15 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
       if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "" ] || [ "$DGB_VER_LOCAL_CHECK_FREQ" = "15secs" ]; then
 
+        # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
+        source $DGNT_SETTINGS_FILE
+
         # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
         if [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
               DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
               sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-            fi
-        else
-            # Get the latest value of DGB_VER_LOCAL from diginode.settings (if we are using the pre-release version)
-            if [ -f "$DGB_CONF_FILE" ]; then
-                DGB_VER_LOCAL=$(cat $DGB_CONF_FILE | grep DGB_VER_LOCAL= | cut -d'=' -f 2)
             fi
         fi
 
@@ -2449,6 +2450,23 @@ printf "  ╠════════════════╬═════�
 printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
+printf "\\n"
+
+#####################################
+# Display TROUBLESHOOTING variables #
+#####################################
+
+if [ "$VERBOSE_MODE" = true ]; then
+    printf "      DGB_STATUS: $DGB_STATUS\\n"
+    printf "      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
+    printf "      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
+    printf "      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
+    printf "      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
+    printf "      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
+    printf "      TEST_CONDITION: $TEST_CONDITION\\n"
+    printf "\\n"
+fi
+
 # Display a random DigiFact
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
 digifact_display
