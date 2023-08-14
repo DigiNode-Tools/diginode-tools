@@ -2491,6 +2491,8 @@ if [ "$VERBOSE_MODE" = true ]; then
     printf "                      TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
     printf "                      TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
     printf "\\n"
+    printf "                      DGB_ERROR_MSG: >>$DGB_ERROR_MSG<<\\n"
+    printf "\\n"
     printf "           ==================================================\\n\\n"
 fi
 
