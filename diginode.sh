@@ -1338,6 +1338,13 @@ firstrun_dganode_configs() {
 
 }
 
+# Cleans the DigiByte Core startup messages of strange character that mess up the position of the right side border
+clean_dgb_error_msg() {
+
+    if [ "$DGB_ERROR_MSG" = "Rewinding blocks…" ]; then
+        DGB_ERROR_MSG="Rewinding blocks..."
+    fi
+}
 
 pre_loop() {
 
@@ -1387,6 +1394,7 @@ pre_loop() {
           is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
           if [ "$is_dgb_live_query" != "" ]; then
               DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+              clean_dgb_error_msg
           else
               DGB_STATUS="running"
           fi
@@ -1775,6 +1783,7 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+            clean_dgb_error_msg
         else
             echo "why is this triggering?"
             sleep 3
@@ -2328,7 +2337,7 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT detected
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiByte Node detected.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte Node not detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
@@ -2362,7 +2371,7 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}No DigiAsset Node detected.${txtrst}"
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node not detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ -f "$DGB_CONF_FILE" ]; then
