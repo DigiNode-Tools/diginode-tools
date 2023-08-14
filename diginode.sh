@@ -1338,13 +1338,13 @@ firstrun_dganode_configs() {
 
 }
 
-# Cleans the DigiByte Core startup messages of strange character that mess up the position of the right side border
+# Cleans the DigiByte Core startup messages of strange characters (e.g. ellipsis) that mess up the position of the right side border
 clean_dgb_error_msg() {
 
-    if [ "$DGB_ERROR_MSG" = "Rewinding blocks…" ]; then
-        DGB_ERROR_MSG="Rewinding blocks..."
-    elif [ "$DGB_ERROR_MSG" = "Loading block index…" ]; then
-        DGB_ERROR_MSG="Loading block index..."
+    if [ "$DGB_ERROR_MSG" = " Rewinding blocks…" ]; then
+        DGB_ERROR_MSG=" Rewinding blocks..."
+    elif [ "$DGB_ERROR_MSG" = " Loading block index…" ]; then
+        DGB_ERROR_MSG=" Loading block index..."
     fi
 }
 
@@ -1775,20 +1775,18 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
         printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
     fi
 
-    # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
+    # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
     if [ "$DGB_STATUS" = "startingup" ]; then
 
         # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
         source $DGNT_SETTINGS_FILE
-        
+      
         # Query if digibyte has finished starting up. Display error. Send success to null.
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
             clean_dgb_error_msg
         else
-            echo "why is this triggering?"
-            sleep 3
             DGB_STATUS="running"
 
             # Query if DigiByte Core is running the testnet or mainnet chain
