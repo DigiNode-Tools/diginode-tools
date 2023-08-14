@@ -148,7 +148,7 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 These features are for advanced users and should be used with caution:
 
-**DigiNode Setup Help:** This will display a list of all the available flags that can be used at launch:
+**DigiNode Setup Help:** Use the --help flag to view all the available flags that can be used at launch:
 - ```curl -sSL setup.diginode.tools | bash -s -- --help``` or
 - ```diginode-setup --help```
 
@@ -164,6 +164,10 @@ If you want to skip this step, and simply use the default settings, include the 
 **Install DigiByte Core Pre-release:** The --dgbpre flag can be used to install the pre-release version of DigiByte Core, if available: 
 - ```curl -sSL setup.diginode.tools | bash -s -- --dgbpre``` or
 - ```diginode-setup --dgbpre```
+
+If you are running a pre-release version of DigiByte, and want to downgrade back to the release version use the --dgbnopre flag:
+- ```curl -sSL setup.diginode.tools | bash -s -- --dgbnopre``` or
+- ```diginode-setup --dgbnopre```
 
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
 - ```curl -sSL setup.diginode.tools | bash -s -- --dganodeonly``` or
