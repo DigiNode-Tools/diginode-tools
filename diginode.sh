@@ -1049,7 +1049,7 @@ quit_message() {
       printf "\\n"
 
       # Choose a random DigiFact
-      digifact_randomize
+#      digifact_randomize
 
       # Display a random DigiFact
       digifact_display
@@ -1099,6 +1099,9 @@ quit_message() {
   elif [ "$DONATION_PLEA" = "YES" ]; then
       printf "\\n"
 
+      # Display a random DigiFact
+      digifact_display
+
       #Display donation QR code
       donation_qrcode
 
@@ -1115,7 +1118,7 @@ quit_message() {
   else
 
       # Choose a random DigiFact
-      digifact_randomize
+ #     digifact_randomize
 
       # Display a random DigiFact
       digifact_display
@@ -2457,16 +2460,19 @@ printf "\\n"
 #####################################
 
 if [ "$VERBOSE_MODE" = true ]; then
-    printf " ==== ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} ====\\n\\n"
-    printf "      DGB_STATUS: $DGB_STATUS\\n"
-    printf "      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
-    printf "      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
+    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
     printf "\\n"
-    printf "      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
-    printf "      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
-    printf "      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
-    printf "      TEST_CONDITION: $TEST_CONDITION\\n"
+    printf "                      DGB_STATUS: $DGB_STATUS\\n"
+    printf "                      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
+    printf "                      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
     printf "\\n"
+    printf "                      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
+    printf "                      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
+    printf "                      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
+    printf "\\n"
+    printf "                      TEST_CONDITION: $TEST_CONDITION\\n"
+    printf "\\n"
+    printf "           ==================================================\\n\\n"
 fi
 
 # Display a random DigiFact
