@@ -2419,9 +2419,6 @@ if [ "$DGA_VER_LOCAL" != "" ]; then
   fi
 fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
-if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
-fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
 printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
