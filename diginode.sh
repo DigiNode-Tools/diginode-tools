@@ -1780,6 +1780,15 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
         # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
         source $DGNT_SETTINGS_FILE
+
+        # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
       
         # Query if digibyte has finished starting up. Display error. Send success to null.
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
@@ -1832,6 +1841,15 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
               DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
               sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             fi
+        fi
+
+        # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
         fi
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
