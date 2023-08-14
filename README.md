@@ -1,4 +1,4 @@
-![DigiNode Logo](images/diginode_tools_logo_2.png)
+![DigiNode Tools Logo](images/diginode_tools_logo.png)
 
 # DigiNode Tools
 
@@ -10,11 +10,11 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 - **DigiNode Setup** - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
 - **DigiNode Status Monitor** - Provides a live dashboard to quickly check the status of your DigiNode.
 
-For more information, visit: https://diginode.digibyte.help (website coming soon)
+For more information, visit: https://diginode.tools
 
 ### What do I need to run a DigiNode?
 
-DigiNode Tools should run on most Ubuntu or Debian based systems. See the Compatibility section below. 
+DigiNode Tools should run on most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. A device with at least 8GB RAM is recommended. A Raspberry Pi 4 8Gb is a good choice. See the Compatibility section below. 
 
 A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse - everything is setup and managed remotely, using the terminal.
 
@@ -38,7 +38,7 @@ Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to se
 
 On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
 
-```curl -sSL diginode-setup.digibyte.help | bash```
+```curl -sSL setup.diginode.tools | bash```
 
 ### Setup a DigiNode on Ubuntu
 
@@ -122,7 +122,7 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 
 ## Compatibility
 
-- DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. 
+DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. A device with at least 8GB RAM is recommended. A Raspberry Pi 4 8Gb is a good choice.
 - With 8Gb RAM or more, you can safely run a full DigiNode (DigiByte + DigiAssets). This is the recommended minimum.
 - With 4Gb RAM, you can run a DigiByte Node, or a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use. Due the read/write demands placed on the SSD, its lifespan will be significantly decreased.)
 - With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
@@ -148,45 +148,53 @@ DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR —
 
 These features are for advanced users and should be used with caution:
 
+**DigiNode Setup Help:** This will display a list of all the available flags that can be used at launch:
+- ```curl -sSL setup.diginode.tools | bash -s -- --help``` or
+- ```diginode-setup --help```
+
 **Unattended Mode:** This is useful for installing the script completely unattended. To run in unattended mode, use the --unattended flag at launch. 
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended``` or
+- ```curl -sSL setup.diginode.tools | bash -s -- --unattended``` or
 - ```diginode-setup --unattended```
 
 Note: The first time you run DigiNode Setup in Unattended mode, it will create the required diginode.settings file and then exit. If you wish to customize your installation further, you can edit this file before proceeding. It is located here: ~/.digibyte/diginode.settings
 If you want to skip this step, and simply use the default settings, include the --skipcustommsg flag:
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --skipcustommsg``` or
+- ```curl -sSL setup.diginode.tools | bash -s -- --unattended --skipcustommsg``` or
 - ```diginode-setup --unattended --skipcustommsg```
 
+**Install DigiByte Core Pre-release:** The --dgbpre flag can be used to install the pre-release version of DigiByte Core, if available: 
+- ```curl -sSL setup.diginode.tools | bash -s -- --dgbpre``` or
+- ```diginode-setup --dgbpre```
+
 **DigiAsset Node ONLY Setup:** If you have a low spec device that isn't powerful enough to run DigiByte Node, you can use the ```--dganodeonly``` flag to setup only a DigiAsset Node. Using this flag bypasses the hardware checks required for the DigiByte Node. A DigiAsset Node requires very little disk space or memory and should work on very low power devices. If you later decide you want to install a DigiByte Node as well, you can use the ```--fulldiginode``` flag to upgrade your existing DigiAsset Node setup. This can also be accessed from the main menu.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dganodeonly``` or
+- ```curl -sSL setup.diginode.tools | bash -s -- --dganodeonly``` or
 - ```diginode-setup --dganodeoonly```
 
-**Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --reset``` or
-- ```diginode-setup --reset```
-
 **Skip OS Check:** The --skiposcheck flag will skip the OS check at startup in case you are having problems with your system. Proceed with caution.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skiposcheck``` or
+- ```curl -sSL setup.diginode.tools | bash -s -- --skiposcheck``` or
 - ```diginode-setup --skiposcheck```
 
-**Skip Update Package Cache:** The --skipupdatepkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. (Some VPS won't let you update.)
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --skipupdatepkgcache``` or
-- ```diginode-setup --skipupdatepkgcache```
-
-**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --uninstall``` or
-- ```diginode-setup --uninstall```
+**Skip Package Cache Update:** The --skippkgcache flag will skip trying to update the package cache at launch in case you are do not have permission to do this. (Some VPS won't let you update.)
+- ```curl -sSL setup.diginode.tools | bash -s -- --skippkgcache``` or
+- ```diginode-setup --skippkgcache```
 
 **Verbose Mode:** This provides much more detailed feedback on what the scripts are doing - useful for troubleshooting and debugging. This can be set using the ```--verboseon``` flags.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --verboseon```
+- ```curl -sSL setup.diginode.tools | bash -s -- --verboseon```
 - ```diginode-setup --uninstall```
 
 **Manually Locate DigiByte Core:** If you wish to use the DigiNode Status Monitor with your existing DigiByte Node (i.e. One not setup with DigiNode Tools), and the startup checks are not able to locate it automatically, use the ```--locatedgb``` flag at launch to manually specify the folder location.
 - ```diginode --locatedgb```
 
 **Developer Mode:** To install the development branch of DigiNode Tools, use the ```--dgntdev``` flag at launch. The ```--dgadev``` flag can be used to install the development branch of the DigiAsset Node. WARNING: These should only be used for testing, and occasionally may not run.
-- ```curl -sSL diginode-setup.digibyte.help | bash -s -- --dgntdev --dgadev``` or
+- ```curl -sSL setup.diginode.tools | bash -s -- --dgntdev --dgadev``` or
 - ```diginode-setup --dgntdev --dgadev```
+
+**Uninstall:** The --uninstall flag will uninstall your DigiNode. Your DigiByte wallet will be kept. This can also be accessed from the main menu.
+- ```curl -sSL setup.diginode.tools | bash -s -- --uninstall``` or
+- ```diginode-setup --uninstall```
+
+**Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
+- ```curl -sSL setup.diginode.tools | bash -s -- --reset``` or
+- ```diginode-setup --reset```
 
 ## Release Notes
 

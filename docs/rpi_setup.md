@@ -92,7 +92,7 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 
 ## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
-To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```curl -sSL diginode-setup.digibyte.help | bash```
+To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```curl -sSL setup.diginode.tools | bash```
 
 This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
 

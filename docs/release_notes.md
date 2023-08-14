@@ -1,5 +1,14 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.0 - 2023-08-14
+- New: Now supports installing a pre-release version of DigiByte Core with the --dgpre flag. Downgrade back to the release version with --dgbnopre
+- New: Add --help flag to DigiNode Setup script which describes all the available optional launch flags
+- Fix: Improve checks for a failed install of DigiByte Core due to it using a non-standard folder structure. It will now restore the existing version from local backup and restart it.
+- Change: Official URL is now diginode.tools. Bash script now uses setup.diginode.tools
+- Change: Update Status Monitor to be able to detect a new prerelease/release version of DigiByte Core depending on which is in use
+- Change: When quitting Status Monitor, the currently viewed DigiFact remains on the screen.
+
+
 DigiNode Tools v0.7.4 - 2023-02-26
 - More documentation tweaks
 - Fix: Fixes to --locatedgb feature
@@ -234,7 +243,7 @@ DigiNode Tools v0.0.5 - 2022-05-19
 - DigiAsset Settings are backed up locally when uninstalling, if desired. This fixes the update bug mentioned in v0.0.4
 - Fixes to diginode.settings to better store variables
 - Any changes made to the RPC credentials (user/password/port) in digibyte.conf are now automatically updated in the DigiAssets settings file (main.json) file when running an 'Update' from the DigiNode Setup menu.
-Countless bug fixes and improvements
+- Countless bug fixes and improvements
 
 DigiNode Tools v0.0.4 - 2022-05-10
 - Fixed several bugs relating to the Status Monitor being able to check for software updates
@@ -247,4 +256,4 @@ DigiNode Tools v0.0.2 - 2021-11-14
 - Test Release for the update mechanism
 
 DigiNode Tools v0.0.1 - 2021-11-12
-- First text release
+- First test release

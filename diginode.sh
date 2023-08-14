@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.7.4
+#           Name:  DigiNode Status Monitor v0.8.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8,13 +8,15 @@
 #                  Other distros may not work at present. Please help test so that support can be added.
 #                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
 #
-#         Author:  Olly Stedall @saltedlolly
+#         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
 #
-#        Website:  https://diginode.digibyte.help
+#        Website:  https://diginode.tools
 #
-#        Support:  https://t.me/+ked2VGZsLPAyN2Jk
+#        Support:  Telegram - https://t.me/DigiNodeTools
+#                  Bluesky -  https://bsky.app/profile/digibyte.help
+#                  Twitter -  https://twitter.com/digibytehelp
 #
-#    Get Started:  curl http://diginode-setup.digibyte.help | bash  
+#    Get Started:  curl http://setup.diginode.tools | bash  
 #  
 #                  Alternatively clone the repo to your home folder:
 #
@@ -55,14 +57,14 @@
 # Local variables will be in lowercase and will exist only within functions
 
 # This variable stores the version number of this release of 'DigiNode Tools'.
-# When a new release is made, this number gets updated to match the release number on GitHub.
+# Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.7.4
-# Last Updated: 2023-01-16
+DGNT_VER_LOCAL=0.8.0
+# Last Updated: 2023-08-05
 
 # This is the command people will enter to run the install script.
-DGNT_SETUP_OFFICIAL_CMD="curl -sSL diginode-setup.digibyte.help | bash"
+DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
 
 ########################################################
 #### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
@@ -267,7 +269,7 @@ locate_digibyte_node() {
         printf "%b Running DigiNode Setup...\\n" "${INFO}"
         echo ""
         if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-            exec curl -sSL diginode-setup.digibyte.help | bash -s -- --fulldiginode
+            exec curl -sSL setup.diginode.tools | bash -s -- --fulldiginode
         elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
             ~/diginode-tools/diginode-setup.sh --fulldiginode
         fi  
@@ -1047,7 +1049,7 @@ quit_message() {
       printf "\\n"
 
       # Choose a random DigiFact
-      digifact_randomize
+#      digifact_randomize
 
       # Display a random DigiFact
       digifact_display
@@ -1061,7 +1063,7 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
-        exec curl -sSL diginode-setup.digibyte.help | bash -s -- --unattended --statusmonitor
+        exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
         
         # Display cursor again
         tput cnorm
@@ -1097,6 +1099,9 @@ quit_message() {
   elif [ "$DONATION_PLEA" = "YES" ]; then
       printf "\\n"
 
+      # Display a random DigiFact
+      digifact_display
+
       #Display donation QR code
       donation_qrcode
 
@@ -1113,7 +1118,7 @@ quit_message() {
   else
 
       # Choose a random DigiFact
-      digifact_randomize
+ #     digifact_randomize
 
       # Display a random DigiFact
       digifact_display
@@ -1232,15 +1237,25 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # check for current version number of DigiByte Core and save to settings file
     str="Looking up DigiByte Core version number..."
     printf "  %b %s" "${INFO}" "${str}"
-    DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-    if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
-        DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        if [ $DGB_STATUS != "not_detected" ]; then
+
+    if [ "$DGB_PRERELEASE" = "YES" ]; then
+        printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL} [ Pre-release ]\\n" "${OVER}" "${TICK}" "${str}"
+        IS_DGB_RUNNING_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        if [ "$IS_DGB_RUNNING_QUERY" = "" ] && [ $DGB_STATUS != "not_detected" ]; then
             DGB_STATUS="startingup"
             printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    else
+        DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+        if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
+            DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+            printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            if [ $DGB_STATUS != "not_detected" ]; then
+                DGB_STATUS="startingup"
+                printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
+            fi
         fi
     fi
 
@@ -1323,6 +1338,15 @@ firstrun_dganode_configs() {
 
 }
 
+# Cleans the DigiByte Core startup messages of strange characters (e.g. ellipsis) that mess up the position of the right side border
+clean_dgb_error_msg() {
+
+    if [ "$DGB_ERROR_MSG" = " Rewinding blocks…" ]; then
+        DGB_ERROR_MSG=" Rewinding blocks..."
+    elif [ "$DGB_ERROR_MSG" = " Loading block index…" ]; then
+        DGB_ERROR_MSG=" Loading block index..."
+    fi
+}
 
 pre_loop() {
 
@@ -1351,7 +1375,7 @@ pre_loop() {
 
           # Query current version number of DigiByte Core
           DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-          if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
+          if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
           fi
@@ -1372,6 +1396,7 @@ pre_loop() {
           is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
           if [ "$is_dgb_live_query" != "" ]; then
               DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+              clean_dgb_error_msg
           else
               DGB_STATUS="running"
           fi
@@ -1383,9 +1408,18 @@ pre_loop() {
 
       printf "%b Checking Software Versions...\\n" "${INFO}"
 
+      # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
+
       # If there is actually a local version of DigiByte Core, check for an update
       if [ "$DGB_VER_LOCAL" != "" ]; then
-          if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+          if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
             DGB_UPDATE_AVAILABLE="no"
           else
             DGB_UPDATE_AVAILABLE="yes"
@@ -1562,7 +1596,7 @@ pre_loop() {
 
 }
 
-
+TEST_CONDITION=0
 
 ######################################################################################
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
@@ -1738,16 +1772,29 @@ TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
 if [ $TIME_DIF_15SEC -ge 15 ]; then 
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-    printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
+        printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
     fi
 
-    # Check if digibyted is successfully responding to requests up yet after starting up. If not, get the error.
+    # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
     if [ "$DGB_STATUS" = "startingup" ]; then
-        
+
+        # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
+        source $DGNT_SETTINGS_FILE
+
+        # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
+      
         # Query if digibyte has finished starting up. Display error. Send success to null.
         is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
+            clean_dgb_error_msg
         else
             DGB_STATUS="running"
 
@@ -1756,7 +1803,6 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
                 DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
             fi
-
         fi
 
     fi
@@ -1785,15 +1831,29 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
       if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "" ] || [ "$DGB_VER_LOCAL_CHECK_FREQ" = "15secs" ]; then
 
-        # Query current version number of DigiByte Core, and write to diginode.settings
-        DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
-          DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-          sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
+        source $DGNT_SETTINGS_FILE
+
+        # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
+              DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
+              sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+            fi
+        fi
+
+        # Are we running a pre-release or a release version of DigiByte Core?
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$DGB_PRERELEASE" = "YES" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
         fi
 
         # If DigiByte Core is up to date, switch back to checking the local version number daily
-        if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+        if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           DGB_VER_LOCAL_CHECK_FREQ="daily"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE="no"
@@ -1972,7 +2032,7 @@ fi
 
 TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
-if [ $TIME_DIF_15MIN -ge 300 ]; then
+if [ $TIME_DIF_15MIN -ge 900 ]; then
 
     if [ "$STARTUP_LOOP" = "true" ]; then
     printf "%b Updating Status: 15 Minute Loop...\\n" "${INFO}"
@@ -2100,22 +2160,52 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
   #  sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGNT_SETTINGS_FILE
 
 
-    # Check for new release of DigiByte Core on Github
-    DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-      DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-      sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-    fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
 
-        # Get current software version, and write to diginode.settings
-        DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        # Get current software version, and write to diginode.settings (unless pre-release)
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Check for latest pre-release version of DigiByte Core if it is currently being used
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+
+            DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+
+            # If there is no pre-release version, then we will lookup the release version
+            if [ "$DGB_VER_PRERELEASE" = "null" ]; then
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="release"
+            else
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="prerelease"
+            fi
+        fi
+
+
+        # Check for latest release version of DigiByte Core on Github
+        if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+            DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+            if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
+              DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+              sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            fi
+        fi
+
+
+        # Set DGB_VER_GITHUB to the version we are comparing against
+        if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+            DGB_VER_GITHUB=$DGB_VER_RELEASE
+        elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+            DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+        fi
+
 
         # Compare current DigiByte Core version with Github version to know if there is a new version available
-        if [ $(version $DGB_VER_LOCAL) -ge $(version $DGB_VER_RELEASE) ]; then
+        if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           DGB_UPDATE_AVAILABLE="no"
         else
           DGB_VER_LOCAL_CHECK_FREQ="15secs"
@@ -2265,7 +2355,7 @@ printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT detected
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}No DigiByte Node detected.${txtrst}"
+printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte Node not detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
@@ -2299,7 +2389,7 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
 printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}No DigiAsset Node detected.${txtrst}"
+printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node not detected.${txtrst}"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ -f "$DGB_CONF_FILE" ]; then
@@ -2315,7 +2405,7 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-28s %30s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst}" " ║"
     else
     printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║"
     fi
@@ -2345,9 +2435,6 @@ if [ "$DGA_VER_LOCAL" != "" ]; then
   fi
 fi
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
-if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "   WARNING: Your DigiByte daemon service is not currently running.\\n"
-fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "\\n"
 printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
@@ -2391,6 +2478,40 @@ printf "  ╠════════════════╬═════�
 printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
+printf "\\n"
+
+#####################################
+# Display TROUBLESHOOTING variables #
+#####################################
+
+if [ "$VERBOSE_MODE" = true ]; then
+
+    TIME_DIF_15SEC_COUNTDOWN=$((15-$TIME_DIF_15SEC))
+    TIME_DIF_1MIN_COUNTDOWN=$((60-$TIME_DIF_1MIN))
+    TIME_DIF_15MIN_COUNTDOWN=$((900-$TIME_DIF_15MIN))
+    TIME_DIF_1DAY_COUNTDOWN=$((86400-$TIME_DIF_1DAY))
+
+
+    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
+    printf "\\n"
+    printf "                      DGB_STATUS: $DGB_STATUS\\n"
+    printf "                      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
+    printf "                      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
+    printf "\\n"
+    printf "                      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
+    printf "                      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
+    printf "                      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
+    printf "\\n"
+    printf "                      TIME_DIF_15SEC: $TIME_DIF_15SEC_COUNTDOWN\\n"
+    printf "                      TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
+    printf "                      TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
+    printf "                      TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
+    printf "\\n"
+    printf "                      DGB_ERROR_MSG: >>$DGB_ERROR_MSG<<\\n"
+    printf "\\n"
+    printf "           ==================================================\\n\\n"
+fi
+
 # Display a random DigiFact
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
 digifact_display
