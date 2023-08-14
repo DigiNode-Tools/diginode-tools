@@ -2460,6 +2460,7 @@ if [ "$VERBOSE_MODE" = true ]; then
     printf "      DGB_STATUS: $DGB_STATUS\\n"
     printf "      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
     printf "      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
+    printf "\\n"
     printf "      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
     printf "      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
     printf "      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
