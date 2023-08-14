@@ -1343,6 +1343,8 @@ clean_dgb_error_msg() {
 
     if [ "$DGB_ERROR_MSG" = "Rewinding blocks…" ]; then
         DGB_ERROR_MSG="Rewinding blocks..."
+    elif [ "$DGB_ERROR_MSG" = "Loading block index…" ]; then
+        DGB_ERROR_MSG="Loading block index..."
     fi
 }
 
