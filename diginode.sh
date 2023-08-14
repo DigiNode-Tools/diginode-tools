@@ -2457,6 +2457,7 @@ printf "\\n"
 #####################################
 
 if [ "$VERBOSE_MODE" = true ]; then
+    printf " ==== ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} ====\\n\\n"
     printf "      DGB_STATUS: $DGB_STATUS\\n"
     printf "      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
     printf "      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
