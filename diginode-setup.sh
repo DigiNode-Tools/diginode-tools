@@ -12819,12 +12819,12 @@ fi
 
 if [ "$DIGIFACT" = "digifact39" ]; then
     DIGIFACT_TITLE="DigiFact # 39 - Did you know..."
-    DIGIFACT_L1="Have you ever wanted to try another wallet? Are you after some"
-    DIGIFACT_L2="fancy features? Or perhaps you just want simplicity?"
-    DIGIFACT_L3="To discover the best wallet for you, visit:"
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="https://digibytewallets.com/"
-    DIGIFACT_L6=""
+    DIGIFACT_L1="DigiByte Critical Infrastructure Team (DGBCIT) was founded in"
+    DIGIFACT_L2="Jan 2023. with the goal of ensuring that the DigiByte blockchain,"
+    DIGIFACT_L3="along with its critical services, are kept running at all times." 
+    DIGIFACT_L4="This is achieved though a community effort of coordinated"
+    DIGIFACT_L5="decentralization and redundancy. Please join us in the #DGBCIT"
+    DIGIFACT_L6="channel on DigiByte Discord server: https://t.ly/DGBCIT"
 fi
 
 if [ "$DIGIFACT" = "digifact40" ]; then
