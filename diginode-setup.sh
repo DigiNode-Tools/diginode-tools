@@ -8095,11 +8095,60 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # If this is 8.22.0-rc2, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc2" ]; then
-        str="Renaming 8.22.0-rc2 download folder..."
+#    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc2" ]; then
+#        str="Renaming 8.22.0-rc2 download folder..."
+#        printf "%b %s" "${INFO}" "${str}"
+#        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
+#        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#    fi
+
+    # If we can't find the extracted folder because it is not using the standard folder name,
+    # then we need to cancel the install and restore the previous version from backup
+    if [ -d "$USER_HOME/digibyte-$DGB_VER_GITHUB" ]; then
+        printf "\\n"
+        printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. It may be using a non-standard name.\\n" "${INFO}"
+        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+
+        # Delete DigiByte Core tar.gz file
+        str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # If this is the alt url download, we need to add a v in the URL
+        if [ "$use_dgb_alt_download" == true ]; then
+            rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If an there is an existing DigiByte install folder, move it to backup
+        if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
+            str="Restoring the backup version of DigiByte Core v$DGB_VER_LOCAL ..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup $USER_HOME/digibyte-${DGB_VER_LOCAL}
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Re-enable and re-start DigiByte daemon service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+            DIGINODE_UPGRADED="YES"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
+
     fi
 
     # Delete old ~/digibyte symbolic link
