@@ -8694,6 +8694,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # WORKAROUND: This is temporary to get around the Kubo release glitch
+    if [ "$IPFS_VER_RELEASE" = "0.21.1" ]; then
+        IPFS_VER_RELEASE="0.22.0"
+        printf "%b Temporary Workaround for Kubo release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
+    fi
+
     # Get the local version number of Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
