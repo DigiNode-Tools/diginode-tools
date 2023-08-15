@@ -30,13 +30,13 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
-- Download and Install Raspberry Pi Imager: https://www.raspberrypi.com/software/)
+- Download and Install Raspberry Pi Imager: https://www.raspberrypi.com/software/
 
 *Need more help completing Step 2? For detailed step-by-step instructions, click [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.*
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 
-- Launch 'Raspberry Pi Imager' if it is not already running. Be sure it is v1.7.3 or newer.
+- Launch 'Raspberry Pi Imager' if it is not already running. Check it is v1.7.3 or newer:
 
 ![Raspberry Pi Imager v1.7.3](/images/macos_setup_3_mm.png)
 
@@ -82,7 +82,7 @@ If this does not find your Raspberry Pi, you will need to connect using its IP a
 ## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
 - Launch DigiNode Setup by entering: ```curl -sSL setup.diginode.tools | bash```
-- Follow th on-screen instructions to complete the setup process. 
+- Follow the on-screen instructions to complete the setup process. 
 - IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8. For now, only run a mainnet node on the Pi.
 
 *Need more help completing Step 6? Click [here](/docs/rpi_setup_step6_run_diginode_setup.md) for detailed step-by-step instructions.*
