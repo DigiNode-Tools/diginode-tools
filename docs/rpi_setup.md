@@ -5,7 +5,7 @@
 - A Raspberry Pi is arguably the easiest way to run a DigiNode.
 - A **Raspberry Pi 4 8GB** or better is recommended, **booting from an SSD**. (Using a microSD is significantly slower and less robust.) For suggested hardware, click [here](/docs/suggested_hardware.md).
 - DigiNode is designed to operate headless - i.e. you do not need a display, keyboard or mouse attached to your Raspberry Pi. Everything is managed remotely from your computer.
-- This page covers all the steps to setup a DigiNode on your Raspberry Pi. For less technical users, there are links to more detailed step-by-stop instructions.
+- This page covers all the steps to setup a DigiNode on your Raspberry Pi. For less technical users, there are links to more detailed step-by-step instructions.
 - For help, join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools).
 
 ## Summary of Steps
