@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.0
+#           Name:  DigiNode Setup v0.8.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -9005,12 +9005,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Kubo Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtbred}ERROR: Kubo v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b The new version of Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+        printf "%b Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        if [ "$IPFS_STATUS" = "stopped" ]; then
+            printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        else
+            printf "%b DigiAsset Node installation will be skipped for now. Please contact @digibytehelp so a fix can be issued. \\n\\n" "${INDENT}"
+        fi
 
-        if [ "$INIT_SYSTEM" = "systemd" ]; then
+        if [ "$INIT_SYSTEM" = "systemd" ] && [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Enable the service to run at boot
             str="Re-enabling IPFS systemd service..."
@@ -9026,7 +9030,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        if [ "$INIT_SYSTEM" = "upstart" ]; then
+        if [ "$INIT_SYSTEM" = "upstart" ] && [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Enable the service to run at boot
             str="Re-starting IPFS upstart service..."
@@ -9039,6 +9043,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         printf "\\n"
         INSTALL_ERROR="YES"
+        SKIP_DGA_INSTALLATION="YES"
         return 1
     fi
 
@@ -10379,6 +10384,13 @@ digiasset_node_do_install() {
 # If we are in unattended mode and there is an upgrade to do, then go ahead and do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
     DGA_DO_INSTALL=YES
+fi
+
+# If there was an error installing Kubo, skip installation
+if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+    DGA_DO_INSTALL=NO
+    DGA_INSTALL_TYPE="none"
+    return 
 fi
 
 # If we are in reset mode, ask the user if they want to reinstall DigiAsset Node

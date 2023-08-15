@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.1 - 2023-08-xx [ COMING SOON ]
+- Fix: Improve handling of a failed Kubo download - will now completely skip DigiAsset Node install/upgrade in this situation
+
 DigiNode Tools v0.8.0 - 2023-08-14
 - New: Now supports installing a pre-release version of DigiByte Core with the --dgpre flag. Downgrade back to the release version with --dgbnopre
 - New: Add --help flag to DigiNode Setup script which describes all the available optional launch flags
