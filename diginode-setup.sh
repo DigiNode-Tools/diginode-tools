@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.0
+#           Name:  DigiNode Setup v0.8.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -8694,6 +8694,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
+    # WORKAROUND: This is temporary to get around the Kubo release glitch
+    if [ "$IPFS_VER_RELEASE" = "0.21.1" ]; then
+        IPFS_VER_RELEASE="0.22.0"
+        printf "%b Temporary Workaround for Kubo release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
+    fi
+
     # Get the local version number of Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
@@ -9005,12 +9011,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Kubo Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtbred}ERROR: Kubo v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b The new version of Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+        printf "%b Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        if [ "$IPFS_STATUS" = "stopped" ]; then
+            printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        else
+            printf "%b DigiAsset Node installation will be skipped for now. Please contact @digibytehelp so a fix can be issued. \\n\\n" "${INDENT}"
+        fi
 
-        if [ "$INIT_SYSTEM" = "systemd" ]; then
+        if [ "$INIT_SYSTEM" = "systemd" ] && [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Enable the service to run at boot
             str="Re-enabling IPFS systemd service..."
@@ -9026,7 +9036,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        if [ "$INIT_SYSTEM" = "upstart" ]; then
+        if [ "$INIT_SYSTEM" = "upstart" ] && [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Enable the service to run at boot
             str="Re-starting IPFS upstart service..."
@@ -9039,6 +9049,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         printf "\\n"
         INSTALL_ERROR="YES"
+        SKIP_DGA_INSTALLATION="YES"
         return 1
     fi
 
@@ -10381,6 +10392,13 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$DGA_ASK_UPGRADE" = "YES" ]; then
     DGA_DO_INSTALL=YES
 fi
 
+# If there was an error installing Kubo, skip installation
+if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+    DGA_DO_INSTALL=NO
+    DGA_INSTALL_TYPE="none"
+    return 
+fi
+
 # If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
@@ -10750,6 +10768,13 @@ fi
 
 # Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
 digiasset_node_create_settings() {
+
+    # If there was an error installing Kubo, skip installation
+    if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+        DGA_SETTINGS_CREATE=NO
+        DGA_SETTINGS_CREATE_TYPE="none"
+        return
+    fi
 
     local str
 
@@ -11136,6 +11161,13 @@ digiasset_node_create_pm2_service() {
 
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
+
+# If there was an error installing Kubo, skip installation
+if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+    PM2_SERVICE_DO_INSTALL=NO
+    PM2_SERVICE_INSTALL_TYPE="none"
+    return 
+fi
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
 if [ "$RESET_MODE" = true ]; then
