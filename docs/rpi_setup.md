@@ -2,13 +2,11 @@
 
 ## Before You Begin
 
-A Raspberry Pi offers one of the easiest setups on which to run a dedicated DigiNode. A Raspberry Pi 4 8GB or better is recommended, booting from an SSD. For a complete list of suggested hardware, see [here](/docs/suggested_hardware.md).
-
-These instructions will take you though all the steps required to setup your DigiNode on a Raspberry Pi. For less technical users, there is a link to more detailed instructions for each step, hopefully making it easy for everyone to follow.
-
-For help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools).
-
-Note: A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse attached to your Raspberry Pi. Your DigiNode will be setup and managed entirely from your Mac or Windows computer.
+- A Raspberry Pi is arguably the easiest way to run a DigiNode.
+- A **Raspberry Pi 4 8GB** or better is recommended, **booting from an SSD**. (Using a microSD is significantly slower and less robust.) For suggested hardware, click [here](/docs/suggested_hardware.md).
+- DigiNode is designed to operate headless - i.e. you do not need a display, keyboard or mouse attached to your Raspberry Pi. Everything is managed remotely from your computer.
+- This page covers all the steps to setup a DigiNode on your Raspberry Pi. For less technical users, there are links to more detailed step-by-stop instructions.
+- For help, join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools).
 
 ## Summary of Steps
 
@@ -24,34 +22,27 @@ You will need to complete the following steps to setup your DigiNode on a Raspbe
 
 ## STEP 1 - Assemble the Raspberry Pi in its case and connect the SSD to your Windows or Mac computer
 
-Assemble the Raspberry Pi in its case. If your case has a power button, it may also have a jumper setting to have it boot automatically when the power is connected. It would be a good idea to enable this, so that your DigiNode will restart automatically after a power outage. (See the instructions that came with your case for how to do this.)
+- Assemble the Raspberry Pi in its case.
+- If your case has a power button, set the jumper to have it start up automatically. This will ensure your DigiNode restarts automatically after a power outage. (See the instructions that came with your case for how to do this.)
+- Connect the SSD to your computer (Windows or Mac). With an external SSD, plug it directly into your computer with the cable it came with. With an internal SSD, you will need a [USB-A to USB-A cable](https://amzn.to/3GMWzs3) or [USB-A to USB-C cable](https://amzn.to/3ik2trg), depending on the type of USB port available on your computer.
 
-Next, connect the SSD you are using with your Pi to your Windows or Mac computer.
-
-If you are using an external SSD you should be able to use the cable it came with to plug it directly into your computer. 
-
-If you are using a case with an internal SSD, you may need to purchase a cable for this purpose if you don't already have one. You will need a [USB-A to USB-A cable](https://amzn.to/3GMWzs3), or [USB-A to USB-C cable](https://amzn.to/3ik2trg), depending on the type of USB port available on your computer.
-
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step1_connect_ssd.md).
+*Need more help completing Step 1? Click [here](/docs/rpi_setup_step1_connect_ssd.md) for detailed step-by-step instructions.*
 
 ## STEP 2 - Download and install the 'Raspberry Pi Imager' software
 
-Visit [https://www.raspberrypi.com/software/](https://www.raspberrypi.com/software/) and download and install the 'Raspberry Pi imager' software on to your computer.
+- Download and Install Raspberry Pi Imager: https://www.raspberrypi.com/software/)
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.
+*Need more help completing Step 2? For detailed step-by-step instructions, click [here](/docs/rpi_setup_step2_get_imager_win.md) for Windows and [here](/docs/rpi_setup_step2_get_imager_mac.md) for Mac.*
 
 ## STEP 3 - Use 'Raspberry Pi Imager' to pre-configure the operating system and write it to the SSD
 
-Open 'Raspberry Pi Imager' if it is not already running. 
-
-Make sure you are running Raspberry Pi Imager v1.7.3 or newer.
+- Launch 'Raspberry Pi Imager' if it is not already running. Be sure it is v1.7.3 or newer.
 
 ![Raspberry Pi Imager v1.7.3](/images/macos_setup_3_mm.png)
 
 - Click 'CHOOSE OS' and select: **Raspberry Pi OS Lite (64-bit)**
 - Click 'CHOOSE STORAGE' and select the SSD you are using for your DigiNode.
-
-Click the cog icon, to open the advanced options menu:
+- Click the COG ICON, to open the advanced options menu:
 
 ![Configure image in Raspberry Pi Imager](/images/macos_setup_3_3b.png)
 
@@ -65,9 +56,10 @@ Click the cog icon, to open the advanced options menu:
 
 More information about all these settings can be found [here](https://talktech.info/2022/02/06/raspberry-pi-imager/).
 
-Click SAVE when you are done, and then click WRITE to begin burning the image to the SSD. It'll take a few minutes.
+- Click SAVE when you are done
+- Click WRITE to begin burning the image to the SSD. It'll take a few minutes.
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step3_write_os.md).
+*Need more help completing Step 3? Click [here](/docs/rpi_setup_step3_write_os.md) for detailed step-by-step instructions.*
 
 ## STEP 4 - Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using) and power it on
 
@@ -76,35 +68,29 @@ More detailed instructions on completing this step are [here](/docs/rpi_setup_st
 - Connect a genuine Raspberry Pi PSU and power on the device.
 - Wait a minute or two while it boots for the first time.
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step4_boot_pi.md).
+*Need more help completing Step 4? Click [here](/docs/rpi_setup_step4_boot_pi.md) for detailed step-by-step instructions.*
 
 ## STEP 5 - Connect to the Raspberry Pi from your Mac or Windows PC
 
-To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended, and for Windows, [MobXterm](https://mobaxterm.mobatek.net/).
+- To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended, and for Windows, [MobXterm](https://mobaxterm.mobatek.net/).
+- Connect to your DigiNode using the command: ```ssh digibyte@diginode.local``` (If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
 
-Connect to your DigiNode using the command: ```ssh digibyte@diginode.local```
+If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. Find the IP address via the web interface of your router under the list of connected devices. Alternatively, use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) (macOS).
 
-(If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
-
-If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. You should be able to find out what its IP address is by logging into the web interface of your router and looking for it in the list of connected devices. Alternatively, you can use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) (macOS).
-
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.
+*Need more help completing Step 5? For detailed step-by-step instructions, click [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.*
 
 ## STEP 6 - Run the DigiNode Setup script on your Raspberry Pi
 
-To start DigiNode Setup, connect to your Pi over SSH, and enter the command: ```curl -sSL setup.diginode.tools | bash```
+- Launch DigiNode Setup by entering: ```curl -sSL setup.diginode.tools | bash```
+- Follow th on-screen instructions to complete the setup process. 
+- IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8. For now, only run a mainnet node on the Pi.
 
-This will perform some system checks before displaying the setup menu that will guide you through the installation process. 
-
-IMPORTANT: In DigiByte Core v7.17.3 there is a bug which means you cannot effectively run a testnet node on a Raspberry Pi. This will be fixed in v8.
-
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step6_run_diginode_setup.md).
+*Need more help completing Step 6? Click [here](/docs/rpi_setup_step6_run_diginode_setup.md) for detailed step-by-step instructions.*
 
 ## STEP 7 - Give the Raspberry Pi a Static IP address and setup Port Forwarding
 
-To make it easy to access your DigiNode on your local network, it is recommended to give your Raspberry Pi a Static IP address. This can typically be done via the web interface of your router. 
-
-Finally, you also need to open two ports on your router to make your device discoverable by other nodes. This step is very important if you want to help support the network.
+- To make it easy to access your DigiNode on your local network, it is recommended to give your Raspberry Pi a Static IP address. This can typically be done via the web interface of your router. 
+- Enable port forwarding to make your device discoverable by other nodes. This step is very important if you want to help support the network.
 
 If you setup a mainnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12024**
@@ -114,6 +100,8 @@ If you setup a testnet DigiNode, the default ports you need to forward are:
 - DigiByte Core: **12026**
 - IPFS: **4004**
 
-Lastly, don't forget to install the fan software if your case has one. The software for the 'Argon One M.2' case can be installed directly from the 'DigiNode Setup' main menu. Run ```diginode-setup``` and find it under 'Extras'.
+*Need more help completing Step 7? Click [here](/docs/rpi_setup_step7_forward_ports.md) for detailed step-by-step instructions.*
 
-More detailed instructions on completing this step are [here](/docs/rpi_setup_step7_forward_ports.md).
+## STEP 8 - Install case fan software (if needed)
+
+- The software for the 'Argon One M.2' case can be installed directly from the 'DigiNode Setup' main menu. Run ```diginode-setup``` and find it under 'Extras'.
