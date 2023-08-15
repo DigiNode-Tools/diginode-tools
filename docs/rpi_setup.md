@@ -74,8 +74,7 @@ More information about all these settings can be found [here](https://talktech.i
 
 - To connect to your Raspberry Pi, you need a terminal emulator. If are on a Mac, using [iTerm 2](https://iterm2.com/) is highly recommended, and for Windows, [MobXterm](https://mobaxterm.mobatek.net/).
 - Connect to your DigiNode using the command: ```ssh digibyte@diginode.local``` (If you set the hostname to 'diginode-testnet', use ```ssh digibyte@diginode-testnet.local```)
-
-If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. Find the IP address via the web interface of your router under the list of connected devices. Alternatively, use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) (macOS).
+- If this does not find your Raspberry Pi, you will need to connect using its IP address - e.g. ```ssh digibyte@192.168.1.10```. Find the IP address via the web interface of your router under the list of connected devices. Alternatively, use an IP address scanner such as [Advanced IP Scanner](https://www.advanced-ip-scanner.com/) (Windows) or [LanScan](https://apps.apple.com/gb/app/lanscan/id472226235?mt=12) (macOS).
 
 *Need more help completing Step 5? For detailed step-by-step instructions, click [here](/docs/rpi_setup_step5_ssh_in_win.md) for Windows and [here](/docs/rpi_setup_step5_ssh_in_mac.md) for Mac.*
 
