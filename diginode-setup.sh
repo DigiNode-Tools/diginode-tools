@@ -10763,6 +10763,13 @@ fi
 # Create DigiAssets main.json settings file (if it does not already exist), and if it does, updates it with the latest RPC credentials from digibyte.conf
 digiasset_node_create_settings() {
 
+    # If there was an error installing Kubo, skip installation
+    if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+        DGA_SETTINGS_CREATE=NO
+        DGA_SETTINGS_CREATE_TYPE="none"
+        return
+    fi
+
     local str
 
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
@@ -11148,6 +11155,13 @@ digiasset_node_create_pm2_service() {
 
 # If you want to make changes to how PM2 services are created/managed, refer to this website:
 # https://www.tecmint.com/enable-pm2-to-auto-start-node-js-app/
+
+# If there was an error installing Kubo, skip installation
+if  [ "$SKIP_DGA_INSTALLATION" = "YES" ]; then
+    PM2_SERVICE_DO_INSTALL=NO
+    PM2_SERVICE_INSTALL_TYPE="none"
+    return 
+fi
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
 if [ "$RESET_MODE" = true ]; then
