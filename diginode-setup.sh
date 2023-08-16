@@ -5872,13 +5872,9 @@ install_digiasset_node_only() {
     printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
-        printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}" 
+        printf "%b Access it at ${txtbld}http://diginode.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
     elif [ "$HOSTNAME" = "diginode-testnet" ]; then
-        printf "%b You can access it at: ${txtbld}http://diginode-testnet.local:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}" 
+        printf "%b Access it at ${txtbld}http://diginode-testnet.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
     else
         printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
@@ -6923,11 +6919,9 @@ final_messages() {
         printf "\\n"
 
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b You can access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"  
+            printf "%b Access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b Access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" != "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" != "diginode-testnet" ]; then
