@@ -5873,6 +5873,12 @@ install_digiasset_node_only() {
     printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
         printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}" 
+    elif [ "$HOSTNAME" = "diginode-testnet" ]; then
+        printf "%b You can access it at: ${txtbld}http://diginode-testnet.local:8090${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}" 
     else
         printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
@@ -6918,6 +6924,8 @@ final_messages() {
 
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b You can access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"  
         else
             printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
@@ -6982,6 +6990,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -6993,6 +7003,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -7004,6 +7016,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
