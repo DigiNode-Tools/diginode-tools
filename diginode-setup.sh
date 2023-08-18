@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.1
+#           Name:  DigiNode Setup v0.8.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -13,8 +13,8 @@
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
-#                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/digibytehelp
+#                  Bluesky -  https://bsky.app/profile/diginode.tools
+#                  Twitter -  https://twitter.com/diginode
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -98,8 +98,7 @@ DGB_DATA_REQUIRED_KB="52000000"
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
-DGNT_SETUP_OFFICIAL_URL=https://diginode.tools
-DGNT_SETUP_GITHUB_LATEST_RELEASE_URL=setup.diginode.tools
+DGNT_SETUP_OFFICIAL_URL=setup.diginode.tools
 DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-setup.sh
 DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-setup.sh
 
@@ -115,6 +114,9 @@ DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
 
+# DigiNode Tools Website URL
+DGNT_WEBSITE_URL=https://diginode.tools
+
 # DigiByte.Help URLs
 DGBH_URL_INTRO=https://diginode.tools                        # Link to introduction what a DigiNode is. Shown in welcome box.
 DGBH_URL_CUSTOM=https://digibyte.help/diginode-custom/       # Information on customizing your install by editing diginode.settings
@@ -124,6 +126,14 @@ DGBH_URL_HOSTCHANGE=https://digibyte.help/diginode/          # Advice on why you
 DGBH_URL_STATICIP=https://digibyte.help/diginode-staticip/   # Advice on how to set a static IP
 DGBH_URL_PORTFWD=https://digibyte.help/diginode-portfwd/     # Advice on how to forward ports with your router
 DGBH_URL_TWEET=https://digibyte.help/diginode/               # URL included in sample tweet.
+
+# DigiNode Tools Social Accounts
+SOCIAL_TWITTER_URL="https://twitter.com/diginodetools"
+SOCIAL_TWITTER_HANDLE="@diginodetools"
+SOCIAL_BLUESKY_URL="https://bsky.app/profile/diginode.tools"
+SOCIAL_BLUESKY_HANDLE="@diginode.tools"
+SOCIAL_NOSTR_NPUB=""
+SOCIAL_TELEGRAM_URL="https://t.me/DigiNodeTools"
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -1037,7 +1047,7 @@ set_dgnt_branch() {
         DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_MAIN_URL
     else
         # If latest release branch does not exist, use main branch
-            if [ "$DGNT_SETUP_GITHUB_LATEST_RELEASE_URL" = "" ]; then
+            if [ "$DGNT_SETUP_OFFICIAL_URL" = "" ]; then
                 if [[ "${EUID}" -eq 0 ]] && [ $VERBOSE_MODE = true ]; then
                     printf "%b %bDigiNode Tools release branch is unavailable - main branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
@@ -1048,7 +1058,7 @@ set_dgnt_branch() {
                     printf "%b %bDigiNode Tools latest release branch will be used.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                     printf "\\n"
                 fi
-                DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_LATEST_RELEASE_URL
+                DGNT_SETUP_URL=$DGNT_SETUP_OFFICIAL_URL
             fi
     fi
 }
@@ -1847,7 +1857,7 @@ sys_check() {
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Setup requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-        printf "%b should be supported please contact @digibytehelp on Twitter including\\n" "${INDENT}"
+        printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter including\\n" "${INDENT}"
         printf "%b the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
@@ -1895,7 +1905,7 @@ sys_check() {
             printf "%b %bERROR: 32-bit OS detected - 64-bit required%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Setup requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
+            printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             purge_dgnt_settings
@@ -1904,7 +1914,7 @@ sys_check() {
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Setup requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
             printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact @digibytehelp on Twitter letting me\\n" "${INDENT}"
+            printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter letting me\\n" "${INDENT}"
             printf "%b know the reported system architecture above.\\n" "${INDENT}"
             printf "\\n"
             purge_dgnt_settings
@@ -2156,7 +2166,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Please contact @digibytehelp on Twitter including the following information\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter including the following information\\n" "${INDENT}"
         printf "%b so that support for it can be added:\\n" "${INDENT}"
         printf "\\n"
         printf "%b Model: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2539,7 +2549,7 @@ os_check() {
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
                 printf "%b If you are seeing this message and you believe your OS should be supported\\n" "${INDENT}" 
-                printf "%b please contact @digibytehelp on Twitter or ask in the DigiNode Tools Telegram group.\\n" "${INDENT}" 
+                printf "%b please contact $SOCIAL_TWITTER_HANDLE on Twitter or ask in the 'DigiNode Tools' Telegram group.\\n" "${INDENT}" 
             fi
             printf "\\n"
             printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2552,7 +2562,7 @@ os_check() {
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage\\n" "${INDENT}" 
             printf "%b due to an unsupported configuration.\\n" "${INDENT}" 
-            printf "%b %bIf that is the case, feel free to ask @digibytehelp on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bIf that is the case, feel free to ask $SOCIAL_TWITTER_HANDLE on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
 
@@ -2702,7 +2712,7 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
-    printf "%b If you have, please contact @digibytehelp on Twitter and let me know so I can work on\\n" "${INDENT}"
+    printf "%b If you have, please contact $SOCIAL_TWITTER_HANDLE on Twitter and let me know so I can work on\\n" "${INDENT}"
     printf "%b a workaround for your linux system.\\n" "${INDENT}"
     printf "\\n"
     exit 1
@@ -4095,7 +4105,7 @@ usb_backup() {
 
         # Introduction to backup.
         if whiptail --backtitle "" --title "DigiNode Backup" "This tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\\n\\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\\n\\nIMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you will likely not be able to use this tool." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-            printf "%b You chose to begin the backup process.\\n" "${INFO}"
+            printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
             printf "\\n"
@@ -5091,7 +5101,7 @@ usb_restore() {
 
     # Introduction to restore.
     if whiptail --backtitle "" --title "DigiNode Restore" "This tool will help you to restore your DigiByte Core wallet and/or DigiAsset Node settings from your USB backup stick.\\n\\nThe USB backup must previously have been made from the DigNode Tools backup menu. Please have your DigiNode USB backup stick ready before continuing. \\n\\nWARNING: If you continue, your current existing wallet and settings will be replaced with the ones on the USB backup. Any funds in the current wallet will be lost!!" --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-        printf "%b You chose to begin the restore process.\\n" "${INFO}"
+        printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
         printf "\\n"
@@ -5862,7 +5872,9 @@ install_digiasset_node_only() {
     printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     if [ "$HOSTNAME" = "diginode" ]; then
-        printf "%b You can access it at: ${txtbld}http://diginode.local:8090${txtrst}\\n" "${INDENT}"
+        printf "%b Access it at ${txtbld}http://diginode.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
+    elif [ "$HOSTNAME" = "diginode-testnet" ]; then
+        printf "%b Access it at ${txtbld}http://diginode-testnet.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
     else
         printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
     fi
@@ -6690,7 +6702,7 @@ EOF
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
         exit 1
 
     fi
@@ -6907,9 +6919,9 @@ final_messages() {
         printf "\\n"
 
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b You can access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst}\\n" "${INDENT}"
+            printf "%b Access it at: ${txtbld}http://${HOSTNAME_AFTER_REBOOT}.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
         else
-            printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
+            printf "%b Access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" != "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" != "diginode-testnet" ]; then
@@ -6972,6 +6984,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -6983,6 +6997,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -6994,6 +7010,8 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
@@ -7004,7 +7022,7 @@ final_messages() {
         printf "%b %bWARNING: One or more software downloads had errors!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b Your DigiNode may not be fully functional. Try running DigiNode Setup again.\\n" "${INDENT}"
-        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to $SOCIAL_TWITTER_HANDLE on Twitter.\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -7012,7 +7030,10 @@ final_messages() {
         printf "%b %bWARNING: One or more DigiNode updates could not be downloaded.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
-        printf "%b If the problem persists, please reach out to @digibytehelp on Twitter.\\n" "${INDENT}"
+        printf "%b If the problem persists, please reach out to $SOCIAL_TWITTER_HANDLE on Twitter\\n" "${INDENT}"
+        printf "%b or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b You can also get in touch via the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -8042,7 +8063,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-            printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
 
             # Re-enable and re-start DigiByte daemon service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -8109,7 +8130,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
         # Delete DigiByte Core tar.gz file
         str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
@@ -9015,9 +9036,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "\\n"
         printf "%b Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
         if [ "$IPFS_STATUS" = "stopped" ]; then
-            printf "%b Please contact @digibytehelp so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
         else
-            printf "%b DigiAsset Node installation will be skipped for now. Please contact @digibytehelp so a fix can be issued. \\n\\n" "${INDENT}"
+            printf "%b DigiAsset Node installation will be skipped for now. Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. \\n\\n" "${INDENT}"
         fi
 
         if [ "$INIT_SYSTEM" = "systemd" ] && [ "$IPFS_STATUS" = "stopped" ]; then
@@ -9745,7 +9766,7 @@ EOF
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
         exit 1
 
     fi
@@ -10457,7 +10478,7 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
             printf "%b%b ${txtred}ERROR: NodeJS 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b You need to install the correct Nodesource PPA for your distro.\\n" "${INFO}"
-            printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
+            printf "%b Please get in touch via the 'DigiNode Tools' Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
             printf "\\n"
             exit 1
         else
@@ -11278,7 +11299,7 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
     # If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
         printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact @digibytehelp on Twitter for help.\\n" "${CROSS}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
         exit 1
     fi
 
@@ -12975,7 +12996,7 @@ if [ "$DIGIFACT" = "digifact51" ]; then
     DIGIFACT_L2="improvements. All submissions get reviewed by other developers"
     DIGIFACT_L3="to ensure no malicious code is accidentally accepted."
     DIGIFACT_L4=" "
-    DIGIFACT_L5="Join the Gitter dev chat here:"
+    DIGIFACT_L5="Join the Gitter developer chat here:"
     DIGIFACT_L6="https://gitter.im/DigiByte-Core/protocol"
 fi
 
@@ -13266,17 +13287,17 @@ if [ "$DIGIFACT" = "help1" ]; then
     DIGIFACT_L3="try holding the \"Cmd\" key on Mac or the \"Ctrl\" key"
     DIGIFACT_L4="on Windows as you click on it."
     DIGIFACT_L5=" "
-    DIGIFACT_L6="Try it now: https://diginode.digibyte.help"
+    DIGIFACT_L6="Try it now: $DGNT_WEBSITE_URL"
 fi
 
 if [ "$DIGIFACT" = "help2" ]; then
     DIGIFACT_TITLE="Need Help with DigiNode Tools?"
-    DIGIFACT_L1="You can reach out to @digibytehelp on Twitter."
-    DIGIFACT_L2=" "
-    DIGIFACT_L3="You can also join the DigiNode Tools telegram group here: "
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="https://t.me/joinchat/ked2VGZsLPAyN2Jk"
-    DIGIFACT_L6=""
+    DIGIFACT_L1="You can reach out to $SOCIAL_TWITTER_HANDLE on Twitter or"
+    DIGIFACT_L2="$SOCIAL_BLUESKY_URL on Bluesky."
+    DIGIFACT_L3=" "
+    DIGIFACT_L4="You can also join the 'DigiNode Tools' Telegram group here: "
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="$SOCIAL_TELEGRAM_URL"
 fi
 
 if [ "$DIGIFACT" = "help3" ]; then
@@ -13441,7 +13462,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
         printf "%b%b ${txtred}ERROR: Argone One Daemon Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b Argon One Daemon could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued.\\n" "${INDENT}"
         printf "\\n"
 
         exit
@@ -13465,7 +13486,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
         printf "%b%b ${txtred}ERROR: Argon One Daemon Upgrade Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b Argon One Daemon could not be upgraded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact @digibytehelp so a fix can be issued.\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_TWITTER_HANDLE so a fix can be issued.\\n" "${INDENT}"
         printf "\\n"
 
         exit
@@ -13992,7 +14013,7 @@ menu_dganode_only(){
             printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
             if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                exec curl -sSL $DGNT_SETUP_GITHUB_LATEST_RELEASE_URL | bash -s -- --fulldiginode --unattended
+                exec curl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --fulldiginode --unattended
             elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
                 sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
             fi    

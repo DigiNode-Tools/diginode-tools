@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.1
+#           Name:  DigiNode Status Monitor v0.8.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/digibytehelp
+#                  Twitter -  https://twitter.com/diginode
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.1
-# Last Updated: 2023-08-15
+DGNT_VER_LOCAL=0.8.2
+# Last Updated: 2023-08-16
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -1340,12 +1340,9 @@ firstrun_dganode_configs() {
 
 # Cleans the DigiByte Core startup messages of strange characters (e.g. ellipsis) that mess up the position of the right side border
 clean_dgb_error_msg() {
-
-    if [ "$DGB_ERROR_MSG" = " Rewinding blocks…" ]; then
-        DGB_ERROR_MSG=" Rewinding blocks..."
-    elif [ "$DGB_ERROR_MSG" = " Loading block index…" ]; then
-        DGB_ERROR_MSG=" Loading block index..."
-    fi
+    
+    # Replace single elipsis charcter with three dots
+    DGB_ERROR_MSG="${DGB_ERROR_MSG/…/...}"
 }
 
 pre_loop() {
@@ -2360,7 +2357,7 @@ printf "  ╠════════════════╬═════�
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
+printf "  ║                ║  " && printf "%-14s %-44s %-2s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
