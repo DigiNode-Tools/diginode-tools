@@ -10,8 +10,6 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 - **DigiNode Setup** - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
 - **DigiNode Status Monitor** - Provides a live dashboard to quickly check the status of your DigiNode.
 
-For more information, visit: https://diginode.tools
-
 ### What do I need to run a DigiNode?
 
 - Build your own DigiNode with a **Raspberry Pi 4 8Gb** and an **SSD**. See [here](/docs/suggested_hardware.md) for the parts you need.
