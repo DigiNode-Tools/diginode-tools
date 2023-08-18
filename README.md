@@ -14,59 +14,10 @@ For more information, visit: https://diginode.tools
 
 ### What do I need to run a DigiNode?
 
-DigiNode Tools should run on most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. A device with at least 8GB RAM is recommended. A Raspberry Pi 4 8Gb is a good choice. See the Compatibility section below. 
-
-A DigiNode is designed to operate "headless". This means you do not need a display, keyboard or mouse - everything is setup and managed remotely, using the terminal.
-
-If you are interested in building your own DigiNode, the recommended setup is a **Raspberry Pi 4 8Gb** with an **SSD** running **Raspberry Pi OS Lite 64-bit**.  See [here](/docs/suggested_hardware.md) for the parts you need.
-
-## Disclaimer
-
-These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
-
-## Get Started
-
-To get started, follow the instuctions below for you specific system.
-
-Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools
-
-### Setup a DigiNode on Raspberry Pi
-
-Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi.
-
-### Setup a DigiNode on Debian
-
-On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
-
-```curl -sSL setup.diginode.tools | bash```
-
-### Setup a DigiNode on Ubuntu
-
-Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
-
-Until a fix is released, the workaround is to first download DigiNode Tools and then run it from your local machine. Enter the following command to download it:
-
-```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
-
-This command need only be run once. The latest release of DigiNode Tools will be downloaded to ~/diginode-tools. Once downloaded, you can run DigiNode Setup by entering:
-
-```~/diginode-tools/diginode-setup.sh```
-
-(Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
-
-## Support
-
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
-
-## Donations
-
-I created DigiNode Tools because I want to make it easy for everyone to run their own DigiByte and DigiAsset Node. So far, I have devoted thousands of unpaid hours working towards this goal. If you find these tools useful, please make a donation to support my work. 
-
-Many thanks, Olly   >> Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) <<
-
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
-
-![DigiByte Donation QR Code](images/donation_qr_code.png)
+- Build your own DigiNode with a **Raspberry Pi 4 8Gb** and an **SSD**. See [here](/docs/suggested_hardware.md) for the parts you need.
+- Also runs on most Ubuntu or Debian based systems.
+- A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. See the Compatibility section below.
+- Designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer.
 
 ## About DigiNode Setup
 
@@ -140,9 +91,49 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
 
-## License
+# Get Started
 
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
+To get started, follow the instuctions below for you specific system.
+
+Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools
+
+## Setup a DigiNode on Raspberry Pi
+
+Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi.
+
+## Setup a DigiNode on Debian
+
+On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
+
+**```curl -sSL setup.diginode.tools | bash```**
+
+## Setup a DigiNode on Ubuntu
+
+Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
+
+Until a fix is released, the workaround is to first download DigiNode Tools and then run it from your local machine. Enter the following command to download it:
+
+```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
+
+This command need only be run once. The latest release of DigiNode Tools will be downloaded to ~/diginode-tools. Once downloaded, you can run DigiNode Setup by entering:
+
+```~/diginode-tools/diginode-setup.sh```
+
+(Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
+
+## Support
+
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+
+## Donations
+
+I created DigiNode Tools to make it easy for any one to run their own DigiByte and DigiAsset Node. Thousands of hours of unpaid work have been spent on this goal. Please donate to support my server and developement costs, and encourage future development. Many thanks, Olly
+
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
+
+Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bluesky.app/profile/olly.st)
 
 ## Advanced Features
 
@@ -199,6 +190,14 @@ If you are running a pre-release version of DigiByte, and want to downgrade back
 **Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
 - ```curl -sSL setup.diginode.tools | bash -s -- --reset``` or
 - ```diginode-setup --reset```
+
+## License
+
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
+
+## Disclaimer
+
+These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
 
 ## Release Notes
 
