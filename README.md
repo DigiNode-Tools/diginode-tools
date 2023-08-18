@@ -91,11 +91,21 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
 
+## Donations
+
+I created DigiNode Tools to make it easy for any one to run their own DigiByte and DigiAsset Node. Thousands of hours of unpaid work have been spent on this goal. Please donate to support my server and developement costs, and encourage future development. Many thanks, Olly
+
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
+
+Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bluesky.app/profile/olly.st)
+
 # Get Started
 
 To get started, follow the instuctions below for you specific system.
 
-Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools
+*Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools*
 
 ## Setup a DigiNode on Raspberry Pi
 
@@ -124,16 +134,6 @@ This command need only be run once. The latest release of DigiNode Tools will be
 ## Support
 
 If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
-
-## Donations
-
-I created DigiNode Tools to make it easy for any one to run their own DigiByte and DigiAsset Node. Thousands of hours of unpaid work have been spent on this goal. Please donate to support my server and developement costs, and encourage future development. Many thanks, Olly
-
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
-
-![DigiByte Donation QR Code](images/donation_qr_code.png)
-
-Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bluesky.app/profile/olly.st)
 
 ## Advanced Features
 
