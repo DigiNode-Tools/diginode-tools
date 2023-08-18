@@ -3,7 +3,8 @@
 DigiNode Tools v0.8.2 - 2023-08-18
 - Change: Switch Twitter social links to use @dignodetools instead of @digibytehelp. Also, add additional links to Bluesky account and Telegram group.
 - Change: Now displays web UI IP address alongside hostname. For various reasons, sometimes the hostname does not work when used in the URL, so best to have a backup option.
-- Minor bug fixes and documentation tweaks.
+- Change: Lots of documentation improvements.
+- Fix: Several minor bug fixes
 
 DigiNode Tools v0.8.1 - 2023-08-15
 - Fix: Improve handling of a failed Kubo download - will now completely skip DigiAsset Node install/upgrade in this situation
