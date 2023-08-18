@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/digibytehelp
+#                  Twitter -  https://twitter.com/diginode
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -2360,7 +2360,7 @@ printf "  ╠════════════════╬═════�
 fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "$DGB_ERROR_MSG" " ║"
+printf "  ║                ║  " && printf "%-14s %-33s %-2s\n" "Please wait..." "${txtbylw}DGB_ERROR_MSG${txtrst}" " ║"
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
