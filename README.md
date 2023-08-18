@@ -12,9 +12,8 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 
 ### What do I need to run a DigiNode?
 
-- The recommended way to setup a DigiNode is with a **Raspberry Pi 4 8Gb** single-board computer. See [here](/docs/suggested_hardware.md) for the parts you need.
-- DigiNode Tools also runs on most Ubuntu or Debian based systems. 
-- ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [Compatibility](#compatibility) section below.
+- A **Raspberry Pi 4 8Gb** is the recommended device for running a DigiNode. It offers the most user-friendly setup experience. See [here](/docs/suggested_hardware.md) for the parts you need.
+- DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [Compatibility](#compatibility) section below.
 - DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer.
 
 ## About DigiNode Setup
@@ -22,9 +21,9 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 ![DigiNode Setup](images/diginode_install_menu.png)
 DigiNode Setup helps you to setup and manage your DigiNode:
 
-- Intuitively walks you though the process of setting up a full DigiNode, a DigiByte Node ONLY or a DigiAsset Node ONLY. 
-- Almost no linux command line experience required. It does all the work for you. It's as plug-and-play as possible.
-- Automatically checks hardware and OS at launch - it detects compatible Raspberry Pi hardware (if present) and lets you know if your system is compatible, and that there is enough disk space and memory to a DigiNode.
+- Intuitively walks you though the process of setting up a DigiByte Node and/or DigiAsset Node. 
+- Almost no linux command line experience required. Setup is entirely menu-driven.
+- Automatically checks hardware and OS at launch and lets you know if your system is compatible, and that there is enough disk space and memory to run a DigiNode.
 - Checks if the existing swap file is large enough, and helps create one on low memory devices.
 - Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
 - Lets you choose whether to run a mainnet or testnet DigiByte Node.
@@ -56,7 +55,7 @@ Once DigiNode Tools have been installed, you can access additional features via 
 
 ![DigiNode Status Monitor](images/diginode_status_monitor.png)
 
-DigiNode Status Monitor let's you monitor your DigiNode from the command line:
+DigiNode Status Monitor is a powerful dashboard for monitoring the status of your DigiNode:
 
 - Monitor your DigiNode on your local machine via the command line, locally or remotely over SSH.
 - Quickly check that your DigiByte and DigiAsset Nodes are running correctly.
@@ -68,6 +67,7 @@ DigiNode Status Monitor let's you monitor your DigiNode from the command line:
     + Node uptime
     + Disk, RAM and swap usage
 - Periodically checks for software updates to your DigiNode (not more than once every 24 hours) and helps you install them.
+- Build-in port checker to ensure the correct ports are open on your router.
 
 DigiNode Status Monitor can be run from the command line by entering: ```diginode```
 
