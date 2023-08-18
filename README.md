@@ -12,10 +12,10 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 
 ### What do I need to run a DigiNode?
 
-- Build your own DigiNode with a **Raspberry Pi 4 8Gb** and an **SSD**. See [here](/docs/suggested_hardware.md) for the parts you need.
-- Also runs on most Ubuntu or Debian based systems.
-- A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. See the Compatibility section below.
-- Designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer.
+- The recommended way to setup a DigiNode is with a **Raspberry Pi 4 8Gb** single-board computer. See [here](/docs/suggested_hardware.md) for the parts you need.
+- DigiNode Tools also runs on most Ubuntu or Debian based systems. 
+- ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [Compatibility](#compatibility) section below.
+- DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer.
 
 ## About DigiNode Setup
 
