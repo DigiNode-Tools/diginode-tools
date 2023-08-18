@@ -73,16 +73,17 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 
 ## Compatibility
 
-- DigiNode Tools should work with most Ubuntu or Debian based systems. A 64-bit OS is required. Both ARM64 and x86_64 hardware are supported. It has been designed with headless operation in mind. A device with at least 8GB RAM is recommended. A Raspberry Pi 4 8Gb is a good choice.
+- DigiNode Tools runs on most Ubuntu or Debian based systems. Both ARM64 and x86_64 hardware are supported. A 64-bit OS is required. It has been designed with headless operation in mind. 
+- A device with at least 8GB RAM is recommended. A Raspberry Pi 4 8Gb is recommended.
 - With 8Gb RAM or more, you can safely run a full DigiNode (DigiByte + DigiAssets). This is the recommended minimum.
 - With 4Gb RAM, you can run a DigiByte Node, or a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use. Due the read/write demands placed on the SSD, its lifespan will be significantly decreased.)
 - With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
 - Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
-- As of December 2022, the DigiByte blockchain currently requires around 43Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
+- As of August 2023, the DigiByte blockchain currently requires around 46Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - When using a Raspberry Pi 4, booting from an SSD via USB is highly recommended. If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.
 - If you are interested in building your own DigiNode using a Raspberry Pi 4, you can find a list of the parts you need [here](docs/suggested_hardware.md).
 
-*Note: If you already have a DigiByte Node installed, and simply want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools*
+*Note: If you already have a DigiByte Node running on your machine, and simply want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools*.
 
 DigiNode has been tested and known to work with the following systems:
 
