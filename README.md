@@ -27,11 +27,13 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Automatically checks hardware and OS at launch - it detects compatible Raspberry Pi hardware (if present) and lets you know if your system is compatible, and that there is enough disk space and memory to a DigiNode.
 - Checks if the existing swap file is large enough, and helps create one on low memory devices.
 - Installs or upgrades DigiByte and DigiAssets Node software with the latest releases from GitHub.
+- Lets you choose whether to run a mainnet or testnet DigiByte Node.
+- Optionally install a pre-release version of DigiByte Core, if available, and quickly downgrade back to the release version if needed. (See [Advanced Features](GETSTARTED.md#advanced-features).)
 - Creates or updates the digibyte.conf settings file with optimal settings.
 - Creates system services (systemd or upstart) to ensure the DigiByte Node and DigiAsset Node stays running 24/7.
 - Creates or updates your DigiAsset Node configuration file with your RPC credentials. (This ensures you can always access your wallet from the web UI to mint DigiAssets.)
 - Optionally, creates a 'digibyte' user and sets system hostname to 'diginode'. It also enables zeroconf networking (Bonjour) so you can access your node at http://diginode.local - i.e. no need to remember the IP address.
-- Installs DigiNode Tools (these setup scripts) and the DigiNode Status Monitor. (see below)
+- Installs DigiNode Status Monitor. (see below)
 
 To get started, see the "Get Started" section above. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
 
