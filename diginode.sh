@@ -1340,12 +1340,9 @@ firstrun_dganode_configs() {
 
 # Cleans the DigiByte Core startup messages of strange characters (e.g. ellipsis) that mess up the position of the right side border
 clean_dgb_error_msg() {
-
-    if [ "$DGB_ERROR_MSG" = " Rewinding blocks…" ]; then
-        DGB_ERROR_MSG=" Rewinding blocks..."
-    elif [ "$DGB_ERROR_MSG" = " Loading block index…" ]; then
-        DGB_ERROR_MSG=" Loading block index..."
-    fi
+    
+    # Replace single elipsis charcter with three dots
+    DGB_ERROR_MSG="${DGB_ERROR_MSG/…/...}"
 }
 
 pre_loop() {
