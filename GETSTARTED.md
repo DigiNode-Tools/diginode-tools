@@ -4,7 +4,7 @@
 
 To get started, follow the instuctions below for you specific system:
 
-*Note: DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). If you already have a DigiByte Node installed, and want to use the status monitor with it, you may want to choose this option. The scripts will be installed to: ~/diginode-tools*
+*Note: If you already have a DigiByte Node setup, and want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools*
 
 ## Setup a DigiNode on Raspberry Pi
 
