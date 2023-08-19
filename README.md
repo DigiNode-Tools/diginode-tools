@@ -115,7 +115,7 @@ I created DigiNode Tools to make it easy for any one to run their own DigiByte a
 
 Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st)
 
-# GET STARTED
+# ➡️ GET STARTED
 
 - Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
 - Go [here](GETSTARTED.md) for how to setup a DigiNode on an Ubuntu or Debian system.
