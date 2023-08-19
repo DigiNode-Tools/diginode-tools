@@ -87,14 +87,14 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 - Memory Requirements:
     + A device with at least 8GB RAM is recommended. 
     + With 8Gb RAM or more, you can safely run a full DigiNode (i.e. DigiByte Node + DigiAssets Node). 8Gb is the recommended minimum.
-    + With 4Gb RAM, you can run a DigiByte Node, or a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use. Due the read/write demands placed on the SSD, its lifespan will be significantly decreased.)
-    + With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the Advanced Features section below for how to do a 'DigiAsset Node ONLY' setup.
+    + With 4Gb RAM, you can run a DigiByte Node OR a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use - the read/write demands placed on the SSD mean that its lifespan will be significantly decreased.)
+    + With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the [Advanced Features](GETSTARTED.md#advanced-features) for how to do a 'DigiAsset Node ONLY' setup.
     + Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
 - Disk Space Requirements:
     + As of August 2023, the DigiByte blockchain currently requires around 46Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
 - Raspberry Pi Requirements:
     + Booting from an SSD via USB is highly recommended. (If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.)
-    + To build your own DigiNode with a Raspberry Pi 4, see [here](docs/suggested_hardware.md) for a list of recommended hardware.
+    + To build your own DigiNode with a Raspberry Pi 4, see [here](docs/suggested_hardware.md) for a list of recommended hardware. Detailed setup instructions are [here](docs/rpi_setup.md).
 
 DigiNode has been tested and known to work with the following systems:
 
