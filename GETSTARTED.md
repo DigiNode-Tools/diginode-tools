@@ -2,19 +2,19 @@
 
 # Get Started with DigiNode Tools
 
-  Follow the instuctions below for you specific system:
+Follow the instuctions below for you specific system:
 
-## Setup a DigiNode on Raspberry Pi 4
+## ➡️ Setup a DigiNode on Raspberry Pi 4
 
-- Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
+Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
 
-## Setup a DigiNode on Debian
+## ➡️ Setup a DigiNode on Debian
 
-- On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
+On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
 
   **```curl -sSL setup.diginode.tools | bash```**
 
-## Setup a DigiNode on Ubuntu
+## ➡️ Setup a DigiNode on Ubuntu
 
 Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
 
