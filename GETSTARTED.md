@@ -2,11 +2,11 @@
 
 # Get Started with DigiNode Tools
 
-- Follow the instuctions below for you specific system:
+  Follow the instuctions below for you specific system:
 
 ## Setup a DigiNode on Raspberry Pi 4
 
-Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
+- Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
 
 ## Setup a DigiNode on Debian
 
