@@ -113,7 +113,7 @@ If your Raspberry Pi case comes with a power button and/or fan, you may need to 
 
 If you have followed all the steps, your DigiNode on your Raspberry Pi should now be up and running! 🍾🥂🚀
 
-To encourage others, please take a moment to share on social media that you are now running your own #DigiNode. The more people who run one, the more robust and decentralized the DigiByte network becomes. Also, please let us know in the [DigiNode Telegram Group](https://t.me/DigiNodeTools). Joining this group is a good way to be kept informed of software updates etc. You can also follow [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+To encourage others, please take a moment to share on social media that you are now running your own #DigiNode. The more people who run one, the more robust and decentralized the DigiByte network becomes. Also, please let us know in the [DigiNode Telegram Group](https://t.me/DigiNodeTools). Joining this group is a good way to be kept informed of software updates etc. You can also follow [@diginodetools](https://twitter.com/diginodetools) on Twitter.
 
 # NEXT: Please Donate to Support DigiNode Tools!
 
