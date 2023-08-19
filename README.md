@@ -72,11 +72,11 @@ DigiNode Status Monitor is a powerful dashboard for monitoring the status of you
     + Node uptime
     + Disk, RAM and swap usage
 - Periodically checks for software updates to your DigiNode (not more than once every 24 hours) and helps you install them.
-- Build-in port checker to ensure the correct ports are open on your router.
+- Built-in port checker to ensure the correct ports are open on your router.
 
 DigiNode Status Monitor can be run from the command line by entering: ```diginode```
 
-*Note: If you already have a DigiByte Node running on your machine, and simply want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools. You should then be able to use the Status Monitor with your existing DigiByte node.**
+*Note: If you already have a DigiByte Node running on your machine, and simply want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools. You should then be able to use the Status Monitor with your existing DigiByte node.*
 
 ## System Compatibility
 

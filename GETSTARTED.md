@@ -2,17 +2,17 @@
 
 # Get Started with DigiNode Tools
 
-Follow the instuctions below for you specific system:
+- Follow the instuctions below for you specific system:
 
-## Setup a DigiNode on Raspberry Pi
+## Setup a DigiNode on Raspberry Pi 4
 
-Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi.
+Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
 
 ## Setup a DigiNode on Debian
 
-On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
+- On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
 
-**```curl -sSL setup.diginode.tools | bash```**
+  **```curl -sSL setup.diginode.tools | bash```**
 
 ## Setup a DigiNode on Ubuntu
 
@@ -27,10 +27,6 @@ This command need only be run once. The latest release of DigiNode Tools will be
 ```~/diginode-tools/diginode-setup.sh```
 
 (Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
-
-# Support
-
-If you need help, please post a message in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter or [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
 # Advanced Features
 
@@ -87,6 +83,10 @@ If you are running a pre-release version of DigiByte, and want to downgrade back
 **Reset Mode**: This will reset and reinstall your current installation using the default settings. It will delete digibyte.conf, diginode.settings and main.json and recreate them with default settings. It will also reinstall DigiByte Core and the DigiAsset Node. IPFS will not be re-installed. Do not run this with a custom install or it may break things. For best results, run a standard upgrade first, to ensure all software is up to date, before running a reset. Software can only be re-installed if it is most recent version. You can perform a Reset via the DigiNode Setup main menu by entering ```diginode-setup```. You can also use the --reset flag at launch.
 - ```curl -sSL setup.diginode.tools | bash -s -- --reset``` or
 - ```diginode-setup --reset```
+
+# Support
+
+If you need help, please post a message in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter or [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
 # Donations
 
