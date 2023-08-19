@@ -37,7 +37,7 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Unattended Install mode - install can be pre-configured to run without any prompts. Great for batch setups.
 - Includes DigiNode Status Monitor, a powerful dashboard for monitoring the status of your DigiNode. (More info [below](#about-diginode-status-monitor).)
 
-Go [here](GETSTARTED.md) to get started. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
+Go [here](GETSTARTED.md) to get started setting up your DigiNode. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
 
 ## Additional Features
 
