@@ -23,12 +23,13 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 
 - Intuitively walks you though the process of setting up a DigiByte Node and/or DigiAsset Node. 
    + Designed with less-technical users in mind - almost no linux command line experience required. Setup is entirely menu-driven.
-   + Automatically checks your system hardware and OS are compatible compatible, incuding disk space and memory.
+   + Fast! The entire DigiNode Setup takes only a few minutes.
+   + Automatically checks your system hardware and OS are compatible, and that there is sufficient disk space and memory.
    + Checks for swap file, and helps create one on low memory devices.
-   + Lets you choose whether to run a mainnet or testnet DigiByte Node.
+   + Prompts you to run a mainnet or testnet DigiByte Node.
    + Creates or updates the digibyte.conf settings file with optimal settings.
    + Creates system services (systemd or upstart) to ensure your DigiByte Node and DigiAsset Node are kept running 24/7, even after a reboot.
-   + Automatically configures your DigiAsset Node with your RPC credentials, ensuring your DigiAsset Node can connect to your DigiByte wallet. (No manual configuration required)
+   + Automatically configures your DigiAsset Node with your RPC credentials, ensuring your DigiAsset Node can connect to your DigiByte wallet. (No manual configuration required.)
 - Quickly and easilly upgrade your DigiByte and DigiAssets Node software to the latest release.
 - Optionally, install a pre-release version of DigiByte Core (See [Advanced Features](GETSTARTED.md#advanced-features).)
 - Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
