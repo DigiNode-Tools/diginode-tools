@@ -6,7 +6,7 @@
 #
 #          Author:  Olly Stedall @saltedlolly
 #
-#         Website:  https://diginode.digibyte.help
+#         Website:  https://diginode.tools
 #
 #         Support:  https://t.me/+ked2VGZsLPAyN2Jk
 #
@@ -68,4 +68,6 @@ echo  ""
 printf "%b To run 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
 printf "\\n"
 printf "%b To run 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+printf "\\n"
+printf "%b   (Tip: For help, enter: ${txtbld}diginode-setup --help${txtrst})\\n" "${INDENT}"
 printf "\\n"

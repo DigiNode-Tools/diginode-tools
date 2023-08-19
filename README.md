@@ -22,7 +22,7 @@ DigiNode Tools are a suite of linux bash scripts that make it easy to setup, mon
 DigiNode Setup helps you to setup and manage your DigiNode:
 
 - Intuitively walks you though the process of setting up a DigiByte Node and/or DigiAsset Node. 
-   + Almost no linux command line experience required. Setup is entirely menu-driven.
+   + Designed with less-technical users in mind - almost no linux command line experience required. Setup is entirely menu-driven.
    + Automatically checks your system hardware and OS are compatible compatible, incuding disk space and memory.
    + Checks for swap file, and helps create one on low memory devices.
    + Lets you choose whether to run a mainnet or testnet DigiByte Node.
@@ -34,6 +34,7 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
 - Option to create a 'digibyte' user and set system hostname to 'diginode'. 
 - Option to enable zeroconf networking (Bonjour) so you can access your node at http://diginode.local:8090 - i.e. no need to remember the IP address.
+- Option to install a linux MOTD (Message of the Day). This is displayed whenever you connect to your DigiNode and reminds you of the commands to run it.
 - Unattended Install mode - install can be pre-configured to run without any prompts. Great for batch setups.
 - Includes DigiNode Status Monitor, a powerful dashboard for monitoring the status of your DigiNode. (More info [below](#about-diginode-status-monitor).)
 
