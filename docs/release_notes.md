@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.3 - 2023-08-xx [ COMING SOON ]
+- Change: More documentation improvements
+
 DigiNode Tools v0.8.2 - 2023-08-18
 - Change: Switch Twitter social links to use @dignodetools instead of @digibytehelp. Also, add additional links to Bluesky account and Telegram group.
 - Change: Now displays web UI IP address alongside hostname. For various reasons, sometimes the hostname does not work when used in the URL, so best to have a backup option.
@@ -18,7 +21,6 @@ DigiNode Tools v0.8.0 - 2023-08-14
 - Change: Official URL is now diginode.tools. Bash script now uses setup.diginode.tools
 - Change: Update Status Monitor to be able to detect a new prerelease/release version of DigiByte Core depending on which is in use
 - Change: When quitting Status Monitor, the currently viewed DigiFact remains on the screen.
-
 
 DigiNode Tools v0.7.4 - 2023-02-26
 - More documentation tweaks

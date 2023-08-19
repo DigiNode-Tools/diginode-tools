@@ -30,7 +30,7 @@ This command need only be run once. The latest release of DigiNode Tools will be
 
 # Support
 
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter.
+If you need help, please post a message in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter or [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
 # Advanced Features
 
