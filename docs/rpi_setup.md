@@ -12,13 +12,13 @@
 
 You will need to complete the following steps to setup your DigiNode on a Raspberry Pi:
 
-1. Assemble your case and connect the SSD you will be using with your Raspberry Pi to your Mac or Windows PC.
+1. Assemble your Raspberry Pi in its case. Connect the SSD to your Mac or Windows computer.
 2. Download and install 'Raspberry Pi Imager' from the Raspberry Pi website.
-3. Use 'Raspberry Pi imager' to pre-configure the Raspberry Pi operating system and write it to the SSD.
+3. Use 'Raspberry Pi imager' to pre-configure Raspberry Pi OS and write it to the SSD.
 4. Connect the SSD to the Raspberry Pi, along with power and ethernet cable (if using).
-5. Power on the Pi and connect to it remotely from your Mac or Windows PC using SSH.
-6. Run the DigiNode Setup script to install and configure your DigiByte Node and/or DigiAsset Node.
-7. Assign the Raspberry Pi a Static IP address on your network and open the relevant ports on your router.
+5. Power on the Rasperry Pi and connect to it remotely using SSH from your Mac or Windows computer.
+6. Run the DigiNode Setup script to setup your DigiByte Node and/or DigiAsset Node.
+7. Assign the Raspberry Pi a Static IP address and open the relevant ports on your router.
 
 ## STEP 1 - Assemble the Raspberry Pi in its case and connect the SSD to your Windows or Mac computer
 
@@ -104,3 +104,21 @@ If you setup a testnet DigiNode, the default ports you need to forward are:
 ## STEP 8 - Install case fan software (if needed)
 
 - The software for the 'Argon One M.2' case can be installed directly from the 'DigiNode Setup' main menu. Run ```diginode-setup``` and find it under 'Extras'.
+
+### Wrapping Up: Please share your #DigiNode on social media!
+
+If you have followed all the steps, your DigiNode on your Raspberry Pi should now be up and running! 🍾🥂🚀
+
+To encourage others, please take a moment to share on social media that you are now running your own #DigiNode. The more people who run one, the more robust and decentralized the DigiByte network becomes. Also, please let us know in the [DigiNode Telegram Group](https://t.me/DigiNodeTools). Joining this group is a good way to be kept informed of software updates etc. You can also follow [@diginodetools](https://twitter.com/diginotetools) on Twitter.
+
+# NEXT: Please DONATE to Support DigiNode Tools!
+
+Did you find this guide helpful?
+
+I created DigiNode Tools because I want to make it easy for everyone to run their own DigiByte and DigiAsset Node. I have already devoted thousands of unpaid hours working towards this goal. If this guide has helped you, and you found DigiNode tools useful, please make a donation to support my work. Many thanks, Olly
+
+PS You can find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) or Bluesky [@olly.st](https://bsky.app/profile/olly.st).
+
+**[dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup](digibyte:dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup)**
+
+![DigiByte Donation QR Code](/images/donation_qr_code.png)
