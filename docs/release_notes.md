@@ -3,6 +3,7 @@
 DigiNode Tools v0.8.3 - 2023-08-xx [ COMING SOON ]
 - Change: More documentation improvements
 - Change: Add --help tip to MOTD
+- Fix: Minor bug when installing MOTD
 
 DigiNode Tools v0.8.2 - 2023-08-18
 - Change: Switch Twitter social links to use @dignodetools instead of @digibytehelp. Also, add additional links to Bluesky account and Telegram group.

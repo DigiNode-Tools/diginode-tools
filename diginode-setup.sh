@@ -11650,19 +11650,19 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     if [ -f "/etc/motd" ]; then
         str="Delete system MOTD file..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f /etc/motd $USER_HOME/.motdbackup
+        rm -f /etc/motd
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
-        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
-        return
     fi
 
     printf "\\n"
 
     MOTD_STATUS="ENABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
+        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
+        return
+    fi
 
 fi
 
