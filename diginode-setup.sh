@@ -6824,14 +6824,16 @@ closing_banner_message() {
 
 donation_qrcode() {  
 
-    printf " ============== ${txtbylw}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
+    printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I created DigiNode Tools to make it easy for anyone in the DigiByte community"
-    echo "    to setup and manage their own DigiByte & DigiAsset Nodes. Thousands of hours"
-    echo "    have gone into its development. All funding is provided by users like you."
-    echo "    If you find it useful, please donate below so I can keep improving it."
-    echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
+    echo "    I created DigiNode Tools to make it easy for everybody to run their own"
+    echo "    DigiByte Node and DigiAsset Node. I have devoted thousands of unpaid hours"
+    echo "    on this goal, all for the benefit of the DigiByte community. PLEASE DONATE"
+    echo "    to help me cover server costs and to support future development."
+    echo "               Thank you very much for your support, Olly"
+    echo ""
+    echo -e "        >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a and Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
