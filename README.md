@@ -35,7 +35,7 @@ DigiNode Setup helps you to setup and manage your DigiNode:
 - Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
 - Option to create a 'digibyte' user and set system hostname to 'diginode'. 
 - Option to enable zeroconf networking (Bonjour) so you can access your node at http://diginode.local:8090 - i.e. no need to remember the IP address.
-- Option to install a linux MOTD (Message of the Day). This is displayed whenever you connect to your DigiNode and reminds you of the commands to run it.
+- Option to install a custom DiigNode MOTD (Message of the Day). This is displayed whenever you connect to your DigiNode via the terminal and reminds you of the commands to run it.
 - Unattended Install mode - install can be pre-configured to run without any prompts. Great for batch setups.
 - Includes DigiNode Status Monitor, a powerful dashboard for monitoring the status of your DigiNode. (More info [below](#about-diginode-status-monitor).)
 
@@ -105,16 +105,6 @@ DigiNode has been tested and known to work with the following systems:
 | Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
 | x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
 
-## Donations
-
-I created DigiNode Tools to make it easy for any one to run their own DigiByte and DigiAsset Node. Thousands of hours of unpaid work have been spent on this goal. Please donate to support my server and developement costs, and encourage future development. Many thanks, Olly
-
-**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
-
-![DigiByte Donation QR Code](images/donation_qr_code.png)
-
-Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st)
-
 # ➡️ GET STARTED
 
 - Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
@@ -124,14 +114,23 @@ Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and 
 
 If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also use [@diginodetools](https://twitter.com/diginodetools) on Twitter or [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
-## License
+## Please DONATE to Support DigiNode Tools!
 
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
+I created DigiNode Tools to make it easy for anyone to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. Please donate to help me cover server costs and support future development. Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly
+
+**dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
+
+![DigiByte Donation QR Code](images/donation_qr_code.png)
+
+## Release Notes
+
+Go [here](/docs/release_notes.md) to view the release notes.
 
 ## Disclaimer
 
 These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
 
-## Release Notes
+## License
 
-Go [here](/docs/release_notes.md) to view the release notes.
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](docs/licence_faq.md). The full licence is [here](LICENCE.md).
+

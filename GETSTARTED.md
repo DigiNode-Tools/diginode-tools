@@ -88,12 +88,12 @@ If you are running a pre-release version of DigiByte, and want to downgrade back
 
 If you need help, please post a message in the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also reach out to [@digibytehelp](https://twitter.com/digibytehelp) on Twitter or [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
-# Donations
+## Please DONATE to Support DigiNode Tools!
 
-I created DigiNode Tools to make it easy for any one to run their own DigiByte and DigiAsset Node. Thousands of hours of unpaid work have been spent on this goal. Please donate to support my server and developement costs, and encourage future development. Many thanks, Olly
+I created DigiNode Tools to make it easy for everybody to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. Please donate to help me cover server costs and support future development. Many thanks, Olly
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
 ![DigiByte Donation QR Code](images/donation_qr_code.png)
 
-Please follow me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st)
+Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st).
