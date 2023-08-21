@@ -117,15 +117,21 @@ DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
 
-# DigiByte.Help URLs
-DGBH_URL_INTRO=https://diginode.tools                        # Link to introduction what a DigiNode is. Shown in welcome box.
-DGBH_URL_CUSTOM=https://digibyte.help/diginode-custom/       # Information on customizing your install by editing diginode.settings
-DGBH_URL_HARDWARE=https://digibyte.help/build-diginode/      # Advice on what hardware to get
-DGBH_URL_USERCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the username
-DGBH_URL_HOSTCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://digibyte.help/diginode-staticip/   # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://digibyte.help/diginode-portfwd/     # Advice on how to forward ports with your router
-DGBH_URL_TWEET=https://digibyte.help/diginode/               # URL included in sample tweet.
+# DigiNode.Tools Help URLs
+DGBH_URL_INTRO=https://diginode.tools                                           # Link to introduction what a DigiNode is. Shown in welcome box.
+DGBH_URL_CUSTOM=https://diginode.tools/faq                                      # Information on customizing your install by editing diginode.settings
+DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  # Advice on what hardware to get
+DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
+DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
+DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup-guide-step-7/       # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup-guide-step-7/        # Advice on how to forward ports with your router
+DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
+
+
+# DigiNode Tools Github URLs (temporary - delete once DigiNode.Tools website goes live)
+
+DGBH_URL_ADVANCED=https://t.ly/9NBRm     # Advanced features
+
 
 # DigiNode Tools Social Accounts
 SOCIAL_TWITTER_URL="https://twitter.com/diginodetools"
@@ -280,7 +286,7 @@ display_help() {
         fi
         printf "\\n"
         printf "\\n"
-        printf "%b For more help, visit: https://digibyte.help/diginode-tools/advanced-features/\\n" "${INDENT}"
+        printf "%b For more help, visit: $DGBH_URL_ADVANCED\\n" "${INDENT}"
         printf "\\n"
         exit
     fi
@@ -6824,14 +6830,16 @@ closing_banner_message() {
 
 donation_qrcode() {  
 
-    printf " ============== ${txtbylw}Please DONATE to support DigiNode Tools${txtrst} ================\\n\\n"
+    printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I created DigiNode Tools to make it easy for anyone in the DigiByte community"
-    echo "    to setup and manage their own DigiByte & DigiAsset Nodes. Thousands of hours"
-    echo "    have gone into its development. All funding is provided by users like you."
-    echo "    If you find it useful, please donate below so I can keep improving it."
-    echo -e "    Thank you for your support, Olly.  >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a <<"
+    echo "    I created DigiNode Tools to make it easy for everybody to run their own"
+    echo "    DigiByte Node and DigiAsset Node. I have devoted thousands of unpaid hours"
+    echo "    on this goal, all for the benefit of the DigiByte community. PLEASE DONATE"
+    echo "    to help me cover server costs and to support future development."
+    echo "               Thank you very much for your support, Olly"
+    echo ""
+    echo -e "        >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a and Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -11648,19 +11656,19 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     if [ -f "/etc/motd" ]; then
         str="Delete system MOTD file..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -f /etc/motd $USER_HOME/.motdbackup
+        rm -f /etc/motd
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
-        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
-        return
     fi
 
     printf "\\n"
 
     MOTD_STATUS="ENABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
+
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
+        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
+        return
+    fi
 
 fi
 
