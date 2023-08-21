@@ -86,7 +86,7 @@ These commands are helpful for managing your DigiNode:
 - ```sudo systemctl restart ipfs``` - Restart IPFS.
 - ```pm2 stop digiasset``` - Restart DigiAsset Node.
 - ```pm2 restart digiasset``` - Restart DigiAsset Node.
-- ```tail -n50 -f ~/.digibyte/debug.log``` - Monitor the DigiByte log file. (Ctrl-C to Exit)
+- ```tail -n50 -f ~/.digibyte/debug.log``` - View the DigiByte log file. (Ctrl-C to Exit)
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 

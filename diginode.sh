@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.3
+#           Name:  DigiNode Status Monitor v0.8.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.3
-# Last Updated: 2023-08-19
+DGNT_VER_LOCAL=0.8.4
+# Last Updated: 2023-08-21
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -1177,10 +1177,10 @@ exit_locate_digibyte_reminder() {
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
     printf "  %b %bNote: A DigiByte Node could not be detected. %b\\n"  "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\\n" "${INDENT}"
-    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\\n" "${INDENT}"
+    printf "%b If your system is already running a DigiByte Node, use the --locatedgb flag\\n" "${INDENT}"
+    printf "%b to manually set the location of the DigiByte Core install folder.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
+    printf "%b i.e. Enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
     printf "\\n"          
 fi
 

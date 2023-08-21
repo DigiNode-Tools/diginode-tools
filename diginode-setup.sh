@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.3
+#           Name:  DigiNode Setup v0.8.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -6950,7 +6950,7 @@ final_messages() {
         fi
     fi
 
-    if [ $NewInstall = true ]; then
+    if [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
@@ -7011,7 +7011,7 @@ final_messages() {
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"       
-    elif [ $NewInstall = true ]; then
+    elif [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
         printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -7042,6 +7042,16 @@ final_messages() {
         printf "%b or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
         printf "\\n"
         printf "%b You can also get in touch via the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    # If upgrading from DigiAsset Node only to a full DigiNode (and there were no errors), displaya success message
+    if [ "$INSTALL_ERROR" != "YES" ] && [ "$ADDING_FULL_DGBNODE" = "YES" ]; then
+        printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b It will take a few minutes to finish starting up. You can check its progress in the Status Monitor. \\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -7259,7 +7269,7 @@ else
 
         elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
 
-            printf "%b Unattended Mode: DigiByte Core will run TESTNET" "${INFO}"
+            printf "%b Unattended Mode: DigiByte Core will run TESTNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
             DGB_NETWORK_FINAL="TESTNET"
 
@@ -7589,7 +7599,7 @@ else
 
         elif [ "$UI_DGB_ENABLE_UPNP" = "NO" ]; then
 
-            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core" "${INFO}"
+            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
             DGB_ENABLE_UPNP="NO"
 
@@ -14018,15 +14028,10 @@ menu_dganode_only(){
             ;;
         # Add DigiByte Node,
         ${opt2a})
-            printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
+            printf "%b You selected to install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
-            if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                exec curl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --fulldiginode --unattended
-            elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
-            fi    
-            printf "\\n"
-            exit
+            ADDING_FULL_DGBNODE="YES"
+            add_digibyte_node
             ;;
         # DigiNode MOTD
         ${opt3a})
@@ -14195,6 +14200,125 @@ install_or_upgrade() {
 
     # Share backup reminder
     backup_reminder
+
+    exit
+
+}
+
+
+# This function will run when you choose to add a DigiByte Node to an existing DigiAsset Node
+add_digibyte_node() {
+
+    ### INSTALL DIGINODE DEPENDENCIES ###
+
+    # Install packages used by the actual software
+    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_check
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_ask_lowspace
+
+    # Check if a swap file is needed
+    swap_check
+
+    # Ask to change the swap
+    swap_ask_change
+
+    # Do swap setup
+    swap_do_change
+
+    ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
+
+    # Check if DigiByte Core is installed, and if there is an upgrade available
+    digibyte_check
+
+    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
+    diginode_tools_check
+
+    # Check if the DigiNode custom MOTD is already installed
+    motd_check
+
+    ### ASK SETUP QUESTIONS ###
+
+    # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node
+    menu_ask_dgb_network
+
+    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
+    menu_ask_upnp
+
+    # If this is a new install, ask to install the DigiNode MOTD
+    menu_ask_motd
+
+    ### INSTALL/UPGRADE DIGIBYTE CORE ###
+
+    # Create/update digibyte.conf file
+    digibyte_create_conf
+
+    # Install/upgrade DigiByte Core
+    digibyte_do_install
+
+    # Create digibyted.service
+    digibyte_create_service
+
+    # Update DigiAsset RPC settings
+    digiasset_node_create_settings
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
+
+    # Install DigiNode Tools
+    diginode_tools_do_install
+
+    ##### INSTALL THE MOTD MESSAGE ########
+
+    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
+    motd_do_install_uninstall
+
+
+    ### CHANGE THE HOSTNAME TO DIGINODE ###
+
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
+    # Ask to change the hostname
+    hostname_ask_change
+
+
+    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+
+    # Change the hostname
+    hostname_do_change
+
+    
+    ### WRAP UP ###
+
+    # Display closing message
+    closing_banner_message
+
+    if [[ "${NewInstall}" == false ]]; then
+
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+    fi
+
+    # Display donation QR Code
+    donation_qrcode
+
+    # Show final messages - Display reboot message (and how to run Status Monitor)
+    final_messages
 
     exit
 
