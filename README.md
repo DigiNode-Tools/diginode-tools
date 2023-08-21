@@ -14,7 +14,7 @@ DigiNode Tools are a suite of Linux bash scripts that make it really easy to set
 
 - A **Raspberry Pi 4 8Gb** is the recommended device for running a DigiNode. It offers the most user-friendly setup experience. See [here](/docs/suggested_hardware.md) for the parts you need.
 - DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [Compatibility](#system-compatibility) section below.
-- DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer. (Note: These may be needed during setup on some Linux devices, but are not needed at all for the Raspberry Pi 4.)
+- DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer. (Note: These may be needed during setup on some Linux systems, but are not needed at all for the Raspberry Pi 4.)
 
 ## About DigiNode Setup
 
@@ -86,7 +86,7 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
     + DigiNode has been designed with headless operation in mind - no display, keyboard or mouse are queired. (Note: These are not needed at all for Raspberry Pi setup, though may be required during setup on other Linux devices.)
 - Memory Requirements:
     + A device with at least 8GB RAM is recommended. 
-    + With 8Gb RAM or more, you can safely run a full DigiNode (i.e. DigiByte Node + DigiAssets Node). 8Gb is the recommended minimum.
+    + With 8Gb RAM or more, you can safely run a FULL DigiNode (i.e. Both a DigiByte Node and DigiAssets Node). 8Gb is the recommended minimum.
     + With 4Gb RAM, you can run a DigiByte Node OR a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use - the read/write demands placed on the SSD mean that its lifespan will be significantly decreased.)
     + With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the [Advanced Features](GETSTARTED.md#advanced-features) for how to do a 'DigiAsset Node ONLY' setup.
     + Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
