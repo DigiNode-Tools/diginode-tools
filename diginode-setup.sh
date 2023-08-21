@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.3
+#           Name:  DigiNode Setup v0.8.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -14021,10 +14021,11 @@ menu_dganode_only(){
             printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
             if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                exec curl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --fulldiginode --unattended
+                exec curl -sSL $DGNT_SETUP_URL | sudo bash -s -- --runremote --fulldiginode --unattended "$@" 
             elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
+                exec sudo bash "$0" --runlocal --fulldiginode --unattended "$@"
             fi    
+
             printf "\\n"
             exit
             ;;

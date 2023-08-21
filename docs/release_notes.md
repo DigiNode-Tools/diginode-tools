@@ -1,10 +1,13 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.4 - 2023-08-xx [COMING SOON]
+- Fix: Make sure any used flags are included when upgrading with a DigiAsset Node ONLY to a FULL DigiNode
+
 DigiNode Tools v0.8.3 - 2023-08-21
 - Change: More documentation improvements
 - Change: Add --help tip to MOTD
 - Fix: Minor bug when installing MOTD
-- Fix: Status Monitor now displays "Block Height" from the DigiAsset Node console. I previously did not include this simply to save space, but I have now discovered that this sometimes displays important error messages"
+- Fix: Status Monitor now displays "Block Height" from the DigiAsset Node console. I previously did not include this simply to save space, but I have recently discovered that this sometimes displays important error messages. It has also a revealed a bug with the DigiAssets Node which DigiAssetX is working to fix.
 
 DigiNode Tools v0.8.2 - 2023-08-18
 - Change: Switch Twitter social links to use @dignodetools instead of @digibytehelp. Also, add additional links to Bluesky account and Telegram group.
