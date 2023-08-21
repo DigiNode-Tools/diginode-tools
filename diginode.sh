@@ -855,6 +855,7 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         DGA_CONSOLE_STREAM=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Stream: | cut -d'm' -f 3 | cut -d'\' -f 1)
         DGA_CONSOLE_SECURITY=$(echo "$DGA_CONSOLE_QUERY" | jq | grep Security: | cut -d'm' -f 2 | cut -d'\' -f 1)
         DGA_CONSOLE_IPFS=$(echo "$DGA_CONSOLE_QUERY" | jq | grep IPFS: | cut -d'm' -f 2- | cut -d'\' -f 1)
+        DGA_CONSOLE_BLOCK_HEIGHT=$(echo "$DGA_CONSOLE_QUERY" | jq | grep "Block Height:" | cut -d'm' -f 2- | cut -d'\' -f 1)
 
         IPFS_PORT_NUMBER=$(echo $DGA_CONSOLE_IPFS | sed 's/[^0-9]//g')
 
@@ -865,6 +866,7 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
 
         is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
         is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
+        is_sync_system_failed=$(echo "$DGA_CONSOLE_BLOCK_HEIGHT" | grep -Eo "Sync System Failed")
 
         # Is the IPFS port blocked
         if [ "$is_blocked" = "Blocked" ]; then
@@ -876,6 +878,16 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         else
             IPFS_PORT_STATUS_CONSOLE="OPEN"
             IPFS_PORT_STATUS_COLOR="YELLOW"
+        fi
+
+        # Is the sync system failed
+        if [ "$is_sync_system_failed" = "Sync System Failed" ]; then
+            DGA_BLOCK_HEIGHT_COLOR="RED"
+        elif [ "$DGA_CONSOLE_BLOCK_HEIGHT" = "Initializing" ]; then
+            DGA_CONSOLE_BLOCK_HEIGHT="Initializing..."
+            DGA_BLOCK_HEIGHT_COLOR="YELLOW"
+        else
+            DGA_BLOCK_HEIGHT_COLOR=""
         fi
 
     else
@@ -927,6 +939,13 @@ else
 printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
 fi
 printf "  ║                ║  " && printf "%-57s %-1s\n" "$DGA_CONSOLE_WALLET  $DGA_CONSOLE_STREAM  $DGA_CONSOLE_SECURITY  $DGA_PAYOUT_ADDRESS_STATUS" "║"
+if [ "$DGA_BLOCK_HEIGHT_COLOR" = "RED" ]; then
+printf "  ║                ║  " && printf "%-60s %-1s\n" "ERROR: ${txtbred}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" "║"
+elif [ "$DGA_BLOCK_HEIGHT_COLOR" = "YELLOW" ]; then
+printf "  ║                ║  " && printf "%-60s %-1s\n" "Block Height: ${txtbylw}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" "║"
+else
+printf "  ║                ║  " && printf "%-49s %-1s\n" "Block Height: $DGA_CONSOLE_BLOCK_HEIGHT" "║"
+fi
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 
 }
