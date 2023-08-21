@@ -670,7 +670,7 @@ UI_DISKSPACE_OVERRIDE=$UI_DISKSPACE_OVERRIDE
 # Choose whether to setup Tor [NOT WORKING YET]
 UI_TOR_SETUP=$UI_TOR_SETUP
 
-# Choose YES to do a Full DigiNode with both DigiByte and DigiAsset Nodes
+# Choose YES to do a FULL DigiNode with both DigiByte and DigiAsset Nodes
 # Choose NO to install DigiByte Core only
 UI_DO_FULL_INSTALL=$UI_DO_FULL_INSTALL
 
@@ -3509,7 +3509,7 @@ swap_check() {
         printf "%b A DigiByte Node typically requires around 6Gb RAM but this can be higher during the\\n" "${INDENT}"
         printf "%b intial sync when it may use 8Gb or more. A DigiAsset Node requires around 3Gb RAM.\\n" "${INDENT}"
         printf "%b It is always advisable to have a swap file even if your system has enough RAM.\\n" "${INDENT}"
-        printf "%b Since a full DigiNode can require up to 10Gb RAM, as a bare minimum you should\\n" "${INDENT}"
+        printf "%b Since a FULL DigiNode can require up to 10Gb RAM, as a bare minimum you should\\n" "${INDENT}"
         printf "%b ensure that your RAM and SWAP file combined is not less than 12Gb.\\n" "${INDENT}"          
         printf "%b Since your device only has ${RAMTOTAL_HR}b RAM, it is recommended to create\\n" "${INDENT}"
         printf "%b a swap file of at least $SWAP_REC_SIZE_HR. This will give your system at least\\n" "${INDENT}"
@@ -3583,7 +3583,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             # Ask the user if they want to create a swap file now, or exit
-            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a full DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file detected." --yesno "WARNING: Your current swap file is too small.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \\n\\nWould you like to create a new swap file now?\\n\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to exit to create a new swap file.\\n" "${INFO}"
@@ -3602,7 +3602,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a full DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -5696,14 +5696,14 @@ menu_first_install() {
     printf " =============== INSTALL MENU ==========================================\\n\\n"
     # ==============================================================================
 
-    opt1a="Full DigiNode "
+    opt1a="FULL DigiNode "
     opt1b=" Install DigiByte & DigiAsset Node (Recommended)"
     
     opt2a="DigiByte Node"
-    opt2b=" Install a DigiByte Node ONLY."
+    opt2b=" Install DigiByte Node ONLY."
 
     opt3a="DigiAsset Node"
-    opt3b=" Install a DigiAsset Node ONLY."
+    opt3b=" Install DigiAsset Node ONLY."
 
     opt4a="DigiNode Tools"
     opt4b=" Use Status Monitor with an existing DigiByte Node."
@@ -13990,8 +13990,8 @@ menu_dganode_only(){
     opt1a="Update"
     opt1b=" Check for updates to your DigiAsset Node"
 
-    opt2a="Add DigiByte Node"
-    opt2b=" Upgrade to a full DigiNode"
+    opt2a="Setup DigiByte Node"
+    opt2b=" Upgrade to a FULL DigiNode"
 
     opt3a="MOTD"
     opt3b=" Enable or disable the DigiNode Custom MOTD."
@@ -14001,7 +14001,7 @@ menu_dganode_only(){
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a full DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a FULL DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
