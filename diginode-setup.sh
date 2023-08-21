@@ -14018,23 +14018,9 @@ menu_dganode_only(){
             ;;
         # Add DigiByte Node,
         ${opt2a})
-            printf "%b You selected to UPGRADE your DigiAsset Node and install a DigiByte Node.\\n" "${INFO}"
+            printf "%b You selected to install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
-            if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
-                if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-                    exec curl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --fulldiginode --unattended --dgbpre
-                else
-                    exec curl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --fulldiginode --unattended
-                fi
-            elif [ "$DGNT_RUN_LOCATION" = "local" ]; then
-                if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-                    sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended --dgbpre
-                else
-                    sudo -u $USER_ACCOUNT $DGNT_SETUP_SCRIPT --fulldiginode --unattended
-                fi
-            fi    
-            printf "\\n"
-            exit
+            add_digibyte_node
             ;;
         # DigiNode MOTD
         ${opt3a})
@@ -14158,6 +14144,128 @@ install_or_upgrade() {
     # Setup PM2 init service
     digiasset_node_create_pm2_service
 
+
+    ##### INSTALL THE MOTD MESSAGE ########
+
+    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
+    motd_do_install_uninstall
+
+
+    ### CHANGE THE HOSTNAME TO DIGINODE ###
+
+    # Check if the hostname is set to 'diginode'
+    hostname_check
+
+    # Ask to change the hostname
+    hostname_ask_change
+
+
+    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+
+    # Change the hostname
+    hostname_do_change
+
+    
+    ### WRAP UP ###
+
+    # Display closing message
+    closing_banner_message
+
+    if [[ "${NewInstall}" == false ]]; then
+
+        # Choose a random DigiFact
+        digifact_randomize
+
+        # Display a random DigiFact
+        digifact_display
+
+    fi
+
+    # Display donation QR Code
+    donation_qrcode
+
+    # Show final messages - Display reboot message (and how to run Status Monitor)
+    final_messages
+
+    # Share backup reminder
+    backup_reminder
+
+    exit
+
+}
+
+
+# This function will run when you choose to add a DigiByte Node to an existing DigiAsset Node
+add_digibyte_node() {
+
+    ### INSTALL DIGINODE DEPENDENCIES ###
+
+    # Install packages used by the actual software
+    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
+    # ==============================================================================
+    
+    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
+    # Check again for supported package managers so that we may install dependencies
+    package_manager_detect
+    local dep_install_list=("${DIGINODE_DEPS[@]}")
+    install_dependent_packages "${dep_install_list[@]}"
+    unset dep_install_list
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_check
+
+    # Check data drive disk space to ensure there is enough space to download the entire blockchain
+    disk_ask_lowspace
+
+    # Check if a swap file is needed
+    swap_check
+
+    # Ask to change the swap
+    swap_ask_change
+
+    # Do swap setup
+    swap_do_change
+
+    ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
+
+    # Check if DigiByte Core is installed, and if there is an upgrade available
+    digibyte_check
+
+    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
+    diginode_tools_check
+
+    # Check if the DigiNode custom MOTD is already installed
+    motd_check
+
+    ### ASK SETUP QUESTIONS ###
+
+    # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node
+    menu_ask_dgb_network
+
+    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
+    menu_ask_upnp
+
+    # If this is a new install, ask to install the DigiNode MOTD
+    menu_ask_motd
+
+    ### INSTALL/UPGRADE DIGIBYTE CORE ###
+
+    # Create/update digibyte.conf file
+    digibyte_create_conf
+
+    # Install/upgrade DigiByte Core
+    digibyte_do_install
+
+    # Create digibyted.service
+    digibyte_create_service
+
+    # Update DigiAsset RPC settings
+    digiasset_node_create_settings
+
+    ### INSTALL/UPGRADE DIGINODE TOOLS ###
+
+    # Install DigiNode Tools
+    diginode_tools_do_install
 
     ##### INSTALL THE MOTD MESSAGE ########
 
