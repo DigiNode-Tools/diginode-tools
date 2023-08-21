@@ -1,7 +1,7 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.4 - 2023-08-xx [COMING SOON]
-- Fix: Make sure any used flags are included when upgrading with a DigiAsset Node ONLY to a FULL DigiNode
+DigiNode Tools v0.8.4 - 2023-08-21
+- Fix: Rework the process of upgrading from running a DigiAsset Node ONLY to a FULL DigiNode. Now works correctly when using the --dgbpre flag.
 
 DigiNode Tools v0.8.3 - 2023-08-21
 - Change: More documentation improvements
