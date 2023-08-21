@@ -7259,7 +7259,7 @@ else
 
         elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
 
-            printf "%b Unattended Mode: DigiByte Core will run TESTNET" "${INFO}"
+            printf "%b Unattended Mode: DigiByte Core will run TESTNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
             DGB_NETWORK_FINAL="TESTNET"
 
@@ -7589,7 +7589,7 @@ else
 
         elif [ "$UI_DGB_ENABLE_UPNP" = "NO" ]; then
 
-            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core" "${INFO}"
+            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
             DGB_ENABLE_UPNP="NO"
 
