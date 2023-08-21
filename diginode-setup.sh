@@ -117,15 +117,21 @@ DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
 
-# DigiByte.Help URLs
-DGBH_URL_INTRO=https://diginode.tools                        # Link to introduction what a DigiNode is. Shown in welcome box.
-DGBH_URL_CUSTOM=https://digibyte.help/diginode-custom/       # Information on customizing your install by editing diginode.settings
-DGBH_URL_HARDWARE=https://digibyte.help/build-diginode/      # Advice on what hardware to get
-DGBH_URL_USERCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the username
-DGBH_URL_HOSTCHANGE=https://digibyte.help/diginode/          # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://digibyte.help/diginode-staticip/   # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://digibyte.help/diginode-portfwd/     # Advice on how to forward ports with your router
-DGBH_URL_TWEET=https://digibyte.help/diginode/               # URL included in sample tweet.
+# DigiNode.Tools Help URLs
+DGBH_URL_INTRO=https://diginode.tools                                           # Link to introduction what a DigiNode is. Shown in welcome box.
+DGBH_URL_CUSTOM=https://diginode.tools/faq                                      # Information on customizing your install by editing diginode.settings
+DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  # Advice on what hardware to get
+DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
+DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
+DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup-guide-step-7/       # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup-guide-step-7/        # Advice on how to forward ports with your router
+DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
+
+
+# DigiNode Tools Github URLs (temporary - delete once DigiNode.Tools website goes live)
+
+DGBH_URL_ADVANCED=https://t.ly/9NBRm     # Advanced features
+
 
 # DigiNode Tools Social Accounts
 SOCIAL_TWITTER_URL="https://twitter.com/diginodetools"
@@ -280,7 +286,7 @@ display_help() {
         fi
         printf "\\n"
         printf "\\n"
-        printf "%b For more help, visit: https://digibyte.help/diginode-tools/advanced-features/\\n" "${INDENT}"
+        printf "%b For more help, visit: $DGBH_URL_ADVANCED\\n" "${INDENT}"
         printf "\\n"
         exit
     fi

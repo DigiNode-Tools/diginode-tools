@@ -116,7 +116,7 @@ If you need help, please join the [DigiNode Tools Telegram group](https://t.me/D
 
 ## Please DONATE to Support DigiNode Tools!
 
-I created DigiNode Tools to make it easy for anyone to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. Please donate to help me cover server costs and support future development. Find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly
+I created DigiNode Tools to make it easy for everybody to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. PLEASE DONATE to help me cover server costs and support future development. You can find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly  
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
