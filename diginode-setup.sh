@@ -5733,6 +5733,7 @@ menu_first_install() {
         ${opt3a})
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             printf "\\n"
+            INSTALLING_DGANODE_ONLY="YES"
             install_digiasset_node_only
             ;;
         # Install DigiNode ONLY
@@ -5889,17 +5890,19 @@ install_digiasset_node_only() {
         printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
-    printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b Please note:\\n" "${INFO}"
-    printf "\\n"
-    printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-    printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-    printf "\\n"
+    if [ "$INSTALLING_DGANODE_ONLY" = "YES" ]; then
+        printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Please note:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+        printf "\\n"
+    fi
 
     exit
 
@@ -7323,6 +7326,7 @@ local show_ipfs_upnp_menu="no"
 # If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
 if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
     show_dgb_upnp_menu="yes"
+    echo "hello"
 fi
 
 # If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
@@ -14029,6 +14033,7 @@ menu_dganode_only(){
         ${opt1a})
             printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
             printf "\\n" 
+            INSTALLING_DGANODE_ONLY="UPGRADE"
             install_digiasset_node_only          
             ;;
         # Add DigiByte Node,
