@@ -7321,7 +7321,7 @@ local show_ipfs_upnp_menu="no"
 # FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
 
 # If digibyte.conf file does not exist yet, show the upnp menu
-if [ ! -f "$DGB_CONF_FILE" ]; then
+if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
     show_dgb_upnp_menu="yes"
 fi
 
