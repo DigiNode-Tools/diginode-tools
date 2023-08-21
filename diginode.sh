@@ -1177,10 +1177,10 @@ exit_locate_digibyte_reminder() {
 if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT running
     printf "  %b %bNote: A DigiByte Node could not be detected. %b\\n"  "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
-    printf "%b If your system is already running a DigiByte Node you can use the --locatedgb flag\\n" "${INDENT}"
-    printf "%b when launching the Status Monitor to manually enter the location of the install folder.\\n" "${INDENT}"
+    printf "%b If your system is already running a DigiByte Node, use the --locatedgb flag\\n" "${INDENT}"
+    printf "%b to manually set the location of the DigiByte Core install folder.\\n" "${INDENT}"
     printf "\\n"
-    printf "%b To do this enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
+    printf "%b i.e. Enter: ${txtbld}diginode --locatedgb${txtrst}\\n" "${INDENT}"
     printf "\\n"          
 fi
 

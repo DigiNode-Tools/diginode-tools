@@ -6950,7 +6950,7 @@ final_messages() {
         fi
     fi
 
-    if [ $NewInstall = true ]; then
+    if [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
@@ -7011,7 +7011,7 @@ final_messages() {
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"       
-    elif [ $NewInstall = true ]; then
+    elif [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
         printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -7042,6 +7042,16 @@ final_messages() {
         printf "%b or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
         printf "\\n"
         printf "%b You can also get in touch via the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "\\n"
+    fi
+
+    # If upgrading from DigiAsset Node only to a full DigiNode (and there were no errors), displaya success message
+    if [ "$INSTALL_ERROR" != "YES" ] && [ "$ADDING_FULL_DGBNODE" = "YES" ]; then
+        printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}$.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b It will take a few minutes to finish starting up. Check its progress using 'DigiNode Status Monitor'. \\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -14020,6 +14030,7 @@ menu_dganode_only(){
         ${opt2a})
             printf "%b You selected to install a DigiByte Node.\\n" "${INFO}"
             printf "\\n"
+            ADDING_FULL_DGBNODE="YES"
             add_digibyte_node
             ;;
         # DigiNode MOTD
@@ -14308,9 +14319,6 @@ add_digibyte_node() {
 
     # Show final messages - Display reboot message (and how to run Status Monitor)
     final_messages
-
-    # Share backup reminder
-    backup_reminder
 
     exit
 
