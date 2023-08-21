@@ -7320,8 +7320,13 @@ local show_ipfs_upnp_menu="no"
 
 # FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
 
-# If digibyte.conf file does not exist yet, show the upnp menu
-if [ ! -f "$DGB_CONF_FILE" ]; then
+# If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
+if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
+    show_dgb_upnp_menu="yes"
+fi
+
+# If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
+if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" = true ]] && [[ "$ADDING_FULL_DGBNODE" = "YES" ]]; then
     show_dgb_upnp_menu="yes"
 fi
 
