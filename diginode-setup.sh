@@ -7047,11 +7047,11 @@ final_messages() {
 
     # If upgrading from DigiAsset Node only to a full DigiNode (and there were no errors), displaya success message
     if [ "$INSTALL_ERROR" != "YES" ] && [ "$ADDING_FULL_DGBNODE" = "YES" ]; then
-        printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}$.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b It will take a few minutes to finish starting up. Check its progress using 'DigiNode Status Monitor'. \\n" "${INDENT}"
+        printf "%b It will take a few minutes to finish starting up. You can check its progress in the Status Monitor. \\n" "${INDENT}"
         printf "\\n"
-        printf "%b Enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
