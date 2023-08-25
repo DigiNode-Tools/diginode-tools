@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.5 - 2023-08-xx [SOON]
+- Fix: Bug with --skippkgupdate
+
 DigiNode Tools v0.8.4 - 2023-08-21
 - Fix: Rework the process of upgrading from running a DigiAsset Node ONLY to a FULL DigiNode. Now works correctly when using the --dgbpre flag.
 
