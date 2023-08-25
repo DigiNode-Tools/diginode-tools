@@ -66,10 +66,10 @@ If you are new to Linux, you may find these commands useful. You can type each o
 
 - ```exit``` - disconnect from the Raspberry Pi
 - ```ls``` - view the contents of the current directory
-- ```ls -all``` - view the contents of the current directory, including any hidden files or directories (Note: Hidden files or foldes start with a period.)
+- ```ls -all``` - view the contents of the current directory, including any hidden files or directories (Note: Hidden files or folders start with a period.)
 - ```cd <directory path>``` - Navigate into a directory. e.g. ```cd ~/.digibyte```
 - ```cd ..``` - Navigate out of the current directory.
-- ```cd ~``` - Return to the home folder.
+- ```cd ~``` - Return to the user's home folder.
 - ```nano <file name>``` - Edit a file using nano. e.g. ```nano ~/.digibyte/diginode.settings```
 - ```sudo``` - Prefix to other commands. It gives you elevated superuser permissions to execute that command. You will be prompted for your password.
 - ```sudo reboot``` - Reboot the system. 
@@ -86,7 +86,8 @@ These commands are helpful for managing your DigiNode:
 - ```sudo systemctl restart ipfs``` - Restart IPFS.
 - ```pm2 stop digiasset``` - Restart DigiAsset Node.
 - ```pm2 restart digiasset``` - Restart DigiAsset Node.
-- ```tail -n50 -f ~/.digibyte/debug.log``` - View the DigiByte log file. (Ctrl-C to Exit)
+- ```tail -n50 -f ~/.digibyte/debug.log``` - View the DigiByte Node log file. (Ctrl-C to Exit)
+- ```pm2 log digiasset --lines 50``` - View the DigiAsset Node log file. (Ctrl-C to Exit)
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 

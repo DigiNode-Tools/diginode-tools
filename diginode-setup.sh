@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.4
+#           Name:  DigiNode Setup v0.8.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -2400,7 +2400,7 @@ notify_package_updates_available() {
 
 update_package_cache() {
 
-    # Skip this if the --skipupdatepkgcache flag is used
+    # Skip this if the --skippkgcache flag is used
     if [ "$SKIP_PKG_UPDATE_CHECK" != true ]; then
 
         # Running apt-get update/upgrade with minimal output can cause some issues with
@@ -2420,7 +2420,7 @@ update_package_cache() {
             printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
             printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can skip the package update check using the --skipupdatepkgcache flag.\\n" "${INDENT}"
+            printf "%b You can skip the package update check using the --skippkgcache flag.\\n" "${INDENT}"
             printf "\\n"
             return 1
         fi
