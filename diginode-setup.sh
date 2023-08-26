@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.4
+#           Name:  DigiNode Setup v0.8.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -176,7 +176,7 @@ for var in "$@"; do
         "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
-        "--skippkgcache" ) SKIP_PKG_UPDATE_CHECK=true;;
+        "--skippkgupdate" ) SKIP_PKG_UPDATE_CHECK=true;;
         "--verboseon" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
@@ -258,22 +258,22 @@ display_help() {
         printf "\\n"
         printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b %b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--unattended%b   - Run in unattended mode. No menus or prompts will be displayed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                  To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
-        printf "%b %b--dgbpre%b       - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dgbnopre%b     - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dganodeonly%b  - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                  to run a DigiByte Node. Useful on low spec devices. If you later decide to install\\n" "${INDENT}"
-        printf "%b                  a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
-        printf "%b %b--skiposcheck%b  - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--skippkgcache%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--verboseon%b    - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dgntdev%b      - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dgadev%b       - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                  WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
-        printf "%b %b--uninstall%b    - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--reset%b        - Reset your DigiNode settings and reinstall your DigiNode software.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--unattended%b    - Run in unattended mode. No menus or prompts will be displayed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                   To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
+        printf "%b %b--dgbpre%b        - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dganodeonly%b   - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                   to run a DigiByte Node. Useful on low spec devices. If you later decide to install\\n" "${INDENT}"
+        printf "%b                   a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
+        printf "%b %b--skiposcheck%b   - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--skippkgupdate%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--verboseon%b     - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
+        printf "%b %b--uninstall%b     - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--reset%b         - Reset your DigiNode settings and reinstall your DigiNode software.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "\\n"
         printf "%b Usage - replace %b--flag%b with the desired flag(s):\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -2400,7 +2400,7 @@ notify_package_updates_available() {
 
 update_package_cache() {
 
-    # Skip this if the --skipupdatepkgcache flag is used
+    # Skip this if the --skippkgupdate flag is used
     if [ "$SKIP_PKG_UPDATE_CHECK" != true ]; then
 
         # Running apt-get update/upgrade with minimal output can cause some issues with
@@ -2420,7 +2420,7 @@ update_package_cache() {
             printf "%b%b %s\\n" "${OVER}" "${CROSS}" "${str}"
             printf "  %bError: Unable to update package cache. Please try \"%s\"%b" "${COL_LIGHT_RED}" "sudo ${UPDATE_PKG_CACHE}" "${COL_NC}"
             printf "\\n"
-            printf "%b You can skip the package update check using the --skipupdatepkgcache flag.\\n" "${INDENT}"
+            printf "%b You can skip the package update check using the --skippkgupdate flag.\\n" "${INDENT}"
             printf "\\n"
             return 1
         fi
@@ -5733,6 +5733,7 @@ menu_first_install() {
         ${opt3a})
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             printf "\\n"
+            INSTALLING_DGANODE_ONLY="YES"
             install_digiasset_node_only
             ;;
         # Install DigiNode ONLY
@@ -5889,17 +5890,19 @@ install_digiasset_node_only() {
         printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
-    printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-    printf "\\n"
-    printf "%b Please note:\\n" "${INFO}"
-    printf "\\n"
-    printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-    printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-    printf "\\n"
+    if [ "$INSTALLING_DGANODE_ONLY" = "YES" ]; then
+        printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b Please note:\\n" "${INFO}"
+        printf "\\n"
+        printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
+        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
+        printf "\\n"
+    fi
 
     exit
 
@@ -7323,6 +7326,7 @@ local show_ipfs_upnp_menu="no"
 # If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
 if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
     show_dgb_upnp_menu="yes"
+    echo "hello"
 fi
 
 # If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
@@ -14029,6 +14033,7 @@ menu_dganode_only(){
         ${opt1a})
             printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
             printf "\\n" 
+            INSTALLING_DGANODE_ONLY="UPGRADE"
             install_digiasset_node_only          
             ;;
         # Add DigiByte Node,
