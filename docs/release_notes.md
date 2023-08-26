@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.5 - 2023-08-xx [SOON]
+DigiNode Tools v0.8.5 - 2023-08-26
 - Fix: Bug with --skippkgupdate
 
 DigiNode Tools v0.8.4 - 2023-08-21
