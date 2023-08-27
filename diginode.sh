@@ -6,7 +6,7 @@
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
 #                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
 #
