@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.6
+#           Name:  DigiNode Status Monitor v0.8.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -60,7 +60,7 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.6
+DGNT_VER_LOCAL=0.8.7
 # Last Updated: 2023-08-27
 
 # This is the command people will enter to run the install script.
@@ -2433,9 +2433,9 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo v$IPFS_VER_LOCAL" " ║"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"

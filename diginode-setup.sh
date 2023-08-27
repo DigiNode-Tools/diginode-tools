@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.6
+#           Name:  DigiNode Setup v0.8.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -784,7 +784,7 @@ DGA_VER_MJR_RELEASE="$DGA_VER_MJR_RELEASE"
 DGA_VER_RELEASE="$DGA_VER_RELEASE"
 DGA_LOCAL_BRANCH="$DGA_LOCAL_BRANCH"
 
-# Store Kubo (Go-IPFS) installation details:
+# Store Kubo IPFS installation details:
 IPFS_VER_LOCAL="$IPFS_VER_LOCAL"
 IPFS_VER_RELEASE="$IPFS_VER_RELEASE"
 IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
@@ -6096,11 +6096,11 @@ change_upnp_status() {
     printf " =============== Checking: IPFS Node ===================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Let's check if Kubo is already installed
-    str="Is Kubo already installed?..."
+    # Let's check if Kubo IPFS is already installed
+    str="Is Kubo IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -6110,12 +6110,12 @@ change_upnp_status() {
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo daemon upstart service running?..."
+      str="Is Kubo IPFS daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -6128,7 +6128,7 @@ change_upnp_status() {
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo daemon systemd service running?..."
+        str="Is Kubo IPFS daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -7338,7 +7338,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         show_ipfs_upnp_menu="yes"
     fi
 
-    # Is there a working version of Kubo available?
+    # Is there a working version of Kubo IPFS available?
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
         local test_kubo_query
@@ -8679,13 +8679,13 @@ ipfs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: Kubo (Go-IPFS) ==============================\\n\\n"
+    printf " =============== Checking: Kubo IPFS ===================================\\n\\n"
     # ==============================================================================
 
-    # Check for latest Go-IPFS release online
-    str="Checking Github for the latest Kubo release..."
+    # Check for latest Kubo IPFS release online
+    str="Checking Github for the latest Kubo IPFS release..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest Kubo version, disregarding releases candidates (they contain 'rc' in the name).
+    # Gets latest Kubo IPFS version, disregarding releases candidates (they contain 'rc' in the name).
     IPFS_VER_RELEASE=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
     # If can't get Github version number
@@ -8693,28 +8693,28 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of Kubo. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b Kubo IPFS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: Kubo v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: Kubo IPFS v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # WORKAROUND: This is temporary to get around the Kubo release glitch
     if [ "$IPFS_VER_RELEASE" = "0.21.1" ]; then
         IPFS_VER_RELEASE="0.22.0"
-        printf "%b Temporary Workaround for Kubo release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
+        printf "%b Temporary Workaround for Kubo IPFS release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
     fi
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Let's check if Kubo is already installed
-    str="Is Kubo already installed?..."
+    str="Is Kubo IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -8724,12 +8724,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo daemon upstart service running?..."
+      str="Is Kubo IPFS daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -8742,7 +8742,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo daemon systemd service running?..."
+        str="Is Kubo IPFS daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -8808,13 +8808,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
 
-    # If a Kubo local version already exists.... (i.e. we have a local version number)
+    # If a Kubo IPFS local version already exists.... (i.e. we have a local version number)
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Kubo is already up to date.\\n" "${TICK}"
+          printf "%b Kubo IPFS is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
@@ -8826,7 +8826,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b %bKubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b %bKubo IPFS can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           IPFS_INSTALL_TYPE="upgrade"
           IPFS_ASK_UPGRADE=YES
       fi
@@ -8835,7 +8835,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$IPFS_STATUS" = "not_detected" ]; then
-      printf "%b %bKubo v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bKubo IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
     fi
@@ -8846,7 +8846,7 @@ fi
 
 }
 
-# This function will install Kubo if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install Kubo IPFS if it not yet installed, and if it is, upgrade it to the latest release
 ipfs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -8857,11 +8857,11 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo IPFS v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
     else        
-        printf " =============== Resetting: Kubo (Go-IPFS) =============================\\n\\n"
+        printf " =============== Resetting: Kubo IPFS ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Kubo.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
@@ -8882,13 +8882,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: Kubo (Go-IPFS) ===============================\\n\\n"
+        printf " =============== Install: Kubo IPFS ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: Kubo (Go-IPFS) ===============================\\n\\n"
+        printf " =============== Upgrade: Kubo IPFS ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: Kubo (Go-IPFS) =================================\\n\\n"
+        printf " =============== Reset: Kubo IPFS ======================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install Kubo.\\n" "${INFO}"
     fi
@@ -8975,7 +8975,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # If we are re-installing the current version of Kubo, delete the existing binary
     if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        str="Reset Mode: Deleting Kubo v${IPFS_VER_LOCAL} ..."
+        str="Reset Mode: Deleting Kubo IPFS v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -8993,7 +8993,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # If there is an existing Go-IPFS install tar file, delete it
+    # If there is an existing go-IPFS install tar file, delete it [Legacy code - can be removed at some point]
     if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
         str="Deleting existing Go-IPFS install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
@@ -9001,16 +9001,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo install tar file, delete it
+    # If there is an existing Kubo IPFS install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting existing Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting existing Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Downloading latest Kubo install file from GitHub
-    str="Downloading Kubo v${IPFS_VER_RELEASE} from Github repository..."
+    # Downloading latest Kubo IPFS install file from GitHub
+    str="Downloading Kubo IPFS v${IPFS_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
 
@@ -9021,9 +9021,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b%b ${txtbred}ERROR: Kubo v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtbred}ERROR: Kubo IPFS v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Kubo IPFS could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
         if [ "$IPFS_STATUS" = "stopped" ]; then
             printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
         else
@@ -9071,7 +9071,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo install folder, delete it
+    # If there is an existing Kubo IPFS install folder, delete it
     if [ -d "$USER_HOME/kubo" ]; then
         str="Deleting existing ~/kubo folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -9079,27 +9079,27 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Extracting Kubo install files
-    str="Extracting Kubo v${IPFS_VER_RELEASE} ..."
+    # Extracting Kubo IPFS install files
+    str="Extracting Kubo IPFS v${IPFS_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT tar -xf $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete Kubo install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install Kubo to bin folder
-    printf "%b Installing Kubo v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
+    printf "%b Installing Kubo IPFS v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     (cd $USER_HOME/kubo; ./install.sh)
 
     # If the command completed without error, then assume IPFS installed correctly
     if [ $? -eq 0 ]; then
-        printf "%b Kubo appears to have been installed correctly.\\n" "${INFO}"
+        printf "%b Kubo IPFS appears to have been installed correctly.\\n" "${INFO}"
         
         if [ "$IPFS_STATUS" = "not_detected" ];then
             IPFS_STATUS="installed"
@@ -9107,7 +9107,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         DIGINODE_UPGRADED="YES"
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Kubo Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: Kubo IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b This can sometimes occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
         printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if you keep retrying.\\n" "${INDENT}"
@@ -9135,7 +9135,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Set default IPFS ports if this is the first time running Go-IPFS, and the config files do not exist
+    # Set default IPFS ports if this is the first time running Kubo IPFS, and the config files do not exist
     if [ ! -f "$USER_HOME/.ipfs/config" ]; then
         str="Kubo IPFS config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
@@ -9516,7 +9516,7 @@ ipfs_update_port() {
 ipfs_create_service() {
 
 # If you want to make changes to how IPFS services are created/managed for diferent systems, refer to this website:
-# https://github.com/ipfs/go-ipfs/tree/master/misc 
+# https://github.com/ipfs/kobo/tree/master/misc 
 
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
@@ -11317,7 +11317,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_GITHUB\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs=" >> Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs=" >> Kubo IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_nodejs=" >> NodeJS v$NODEJS_VER_RELEASE\\n"
@@ -11883,7 +11883,7 @@ uninstall_do_now() {
 
     ################## UNINSTALL IPFS #################################################
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     if [ "$IPFS_VER_LOCAL" = "" ]; then
@@ -11907,13 +11907,13 @@ uninstall_do_now() {
     # Ask to uninstall GoIPFS
     if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
 
-    printf " =============== Uninstall: Kubo (Go-IPFS) =============================\\n\\n"
+    printf " =============== Uninstall: Kubo IPFS ==================================\\n\\n"
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo IPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
 
-            printf "%b You chose to uninstall Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
+            printf "%b You chose to uninstall Kubo IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
 
             # Stop IPFS service if it is running, as we need to upgrade or reset it
@@ -11964,7 +11964,7 @@ uninstall_do_now() {
 
             # Delete Kubo binary
             if [ -f /usr/local/bin/ipfs ]; then
-                str="Deleting current Kubo binary: /usr/local/bin/ipfs..."
+                str="Deleting current Kubo IPFS binary: /usr/local/bin/ipfs..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
@@ -12001,7 +12001,7 @@ uninstall_do_now() {
 
             # Restart the DigiAsset Node, if we uninstalled Kobu. This is to force it to switch over to using JS-IPFS
             if [ "$delete_kubo" = "yes" ] && [ "$delete_dga" = "no" ]; then
-                str="Restarting DigiAsset Node so it switches from using Kubo to JS-IPFS..."
+                str="Restarting DigiAsset Node so it switches from using Kubo IPFS to JS-IPFS..."
                 printf "%b %s" "${INFO}" "${str}"
                 sudo -u $USER_ACCOUNT pm2 restart digiasset
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
