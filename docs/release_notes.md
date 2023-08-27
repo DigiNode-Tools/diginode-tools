@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.6 - 2023-08-xx
+DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly
 
 DigiNode Tools v0.8.5 - 2023-08-26
