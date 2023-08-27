@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.5
+#           Name:  DigiNode Setup v0.8.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -5938,7 +5938,7 @@ menu_existing_install() {
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="Ports"
+    opt4a="UPnP"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
     opt5a="Network"
@@ -5998,7 +5998,7 @@ menu_existing_install() {
             ;;
         # Change Port forwarding
         ${opt4a})
-            printf "%b You selected the PORT FORWARDING option.\\n" "${INFO}"
+            printf "%b You selected the UPnP option.\\n" "${INFO}"
             printf "\\n"
             change_upnp_status
             ;;
@@ -6088,44 +6088,8 @@ change_upnp_status() {
         DO_FULL_INSTALL=YES
     fi
 
-    printf " =============== Checking: DigiByte Node ===============================\\n\\n"
-    # ==============================================================================
-
-    # Let's check if DigiByte Node is already installed
-    str="Is DigiByte Core already installed?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        DGB_STATUS="installed"
-        printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
-    else
-        DGB_STATUS="not_detected"
-    fi
-
-    # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
-    if [ "$DGB_STATUS" = "not_detected" ]; then
-        if [ -f $DGB_CLI ]; then
-            DGB_STATUS="installed"
-            printf "%b%b %s YES!  [ DigiByte CLI located. ] \\n" "${OVER}" "${TICK}" "${str}"
-        else
-            DGB_STATUS="not_detected"
-            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-            DGB_VER_LOCAL=""
-            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-        fi
-    fi
-
-    # Next let's check if DigiByte daemon is running
-    if [ "$DGB_STATUS" = "installed" ]; then
-      str="Is DigiByte Core running?..."
-      printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "digibyted"; then
-          DGB_STATUS="running"
-          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-      else
-          DGB_STATUS="stopped"
-          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-      fi
-    fi
+    # Check DigiByte Node to make sure it is finished starting up
+    digibyte_check
 
     printf "\\n"
 
@@ -7326,7 +7290,6 @@ local show_ipfs_upnp_menu="no"
 # If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
 if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
     show_dgb_upnp_menu="yes"
-    echo "hello"
 fi
 
 # If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
@@ -7435,10 +7398,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 fi
 
-
     # Get current digibyte listen port
     port=""
-    DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
         # Re-source config file
         if [ -f "$DGB_CONF_FILE" ]; then
@@ -7512,19 +7474,19 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     local upnp_current_status
 
     if [ "$UPNP_DGB_CURRENT" != "" ] || [ "$UPNP_IPFS_CURRENT" != "" ]; then
-        upnp_current_status_1="Note:\\n"
+        upnp_current_status_1="Current Status:\\n"
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
-        upnp_current_status_2=" - UPnP is currently ENABLED for DigiByte Core\\n"
+        upnp_current_status_2=" - UPnP is ENABLED for DigiByte Core\\n"
     elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
-        upnp_current_status_2=" - UPnP is currently DISABLED for DigiByte Core\\n"
+        upnp_current_status_2=" - UPnP is DISABLED for DigiByte Core\\n"
     fi
 
     if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
-        upnp_current_status_3=" - UPnP is currently ENABLED for IPFS\\n"
+        upnp_current_status_3=" - UPnP is ENABLED for IPFS\\n"
     elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
-        upnp_current_status_3=" - UPnP is currently DISABLED for IPFS\\n"
+        upnp_current_status_3=" - UPnP is DISABLED for IPFS\\n"
     fi
 
     if [ "$upnp_current_status_2" != "" ] || [ "$upnp_current_status_3" != "" ]; then
@@ -7535,7 +7497,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -7550,7 +7512,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes not work properly, depending on your router.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -7567,7 +7529,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
 
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the port for you, though this can sometimes be temperamental.\\n\\n${upnp_current_status}For help with port forwarding:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
             DGB_ENABLE_UPNP="SKIP"
             IPFS_ENABLE_UPNP="NO"

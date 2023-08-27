@@ -49,7 +49,7 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
-- **Ports**: Enable/disable using UPnP to forward required ports.
+- **UPnP**: Enable/disable using UPnP to forward required ports. Use of UPnP is generally not reccomeneded as some routers do not support it correctly. For best results, set up port forwarding manually.
 - **Network**: Switch between running DigiByte Core on mainnet or testnet
 - **MOTD**: Enable the custom DigiNode Message of the Day. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.

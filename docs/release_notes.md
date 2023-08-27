@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.6 - 2023-08-27
+- Fix: UPnP menu now displays current DigiByte port correctly
+- Change: DigiAsset Node node now displays block height with commas so it is easy to read
+
 DigiNode Tools v0.8.5 - 2023-08-26
 - Fix: Bug with --skippkgupdate
 

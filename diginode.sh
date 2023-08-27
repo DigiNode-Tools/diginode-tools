@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.5
+#           Name:  DigiNode Status Monitor v0.8.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.5
-# Last Updated: 2023-08-25
+DGNT_VER_LOCAL=0.8.6
+# Last Updated: 2023-08-27
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -867,6 +867,12 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         is_blocked=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Blocked)
         is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
         is_sync_system_failed=$(echo "$DGA_CONSOLE_BLOCK_HEIGHT" | grep -Eo "Sync System Failed")
+
+        # If DGA_CONSOLE_BLOCK_HEIGHT is an iteger (i.e. it is displaying the block height), format it with commas to make it easily readable
+        if [[ $DGA_CONSOLE_BLOCK_HEIGHT =~ ^-?[0-9]+$ ]]; then
+            DGA_CONSOLE_BLOCK_HEIGHT=$(printf "%'d" $DGA_CONSOLE_BLOCK_HEIGHT)
+        fi
+
 
         # Is the IPFS port blocked
         if [ "$is_blocked" = "Blocked" ]; then
@@ -1945,8 +1951,6 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         else
             BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
         fi
-
-        #banana
      
         # Is the returned value numerical?
         re='^[0-9]+([.][0-9]+)?$'
@@ -2853,7 +2857,8 @@ if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
         printf "\\n"
         printf "%b IMPORTANT: For other DigiByte Nodes on the network to find this one, you need\\n" "${INFO}"
         printf "%b to forward port $DGB_LISTEN_PORT on your router. If not, the number of potential inbound\\n" "${INDENT}"
-        printf "%b connections is limited to 8. For help, visit: https://portforward.com\\n" "${INDENT}"
+        printf "%b connections is limited to 8. For help, visit:\\n" "${INDENT}"
+        printf "%b $DGBH_URL_PORTFWD\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have already forwarded port $DGB_LISTEN_PORT and are still seeing this message,\\n" "${INDENT}"
         printf "%b wait a while - the connection count should start to increase with time.\\n" "${INDENT}"
