@@ -868,6 +868,12 @@ if [ "$DGA_STATUS" = "running" ] || [ "$DGA_STATUS" = "stopped" ]; then
         is_running=$(echo "$DGA_CONSOLE_IPFS" | grep -Eo Running)
         is_sync_system_failed=$(echo "$DGA_CONSOLE_BLOCK_HEIGHT" | grep -Eo "Sync System Failed")
 
+        # If DGA_CONSOLE_BLOCK_HEIGHT is an iteger (i.e. it is displaying the block height), format it with commas to make it easily readable
+        if [[ $DGA_CONSOLE_BLOCK_HEIGHT =~ ^-?[0-9]+$ ]]; then
+            DGA_CONSOLE_BLOCK_HEIGHT=$(printf "%'d" $DGA_CONSOLE_BLOCK_HEIGHT)
+        fi
+
+
         # Is the IPFS port blocked
         if [ "$is_blocked" = "Blocked" ]; then
             IPFS_PORT_STATUS_CONSOLE="BLOCKED"
