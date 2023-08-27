@@ -5938,7 +5938,7 @@ menu_existing_install() {
     opt3a="Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="Ports"
+    opt4a="UPnP"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
     opt5a="Network"
@@ -7326,7 +7326,6 @@ local show_ipfs_upnp_menu="no"
 # If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
 if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
     show_dgb_upnp_menu="yes"
-    echo "hello"
 fi
 
 # If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
@@ -7435,10 +7434,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
 fi
 
-
     # Get current digibyte listen port
     port=""
-    DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
         # Re-source config file
         if [ -f "$DGB_CONF_FILE" ]; then
