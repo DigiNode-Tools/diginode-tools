@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.7 - 2023-08-xx
+- Fix: Add new sections for [main], [test] and [regtest] to digibyte.conf
+
 DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly
 - Change: DigiAsset Node node now displays block height with commas so it is easy to read

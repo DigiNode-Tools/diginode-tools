@@ -350,7 +350,7 @@ is_dganode_only_mode() {
 is_dgb_prerelease_mode() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
         printf "%b DigiByte Core: %bPre-release Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   If available, the pre-release version of DigiByte Core will be installed.\\n" "${INDENT}"
+        printf "%b   If available, the pre-release version of DigiByte Core will be used.\\n" "${INDENT}"
         printf "\\n"
     fi
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
@@ -1678,6 +1678,28 @@ rpcallowip=127.0.0.1
 # [wallet]
 # Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
 disablewallet=0
+
+
+# [Sections]
+# Most options automatically apply to mainnet, testnet, and regtest networks.
+# If you want to confine an option to just one network, you should add it in the relevant section.
+# EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
+# only apply to mainnet unless they appear in the appropriate section below.
+
+# Options only for mainnet
+[main]
+
+# Options only for testnet
+[test]
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Options only for regtest
+[regtest]
+
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
