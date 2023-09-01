@@ -200,6 +200,7 @@ COL_LIGHT_RED='\e[1;31m'
 COL_LIGHT_BLUE='\e[0;94m'
 COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
+COL_LIGHT_YEL='\e[1;33m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
@@ -250,7 +251,7 @@ txtbld=$(tput bold) # Set bold mode
 ### FUNCTIONS
 #####################################################################################################
 
-# Display help screen if the --help or -h flags was used
+# Display DigiNode Setup help screen if the --help or -h flags was used
 display_help() {
     if [ "$DISPLAY_HELP" = true ]; then
         printf "\\n"
@@ -458,7 +459,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
     # OTHER SETTINGS
-    DGB_MAX_CONNECTIONS=300
+    DGB_SET_MAXCONNECTIONS=300
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
@@ -604,7 +605,7 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # THis will set the max connections in the digibyte.conf file on the first install
 # This value set here is also used when performing an unattended install
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
-DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
+DGB_SET_MAXCONNECTIONS=$DGB_SET_MAXCONNECTIONS
 
 # Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
 # To avoid putting unnecessary strain on your device, it is inadvisable to run the Status Monitor for
@@ -749,6 +750,7 @@ DGB_VER_PRERELEASE="$DGB_VER_PRERELEASE"
 DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 DGB_PRERELEASE="$DGB_PRERELEASE"
+DGB_NETWORK_CURRENT="$DGB_NETWORK_CURRENT"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. (Do not change this.)
@@ -799,13 +801,13 @@ NODEJS_UPGRADE_DATE="$NODEJS_UPGRADE_DATE"
 NODEJS_PPA_ADDED="$NODEJS_PPA_ADDED"
 
 # Timer variables (these control the timers in the Status Monitor loop)
-SAVED_TIME_15SEC="$SAVED_TIME_15SEC"
+SAVED_TIME_10SEC="$SAVED_TIME_10SEC"
 SAVED_TIME_1MIN="$SAVED_TIME_1MIN"
 SAVED_TIME_15MIN="$SAVED_TIME_15MIN"
 SAVED_TIME_1DAY="$SAVED_TIME_1DAY"
 SAVED_TIME_1WEEK="$SAVED_TIME_1WEEK"
 
-# Disk usage variables (updated every 15 seconds)
+# Disk usage variables (updated every 10 seconds)
 BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"
 BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"
 BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"
@@ -1247,6 +1249,143 @@ update_disk_usage() {
 
 }
 
+# Scrape the contents of digibyte.conf and store the sections in variables
+scrape_digibyte_conf() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Define the section name to search for
+    sectionMain="main"
+    sectionTest="test"
+    sectionRegtest="regtest"
+
+    # Initialize an associative array to store key-value pairs
+    declare -A global_data
+    declare -A main_data
+    declare -A test_data
+    declare -A regtest_data
+
+    # Set a flag to indicate whether we are inside the desired section
+    inside_main_section=false
+    inside_test_section=false
+    inside_regtest_section=false
+
+    # Read the file line by line
+    while IFS= read -r line; do
+        # Remove leading and trailing whitespace from the line
+        line="${line##*([[:space:]])}"
+        line="${line%%*([[:space:]])}"
+
+        # Check if the line is not empty, does not start with #, and is not a section header
+        if [[ ! -z "$line" && "$line" != \#* && ! "$line" =~ ^\[([^]]+)\]$ ]]; then
+            # Check if we are inside a section
+            if [[ $inside_main_section == false && $inside_test_section == false && $inside_regtest_section == false ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    global_data["$key"]="$value"
+                fi
+            elif [[ $inside_main_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    main_data["$key"]="$value"
+                fi
+            elif [[ $inside_test_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    test_data["$key"]="$value"
+                fi
+            elif [[ $inside_regtest_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    regtest_data["$key"]="$value"
+                fi
+            fi
+        elif [[ "$line" =~ ^\[([^]]+)\]$ ]]; then
+            # Check if the section matches the desired section
+            if [[ "${BASH_REMATCH[1]}" == "$sectionMain" ]]; then
+                inside_main_section=true
+                inside_test_section=false
+                inside_regtest_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionTest" ]]; then
+                inside_test_section=true
+                inside_main_section=false
+                inside_regtest_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionRegtest" ]]; then
+                inside_regtest_section=true
+                inside_main_section=false
+                inside_test_section=false
+            else
+                inside_main_section=false
+                inside_test_section=false
+                inside_regtest_section=false
+            fi
+        fi
+    done < $DGB_CONF_FILE
+
+    # Store the key-value pairs for Global
+    DIGIBYTE_CONFIG_GLOBAL=$(
+    echo -e "# Global key value pairs:"
+    for key in "${!global_data[@]}"; do
+        echo "$key=${global_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Main
+    DIGIBYTE_CONFIG_MAIN=$(
+    echo -e "# Main Section key value pairs:"
+    for key in "${!main_data[@]}"; do
+        echo "$key=${main_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Test
+    DIGIBYTE_CONFIG_TEST=$(
+    echo -e "# Test Section key value pairs:"
+    for key in "${!test_data[@]}"; do
+        echo "$key=${test_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Regtest
+    DIGIBYTE_CONFIG_REGTEST=$(
+    echo -e "# Regtest Section key value pairs:"
+    for key in "${!regtest_data[@]}"; do
+        echo "$key=${regtest_data[$key]}"
+    done
+    )
+
+fi
+
+}
+
 # Create digibyte.config file if it does not already exist
 digibyte_create_conf() {
 
@@ -1288,11 +1427,150 @@ digibyte_create_conf() {
         # ==============================================================================
     fi
 
+
+    # If the digibyte.conf file already exists, check if it needs upgrading to add [sections]
+    if [ -f "$DGB_CONF_FILE" ]; then
+
+        # Upgrade the existing digibyte.conf with the [main], [test] and [regtest] sections which are new in DigiByte v8
+        # These will be appended to the existing digibyte.conf if they do not exist in it
+
+        str="Does digibyte.conf have the required DigiByte v8 sections? ..."
+        printf "%b %s" "${INFO}" "${str}"
+        if $(grep -q ^"\[test\]" $DGB_CONF_FILE) && $(grep -q ^"\[main\]" $DGB_CONF_FILE) && $(grep -q ^"\[regtest\]" $DGB_CONF_FILE); then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        elif $(grep -q ^"\[test\]" $DGB_CONF_FILE) || $(grep -q ^"\[main\]" $DGB_CONF_FILE) || $(grep -q ^"\[regtest\]" $DGB_CONF_FILE); then
+            printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
+
+            # If we are NOT in unattended mode, ask the user if they want to delete and recreate digibyte.conf, since the script is unable to upgrade it automatically
+            if [ "$UNATTENDED_MODE" == false ]; then
+
+                if whiptail --backtitle "" --title "digibyte.conf must be upgraded!" --yesno "Do you want to delete your digibyte.conf file and re-create it?\\n\\nYour existing digibyte.conf file needs to be upgraded to to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\\n\\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\\n\\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
+
+                    manually_edit_dgbconf=false
+                    # Delete the existing digibyte.conf
+                    printf "%b You chose to delete digibyte.conf and recreate it.\\n" "${INFO}"
+                    printf "%b DigiByte daemon will be stopped.\\n" "${INFO}"
+                    stop_service digibyted
+                    DGB_STATUS="stopped"
+                    str="Deleting existing digibyte.conf file..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f $DGB_CONF_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    
+                else
+                    manually_edit_dgbconf=true
+                fi
+            else
+                manually_edit_dgbconf=true
+            fi
+
+            # Exit if digibyte.conf needs to be edited manually to add [sections]
+            if [ "$manually_edit_dgbconf" = true ]; then
+                printf "\\n"
+                printf "%b %bERROR: One or more required sections are missing from your digibyte.conf file!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                printf "%b You need to add the missing sections for [main], [test] and [regtest] to your digibyte.conf file.\\n" "${INFO}"
+                printf "%b Please refer to the template here: https://jlopp.github.io/bitcoin-core-config-generator/\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b IMPORTANT: If you are running a TESTNET node, you must also include the\\n" "${INDENT}"
+                printf "%b RPC port in the [test] section of digibyte.conf or your DigiByte Node will not run.\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b Restart DigiByte Core once you are done:\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b   sudo systemctl restart digibyted\\n" "${INDENT}"
+                printf "\\n"
+                exit 1
+            fi
+
+        else
+            printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b digibyte.conf will be upgraded to add support for DigiByte v8 sections...\\n" "${INFO}"
+
+            # Check if the ports are set correctly, and reset them if needed
+
+            # banana
+
+            if [ "$banana" = "sausage" ]; then # temporary skip upgrade
+
+            str="Appending [main], [test] and [regtest] sections to digibyte.conf..."
+            printf "%b %s" "${INFO}" "${str}"
+            cat <<EOF >> $DGB_CONF_FILE
+
+
+# [Sections]
+# Most options automatically apply to mainnet, testnet, and regtest networks.
+# If you want to confine an option to just one network, you should add it in the relevant section.
+# EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
+# only apply to mainnet unless they appear in the appropriate section below.
+#
+# WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
+# You must ensure the sections exist in the correct order: [main], [test], [regtest]
+# This is so the script can find the variables where it expects them
+
+# Options only for mainnet
+[main]
+
+# Listen for incoming connections on non-default mainnet port. Mainnet default is 12024.
+# Changing the port number here will override the default mainnet port number.
+port=12024
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC connections on this port. Mainnet default is 14022.
+rpcport=14022
+
+# Options only for testnet
+[test]
+
+# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Setting the port number here will override the default testnet port numbers.
+port=12026
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+rpcport=14023
+
+# Options only for regtest
+[regtest]
+
+# Listen for incoming connections on non-default regtest port. Regtest default is 18444.
+# Setting the port number here will override the default regtest listening port.
+port=18444
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
+rpcport=18443
+
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi    
+
+         fi # temporary skip upgrade banana
+
+
+    fi
+
+
     # Do some intial setup before creating the digibyte.conf file for the first time
     if [ ! -f "$DGB_CONF_FILE" ]; then
 
         # Max connections are set from the diginode.settings file
-        set_maxconnections=$DGB_MAX_CONNECTIONS
+        set_maxconnections=$DGB_SET_MAXCONNECTIONS
 
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
@@ -1327,8 +1605,14 @@ digibyte_create_conf() {
             set_rpcport=14022
         fi
 
+        # Set the default testnet rpcport
+        set_rpcport_testnet=14023
+
     # If the digibyte.conf file already exists
     elif [ -f "$DGB_CONF_FILE" ]; then
+ 
+
+        # banana - get variables from global section
 
         # Import variables from digibyte.conf settings file
         str="Located digibyte.conf file. Importing..."
@@ -1602,6 +1886,9 @@ digibyte_create_conf() {
 # Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)
 testnet=$testnet
 
+# Run this node on its own independent test network. Equivalent to -chain=regtest
+# regtest=1
+
 # [core]
 # Run in the background as a daemon and accept commands.
 daemon=1
@@ -1646,10 +1933,6 @@ listen=1
 # Use UPnP to map the listening port.
 upnp=$upnp
 
-# Listen for incoming connections on non-default port. Mainnet default is 12024. Testnet default is 12026.
-# Setting the port number here will override the default mainnet or testnet port numbers.
-# port=12024
-
 
 # [rpc]
 # RPC user
@@ -1660,14 +1943,6 @@ rpcpassword=$set_rpcpassword
 
 # Accept command line and JSON-RPC commands.
 server=1
-
-# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
-# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
-# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
-rpcbind=127.0.0.1
-
-# Listen for JSON-RPC connections on this port. Mainnet default is 14022. Testnet default is 14023.
-rpcport=$set_rpcport
 
 # Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
 # a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
@@ -1685,20 +1960,55 @@ disablewallet=0
 # If you want to confine an option to just one network, you should add it in the relevant section.
 # EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
 # only apply to mainnet unless they appear in the appropriate section below.
+#
+# WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
+# You must ensure the sections exist in the correct order: [main], [test], [regtest]
+# This is so the script can find the variables where it expects them
 
 # Options only for mainnet
 [main]
 
-# Options only for testnet
-[test]
+# Listen for incoming connections on non-default mainnet port. Mainnet default is 12024.
+# Changing the port number here will override the default mainnet port number.
+# port=12024
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
 # -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 rpcbind=127.0.0.1
 
+# Listen for JSON-RPC connections on this port. Mainnet default is 14022.
+# rpcport=14022
+
+# Options only for testnet
+[test]
+
+# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Setting the port number here will override the default testnet port numbers.
+# port=12026
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# rpcport=14023
+
 # Options only for regtest
 [regtest]
+
+# Listen for incoming connections on non-default regtest port. Regtest default is 18444.
+# Setting the port number here will override the default regtest listening port.
+# port=18444
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
+# rpcport=18443
 
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -1711,13 +2021,13 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 # A simple function that just displays the title in a box
 setup_title_box() {
      clear -x
-     echo " ╔═════════════════════════════════════════════════════════╗"
-     echo " ║                                                         ║"
-     echo " ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
-     echo " ║                                                         ║"
-     echo " ║     Setup and manage your DigiByte & DigiAsset Node     ║"
-     echo " ║                                                         ║"
-     echo " ╚═════════════════════════════════════════════════════════╝" 
+     echo "  ╔═════════════════════════════════════════════════════════╗"
+     echo "  ║                                                         ║"
+     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+     echo "  ║                                                         ║"
+     echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+     echo "  ║                                                         ║"
+     echo "  ╚═════════════════════════════════════════════════════════╝" 
      echo ""
 }
 
@@ -1978,6 +2288,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
+    # Get system RAM
+    RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
+
     # Store total system RAM in whole Gb. Append 'b' to it so it says Gb. (Used for future Pi models we don't know about yet)
     MODELMEM="${RAMTOTAL_HR}b"
 
@@ -2008,7 +2321,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
     if [ "$pitype" != "" ]; then
-        if [ $revision = 'd03114' ]; then #Pi 4 8Gb
+        if [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
         elif [ $revision = '902120' ]; then #Pi Zero 2 W
@@ -2017,13 +2330,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
-        elif [ $revision = 'c03114' ]; then #Pi 4 4Gb
-            pitype="pi4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
-            pitype="pi4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
+        elif [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
@@ -2127,6 +2434,27 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
             pitype="piold"
             MODELMEM="256Mb"
+        else
+            
+            # IF this is a Pi we have not seen before, then round up the reported system memory to an integer, provided it is measured in Gb.
+            # Check that MODELMEM ends in the letters Gb AND it contain a decimal
+
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b Unrecognised Raspberry Pi model\\n" "${WARN}"
+            fi
+
+            if [[ $MODELMEM == *Gb ]] && [[ "$MODELMEM" == *.* ]]; then 
+                MODEL_MEM=${MODELMEM//Gb} # Remove letters Gb, to work with numbers
+                MODELMEM=$(echo $MODELMEM | cut -d'.' -f1) # remove everything after decimal
+                MODELMEM=$(expr $MODELMEM + 1) # add 1 to the integer
+                MODELMEM=${MODELMEM}Gb # append Gb again
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Rounding up system memory to integer\\n" "${INFO}"
+                fi
+            fi
+            if [ $VERBOSE_MODE = true ]; then
+                printf "\\n"
+            fi
         fi
     fi
 
@@ -6850,6 +7178,27 @@ donation_qrcode() {
     echo ""
 }
 
+# Get the wallet balance, remove trailing zeroes and seperate into commas
+get_wallet_balance() {
+    WALLET_BALANCE=$($DGB_CLI getbalance 2>/dev/null)
+    # If the wallet balance is 0, then set the value to "" so it is hidden
+    if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+        WALLET_BALANCE=""
+    elif [ "$WALLET_BALANCE" != "" ]; then
+        # Remove any trailing zeroes and decimal point
+        WALLET_BALANCE=$(echo "$WALLET_BALANCE" | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+
+        if [[ "$WALLET_BALANCE" =~ ^[0-9]+$ ]]; then # If the balance is an integer format the number with commas
+            WALLET_BALANCE=$(printf "%'d" $WALLET_BALANCE)
+        else
+            WALLET_BALANCE_DECIMAL=$(echo $WALLET_BALANCE | cut -d'.' -f2)
+            WALLET_BALANCE_INTEGER=$(echo $WALLET_BALANCE | cut -d'.' -f1)
+            WALLET_BALANCE_INTEGER=$(printf "%'d" $WALLET_BALANCE_INTEGER)
+            WALLET_BALANCE=${WALLET_BALANCE_INTEGER}.${WALLET_BALANCE_DECIMAL}
+        fi
+    fi
+}
+
 # Backup reminder
 backup_reminder() { 
 
@@ -6857,11 +7206,7 @@ backup_reminder() {
     if [ "$NewInstall" != true ]; then
 
         # Lookup current wallet balance
-        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
-        # If the wallet balance is 0, then set the value to "" so it is hidden
-        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
-            WALLET_BALANCE=""
-        fi
+        get_wallet_balance
 
         # If this is a full install, and no backup exists
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
@@ -7637,7 +7982,279 @@ fi
 
 }
 
+# This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
+# If DigiByte Core is not available it gets the value from digibyte.conf
 
+digibyte_network_query() {
+    DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
+        DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+    fi
+
+    if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+        DGB_NETWORK_CURRENT="TESTNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "main" ]; then 
+        DGB_NETWORK_CURRENT="MAINNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then 
+        DGB_NETWORK_CURRENT="REGTEST"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "signet" ]; then 
+        DGB_NETWORK_CURRENT="SIGNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    else
+        # If there is no response from digibyte-cli, check digibyte.conf
+        if [ -f "$DGB_CONF_FILE" ]; then
+
+                # Get network chain status from digibyte.conf
+                if grep -q "^regtest=1" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="REGTEST"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                elif grep -q "^signet=1" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="SIGNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                elif grep -q "^testnet=1" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="TESTNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                else
+                    DGB_NETWORK_CURRENT="MAINNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                fi
+        fi
+    fi
+}
+
+# Query DigiByte Core for the current listening port
+# If DigiByte Core is not available it gets the value from digibyte.conf
+
+digibyte_port_query() {
+
+    # Get current listening port
+    DGB_LISTEN_PORT_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
+        DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
+        DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
+    fi
+
+    # If we failed to get a result from digibyte-cli, check digibyte.conf instead
+    if  [ "$DGB_LISTEN_PORT_QUERY" = "" ] || [ "$DGB_LISTEN_PORT_QUERY" = "null" ]; then
+
+        # Make sure we have already scraped digibyte.conf
+        if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+            scrape_digibyte_conf
+        fi
+
+        # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+        if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+            digibyte_network_query
+        fi
+
+        DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
+
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="12024"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="18444"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        else
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # If we are running mainnet, get current listening port from [main] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_LISTEN_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_MAIN" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_MAIN"
+            fi
+        fi
+
+        # If we are running testnet, get current listening port from [test] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_TEST" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+            fi
+        fi
+
+        # If we are running regtest, get current listening port from [regtest] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_LISTEN_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_REGTEST" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_REGTEST"
+            fi
+        fi
+
+    fi
+
+}
+
+
+# Get the maxconnections value from digibyte.conf
+
+digibyte_maxconnections_query() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Make sure we have already scraped digibyte.conf
+    if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+        scrape_digibyte_conf
+    fi
+
+    # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+    if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+        digibyte_network_query
+    fi
+
+    # Look maxconnections from the global section of digibyte.conf and set default of 125 if not found
+    DGB_MAXCONNECTIONS_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^maxconnections= | cut -d'=' -f 2)
+    if [ "$DGB_MAXCONNECTIONS_GLOBAL" = "" ]; then
+        DGB_MAXCONNECTIONS="125" # use default value
+    else
+        DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_GLOBAL"   
+    fi
+
+    # If we are running mainnet, get maxconnections value from [main] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        DGB_MAXCONNECTIONS_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_MAIN" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_MAIN"
+        fi
+    fi
+
+    # If we are running testnet, get maxconnections value from [test] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        DGB_MAXCONNECTIONS_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_TEST" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_TEST"
+        fi
+    fi
+
+    # If we are running regtest, get maxconnections value from [regtest] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        DGB_MAXCONNECTIONS_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_REGTEST" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_REGTEST"
+        fi
+    fi
+
+fi
+
+}
+
+# Get the rpc credentials - rpcuser, rpcuser and rpcpassword - from digibyte.conf
+
+digibyte_rpc_query() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Make sure we have already scraped digibyte.conf
+    if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+        scrape_digibyte_conf
+    fi
+
+    # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+    if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+        digibyte_network_query
+    fi
+
+    # Look up rpcuser from the global section of digibyte.conf
+    RPC_USER=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcuser= | cut -d'=' -f 2)
+
+    # Look up rpcpassword from the global section of digibyte.conf
+    RPC_PASSWORD=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcpassword= | cut -d'=' -f 2)
+
+    # Look up rpcport from the global section of digibyte.conf
+    RPC_PORT=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcport= | cut -d'=' -f 2)
+
+    # Look up rpcport from the global section of digibyte.conf
+    RPC_PORT=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcport= | cut -d'=' -f 2)
+
+
+    # If we are running MAINNET, get rpc credentials from [main] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        # Look up rpcuser from the [main] section of digibyte.conf
+        RPC_USER_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_MAIN" != "" ]; then
+            RPC_USER="$RPC_USER_MAIN"
+        fi
+        # Look up rpcpassword from the [main] section of digibyte.conf
+        RPC_PASSWORD_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_MAIN" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_MAIN"
+        fi
+        # Look up rpcport from the [main] section of digibyte.conf
+        RPC_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_MAIN" != "" ]; then
+            RPC_PORT="$RPC_PORT_MAIN"
+        else
+            # If mainnet rpcport was not set anywhere else, then set the mainnet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="14022"
+            fi
+        fi
+    fi
+
+    # If we are running TESTNET, get rpc credentials from [test] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        # Look up rpcuser from the [test] section of digibyte.conf
+        RPC_USER_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_TEST" != "" ]; then
+            RPC_USER="$RPC_USER_TEST"
+        fi
+        # Look up rpcpassword from the [test] section of digibyte.conf
+        RPC_PASSWORD_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_TEST" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_TEST"
+        fi
+        # Look up rpcport from the [test] section of digibyte.conf
+        RPC_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_TEST" != "" ]; then
+            RPC_PORT="$RPC_PORT_TEST"
+        else
+            # If testnet rpcport was not set anywhere else, then set the testnet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="14023"
+            else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+    fi
+
+    # If we are running REGTEST, get rpc credentials from [regtest] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        # Look up rpcuser from the [regtest] section of digibyte.conf
+        RPC_USER_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_REGTEST" != "" ]; then
+            RPC_USER="$RPC_USER_REGTEST"
+        fi
+        # Look up rpcpassword from the [regtest] section of digibyte.conf
+        RPC_PASSWORD_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_REGTEST" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_REGTEST"
+        fi
+        # Look up rpcport from the [regtest] section of digibyte.conf
+        RPC_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_REGTEST" != "" ]; then
+            RPC_PORT="$RPC_PORT_REGTEST"
+        else
+            # If regtest rpcport was not set anywhere else, then set the regtest default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="18443"
+            else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+    fi
+
+fi
+
+}
 
 
 
@@ -7786,35 +8403,26 @@ digibyte_check() {
         fi
 
         # Find out which DGB network is running - mainnet or testnet
-        str="Checking which DigiByte chain is running (mainnet or testnet?)..."
+        str="Checking which DigiByte chain is running (mainnet, testnet or regtest?)..."
         printf "%b %s" "${INFO}" "${str}"
 
-        # Query if DigiByte Core is running the testnet or mainnet chain
-        DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-        if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
-            DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_network_query
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
-            DGB_NETWORK_CURRENT="TESTNET"
-            printf "%b%b %s TESTNET\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CHAIN" = "main" ]; then 
-            DGB_NETWORK_CURRENT="MAINNET"
-            printf "%b%b %s MAINNET\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            # Just in case there is no response from digibyte-cli, check digibyte.conf in an emergency
-            if [ -f "$DGB_CONF_FILE" ]; then
-
-                    # Get testnet status from digibyte.conf
-                    if grep -q "testnet=1" $DGB_CONF_FILE; then
-                        DGB_NETWORK_CURRENT="TESTNET"
-                        printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-                    else
-                        DGB_NETWORK_CURRENT="MAINNET"
-                        printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-            fi
-        fi
     fi
 
       # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
@@ -7840,20 +8448,25 @@ digibyte_check() {
             printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If digibyte.conf file already exists, find out whther this installed version is using testnet or not
-        if [ -f "$DGB_CONF_FILE" ]; then
+        # Find out which DGB network is running - mainnet or testnet
+        str="Checking which DigiByte chain is running (mainnet, testnet or regtest?)..."
+        printf "%b %s" "${INFO}" "${str}"
 
-                str="Checking digibyte.conf for which network DigiByte Core is running (mainnet or testnet)?..."
-                printf "%b %s" "${INFO}" "${str}"
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_network_query
 
-                # Get testnet status from digibyte.conf
-                if grep -q "testnet=1" $DGB_CONF_FILE; then
-                    DGB_NETWORK_CURRENT="TESTNET"
-                    printf "%b%b %s TESTNET\\n" "${OVER}" "${TICK}" "${str}"
-                else
-                    DGB_NETWORK_CURRENT="MAINNET"
-                    printf "%b%b %s MAINNET\\n" "${OVER}" "${TICK}" "${str}"
-                fi
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -7983,6 +8596,8 @@ digibyte_check() {
     printf "\\n"
 
 }
+
+
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
 # Note: It does not (re)start the digibyted.service automatically when done
@@ -12176,6 +12791,28 @@ uninstall_do_now() {
 
             fi
 
+            # Only prompt to delete the regtest blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/regtest/indexes" ] || [ -d "$DGB_DATA_LOCATION/regtest/chainstate" ] || [ -d "$DGB_DATA_LOCATION/regtest/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte REGTEST blockchain data?\\n\\nNote: Your regtest wallet will be kept." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
+                        str="Deleting DigiByte Core REGTEST blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/regtest/indexes
+                        rm -rf $DGB_DATA_LOCATION/regtest/chainstate
+                        rm -rf $DGB_DATA_LOCATION/regtest/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                else
+                    printf "%b You chose to keep the existing DigiByte REGTEST blockchain data.\\n" "${INFO}"
+                fi
+
+            fi
+
         else
             printf "%b You chose not to uninstall DigiByte Core.\\n" "${INFO}"
         fi
@@ -13303,12 +13940,13 @@ fi
 
 if [ "$DIGIFACT" = "help2" ]; then
     DIGIFACT_TITLE="Need Help with DigiNode Tools?"
-    DIGIFACT_L1="You can reach out to $SOCIAL_TWITTER_HANDLE on Twitter or"
-    DIGIFACT_L2="$SOCIAL_BLUESKY_URL on Bluesky."
+    DIGIFACT_L1="Please join the DigiNode Tools Telegram group here: "
+    DIGIFACT_L2="$SOCIAL_TELEGRAM_URL"
     DIGIFACT_L3=" "
-    DIGIFACT_L4="You can also join the 'DigiNode Tools' Telegram group here: "
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="$SOCIAL_TELEGRAM_URL"
+    DIGIFACT_L4="You can also contact $SOCIAL_TWITTER_HANDLE on Twitter or"
+    DIGIFACT_L5="$SOCIAL_BLUESKY_HANDLE on Bluesky."
+    DIGIFACT_L6=""
+
 fi
 
 if [ "$DIGIFACT" = "help3" ]; then

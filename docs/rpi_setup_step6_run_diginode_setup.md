@@ -62,7 +62,18 @@ The final step is to setup port forwarding for the DigiNode.
 
 ### Some Useful Commands
 
-If you are new to Linux, you may find these commands useful. You can type each one into the terminal and press return.
+These commands are helpful for managing your DigiNode:
+
+- ```sudo systemctl stop digibyted``` - Stop DigiByte full node.
+- ```sudo systemctl restart digibyted``` - Restart DigiByte full node.
+- ```sudo systemctl stop ipfs``` - Stop IPFS.
+- ```sudo systemctl restart ipfs``` - Restart IPFS.
+- ```pm2 stop digiasset``` - Restart DigiAsset Node.
+- ```pm2 restart digiasset``` - Restart DigiAsset Node.
+- ```tail -n50 -f ~/.digibyte/debug.log``` - View the DigiByte Node log file. (Ctrl-C to Exit)
+- ```pm2 log digiasset --lines 50``` - View the DigiAsset Node log file. (Ctrl-C to Exit)
+
+If you are new to Linux, you may also find these commands useful:
 
 - ```exit``` - disconnect from the Raspberry Pi
 - ```ls``` - view the contents of the current directory
@@ -77,17 +88,6 @@ If you are new to Linux, you may find these commands useful. You can type each o
 - ```sudo apt-get update``` - Check for system updates.
 - ```sudo apt-get upgrade``` - Install system updates.
 - ```sudo raspi-config``` - Launch the 'Raspberry Pi Software Configuration Tool' (use it to configure wifi, overclock the Pi etc.)
-
-These commands are helpful for managing your DigiNode:
-
-- ```sudo systemctl stop digibyted``` - Stop DigiByte full node.
-- ```sudo systemctl restart digibyted``` - Restart DigiByte full node.
-- ```sudo systemctl stop ipfs``` - Stop IPFS.
-- ```sudo systemctl restart ipfs``` - Restart IPFS.
-- ```pm2 stop digiasset``` - Restart DigiAsset Node.
-- ```pm2 restart digiasset``` - Restart DigiAsset Node.
-- ```tail -n50 -f ~/.digibyte/debug.log``` - View the DigiByte Node log file. (Ctrl-C to Exit)
-- ```pm2 log digiasset --lines 50``` - View the DigiAsset Node log file. (Ctrl-C to Exit)
 
 To learn more Linux commands, go [here](https://www.digitalocean.com/community/tutorials/linux-commands).
 

@@ -1,7 +1,13 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.8.7 - 2023-08-xx
-- Fix: Add new sections for [main], [test] and [regtest] to digibyte.conf
+- Fix: Add new sections in digibyte.conf for [main], [test] and [regtest]. These are required in DigiByte v8.
+- Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model
+- Change: Status Monitor 15 second timer now runs every 10 seconds
+- Change: Update Status Monitor so that it can display the correct listening port, maxconnection count and RPC credentials from digibyte.conf depending on which chain we are running, and which section the values are in
+- New: Status Monitor now recognizes a DigiByte Node is regtest mode and displays relevant status information
+- Change: Improve formatting of wallet balance in status monitor
+- New: Add --help section for DigiNode Status Monitor
 
 DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly
