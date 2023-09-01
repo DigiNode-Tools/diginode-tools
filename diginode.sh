@@ -946,7 +946,7 @@ check_dgb_rpc_credentials() {
         # Get RPC credentials
         digibyte_rpc_query
 
-      if [ "$RPC_USER" != "" ] && [ "$RPC_PASSWORD" != "" ] && [ "$RPC_PORT" != "" ]; then
+      if [ "$RPC_USER" != "" ] && [ "$RPC_PASSWORD" != "" ] && [ "$RPC_PORT" != "" ] && [ "$RPC_BIND" != "error" ]; then
         RPC_CREDENTIALS_OK="yes"
         printf "%b DigiByte RPC credentials found: ${TICK} User ${TICK} Password ${TICK} Port\\n\\n" "${TICK}"
       else
@@ -963,13 +963,20 @@ check_dgb_rpc_credentials() {
         else
           printf "${CROSS}"
         fi
-        printf " Password     "
+        printf " Password\\n"
+        printf "                                                  "
         if [ "$RPC_PORT" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
-        printf " Port\\n"
+        printf " Port         "
+        if [ "$RPC_BIND" = "error" ]; then
+          printf "${CROSS}"
+        else
+          printf "${TICK}"
+        fi
+        printf " Bind\n"
         printf "\\n"
 
         # Exit if there a missing RPC credentials and the DigiAsset Node is running
@@ -979,16 +986,26 @@ check_dgb_rpc_credentials() {
             printf "\\n"
             printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
+            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
-            printf "%b Add the following:\\n" "${INDENT}"
+            printf "%b Check that the following is included in the [${DGB_NETWORK_CHAIN}] section:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
-            printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
-            printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
+            if [ "$RPC_USER" = "" ]; then
+                printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PASSWORD" = "" ]; then
+                printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ]; then
+                printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
+            fi
+            if [ "$RPC_BIND" = "error" ]; then
+                printf "%b   rpcbind=127.0.0.1            \\n" "${INDENT}"
+            fi
             printf "\\n"
-            printf "%b IMPORTANT: If you are running a TESTNET node, you must include the\\n" "${INDENT}"
-            printf "%b RPC port in the [test] section of digibyte.conf\\n" "${INDENT}"
+            printf "%b Restart DigiByte Core when you are done: \\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --restartdgb%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit 1
         fi

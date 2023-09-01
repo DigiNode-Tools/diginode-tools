@@ -1474,7 +1474,7 @@ digibyte_create_conf() {
                 printf "\\n"
                 printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
                 printf "\\n"
-                printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
+                printf "%b   diginode --dgbcfg\\n" "${INDENT}"
                 printf "\\n"
                 printf "%b IMPORTANT: If you are running a TESTNET node, you must also include the\\n" "${INDENT}"
                 printf "%b RPC port in the [test] section of digibyte.conf or your DigiByte Node will not run.\\n" "${INDENT}"
@@ -7668,13 +7668,13 @@ fi
 if [ -f "$DGB_CONF_FILE" ]; then
 
         # Update upnp status in settings if it exists and is blank, otherwise append it
-        if grep -q "upnp=1" $DGB_CONF_FILE; then
+        if grep -q "^upnp=1" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
             UPNP_DGB_CURRENT=1
-        elif grep -q "upnp=0" $DGB_CONF_FILE; then
+        elif grep -q "^upnp=0" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
             UPNP_DGB_CURRENT=0
-        elif grep -q "upnp=" $DGB_CONF_FILE; then
+        elif grep -q "^upnp=" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="yes"
         else
             show_dgb_upnp_menu="yes"
@@ -7785,6 +7785,8 @@ fi
             DGB_LISTEN_PORT="$port"   
         fi
     fi
+
+    # banana
 
     # Get current ipfs listen port
 
@@ -8011,15 +8013,19 @@ digibyte_network_query() {
                 if grep -q "^regtest=1" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="REGTEST"
                     DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="regtest"
                 elif grep -q "^signet=1" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="SIGNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="signet"
                 elif grep -q "^testnet=1" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="TESTNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="test"
                 else
                     DGB_NETWORK_CURRENT="MAINNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="main"
                 fi
         fi
     fi
@@ -8172,8 +8178,8 @@ if [ -f "$DGB_CONF_FILE" ]; then
     # Look up rpcport from the global section of digibyte.conf
     RPC_PORT=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcport= | cut -d'=' -f 2)
 
-    # Look up rpcport from the global section of digibyte.conf
-    RPC_PORT=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcport= | cut -d'=' -f 2)
+    # Look up rpcbind from the global section of digibyte.conf
+    RPC_BIND=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcbind= | cut -d'=' -f 2)
 
 
     # If we are running MAINNET, get rpc credentials from [main] section of digibyte.conf, if available
@@ -8197,6 +8203,11 @@ if [ -f "$DGB_CONF_FILE" ]; then
             if [ "$RPC_PORT" = "" ]; then 
                 RPC_PORT="14022"
             fi
+        fi
+        # Look up rpcbind from the [main] section of digibyte.conf
+        RPC_BIND_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_MAIN" != "" ]; then
+            RPC_BIND="$RPC_PASSWORD_MAIN"
         fi
     fi
 
@@ -8224,6 +8235,16 @@ if [ -f "$DGB_CONF_FILE" ]; then
                 RPC_PORT=""
             fi
         fi
+        # Look up rpcbind from the [test] section of digibyte.conf
+        RPC_BIND_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_TEST" != "" ]; then
+            RPC_BIND="$RPC_BIND_TEST"
+        else
+            # If testnet rpcbind was set globally, but it is not in the testset section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
+            fi
+        fi
     fi
 
     # If we are running REGTEST, get rpc credentials from [regtest] section of digibyte.conf, if available
@@ -8248,6 +8269,16 @@ if [ -f "$DGB_CONF_FILE" ]; then
                 RPC_PORT="18443"
             else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
                 RPC_PORT=""
+            fi
+        fi
+        # Look up rpcbind from the [regtest] section of digibyte.conf
+        RPC_BIND_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_REGTEST" != "" ]; then
+            RPC_BIND="$RPC_BIND_REGTEST"
+        else
+            # If testnet rpcbind was set globally, but it is not in the regtest section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
             fi
         fi
     fi
