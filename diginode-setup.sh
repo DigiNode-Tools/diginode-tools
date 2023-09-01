@@ -8207,7 +8207,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         # Look up rpcbind from the [main] section of digibyte.conf
         RPC_BIND_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcbind= | cut -d'=' -f 2)
         if [ "$RPC_BIND_MAIN" != "" ]; then
-            RPC_BIND="$RPC_PASSWORD_MAIN"
+            RPC_BIND="$RPC_BIND_MAIN"
         fi
     fi
 
@@ -8240,7 +8240,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         if [ "$RPC_BIND_TEST" != "" ]; then
             RPC_BIND="$RPC_BIND_TEST"
         else
-            # If testnet rpcbind was set globally, but it is not in the testset section, then report an error (DigiByte won't run without this being set)
+            # If testnet rpcbind was set globally, but it is not set in the testset section, then report an error (DigiByte won't run without this being set)
             if [ "$RPC_BIND" != "" ]; then 
                 RPC_BIND="error"
             fi
