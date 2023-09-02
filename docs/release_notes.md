@@ -8,6 +8,7 @@ DigiNode Tools v0.8.7 - 2023-08-xx
 - New: Status Monitor now recognizes a DigiByte Node is regtest mode and displays relevant status information
 - Change: Improve formatting of wallet balance in status monitor
 - New: Add --help section for DigiNode Status Monitor
+- New: Status Monitor startup checks can now detect if digibyted has failed and display the error
 
 DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly

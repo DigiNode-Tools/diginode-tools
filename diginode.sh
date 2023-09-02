@@ -608,26 +608,65 @@ is_dgbnode_installed() {
         fi
     fi
 
-    # Find out which DGB network is running - mainnet or testnet
-    str="Checking which DigiByte chain is running..."
+    # If digibyed service is failing, then display the error
+    if [ $(systemctl is-active digibyted) = 'failed' ]; then
+
+        local known_dgb_service_error
+        known_dgb_service_error="no"
+
+        IS_CHAIN_CONFIG_VALID=$(digibyted stop 2>&1 | grep -Eo "Invalid combination of -regtest, -signet, -testnet and -chain.")
+        if [ "$IS_CHAIN_CONFIG_VALID" = "Invalid combination of -regtest, -signet, -testnet and -chain." ]; then
+            known_dgb_service_error="yes"
+            printf "\\n"
+            printf "%b %bERROR: Invalid combination of -regtest, -signet, -testnet and -chain.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b Your digibyte.conf file contains an invalid combination -regtest, -signet,\\n" "${INDENT}"
+            printf "%b -testnet and -chain. You can use at most one. For this reason, the DigiByte daemon.\\n" "${INDENT}"
+            printf "%b is unable to start. Please edit your digibyte.conf to fix this:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b Restart DigiByte daemon when done:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --restartdgb%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+            exit
+        fi
+
+        if [ $known_dgb_service_error = "no" ]; then
+            printf "\\n"
+            printf "%b %bERROR: digibyted service has failed due to an unknown reason:%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            exec digibyted stop
+        fi
+
+    fi
+
+    # Find out which DGB network is running - mainnet, testnet, regtest, signet
+    str="Checking current DigiByte chain..."
     printf "%b %s" "${INFO}" "${str}"
 
     # Query if DigiByte Core is running the mainnet, testnet or regtest chain
     digibyte_network_query
 
     if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-        printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s %bTESTNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
     elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-        printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s %bREGTEST%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+        printf "%b%b %s %SIGNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
     elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
         printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
     elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-        printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s %bTESTNET%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
     elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-        printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s %bREGTEST%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+        printf "%b%b %s %SIGNET%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
     elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
         printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+
 
     # Get current listening port
     digibyte_port_query
@@ -698,20 +737,29 @@ is_dgbnode_installed() {
         IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
-            printf "%b %bThe RPC credentials have been changed.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
+            printf "%b %bERROR: Incorrect rpcuser or rpcpassword.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "%b The RPC credentials have been changed. You need to run DigiNode Setup\\n" "${INDENT}"
+            printf "%b and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
+            printf "%b To do this now enter:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode-setup%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit
         fi
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
-            printf "%b %bThe RPC credentials have been changed.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
+            printf "%b %bERROR: Could not connect to the digibyed server.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "%b The RPC credentials have been changed. Try restarting the DigiByte daemon:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --restartdgb%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b If that fails, you need to run DigiNode Setup and choose 'Update' from\\n" "${INDENT}"
+            printf "%b the menu to update your settings. To do this now enter:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode-setup%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit
         fi
@@ -996,8 +1044,14 @@ check_dgb_rpc_credentials() {
             if [ "$RPC_PASSWORD" = "" ]; then
                 printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
             fi
-            if [ "$RPC_PORT" = "" ]; then
-                printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "main" ]; then
+                printf "%b   rpcport=14022# best to leave this as is\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+                printf "%b   rpcport=14023\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then
+                printf "%b   rpcport=18443\\n" "${INDENT}"
             fi
             if [ "$RPC_BIND" = "error" ]; then
                 printf "%b   rpcbind=127.0.0.1            \\n" "${INDENT}"

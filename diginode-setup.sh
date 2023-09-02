@@ -8434,7 +8434,7 @@ digibyte_check() {
         fi
 
         # Find out which DGB network is running - mainnet or testnet
-        str="Checking which DigiByte chain is running (mainnet, testnet or regtest?)..."
+        str="Checking which DigiByte chain is running..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
