@@ -70,7 +70,7 @@ fi
 # Local variables will be in lowercase and will exist only within functions
 
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
-# This can be overridden when needed by the --verboseon or --verboseoff flags.
+# This can be overridden when needed by the --verbose or --verboseoff flags.
 # (Note: The RUN_SETUP condition ensures that the VERBOSE_MODE setting only applies to DigiNode Setup
 # and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
 if [[ "$RUN_SETUP" != "NO" ]] ; then
@@ -177,7 +177,7 @@ for var in "$@"; do
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
         "--skippkgupdate" ) SKIP_PKG_UPDATE_CHECK=true;;
-        "--verboseon" ) VERBOSE_MODE=true;;
+        "--verbose" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
@@ -269,7 +269,7 @@ display_help() {
         printf "%b                   a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
         printf "%b %b--skiposcheck%b   - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--skippkgupdate%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--verboseon%b     - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
@@ -1258,17 +1258,20 @@ if [ -f "$DGB_CONF_FILE" ]; then
     sectionMain="main"
     sectionTest="test"
     sectionRegtest="regtest"
+    sectionRegtest="signet"
 
     # Initialize an associative array to store key-value pairs
     declare -A global_data
     declare -A main_data
     declare -A test_data
     declare -A regtest_data
+    declare -A signet_data
 
     # Set a flag to indicate whether we are inside the desired section
     inside_main_section=false
     inside_test_section=false
     inside_regtest_section=false
+    inside_signet_section=false
 
     # Read the file line by line
     while IFS= read -r line; do
@@ -1279,7 +1282,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         # Check if the line is not empty, does not start with #, and is not a section header
         if [[ ! -z "$line" && "$line" != \#* && ! "$line" =~ ^\[([^]]+)\]$ ]]; then
             # Check if we are inside a section
-            if [[ $inside_main_section == false && $inside_test_section == false && $inside_regtest_section == false ]]; then
+            if [[ $inside_main_section == false && $inside_test_section == false && $inside_regtest_section == false && $inside_signet_section == false ]]; then
                 # Check if the line contains an '=' character
                 if [[ "$line" =~ = ]]; then
                     # Split the line into key and value
@@ -1327,6 +1330,18 @@ if [ -f "$DGB_CONF_FILE" ]; then
                     # Store the key-value pair in the associative array
                     regtest_data["$key"]="$value"
                 fi
+            elif [[ $inside_signet_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    signet_data["$key"]="$value"
+                fi
             fi
         elif [[ "$line" =~ ^\[([^]]+)\]$ ]]; then
             # Check if the section matches the desired section
@@ -1334,18 +1349,27 @@ if [ -f "$DGB_CONF_FILE" ]; then
                 inside_main_section=true
                 inside_test_section=false
                 inside_regtest_section=false
+                inside_signet_section=false
             elif [[ "${BASH_REMATCH[1]}" == "$sectionTest" ]]; then
                 inside_test_section=true
                 inside_main_section=false
                 inside_regtest_section=false
+                inside_signet_section=false
             elif [[ "${BASH_REMATCH[1]}" == "$sectionRegtest" ]]; then
                 inside_regtest_section=true
+                inside_main_section=false
+                inside_test_section=false
+                inside_signet_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionSignet" ]]; then
+                inside_signet_section=true
+                inside_regtest_section=false
                 inside_main_section=false
                 inside_test_section=false
             else
                 inside_main_section=false
                 inside_test_section=false
                 inside_regtest_section=false
+                inside_signet_section=false
             fi
         fi
     done < $DGB_CONF_FILE
@@ -1382,12 +1406,42 @@ if [ -f "$DGB_CONF_FILE" ]; then
     done
     )
 
+    # Print the key-value pairs for Regtest
+    DIGIBYTE_CONFIG_SIGNET=$(
+    echo -e "# Signet Section key value pairs:"
+    for key in "${!signet_data[@]}"; do
+        echo "$key=${signet_data[$key]}"
+    done
+    )
+
 fi
 
 }
 
+# Calculate the recommeded dbcache value based on the system RAM
+set_dbcache_value() {
+
+        # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
+        # Initial sync times are significantly faster with a larger dbcache.
+        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
+            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=2048
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
+            str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=1024
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            set_dbcache=450
+        fi
+
+}
+
+
 # Create digibyte.config file if it does not already exist
-digibyte_create_conf() {
+create_digibyte_conf() {
 
     local str
     local reset_digibyte_conf
@@ -1428,17 +1482,75 @@ digibyte_create_conf() {
     fi
 
 
-    # If the digibyte.conf file already exists, check if it needs upgrading to add [sections]
+    # If the digibyte.conf file already exists, check if it needs upgrading to add [Sections]
     if [ -f "$DGB_CONF_FILE" ]; then
 
-        # Upgrade the existing digibyte.conf with the [main], [test] and [regtest] sections which are new in DigiByte v8
-        # These will be appended to the existing digibyte.conf if they do not exist in it
+        # Upgrade digibyte.conf with the [main], [test], [regtest] and [signet] sections which are new in DigiByte v8
+        # IMPORTANT: These sections must be preceded by a line that starts: # [Sections]
+        # The sections will be automatically appended to the existing digibyte.conf if they do not already exist.
+
+        # Fix [Sections] header if it already exists, in case it has been entered wrong
+        # Make sure it starts with a # and only first letter is capitalized: # [Sections]
+        # Also checks the user has spelt it "sections" and not "section" 
+        if $(grep -q ^"# \[sections\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[sections\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[SECTIONS\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[SECTIONS\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[sections\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[sections\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SECTIONS\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SECTIONS\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[section\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[section\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[SECTION\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[SECTION\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[section\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[section\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SECTION\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SECTION\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [test] to make sure it is not [testnet], [TESTNET] or [TEST]
+        if $(grep -q ^"\[testnet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[testnet\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[TESTNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[TESTNET\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[TEST\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[TEST\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [main] to make sure it is not [mainnet], [mainet], [MAINNET], [MAINET] or [MAIN]
+        if $(grep -q ^"\[mainnet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[mainnet\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[mainet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[mainet\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAINNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAINNET\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAINET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAINET\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAIN\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAIN\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [regtest] to make sure it is not [Regtest] or [REGTEST]
+        if $(grep -q ^"\[Regtest\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[Regtest\]/s|.*|# \[regtest\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[REGTEST\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[REGTEST\]/s|.*|# \[regtest\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [signet] to make sure it is not [Signet] or [SIGNET]
+        if $(grep -q ^"\[Signet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[Signet\]/s|.*|# \[signet\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SIGNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SIGNET\]/s|.*|# \[signet\]|" $DGB_CONF_FILE
+        fi
 
         str="Does digibyte.conf have the required DigiByte v8 sections? ..."
         printf "%b %s" "${INFO}" "${str}"
-        if $(grep -q ^"\[test\]" $DGB_CONF_FILE) && $(grep -q ^"\[main\]" $DGB_CONF_FILE) && $(grep -q ^"\[regtest\]" $DGB_CONF_FILE); then
+        if $(grep -q ^"# \[Sections\]" $DGB_CONF_FILE) && $(grep -q ^"\[test\]" $DGB_CONF_FILE) && $(grep -q ^"\[main\]" $DGB_CONF_FILE) && $(grep -q ^"\[regtest\]" $DGB_CONF_FILE) && $(grep -q ^"\[signet\]" $DGB_CONF_FILE); then
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-        elif $(grep -q ^"\[test\]" $DGB_CONF_FILE) || $(grep -q ^"\[main\]" $DGB_CONF_FILE) || $(grep -q ^"\[regtest\]" $DGB_CONF_FILE); then
+        elif $(grep -q ^"# \[Sections\]" $DGB_CONF_FILE) || $(grep -q ^"\[test\]" $DGB_CONF_FILE) || $(grep -q ^"\[main\]" $DGB_CONF_FILE) || $(grep -q ^"\[regtest\]" $DGB_CONF_FILE) && $(grep -q ^"\[signet\]" $DGB_CONF_FILE); then
             printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
 
             # If we are NOT in unattended mode, ask the user if they want to delete and recreate digibyte.conf, since the script is unable to upgrade it automatically
@@ -1469,19 +1581,45 @@ digibyte_create_conf() {
                 printf "\\n"
                 printf "%b %bERROR: One or more required sections are missing from your digibyte.conf file!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
                 printf "\\n"
-                printf "%b You need to add the missing sections for [main], [test] and [regtest] to your digibyte.conf file.\\n" "${INFO}"
+                printf "%b You need to add the following sections to the bottom of your digibyte.conf file:\\n" "${INFO}"
+                printf "\\n"
+                printf "%b# [Sections]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[main]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[test]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[regtest]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[signet]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
                 printf "%b Please refer to the template here: https://jlopp.github.io/bitcoin-core-config-generator/\\n" "${INDENT}"
                 printf "\\n"
                 printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
                 printf "\\n"
-                printf "%b   diginode --dgbcfg\\n" "${INDENT}"
+                if [ -f $DGNT_MONITOR_SCRIPT ]; then
+                    printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                else
+                    printf "%b   %b$TEXTEDITOR $DGB_CONF_FILE%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                fi
                 printf "\\n"
-                printf "%b IMPORTANT: If you are running a TESTNET node, you must also include the\\n" "${INDENT}"
-                printf "%b RPC port in the [test] section of digibyte.conf or your DigiByte Node will not run.\\n" "${INDENT}"
+                printf "%b IMPORTANT: It is very important that you include the \"# [Sections]\" line exactly as is,\\n" "${INFO}"
+                printf "%b            followed by the [main], [test], [regtest] and [signet] lines in order. This is so\\n" "${INDENT}"
+                printf "%b            that DigiNode Tools can find the values where it expects them. If you are running a\\n" "${INDENT}"
+                printf "%b            TESTNET Node, be sure to set the port= and rpcport= values in the [test] section,\\n" "${INDENT}"
+                printf "%b            or your DigiByte Node will not run.\\n" "${INDENT}"
                 printf "\\n"
                 printf "%b Restart DigiByte Core once you are done:\\n" "${INDENT}"
                 printf "\\n"
-                printf "%b   sudo systemctl restart digibyted\\n" "${INDENT}"
+                if [ -f $DGNT_MONITOR_SCRIPT ]; then
+                    printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                else
+                    if is_command systemctl ; then
+                        printf "%b   %bsudo systemctl restart digibyted%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                    else
+                        printf "%b   %bsudo service digibyted restart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                    fi
+                fi
                 printf "\\n"
                 exit 1
             fi
@@ -1490,13 +1628,66 @@ digibyte_create_conf() {
             printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
             printf "%b digibyte.conf will be upgraded to add support for DigiByte v8 sections...\\n" "${INFO}"
 
-            # Check if the ports are set correctly, and reset them if needed
+            # FIRST REMOVE ANY VARIABLES THAT WE NO LONGER WANT IN THE GLOBAL SECTION
 
-            # banana
+            printf "%b Checking global section of digibyte.conf for unneeded variables...\\n" "${INFO}"
 
-            if [ "$banana" = "sausage" ]; then # temporary skip upgrade
+            # delete any line starting "port=" from main global section of digibyte.org. This will be added in the sections below.
+            if grep -q ^"port=" $DGB_CONF_FILE; then
+                sed -i '/^port=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port=\\n" "${INFO}"
+            fi
+            if grep -q ^"# port=" $DGB_CONF_FILE; then
+                sed -i '/^# port=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # port=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Listen for incoming connections on non-default port." $DGB_CONF_FILE; then
+                sed -i '/^# Listen for incoming connections on non-default port./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port comment 1\\n" "${INFO}"
+            fi
+            if grep -q ^"# Setting the port number here will override the default mainnet or testnet port numbers." $DGB_CONF_FILE; then
+                sed -i '/^# Setting the port number here will override the default mainnet or testnet port numbers./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port comment 2\\n" "${INFO}"
+            fi
 
-            str="Appending [main], [test] and [regtest] sections to digibyte.conf..."
+            # delete any line starting "rpcport=" from main global section of digibyte.org. This will be added to the sections below.
+            if grep -q ^"rpcport=" $DGB_CONF_FILE; then
+                sed -i '/^rpcport=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcport=\\n" "${INFO}"
+            fi
+            if grep -q ^"# rpcport=" $DGB_CONF_FILE; then
+                sed -i '/^# rpcport=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # rpcport=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Listen for JSON-RPC connections on this port." $DGB_CONF_FILE; then
+                sed -i '/^# Listen for JSON-RPC connections on this port./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcport comment\\n" "${INFO}"
+            fi
+
+            # delete any line starting "rpcbind=" from main global section of digibyte.org. This will be added in the sections below.
+            if grep -q ^"rpcbind=" $DGB_CONF_FILE; then
+                sed -i '/^rpcbind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind=\\n" "${INFO}"
+            fi
+            if grep -q ^"# rpcbind=" $DGB_CONF_FILE; then
+                sed -i '/^# rpcbind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # rpcbind=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Bind to given address to listen for JSON-RPC connections." $DGB_CONF_FILE; then
+                sed -i '/^# Bind to given address to listen for JSON-RPC connections./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 1\\n" "${INFO}"
+            fi
+            if grep -q ^"# -rpcallowip is also passed. Port is optional and overrides -rpcport." $DGB_CONF_FILE; then
+                sed -i '/^# -rpcallowip is also passed. Port is optional and overrides -rpcport./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 2\\n" "${INFO}"
+            fi
+            if grep -q ^"# for IPv6. This option can be specified multiple times." $DGB_CONF_FILE; then
+                sed -i '/^# for IPv6. This option can be specified multiple times./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 3\\n" "${INFO}"
+            fi
+
+
+            str="Appending sections to digibyte.conf: # [Sections], [main], [test], [regtest] and [signet] .."
             printf "%b %s" "${INFO}" "${str}"
             cat <<EOF >> $DGB_CONF_FILE
 
@@ -1508,7 +1699,7 @@ digibyte_create_conf() {
 # only apply to mainnet unless they appear in the appropriate section below.
 #
 # WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
-# You must ensure the sections exist in the correct order: [main], [test], [regtest]
+# You must ensure the sections exist in the correct order: [main], [test], [regtest], [signet]
 # This is so the script can find the variables where it expects them
 
 # Options only for mainnet
@@ -1516,52 +1707,64 @@ digibyte_create_conf() {
 
 # Listen for incoming connections on non-default mainnet port. Mainnet default is 12024.
 # Changing the port number here will override the default mainnet port number.
-port=12024
+# port=12024
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
 # -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 rpcbind=127.0.0.1
 
-# Listen for JSON-RPC connections on this port. Mainnet default is 14022.
-rpcport=14022
+# Listen for JSON-RPC mainnet connections on this port. Mainnet default is 14022.
+# rpcport=14022
 
 # Options only for testnet
 [test]
 
 # Listen for incoming connections on non-default testnet port. Testnet default is 12026.
-# Setting the port number here will override the default testnet port numbers.
-port=12026
+# Changing the port number here will override the default testnet port numbers.
+# port=12026
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
 # -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
-rpcbind=127.0.0.1
+# rpcbind=127.0.0.1
 
 # Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
-rpcport=14023
+# rpcport=14023
 
 # Options only for regtest
 [regtest]
 
 # Listen for incoming connections on non-default regtest port. Regtest default is 18444.
-# Setting the port number here will override the default regtest listening port.
-port=18444
+# Changing the port number here will override the default regtest listening port.
+# port=18444
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
 # -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
-rpcbind=127.0.0.1
+# rpcbind=127.0.0.1
 
 # Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
-rpcport=18443
+# rpcport=18443
+
+# Options only for signet
+[signet]
+
+# Listen for incoming connections on non-default signet port. Signet default is 38443.
+# Changing the port number here will override the default signet listening port.
+# port=38443
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC signet connections on this port. Signet default is 19443.
+# rpcport=19443
 
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi    
-
-         fi # temporary skip upgrade banana
-
 
     fi
 
@@ -1574,20 +1777,7 @@ EOF
 
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
-        local set_dbcache
-        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
-            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
-            printf "%b %s" "${INFO}" "${str}"
-            set_dbcache=2048
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
-            str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
-            printf "%b %s" "${INFO}" "${str}"
-            set_dbcache=1024
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            set_dbcache=450
-        fi
+        set_dbcache_value
 
         # generate a random rpc password, if the digibyte.conf file does not exist
  
@@ -1597,27 +1787,33 @@ EOF
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Set the default rpcport
-        local set_rpcport
-        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-            set_rpcport=14023
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-            set_rpcport=14022
-        fi
+#        # Set the default rpcport
+#        local set_rpcport
+#        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+#            set_rpcport=14023
+#        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+#            set_rpcport=14022
+#        elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
+#            set_rpcport=18443
+#        fi
 
         # Set the default testnet rpcport
-        set_rpcport_testnet=14023
+#        set_rpcport_testnet=14023
 
     # If the digibyte.conf file already exists
     elif [ -f "$DGB_CONF_FILE" ]; then
  
 
-        # banana - get variables from global section
-
-        # Import variables from digibyte.conf settings file
+        # Import variables from global section of digibyte.conf
         str="Located digibyte.conf file. Importing..."
         printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
+        scrape_digibyte_conf
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Import variables from global section of digibyte.conf
+        str="Getting digibyte.conf global variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        eval "$DIGIBYTE_CONFIG_GLOBAL"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
@@ -1631,9 +1827,25 @@ EOF
 
     # Set the dgb network values, if we are changing between testnet and mainnet
     if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+        chain=test
         testnet=1
+        regtest=0
+        signet=0
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+        chain=main
         testnet=0
+        regtest=0
+        signet=0
+    elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
+        chain=regtest
+        testnet=0
+        regtest=1
+        signet=0
+    elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ]; then
+        chain=signet
+        testnet=0
+        regtest=0
+        signet=1
     fi
 
     # create .digibyte settings folder if it does not already exist
@@ -1647,226 +1859,481 @@ EOF
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
 
-        printf "%b Checking digibyte.conf settings...\\n" "${INFO}"
+        printf "%b Checking digibyte.conf global settings...\\n" "${INFO}"
         
-        #Update daemon variable in settings if it exists and is blank, otherwise append it
-        if grep -q "daemon=" $DGB_CONF_FILE; then
-            if [ "$daemon" = "" ] || [ "$daemon" = "0" ]; then
+        # Check for daemon=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "daemon=1" $DGB_CONF_FILE; then
+            if grep -q ^"daemon=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: daemon=1"
                 sed -i -e "/^daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            elif grep -q ^"# daemon=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: daemon=1"
+                sed -i -e "/^# daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: daemon=1"
+                sed -i '/# \[Sections\]/ i \
+# Run in the background as a daemon and accept commands. \
+daemon=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: daemon=1"
-            echo "daemon=1" >> $DGB_CONF_FILE
         fi
 
-        #Update dbcache variable in settings file, otherwise append it
-        if grep -q "dbcache=" $DGB_CONF_FILE; then
-            if [ "$dbcache" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
-                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
-            echo "dbcache=$set_dbcache" >> $DGB_CONF_FILE
-        fi
-
-        #Update maxconnections variable in settings file, otherwise append it
-        if grep -q "maxconnections=" $DGB_CONF_FILE; then
-            if [ "$maxconnections" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
-                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
-            echo "maxconnections=$set_maxconnections" >> $DGB_CONF_FILE
-        fi
-
-        #Update listen variable in settings if it exists and is blank, otherwise append it
-        if grep -q "listen=" $DGB_CONF_FILE; then
-            if [ "$listen" = "" ] || [ "$listen" = "0" ]; then
+        # Check for listen=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "listen=1" $DGB_CONF_FILE; then
+            if grep -q ^"listen=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: listen=1"
                 sed -i -e "/^listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            elif grep -q ^"# listen=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: listen=1"
+                sed -i -e "/^# listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: listen=1"
+                sed -i '/# \[Sections\]/ i \
+# Accept incoming connections from peers. Default is 1. \
+listen=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: listen=1"
-            echo "listen=1" >> $DGB_CONF_FILE
         fi
 
-        #Update rpcuser variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcuser=" $DGB_CONF_FILE; then
-            if [ "$rpcuser" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
-                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
-            echo "rpcuser=digibyte" >> $DGB_CONF_FILE
-        fi
-
-        #Update rpcpassword variable in settings if variable exists but is blank, otherwise append it
-        if grep -q "rpcpassword=" $DGB_CONF_FILE; then
-            if [ "$rpcpassword" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
-                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
-            echo "rpcpassword=$set_rpcpassword" >> $DGB_CONF_FILE
-        fi
-
-        #Update server variable in settings if it exists and is blank, otherwise append it
-        if grep -q "server=" $DGB_CONF_FILE; then
-            if [ "$server" = "" ] || [ "$server" = "0" ]; then
+        # Check for server=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "server=1" $DGB_CONF_FILE; then
+            if grep -q ^"# server=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: server=1"
+                sed -i -e "/^# server=/s|.*|server=1|" $DGB_CONF_FILE
+            elif grep -q ^"listen=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: server=1"
                 sed -i -e "/^server=/s|.*|server=1|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: server=1"
-            echo "server=1" >> $DGB_CONF_FILE
-        fi
-
-        #Update rpcport variable in settings if it exists and is blank, otherwise append it. 
-        #The default rpcport varies depending on if we are running mainnet or testnet.
-        if grep -q "rpcport=" $DGB_CONF_FILE; then
-            if grep -q "testnet=1" $DGB_CONF_FILE; then
-                if [ "$rpcport" = "" ]; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
-                fi
             else
-                if [ "$rpcport" = "" ]; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-                fi
+                echo "$INDENT   Appending to digibyte.conf: server=1"
+                sed -i '/# \[Sections\]/ i \
+# Accept command line and JSON-RPC commands. Default is 0. \
+server=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            if grep -q "testnet=1" $DGB_CONF_FILE; then
-                echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                echo "rpcport=14023" >> $DGB_CONF_FILE
+        fi
+
+        # If dbcache value is not already set in global section digibyte.conf, update it
+        if [ "$dbcache" = "" ]; then
+            set_dbcache_value # calculate the recommended dbcache value absed on system RAM
+            if grep -q ^"dbcache=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
+            elif grep -q ^"# dbcache=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^# dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
             else
-                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                echo "rpcport=14022" >> $DGB_CONF_FILE
+                echo "$INDENT   Appending to digibyte.conf: dbache=$set_dbcache"
+                sed -i '/# \[Sections\]/ i \
+# Set database cache size in megabytes; machines sync faster with a larger cache. \
+# Recommend setting as high as possible based upon available RAM. (default: 450) \
+dbcache=$set_dbcache \
+' $DGB_CONF_FILE                
             fi
         fi
 
-        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcbind=" $DGB_CONF_FILE; then
-            if [ "$rpcbind" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
+        # If maxconnections value is not already set in global section of digibyte.conf, update it
+        if [ "$maxconnections" = "" ]; then
+            set_maxconnections=$DGB_SET_MAXCONNECTIONS # Max connections are set from the diginode.settings file
+            if grep -q ^"maxconnections=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            elif grep -q ^"# maxconnections=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_dbcache"
+                sed -i -e "/^# maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i '/# \[Sections\]/ i \
+# Maintain at most N connections to peers. (default: 125) \
+maxconnections=$set_maxconnections \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
         fi
 
-        #Update rpcallowip variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcallowip=" $DGB_CONF_FILE; then
-            if [ "$rpcallowip" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
-                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=127.0.0.1|" $DGB_CONF_FILE
+        # If rpcuser=digibyte variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcuser" = "" ]; then
+            if grep -q ^"rpcuser=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcuser=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^# rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcuser=digibyte"
+                sed -i '/# \[Sections\]/ i \
+# RPC user \
+rpcuser=digibyte \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
-            echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
         fi
 
+        # If rpcpasword=<rpcpassword> variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcpassword" = "" ]; then
+            if grep -q ^"rpcpassword=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcpassword=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^# rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i '/# \[Sections\]/ i \
+# RPC password \
+rpcpassword=$set_rpcpassword \
+' $DGB_CONF_FILE                
+            fi
+        fi
+
+        # If upnp value is commented out, uncomment it
+        if grep -q ^"# upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            elif [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
         # Change upnp status from enabled to disabled
-        if grep -q "upnp=1" $DGB_CONF_FILE; then
+        elif grep -q ^"upnp=1" $DGB_CONF_FILE; then
             if [ "$upnp" = "0" ]; then
                 echo "$INDENT   UPnP will be disabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
-        fi
-
         # Change upnp status from disabled to enabled
-        if grep -q "upnp=0" $DGB_CONF_FILE; then
+        elif grep -q ^"upnp=0" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        # Update upnp status in settings if it exists and is blank, otherwise append it
+        elif grep -q ^"upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
-                DGB_UPNP_STATUS_UPDATED="YES"
-            fi
-        fi
-
-        # Update upnp status in settings if it exists and is blank, otherwise append it
-        if grep -q "upnp=" $DGB_CONF_FILE; then
-            if [ "$upnp" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+            elif [ "$upnp" = "0" ]; then
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
             fi
         else
-            echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-            echo "upnp=$upnp" >> $DGB_CONF_FILE
-        fi
+            echo "$INDENT   Appending to digibyte.conf: upnp=$upnp"
+            sed -i '/# \[Sections\]/ i \
+# Use UPnP to map the listening port. \
+upnp=$upnp \
+' $DGB_CONF_FILE                
+            fi    
 
-        # Change dgb network from TESTNET to MAINNET
-        if grep -q "testnet=1" $DGB_CONF_FILE; then
-            if [ "$testnet" = "0" ]; then
-                echo "$INDENT   Changing DigiByte Core network from TESTNET to MAINNET"
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-                DGB_NETWORK_IS_CHANGED="YES"
-                # Change rpcport to mainnet default, if it is using testnet default
-                if grep -q "rpcport=14023" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-                fi
-                # Change listening port to mainnet default, if it is using testnet default
-                if grep -q "port=12026" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: port=12024"
-                    sed -i -e "/^port=/s|.*|port=12024|" $DGB_CONF_FILE
-                fi
+        # If rpcallowip= variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcallowip" = "" ]; then
+            if grep -q ^"rpcallowip=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=digibyte|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcallowip=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^# rpcallowip=/s|.*|rpcallowip=digibyte|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i '/# \[Sections\]/ i \
+# Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4), \
+# a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option \
+# can be specified multiple times. \
+rpcallowip=127.0.0.1 \
+' $DGB_CONF_FILE                
             fi
-        fi
+        fi    
 
-        # Change dgb network from MAINNET to TESTNET
-        if grep -q "testnet=0" $DGB_CONF_FILE; then
-            if [ "$testnet" = "1" ]; then
-                echo "$INDENT   Changing DigiByte Core network from MAINNET to TESTNET"
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-                DGB_NETWORK_IS_CHANGED="YES"
-                # Change rpcport to testnet default, if it is using mainnet default
-                if grep -q "rpcport=14022" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
-                fi
-                # Change listening port to testnet default, if it is using mainnet default
-                if grep -q "port=12024" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: port=12026"
-                    sed -i -e "/^port=/s|.*|port=12026|" $DGB_CONF_FILE
-                fi
+################## UPdate values below here banana
+
+### WORKING AREA:
+
+        # If chain= value is commented out, uncomment it
+        if grep -q ^"# chain=" $DGB_CONF_FILE; then
+            echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+            echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
+            sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
+            DGB_NETWORK_IS_CHANGED="YES"
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b Verbose Mode: # chain= was uncommented.\\n" "${WARN}"
             fi
-        fi
 
-        # Update dgb network in settings if it exists and is blank, otherwise append it
-        if grep -q "testnet=" $DGB_CONF_FILE; then
-            if [ "$testnet" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+        # Change chain= value is incorrect, update it
+        elif ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+            echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+            echo "$INDENT   Updating digibyte.conf: chain=$chain"
+            sed -i -e "/^chain=/s|.*|upnp=$chain|" $DGB_CONF_FILE
+            DGB_NETWORK_IS_CHANGED="YES"
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${WARN}"
             fi
         else
-            echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-            echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
-            echo "" >> $DGB_CONF_FILE
-            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
-            echo "testnet=$testnet" >> $DGB_CONF_FILE
-            if [ "$testnet" = "1" ]; then
+            echo "$INDENT   Appending to digibyte.conf: chain=$chain"
+            sed -i '/# \[Sections\]/ i \
+# Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
+chain=$chain \
+' $DGB_CONF_FILE                
+            fi 
+
+        # If testnet variable already exists in digibyte.conf change it to testnet=1, if needed
+        if [ "$testnet" = "1" ]; then
+            if grep -q ^"testnet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: testnet=1"
+                sed -i -e "/^testnet=0/s|.*|testnet=1|" $DGB_CONF_FILE  
+                DGB_NETWORK_IS_CHANGED="YES"     
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: testnet=0 was changed to testnet=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"testnet=" $DGB_CONF_FILE && ! grep -q ^"testnet=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: testnet=1"
+                sed -i -e "/^testnet=/s|.*|testnet=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"      
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: testnet= was changed to testnet=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"# testnet=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: testnet=1"
+                sed -i -e "/^# testnet=/s|.*|testnet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: # testnet=x was changed to testnet=1 (uncommented).\\n" "${WARN}"
+                fi
+            fi
+        # If testnet variable already exists in digibyte.conf change it to testnet=0, if needed
+        elif [ "$testnet" = "0" ]; then
+            if grep -q ^"testnet=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # testnet=1"
+                sed -i -e "/^testnet=1/s|.*|# testnet=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: testnet=1 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"testnet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # testnet=1"
+                sed -i -e "/^testnet=0/s|.*|# testnet=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: testnet=0 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"testnet=" $DGB_CONF_FILE && ! grep -q ^"testnet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # testnet=1"
+                sed -i -e "/^testnet=/s|.*|# testnet=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: testnet= was commented out.\\n" "${WARN}"
+                fi
             fi
         fi
 
-        # Re-import variables from digibyte.conf in case they have changed
-        str="Reimporting digibyte.conf values, as they may have changed..."
-        printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # If regtest variable already exists in digibyte.conf change it to regtest=1, if needed
+        if [ "$regtest" = "1" ]; then
+            if grep -q ^"regtest=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: regtest=1"
+                sed -i -e "/^regtest=0/s|.*|regtest=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"       
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: regtest=0 was changed to regtest=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"regtest=" $DGB_CONF_FILE && ! grep -q ^"regtest=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: regtest=1"
+                sed -i -e "/^regtest=/s|.*|regtest=1|" $DGB_CONF_FILE 
+                DGB_NETWORK_IS_CHANGED="YES"     
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: regtest= was changed to regtest=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"# regtest=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: regtest=1"
+                sed -i -e "/^# regtest=/s|.*|regtest=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: # regtest= was changed to regtest=1 (uncommented).\\n" "${WARN}"
+                fi
+            fi
+        # If regtest variable already exists in digibyte.conf change it to regtest=0, if needed
+        elif [ "$regtest" = "0" ]; then
+            if grep -q ^"regtest=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # regtest=1"
+                sed -i -e "/^regtest=1/s|.*|# regtest=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: regtest=1 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"regtest=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # regtest=1"
+                sed -i -e "/^regtest=0/s|.*|# regtest=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: regtest=0 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"regtest=" $DGB_CONF_FILE && ! grep -q ^"regtest=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # regtest=1"
+                sed -i -e "/^regtest=/s|.*|# regtest=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: regtest= was commented out.\\n" "${WARN}"
+                fi
+            fi
+        fi
 
-        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
+        # If signet variable already exists in digibyte.conf change it to signet=1, if needed
+        if [ "$signet" = "1" ]; then
+            if grep -q ^"signet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: signet=1"
+                sed -i -e "/^signet=0/s|.*|signet=1|" $DGB_CONF_FILE  
+                DGB_NETWORK_IS_CHANGED="YES"     
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: signet=0 was changed to signet=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"signet=" $DGB_CONF_FILE && ! grep -q ^"signet=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: signet=1"
+                sed -i -e "/^signet=/s|.*|signet=1|" $DGB_CONF_FILE  
+                DGB_NETWORK_IS_CHANGED="YES"    
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: signet= was changed to signet=1.\\n" "${WARN}"
+                fi
+            elif grep -q ^"# signet=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: signet=1"
+                sed -i -e "/^# signet=/s|.*|signet=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: # signet= was changed to signet=1 (uncommented).\\n" "${WARN}"
+                fi
+            fi
+        # If signet variable already exists in digibyte.conf change it to signet=0, if needed
+        elif [ "$signet" = "0" ]; then
+            if grep -q ^"signet=1" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # signet=1"
+                sed -i -e "/^signet=1/s|.*|# signet=1|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: signet=1 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"signet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # signet=1"
+                sed -i -e "/^signet=0/s|.*|# signet=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: signet=0 was commented out.\\n" "${WARN}"
+                fi
+            elif grep -q ^"signet=" $DGB_CONF_FILE && ! grep -q ^"signet=0" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: # signet=1"
+                sed -i -e "/^signet=/s|.*|# signet=1|" $DGB_CONF_FILE
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: signet= was commented out.\\n" "${WARN}"
+                fi
+            fi
+        fi
+
+
+
+
+
+# banana
+
+#########################
+
+       # Change dgb network from TESTNET to MAINNET
+ #       if grep -q "testnet=1" $DGB_CONF_FILE; then
+ #           if [ "$testnet" = "0" ]; then
+#                echo "$INDENT   Changing DigiByte Core network from TESTNET to MAINNET"
+#                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+#                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+#                DGB_NETWORK_IS_CHANGED="YES"
+#                # Change rpcport to mainnet default, if it is using testnet default
+#                if grep -q "rpcport=14023" $DGB_CONF_FILE; then
+#                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+#                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+#                fi
+#                # Change listening port to mainnet default, if it is using testnet default
+#                if grep -q "port=12026" $DGB_CONF_FILE; then
+#                    echo "$INDENT   Updating digibyte.conf: port=12024"
+#                    sed -i -e "/^port=/s|.*|port=12024|" $DGB_CONF_FILE
+#                fi
+#            fi
+#        fi
+
+        # Change dgb network from MAINNET to TESTNET
+ #       if grep -q "testnet=0" $DGB_CONF_FILE; then
+ #           if [ "$testnet" = "1" ]; then
+ #               echo "$INDENT   Changing DigiByte Core network from MAINNET to TESTNET"
+ #               echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+ #               sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+ #               DGB_NETWORK_IS_CHANGED="YES"
+ #               # Change rpcport to testnet default, if it is using mainnet default
+ #               if grep -q "rpcport=14022" $DGB_CONF_FILE; then
+ #                   echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+ #                   sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
+ #               fi
+                # Change listening port to testnet default, if it is using mainnet default
+ #               if grep -q "port=12024" $DGB_CONF_FILE; then
+ #                   echo "$INDENT   Updating digibyte.conf: port=12026"
+ #                   sed -i -e "/^port=/s|.*|port=12026|" $DGB_CONF_FILE
+ #               fi
+ #           fi
+ #       fi
+
+        # Update dgb network in settings if it exists and is blank, otherwise append it
+ #       if grep -q "testnet=" $DGB_CONF_FILE; then
+ #           if [ "$testnet" = "" ]; then
+ #               echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+ #               sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
+ #           fi
+ #       else
+ #           echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
+ #           echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
+ #           echo "" >> $DGB_CONF_FILE
+ #           echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
+#            echo "testnet=$testnet" >> $DGB_CONF_FILE
+#            if [ "$testnet" = "1" ]; then
+#                DGB_NETWORK_IS_CHANGED="YES"
+#            fi
+#        fi
+
+
+        #Update rpcport variable in settings if it exists and is blank, otherwise append it. 
+        #The default rpcport varies depending on if we are running mainnet or testnet.
+#        if grep -q "rpcport=" $DGB_CONF_FILE; then
+#            if grep -q "testnet=1" $DGB_CONF_FILE; then
+#                if [ "$rpcport" = "" ]; then
+#                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+#                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
+#                fi
+#            else
+#                if [ "$rpcport" = "" ]; then
+#                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+#                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
+#                fi
+#            fi
+#        else
+#            if grep -q "testnet=1" $DGB_CONF_FILE; then
+#                echo "$INDENT   Updating digibyte.conf: rpcport=14023"
+#                echo "rpcport=14023" >> $DGB_CONF_FILE
+#            else
+#                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
+#                echo "rpcport=14022" >> $DGB_CONF_FILE
+#            fi
+#        fi
+
+        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
+#        if grep -q "rpcbind=" $DGB_CONF_FILE; then
+#            if [ "$rpcbind" = "" ]; then
+#                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+#                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
+#            fi
+#        else
+#            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
+#            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
+#        fi
+
+
+ 
+
+#        # Re-import variables from digibyte.conf in case they have changed
+#        str="Reimporting digibyte.conf values, as they may have changed..."
+#        printf "%b %s" "${INFO}" "${str}"
+#        source $DGB_CONF_FILE
+#        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#
+#        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
 
     else
@@ -1882,19 +2349,29 @@ EOF
 # This template is based on the Bitcoin Core Config Generator by Jameson Lopp
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
-# [chain]
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)
-testnet=$testnet
 
-# Run this node on its own independent test network. Equivalent to -chain=regtest
+# [chain]
+
+# Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main)
+chain=$chain
+
+# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 1 to enable, 0 to disable. (Default: 0)
+# testnet=1
+
+# Run this node on its own independent test network. Equivalent to -chain=regtest.  Set 1 to enable, 0 to disable. (Default: 0)
 # regtest=1
+
+# Use the signet chain. Equivalent to -chain=signet. Set 1 to enable, 0 to disable. (Default: 0)
+# Note that the network is defined by the -signetchallenge parameter.
+# signet=1
+
 
 # [core]
 # Run in the background as a daemon and accept commands.
 daemon=1
 
 # Set database cache size in megabytes; machines sync faster with a larger cache.
-# Recommend setting as high as possible based upon machine's available RAM. (default: 450)
+# Recommend setting as high as possible based upon available RAM. (default: 450)
 dbcache=$set_dbcache
 
 # Reduce storage requirements by only storing most recent N MiB of block. This mode is 
@@ -1927,7 +2404,7 @@ maxuploadtarget=0
 # Useful for a gateway node.
 whitelist=127.0.0.1
 
-# Accept incoming connections from peers.
+# Accept incoming connections from peers. Default is 1.
 listen=1
 
 # Use UPnP to map the listening port.
@@ -1941,7 +2418,7 @@ rpcuser=digibyte
 # RPC password
 rpcpassword=$set_rpcpassword
 
-# Accept command line and JSON-RPC commands.
+# Accept command line and JSON-RPC commands. Default is 0.
 server=1
 
 # Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
@@ -1962,7 +2439,7 @@ disablewallet=0
 # only apply to mainnet unless they appear in the appropriate section below.
 #
 # WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
-# You must ensure the sections exist in the correct order: [main], [test], [regtest]
+# You must ensure the sections exist in the correct order: [main], [test], [regtest], [signet]
 # This is so the script can find the variables where it expects them
 
 # Options only for mainnet
@@ -1984,7 +2461,7 @@ rpcbind=127.0.0.1
 [test]
 
 # Listen for incoming connections on non-default testnet port. Testnet default is 12026.
-# Setting the port number here will override the default testnet port numbers.
+# Changing the port number here will override the default testnet port numbers.
 # port=12026
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
@@ -1999,7 +2476,7 @@ rpcbind=127.0.0.1
 [regtest]
 
 # Listen for incoming connections on non-default regtest port. Regtest default is 18444.
-# Setting the port number here will override the default regtest listening port.
+# Changing the port number here will override the default regtest listening port.
 # port=18444
 
 # Bind to given address to listen for JSON-RPC connections. This option is ignored unless
@@ -2009,6 +2486,21 @@ rpcbind=127.0.0.1
 
 # Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
 # rpcport=18443
+
+# Options only for signet
+[signet]
+
+# Listen for incoming connections on non-default signet port. Signet default is 38443.
+# Changing the port number here will override the default signet listening port.
+# port=38443
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Signet default is 19443.
+# rpcport=19443
 
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -2522,12 +3014,15 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter including the following information\\n" "${INDENT}"
-        printf "%b so that support for it can be added:\\n" "${INDENT}"
+        printf "%b Please share the information below in the DigiNode Tools Telegram group so that\\n" "${INDENT}"
+        printf "%b support for your Raspberry Pi can be added:\\n" "${INDENT}"
         printf "\\n"
         printf "%b Model: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Memory: %b$MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b You can find the DigiNode Tools Telegram Group here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact $SOCIAL_TWITTER_HANDLE on Twitter or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -6497,7 +6992,7 @@ change_upnp_status() {
     menu_ask_upnp
 
     # Update digibyte.conf
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Restart DigiByte daemon if upnp status has changed
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
@@ -6594,7 +7089,7 @@ change_dgb_network() {
     menu_ask_dgb_network
 
     # Update digibyte.conf
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Restart DigiByte daemon if dgb network has changed
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
@@ -7579,6 +8074,11 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             DGB_NETWORK_FINAL="MAINNET"
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             DGB_NETWORK_FINAL="TESTNET"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_NETWORK_FINAL="REGTEST"
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_NETWORK_FINAL="SIGNET"
+
         fi
 
     fi
@@ -7987,7 +8487,7 @@ fi
 # This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
-digibyte_network_query() {
+digibyte_chain_query() {
     DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
     if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
         DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
@@ -8010,18 +8510,22 @@ digibyte_network_query() {
         if [ -f "$DGB_CONF_FILE" ]; then
 
                 # Get network chain status from digibyte.conf
-                if grep -q "^regtest=1" $DGB_CONF_FILE; then
+                if grep -q "^regtest=1" $DGB_CONF_FILE || grep -q "^chain=regtest" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="REGTEST"
                     DGB_NETWORK_CURRENT_LIVE="NO"
                     DGB_NETWORK_CHAIN="regtest"
-                elif grep -q "^signet=1" $DGB_CONF_FILE; then
+                elif grep -q "^signet=1" $DGB_CONF_FILE || grep -q "^chain=signet" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="SIGNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
                     DGB_NETWORK_CHAIN="signet"
-                elif grep -q "^testnet=1" $DGB_CONF_FILE; then
+                elif grep -q "^testnet=1" $DGB_CONF_FILE || grep -q "^chain=test" $DGB_CONF_FILE; then
                     DGB_NETWORK_CURRENT="TESTNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
                     DGB_NETWORK_CHAIN="test"
+                elif grep -q "^chain=main" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="MAINNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="main"
                 else
                     DGB_NETWORK_CURRENT="MAINNET"
                     DGB_NETWORK_CURRENT_LIVE="NO"
@@ -8053,7 +8557,7 @@ digibyte_port_query() {
 
         # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
         if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-            digibyte_network_query
+            digibyte_chain_query
         fi
 
         DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
@@ -8066,6 +8570,9 @@ digibyte_port_query() {
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
             DGB_LISTEN_PORT="18444"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="38443"
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         else
             DGB_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
@@ -8096,6 +8603,14 @@ digibyte_port_query() {
             fi
         fi
 
+        # If we are running signet, get current listening port from [signet] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_LISTEN_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_SIGNET" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_SIGNET"
+            fi
+        fi
+
     fi
 
 }
@@ -8114,7 +8629,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
 
     # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
     if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-        digibyte_network_query
+        digibyte_chain_query
     fi
 
     # Look maxconnections from the global section of digibyte.conf and set default of 125 if not found
@@ -8149,6 +8664,14 @@ if [ -f "$DGB_CONF_FILE" ]; then
         fi
     fi
 
+    # If we are running signet, get maxconnections value from [signet] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        DGB_MAXCONNECTIONS_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_SIGNET" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_SIGNET"
+        fi
+    fi
+
 fi
 
 }
@@ -8166,7 +8689,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
 
     # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
     if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-        digibyte_network_query
+        digibyte_chain_query
     fi
 
     # Look up rpcuser from the global section of digibyte.conf
@@ -8267,7 +8790,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
             # If regtest rpcport was not set anywhere else, then set the regtest default
             if [ "$RPC_PORT" = "" ]; then 
                 RPC_PORT="18443"
-            else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
+            else # If it was already set in the global section, but not in the [regtest] section, then remove it as it won't work
                 RPC_PORT=""
             fi
         fi
@@ -8276,7 +8799,43 @@ if [ -f "$DGB_CONF_FILE" ]; then
         if [ "$RPC_BIND_REGTEST" != "" ]; then
             RPC_BIND="$RPC_BIND_REGTEST"
         else
-            # If testnet rpcbind was set globally, but it is not in the regtest section, then report an error (DigiByte won't run without this being set)
+            # If regtest rpcbind was set globally, but it is not in the [regtest] section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
+            fi
+        fi
+    fi
+
+    # If we are running SIGNET, get rpc credentials from [signet] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        # Look up rpcuser from the [signet] section of digibyte.conf
+        RPC_USER_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_SIGNET" != "" ]; then
+            RPC_USER="$RPC_USER_SIGNET"
+        fi
+        # Look up rpcpassword from the [signet] section of digibyte.conf
+        RPC_PASSWORD_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_SIGNET" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_SIGNET"
+        fi
+        # Look up rpcport from the [signet] section of digibyte.conf
+        RPC_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_SIGNET" != "" ]; then
+            RPC_PORT="$RPC_PORT_SIGNET"
+        else
+            # If signet rpcport was not set anywhere else, then set the signet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="19443"
+            else # If it was already set in the global section, but not in the [signet] section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+        # Look up rpcbind from the [signet] section of digibyte.conf
+        RPC_BIND_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_SIGNET" != "" ]; then
+            RPC_BIND="$RPC_BIND_SIGNET"
+        else
+            # If signet rpcbind was set globally, but it is not set in the [signet] section, then report an error (DigiByte won't run without this being set)
             if [ "$RPC_BIND" != "" ]; then 
                 RPC_BIND="error"
             fi
@@ -8438,7 +8997,7 @@ digibyte_check() {
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        digibyte_network_query
+        digibyte_chain_query
 
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
             printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
@@ -8484,7 +9043,7 @@ digibyte_check() {
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        digibyte_network_query
+        digibyte_chain_query
 
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
             printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
@@ -13661,10 +14220,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact50" ]; then
     DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-    DIGIFACT_L1="DigiByte Faucet is a useful website where anyone can get some"
-    DIGIFACT_L2="free DGB and experience this amazing technology first hand."
-    DIGIFACT_L3="For developers, they also provide a testnet faucet."
-    DIGIFACT_L4="Tell your friends."
+    DIGIFACT_L1="The DigiByte Faucet by Renzo Diaz gives you an easy way"
+    DIGIFACT_L2="to get some free DGB. It's a great way for DigiByte"
+    DIGIFACT_L3="newcomers to experience this amazing technology first hand."
+    DIGIFACT_L4="For developers, there is also a testnet faucet."
     DIGIFACT_L5=""
     DIGIFACT_L6="https://www.digifaucet.org/"
 fi
@@ -13950,13 +14509,13 @@ if [ "$DIGIFACT" = "social1" ]; then
 fi
 
 if [ "$DIGIFACT" = "social2" ]; then
-    DIGIFACT_TITLE="Join the DigiByte Community on Discord!"
-    DIGIFACT_L1="Have you joined the DigiByte Community on Discord yet?"
-    DIGIFACT_L2=" "
-    DIGIFACT_L3="Join here: https://dsc.gg/digibytediscord"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
+    DIGIFACT_TITLE="Join the DigiByte Discord Server!"
+    DIGIFACT_L1="Everyone in in the DigiByte community is strongly encouraged"
+    DIGIFACT_L2="to join the DigiByte Discord server. This is where you will"
+    DIGIFACT_L3="find the most active members of the community, and is great"
+    DIGIFACT_L4="way to get more involved with DigiByte and find ways to help."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="Join here: https://dsc.gg/digibytediscord"
 fi
 
 if [ "$DIGIFACT" = "help1" ]; then
@@ -14784,7 +15343,7 @@ install_or_upgrade() {
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create/update digibyte.conf file
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Install/upgrade DigiByte Core
     digibyte_do_install
@@ -14925,7 +15484,7 @@ add_digibyte_node() {
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create/update digibyte.conf file
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Install/upgrade DigiByte Core
     digibyte_do_install

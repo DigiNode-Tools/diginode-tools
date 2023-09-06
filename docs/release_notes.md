@@ -1,14 +1,17 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.7 - 2023-08-xx
-- Fix: Add new sections in digibyte.conf for [main], [test] and [regtest]. These are required in DigiByte v8.
-- Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model
-- Change: Status Monitor 15 second timer now runs every 10 seconds
-- Change: Update Status Monitor so that it can display the correct listening port, maxconnection count and RPC credentials from digibyte.conf depending on which chain we are running, and which section the values are in
-- New: Status Monitor now recognizes a DigiByte Node is regtest mode and displays relevant status information
-- Change: Improve formatting of wallet balance in status monitor
-- New: Add --help section for DigiNode Status Monitor
-- New: Status Monitor startup checks can now detect if digibyted has failed and display the error
+DigiNode Tools v0.8.7 - 2023-09-xx
+- New: Add new sections in digibyte.conf for [main], [test], [regtest] and [signet]. These are required in DigiByte v8.
+- New: DigiNode Setup can now automatically upgrade an existing digibyte.conf to add any missing sections and/or required variables. If it is unable to do it automatically, it instructs the user how to do this manually. The user has the option to simply delete their existing digibyte.conf, and have the script recreate based on the new template.
+- New: Status Monitor now recognizes if a DigiByte Node is is running a regtest or signet chain and displays relevant status information.
+- New: Upgrade Status Monitor so that it can display the correct listening port, maxconnection count and RPC credentials from digibyte.conf depending on which chain we are running, and which section of digibyte.conf the values are in.
+- New: Status Monitor startup checks can now detect if digibyted has failed and display the error.
+- New: Add --help to DigiNode Status Monitor. To view a list of the optional flags, enter: diginode --help
+- New: Status Monitor now displays the listening port and upnp status. It disappears once it knows that the port is being forwarded correctly.
+- Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model.
+- Fix: Misalligned column in Status Monitor when swap size is double figures.
+- Change: Status Monitor 15 second timer now runs every 10 seconds.
+- Change: Improve formatting of wallet balance in status monitor.
 
 DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly
