@@ -1923,10 +1923,10 @@ server=1 \
                 sed -i -e "/^# dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: dbache=$set_dbcache"
-                sed -i "/# \[Sections\]/ i \
-# Set database cache size in megabytes; machines sync faster with a larger cache. \
-# Recommend setting as high as possible based upon available RAM. (default: 450) \
-dbcache=$set_dbcache \
+                sed -i "/# \[Sections\]/ i \\
+# Set database cache size in megabytes; machines sync faster with a larger cache. \\
+# Recommend setting as high as possible based upon available RAM. (default: 450) \\
+dbcache=$set_dbcache \\
 " $DGB_CONF_FILE                
             fi
         fi
@@ -1942,9 +1942,9 @@ dbcache=$set_dbcache \
                 sed -i -e "/^# maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: maxconnections=$set_maxconnections"
-                sed -i "/# \[Sections\]/ i \
-# Maintain at most N connections to peers. (default: 125) \
-maxconnections=$set_maxconnections \
+                sed -i "/# \[Sections\]/ i \\
+# Maintain at most N connections to peers. (default: 125) \\
+maxconnections=$set_maxconnections \\
 " $DGB_CONF_FILE                
             fi
         fi
@@ -1976,9 +1976,9 @@ rpcuser=digibyte \
                 sed -i -e "/^# rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: rpcpassword=$set_rpcpassword"
-                sed -i "/# \[Sections\]/ i \
-# RPC password \
-rpcpassword=$set_rpcpassword \
+                sed -i "/# \[Sections\]/ i \\
+# RPC password \\
+rpcpassword=$set_rpcpassword \\
 " $DGB_CONF_FILE                
             fi
         fi
@@ -2023,9 +2023,9 @@ rpcpassword=$set_rpcpassword \
             fi
         else
             echo "$INDENT   Appending to digibyte.conf: upnp=$upnp"
-            sed -i "/# \[Sections\]/ i \
-# Use UPnP to map the listening port. \
-upnp=$upnp \
+            sed -i "/# \[Sections\]/ i \\
+# Use UPnP to map the listening port. \\
+upnp=$upnp \\
 " $DGB_CONF_FILE                
             fi    
 
@@ -2116,113 +2116,6 @@ chain=$chain \\
             echo "$INDENT   Updating digibyte.conf: # signet=1  [ Changed ]"  
             sed -i -e "/^# signet=/s|.*|# signet=1|" $DGB_CONF_FILE
         fi
-
-################## UPdate values below here banana
-
-### WORKING AREA:
-
-
-
-
-
-
-
-# banana
-
-#########################
-
-       # Change dgb network from TESTNET to MAINNET
- #       if grep -q "testnet=1" $DGB_CONF_FILE; then
- #           if [ "$testnet" = "0" ]; then
-#                echo "$INDENT   Changing DigiByte Core network from TESTNET to MAINNET"
-#                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-#                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-#                DGB_NETWORK_IS_CHANGED="YES"
-#                # Change rpcport to mainnet default, if it is using testnet default
-#                if grep -q "rpcport=14023" $DGB_CONF_FILE; then
-#                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-#                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-#                fi
-#                # Change listening port to mainnet default, if it is using testnet default
-#                if grep -q "port=12026" $DGB_CONF_FILE; then
-#                    echo "$INDENT   Updating digibyte.conf: port=12024"
-#                    sed -i -e "/^port=/s|.*|port=12024|" $DGB_CONF_FILE
-#                fi
-#            fi
-#        fi
-
-        # Change dgb network from MAINNET to TESTNET
- #       if grep -q "testnet=0" $DGB_CONF_FILE; then
- #           if [ "$testnet" = "1" ]; then
- #               echo "$INDENT   Changing DigiByte Core network from MAINNET to TESTNET"
- #               echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
- #               sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
- #               DGB_NETWORK_IS_CHANGED="YES"
- #               # Change rpcport to testnet default, if it is using mainnet default
- #               if grep -q "rpcport=14022" $DGB_CONF_FILE; then
- #                   echo "$INDENT   Updating digibyte.conf: rpcport=14023"
- #                   sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
- #               fi
-                # Change listening port to testnet default, if it is using mainnet default
- #               if grep -q "port=12024" $DGB_CONF_FILE; then
- #                   echo "$INDENT   Updating digibyte.conf: port=12026"
- #                   sed -i -e "/^port=/s|.*|port=12026|" $DGB_CONF_FILE
- #               fi
- #           fi
- #       fi
-
-        # Update dgb network in settings if it exists and is blank, otherwise append it
- #       if grep -q "testnet=" $DGB_CONF_FILE; then
- #           if [ "$testnet" = "" ]; then
- #               echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
- #               sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
- #           fi
- #       else
- #           echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
- #           echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
- #           echo "" >> $DGB_CONF_FILE
- #           echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
-#            echo "testnet=$testnet" >> $DGB_CONF_FILE
-#            if [ "$testnet" = "1" ]; then
-#                DGB_NETWORK_IS_CHANGED="YES"
-#            fi
-#        fi
-
-
-        #Update rpcport variable in settings if it exists and is blank, otherwise append it. 
-        #The default rpcport varies depending on if we are running mainnet or testnet.
-#        if grep -q "rpcport=" $DGB_CONF_FILE; then
-#            if grep -q "testnet=1" $DGB_CONF_FILE; then
-#                if [ "$rpcport" = "" ]; then
-#                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-#                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
-#                fi
-#            else
-#                if [ "$rpcport" = "" ]; then
-#                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-#                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-#                fi
-#            fi
-#        else
-#            if grep -q "testnet=1" $DGB_CONF_FILE; then
-#                echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-#                echo "rpcport=14023" >> $DGB_CONF_FILE
-#            else
-#                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-#                echo "rpcport=14022" >> $DGB_CONF_FILE
-#            fi
-#        fi
-
-        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
-#        if grep -q "rpcbind=" $DGB_CONF_FILE; then
-#            if [ "$rpcbind" = "" ]; then
-#                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-#                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
-#            fi
-#        else
-#            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-#            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
-#        fi
 
 
         printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
