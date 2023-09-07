@@ -2044,39 +2044,43 @@ upnp=$upnp \
 # a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option \
 # can be specified multiple times. \
 rpcallowip=127.0.0.1 \
-' $DGB_CONF_FILE                
+' $DGB_CONF_FILE        
             fi
         fi    
 
         # SET THE CORRECT DIGIBYTE CHAIN
 
-        # If chain= declaration is commented out, uncomment it, and set it to the correct chain
-        if grep -q ^"# chain=" $DGB_CONF_FILE; then
-            echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
-            echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
-            sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
-            DGB_NETWORK_IS_CHANGED="YES"
-            if [ $VERBOSE_MODE = true ]; then
-                printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
-            fi
+        if ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
 
-        # Change chain= declaration exists, but is not set to the correct chain, update it
-        elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
-            echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
-            echo "$INDENT   Updating digibyte.conf: chain=$chain"
-            sed -i -e "/^chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
-            DGB_NETWORK_IS_CHANGED="YES"
-            if [ $VERBOSE_MODE = true ]; then
-                printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
-            fi
-        # If the chain= declaration does not exist in digibyte.conf, append it before the sections
-        elif ! grep -q ^"chain=" $DGB_CONF_FILE; then
-            echo "$INDENT   Appending to digibyte.conf: chain=$chain"
-            sed -i "/# \[Sections\]/ i \
+            # If chain= declaration is commented out, uncomment it, and set it to the correct chain
+            if grep -q ^"# chain=" $DGB_CONF_FILE; then
+                echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
+                sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
+                fi
+
+            # Change chain= declaration exists, but is not set to the correct chain, update it
+            elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+                echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: chain=$chain"
+                sed -i -e "/^chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
+                fi
+            # If the chain= declaration does not exist in digibyte.conf, append it before the sections
+            else
+                echo "$INDENT   Appending to digibyte.conf: chain=$chain"
+                sed -i "/# \[Sections\]/ i \
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
 chain=$chain \
-" $DGB_CONF_FILE                
-        fi 
+" $DGB_CONF_FILE  
+            fi 
+
+        fi
 
         # If testnet variable already exists in digibyte.conf change it to testnet=1, if needed
         if [ "$testnet" = "1" ]; then
