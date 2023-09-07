@@ -39,7 +39,7 @@
 # used by this one.
 #
 # Both DigiNode Setup and Status Monitor scripts make use of a settings file
-# located at: ~/.diginode/diginode.settings
+# located at: ~/.digibyte/diginode.settings
 #
 # It want to make changes to folder locations etc. please edit this file.
 # (e.g. To move your DigiByte data folder to an external drive.)
@@ -397,11 +397,11 @@ import_setup_functions() {
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
         printf "%b   git clone https://github.com/saltedlolly/diginode-tools/ \\n" "${INDENT}"
-        printf "%b   chmod +x ~/diginode/diginode-tools.sh \\n" "${INDENT}"
+        printf "%b   chmod +x ~/diginode-tools/diginode.sh \\n" "${INDENT}"
         printf "\\n"
         printf "%b To run it:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   ~/diginode/diginode.sh\\n" "${INDENT}"
+        printf "%b   ~/diginode-tools/diginode.sh\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -2615,7 +2615,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
