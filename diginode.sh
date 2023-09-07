@@ -1590,6 +1590,8 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     DONATION_PLEA="YES"
     sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
 
+    printf "\\n"
+
 fi
 
 }
@@ -2926,6 +2928,8 @@ if [ "$VERBOSE_MODE" = true ]; then
     printf "               DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
     printf "            DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
     printf "                DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
+    printf "\\n"
+    printf "                    DGA_STATUS: $DGA_STATUS\\n"
     printf "\\n"
     printf "                TIME_DIF_10SEC: $TIME_DIF_10SEC_COUNTDOWN\\n"
     printf "                 TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
