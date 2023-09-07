@@ -275,7 +275,7 @@ if [ $EDIT_DGBCFG = true ] || \
             printf "%bError: DigiByte Core SIGNET log file does not exist\\n\\n" "${INDENT}"
         fi
     elif [ $DGBCORE_RESTART = true ]; then # --dgbrestart
-        local str="Restarting digibytd service"
+        local str="Restarting digibyted service"
         printf "%b %s..." "${INFO}" "${str}"
         # If systemctl exists,
         if $(command -v systemctl >/dev/null 2>&1); then
@@ -287,7 +287,7 @@ if [ $EDIT_DGBCFG = true ] || \
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
      elif [ $DGBCORE_STOP = true ]; then # --stopdgb
-        local str="Stopping digibytd service"
+        local str="Stopping digibyted service"
         printf "%b %s..." "${INFO}" "${str}"
         # If systemctl exists,
         if $(command -v systemctl >/dev/null 2>&1); then
@@ -685,14 +685,22 @@ is_dgbnode_installed() {
             printf "\\n"
             printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
-            exit
         fi
 
         if [ $known_dgb_service_error = "no" ]; then
             printf "\\n"
             printf "%b %bERROR: digibyted service has failed due to an unknown reason:%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-            exec digibyted stop
+            printf "\\n"
+            digibyted -daemon 1>/dev/null
         fi
+
+        # Kill digibyted in case it started running by accident
+        dgb_process_id=$(pgrep digibyted)
+        if [ "$dgb_process_id" != "" ]; then
+            kill -9 $dgb_process_id
+        fi
+        printf "\\n"
+        exit 1
 
     fi
 

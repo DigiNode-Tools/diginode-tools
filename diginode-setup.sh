@@ -7104,7 +7104,7 @@ change_dgb_network() {
     # Restart DigiByte daemon if dgb network has changed
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
 
-        # Restart Digibyted if the upnp status has just been changed
+        # Restart Digibyted if the network has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core network has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
             restart_service digibyted
@@ -7146,77 +7146,66 @@ change_dgb_network() {
 
     printf "\\n"
 
-    # Get the default listening port number, if it is not manually set in digibyte.conf
-    if [ "$port" = "" ]; then
-        if [ "$testnet" = "1" ]; then
-            port="12026"
-        else
-            port="12024"
-        fi
-    fi 
-
     # Display alert box informing the user that listening port and rpcport have changed.
-    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
+    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "testnet" ]; then
         whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
 
-            # Prompt to delete the mainnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
+        # Prompt to delete the mainnet blockchain data if it already exists
+        if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            # Delete DigiByte blockchain data
+            if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
-                    if [ -d "$DGB_DATA_LOCATION" ]; then
-                        str="Deleting DigiByte Core MAINNET blockchain data..."
-                        printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/indexes
-                        rm -rf $DGB_DATA_LOCATION/chainstate
-                        rm -rf $DGB_DATA_LOCATION/blocks
-                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-                    printf "\\n"
-
-                else
-                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
-                    printf "\\n"
+                if [ -d "$DGB_DATA_LOCATION" ]; then
+                    str="Deleting DigiByte Core MAINNET blockchain data..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -rf $DGB_DATA_LOCATION/indexes
+                    rm -rf $DGB_DATA_LOCATION/chainstate
+                    rm -rf $DGB_DATA_LOCATION/blocks
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
+                printf "\\n"
+
+            else
+                printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                printf "\\n"
             fi
+        fi
 
-    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
-        if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
-            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "main" ]; then; then
+        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
-            # Prompt to delete the testnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+        # Prompt to delete the testnet blockchain data if it already exists
+        if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            # Delete DigiByte blockchain data
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
-                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
-                        str="Deleting DigiByte Core TESTNET blockchain data..."
-                        printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-                    printf "\\n"
-
-                else
-                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
-                    printf "\\n"
+                if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                    str="Deleting DigiByte Core TESTNET blockchain data..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -rf $DGB_DATA_LOCATION/testnet4/indexes
+                    rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
+                    rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
+                printf "\\n"
+
+            else
+                printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                printf "\\n"
             fi
-        fi    
+        fi  
     fi
 
     # Get the default listening port number, if it is not manually set in digibyte.conf
-    if [ "$port" = "" ]; then
-        if [ "$testnet" = "1" ]; then
-            port="12026"
-        else
-            port="12024"
-        fi
-    fi 
+#    if [ "$port" = "" ]; then
+#        if [ "$testnet" = "1" ]; then
+#            port="12026"
+#        else
+#            port="12024"
+#        fi
+#    fi 
 
 
     # Display alert box informing the user that the IPFS port changed.
