@@ -2048,9 +2048,9 @@ rpcallowip=127.0.0.1 \
             fi
         fi    
 
-        # SET DIGIBYTE CHAIN
+        # SET THE CORRECT DIGIBYTE CHAIN
 
-        # If chain= value is commented out, uncomment it
+        # If chain= declaration is commented out, uncomment it, and set it to the correct chain
         if grep -q ^"# chain=" $DGB_CONF_FILE; then
             echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
             echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
@@ -2060,15 +2060,16 @@ rpcallowip=127.0.0.1 \
                 printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
             fi
 
-        # Change chain= value is incorrect, update it
-        elif ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+        # Change chain= declaration exists, but is not set to the correct chain, update it
+        elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
             echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
             echo "$INDENT   Updating digibyte.conf: chain=$chain"
-            sed -i -e "/^chain=/s|.*|upnp=$chain|" $DGB_CONF_FILE
+            sed -i -e "/^chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
             DGB_NETWORK_IS_CHANGED="YES"
             if [ $VERBOSE_MODE = true ]; then
                 printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
             fi
+        # If the chain= declaration does not exist in digibyte.conf, append it before the sections
         else
             echo "$INDENT   Appending to digibyte.conf: chain=$chain"
             sed -i '/# \[Sections\]/ i \
@@ -12098,7 +12099,7 @@ digiasset_node_create_settings() {
         eval "$DIGIBYTE_CONFIG_GLOBAL"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
- 
+
     else
         local create_dummy_rpc_credentials="yes"
         rpcuser=no_digibyte_config_file_found
