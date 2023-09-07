@@ -1923,11 +1923,11 @@ server=1 \
                 sed -i -e "/^# dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: dbache=$set_dbcache"
-                sed -i '/# \[Sections\]/ i \
+                sed -i "/# \[Sections\]/ i \
 # Set database cache size in megabytes; machines sync faster with a larger cache. \
 # Recommend setting as high as possible based upon available RAM. (default: 450) \
 dbcache=$set_dbcache \
-' $DGB_CONF_FILE                
+" $DGB_CONF_FILE                
             fi
         fi
 
@@ -1942,10 +1942,10 @@ dbcache=$set_dbcache \
                 sed -i -e "/^# maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: maxconnections=$set_maxconnections"
-                sed -i '/# \[Sections\]/ i \
+                sed -i "/# \[Sections\]/ i \
 # Maintain at most N connections to peers. (default: 125) \
 maxconnections=$set_maxconnections \
-' $DGB_CONF_FILE                
+" $DGB_CONF_FILE                
             fi
         fi
 
@@ -1976,10 +1976,10 @@ rpcuser=digibyte \
                 sed -i -e "/^# rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
             else
                 echo "$INDENT   Appending to digibyte.conf: rpcpassword=$set_rpcpassword"
-                sed -i '/# \[Sections\]/ i \
+                sed -i "/# \[Sections\]/ i \
 # RPC password \
 rpcpassword=$set_rpcpassword \
-' $DGB_CONF_FILE                
+" $DGB_CONF_FILE                
             fi
         fi
 
@@ -2023,10 +2023,10 @@ rpcpassword=$set_rpcpassword \
             fi
         else
             echo "$INDENT   Appending to digibyte.conf: upnp=$upnp"
-            sed -i '/# \[Sections\]/ i \
+            sed -i "/# \[Sections\]/ i \
 # Use UPnP to map the listening port. \
 upnp=$upnp \
-' $DGB_CONF_FILE                
+" $DGB_CONF_FILE                
             fi    
 
         # If rpcallowip= variable is not already set in global section of digibyte.conf, update it
@@ -2072,10 +2072,10 @@ rpcallowip=127.0.0.1 \
         # If the chain= declaration does not exist in digibyte.conf, append it before the sections
         else
             echo "$INDENT   Appending to digibyte.conf: chain=$chain"
-            sed -i '/# \[Sections\]/ i \
+            sed -i "/# \[Sections\]/ i \
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
 chain=$chain \
-' $DGB_CONF_FILE                
+" $DGB_CONF_FILE                
             fi 
 
         # If testnet variable already exists in digibyte.conf change it to testnet=1, if needed
