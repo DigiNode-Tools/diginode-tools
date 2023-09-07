@@ -2075,7 +2075,9 @@ rpcallowip=127.0.0.1 \
             else
                 echo "$INDENT   Appending to digibyte.conf: chain=$chain"
                 sed -i "/# \[Sections\]/ i \
-# Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \
 chain=$chain \
 " $DGB_CONF_FILE  
             fi 
@@ -2254,17 +2256,9 @@ chain=$chain \
 # [chain]
 
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main)
+# (WARNING: Only set the current chain using the chain= variable below. Do not use 
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.)
 chain=$chain
-
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 1 to enable, 0 to disable. (Default: 0)
-# testnet=1
-
-# Run this node on its own independent test network. Equivalent to -chain=regtest.  Set 1 to enable, 0 to disable. (Default: 0)
-# regtest=1
-
-# Use the signet chain. Equivalent to -chain=signet. Set 1 to enable, 0 to disable. (Default: 0)
-# Note that the network is defined by the -signetchallenge parameter.
-# signet=1
 
 
 # [core]
@@ -8894,8 +8888,8 @@ digibyte_check() {
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         fi
 
-        # Find out which DGB network is running - mainnet or testnet
-        str="Checking which DigiByte chain is running..."
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
@@ -8940,8 +8934,8 @@ digibyte_check() {
             printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Find out which DGB network is running - mainnet or testnet
-        str="Checking which DigiByte chain is running (mainnet, testnet or regtest?)..."
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
