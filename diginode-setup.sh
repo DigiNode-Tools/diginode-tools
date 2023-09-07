@@ -2074,11 +2074,11 @@ rpcallowip=127.0.0.1 \
             # If the chain= declaration does not exist in digibyte.conf, append it before the sections
             else
                 echo "$INDENT   Appending to digibyte.conf: chain=$chain"
-                sed -i "/# \[Sections\]/ i \
-# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \
-# (WARNING: Only set the current chain using the chain= variable below. Do not use \
-# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \
-chain=$chain \
+                sed -i "/# \[Sections\]/ i \\
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+chain=$chain \\
 " $DGB_CONF_FILE  
             fi 
 
