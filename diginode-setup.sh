@@ -7172,7 +7172,7 @@ change_dgb_network() {
             fi
         fi
 
-    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "main" ]; then; then
+    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "main" ]; then
         whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
         # Prompt to delete the testnet blockchain data if it already exists
