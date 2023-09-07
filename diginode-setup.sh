@@ -1687,6 +1687,20 @@ create_digibyte_conf() {
                 printf "%b Deleting from digibyte.conf global section: rpcbind comment 3\\n" "${INFO}"
             fi
 
+            # delete any line starting "testnet=" from main global section of digibyte.org. The chain= variable will be used instead.
+            if grep -q ^"testnet=" $DGB_CONF_FILE; then
+                sed -i '/^testnet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: testnet=\\n" "${INFO}"
+            fi
+            if grep -q ^"# testnet=" $DGB_CONF_FILE; then
+                sed -i '/^# testnet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # testnet=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Run this node on the DigiByte Test Network. Equivalent to -chain=test." $DGB_CONF_FILE; then
+                sed -i '/^# Run this node on the DigiByte Test Network. Equivalent to -chain=test./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: testnet comment\\n" "${INFO}"
+            fi
+
 
             str="Appending sections to digibyte.conf: # [Sections], [main], [test], [regtest] and [signet] .."
             printf "%b %s" "${INFO}" "${str}"
@@ -2060,15 +2074,26 @@ rpcallowip=127.0.0.1 \
                 if [ $VERBOSE_MODE = true ]; then
                     printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
                 fi
-            # If the chain= declaration does not exist in digibyte.conf, append it before the sections
             else
-                echo "$INDENT   Appending to digibyte.conf: chain=$chain"
-                sed -i "/# \[Sections\]/ i \\
+                # If the chain= declaration does not exist in digibyte.conf, append it after: # [chain], if that line exists
+                if grep -q ^"# [chain]" $DGB_CONF_FILE; then
+                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - After: # [chain]"
+                    sed -i "/# \[chain\]/ a \\
 # Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
 # (WARNING: Only set the current chain using the chain= variable below. Do not use \\
 # testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
 chain=$chain \\
-" $DGB_CONF_FILE  
+" $DGB_CONF_FILE
+                else
+                    # If the chain= declaration does not exist in digibyte.conf, append it before the sections
+                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - Before: # [Sections]"
+                    sed -i "/# \[Sections\]/ i \\
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+chain=$chain \\
+" $DGB_CONF_FILE
+                fi
             fi 
 
         fi
