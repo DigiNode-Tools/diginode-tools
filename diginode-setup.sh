@@ -2048,9 +2048,7 @@ rpcallowip=127.0.0.1 \
             fi
         fi    
 
-################## UPdate values below here banana
-
-### WORKING AREA:
+        # SET DIGIBYTE CHAIN
 
         # If chain= value is commented out, uncomment it
         if grep -q ^"# chain=" $DGB_CONF_FILE; then
@@ -2059,7 +2057,7 @@ rpcallowip=127.0.0.1 \
             sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
             DGB_NETWORK_IS_CHANGED="YES"
             if [ $VERBOSE_MODE = true ]; then
-                printf "%b Verbose Mode: # chain= was uncommented.\\n" "${WARN}"
+                printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
             fi
 
         # Change chain= value is incorrect, update it
@@ -2069,7 +2067,7 @@ rpcallowip=127.0.0.1 \
             sed -i -e "/^chain=/s|.*|upnp=$chain|" $DGB_CONF_FILE
             DGB_NETWORK_IS_CHANGED="YES"
             if [ $VERBOSE_MODE = true ]; then
-                printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${WARN}"
+                printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
             fi
         else
             echo "$INDENT   Appending to digibyte.conf: chain=$chain"
@@ -2086,21 +2084,21 @@ chain=$chain \
                 sed -i -e "/^testnet=0/s|.*|testnet=1|" $DGB_CONF_FILE  
                 DGB_NETWORK_IS_CHANGED="YES"     
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: testnet=0 was changed to testnet=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: testnet=0 was changed to testnet=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"testnet=" $DGB_CONF_FILE && ! grep -q ^"testnet=1" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: testnet=1"
                 sed -i -e "/^testnet=/s|.*|testnet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"      
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: testnet= was changed to testnet=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: testnet= was changed to testnet=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"# testnet=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: testnet=1"
                 sed -i -e "/^# testnet=/s|.*|testnet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: # testnet=x was changed to testnet=1 (uncommented).\\n" "${WARN}"
+                    printf "%b Verbose Mode: # testnet=x was changed to testnet=1 (uncommented).\\n" "${INFO}"
                 fi
             fi
         # If testnet variable already exists in digibyte.conf change it to testnet=0, if needed
@@ -2110,19 +2108,19 @@ chain=$chain \
                 sed -i -e "/^testnet=1/s|.*|# testnet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: testnet=1 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: testnet=1 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"testnet=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # testnet=1"
                 sed -i -e "/^testnet=0/s|.*|# testnet=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: testnet=0 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: testnet=0 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"testnet=" $DGB_CONF_FILE && ! grep -q ^"testnet=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # testnet=1"
                 sed -i -e "/^testnet=/s|.*|# testnet=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: testnet= was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: testnet= was commented out.\\n" "${INFO}"
                 fi
             fi
         fi
@@ -2134,21 +2132,21 @@ chain=$chain \
                 sed -i -e "/^regtest=0/s|.*|regtest=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"       
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: regtest=0 was changed to regtest=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: regtest=0 was changed to regtest=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"regtest=" $DGB_CONF_FILE && ! grep -q ^"regtest=1" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: regtest=1"
                 sed -i -e "/^regtest=/s|.*|regtest=1|" $DGB_CONF_FILE 
                 DGB_NETWORK_IS_CHANGED="YES"     
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: regtest= was changed to regtest=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: regtest= was changed to regtest=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"# regtest=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: regtest=1"
                 sed -i -e "/^# regtest=/s|.*|regtest=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: # regtest= was changed to regtest=1 (uncommented).\\n" "${WARN}"
+                    printf "%b Verbose Mode: # regtest= was changed to regtest=1 (uncommented).\\n" "${INFO}"
                 fi
             fi
         # If regtest variable already exists in digibyte.conf change it to regtest=0, if needed
@@ -2158,19 +2156,19 @@ chain=$chain \
                 sed -i -e "/^regtest=1/s|.*|# regtest=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: regtest=1 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: regtest=1 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"regtest=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # regtest=1"
                 sed -i -e "/^regtest=0/s|.*|# regtest=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: regtest=0 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: regtest=0 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"regtest=" $DGB_CONF_FILE && ! grep -q ^"regtest=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # regtest=1"
                 sed -i -e "/^regtest=/s|.*|# regtest=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: regtest= was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: regtest= was commented out.\\n" "${INFO}"
                 fi
             fi
         fi
@@ -2182,21 +2180,21 @@ chain=$chain \
                 sed -i -e "/^signet=0/s|.*|signet=1|" $DGB_CONF_FILE  
                 DGB_NETWORK_IS_CHANGED="YES"     
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: signet=0 was changed to signet=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: signet=0 was changed to signet=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"signet=" $DGB_CONF_FILE && ! grep -q ^"signet=1" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: signet=1"
                 sed -i -e "/^signet=/s|.*|signet=1|" $DGB_CONF_FILE  
                 DGB_NETWORK_IS_CHANGED="YES"    
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: signet= was changed to signet=1.\\n" "${WARN}"
+                    printf "%b Verbose Mode: signet= was changed to signet=1.\\n" "${INFO}"
                 fi
             elif grep -q ^"# signet=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: signet=1"
                 sed -i -e "/^# signet=/s|.*|signet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: # signet= was changed to signet=1 (uncommented).\\n" "${WARN}"
+                    printf "%b Verbose Mode: # signet= was changed to signet=1 (uncommented).\\n" "${INFO}"
                 fi
             fi
         # If signet variable already exists in digibyte.conf change it to signet=0, if needed
@@ -2206,22 +2204,28 @@ chain=$chain \
                 sed -i -e "/^signet=1/s|.*|# signet=1|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: signet=1 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: signet=1 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"signet=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # signet=1"
                 sed -i -e "/^signet=0/s|.*|# signet=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: signet=0 was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: signet=0 was commented out.\\n" "${INFO}"
                 fi
             elif grep -q ^"signet=" $DGB_CONF_FILE && ! grep -q ^"signet=0" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: # signet=1"
                 sed -i -e "/^signet=/s|.*|# signet=1|" $DGB_CONF_FILE
                 if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Verbose Mode: signet= was commented out.\\n" "${WARN}"
+                    printf "%b Verbose Mode: signet= was commented out.\\n" "${INFO}"
                 fi
             fi
         fi
+
+################## UPdate values below here banana
+
+### WORKING AREA:
+
+
 
 
 
@@ -2327,19 +2331,24 @@ chain=$chain \
 
  
 
-#        # Re-import variables from digibyte.conf in case they have changed
-#        str="Reimporting digibyte.conf values, as they may have changed..."
-#        printf "%b %s" "${INFO}" "${str}"
-#        source $DGB_CONF_FILE
-#        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-#
-#        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
+        # Re-import variables from digibyte.conf in case they have changed
+        str="Reimporting digibyte.conf values, as they may have changed..."
+        printf "%b %s" "${INFO}" "${str}"
+        scrape_digibyte_conf
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+        # Import variables from global section of digibyte.conf
+        str="Getting digibyte.conf global variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        eval "$DIGIBYTE_CONFIG_GLOBAL"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
     else
 
         # Create a new digibyte.conf file
-        str="Creating ~/.diginode/digibyte.conf file..."
+        str="Creating ~/.digibyte/digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_CONF_FILE
@@ -8271,7 +8280,17 @@ fi
     if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
         # Re-source config file
         if [ -f "$DGB_CONF_FILE" ]; then
-            source $DGB_CONF_FILE
+            # Import variables from global section of digibyte.conf
+            str="Located digibyte.conf file. Importing..."
+            printf "%b %s" "${INFO}" "${str}"
+            scrape_digibyte_conf
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Import variables from global section of digibyte.conf
+            str="Getting digibyte.conf global variables..."
+            printf "%b %s" "${INFO}" "${str}"
+            eval "$DIGIBYTE_CONFIG_GLOBAL"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="12026"
@@ -8281,12 +8300,14 @@ fi
             DGB_LISTEN_PORT="12024"
         elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
             DGB_LISTEN_PORT="12024"
+        elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="18444"
+        elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="38443"
         else
             DGB_LISTEN_PORT="$port"   
         fi
     fi
-
-    # banana
 
     # Get current ipfs listen port
 
@@ -12061,10 +12082,23 @@ digiasset_node_create_settings() {
 
     # Let's get the latest RPC credentials from digibyte.conf if it exists
     if [ -f $DGB_CONF_FILE ]; then
-        source $DGB_CONF_FILE
         if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
             printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         fi
+ 
+        # Import variables from global section of digibyte.conf
+        str="Located digibyte.conf file. Importing..."
+        printf "%b %s" "${INFO}" "${str}"
+        scrape_digibyte_conf
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Import variables from global section of digibyte.conf
+        str="Getting digibyte.conf global variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        eval "$DIGIBYTE_CONFIG_GLOBAL"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+ 
     else
         local create_dummy_rpc_credentials="yes"
         rpcuser=no_digibyte_config_file_found
