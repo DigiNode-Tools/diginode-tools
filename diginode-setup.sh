@@ -2076,7 +2076,7 @@ rpcallowip=127.0.0.1 \
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
 chain=$chain \
 " $DGB_CONF_FILE                
-            fi 
+        fi 
 
         # If testnet variable already exists in digibyte.conf change it to testnet=1, if needed
         if [ "$testnet" = "1" ]; then
