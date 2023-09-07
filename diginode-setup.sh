@@ -2070,7 +2070,7 @@ rpcallowip=127.0.0.1 \
                 printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
             fi
         # If the chain= declaration does not exist in digibyte.conf, append it before the sections
-        elif ! grep -q ^"chain=" $DGB_CONF_FILE
+        elif ! grep -q ^"chain=" $DGB_CONF_FILE; then
             echo "$INDENT   Appending to digibyte.conf: chain=$chain"
             sed -i "/# \[Sections\]/ i \
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main) \
