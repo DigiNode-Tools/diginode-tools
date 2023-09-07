@@ -1713,9 +1713,9 @@ create_digibyte_conf() {
 # EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
 # only apply to mainnet unless they appear in the appropriate section below.
 #
-# WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
-# You must ensure the sections exist in the correct order: [main], [test], [regtest], [signet]
-# This is so the script can find the variables where it expects them
+# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
+# [main], [test], [regtest] and [signet]. Do not remove any of these.
 
 # Options only for mainnet
 [main]
@@ -2240,9 +2240,9 @@ disablewallet=0
 # EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
 # only apply to mainnet unless they appear in the appropriate section below.
 #
-# WARNING: Do not remove these sections on DigiNode Status Monitor will not work correctly
-# You must ensure the sections exist in the correct order: [main], [test], [regtest], [signet]
-# This is so the script can find the variables where it expects them
+# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
+# [main], [test], [regtest] and [signet]. Do not remove any of these.
 
 # Options only for mainnet
 [main]
