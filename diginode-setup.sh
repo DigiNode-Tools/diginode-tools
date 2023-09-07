@@ -1568,6 +1568,7 @@ create_digibyte_conf() {
                     printf "%b %s" "${INFO}" "${str}"
                     rm -f $DGB_CONF_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    DGB_NETWORK_IS_CHANGED="YES"
                     
                 else
                     manually_edit_dgbconf=true
@@ -1828,24 +1829,12 @@ EOF
     # Set the dgb network values, if we are changing between testnet and mainnet
     if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
         chain=test
-        testnet=1
-        regtest=0
-        signet=0
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
         chain=main
-        testnet=0
-        regtest=0
-        signet=0
     elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
         chain=regtest
-        testnet=0
-        regtest=1
-        signet=0
     elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ]; then
         chain=signet
-        testnet=0
-        regtest=0
-        signet=1
     fi
 
     # create .digibyte settings folder if it does not already exist
