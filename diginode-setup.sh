@@ -459,7 +459,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
     # OTHER SETTINGS
-    DGB_SET_MAXCONNECTIONS=300
+    DGB_MAX_CONNECTIONS=150
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
@@ -605,7 +605,7 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # THis will set the max connections in the digibyte.conf file on the first install
 # This value set here is also used when performing an unattended install
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
-DGB_SET_MAXCONNECTIONS=$DGB_SET_MAXCONNECTIONS
+DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
 # Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
 # To avoid putting unnecessary strain on your device, it is inadvisable to run the Status Monitor for
@@ -1774,7 +1774,7 @@ EOF
     if [ ! -f "$DGB_CONF_FILE" ]; then
 
         # Max connections are set from the diginode.settings file
-        set_maxconnections=$DGB_SET_MAXCONNECTIONS
+        set_maxconnections=$DGB_MAX_CONNECTIONS
 
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
@@ -1922,7 +1922,7 @@ dbcache=$set_dbcache \\
 
         # If maxconnections value is not already set in global section of digibyte.conf, update it
         if [ "$maxconnections" = "" ]; then
-            set_maxconnections=$DGB_SET_MAXCONNECTIONS # Max connections are set from the diginode.settings file
+            set_maxconnections=$DGB_MAX_CONNECTIONS # Max connections are set from the diginode.settings file
             if grep -q ^"maxconnections=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
                 sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
