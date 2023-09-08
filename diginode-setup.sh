@@ -13059,11 +13059,11 @@ uninstall_do_now() {
         # Ask to uninstall Node.js if it exists
         if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || [ "$NODEJS_STATUS" = "installed" ]; then
 
-            printf " =============== Uninstall: Node.JS ====================================\\n\\n"
+            printf " =============== Uninstall: Node.js ====================================\\n\\n"
             # ==============================================================================
 
             # Delete IPFS
-            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely delete this if you do not use Node.JS for anything else." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely uninstall it if you do not use Node.js for anything else." "${r}" "${c}"; then
 
                 printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
 
