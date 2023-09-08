@@ -13003,57 +13003,58 @@ uninstall_do_now() {
             # Delete IPFS
             if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely delete this if you do not use Node.JS for anything else." "${r}" "${c}"; then
 
-            printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
+                printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
 
-            # Deleting deb repository
-            if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
-                str="Deleting Nodesource deb repository..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -f /etc/apt/sources.list.d/nodesource.list
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-            # Deleting gpg key
-            if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
-                str="Deleting Nodesource GPG key..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -f /etc/apt/keyrings/nodesource.gpg
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-            # Delete Node.js packages
-            if [ "$NODEJS_STATUS" = "installed" ]; then
-                if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
-                    printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
-                    sudo apt-get purge nodejs -y
-                elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
-                    printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
-                    yum remove nodejs -y
-                    str="Deleting Nodesource key for Enterprise Linux..."
+                # Deleting deb repository
+                if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+                    str="Deleting Nodesource deb repository..."
                     printf "%b %s" "${INFO}" "${str}"
-                    rm -rf /etc/yum.repos.d/nodesource*.repo
+                    rm -f /etc/apt/sources.list.d/nodesource.list
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    yum clean all -y
                 fi
-                NODEJS_STATUS="not_detected"
-                NODEJS_VER_LOCAL=""
-                delete_nodejs="yes"
-                sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-                NODEJS_INSTALL_DATE=""
-                sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-                NODEJS_UPGRADE_DATE=""
-                sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-            fi
 
-            # Reset Nodesource repo variable in diginode.settings so it will run again
-            sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
+                # Deleting gpg key
+                if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+                    str="Deleting Nodesource GPG key..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f /etc/apt/keyrings/nodesource.gpg
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
 
-        else
-            printf "%b You chose not to uninstall Node.js.\\n" "${INFO}"
-            delete_nodejs="no"
-        fi
+                # Delete Node.js packages
+                if [ "$NODEJS_STATUS" = "installed" ]; then
+                    if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+                        printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                        sudo apt-get purge nodejs -y
+                    elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
+                        printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                        yum remove nodejs -y
+                        str="Deleting Nodesource key for Enterprise Linux..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf /etc/yum.repos.d/nodesource*.repo
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                        yum clean all -y
+                    fi
+                    NODEJS_STATUS="not_detected"
+                    NODEJS_VER_LOCAL=""
+                    delete_nodejs="yes"
+                    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                    NODEJS_INSTALL_DATE=""
+                    sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                    NODEJS_UPGRADE_DATE=""
+                    sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                fi
+
+                # Reset Nodesource repo variable in diginode.settings so it will run again
+                sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
+
+            else
+                printf "%b You chose not to uninstall Node.js.\\n" "${INFO}"
+                delete_nodejs="no"
+            fi    
 
         printf "\\n"
+        fi
     fi
 
 
