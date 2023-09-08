@@ -7077,7 +7077,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is funded by your donations. If you find it useful, please donate to support future development:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE! If you find it useful, please make a donation to show your support and help fund future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -7094,7 +7094,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" 72
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" 73
 }
 
 
