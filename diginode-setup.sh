@@ -793,7 +793,7 @@ IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
 IPFS_UPGRADE_DATE="$IPFS_UPGRADE_DATE"
 IPFS_KUBO_API_URL=$IPFS_KUBO_API_URL
 
-# Store NodeJS installation details:
+# Store Node.js installation details:
 NODEJS_VER_LOCAL="$NODEJS_VER_LOCAL"
 NODEJS_VER_RELEASE="$NODEJS_VER_RELEASE"
 NODEJS_INSTALL_DATE="$NODEJS_INSTALL_DATE"
@@ -6464,7 +6464,7 @@ install_digiasset_node_only() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
-    # Check if NodeJS installed, and if there is an upgrade available
+    # Check if Node.js installed, and if there is an upgrade available
     nodejs_check
 
     # Check if DigiAssets Node is installed, and if there is an upgrade available
@@ -6491,7 +6491,7 @@ install_digiasset_node_only() {
     # Create IPFS service
     ipfs_create_service
 
-    # Install/upgrade NodeJS
+    # Install/upgrade Node.js
     nodejs_do_install
 
     # Create or update main.json file with RPC credentials
@@ -10827,26 +10827,26 @@ fi
 
 
 
-# This function will check if NodeJS is installed, and if it is, check if there is an update available
+# This function will check if Node.js is installed, and if it is, check if there is an update available
 # LAtest distrbutions can be checked here: https://github.com/nodesource/distributions 
 
 nodejs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: NodeJS ======================================\\n\\n"
+    printf " =============== Checking: Node.js =====================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    # Get the local version number of Node.js (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
-    # Let's check if NodeJS is already installed
-    str="Is NodeJS already installed?..."
+    # Let's check if Node.js is already installed
+    str="Is Node.js already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_STATUS="not_detected"
@@ -10855,11 +10855,11 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         NODEJS_STATUS="installed"
         sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Node.js v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Get current NodeJS major version
-    str="Is NodeJS at least version 16?..."
+    # Get current Node.js major version
+    str="Is Node.js at least version 16?..."
     NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
     if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
         printf "%b %s" "${INFO}" "${str}"
@@ -10871,7 +10871,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # If this is the first time running the NodeJS check, and we are doing a full install, let's add 
+    # If this is the first time running the Node.js check, and we are doing a full install, let's add 
     # the new official repositories to ensure we get the latest version
     if [ "$NODEJS_REPO_ADDED" = "" ] || [ "$NODEJS_REPO_ADDED" = "NO" ]; then
 
@@ -10926,11 +10926,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
             # Create deb repository
             if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then 
-                str="Preparing Node.js repository: Creating repo for Debian/Ubuntu..."
-                printf "%b %s" "${INFO}" "${str}"
+                printf "%b Preparing Node.js repository: Creating repo for Debian/Ubuntu...\\n" "${INFO}"
                 sudo -u $USER_ACCOUNT echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
                 NODEJS_REPO_ADDED=YES
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
             # Update package cache
@@ -10956,17 +10954,17 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # Look up the latest candidate release
-    str="Checking for the latest NodeJS release..."
+    str="Checking for the latest Node.js release..."
     printf "%b %s" "${INFO}" "${str}"
 
     if [ "$PKG_MANAGER" = "apt-get" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
         NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1 | cut -d'~' -f1)
     fi
 
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: DigiNode Setup is not yet able to check for Node.js releases with dnf.\\n" "${CROSS}"
         printf "\\n"
         printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
         printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
@@ -10975,8 +10973,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: DigiNode Setup is not yet able to check for Node.js releases with yum.\\n" "${CROSS}"
         printf "\\n"
         printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
         printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
@@ -10986,9 +10984,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for release version of NodeJS.\\n" "${CROSS}"
+        printf "%b Unable to check for release version of Node.js.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b NodeJS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b Node.js cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
@@ -10999,13 +10997,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # If a NodeJS local version already exists.... (i.e. we have a local version number)
+    # If a Node.js local version already exists.... (i.e. we have a local version number)
     if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-          printf "%b NodeJS is already up to date.\\n" "${TICK}"
+          printf "%b Node.js is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install NodeJS v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install Node.js v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
             NODEJS_INSTALL_TYPE="askreset"
             NODEJS_DO_INSTALL=YES
           else
@@ -11017,7 +11015,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b %bNodeJS can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b %bNode.js can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           NODEJS_INSTALL_TYPE="upgrade"
           NODEJS_ASK_UPGRADE=YES
       fi
@@ -11033,7 +11031,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$NODEJS_STATUS" = "not_detected" ]; then
-      printf "%b %bNodeJS v${NODEJS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bNode.js v${NODEJS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       NODEJS_INSTALL_TYPE="new"
       NODEJS_DO_INSTALL="if_doing_full_install"
     fi
@@ -11044,7 +11042,7 @@ fi
 
 }
 
-# This function will install NodeJS if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install Node.js if it not yet installed, and if it is, upgrade it to the latest release
 nodejs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -11052,16 +11050,16 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
     NODEJS_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to re-install NodeJS
+# If we are in reset mode, ask the user if they want to re-install Node.js
 if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Node.js v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete Node.js and re-install it." "${r}" "${c}"; then
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
-        printf " =============== Resetting: NodeJS =====================================\\n\\n"
+        printf " =============== Resetting: Node.js ====================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You skipped re-installing NodeJS.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing Node.js.\\n" "${INFO}"
         printf "\\n"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
@@ -11071,7 +11069,7 @@ if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
 fi
 
-# If this is a new install of NodeJS, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
+# If this is a new install of Node.js, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
 if  [ "$NODEJS_INSTALL_TYPE" = "new" ] && [ "$NODEJS_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
     NODEJS_DO_INSTALL=YES
 fi
@@ -11081,44 +11079,44 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: NodeJS =======================================\\n\\n"
+        printf " =============== Install: Node.js ======================================\\n\\n"
         # ==============================================================================
     elif [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
-        printf " =============== Upgrade: NodeJS =======================================\\n\\n"
+        printf " =============== Upgrade: Node.js ======================================\\n\\n"
         # ==============================================================================
     elif [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: NodeJS =========================================\\n\\n"
+        printf " =============== Reset: Node.js ========================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose re-install Node.js.\\n" "${INFO}"
     fi
 
 
-    # Do apt-get installation of NodeJS
+    # Do apt-get installation of Node.js
     if [ "$PKG_MANAGER" = "apt-get" ]; then
 
-        # Install NodeJS if it does not exist
+        # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             printf "\\n"
         fi
 
-        # If NodeJS 14 exists, upgrade it
+        # If Node.js 14 exists, upgrade it
         if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Updating to Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
-        # If NodeJS exists, but needs a major upgrade, remove the old versions first as there can be conflicts
+        # If Node.js exists, but needs a major upgrade, remove the old versions first as there can be conflicts
         if [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
-            printf "%b Since this is a major upgrade, the old versions of NodeJS will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
-            printf "%b Purging old versions of NodeJS v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
+            printf "%b Since this is a major upgrade, the old versions of Node.js will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
+            printf "%b Purging old versions of Node.js v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
             sudo apt-get purge nodejs-legacy nodejs -y -q
             sudo apt-get autoremove -y -q
             printf "\\n"
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
@@ -11126,11 +11124,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
         # If we are in Reset Mode, remove and re-install
         if [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-            printf "%b Reset Mode is ENABLED. Removing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Reset Mode is ENABLED. Removing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get purge nodejs-legacy nodejs -y -q
             sudo apt-get autoremove -y -q
             printf "\\n"
-            printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+            printf "%b Re-installing Node.js v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
@@ -11138,11 +11136,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     fi
 
-    # Do yum installation of NodeJS
+    # Do yum installation of Node.js
     if [ "$PKG_MANAGER" = "yum" ]; then
-            # Install NodeJS if it does not exist
+            # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
             sudo yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
             DIGINODE_UPGRADED="YES"
             printf "\\n"
@@ -11150,11 +11148,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     fi
 
-    # Do dnf installation of NodeJS
+    # Do dnf installation of Node.js
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Install NodeJS if it does not exist
+        # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
             dnf module install nodejs:12
             printf "\\n"
             DIGINODE_UPGRADED="YES"
@@ -11163,15 +11161,15 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Get the new version number of the NodeJS install
+    # Get the new version number of the Node.js install
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
     fi
 
-    # Update diginode.settings with new NodeJS local version number and the install/upgrade date
+    # Update diginode.settings with new Node.js local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         NODEJS_INSTALL_DATE="$(date)"
@@ -11181,7 +11179,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Reset NodeJS Install and Upgrade Variables
+    # Reset Node.js Install and Upgrade Variables
     NODEJS_INSTALL_TYPE=""
     NODEJS_UPDATE_AVAILABLE=NO
     NODEJS_POSTUPDATE_CLEANUP=YES
@@ -11190,7 +11188,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
 fi
 
-# If there is no install date (i.e. NodeJS was already installed when this script was first run) add it now, since it was up-to-date at this time
+# If there is no install date (i.e. Node.js was already installed when this script was first run) add it now, since it was up-to-date at this time
 if [ "$NODEJS_INSTALL_DATE" = "" ]; then
     NODEJS_INSTALL_DATE="$(date)"
     sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -11558,22 +11556,22 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
     fi
 
-    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    # Get the local version number of Node.js (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
-    # Get current NodeJS major version
-    str="Is NodeJS installed and at least version 16?..."
+    # Get current Node.js major version
+    str="Is Node.js installed and at least version 16?..."
     NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
     if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
         printf "%b %s" "${INFO}" "${str}"
         if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
             printf "\\n"
-            printf "%b%b ${txtred}ERROR: NodeJS 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
+            printf "%b%b ${txtred}ERROR: Node.js 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b You need to install the correct Nodesource PPA for your distro.\\n" "${INFO}"
             printf "%b Please get in touch via the 'DigiNode Tools' Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
@@ -11584,9 +11582,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         fi
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: NodeJS is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: Node.js is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b You need to install NodeJS. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
+        printf "%b You need to install Node.js. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
         printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
         printf "\\n"
         exit 1
@@ -12344,7 +12342,7 @@ if [ "$RESET_MODE" = true ]; then
             PM2_SERVICE_DO_INSTALL=YES
             PM2_SERVICE_INSTALL_TYPE="reset"
         else
-            printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+            printf " =============== Resetting: Node.js PM2 Service ========================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_SERVICE_DO_INSTALL=NO
@@ -12366,7 +12364,7 @@ if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
             PM2_SERVICE_INSTALL_TYPE="new"
 fi
 
-# If this is a new install of NodeJS PM2 service file, and the user has opted to do a full DigiNode install, then proceed
+# If this is a new install of Node.js PM2 service file, and the user has opted to do a full DigiNode install, then proceed
 if  [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ] && [ "$PM2_SERVICE_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
     PM2_SERVICE_DO_INSTALL=YES
 fi
@@ -12377,10 +12375,10 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: NodeJS PM2 Service ===========================\\n\\n"
+        printf " =============== Install: Node.js PM2 Service ==========================\\n\\n"
         # ==============================================================================
     elif [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: NodeJS PM2 Service =============================\\n\\n"
+        printf " =============== Reset: Node.js PM2 Service ============================\\n\\n"
         printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
         # ==============================================================================
     fi
@@ -12459,7 +12457,7 @@ fi
 # This function will ask the user if they want to install the system upgrades that have been found
 menu_ask_install_updates() {
 
-# If there is an upgrade available for DigiByte Core, IPFS, NodeJS, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
+# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
@@ -12475,7 +12473,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             local upgrade_msg_ipfs=" >> Kubo IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs=" >> NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs=" >> Node.js v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dga=" >> DigiAsset Node v$DGA_VER_RELEASE\\n"
@@ -13044,7 +13042,7 @@ uninstall_do_now() {
     # Only uninstall Node.js if DigiAsset Node has already been uninstalled
     if [ "$uninstall_dga" = "yes" ]; then
 
-        # Get the local version number of NodeJS (this will also tell us if it is installed)
+        # Get the local version number of Node.js (this will also tell us if it is installed)
         NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
         if [ "$NODEJS_VER_LOCAL" = "" ]; then
