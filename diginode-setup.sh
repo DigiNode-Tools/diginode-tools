@@ -12995,7 +12995,7 @@ uninstall_do_now() {
 
 
         # Ask to uninstall Node.js if it exists
-        if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || if [ "$NODEJS_STATUS" = "installed" ]; then
+        if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || [ "$NODEJS_STATUS" = "installed" ]; then
 
             printf " =============== Uninstall: Node.JS ====================================\\n\\n"
             # ==============================================================================
