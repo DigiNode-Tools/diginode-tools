@@ -13110,6 +13110,18 @@ uninstall_do_now() {
                 # Reset Nodesource repo variable in diginode.settings so it will run again
                 sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
 
+                # Delete .npm settings
+                if [ -d "$USER_HOME/.npm" ]; then
+ #                   if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your Node.js settings folder?\\n\\nThis will delete the folder: ~/.npm\\n\\nThis folder contains all the settings related to the Node package manager." "${r}" "${c}"; then
+                        str="Deleting ~/.npm settings folder..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -r $USER_HOME/.rpm
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#                    else
+#                        printf "%b You chose not to delete the Node.js settings folder (~/.npm).\\n" "${INFO}"
+#                    fi
+                fi
+
             else
                 printf "%b You chose not to uninstall Node.js.\\n" "${INFO}"
                 delete_nodejs="no"
