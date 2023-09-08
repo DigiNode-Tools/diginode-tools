@@ -798,7 +798,7 @@ NODEJS_VER_LOCAL="$NODEJS_VER_LOCAL"
 NODEJS_VER_RELEASE="$NODEJS_VER_RELEASE"
 NODEJS_INSTALL_DATE="$NODEJS_INSTALL_DATE"
 NODEJS_UPGRADE_DATE="$NODEJS_UPGRADE_DATE"
-NODEJS_PPA_ADDED="$NODEJS_PPA_ADDED"
+NODEJS_REPO_ADDED="$NODEJS_REPO_ADDED"
 
 # Timer variables (these control the timers in the Status Monitor loop)
 SAVED_TIME_10SEC="$SAVED_TIME_10SEC"
@@ -2974,7 +2974,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make ca-certificates curl gnupg)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
@@ -3009,7 +3009,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make)
+    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -10835,53 +10835,95 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
         printf "%b %s" "${INFO}" "${str}"
         if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
-            NODEJS_PPA_ADDED="NO"
-            printf "%b%b %s NO! NodeSource PPA will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
+            NODEJS_REPO_ADDED="NO"
+            printf "%b%b %s NO! NodeSource repo will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
 
+    # If this is the first time running the NodeJS check, and we are doing a full install, let's add 
+    # the new official repositories to ensure we get the latest version
+    if [ "$NODEJS_REPO_ADDED" = "" ] || [ "$NODEJS_REPO_ADDED" = "NO" ]; then
 
-    # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
-    if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
+        # Get version codename
+        LINUX_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+        LINUX_VERSION_CODENAME=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d'=' -f2)
+        printf "%b Linux ID: $LINUX_ID\\n" "${INFO}"
+        printf "%b Linux Version Codename: $LINUX_VERSION_CODENAME\\n" "${INFO}"
 
-        # Is this Debian or Ubuntu?
-        local is_debian=$(cat /etc/os-release | grep ID | grep debian -Eo)
-        local is_ubuntu=$(cat /etc/os-release | grep ID | grep ubuntu -Eo)
-        local is_fedora=$(cat /etc/os-release | grep ID | grep fedora -Eo)
-        local is_centos=$(cat /etc/os-release | grep ID | grep centos -Eo)
-
-        # Set correct PPA repository
-        if [ "$is_ubuntu" = "ubuntu" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_debian" = "debian" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_fedora" = "fedora" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Fedora...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_centos" = "centos" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for CentOS...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        else
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for unknown distro...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
+        # Deleting deb repository
+        if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+            str="Preparing Node.js repository: Deleting old repo..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/sources.list.d/nodesource.list
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        # Deleting gpg key
+        if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+            str="Preparing Node.js repository: Deleting old GPG key..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/keyrings/nodesource.gpg
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Set correct Node.js 20 repository for Debian or Ubuntu
+        if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+
+            # create /etc/apt/keyrings folder if it does not already exist
+            if [ ! -d /etc/apt/keyrings ]; then #
+                str="Preparing Node.js repository: Creating /etc/apt/keyrings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                mkdir -p /etc/apt/keyrings
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # install gpg key
+            if [ ! -f /etc/apt/keyrings/nodesource.gpg ]; then 
+                str="Preparing Node.js repository: Installing GPG key..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Figure out which version of Node.js to install
+            if [ "$LINUX_VERSION_CODENAME" = "jessie" ] || [ "$LINUX_VERSION_CODENAME" = "stretch" ] || [ "$LINUX_VERSION_CODENAME" = "bionic" ]; then
+                NODE_MAJOR=16
+            else
+                NODE_MAJOR=20
+            fi
+            printf "%b Node.js ${NODE_MAJOR}x will be used.\\n" "${INFO}"
+
+            # Create deb repository
+            if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then 
+                str="Preparing Node.js repository: Creating repo for Debian/Ubuntu..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+                NODEJS_REPO_ADDED=YES
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Update package cache
+            update_package_cache
+
+        else
+
+            # Setup Node.js repositories for Enterprise Linux - Fedora, Redhat
+            str="Preparing Node.js repository: Creating repo for Enterprise Linux..."
+            printf "%b %s" "${INFO}" "${str}"
+            yum install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+            NODEJS_REPO_ADDED=YES
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
         # Update variable in diginode.settings so this does not run again
-        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"$NODEJS_REPO_ADDED\"|" $DGNT_SETTINGS_FILE
+
     else
-        printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
+        printf "%b NodeSource repository has already been added or is not required.\\n" "${TICK}"
         printf "%b If needed, you can have this script attempt to add it, by editing the diginode.settings\\n" "${INDENT}"
-        printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
+        printf "%b file in the ~/.digibyte folder and changing the NODEJS_REPO_ADDED value to NO. \\n" "${INDENT}"
     fi
 
     # Look up the latest candidate release
@@ -10896,12 +10938,20 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     if [ "$PKG_MANAGER" = "dnf" ]; then
         # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
+        printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
         # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
         printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
+        printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 
@@ -11064,7 +11114,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
             # Install NodeJS if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
             printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
-            yum install nodejs14
+            sudo yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
             DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
@@ -12758,6 +12808,10 @@ fi
 # Perform uninstall if requested
 uninstall_do_now() {
 
+    # Get version codename
+    LINUX_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+    LINUX_VERSION_CODENAME=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d'=' -f2)
+
     printf " =============== Uninstall DigiNode ====================================\\n\\n"
     # ==============================================================================
 
@@ -12920,6 +12974,85 @@ uninstall_do_now() {
 
     # Insert a line break if either of these were present
     if [ "$uninstall_dga" = "yes" ]; then
+        printf "\\n"
+    fi
+
+    ################## UNINSTALL NODE.JS #################################################
+
+    # Only uninstall Node.js if DigiAsset Node has already been uninstalled
+    if [ "$uninstall_dga" = "yes" ]; then
+
+        # Get the local version number of NodeJS (this will also tell us if it is installed)
+        NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+
+        if [ "$NODEJS_VER_LOCAL" = "" ]; then
+            NODEJS_STATUS="not_detected"
+            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        else
+            NODEJS_STATUS="installed"
+            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+
+        # Ask to uninstall Node.js if it exists
+        if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || if [ "$NODEJS_STATUS" = "installed" ]; then
+
+            printf " =============== Uninstall: Node.JS ====================================\\n\\n"
+            # ==============================================================================
+
+            # Delete IPFS
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely delete this if you do not use Node.JS for anything else." "${r}" "${c}"; then
+
+            printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
+
+            # Deleting deb repository
+            if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+                str="Deleting Nodesource deb repository..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f /etc/apt/sources.list.d/nodesource.list
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Deleting gpg key
+            if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+                str="Deleting Nodesource GPG key..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f /etc/apt/keyrings/nodesource.gpg
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Delete Node.js packages
+            if [ "$NODEJS_STATUS" = "installed" ]; then
+                if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+                    printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                    sudo apt-get purge nodejs -y
+                elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
+                    printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                    yum remove nodejs -y
+                    str="Deleting Nodesource key for Enterprise Linux..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -rf /etc/yum.repos.d/nodesource*.repo
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    yum clean all -y
+                fi
+                NODEJS_STATUS="not_detected"
+                NODEJS_VER_LOCAL=""
+                delete_nodejs="yes"
+                sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                NODEJS_INSTALL_DATE=""
+                sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                NODEJS_UPGRADE_DATE=""
+                sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+            fi
+
+            # Reset Nodesource repo variable in diginode.settings so it will run again
+            sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
+
+        else
+            printf "%b You chose not to uninstall Node.js.\\n" "${INFO}"
+            delete_nodejs="no"
+        fi
+
         printf "\\n"
     fi
 

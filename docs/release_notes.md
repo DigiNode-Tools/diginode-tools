@@ -8,8 +8,10 @@ DigiNode Tools v0.8.7 - 2023-09-xx
 - New: Status Monitor startup checks can now detect if digibyted has failed and display the error.
 - New: Add --help to DigiNode Status Monitor. To view a list of the optional flags, enter: diginode --help
 - New: Status Monitor now displays the listening port and upnp status. It disappears once it knows that the port is being forwarded correctly.
+- New: Uninstaller now lets you uninstall Node.js. You must uninstall the DigiAsset Node first.
 - Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model.
-- Fix: Misalligned column in Status Monitor when swap size is double figures.
+- Fix: Node.js installer now uses the new Nodesource repositories.
+- Fix: Repair misalligned column in Status Monitor when swap size is double figures.
 - Change: Status Monitor 15 second timer now runs every 10 seconds.
 - Change: Improve formatting of wallet balance in status monitor.
 
