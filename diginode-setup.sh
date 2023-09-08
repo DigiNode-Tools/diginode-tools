@@ -7094,7 +7094,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 24 70
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 25 70
 }
 
 
