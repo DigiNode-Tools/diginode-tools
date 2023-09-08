@@ -11935,8 +11935,11 @@ digiasset_node_create_settings() {
 
     # Display title if the settings file already exist
     if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
-            printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
-            # ==============================================================================
+        printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
+        # ==============================================================================
+    elif [ "$RESET_MODE" != true ]; then
+        printf " =============== Checking: DigiByte RPC credentials ====================\\n\\n"
+        # ==============================================================================
     fi
 
     # Let's get the latest RPC credentials from digibyte.conf if it exists
