@@ -3300,7 +3300,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$NewInstall" = true ]] && [[
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing mainnet install, and the hostname is already 'diginode'
-elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -3308,7 +3308,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] &
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing testnet install, and the hostname is already 'diginode-testnet'
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -3316,7 +3316,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TEST
     HOSTNAME_DO_CHANGE="NO"
 
 # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
-elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
@@ -3338,7 +3338,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
     printf "\\n"
 
 # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
@@ -3439,6 +3439,17 @@ elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNE
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
+# We re running on MAINNET or SIGNET.
+elif [[ "$DGB_NETWORK_FINAL" = "REGTEST" ]] || [[ "$DGB_NETWORK_FINAL" = "SIGNET" ]]; then
+    printf "%b Hostname Check: %bFAILED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
+    printf "%b WARNING: You are currently running DigiByte Core on the $DGB_NETWORK_FINAL chain.\\n"  "${INFO}"
+    printf "%b Your hostname is currently '$HOSTNAME'. If you are running another DigNode,\\n"  "${INDENT}"
+    printf "%b on your network, make sure that it is not also using the same hostname.\\n"  "${INDENT}"
+    printf "%b If you are, you may experience issues with ports clashing. \\n"  "${INDENT}"
+    printf "\\n"
+    HOSTNAME_DO_CHANGE="NO"
+    printf "\\n"
 fi
 
 }
@@ -3449,7 +3460,7 @@ hostname_ask_change() {
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
-    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
@@ -3465,7 +3476,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         fi
 
     # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
-    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
@@ -7823,10 +7834,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINNET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
             printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
         else
             printf "%b You chose to setup DigiByte Core on TESTNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="TESTNET"
         fi
         printf "\\n"
@@ -7836,10 +7849,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the TESTNET network.\\n\\nWould you like to switch it to use the MAINNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to MAINNET" --no-button "Cancel" "${r}" "${c}"; then
             printf "%b You chose to switch DigiByte Core to run MAINNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on TESTNET. Returning to menu...\\n" "${INFO}"
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
             menu_existing_install 
         fi
@@ -7850,10 +7865,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the MAINNET network.\\n\\nWould you like to switch it to use the TESTNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to TESTNET" --no-button "Cancel" "${r}" "${c}"; then
             printf "%b You chose to switch DigiByte Core to run TESTNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="TESTNET"
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on MAINNET. Returning to menu...\\n" "${INFO}"
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
             menu_existing_install 
         fi
@@ -7862,12 +7879,16 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_network_menu" = "no" ]; then
 
         if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_NETWORK_OLD="REGTEST"
             DGB_NETWORK_FINAL="REGTEST"
         elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_NETWORK_OLD="SIGNET"
             DGB_NETWORK_FINAL="SIGNET"
 
         fi
@@ -7890,12 +7911,16 @@ else
 
             printf "%b Unattended Mode: DigiByte Core will run MAINNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="MAINNET"
 
         elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
 
             printf "%b Unattended Mode: DigiByte Core will run TESTNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="TESTNET"
 
         else
@@ -7903,8 +7928,10 @@ else
             printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
 
             if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+                DGB_NETWORK_OLD="MAINNET"
                 DGB_NETWORK_FINAL="MAINNET"
             elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                DGB_NETWORK_OLD="TESTNET"
                 DGB_NETWORK_FINAL="TESTNET"
             fi
 
@@ -7922,8 +7949,10 @@ else
         printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
 
         if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
         fi
   
@@ -11924,12 +11953,37 @@ digiasset_node_create_settings() {
         scrape_digibyte_conf
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Import variables from global section of digibyte.conf
-        str="Getting digibyte.conf global variables..."
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
         printf "%b %s" "${INFO}" "${str}"
-        eval "$DIGIBYTE_CONFIG_GLOBAL"
+
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_chain_query
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Import variables from global section of digibyte.conf
+        str="Querying RPC credentials..."
+        printf "%b %s" "${INFO}" "${str}"
+        digibyte_rpc_query
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+        # Setting RPC variables
+        rpcuser=$RPC_USER
+        rpcpassword=$RPC_PASSWORD
+        rpcport=$RPC_PORT
 
     else
         local create_dummy_rpc_credentials="yes"
@@ -11941,6 +11995,14 @@ digiasset_node_create_settings() {
             create_dummy_rpc_credentials="done"
         fi
     fi
+
+    # Display discovered RPC credentials from digibyte.conf
+    if [ "$VERBOSE_MODE" = true ]; then
+        printf "%b Verbose Mode: RPC User - $rpcuser\\n" "${INFO}"
+        printf "%b Verbose Mode: RPC Pass - $rpcpassword\\n" "${INFO}"
+        printf "%b Verbose Mode: RPC Port - $rpcport\\n" "${INFO}"
+    fi
+
 
     # Check if DigiAsset settings file exists
     if [ -f $DGA_SETTINGS_FILE ]; then
