@@ -13133,7 +13133,7 @@ uninstall_do_now() {
                 if [ "$NODEJS_STATUS" = "installed" ]; then
                     if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
                         printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
-                        sudo apt-get purge nodejs -y
+                        sudo apt-get purge nodejs -y -q
                     elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
                         printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
                         yum remove nodejs -y
