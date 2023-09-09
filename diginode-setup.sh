@@ -2824,7 +2824,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b You can find the DigiNode Tools Telegram Group here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
-        printf "%b Alternatively, contact $SOCIAL_TWITTER_HANDLE on Twitter or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
+        printf "%b Alternatively, contact or $SOCIAL_BLUESKY_HANDLE on Bluesky or $SOCIAL_TWITTER_HANDLE on X.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -10248,10 +10248,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
         elif [ "$use_ipfs_server_profile" = "no" ]; then
-            sudo -u $USER_ACCOUNT ipfs init
+            if [ "$IS_RPI" = "YES" ]; then
+                printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+                sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+            else
+                sudo -u $USER_ACCOUNT ipfs init
+            fi
+
         fi
 
-        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
         printf "\\n"
     fi
 
@@ -10385,8 +10391,18 @@ ipfs_update_port() {
 
     # If we are using Kubo IPFS
 
-            printf " =============== Starting: IPFS ========================================\\n\\n"
+        printf "\\n"
+        printf " =============== Starting: IPFS ========================================\\n\\n"
         # ==============================================================================
+
+        if [ "$VERBOSE_MODE" = true ]; then
+            printf "%b Verbose Mode: DGB_NETWORK_FINAL - $DGB_NETWORK_FINAL\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP4 - $IPFS_PORT_IP4\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP6 - $IPFS_PORT_IP6\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP4_QUIC - $IPFS_PORT_IP4_QUIC\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP6_QUIC - $IPFS_PORT_IP6_QUIC\\n" "${INFO}"
+            printf "\\n"
+        fi
 
         printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
 

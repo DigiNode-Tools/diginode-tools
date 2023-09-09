@@ -12,8 +12,10 @@ DigiNode Tools v0.8.7 - 2023-09-xx
 - Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model.
 - Fix: Node.js installer now uses the new Nodesource repositories.
 - Fix: Repair misalligned column in Status Monitor when swap size is double figures.
+- Fix: IPFS cat command now attempts to download the new readme file to test your install. The old one was no longer available, so would always fail.
 - Change: Status Monitor 15 second timer now runs every 10 seconds.
 - Change: Improve formatting of wallet balance in status monitor.
+- Change: IPFS now uses the lowerpower profile on a Raspberry Pi
 
 DigiNode Tools v0.8.6 - 2023-08-27
 - Fix: UPnP menu now displays current DigiByte port correctly
