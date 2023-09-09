@@ -10198,19 +10198,19 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     if [ ! -f "$USER_HOME/.ipfs/config" ]; then
         str="Kubo IPFS config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
-        IPFS_PORT_IP4_TARGET="4001"
-        IPFS_PORT_IP6_TARGET="4001"
-        IPFS_PORT_IP4_QUIC_TARGET="4001"
-        IPFS_PORT_IP6_QUIC_TARGET="4001"
+        IPFS_PORT_IP4="4001"
+        IPFS_PORT_IP6="4001"
+        IPFS_PORT_IP4_QUIC="4001"
+        IPFS_PORT_IP6_QUIC="4001"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ ! -f "$USER_HOME/.jsipfs/config" ]; then
         str="JS-IPFS config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
-        JSIPFS_PORT_IP4_TARGET="4001"
-        JSIPFS_PORT_IP6_TARGET="4001"
-        JSIPFS_PORT_IP4_QUIC_TARGET="4001"
-        JSIPFS_PORT_IP6_QUIC_TARGET="4001"
+        JSIPFS_PORT_IP4="4001"
+        JSIPFS_PORT_IP6="4001"
+        JSIPFS_PORT_IP4_QUIC="4001"
+        JSIPFS_PORT_IP6_QUIC="4001"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
