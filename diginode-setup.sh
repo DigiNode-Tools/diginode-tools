@@ -10263,6 +10263,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
         elif [ "$use_ipfs_server_profile" = "no" ]; then
+            echo "IS_RPI: $IS_RPI" # banana test
             if [ "$IS_RPI" = "YES" ]; then
                 printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
                 sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
