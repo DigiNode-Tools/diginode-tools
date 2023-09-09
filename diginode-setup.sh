@@ -14999,7 +14999,13 @@ main() {
         DGANODE_ONLY=false
     fi
 
-    echo "DGANODE_ONLY: $DGANODE_ONLY" # banana test
+    # If we still don't know whether or not we are running a DigiAsset Node ONLY, assume that we are running a full DigiNode, so that Raspberry Pi checks etc. are run
+    if [ "$DGANODE_ONLY" = "" ]; then
+        if [ "$VERBOSE_MODE" = true ]; then
+            printf "%b Verbose Mode: DGANODE_ONLY variable not set - setting to false.\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        fi
+        DGANODE_ONLY=false
+    fi
 
     # Check for Raspberry Pi hardware
     if [[ "$DGANODE_ONLY" == false ]]; then
