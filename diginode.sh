@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.6
+#           Name:  DigiNode Status Monitor v0.8.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
 #                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Ubuntu Server 64-bit is recommended.
+#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
 #
@@ -39,7 +39,7 @@
 # used by this one.
 #
 # Both DigiNode Setup and Status Monitor scripts make use of a settings file
-# located at: ~/.diginode/diginode.settings
+# located at: ~/.digibyte/diginode.settings
 #
 # It want to make changes to folder locations etc. please edit this file.
 # (e.g. To move your DigiByte data folder to an external drive.)
@@ -60,7 +60,7 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.6
+DGNT_VER_LOCAL=0.8.7
 # Last Updated: 2023-08-27
 
 # This is the command people will enter to run the install script.
@@ -79,6 +79,7 @@ COL_LIGHT_GREEN='\e[1;32m'
 COL_LIGHT_RED='\e[1;31m'
 COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
+COL_LIGHT_YEL='\e[1;33m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
@@ -128,14 +129,35 @@ txtbld=$(tput bold) # Set bold mode
 VERBOSE_MODE=false       # Set this to true to get more verbose feedback. Very useful for debugging.
 UNINSTALL=false
 LOCATE_DIGIBYTE=false
+DISPLAY_HELP=false
+EDIT_DGBCFG=false
+EDIT_DGNTSET=false
+VIEW_DGBLOG=false
+VIEW_DGBLOGMN=false
+VIEW_DGBLOGTN=false
+VIEW_DGBLOGRT=false
+VIEW_DGBLOGSN=false
+DGBCORE_RESTART=false
+DGBCORE_STOP=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
     case "$var" in
         "--uninstall" ) UNINSTALL=true;;
-        "--verboseon" ) VERBOSE_MODE=true;;
+        "--verbose" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--locatedgb" ) LOCATE_DIGIBYTE=true;;
+        "--help" ) DISPLAY_HELP=true;;
+        "-h" ) DISPLAY_HELP=true;;
+        "--dgbcfg" ) EDIT_DGBCFG=true;;
+        "--dgntset" ) EDIT_DGNTSET=true;;
+        "--dgblog" ) VIEW_DGBLOG=true;;
+        "--dgblogmn" ) VIEW_DGBLOGMN=true;;
+        "--dgblogtn" ) VIEW_DGBLOGTN=true;;
+        "--dgblogrt" ) VIEW_DGBLOGRT=true;;
+        "--dgblogsn" ) VIEW_DGBLOGSN=true;;
+        "--dgbrestart" ) DGBCORE_RESTART=true;;
+        "--dgbstop" ) DGBCORE_STOP=true;;
     esac
 done
 
@@ -145,6 +167,184 @@ done
 ######################################################
 ######### FUNCTIONS ##################################
 ######################################################
+
+# Run a command via a launch flag
+flag_commands() {
+if [ $EDIT_DGBCFG = true ] || \
+   [ $EDIT_DGNTSET = true ] || \
+   [ $VIEW_DGBLOG = true ] || \
+   [ $VIEW_DGBLOGMN = true ] || \
+   [ $VIEW_DGBLOGTN = true ] || \
+   [ $VIEW_DGBLOGRT = true ] || \
+   [ $VIEW_DGBLOGSN = true ] || \
+   [ $DGBCORE_RESTART = true ] || \
+   [ $DGBCORE_STOP = true ]; then
+    printf "\\n"
+    get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
+    import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
+
+    # Work out which DigiByte log file to display based on which chain is in use
+    if [ $VIEW_DGBLOG = true ]; then # --dgblog
+        diginode_tools_import_settings
+        digibyte_chain_query
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            VIEW_DGBLOGTN=true
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            VIEW_DGBLOGRT=true
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            VIEW_DGBLOGSN=true
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            VIEW_DGBLOGMN=true
+        fi
+    fi
+
+    if [ $EDIT_DGBCFG = true ]; then # --dgbcfg
+        diginode_tools_import_settings
+        set_text_editor
+        if test -f $DGB_CONF_FILE; then
+            exec $TEXTEDITOR $DGB_CONF_FILE
+        else
+            printf "%bError: digibyte.conf file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $EDIT_DGNTSET = true ]; then # --dgntset
+        diginode_tools_import_settings
+        set_text_editor  
+        if test -f $DGNT_SETTINGS_FILE ; then
+            exec $TEXTEDITOR $DGNT_SETTINGS_FILE 
+        else
+            printf "%bError: diginode.settings file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $VIEW_DGBLOGMN = true ]; then # --dgblogmn
+        if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
+            diginode_tools_import_settings
+        fi
+        if test -f $DGB_SETTINGS_LOCATION/debug.log ; then
+            echo "      ====================================="
+            echo "         DigiByte Core MAINNET debug.log"
+            echo "      ====================================="
+            echo ""
+            echo "    Displaying the last 50 lines from mainnet log file. Press Ctrl-C to Stop."
+            echo ""
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/debug.log
+        else
+            printf "%bError: DigiByte Core MAINNET log file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $VIEW_DGBLOGTN = true ]; then # --dgblogtn
+        if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
+            diginode_tools_import_settings
+        fi
+        if test -f $DGB_SETTINGS_LOCATION/testnet4/debug.log ; then
+            echo "      ====================================="
+            echo "         DigiByte Core TESTNET debug.log"
+            echo "      ====================================="
+            echo ""
+            echo "    Displaying the last 50 lines from testnet log file. Press Ctrl-C to Stop."
+            echo ""
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/testnet4/debug.log
+        else
+            printf "%bError: DigiByte Core TESTNET log file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $VIEW_DGBLOGRT = true ]; then # --dgblogrt
+        if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
+            diginode_tools_import_settings
+        fi
+        if test -f $DGB_SETTINGS_LOCATION/regtest/debug.log ; then
+            echo "      ====================================="
+            echo "         DigiByte Core REGTEST debug.log"
+            echo "      ====================================="
+            echo ""
+            echo "    Displaying the last 50 lines from regtest log file. Press Ctrl-C to Stop."
+            echo ""
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/regtest/debug.log
+        else
+            printf "%bError: DigiByte Core REGTEST log file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $VIEW_DGBLOGSN = true ]; then # --dgblogrt
+        if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
+            diginode_tools_import_settings
+        fi
+        if test -f $DGB_SETTINGS_LOCATION/signet/debug.log ; then
+            echo "      ====================================="
+            echo "         DigiByte Core SIGNET debug.log"
+            echo "      ====================================="
+            echo ""
+            echo "    Displaying the last 50 lines from signet log file. Press Ctrl-C to Stop."
+            echo ""
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/signet/debug.log
+        else
+            printf "%bError: DigiByte Core SIGNET log file does not exist\\n\\n" "${INDENT}"
+        fi
+    elif [ $DGBCORE_RESTART = true ]; then # --dgbrestart
+        local str="Restarting digibyted service"
+        printf "%b %s..." "${INFO}" "${str}"
+        # If systemctl exists,
+        if $(command -v systemctl >/dev/null 2>&1); then
+            sudo systemctl restart digibyted &> /dev/null
+        else
+            # Otherwise, fall back to the service command
+            sudo service digibyted restart &> /dev/null
+        fi
+        printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
+        exit
+     elif [ $DGBCORE_STOP = true ]; then # --stopdgb
+        local str="Stopping digibyted service"
+        printf "%b %s..." "${INFO}" "${str}"
+        # If systemctl exists,
+        if $(command -v systemctl >/dev/null 2>&1); then
+            sudo systemctl stop digibyted &> /dev/null
+        else
+            # Otherwise, fall back to the service command
+            sudo service digibyted stop &> /dev/null
+        fi
+        printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
+        exit
+    fi
+
+
+
+fi 
+
+}
+
+# Display DigiNode Setup help screen if the --help or -h flags was used
+display_help() {
+    if [ "$DISPLAY_HELP" = true ]; then
+        echo ""
+        echo "  ╔════════════════════════════════════════════════════════╗"
+        echo "  ║                                                        ║"
+        echo "  ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
+        echo "  ║                                                        ║"
+        echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
+        echo "  ║                                                        ║"
+        echo "  ╚════════════════════════════════════════════════════════╝" 
+        echo ""
+        printf "%bOptional flags when running DigiNode Status Monitor:\\n" "${INDENT}"
+        printf "\\n"
+        printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b%b--dgbrestart%b    - Restart DigiByte Core daemon.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgbstop%b       - Stop DigiByte Core daemon.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b%b--dgbcfg%b        - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgntset%b       - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgblogtn%b      - View DigiByte Core log file for testnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgblogrt%b      - View DigiByte Core log file for regtest.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgblogsn%b      - View DigiByte Core log file for signet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "\\n"
+        printf "%bAppend the desired %b--flag%b to use:\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "%b$ %bdiginode --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "\\n"
+        printf "\\n"
+        exit
+    fi
+}
 
 # Find where this script is running from, so we can make sure the diginode-setup.sh script is with it
 get_script_location() {
@@ -196,12 +396,12 @@ import_setup_functions() {
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
-        printf "%b   git clone https://github.com/saltedlolly/diginode/ \\n" "${INDENT}"
-        printf "%b   chmod +x ~/diginode/diginode.sh \\n" "${INDENT}"
+        printf "%b   git clone https://github.com/saltedlolly/diginode-tools/ \\n" "${INDENT}"
+        printf "%b   chmod +x ~/diginode-tools/diginode.sh \\n" "${INDENT}"
         printf "\\n"
         printf "%b To run it:\\n" "${INDENT}"
         printf "\\n"
-        printf "%b   ~/diginode/diginode.sh\\n" "${INDENT}"
+        printf "%b   ~/diginode-tools/diginode.sh\\n" "${INDENT}"
         printf "\\n"
         exit 1
     fi
@@ -213,13 +413,13 @@ digimon_title_box() {
     tput civis
     tput smcup
     echo ""
-    echo " ╔════════════════════════════════════════════════════════╗"
-    echo " ║                                                        ║"
-    echo " ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
-    echo " ║                                                        ║"
-    echo " ║         Monitor your DigiByte & DigiAsset Node         ║"
-    echo " ║                                                        ║"
-    echo " ╚════════════════════════════════════════════════════════╝" 
+    echo "  ╔════════════════════════════════════════════════════════╗"
+    echo "  ║                                                        ║"
+    echo "  ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
+    echo "  ║                                                        ║"
+    echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
+    echo "  ║                                                        ║"
+    echo "  ╚════════════════════════════════════════════════════════╝" 
     echo ""
 }
 
@@ -450,8 +650,8 @@ is_dgbnode_installed() {
 
     if [ -f "$DGB_CONF_FILE" ]; then
         find_dgb_conf_file="yes"
-        printf "%b digibyte.conf file located. Importing...\\n" "${TICK}"
-        source $DGB_CONF_FILE
+        printf "%b digibyte.conf file located.\\n" "${TICK}"
+        scrape_digibyte_conf
     else
         printf "%b %bERROR: digibyte.conf not found.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b The digibyte.conf contains important configuration settings for\\n" "${INDENT}"
@@ -463,38 +663,88 @@ is_dgbnode_installed() {
         fi
     fi
 
+    # If digibyed service is failing, then display the error
+    if [ $(systemctl is-active digibyted) = 'failed' ]; then
 
-    # Get current listening port
+        local known_dgb_service_error
+        known_dgb_service_error="no"
 
-    if [ -f "$DGB_CONF_FILE" ]; then
-        # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
-            # Re-source config file
-            if [ -f "$DGB_CONF_FILE" ]; then
-                source $DGB_CONF_FILE
-            fi
-            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12026"
-            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12024"
-            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12024"
-            else
-                DGB_LISTEN_PORT="$port"   
-            fi
+        IS_CHAIN_CONFIG_VALID=$(digibyted stop 2>&1 | grep -Eo "Invalid combination of -regtest, -signet, -testnet and -chain.")
+        if [ "$IS_CHAIN_CONFIG_VALID" = "Invalid combination of -regtest, -signet, -testnet and -chain." ]; then
+            known_dgb_service_error="yes"
+            printf "\\n"
+            printf "%b %bERROR: Invalid combination of -regtest, -signet, -testnet and -chain.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            printf "%b Your digibyte.conf file contains an invalid combination -regtest, -signet,\\n" "${INDENT}"
+            printf "%b -testnet and -chain. You can use at most one. For this reason, the DigiByte daemon.\\n" "${INDENT}"
+            printf "%b is unable to start. Please edit your digibyte.conf to fix this:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b Restart DigiByte daemon when done:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
         fi
-        printf "%b DigiByte Core listening port: $DGB_LISTEN_PORT\\n" "${INFO}"
+
+        if [ $known_dgb_service_error = "no" ]; then
+            printf "\\n"
+            printf "%b %bERROR: digibyted service has failed due to an unknown reason:%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            digibyted -daemon 1>/dev/null
+        fi
+
+        # Kill digibyted in case it started running by accident
+        dgb_process_id=$(pgrep digibyted)
+        if [ "$dgb_process_id" != "" ]; then
+            kill -9 $dgb_process_id
+        fi
+        printf "\\n"
+        exit 1
+
     fi
 
-    # Get maxconnections from digibyte.conf
+    # Find out which DGB network is running - main, test, regtest, signet
+    str="Checking current DigiByte chain..."
+    printf "%b %s" "${INFO}" "${str}"
 
-    if [ -f "$DGB_CONF_FILE" ]; then
-      maxconnections=$(cat $DGB_CONF_FILE | grep maxconnections | cut -d'=' -f 2)
-      if [ "$maxconnections" = "" ]; then
-        maxconnections="125"
-      fi
-      printf "%b DigiByte Core max connections: $maxconnections\\n" "${INFO}"
+    # Query if DigiByte Core is running the mainn, test, regtest ro signet chain
+    digibyte_chain_query
+
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+        printf "%b%b %s %bTESTNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+        printf "%b%b %s %bREGTEST%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+        printf "%b%b %s %SIGNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+        printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+    elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+        printf "%b%b %s %bTESTNET%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+        printf "%b%b %s %bREGTEST%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+        printf "%b%b %s %SIGNET%b (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
+    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+        printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+
+
+    # Get current listening port
+    digibyte_port_query
+
+    if [ "$DGB_LISTEN_PORT" != "" ] && [ "$DGB_LISTEN_PORT_LIVE" = "YES" ]; then
+        printf "%b DigiByte Core listening port: $DGB_LISTEN_PORT (live)\\n" "${INFO}"
+    elif [ "$DGB_LISTEN_PORT" != "" ] && [ "$DGB_LISTEN_PORT_LIVE" = "NO" ]; then
+        printf "%b DigiByte Core listening port: $DGB_LISTEN_PORT (from digibyte.conf)\\n" "${INFO}"
+    fi
+
+
+    # Get maxconnections from digibyte.conf
+    digibyte_maxconnections_query
+    if [ "$DGB_MAXCONNECTIONS" != "" ]; then
+      printf "%b DigiByte Core max connections: $DGB_MAXCONNECTIONS\\n" "${INFO}"
     fi
 
     printf "\\n"
@@ -550,19 +800,29 @@ is_dgbnode_installed() {
         IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
-            printf "%b %bThe RPC credentials have been changed.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
+            printf "%b %bERROR: Incorrect rpcuser or rpcpassword.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "%b The RPC credentials have been changed. You need to run DigiNode Setup\\n" "${INDENT}"
+            printf "%b and choose 'Update' from the menu to update your settings.\\n" "${INDENT}"
+            printf "%b To do this now enter:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode-setup%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit
         fi
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
-            printf "%b %bThe RPC credentials have been changed. You need to run DigiNode Setup and choose 'Update' from the menu to update your settings.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b %bERROR: Could not connect to the digibyed server.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
-            printf "%b To do this now enter: diginode-setup\\n" "${INDENT}"
+            printf "%b The RPC credentials have been changed. Try restarting the DigiByte daemon:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "\\n"
+            printf "%b If that fails, you need to run DigiNode Setup and choose 'Update' from\\n" "${INDENT}"
+            printf "%b the menu to update your settings. To do this now enter:\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode-setup%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit
         fi
@@ -784,15 +1044,23 @@ is_dganode_installed() {
 }
 
 # Get RPC CREDENTIALS from digibyte.conf
-get_dgb_rpc_credentials() {
+check_dgb_rpc_credentials() {
+
     if [ -f "$DGB_CONF_FILE" ]; then
 
-      RPC_USER=$(cat $DGB_CONF_FILE | grep rpcuser= | cut -d'=' -f 2)
-      RPC_PASS=$(cat $DGB_CONF_FILE | grep rpcpassword= | cut -d'=' -f 2)
-      RPC_PORT=$(cat $DGB_CONF_FILE | grep rpcport= | cut -d'=' -f 2)
-      if [ "$RPC_USER" != "" ] && [ "$RPC_PASS" != "" ] && [ "$RPC_PORT" != "" ]; then
+        # Store the DigiByte Core verion as a single digit
+        DGB_LOCAL_VER_DIGIT_QUERY="${DGB_LOCAL_VER:0:1}"
+        if [ "$DGB_LOCAL_VER_DIGIT_QUERY" != "" ]; then
+            DGB_LOCAL_VER_DIGIT=$DGB_LOCAL_VER_DIGIT_QUERY
+        fi
+
+        # Get RPC credentials
+        digibyte_rpc_query
+
+      if [ "$RPC_USER" != "" ] && [ "$RPC_PASSWORD" != "" ] && [ "$RPC_PORT" != "" ] && [ "$RPC_BIND" != "error" ]; then
         RPC_CREDENTIALS_OK="yes"
-        printf "%b DigiByte RPC credentials found: ${TICK} User ${TICK} Password ${TICK} Port\\n\\n" "${TICK}"
+        printf "%b DigiByte RPC credentials found: ${TICK} Username     ${TICK} Password\\n" "${TICK}"
+        printf "                                      ${TICK} RPC Port     ${TICK} Bind\\n\\n" "${TICK}"
       else
         RPC_CREDENTIALS_OK="NO"
         printf "%b %bERROR: DigiByte RPC credentials are missing:%b" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -802,18 +1070,25 @@ get_dgb_rpc_credentials() {
           printf "${CROSS}"
         fi
         printf " Username     "
-        if [ "$RPC_PASS" != "" ]; then
+        if [ "$RPC_PASSWORD" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
-        printf " Password     "
+        printf " Password\\n"
+        printf "                                                  "
         if [ "$RPC_PORT" != "" ]; then
           printf "${TICK}"
         else
           printf "${CROSS}"
         fi
-        printf " Port\\n"
+        printf " RPC Port     "
+        if [ "$RPC_BIND" = "error" ]; then
+          printf "${CROSS}"
+        else
+          printf "${TICK}"
+        fi
+        printf " Bind\n"
         printf "\\n"
 
         # Exit if there a missing RPC credentials and the DigiAsset Node is running
@@ -823,13 +1098,32 @@ get_dgb_rpc_credentials() {
             printf "\\n"
             printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   nano $DGB_CONF_FILE\\n" "${INDENT}"
+            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
-            printf "%b Add the following:\\n" "${INDENT}"
+            printf "%b Check that the following is included in the [${DGB_NETWORK_CHAIN}] section:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
-            printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
-            printf "%b   rpcport=14022                # best to leave this as is\\n" "${INDENT}"
+            if [ "$RPC_USER" = "" ]; then
+                printf "%b   rpcuser=desiredusername      # change 'desiredusername' to something else\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PASSWORD" = "" ]; then
+                printf "%b   rpcpassword=desiredpassword  # change 'desiredpassword' to something else\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "main" ]; then
+                printf "%b   rpcport=14022# best to leave this as is\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+                printf "%b   rpcport=14023\\n" "${INDENT}"
+            fi
+            if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then
+                printf "%b   rpcport=18443\\n" "${INDENT}"
+            fi
+            if [ "$RPC_BIND" = "error" ]; then
+                printf "%b   rpcbind=127.0.0.1            \\n" "${INDENT}"
+            fi
+            printf "\\n"
+            printf "%b Restart DigiByte Core when you are done: \\n" "${INDENT}"
+            printf "\\n"
+            printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             exit 1
         fi
@@ -1163,7 +1457,8 @@ if [ "$auto_quit" = true ]; then
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
-    printf "%b To edit it: $TEXTEDITOR ~/.digibyte/diginode.settings\\n" "${INDENT}"
+    printf "%b To edit it: diginode \\n" "${INDENT}"
+    printf "%b To edit it: ${txtbld}diginode --dgntset${txtrst}\\n" "${INDENT}"
     echo ""
 fi
 
@@ -1238,8 +1533,8 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     str="Setting up Status Monitor timers..."
     printf "  %b %s" "${INFO}" "${str}"
     # set 15 sec timer and save to settings file
-    SAVED_TIME_15SEC="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_10SEC="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 
     # set 1 min timer and save to settings file
     SAVED_TIME_1MIN="$(date +%s)"
@@ -1294,6 +1589,8 @@ if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
     # When the user quits, enable showing a donation plea
     DONATION_PLEA="YES"
     sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
+
+    printf "\\n"
 
 fi
 
@@ -1370,17 +1667,97 @@ clean_dgb_error_msg() {
     DGB_ERROR_MSG="${DGB_ERROR_MSG/…/...}"
 }
 
+# displays the current network chain in the dashboard
+
+display_network_chain() {
+
+# Display if we are using the testnet chain
+if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then 
+printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
+elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then 
+# printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}REGTEST${txtrst} [Developer Mode!] " " ║"
+elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then 
+# printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}SIGNET${txtrst} [Developer Mode!] " " ║"
+fi
+
+}
+
+
+# displays the current DigiByte Core listening port
+display_listening_port() {
+if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ]; then # Only show listening port if DigiByte Node is running or starting up
+    if [ "$DGB_CONNECTIONS" = "" ]; then
+        DGB_CONNECTIONS=0
+    fi
+    if [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then # Only show if connection count is less or equal to 8 since it is clearly working with a higher count
+        printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+        if grep -q ^"upnp=1" $DGB_CONF_FILE; then
+            printf "  ║ DGB PORT       ║  " && printf "%-26s %24s %-4s\n" "Listening Port: ${txtbylw}${DGB_LISTEN_PORT}${txtrst}" "[ UPnP: Enabled" "]  ║"
+        else
+            printf "  ║ DGB PORT       ║  " && printf "%-26s %24s %-4s\n" "Listening Port: ${txtbylw}${DGB_LISTEN_PORT}${txtrst}" "[ UPnP: Disabled" "]  ║"
+        fi
+    fi
+fi
+
+}
+
 pre_loop() {
 
     printf " =============== Performing Startup Checks ==============================\\n\\n"
     # ===============================================================================
 
-      # Setup loopcounter - used for debugging
-      loopcounter=0
+    # Setup loopcounter - used for debugging
+    loopcounter=0
 
-      # Set timenow variable with the current time
-      TIME_NOW=$(date)
-      TIME_NOW_UNIX=$(date +%s)
+    # Set timenow variable with the current time
+    TIME_NOW=$(date)
+    TIME_NOW_UNIX=$(date +%s)
+
+    # Check timers in case they have been tampered with, and repair if necessary
+
+    if [ "$SAVED_TIME_10SEC" = "" ]; then
+        str="Repairing 10 Second timer..."
+        printf "  %b %s" "${INFO}" "${str}"
+        # set 10 sec timer and save to settings file
+        SAVED_TIME_10SEC="$(date +%s)"
+        sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ "$SAVED_TIME_1MIN" = "" ]; then
+        str="Repairing 1 Minute timer..."
+        printf "  %b %s" "${INFO}" "${str}"
+        # set 1 min timer and save to settings file
+        SAVED_TIME_1MIN="$(date +%s)"
+        sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ "$SAVED_TIME_15MIN" = "" ]; then
+        str="Repairing 15 Minute timer..."
+        printf "  %b %s" "${INFO}" "${str}"
+        # set 15 min timer and save to settings file
+        SAVED_TIME_15MIN="$(date +%s)"
+        sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ "$SAVED_TIME_1DAY" = "" ]; then
+        str="Repairing 1 Day timer..."
+        printf "  %b %s" "${INFO}" "${str}"
+        # set 15 min timer and save to settings file
+        SAVED_TIME_1DAY="$(date +%s)"
+        sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+    if [ "$SAVED_TIME_1WEEK" = "" ]; then
+        str="Repairing 1 Week timer..."
+        printf "  %b %s" "${INFO}" "${str}"
+        # set 1 week timer and save to settings file
+        SAVED_TIME_1WEEK="$(date +%s)"
+        sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
       if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "running" ]; then
         printf "%b Checking DigiByte Core...\\n" "${INFO}"
@@ -1400,12 +1777,6 @@ pre_loop() {
           if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-          fi
-
-          # Query if DigiByte Core is running the testnet or mainnet chain
-          DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-          if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
-            DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
           fi
 
         fi
@@ -1497,11 +1868,7 @@ pre_loop() {
 
     if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
         # Lookup current wallet balance
-        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
-        # If the wallet balance is 0, then set the value to "" so it is hidden
-        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
-            WALLET_BALANCE=""
-        fi
+        get_wallet_balance
     fi
 
     if [ "$DGA_STATUS" = "running" ]; then
@@ -1704,6 +2071,9 @@ if [ $DGB_STATUS != "not_detected" ]; then
         DGB_STATUS="running"
       else
         DGB_STATUS="stopped"
+        BLOCKSYNC_PROGRESS=""
+        DGB_ERROR_MSG=""
+        RPC_PORT=""
       fi
     fi
 
@@ -1718,6 +2088,15 @@ if [ $DGB_STATUS != "not_detected" ]; then
           # If we don't get a response, assume it is starting up
           if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
             DGB_STATUS="startingup"
+            # scrape digibyte.conf
+            scrape_digibyte_conf
+            # query for digibyte network
+            digibyte_chain_query
+            # query for digibyte listening port
+            digibyte_port_query
+            # update rpc credentials
+            digibyte_rpc_query
+            TROUBLESHOOTING_MSG="1sec: running>startingup"
           fi
         fi
     fi
@@ -1733,9 +2112,13 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the sync progress value from debug.log. 
-    if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
         BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
-    else
+    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/regtest/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/signet/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
         BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
     fi
  
@@ -1780,21 +2163,21 @@ if [ "$DGB_STATUS" = "running" ]; then
     DGB_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
   if [ $DGB_CONNECTIONS -ge 9 ]; then
-    DGB_CONNECTIONS_MSG="Maximum: $maxconnections"
+    DGB_CONNECTIONS_MSG="Maximum: $DGB_MAXCONNECTIONS"
   fi
 fi 
 
 # ------------------------------------------------------------------------------
-#    Run once every 15 seconds (approx once every block).
-#    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
+#    Run once every 10 seconds
+#    Every 10 seconds lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
-TIME_DIF_15SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_15SEC))
+TIME_DIF_10SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_10SEC))
 
-if [ $TIME_DIF_15SEC -ge 15 ]; then 
+if [ $TIME_DIF_10SEC -ge 10 ]; then 
 
     if [ "$STARTUP_LOOP" = "true" ]; then
-        printf "%b Updating Status: 15 Second Loop...\\n" "${INFO}"
+        printf "%b Updating Status: 10 Second Loop...\\n" "${INFO}"
     fi
 
     # Check if digibyted is successfully responding to requests yet while starting up. If not, get the current error.
@@ -1818,27 +2201,48 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
             clean_dgb_error_msg
         else
+            TROUBLESHOOTING_MSG="10sec: startingup > running"
             DGB_STATUS="running"
 
-            # Query if DigiByte Core is running the testnet or mainnet chain
-            DGB_NETWORK_CHAIN_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-            if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
-                DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
-            fi
+            # Get current listening port
+            DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+
+            # scrape digibyte.conf
+            scrape_digibyte_conf
+
+            # query for digibyte network
+            digibyte_chain_query
+
+            # update max connections
+            digibyte_maxconnections_query
+
+            # update rpc credentials
+            digibyte_rpc_query
+
         fi
 
     fi
 
-    # Update local block count every 15 seconds (approx once per block)
+    # Update local block count every 10 seconds (approx once per block)
     # Is digibyted in the process of starting up, and not ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ] && [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
         BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
         BLOCKCOUNT_FORMATTED=$(printf "%'d" $BLOCKCOUNT_LOCAL)
         if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
-          DGB_STATUS="startingup"
+            DGB_STATUS="startingup"
+            DGB_LISTEN_PORT=""
+            # scrape digibyte.conf
+            scrape_digibyte_conf
+            # query for digibyte network
+            digibyte_chain_query
+            # query for digibyte listening port
+            digibyte_port_query
+            # update rpc credentials
+            digibyte_rpc_query
+            TROUBLESHOOTING_MSG="10sec: running > startingup"
         else
             # Get the algo used for the current block (mainnet or testnet)
-            if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+            if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
                 BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             else
                 BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/debug.log 2>/dev/null | grep $BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
@@ -1848,10 +2252,10 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
 
 
 
-    # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
+    # If there is a new DigiByte Core release available, check every 10 seconds until it has been installed
     if [ $DGB_STATUS = "running" ]; then
 
-      if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "" ] || [ "$DGB_VER_LOCAL_CHECK_FREQ" = "15secs" ]; then
+      if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "" ] || [ "$DGB_VER_LOCAL_CHECK_FREQ" = "10secs" ] || [ "$DGB_VER_LOCAL_CHECK_FREQ" = "15secs" ]; then
 
         # Refresh diginode.settings to get the latest value of DGB_VER_LOCAL
         source $DGNT_SETTINGS_FILE
@@ -1921,14 +2325,14 @@ if [ $TIME_DIF_15SEC -ge 15 ]; then
     # Query the DigiAsset Node console
     update_dga_console
 
-    SAVED_TIME_15SEC="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_15SEC=/s|.*|SAVED_TIME_15SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
+    SAVED_TIME_10SEC="$(date +%s)"
+    sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
 
 # ------------------------------------------------------------------------------
 #    Run once every 1 minute
-#    Every 15 seconds lookup the latest block from the online block exlorer to calculate sync progress.
+#    Every minute lookup the latest block from the online block exlorer to calculate sync progress.
 # ------------------------------------------------------------------------------
 
 TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
@@ -1942,13 +2346,20 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
   # Update DigiByte Core sync progress every minute, if it is running
   if [ "$DGB_STATUS" = "running" ]; then
 
+    # Get current listening port
+    DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+
     # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
     if [ "$BLOCKSYNC_PROGRESS" = "synced" ]; then
 
-        # Lookup the sync progress value from debug.log (mainnet or testnet)
-        if [ "$DGB_NETWORK_CHAIN" = "test" ]; then
+        # Lookup the sync progress value from debug.log (mainnet, testnet, regtest, signet)
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
-        else
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/regtest/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/signet/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
             BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
         fi
      
@@ -1979,33 +2390,12 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$BLOCKSYNC_PERC" = "100 " ]; then
             BLOCKSYNC_PROGRESS="synced"
             if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
-                WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
-                # If the wallet balance is 0, then set the value to "" so it is hidden
-                if [ "$WALLET_BALANCE" = "0.00000000" ]; then
-                    WALLET_BALANCE=""
-                fi
+                # get the wallet balance
+                get_wallet_balance
             fi
         else
            BLOCKSYNC_PROGRESS="notsynced"
            WALLET_BALANCE=""
-        fi
-
-        # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-        if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
-            # Re-source config file
-            if [ -f "$DGB_CONF_FILE" ]; then
-                source $DGB_CONF_FILE
-            fi
-            if [ "$testnet" = "1" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12026"
-            elif [ "$testnet" = "0" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12024"
-            elif [ "$testnet" = "" ] && [ "$port" = "" ]; then
-                DGB_LISTEN_PORT="12024"
-            else
-                DGB_LISTEN_PORT="$port"   
-            fi
         fi
 
     fi
@@ -2228,14 +2618,14 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
           DGB_UPDATE_AVAILABLE="no"
         else
-          DGB_VER_LOCAL_CHECK_FREQ="15secs"
+          DGB_VER_LOCAL_CHECK_FREQ="10secs"
           sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
           DGB_UPDATE_AVAILABLE="yes"
         fi
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -2345,22 +2735,21 @@ echo -e "                /____/                                  ${txtrst}"
 echo ""  
 printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
 if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
+if [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then # don't display connections if this is regtest mode
 if [ $DGB_CONNECTIONS -le 8 ]; then
 printf "  ║ CONNECTIONS    ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
 else
 printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
 fi
-# Display if we are using the testnet chain
-if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
 fi
+display_network_chain
+display_listening_port
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $BLOCKSYNC_PERC%" "]  ║"
 # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
 if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] || [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then 
 printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE TDGB" " ║"
 else
 printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE DGB" " ║"
@@ -2381,6 +2770,8 @@ fi
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
 printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
 printf "  ║                ║  " && printf "%-14s %-44s %-2s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║"
+display_network_chain
+display_listening_port
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
@@ -2413,8 +2804,8 @@ printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsse
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ -f "$DGB_CONF_FILE" ]; then
-printf "  ║ RPC ACCESS     ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     Port: $RPC_PORT" "║" 
-printf "  ║                ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASS" "║" 
+printf "  ║ RPC ACCESS     ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     RPC Port: $RPC_PORT" "║" 
+printf "  ║                ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASSWORD" "║" 
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 fi
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
@@ -2433,9 +2824,9 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
   else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo v$IPFS_VER_LOCAL" " ║"
+    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║"
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -2460,7 +2851,7 @@ printf "\\n"
 printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
 printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
 fi
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
+if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
 printf "\\n"
 printf "   WARNING: Your current connection count is low. Have you forwarded port\\n"
 printf "            $DGB_LISTEN_PORT on your router? If yes, wait a few minutes. This message\\n"
@@ -2485,9 +2876,9 @@ printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
 printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
 if [ "$SWAPUSED_HR" = "0B" ]; then # If swap used is 0B, drop the added b, used for Gb or Mb
-printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR} of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+printf "  ║ SWAP USAGE     ║  " && printf "%-26s %19s %-4s\n" "${SWAPUSED_HR} of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free" "]  ║"
 else
-printf "  ║ SWAP USAGE     ║  " && printf "%-33s %-18s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free ]  ║"
+printf "  ║ SWAP USAGE     ║  " && printf "%-26s %19s %-4s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free" "]  ║"
 fi    
 fi 
 if [ "$temperature" != "" ]; then
@@ -2499,38 +2890,6 @@ printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
 printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
 printf "\\n"
 printf "\\n"
-
-#####################################
-# Display TROUBLESHOOTING variables #
-#####################################
-
-if [ "$VERBOSE_MODE" = true ]; then
-
-    TIME_DIF_15SEC_COUNTDOWN=$((15-$TIME_DIF_15SEC))
-    TIME_DIF_1MIN_COUNTDOWN=$((60-$TIME_DIF_1MIN))
-    TIME_DIF_15MIN_COUNTDOWN=$((900-$TIME_DIF_15MIN))
-    TIME_DIF_1DAY_COUNTDOWN=$((86400-$TIME_DIF_1DAY))
-
-
-    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
-    printf "\\n"
-    printf "                      DGB_STATUS: $DGB_STATUS\\n"
-    printf "                      DGB_PRERELEASE: $DGB_PRERELEASE\\n"
-    printf "                      DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
-    printf "\\n"
-    printf "                      DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
-    printf "                      DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
-    printf "                      DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
-    printf "\\n"
-    printf "                      TIME_DIF_15SEC: $TIME_DIF_15SEC_COUNTDOWN\\n"
-    printf "                      TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
-    printf "                      TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
-    printf "                      TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
-    printf "\\n"
-    printf "                      DGB_ERROR_MSG: >>$DGB_ERROR_MSG<<\\n"
-    printf "\\n"
-    printf "           ==================================================\\n\\n"
-fi
 
 # Display a random DigiFact
 if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
@@ -2547,6 +2906,43 @@ else
     printf "                         Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit.\\n"
 fi
 printf "\\n"
+
+#####################################
+# Display TROUBLESHOOTING variables #
+#####################################
+
+if [ "$VERBOSE_MODE" = true ]; then
+
+    TIME_DIF_10SEC_COUNTDOWN=$((10-$TIME_DIF_10SEC))
+    TIME_DIF_1MIN_COUNTDOWN=$((60-$TIME_DIF_1MIN))
+    TIME_DIF_15MIN_COUNTDOWN=$((900-$TIME_DIF_15MIN))
+    TIME_DIF_1DAY_COUNTDOWN=$((86400-$TIME_DIF_1DAY))
+
+
+    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
+    printf "\\n"
+    printf "                    DGB_STATUS: $DGB_STATUS\\n"
+    printf "                DGB_PRERELEASE: $DGB_PRERELEASE\\n"
+    printf "                 DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
+    printf "\\n"
+    printf "               DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
+    printf "            DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
+    printf "                DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
+    printf "\\n"
+    printf "                    DGA_STATUS: $DGA_STATUS\\n"
+    printf "\\n"
+    printf "                TIME_DIF_10SEC: $TIME_DIF_10SEC_COUNTDOWN\\n"
+    printf "                 TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
+    printf "                TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
+    printf "                 TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
+    printf "\\n"
+#   printf "                 DGB_ERROR_MSG: $DGB_ERROR_MSG\\n"
+    printf "           TROUBLESHOOTING_MSG: $TROUBLESHOOTING_MSG\\n"
+    printf "\\n"
+    printf "           BLOCKSYNC_PROGRESS: $BLOCKSYNC_PROGRESS\\n"
+    printf "\\n"
+    printf "           ==================================================\\n\\n"
+fi
 
 )
 
@@ -2672,6 +3068,15 @@ port_test() {
 
 clear -x
 
+# scrape digibyte.conf
+scrape_digibyte_conf
+
+# query for digibyte network
+digibyte_chain_query
+
+# query for digibyte listening port
+digibyte_port_query
+
 echo -e "${txtbld}"
 echo -e "         ____   _         _   _   __            __     "             
 echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
@@ -2697,7 +3102,7 @@ if [ "$DGA_STATUS" = "running" ]; then
 printf "  ║ IPFS                      ║ " && printf "%-37s %-3s\n" "$IPFS_PORT_NUMBER" "  ║"
 printf "  ╠═══════════════════════════╩═════════════════════════════════════════╣\\n"
 fi
-printf "  ║ For help, visit: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
+printf "  ║ For help: " && printf "%-48s %-3s\n" "$DGBH_URL_PORTFWD" "  ║"
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
 echo ""
 
@@ -2707,7 +3112,7 @@ echo ""
 PORT_TEST_DATE=$(date)
 
 
-if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
+if [ "$DGB_STATUS" = "running" ] && [ "$DGB_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_LISTEN_PORT" != "" ]; then
 
     str="Is DigiByte Core port $DGB_LISTEN_PORT OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
@@ -2995,7 +3400,9 @@ status_loop
 startup_checks() {
 
   # Note: Some of these functions are found in the diginode-setup.sh file
-  
+
+  display_help                     # Display the help screen if the --help or -h flags have been used 
+  flag_commands                    # Run a command via a launch flag
   digimon_title_box                # Clear screen and display title box
 # digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
@@ -3015,7 +3422,7 @@ startup_checks() {
   digiasset_check_official         # check if this is an official install of DigiAsset Node
   is_dganode_installed             # Run checks to see if DigiAsset Node is present. Warn if it isn't.
   is_wallet_enabled                # Check that the DigiByte Core wallet is enabled
-  get_dgb_rpc_credentials          # Get the RPC username and password from digibyte.conf file. Warn if not present.
+  check_dgb_rpc_credentials        # Check the RPC username and password from digibyte.conf file. Warn if not present.
   is_avahi_installed               # Check if avahi-daemon is installed
   is_jq_installed                  # Check if jq is installed
   install_required_pkgs            # Install jq

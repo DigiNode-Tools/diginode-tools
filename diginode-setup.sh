@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.6
+#           Name:  DigiNode Setup v0.8.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -70,7 +70,7 @@ fi
 # Local variables will be in lowercase and will exist only within functions
 
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
-# This can be overridden when needed by the --verboseon or --verboseoff flags.
+# This can be overridden when needed by the --verbose or --verboseoff flags.
 # (Note: The RUN_SETUP condition ensures that the VERBOSE_MODE setting only applies to DigiNode Setup
 # and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
 if [[ "$RUN_SETUP" != "NO" ]] ; then
@@ -177,7 +177,7 @@ for var in "$@"; do
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
         "--skippkgupdate" ) SKIP_PKG_UPDATE_CHECK=true;;
-        "--verboseon" ) VERBOSE_MODE=true;;
+        "--verbose" ) VERBOSE_MODE=true;;
         "--verboseoff" ) VERBOSE_MODE=false;;
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
@@ -200,6 +200,7 @@ COL_LIGHT_RED='\e[1;31m'
 COL_LIGHT_BLUE='\e[0;94m'
 COL_LIGHT_CYAN='\e[1;96m'
 COL_BOLD_WHITE='\e[1;37m'
+COL_LIGHT_YEL='\e[1;33m'
 TICK="  [${COL_LIGHT_GREEN}✓${COL_NC}]"
 CROSS="  [${COL_LIGHT_RED}✗${COL_NC}]"
 WARN="  [${COL_LIGHT_RED}!${COL_NC}]"
@@ -250,12 +251,26 @@ txtbld=$(tput bold) # Set bold mode
 ### FUNCTIONS
 #####################################################################################################
 
-# Display help screen if the --help or -h flags was used
+# Display DigiNode Setup help screen if the --help or -h flags was used
 display_help() {
     if [ "$DISPLAY_HELP" = true ]; then
-        printf "\\n"
-        printf "%b %bDigiNode Setup Help%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
+        echo ""
+        echo "  ╔═════════════════════════════════════════════════════════╗"
+        echo "  ║                                                         ║"
+        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+        echo "  ║                                                         ║"
+        echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+        echo "  ║                                                         ║"
+        echo "  ╚═════════════════════════════════════════════════════════╝" 
+        echo ""
+
+        # are we running remotely or locally?
+        if [[ "$0" == "bash" ]]; then
+            DGNT_RUN_LOCATION="remote"
+        else
+            DGNT_RUN_LOCATION="local"
+        fi
+
         printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -268,7 +283,7 @@ display_help() {
         printf "%b                   a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
         printf "%b %b--skiposcheck%b   - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--skippkgupdate%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--verboseon%b     - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
@@ -287,6 +302,7 @@ display_help() {
         printf "\\n"
         printf "\\n"
         printf "%b For more help, visit: $DGBH_URL_ADVANCED\\n" "${INDENT}"
+        printf "\\n"
         printf "\\n"
         exit
     fi
@@ -350,7 +366,7 @@ is_dganode_only_mode() {
 is_dgb_prerelease_mode() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
         printf "%b DigiByte Core: %bPre-release Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   If available, the pre-release version of DigiByte Core will be installed.\\n" "${INDENT}"
+        printf "%b   If available, the pre-release version of DigiByte Core will be used.\\n" "${INDENT}"
         printf "\\n"
     fi
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
@@ -458,7 +474,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_DATA_LOCATION=$USER_HOME/.digibyte/
 
     # OTHER SETTINGS
-    DGB_MAX_CONNECTIONS=300
+    DGB_MAX_CONNECTIONS=150
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
     DGNT_DEV_BRANCH=YES
@@ -749,6 +765,7 @@ DGB_VER_PRERELEASE="$DGB_VER_PRERELEASE"
 DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 DGB_PRERELEASE="$DGB_PRERELEASE"
+DGB_NETWORK_CURRENT="$DGB_NETWORK_CURRENT"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. (Do not change this.)
@@ -784,28 +801,28 @@ DGA_VER_MJR_RELEASE="$DGA_VER_MJR_RELEASE"
 DGA_VER_RELEASE="$DGA_VER_RELEASE"
 DGA_LOCAL_BRANCH="$DGA_LOCAL_BRANCH"
 
-# Store Kubo (Go-IPFS) installation details:
+# Store Kubo IPFS installation details:
 IPFS_VER_LOCAL="$IPFS_VER_LOCAL"
 IPFS_VER_RELEASE="$IPFS_VER_RELEASE"
 IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
 IPFS_UPGRADE_DATE="$IPFS_UPGRADE_DATE"
 IPFS_KUBO_API_URL=$IPFS_KUBO_API_URL
 
-# Store NodeJS installation details:
+# Store Node.js installation details:
 NODEJS_VER_LOCAL="$NODEJS_VER_LOCAL"
 NODEJS_VER_RELEASE="$NODEJS_VER_RELEASE"
 NODEJS_INSTALL_DATE="$NODEJS_INSTALL_DATE"
 NODEJS_UPGRADE_DATE="$NODEJS_UPGRADE_DATE"
-NODEJS_PPA_ADDED="$NODEJS_PPA_ADDED"
+NODEJS_REPO_ADDED="$NODEJS_REPO_ADDED"
 
 # Timer variables (these control the timers in the Status Monitor loop)
-SAVED_TIME_15SEC="$SAVED_TIME_15SEC"
+SAVED_TIME_10SEC="$SAVED_TIME_10SEC"
 SAVED_TIME_1MIN="$SAVED_TIME_1MIN"
 SAVED_TIME_15MIN="$SAVED_TIME_15MIN"
 SAVED_TIME_1DAY="$SAVED_TIME_1DAY"
 SAVED_TIME_1WEEK="$SAVED_TIME_1WEEK"
 
-# Disk usage variables (updated every 15 seconds)
+# Disk usage variables (updated every 10 seconds)
 BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"
 BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"
 BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"
@@ -1247,8 +1264,199 @@ update_disk_usage() {
 
 }
 
+# Scrape the contents of digibyte.conf and store the sections in variables
+scrape_digibyte_conf() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Define the section name to search for
+    sectionMain="main"
+    sectionTest="test"
+    sectionRegtest="regtest"
+    sectionRegtest="signet"
+
+    # Initialize an associative array to store key-value pairs
+    declare -A global_data
+    declare -A main_data
+    declare -A test_data
+    declare -A regtest_data
+    declare -A signet_data
+
+    # Set a flag to indicate whether we are inside the desired section
+    inside_main_section=false
+    inside_test_section=false
+    inside_regtest_section=false
+    inside_signet_section=false
+
+    # Read the file line by line
+    while IFS= read -r line; do
+        # Remove leading and trailing whitespace from the line
+        line="${line##*([[:space:]])}"
+        line="${line%%*([[:space:]])}"
+
+        # Check if the line is not empty, does not start with #, and is not a section header
+        if [[ ! -z "$line" && "$line" != \#* && ! "$line" =~ ^\[([^]]+)\]$ ]]; then
+            # Check if we are inside a section
+            if [[ $inside_main_section == false && $inside_test_section == false && $inside_regtest_section == false && $inside_signet_section == false ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    global_data["$key"]="$value"
+                fi
+            elif [[ $inside_main_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    main_data["$key"]="$value"
+                fi
+            elif [[ $inside_test_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    test_data["$key"]="$value"
+                fi
+            elif [[ $inside_regtest_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    regtest_data["$key"]="$value"
+                fi
+            elif [[ $inside_signet_section == true ]]; then
+                # Check if the line contains an '=' character
+                if [[ "$line" =~ = ]]; then
+                    # Split the line into key and value
+                    key="${line%%=*}"
+                    value="${line#*=}"
+                    # Trim leading and trailing whitespace from the value
+                    value="${value##*([[:space:]])}"
+                    value="${value%%*([[:space:]])}"
+                    # Store the key-value pair in the associative array
+                    signet_data["$key"]="$value"
+                fi
+            fi
+        elif [[ "$line" =~ ^\[([^]]+)\]$ ]]; then
+            # Check if the section matches the desired section
+            if [[ "${BASH_REMATCH[1]}" == "$sectionMain" ]]; then
+                inside_main_section=true
+                inside_test_section=false
+                inside_regtest_section=false
+                inside_signet_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionTest" ]]; then
+                inside_test_section=true
+                inside_main_section=false
+                inside_regtest_section=false
+                inside_signet_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionRegtest" ]]; then
+                inside_regtest_section=true
+                inside_main_section=false
+                inside_test_section=false
+                inside_signet_section=false
+            elif [[ "${BASH_REMATCH[1]}" == "$sectionSignet" ]]; then
+                inside_signet_section=true
+                inside_regtest_section=false
+                inside_main_section=false
+                inside_test_section=false
+            else
+                inside_main_section=false
+                inside_test_section=false
+                inside_regtest_section=false
+                inside_signet_section=false
+            fi
+        fi
+    done < $DGB_CONF_FILE
+
+    # Store the key-value pairs for Global
+    DIGIBYTE_CONFIG_GLOBAL=$(
+    echo -e "# Global key value pairs:"
+    for key in "${!global_data[@]}"; do
+        echo "$key=${global_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Main
+    DIGIBYTE_CONFIG_MAIN=$(
+    echo -e "# Main Section key value pairs:"
+    for key in "${!main_data[@]}"; do
+        echo "$key=${main_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Test
+    DIGIBYTE_CONFIG_TEST=$(
+    echo -e "# Test Section key value pairs:"
+    for key in "${!test_data[@]}"; do
+        echo "$key=${test_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Regtest
+    DIGIBYTE_CONFIG_REGTEST=$(
+    echo -e "# Regtest Section key value pairs:"
+    for key in "${!regtest_data[@]}"; do
+        echo "$key=${regtest_data[$key]}"
+    done
+    )
+
+    # Print the key-value pairs for Regtest
+    DIGIBYTE_CONFIG_SIGNET=$(
+    echo -e "# Signet Section key value pairs:"
+    for key in "${!signet_data[@]}"; do
+        echo "$key=${signet_data[$key]}"
+    done
+    )
+
+fi
+
+}
+
+# Calculate the recommeded dbcache value based on the system RAM
+set_dbcache_value() {
+
+        # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
+        # Initial sync times are significantly faster with a larger dbcache.
+        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
+            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=2048
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
+            str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
+            printf "%b %s" "${INFO}" "${str}"
+            set_dbcache=1024
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            set_dbcache=450
+        fi
+
+}
+
+
 # Create digibyte.config file if it does not already exist
-digibyte_create_conf() {
+create_digibyte_conf() {
 
     local str
     local reset_digibyte_conf
@@ -1288,6 +1496,309 @@ digibyte_create_conf() {
         # ==============================================================================
     fi
 
+
+    # If the digibyte.conf file already exists, check if it needs upgrading to add [Sections]
+    if [ -f "$DGB_CONF_FILE" ]; then
+
+        # Upgrade digibyte.conf with the [main], [test], [regtest] and [signet] sections which are new in DigiByte v8
+        # IMPORTANT: These sections must be preceded by a line that starts: # [Sections]
+        # The sections will be automatically appended to the existing digibyte.conf if they do not already exist.
+
+        # Fix [Sections] header if it already exists, in case it has been entered wrong
+        # Make sure it starts with a # and only first letter is capitalized: # [Sections]
+        # Also checks the user has spelt it "sections" and not "section" 
+        if $(grep -q ^"# \[sections\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[sections\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[SECTIONS\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[SECTIONS\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[sections\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[sections\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SECTIONS\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SECTIONS\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[section\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[section\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"# \[SECTION\]" $DGB_CONF_FILE); then
+            sed -i -e "/^# \[SECTION\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[section\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[section\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SECTION\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SECTION\]/s|.*|# \[Sections\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [test] to make sure it is not [testnet], [TESTNET] or [TEST]
+        if $(grep -q ^"\[testnet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[testnet\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[TESTNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[TESTNET\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[TEST\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[TEST\]/s|.*|# \[test\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [main] to make sure it is not [mainnet], [mainet], [MAINNET], [MAINET] or [MAIN]
+        if $(grep -q ^"\[mainnet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[mainnet\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[mainet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[mainet\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAINNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAINNET\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAINET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAINET\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[MAIN\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[MAIN\]/s|.*|# \[main\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [regtest] to make sure it is not [Regtest] or [REGTEST]
+        if $(grep -q ^"\[Regtest\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[Regtest\]/s|.*|# \[regtest\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[REGTEST\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[REGTEST\]/s|.*|# \[regtest\]|" $DGB_CONF_FILE
+        fi
+
+        # Also fix [signet] to make sure it is not [Signet] or [SIGNET]
+        if $(grep -q ^"\[Signet\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[Signet\]/s|.*|# \[signet\]|" $DGB_CONF_FILE
+        elif $(grep -q ^"\[SIGNET\]" $DGB_CONF_FILE); then
+            sed -i -e "/^\[SIGNET\]/s|.*|# \[signet\]|" $DGB_CONF_FILE
+        fi
+
+        str="Does digibyte.conf have the required DigiByte v8 sections? ..."
+        printf "%b %s" "${INFO}" "${str}"
+        if $(grep -q ^"# \[Sections\]" $DGB_CONF_FILE) && $(grep -q ^"\[test\]" $DGB_CONF_FILE) && $(grep -q ^"\[main\]" $DGB_CONF_FILE) && $(grep -q ^"\[regtest\]" $DGB_CONF_FILE) && $(grep -q ^"\[signet\]" $DGB_CONF_FILE); then
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        elif $(grep -q ^"# \[Sections\]" $DGB_CONF_FILE) || $(grep -q ^"\[test\]" $DGB_CONF_FILE) || $(grep -q ^"\[main\]" $DGB_CONF_FILE) || $(grep -q ^"\[regtest\]" $DGB_CONF_FILE) && $(grep -q ^"\[signet\]" $DGB_CONF_FILE); then
+            printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
+
+            # If we are NOT in unattended mode, ask the user if they want to delete and recreate digibyte.conf, since the script is unable to upgrade it automatically
+            if [ "$UNATTENDED_MODE" == false ]; then
+
+                if whiptail --backtitle "" --title "digibyte.conf must be upgraded!" --yesno "Do you want to delete your digibyte.conf file and re-create it?\\n\\nYour existing digibyte.conf file needs to be upgraded to to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\\n\\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\\n\\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
+
+                    manually_edit_dgbconf=false
+                    # Delete the existing digibyte.conf
+                    printf "%b You chose to delete digibyte.conf and recreate it.\\n" "${INFO}"
+                    printf "%b DigiByte daemon will be stopped.\\n" "${INFO}"
+                    stop_service digibyted
+                    DGB_STATUS="stopped"
+                    str="Deleting existing digibyte.conf file..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f $DGB_CONF_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    DGB_NETWORK_IS_CHANGED="YES"
+                    
+                else
+                    manually_edit_dgbconf=true
+                fi
+            else
+                manually_edit_dgbconf=true
+            fi
+
+            # Exit if digibyte.conf needs to be edited manually to add [sections]
+            if [ "$manually_edit_dgbconf" = true ]; then
+                printf "\\n"
+                printf "%b %bERROR: One or more required sections are missing from your digibyte.conf file!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                printf "%b You need to add the following sections to the bottom of your digibyte.conf file:\\n" "${INFO}"
+                printf "\\n"
+                printf "%b# [Sections]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[main]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[test]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[regtest]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b[signet]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
+                printf "\\n"
+                printf "%b Please refer to the template here: https://jlopp.github.io/bitcoin-core-config-generator/\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
+                printf "\\n"
+                if [ -f $DGNT_MONITOR_SCRIPT ]; then
+                    printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                else
+                    printf "%b   %b$TEXTEDITOR $DGB_CONF_FILE%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                fi
+                printf "\\n"
+                printf "%b IMPORTANT: It is very important that you include the \"# [Sections]\" line exactly as is,\\n" "${INFO}"
+                printf "%b            followed by the [main], [test], [regtest] and [signet] lines in order. This is so\\n" "${INDENT}"
+                printf "%b            that DigiNode Tools can find the values where it expects them. If you are running a\\n" "${INDENT}"
+                printf "%b            TESTNET Node, be sure to set the port= and rpcport= values in the [test] section,\\n" "${INDENT}"
+                printf "%b            or your DigiByte Node will not run.\\n" "${INDENT}"
+                printf "\\n"
+                printf "%b Restart DigiByte Core once you are done:\\n" "${INDENT}"
+                printf "\\n"
+                if [ -f $DGNT_MONITOR_SCRIPT ]; then
+                    printf "%b   %bdiginode --dgbrestart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                else
+                    if is_command systemctl ; then
+                        printf "%b   %bsudo systemctl restart digibyted%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                    else
+                        printf "%b   %bsudo service digibyted restart%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                    fi
+                fi
+                printf "\\n"
+                exit 1
+            fi
+
+        else
+            printf "%b%b %s No!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b digibyte.conf will be upgraded to add support for DigiByte v8 sections...\\n" "${INFO}"
+
+            # FIRST REMOVE ANY VARIABLES THAT WE NO LONGER WANT IN THE GLOBAL SECTION
+
+            printf "%b Checking global section of digibyte.conf for unneeded variables...\\n" "${INFO}"
+
+            # delete any line starting "port=" from main global section of digibyte.org. This will be added in the sections below.
+            if grep -q ^"port=" $DGB_CONF_FILE; then
+                sed -i '/^port=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port=\\n" "${INFO}"
+            fi
+            if grep -q ^"# port=" $DGB_CONF_FILE; then
+                sed -i '/^# port=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # port=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Listen for incoming connections on non-default port." $DGB_CONF_FILE; then
+                sed -i '/^# Listen for incoming connections on non-default port./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port comment 1\\n" "${INFO}"
+            fi
+            if grep -q ^"# Setting the port number here will override the default mainnet or testnet port numbers." $DGB_CONF_FILE; then
+                sed -i '/^# Setting the port number here will override the default mainnet or testnet port numbers./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: port comment 2\\n" "${INFO}"
+            fi
+
+            # delete any line starting "rpcport=" from main global section of digibyte.org. This will be added to the sections below.
+            if grep -q ^"rpcport=" $DGB_CONF_FILE; then
+                sed -i '/^rpcport=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcport=\\n" "${INFO}"
+            fi
+            if grep -q ^"# rpcport=" $DGB_CONF_FILE; then
+                sed -i '/^# rpcport=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # rpcport=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Listen for JSON-RPC connections on this port." $DGB_CONF_FILE; then
+                sed -i '/^# Listen for JSON-RPC connections on this port./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcport comment\\n" "${INFO}"
+            fi
+
+            # delete any line starting "rpcbind=" from main global section of digibyte.org. This will be added in the sections below.
+            if grep -q ^"rpcbind=" $DGB_CONF_FILE; then
+                sed -i '/^rpcbind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind=\\n" "${INFO}"
+            fi
+            if grep -q ^"# rpcbind=" $DGB_CONF_FILE; then
+                sed -i '/^# rpcbind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # rpcbind=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Bind to given address to listen for JSON-RPC connections." $DGB_CONF_FILE; then
+                sed -i '/^# Bind to given address to listen for JSON-RPC connections./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 1\\n" "${INFO}"
+            fi
+            if grep -q ^"# -rpcallowip is also passed. Port is optional and overrides -rpcport." $DGB_CONF_FILE; then
+                sed -i '/^# -rpcallowip is also passed. Port is optional and overrides -rpcport./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 2\\n" "${INFO}"
+            fi
+            if grep -q ^"# for IPv6. This option can be specified multiple times." $DGB_CONF_FILE; then
+                sed -i '/^# for IPv6. This option can be specified multiple times./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: rpcbind comment 3\\n" "${INFO}"
+            fi
+
+            # delete any line starting "testnet=" from main global section of digibyte.org. The chain= variable will be used instead.
+            if grep -q ^"testnet=" $DGB_CONF_FILE; then
+                sed -i '/^testnet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: testnet=\\n" "${INFO}"
+            fi
+            if grep -q ^"# testnet=" $DGB_CONF_FILE; then
+                sed -i '/^# testnet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # testnet=\\n" "${INFO}"
+            fi
+            if grep -q ^"# Run this node on the DigiByte Test Network. Equivalent to -chain=test." $DGB_CONF_FILE; then
+                sed -i '/^# Run this node on the DigiByte Test Network. Equivalent to -chain=test./d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: testnet comment\\n" "${INFO}"
+            fi
+
+
+            str="Appending sections to digibyte.conf: # [Sections], [main], [test], [regtest] and [signet] .."
+            printf "%b %s" "${INFO}" "${str}"
+            cat <<EOF >> $DGB_CONF_FILE
+
+
+# [Sections]
+# Most options automatically apply to mainnet, testnet, and regtest networks.
+# If you want to confine an option to just one network, you should add it in the relevant section.
+# EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
+# only apply to mainnet unless they appear in the appropriate section below.
+#
+# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
+# [main], [test], [regtest] and [signet]. Do not remove any of these.
+
+# Options only for mainnet
+[main]
+
+# Listen for incoming connections on non-default mainnet port. Mainnet default is 12024.
+# Changing the port number here will override the default mainnet port number.
+# port=12024
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC mainnet connections on this port. Mainnet default is 14022.
+# rpcport=14022
+
+# Options only for testnet
+[test]
+
+# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Changing the port number here will override the default testnet port numbers.
+# port=12026
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# rpcport=14023
+
+# Options only for regtest
+[regtest]
+
+# Listen for incoming connections on non-default regtest port. Regtest default is 18444.
+# Changing the port number here will override the default regtest listening port.
+# port=18444
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
+# rpcport=18443
+
+# Options only for signet
+[signet]
+
+# Listen for incoming connections on non-default signet port. Signet default is 38443.
+# Changing the port number here will override the default signet listening port.
+# port=38443
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC signet connections on this port. Signet default is 19443.
+# rpcport=19443
+
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi    
+
+    fi
+
+
     # Do some intial setup before creating the digibyte.conf file for the first time
     if [ ! -f "$DGB_CONF_FILE" ]; then
 
@@ -1296,20 +1807,7 @@ digibyte_create_conf() {
 
         # Increase dbcache size if there is more than ~7Gb of RAM (Default: 450)
         # Initial sync times are significantly faster with a larger dbcache.
-        local set_dbcache
-        if [ "$RAMTOTAL_KB" -ge "12582912" ]; then
-            str="System RAM exceeds 12GB. Setting dbcache to 2Gb..."
-            printf "%b %s" "${INFO}" "${str}"
-            set_dbcache=2048
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$RAMTOTAL_KB" -ge "7340032" ]; then
-            str="System RAM exceeds 7GB. Setting dbcache to 1Gb..."
-            printf "%b %s" "${INFO}" "${str}"
-            set_dbcache=1024
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            set_dbcache=450
-        fi
+        set_dbcache_value
 
         # generate a random rpc password, if the digibyte.conf file does not exist
  
@@ -1319,21 +1817,33 @@ digibyte_create_conf() {
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Set the default rpcport
-        local set_rpcport
-        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-            set_rpcport=14023
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-            set_rpcport=14022
-        fi
+#        # Set the default rpcport
+#        local set_rpcport
+#        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+#            set_rpcport=14023
+#        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+#            set_rpcport=14022
+#        elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
+#            set_rpcport=18443
+#        fi
+
+        # Set the default testnet rpcport
+#        set_rpcport_testnet=14023
 
     # If the digibyte.conf file already exists
     elif [ -f "$DGB_CONF_FILE" ]; then
+ 
 
-        # Import variables from digibyte.conf settings file
+        # Import variables from global section of digibyte.conf
         str="Located digibyte.conf file. Importing..."
         printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
+        scrape_digibyte_conf
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Import variables from global section of digibyte.conf
+        str="Getting digibyte.conf global variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        eval "$DIGIBYTE_CONFIG_GLOBAL"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
@@ -1347,9 +1857,13 @@ digibyte_create_conf() {
 
     # Set the dgb network values, if we are changing between testnet and mainnet
     if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-        testnet=1
+        chain=test
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        testnet=0
+        chain=main
+    elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
+        chain=regtest
+    elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ]; then
+        chain=signet
     fi
 
     # create .digibyte settings folder if it does not already exist
@@ -1363,232 +1877,294 @@ digibyte_create_conf() {
     # If digibyte.conf file already exists, append any missing values. Otherwise create it.
     if test -f "$DGB_CONF_FILE"; then
 
-        printf "%b Checking digibyte.conf settings...\\n" "${INFO}"
+        printf "%b Checking digibyte.conf global settings...\\n" "${INFO}"
         
-        #Update daemon variable in settings if it exists and is blank, otherwise append it
-        if grep -q "daemon=" $DGB_CONF_FILE; then
-            if [ "$daemon" = "" ] || [ "$daemon" = "0" ]; then
+        # Check for daemon=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "daemon=1" $DGB_CONF_FILE; then
+            if grep -q ^"daemon=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: daemon=1"
                 sed -i -e "/^daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            elif grep -q ^"# daemon=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: daemon=1"
+                sed -i -e "/^# daemon=/s|.*|daemon=1|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: daemon=1"
+                sed -i '/# \[Sections\]/ i \
+# Run in the background as a daemon and accept commands. \
+daemon=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: daemon=1"
-            echo "daemon=1" >> $DGB_CONF_FILE
         fi
 
-        #Update dbcache variable in settings file, otherwise append it
-        if grep -q "dbcache=" $DGB_CONF_FILE; then
-            if [ "$dbcache" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
-                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
-            echo "dbcache=$set_dbcache" >> $DGB_CONF_FILE
-        fi
-
-        #Update maxconnections variable in settings file, otherwise append it
-        if grep -q "maxconnections=" $DGB_CONF_FILE; then
-            if [ "$maxconnections" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
-                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
-            echo "maxconnections=$set_maxconnections" >> $DGB_CONF_FILE
-        fi
-
-        #Update listen variable in settings if it exists and is blank, otherwise append it
-        if grep -q "listen=" $DGB_CONF_FILE; then
-            if [ "$listen" = "" ] || [ "$listen" = "0" ]; then
+        # Check for listen=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "listen=1" $DGB_CONF_FILE; then
+            if grep -q ^"listen=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: listen=1"
                 sed -i -e "/^listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            elif grep -q ^"# listen=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: listen=1"
+                sed -i -e "/^# listen=/s|.*|listen=1|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: listen=1"
+                sed -i '/# \[Sections\]/ i \
+# Accept incoming connections from peers. Default is 1. \
+listen=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: listen=1"
-            echo "listen=1" >> $DGB_CONF_FILE
         fi
 
-        #Update rpcuser variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcuser=" $DGB_CONF_FILE; then
-            if [ "$rpcuser" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
-                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
-            echo "rpcuser=digibyte" >> $DGB_CONF_FILE
-        fi
-
-        #Update rpcpassword variable in settings if variable exists but is blank, otherwise append it
-        if grep -q "rpcpassword=" $DGB_CONF_FILE; then
-            if [ "$rpcpassword" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
-                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
-            echo "rpcpassword=$set_rpcpassword" >> $DGB_CONF_FILE
-        fi
-
-        #Update server variable in settings if it exists and is blank, otherwise append it
-        if grep -q "server=" $DGB_CONF_FILE; then
-            if [ "$server" = "" ] || [ "$server" = "0" ]; then
+        # Check for server=1 variable in digibyte.conf, otherwise update/append it
+        if ! grep -q -Fx "server=1" $DGB_CONF_FILE; then
+            if grep -q ^"# server=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: server=1"
+                sed -i -e "/^# server=/s|.*|server=1|" $DGB_CONF_FILE
+            elif grep -q ^"listen=" $DGB_CONF_FILE; then
                 echo "$INDENT   Updating digibyte.conf: server=1"
                 sed -i -e "/^server=/s|.*|server=1|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: server=1"
-            echo "server=1" >> $DGB_CONF_FILE
-        fi
-
-        #Update rpcport variable in settings if it exists and is blank, otherwise append it. 
-        #The default rpcport varies depending on if we are running mainnet or testnet.
-        if grep -q "rpcport=" $DGB_CONF_FILE; then
-            if grep -q "testnet=1" $DGB_CONF_FILE; then
-                if [ "$rpcport" = "" ]; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
-                fi
             else
-                if [ "$rpcport" = "" ]; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-                fi
+                echo "$INDENT   Appending to digibyte.conf: server=1"
+                sed -i '/# \[Sections\]/ i \
+# Accept command line and JSON-RPC commands. Default is 0. \
+server=1 \
+' $DGB_CONF_FILE                
             fi
-        else
-            if grep -q "testnet=1" $DGB_CONF_FILE; then
-                echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                echo "rpcport=14023" >> $DGB_CONF_FILE
+        fi
+
+        # If dbcache value is not already set in global section digibyte.conf, update it
+        if [ "$dbcache" = "" ]; then
+            set_dbcache_value # calculate the recommended dbcache value absed on system RAM
+            if grep -q ^"dbcache=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
+            elif grep -q ^"# dbcache=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: dbcache=$set_dbcache"
+                sed -i -e "/^# dbcache=/s|.*|dbcache=$set_dbcache|" $DGB_CONF_FILE
             else
-                echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                echo "rpcport=14022" >> $DGB_CONF_FILE
+                echo "$INDENT   Appending to digibyte.conf: dbache=$set_dbcache"
+                sed -i "/# \[Sections\]/ i \\
+# Set database cache size in megabytes; machines sync faster with a larger cache. \\
+# Recommend setting as high as possible based upon available RAM. (default: 450) \\
+dbcache=$set_dbcache \\
+" $DGB_CONF_FILE                
             fi
         fi
 
-        #Update rpcbind variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcbind=" $DGB_CONF_FILE; then
-            if [ "$rpcbind" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-                sed -i -e "/^rpcbind=/s|.*|rpcbind=127.0.0.1|" $DGB_CONF_FILE
+        # If maxconnections value is not already set in global section of digibyte.conf, update it
+        if [ "$maxconnections" = "" ]; then
+            set_maxconnections=$DGB_MAX_CONNECTIONS # Max connections are set from the diginode.settings file
+            if grep -q ^"maxconnections=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i -e "/^maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            elif grep -q ^"# maxconnections=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: maxconnections=$set_dbcache"
+                sed -i -e "/^# maxconnections=/s|.*|maxconnections=$set_maxconnections|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: maxconnections=$set_maxconnections"
+                sed -i "/# \[Sections\]/ i \\
+# Maintain at most N connections to peers. (default: 125) \\
+maxconnections=$set_maxconnections \\
+" $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcbind=127.0.0.1"
-            echo "rpcbind=127.0.0.1" >> $DGB_CONF_FILE
         fi
 
-        #Update rpcallowip variable in settings if it exists and is blank, otherwise append it
-        if grep -q "rpcallowip=" $DGB_CONF_FILE; then
-            if [ "$rpcallowip" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
-                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=127.0.0.1|" $DGB_CONF_FILE
+        # If rpcuser=digibyte variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcuser" = "" ]; then
+            if grep -q ^"rpcuser=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcuser=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcuser=digibyte"
+                sed -i -e "/^# rpcuser=/s|.*|rpcuser=digibyte|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcuser=digibyte"
+                sed -i '/# \[Sections\]/ i \
+# RPC user \
+rpcuser=digibyte \
+' $DGB_CONF_FILE                
             fi
-        else
-            echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
-            echo "rpcallowip=127.0.0.1" >> $DGB_CONF_FILE
         fi
 
+        # If rpcpasword=<rpcpassword> variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcpassword" = "" ]; then
+            if grep -q ^"rpcpassword=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcpassword=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i -e "/^# rpcpassword=/s|.*|rpcpassword=$set_rpcpassword|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcpassword=$set_rpcpassword"
+                sed -i "/# \[Sections\]/ i \\
+# RPC password \\
+rpcpassword=$set_rpcpassword \\
+" $DGB_CONF_FILE                
+            fi
+        fi
+
+        # If upnp value is commented out, uncomment it
+        if grep -q ^"# upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            elif [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
         # Change upnp status from enabled to disabled
-        if grep -q "upnp=1" $DGB_CONF_FILE; then
+        elif grep -q ^"upnp=1" $DGB_CONF_FILE; then
             if [ "$upnp" = "0" ]; then
                 echo "$INDENT   UPnP will be disabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
-        fi
-
         # Change upnp status from disabled to enabled
-        if grep -q "upnp=0" $DGB_CONF_FILE; then
+        elif grep -q ^"upnp=0" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        # Update upnp status in settings if it exists and is blank, otherwise append it
+        elif grep -q ^"upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
-                DGB_UPNP_STATUS_UPDATED="YES"
-            fi
-        fi
-
-        # Update upnp status in settings if it exists and is blank, otherwise append it
-        if grep -q "upnp=" $DGB_CONF_FILE; then
-            if [ "$upnp" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+            elif [ "$upnp" = "0" ]; then
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
             fi
         else
-            echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-            echo "upnp=$upnp" >> $DGB_CONF_FILE
+            echo "$INDENT   Appending to digibyte.conf: upnp=$upnp"
+            sed -i "/# \[Sections\]/ i \\
+# Use UPnP to map the listening port. \\
+upnp=$upnp \\
+" $DGB_CONF_FILE                
+            fi    
+
+        # If rpcallowip= variable is not already set in global section of digibyte.conf, update it
+        if [ "$rpcallowip" = "" ]; then
+            if grep -q ^"rpcallowip=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^rpcallowip=/s|.*|rpcallowip=digibyte|" $DGB_CONF_FILE
+            elif grep -q ^"# rpcallowip=" $DGB_CONF_FILE; then
+                echo "$INDENT   Updating digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i -e "/^# rpcallowip=/s|.*|rpcallowip=digibyte|" $DGB_CONF_FILE
+            else
+                echo "$INDENT   Appending to digibyte.conf: rpcallowip=127.0.0.1"
+                sed -i '/# \[Sections\]/ i \
+# Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4), \
+# a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option \
+# can be specified multiple times. \
+rpcallowip=127.0.0.1 \
+' $DGB_CONF_FILE        
+            fi
+        fi    
+
+        # SET THE CORRECT DIGIBYTE CHAIN
+
+        if ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+
+            # If chain= declaration is commented out, uncomment it, and set it to the correct chain
+            if grep -q ^"# chain=" $DGB_CONF_FILE; then
+                echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
+                sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
+                fi
+
+            # Change chain= declaration exists, but is not set to the correct chain, update it
+            elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+                echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: chain=$chain"
+                sed -i -e "/^chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
+                fi
+            else
+                # If the chain= declaration does not exist in digibyte.conf, append it after: # [chain], if that line exists
+                if grep -q ^"# [chain]" $DGB_CONF_FILE; then
+                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - After: # [chain]"
+                    sed -i "/# \[chain\]/ a \\
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+chain=$chain \\
+" $DGB_CONF_FILE
+                else
+                    # If the chain= declaration does not exist in digibyte.conf, append it before the sections
+                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - Before: # [Sections]"
+                    sed -i "/# \[Sections\]/ i \\
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+chain=$chain \\
+" $DGB_CONF_FILE
+                fi
+            fi 
+
         fi
 
-        # Change dgb network from TESTNET to MAINNET
-        if grep -q "testnet=1" $DGB_CONF_FILE; then
-            if [ "$testnet" = "0" ]; then
-                echo "$INDENT   Changing DigiByte Core network from TESTNET to MAINNET"
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-                DGB_NETWORK_IS_CHANGED="YES"
-                # Change rpcport to mainnet default, if it is using testnet default
-                if grep -q "rpcport=14023" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14022"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14022|" $DGB_CONF_FILE
-                fi
-                # Change listening port to mainnet default, if it is using testnet default
-                if grep -q "port=12026" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: port=12024"
-                    sed -i -e "/^port=/s|.*|port=12024|" $DGB_CONF_FILE
-                fi
-            fi
+        # If testnet variable already exists in digibyte.conf, comment it out.
+        # We only want to use the chain= variable to select which chain to run.
+        if grep -q ^"testnet=" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # testnet=1  [ Commented out ]"
+            sed -i -e "/^testnet=/s|.*|# testnet=1|" $DGB_CONF_FILE  
+            DGB_NETWORK_IS_CHANGED="YES"     
+        elif grep -q ^"# testnet=" $DGB_CONF_FILE && ! grep -q ^"# testnet=1" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # testnet=1  [ Changed ]"  
+            sed -i -e "/^# testnet=/s|.*|# testnet=1|" $DGB_CONF_FILE
         fi
 
-        # Change dgb network from MAINNET to TESTNET
-        if grep -q "testnet=0" $DGB_CONF_FILE; then
-            if [ "$testnet" = "1" ]; then
-                echo "$INDENT   Changing DigiByte Core network from MAINNET to TESTNET"
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-                DGB_NETWORK_IS_CHANGED="YES"
-                # Change rpcport to testnet default, if it is using mainnet default
-                if grep -q "rpcport=14022" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: rpcport=14023"
-                    sed -i -e "/^rpcport=/s|.*|rpcport=14023|" $DGB_CONF_FILE
-                fi
-                # Change listening port to testnet default, if it is using mainnet default
-                if grep -q "port=12024" $DGB_CONF_FILE; then
-                    echo "$INDENT   Updating digibyte.conf: port=12026"
-                    sed -i -e "/^port=/s|.*|port=12026|" $DGB_CONF_FILE
-                fi
-            fi
+        # If regtest variable already exists in digibyte.conf, comment it out.
+        # We only want to use the chain= variable to select which chain to run.
+        if grep -q ^"regtest=" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # regtest=1  [ Commented out ]"
+            sed -i -e "/^regtest=/s|.*|# regtest=1|" $DGB_CONF_FILE  
+            DGB_NETWORK_IS_CHANGED="YES"     
+        elif grep -q ^"# regtest=" $DGB_CONF_FILE && ! grep -q ^"# regtest=1" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # regtest=1  [ Changed ]"  
+            sed -i -e "/^# regtest=/s|.*|# regtest=1|" $DGB_CONF_FILE
         fi
 
-        # Update dgb network in settings if it exists and is blank, otherwise append it
-        if grep -q "testnet=" $DGB_CONF_FILE; then
-            if [ "$testnet" = "" ]; then
-                echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-                sed -i -e "/^testnet=/s|.*|testnet=$testnet|" $DGB_CONF_FILE
-            fi
-        else
-            echo "$INDENT   Updating digibyte.conf: testnet=$testnet"
-            echo "$INDENT   (Appending 'testnet' setting to digibyte.conf)"
-            echo "" >> $DGB_CONF_FILE
-            echo "# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)" >> $DGB_CONF_FILE
-            echo "testnet=$testnet" >> $DGB_CONF_FILE
-            if [ "$testnet" = "1" ]; then
-                DGB_NETWORK_IS_CHANGED="YES"
-            fi
+        # If signet variable already exists in digibyte.conf, comment it out.
+        # We only want to use the chain= variable to select which chain to run.
+        if grep -q ^"signet=" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # signet=1  [ Commented out ]"
+            sed -i -e "/^signet=/s|.*|# signet=1|" $DGB_CONF_FILE  
+            DGB_NETWORK_IS_CHANGED="YES"     
+        elif grep -q ^"# signet=" $DGB_CONF_FILE && ! grep -q ^"# signet=1" $DGB_CONF_FILE; then
+            echo "$INDENT   Updating digibyte.conf: # signet=1  [ Changed ]"  
+            sed -i -e "/^# signet=/s|.*|# signet=1|" $DGB_CONF_FILE
         fi
+
+
+        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
         # Re-import variables from digibyte.conf in case they have changed
         str="Reimporting digibyte.conf values, as they may have changed..."
         printf "%b %s" "${INFO}" "${str}"
-        source $DGB_CONF_FILE
+        scrape_digibyte_conf
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
-
+        # Import variables from global section of digibyte.conf
+        str="Getting digibyte.conf global variables..."
+        printf "%b %s" "${INFO}" "${str}"
+        eval "$DIGIBYTE_CONFIG_GLOBAL"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     else
 
         # Create a new digibyte.conf file
-        str="Creating ~/.diginode/digibyte.conf file..."
+        str="Creating ~/.digibyte/digibyte.conf file..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_CONF_FILE
@@ -1598,16 +2174,21 @@ digibyte_create_conf() {
 # This template is based on the Bitcoin Core Config Generator by Jameson Lopp
 # https://jlopp.github.io/bitcoin-core-config-generator/
 
+
 # [chain]
-# Run this node on the DigiByte Test Network. Equivalent to -chain=test. Set 0 for mainnet. Set to 1 for testnet. (Default: 0)
-testnet=$testnet
+
+# Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main)
+# (WARNING: Only set the current chain using the chain= variable below. Do not use 
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.)
+chain=$chain
+
 
 # [core]
 # Run in the background as a daemon and accept commands.
 daemon=1
 
 # Set database cache size in megabytes; machines sync faster with a larger cache.
-# Recommend setting as high as possible based upon machine's available RAM. (default: 450)
+# Recommend setting as high as possible based upon available RAM. (default: 450)
 dbcache=$set_dbcache
 
 # Reduce storage requirements by only storing most recent N MiB of block. This mode is 
@@ -1640,15 +2221,11 @@ maxuploadtarget=0
 # Useful for a gateway node.
 whitelist=127.0.0.1
 
-# Accept incoming connections from peers.
+# Accept incoming connections from peers. Default is 1.
 listen=1
 
 # Use UPnP to map the listening port.
 upnp=$upnp
-
-# Listen for incoming connections on non-default port. Mainnet default is 12024. Testnet default is 12026.
-# Setting the port number here will override the default mainnet or testnet port numbers.
-# port=12024
 
 
 # [rpc]
@@ -1658,16 +2235,8 @@ rpcuser=digibyte
 # RPC password
 rpcpassword=$set_rpcpassword
 
-# Accept command line and JSON-RPC commands.
+# Accept command line and JSON-RPC commands. Default is 0.
 server=1
-
-# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
-# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
-# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
-rpcbind=127.0.0.1
-
-# Listen for JSON-RPC connections on this port. Mainnet default is 14022. Testnet default is 14023.
-rpcport=$set_rpcport
 
 # Allow JSON-RPC connections from specified source. Valid for <ip> are a single IP (e.g. 1.2.3.4),
 # a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24). This option
@@ -1678,6 +2247,78 @@ rpcallowip=127.0.0.1
 # [wallet]
 # Do not load the wallet and disable wallet RPC calls. (Default: 0 = wallet is enabled)
 disablewallet=0
+
+
+# [Sections]
+# Most options automatically apply to mainnet, testnet, and regtest networks.
+# If you want to confine an option to just one network, you should add it in the relevant section.
+# EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
+# only apply to mainnet unless they appear in the appropriate section below.
+#
+# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
+# [main], [test], [regtest] and [signet]. Do not remove any of these.
+
+# Options only for mainnet
+[main]
+
+# Listen for incoming connections on non-default mainnet port. Mainnet default is 12024.
+# Changing the port number here will override the default mainnet port number.
+# port=12024
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC connections on this port. Mainnet default is 14022.
+# rpcport=14022
+
+# Options only for testnet
+[test]
+
+# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Changing the port number here will override the default testnet port numbers.
+# port=12026
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+rpcbind=127.0.0.1
+
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# rpcport=14023
+
+# Options only for regtest
+[regtest]
+
+# Listen for incoming connections on non-default regtest port. Regtest default is 18444.
+# Changing the port number here will override the default regtest listening port.
+# port=18444
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
+# rpcport=18443
+
+# Options only for signet
+[signet]
+
+# Listen for incoming connections on non-default signet port. Signet default is 38443.
+# Changing the port number here will override the default signet listening port.
+# port=38443
+
+# Bind to given address to listen for JSON-RPC connections. This option is ignored unless
+# -rpcallowip is also passed. Port is optional and overrides -rpcport. Use [host]:port notation
+# for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
+# rpcbind=127.0.0.1
+
+# Listen for JSON-RPC regtest connections on this port. Signet default is 19443.
+# rpcport=19443
+
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
@@ -1689,13 +2330,13 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 # A simple function that just displays the title in a box
 setup_title_box() {
      clear -x
-     echo " ╔═════════════════════════════════════════════════════════╗"
-     echo " ║                                                         ║"
-     echo " ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
-     echo " ║                                                         ║"
-     echo " ║     Setup and manage your DigiByte & DigiAsset Node     ║"
-     echo " ║                                                         ║"
-     echo " ╚═════════════════════════════════════════════════════════╝" 
+     echo "  ╔═════════════════════════════════════════════════════════╗"
+     echo "  ║                                                         ║"
+     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+     echo "  ║                                                         ║"
+     echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+     echo "  ║                                                         ║"
+     echo "  ╚═════════════════════════════════════════════════════════╝" 
      echo ""
 }
 
@@ -1956,6 +2597,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
+    # Get system RAM
+    RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
+
     # Store total system RAM in whole Gb. Append 'b' to it so it says Gb. (Used for future Pi models we don't know about yet)
     MODELMEM="${RAMTOTAL_HR}b"
 
@@ -1986,7 +2630,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
     if [ "$pitype" != "" ]; then
-        if [ $revision = 'd03114' ]; then #Pi 4 8Gb
+        if [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
         elif [ $revision = '902120' ]; then #Pi Zero 2 W
@@ -1995,13 +2639,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
-        elif [ $revision = 'c03114' ]; then #Pi 4 4Gb
-            pitype="pi4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'c03112' ]; then #Pi 4 4Gb
-            pitype="pi4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'c03111' ]; then #Pi 4 4Gb
+        elif [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
@@ -2105,6 +2743,27 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
             pitype="piold"
             MODELMEM="256Mb"
+        else
+            
+            # IF this is a Pi we have not seen before, then round up the reported system memory to an integer, provided it is measured in Gb.
+            # Check that MODELMEM ends in the letters Gb AND it contain a decimal
+
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b Unrecognised Raspberry Pi model\\n" "${WARN}"
+            fi
+
+            if [[ $MODELMEM == *Gb ]] && [[ "$MODELMEM" == *.* ]]; then 
+                MODEL_MEM=${MODELMEM//Gb} # Remove letters Gb, to work with numbers
+                MODELMEM=$(echo $MODELMEM | cut -d'.' -f1) # remove everything after decimal
+                MODELMEM=$(expr $MODELMEM + 1) # add 1 to the integer
+                MODELMEM=${MODELMEM}Gb # append Gb again
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Rounding up system memory to integer\\n" "${INFO}"
+                fi
+            fi
+            if [ $VERBOSE_MODE = true ]; then
+                printf "\\n"
+            fi
         fi
     fi
 
@@ -2172,12 +2831,15 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter including the following information\\n" "${INDENT}"
-        printf "%b so that support for it can be added:\\n" "${INDENT}"
+        printf "%b Please share the information below in the DigiNode Tools Telegram group so that\\n" "${INDENT}"
+        printf "%b support for your Raspberry Pi can be added:\\n" "${INDENT}"
         printf "\\n"
         printf "%b Model: %b$MODEL%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Memory: %b$MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "\\n"
+        printf "%b You can find the DigiNode Tools Telegram Group here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact or $SOCIAL_BLUESKY_HANDLE on Bluesky or $SOCIAL_TWITTER_HANDLE on X.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -2327,7 +2989,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make ca-certificates curl gnupg)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
@@ -2362,7 +3024,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make)
+    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -2653,7 +3315,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$NewInstall" = true ]] && [[
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing mainnet install, and the hostname is already 'diginode'
-elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -2661,7 +3323,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] &
     HOSTNAME_DO_CHANGE="NO"
 
 # This is an existing testnet install, and the hostname is already 'diginode-testnet'
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
 
     printf "%b Hostname Check: %bPASSED%b   Hostname is set to: $HOSTNAME\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
@@ -2669,7 +3331,7 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [ "$DGB_NETWORK_CURRENT" = "TEST
     HOSTNAME_DO_CHANGE="NO"
 
 # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
-elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
@@ -2691,7 +3353,7 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
     printf "\\n"
 
 # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
-elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
  
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
@@ -2792,6 +3454,17 @@ elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNE
     HOSTNAME_ASK_CHANGE="YES"
     printf "\\n"
 
+# We re running on MAINNET or SIGNET.
+elif [[ "$DGB_NETWORK_FINAL" = "REGTEST" ]] || [[ "$DGB_NETWORK_FINAL" = "SIGNET" ]]; then
+    printf "%b Hostname Check: %bFAILED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "\\n"
+    printf "%b WARNING: You are currently running DigiByte Core on the $DGB_NETWORK_FINAL chain.\\n"  "${INFO}"
+    printf "%b Your hostname is currently '$HOSTNAME'. If you are running another DigNode,\\n"  "${INDENT}"
+    printf "%b on your network, make sure that it is not also using the same hostname.\\n"  "${INDENT}"
+    printf "%b If you are, you may experience issues with ports clashing. \\n"  "${INDENT}"
+    printf "\\n"
+    HOSTNAME_DO_CHANGE="NO"
+    printf "\\n"
 fi
 
 }
@@ -2802,7 +3475,7 @@ hostname_ask_change() {
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
-    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
+    if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
@@ -2818,7 +3491,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         fi
 
     # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
-    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
+    elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
         if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
 
@@ -5806,7 +6479,7 @@ install_digiasset_node_only() {
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
 
-    # Check if NodeJS installed, and if there is an upgrade available
+    # Check if Node.js installed, and if there is an upgrade available
     nodejs_check
 
     # Check if DigiAssets Node is installed, and if there is an upgrade available
@@ -5833,7 +6506,7 @@ install_digiasset_node_only() {
     # Create IPFS service
     ipfs_create_service
 
-    # Install/upgrade NodeJS
+    # Install/upgrade Node.js
     nodejs_do_install
 
     # Create or update main.json file with RPC credentials
@@ -6096,11 +6769,11 @@ change_upnp_status() {
     printf " =============== Checking: IPFS Node ===================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Let's check if Kubo is already installed
-    str="Is Kubo already installed?..."
+    # Let's check if Kubo IPFS is already installed
+    str="Is Kubo IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -6110,12 +6783,12 @@ change_upnp_status() {
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo daemon upstart service running?..."
+      str="Is Kubo IPFS daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -6128,7 +6801,7 @@ change_upnp_status() {
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo daemon systemd service running?..."
+        str="Is Kubo IPFS daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -6147,7 +6820,7 @@ change_upnp_status() {
     menu_ask_upnp
 
     # Update digibyte.conf
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Restart DigiByte daemon if upnp status has changed
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
@@ -6244,12 +6917,12 @@ change_dgb_network() {
     menu_ask_dgb_network
 
     # Update digibyte.conf
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Restart DigiByte daemon if dgb network has changed
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
 
-        # Restart Digibyted if the upnp status has just been changed
+        # Restart Digibyted if the network has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core network has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
             restart_service digibyted
@@ -6291,77 +6964,66 @@ change_dgb_network() {
 
     printf "\\n"
 
-    # Get the default listening port number, if it is not manually set in digibyte.conf
-    if [ "$port" = "" ]; then
-        if [ "$testnet" = "1" ]; then
-            port="12026"
-        else
-            port="12024"
-        fi
-    fi 
-
     # Display alert box informing the user that listening port and rpcport have changed.
-    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$testnet" = "1" ]; then
+    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "testnet" ]; then
         whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
 
-            # Prompt to delete the mainnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
+        # Prompt to delete the mainnet blockchain data if it already exists
+        if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            # Delete DigiByte blockchain data
+            if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
-                    if [ -d "$DGB_DATA_LOCATION" ]; then
-                        str="Deleting DigiByte Core MAINNET blockchain data..."
-                        printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/indexes
-                        rm -rf $DGB_DATA_LOCATION/chainstate
-                        rm -rf $DGB_DATA_LOCATION/blocks
-                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-                    printf "\\n"
-
-                else
-                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
-                    printf "\\n"
+                if [ -d "$DGB_DATA_LOCATION" ]; then
+                    str="Deleting DigiByte Core MAINNET blockchain data..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -rf $DGB_DATA_LOCATION/indexes
+                    rm -rf $DGB_DATA_LOCATION/chainstate
+                    rm -rf $DGB_DATA_LOCATION/blocks
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
+                printf "\\n"
+
+            else
+                printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                printf "\\n"
             fi
+        fi
 
-    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
-        if [ "$testnet" = "0" ] || [ "$testnet" = "" ]; then
-            whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "main" ]; then
+        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
-            # Prompt to delete the testnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+        # Prompt to delete the testnet blockchain data if it already exists
+        if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            # Delete DigiByte blockchain data
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
-                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
-                        str="Deleting DigiByte Core TESTNET blockchain data..."
-                        printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-                    printf "\\n"
-
-                else
-                    printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
-                    printf "\\n"
+                if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                    str="Deleting DigiByte Core TESTNET blockchain data..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -rf $DGB_DATA_LOCATION/testnet4/indexes
+                    rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
+                    rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
+                printf "\\n"
+
+            else
+                printf "%b You chose to keep the existing DigiByte mainnet blockchain data.\\n" "${INFO}"
+                printf "\\n"
             fi
-        fi    
+        fi  
     fi
 
     # Get the default listening port number, if it is not manually set in digibyte.conf
-    if [ "$port" = "" ]; then
-        if [ "$testnet" = "1" ]; then
-            port="12026"
-        else
-            port="12024"
-        fi
-    fi 
+#    if [ "$port" = "" ]; then
+#        if [ "$testnet" = "1" ]; then
+#            port="12026"
+#        else
+#            port="12024"
+#        fi
+#    fi 
 
 
     # Display alert box informing the user that the IPFS port changed.
@@ -6430,7 +7092,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "If you find these tools useful, kindly donate to support future development:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE! If you find it useful, please make a donation to show your support and help fund future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -6447,7 +7109,7 @@ whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" "${r}" "${c}"
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 26 70
 }
 
 
@@ -6828,6 +7490,27 @@ donation_qrcode() {
     echo ""
 }
 
+# Get the wallet balance, remove trailing zeroes and seperate into commas
+get_wallet_balance() {
+    WALLET_BALANCE=$($DGB_CLI getbalance 2>/dev/null)
+    # If the wallet balance is 0, then set the value to "" so it is hidden
+    if [ "$WALLET_BALANCE" = "0.00000000" ]; then
+        WALLET_BALANCE=""
+    elif [ "$WALLET_BALANCE" != "" ]; then
+        # Remove any trailing zeroes and decimal point
+        WALLET_BALANCE=$(echo "$WALLET_BALANCE" | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+
+        if [[ "$WALLET_BALANCE" =~ ^[0-9]+$ ]]; then # If the balance is an integer format the number with commas
+            WALLET_BALANCE=$(printf "%'d" $WALLET_BALANCE)
+        else
+            WALLET_BALANCE_DECIMAL=$(echo $WALLET_BALANCE | cut -d'.' -f2)
+            WALLET_BALANCE_INTEGER=$(echo $WALLET_BALANCE | cut -d'.' -f1)
+            WALLET_BALANCE_INTEGER=$(printf "%'d" $WALLET_BALANCE_INTEGER)
+            WALLET_BALANCE=${WALLET_BALANCE_INTEGER}.${WALLET_BALANCE_DECIMAL}
+        fi
+    fi
+}
+
 # Backup reminder
 backup_reminder() { 
 
@@ -6835,11 +7518,7 @@ backup_reminder() {
     if [ "$NewInstall" != true ]; then
 
         # Lookup current wallet balance
-        WALLET_BALANCE=$(digibyte-cli getbalance 2>/dev/null)
-        # If the wallet balance is 0, then set the value to "" so it is hidden
-        if [ "$WALLET_BALANCE" = "0.00000000" ]; then
-            WALLET_BALANCE=""
-        fi
+        get_wallet_balance
 
         # If this is a full install, and no backup exists
         if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
@@ -7170,10 +7849,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINNET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
             printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
         else
             printf "%b You chose to setup DigiByte Core on TESTNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="TESTNET"
         fi
         printf "\\n"
@@ -7183,10 +7864,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the TESTNET network.\\n\\nWould you like to switch it to use the MAINNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to MAINNET" --no-button "Cancel" "${r}" "${c}"; then
             printf "%b You chose to switch DigiByte Core to run MAINNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="MAINNET"
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on TESTNET. Returning to menu...\\n" "${INFO}"
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
             menu_existing_install 
         fi
@@ -7197,10 +7880,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the MAINNET network.\\n\\nWould you like to switch it to use the TESTNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to TESTNET" --no-button "Cancel" "${r}" "${c}"; then
             printf "%b You chose to switch DigiByte Core to run TESTNET.\\n" "${INFO}"
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="TESTNET"
         #Nothing to do, continue
         else
             printf "%b You chose to leave DigiByte Core on MAINNET. Returning to menu...\\n" "${INFO}"
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
             menu_existing_install 
         fi
@@ -7209,9 +7894,18 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_network_menu" = "no" ]; then
 
         if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_NETWORK_OLD="REGTEST"
+            DGB_NETWORK_FINAL="REGTEST"
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_NETWORK_OLD="SIGNET"
+            DGB_NETWORK_FINAL="SIGNET"
+
         fi
 
     fi
@@ -7232,12 +7926,16 @@ else
 
             printf "%b Unattended Mode: DigiByte Core will run MAINNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="MAINNET"
 
         elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
 
             printf "%b Unattended Mode: DigiByte Core will run TESTNET\\n" "${INFO}"
             printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+
+            DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="TESTNET"
 
         else
@@ -7245,8 +7943,10 @@ else
             printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
 
             if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+                DGB_NETWORK_OLD="MAINNET"
                 DGB_NETWORK_FINAL="MAINNET"
             elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                DGB_NETWORK_OLD="TESTNET"
                 DGB_NETWORK_FINAL="TESTNET"
             fi
 
@@ -7264,8 +7964,10 @@ else
         printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
 
         if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
         fi
   
@@ -7301,13 +8003,13 @@ fi
 if [ -f "$DGB_CONF_FILE" ]; then
 
         # Update upnp status in settings if it exists and is blank, otherwise append it
-        if grep -q "upnp=1" $DGB_CONF_FILE; then
+        if grep -q "^upnp=1" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
             UPNP_DGB_CURRENT=1
-        elif grep -q "upnp=0" $DGB_CONF_FILE; then
+        elif grep -q "^upnp=0" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="maybe"
             UPNP_DGB_CURRENT=0
-        elif grep -q "upnp=" $DGB_CONF_FILE; then
+        elif grep -q "^upnp=" $DGB_CONF_FILE; then
             show_dgb_upnp_menu="yes"
         else
             show_dgb_upnp_menu="yes"
@@ -7338,7 +8040,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         show_ipfs_upnp_menu="yes"
     fi
 
-    # Is there a working version of Kubo available?
+    # Is there a working version of Kubo IPFS available?
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
         local test_kubo_query
@@ -7404,7 +8106,17 @@ fi
     if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
         # Re-source config file
         if [ -f "$DGB_CONF_FILE" ]; then
-            source $DGB_CONF_FILE
+            # Import variables from global section of digibyte.conf
+            str="Located digibyte.conf file. Importing..."
+            printf "%b %s" "${INFO}" "${str}"
+            scrape_digibyte_conf
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Import variables from global section of digibyte.conf
+            str="Getting digibyte.conf global variables..."
+            printf "%b %s" "${INFO}" "${str}"
+            eval "$DIGIBYTE_CONFIG_GLOBAL"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="12026"
@@ -7414,6 +8126,10 @@ fi
             DGB_LISTEN_PORT="12024"
         elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
             DGB_LISTEN_PORT="12024"
+        elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="18444"
+        elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ] && [ "$port" = "" ]; then
+            DGB_LISTEN_PORT="38443"
         else
             DGB_LISTEN_PORT="$port"   
         fi
@@ -7615,7 +8331,367 @@ fi
 
 }
 
+# This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
+# If DigiByte Core is not available it gets the value from digibyte.conf
 
+digibyte_chain_query() {
+    DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
+        DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+    fi
+
+    if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
+        DGB_NETWORK_CURRENT="TESTNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "main" ]; then 
+        DGB_NETWORK_CURRENT="MAINNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then 
+        DGB_NETWORK_CURRENT="REGTEST"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    elif [ "$DGB_NETWORK_CHAIN" = "signet" ]; then 
+        DGB_NETWORK_CURRENT="SIGNET"
+        DGB_NETWORK_CURRENT_LIVE="YES"
+    else
+        # If there is no response from digibyte-cli, check digibyte.conf
+        if [ -f "$DGB_CONF_FILE" ]; then
+
+                # Get network chain status from digibyte.conf
+                if grep -q "^regtest=1" $DGB_CONF_FILE || grep -q "^chain=regtest" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="REGTEST"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="regtest"
+                elif grep -q "^signet=1" $DGB_CONF_FILE || grep -q "^chain=signet" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="SIGNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="signet"
+                elif grep -q "^testnet=1" $DGB_CONF_FILE || grep -q "^chain=test" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="TESTNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="test"
+                elif grep -q "^chain=main" $DGB_CONF_FILE; then
+                    DGB_NETWORK_CURRENT="MAINNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="main"
+                else
+                    DGB_NETWORK_CURRENT="MAINNET"
+                    DGB_NETWORK_CURRENT_LIVE="NO"
+                    DGB_NETWORK_CHAIN="main"
+                fi
+        fi
+    fi
+}
+
+# Query DigiByte Core for the current listening port
+# If DigiByte Core is not available it gets the value from digibyte.conf
+
+digibyte_port_query() {
+
+    # Get current listening port
+    DGB_LISTEN_PORT_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
+        DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
+        DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
+    fi
+
+    # If we failed to get a result from digibyte-cli, check digibyte.conf instead
+    if  [ "$DGB_LISTEN_PORT_QUERY" = "" ] || [ "$DGB_LISTEN_PORT_QUERY" = "null" ]; then
+
+        # Make sure we have already scraped digibyte.conf
+        if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+            scrape_digibyte_conf
+        fi
+
+        # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+        if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+            digibyte_chain_query
+        fi
+
+        DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
+
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="12024"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="18444"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB_LISTEN_PORT="38443"
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        else
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
+            DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # If we are running mainnet, get current listening port from [main] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_LISTEN_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_MAIN" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_MAIN"
+            fi
+        fi
+
+        # If we are running testnet, get current listening port from [test] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_TEST" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+            fi
+        fi
+
+        # If we are running regtest, get current listening port from [regtest] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_LISTEN_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_REGTEST" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_REGTEST"
+            fi
+        fi
+
+        # If we are running signet, get current listening port from [signet] section of digibyte.conf, if available
+        if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_LISTEN_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB_LISTEN_PORT_SIGNET" != "" ]; then
+                DGB_LISTEN_PORT="$DGB_LISTEN_PORT_SIGNET"
+            fi
+        fi
+
+    fi
+
+}
+
+
+# Get the maxconnections value from digibyte.conf
+
+digibyte_maxconnections_query() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Make sure we have already scraped digibyte.conf
+    if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+        scrape_digibyte_conf
+    fi
+
+    # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+    if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+        digibyte_chain_query
+    fi
+
+    # Look maxconnections from the global section of digibyte.conf and set default of 125 if not found
+    DGB_MAXCONNECTIONS_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^maxconnections= | cut -d'=' -f 2)
+    if [ "$DGB_MAXCONNECTIONS_GLOBAL" = "" ]; then
+        DGB_MAXCONNECTIONS="125" # use default value
+    else
+        DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_GLOBAL"   
+    fi
+
+    # If we are running mainnet, get maxconnections value from [main] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        DGB_MAXCONNECTIONS_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_MAIN" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_MAIN"
+        fi
+    fi
+
+    # If we are running testnet, get maxconnections value from [test] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        DGB_MAXCONNECTIONS_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_TEST" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_TEST"
+        fi
+    fi
+
+    # If we are running regtest, get maxconnections value from [regtest] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        DGB_MAXCONNECTIONS_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_REGTEST" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_REGTEST"
+        fi
+    fi
+
+    # If we are running signet, get maxconnections value from [signet] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        DGB_MAXCONNECTIONS_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB_MAXCONNECTIONS_SIGNET" != "" ]; then
+            DGB_MAXCONNECTIONS="$DGB_MAXCONNECTIONS_SIGNET"
+        fi
+    fi
+
+fi
+
+}
+
+# Get the rpc credentials - rpcuser, rpcuser and rpcpassword - from digibyte.conf
+
+digibyte_rpc_query() {
+
+if [ -f "$DGB_CONF_FILE" ]; then
+
+    # Make sure we have already scraped digibyte.conf
+    if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+        scrape_digibyte_conf
+    fi
+
+    # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+    if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+        digibyte_chain_query
+    fi
+
+    # Look up rpcuser from the global section of digibyte.conf
+    RPC_USER=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcuser= | cut -d'=' -f 2)
+
+    # Look up rpcpassword from the global section of digibyte.conf
+    RPC_PASSWORD=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcpassword= | cut -d'=' -f 2)
+
+    # Look up rpcport from the global section of digibyte.conf
+    RPC_PORT=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcport= | cut -d'=' -f 2)
+
+    # Look up rpcbind from the global section of digibyte.conf
+    RPC_BIND=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^rpcbind= | cut -d'=' -f 2)
+
+
+    # If we are running MAINNET, get rpc credentials from [main] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        # Look up rpcuser from the [main] section of digibyte.conf
+        RPC_USER_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_MAIN" != "" ]; then
+            RPC_USER="$RPC_USER_MAIN"
+        fi
+        # Look up rpcpassword from the [main] section of digibyte.conf
+        RPC_PASSWORD_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_MAIN" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_MAIN"
+        fi
+        # Look up rpcport from the [main] section of digibyte.conf
+        RPC_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_MAIN" != "" ]; then
+            RPC_PORT="$RPC_PORT_MAIN"
+        else
+            # If mainnet rpcport was not set anywhere else, then set the mainnet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="14022"
+            fi
+        fi
+        # Look up rpcbind from the [main] section of digibyte.conf
+        RPC_BIND_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_MAIN" != "" ]; then
+            RPC_BIND="$RPC_BIND_MAIN"
+        fi
+    fi
+
+    # If we are running TESTNET, get rpc credentials from [test] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        # Look up rpcuser from the [test] section of digibyte.conf
+        RPC_USER_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_TEST" != "" ]; then
+            RPC_USER="$RPC_USER_TEST"
+        fi
+        # Look up rpcpassword from the [test] section of digibyte.conf
+        RPC_PASSWORD_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_TEST" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_TEST"
+        fi
+        # Look up rpcport from the [test] section of digibyte.conf
+        RPC_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_TEST" != "" ]; then
+            RPC_PORT="$RPC_PORT_TEST"
+        else
+            # If testnet rpcport was not set anywhere else, then set the testnet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="14023"
+            else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+        # Look up rpcbind from the [test] section of digibyte.conf
+        RPC_BIND_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_TEST" != "" ]; then
+            RPC_BIND="$RPC_BIND_TEST"
+        else
+            # If testnet rpcbind was set globally, but it is not set in the testset section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
+            fi
+        fi
+    fi
+
+    # If we are running REGTEST, get rpc credentials from [regtest] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        # Look up rpcuser from the [regtest] section of digibyte.conf
+        RPC_USER_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_REGTEST" != "" ]; then
+            RPC_USER="$RPC_USER_REGTEST"
+        fi
+        # Look up rpcpassword from the [regtest] section of digibyte.conf
+        RPC_PASSWORD_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_REGTEST" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_REGTEST"
+        fi
+        # Look up rpcport from the [regtest] section of digibyte.conf
+        RPC_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_REGTEST" != "" ]; then
+            RPC_PORT="$RPC_PORT_REGTEST"
+        else
+            # If regtest rpcport was not set anywhere else, then set the regtest default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="18443"
+            else # If it was already set in the global section, but not in the [regtest] section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+        # Look up rpcbind from the [regtest] section of digibyte.conf
+        RPC_BIND_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_REGTEST" != "" ]; then
+            RPC_BIND="$RPC_BIND_REGTEST"
+        else
+            # If regtest rpcbind was set globally, but it is not in the [regtest] section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
+            fi
+        fi
+    fi
+
+    # If we are running SIGNET, get rpc credentials from [signet] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        # Look up rpcuser from the [signet] section of digibyte.conf
+        RPC_USER_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcuser= | cut -d'=' -f 2)
+        if [ "$RPC_USER_SIGNET" != "" ]; then
+            RPC_USER="$RPC_USER_SIGNET"
+        fi
+        # Look up rpcpassword from the [signet] section of digibyte.conf
+        RPC_PASSWORD_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcpassword= | cut -d'=' -f 2)
+        if [ "$RPC_PASSWORD_SIGNET" != "" ]; then
+            RPC_PASSWORD="$RPC_PASSWORD_SIGNET"
+        fi
+        # Look up rpcport from the [signet] section of digibyte.conf
+        RPC_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC_PORT_SIGNET" != "" ]; then
+            RPC_PORT="$RPC_PORT_SIGNET"
+        else
+            # If signet rpcport was not set anywhere else, then set the signet default
+            if [ "$RPC_PORT" = "" ]; then 
+                RPC_PORT="19443"
+            else # If it was already set in the global section, but not in the [signet] section, then remove it as it won't work
+                RPC_PORT=""
+            fi
+        fi
+        # Look up rpcbind from the [signet] section of digibyte.conf
+        RPC_BIND_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^rpcbind= | cut -d'=' -f 2)
+        if [ "$RPC_BIND_SIGNET" != "" ]; then
+            RPC_BIND="$RPC_BIND_SIGNET"
+        else
+            # If signet rpcbind was set globally, but it is not set in the [signet] section, then report an error (DigiByte won't run without this being set)
+            if [ "$RPC_BIND" != "" ]; then 
+                RPC_BIND="error"
+            fi
+        fi
+    fi
+
+fi
+
+}
 
 
 
@@ -7763,36 +8839,27 @@ digibyte_check() {
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         fi
 
-        # Find out which DGB network is running - mainnet or testnet
-        str="Checking which DigiByte chain is running (mainnet or testnet?)..."
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
         printf "%b %s" "${INFO}" "${str}"
 
-        # Query if DigiByte Core is running the testnet or mainnet chain
-        DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-        if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
-            DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_chain_query
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
-            DGB_NETWORK_CURRENT="TESTNET"
-            printf "%b%b %s TESTNET\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CHAIN" = "main" ]; then 
-            DGB_NETWORK_CURRENT="MAINNET"
-            printf "%b%b %s MAINNET\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            # Just in case there is no response from digibyte-cli, check digibyte.conf in an emergency
-            if [ -f "$DGB_CONF_FILE" ]; then
-
-                    # Get testnet status from digibyte.conf
-                    if grep -q "testnet=1" $DGB_CONF_FILE; then
-                        DGB_NETWORK_CURRENT="TESTNET"
-                        printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-                    else
-                        DGB_NETWORK_CURRENT="MAINNET"
-                        printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-                    fi
-            fi
-        fi
     fi
 
       # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
@@ -7818,20 +8885,25 @@ digibyte_check() {
             printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If digibyte.conf file already exists, find out whther this installed version is using testnet or not
-        if [ -f "$DGB_CONF_FILE" ]; then
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
+        printf "%b %s" "${INFO}" "${str}"
 
-                str="Checking digibyte.conf for which network DigiByte Core is running (mainnet or testnet)?..."
-                printf "%b %s" "${INFO}" "${str}"
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_chain_query
 
-                # Get testnet status from digibyte.conf
-                if grep -q "testnet=1" $DGB_CONF_FILE; then
-                    DGB_NETWORK_CURRENT="TESTNET"
-                    printf "%b%b %s TESTNET\\n" "${OVER}" "${TICK}" "${str}"
-                else
-                    DGB_NETWORK_CURRENT="MAINNET"
-                    printf "%b%b %s MAINNET\\n" "${OVER}" "${TICK}" "${str}"
-                fi
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -7961,6 +9033,8 @@ digibyte_check() {
     printf "\\n"
 
 }
+
+
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
 # Note: It does not (re)start the digibyted.service automatically when done
@@ -8679,13 +9753,13 @@ ipfs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: Kubo (Go-IPFS) ==============================\\n\\n"
+    printf " =============== Checking: Kubo IPFS ===================================\\n\\n"
     # ==============================================================================
 
-    # Check for latest Go-IPFS release online
-    str="Checking Github for the latest Kubo release..."
+    # Check for latest Kubo IPFS release online
+    str="Checking Github for the latest Kubo IPFS release..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest Kubo version, disregarding releases candidates (they contain 'rc' in the name).
+    # Gets latest Kubo IPFS version, disregarding releases candidates (they contain 'rc' in the name).
     IPFS_VER_RELEASE=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
     # If can't get Github version number
@@ -8693,28 +9767,28 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of Kubo. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b Kubo IPFS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: Kubo v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: Kubo IPFS v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # WORKAROUND: This is temporary to get around the Kubo release glitch
     if [ "$IPFS_VER_RELEASE" = "0.21.1" ]; then
         IPFS_VER_RELEASE="0.22.0"
-        printf "%b Temporary Workaround for Kubo release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
+        printf "%b Temporary Workaround for Kubo IPFS release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
     fi
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Let's check if Kubo is already installed
-    str="Is Kubo already installed?..."
+    str="Is Kubo IPFS already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -8724,12 +9798,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo daemon upstart service running?..."
+      str="Is Kubo IPFS daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -8742,7 +9816,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo daemon systemd service running?..."
+        str="Is Kubo IPFS daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -8808,13 +9882,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
 
-    # If a Kubo local version already exists.... (i.e. we have a local version number)
+    # If a Kubo IPFS local version already exists.... (i.e. we have a local version number)
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Kubo is already up to date.\\n" "${TICK}"
+          printf "%b Kubo IPFS is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
@@ -8826,7 +9900,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b %bKubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b %bKubo IPFS can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           IPFS_INSTALL_TYPE="upgrade"
           IPFS_ASK_UPGRADE=YES
       fi
@@ -8835,7 +9909,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$IPFS_STATUS" = "not_detected" ]; then
-      printf "%b %bKubo v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bKubo IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
     fi
@@ -8846,7 +9920,7 @@ fi
 
 }
 
-# This function will install Kubo if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install Kubo IPFS if it not yet installed, and if it is, upgrade it to the latest release
 ipfs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -8857,11 +9931,11 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo IPFS v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
     else        
-        printf " =============== Resetting: Kubo (Go-IPFS) =============================\\n\\n"
+        printf " =============== Resetting: Kubo IPFS ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Kubo.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
@@ -8882,13 +9956,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: Kubo (Go-IPFS) ===============================\\n\\n"
+        printf " =============== Install: Kubo IPFS ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: Kubo (Go-IPFS) ===============================\\n\\n"
+        printf " =============== Upgrade: Kubo IPFS ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: Kubo (Go-IPFS) =================================\\n\\n"
+        printf " =============== Reset: Kubo IPFS ======================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install Kubo.\\n" "${INFO}"
     fi
@@ -8975,7 +10049,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # If we are re-installing the current version of Kubo, delete the existing binary
     if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        str="Reset Mode: Deleting Kubo v${IPFS_VER_LOCAL} ..."
+        str="Reset Mode: Deleting Kubo IPFS v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
@@ -8993,7 +10067,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # If there is an existing Go-IPFS install tar file, delete it
+    # If there is an existing go-IPFS install tar file, delete it [Legacy code - can be removed at some point]
     if [ -f "$USER_HOME/go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
         str="Deleting existing Go-IPFS install file: go-ipfs_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
@@ -9001,16 +10075,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo install tar file, delete it
+    # If there is an existing Kubo IPFS install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting existing Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting existing Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Downloading latest Kubo install file from GitHub
-    str="Downloading Kubo v${IPFS_VER_RELEASE} from Github repository..."
+    # Downloading latest Kubo IPFS install file from GitHub
+    str="Downloading Kubo IPFS v${IPFS_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
 
@@ -9021,9 +10095,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b%b ${txtbred}ERROR: Kubo v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtbred}ERROR: Kubo IPFS v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b Kubo IPFS could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
         if [ "$IPFS_STATUS" = "stopped" ]; then
             printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
         else
@@ -9071,7 +10145,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo install folder, delete it
+    # If there is an existing Kubo IPFS install folder, delete it
     if [ -d "$USER_HOME/kubo" ]; then
         str="Deleting existing ~/kubo folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -9079,27 +10153,27 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Extracting Kubo install files
-    str="Extracting Kubo v${IPFS_VER_RELEASE} ..."
+    # Extracting Kubo IPFS install files
+    str="Extracting Kubo IPFS v${IPFS_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT tar -xf $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete Kubo install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install Kubo to bin folder
-    printf "%b Installing Kubo v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
+    printf "%b Installing Kubo IPFS v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     (cd $USER_HOME/kubo; ./install.sh)
 
     # If the command completed without error, then assume IPFS installed correctly
     if [ $? -eq 0 ]; then
-        printf "%b Kubo appears to have been installed correctly.\\n" "${INFO}"
+        printf "%b Kubo IPFS appears to have been installed correctly.\\n" "${INFO}"
         
         if [ "$IPFS_STATUS" = "not_detected" ];then
             IPFS_STATUS="installed"
@@ -9107,7 +10181,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         DIGINODE_UPGRADED="YES"
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Kubo Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: Kubo IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b This can sometimes occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
         printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if you keep retrying.\\n" "${INDENT}"
@@ -9135,23 +10209,23 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Set default IPFS ports if this is the first time running Go-IPFS, and the config files do not exist
+    # Set default IPFS ports if this is the first time running Kubo IPFS, and the config files do not exist
     if [ ! -f "$USER_HOME/.ipfs/config" ]; then
         str="Kubo IPFS config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
-        IPFS_PORT_IP4_TARGET="4001"
-        IPFS_PORT_IP6_TARGET="4001"
-        IPFS_PORT_IP4_QUIC_TARGET="4001"
-        IPFS_PORT_IP6_QUIC_TARGET="4001"
+        IPFS_PORT_IP4="4001"
+        IPFS_PORT_IP6="4001"
+        IPFS_PORT_IP4_QUIC="4001"
+        IPFS_PORT_IP6_QUIC="4001"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ ! -f "$USER_HOME/.jsipfs/config" ]; then
         str="JS-IPFS config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
-        JSIPFS_PORT_IP4_TARGET="4001"
-        JSIPFS_PORT_IP6_TARGET="4001"
-        JSIPFS_PORT_IP4_QUIC_TARGET="4001"
-        JSIPFS_PORT_IP6_QUIC_TARGET="4001"
+        JSIPFS_PORT_IP4="4001"
+        JSIPFS_PORT_IP6="4001"
+        JSIPFS_PORT_IP4_QUIC="4001"
+        JSIPFS_PORT_IP6_QUIC="4001"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
@@ -9189,10 +10263,30 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
         elif [ "$use_ipfs_server_profile" = "no" ]; then
-            sudo -u $USER_ACCOUNT ipfs init
+            if [ "$IS_RPI" = "YES" ]; then
+                printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+                sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+            else
+                # Just in case we are are DigiAsset Node Mode ONLY and we never performed the Pi checks
+                # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
+                pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
+                if [[ $pigen == "Raspberry Pi" ]]; then
+                    IS_RPI="YES"
+                fi
+                if [ "$IS_RPI" = "YES" ]; then
+                    printf "%b We are in DigiAsset Mode ONLY.\\n" "${INFO}"
+                    printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+                    sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+                else
+                    sudo -u $USER_ACCOUNT ipfs init
+                fi
+            fi
+
         fi
 
-        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmQPeNsJPyVWPFDVHb77w8G42Fvo15z4bG2X8D2GhfbSXc/readme
+        # Test IPFS
+        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
+        
         printf "\\n"
     fi
 
@@ -9326,8 +10420,18 @@ ipfs_update_port() {
 
     # If we are using Kubo IPFS
 
-            printf " =============== Starting: IPFS ========================================\\n\\n"
+        printf "\\n"
+        printf " =============== Starting: IPFS ========================================\\n\\n"
         # ==============================================================================
+
+        if [ "$VERBOSE_MODE" = true ]; then
+            printf "%b Verbose Mode: DGB_NETWORK_FINAL - $DGB_NETWORK_FINAL\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP4 - $IPFS_PORT_IP4\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP6 - $IPFS_PORT_IP6\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP4_QUIC - $IPFS_PORT_IP4_QUIC\\n" "${INFO}"
+            printf "%b Verbose Mode: IPFS_PORT_IP6_QUIC - $IPFS_PORT_IP6_QUIC\\n" "${INFO}"
+            printf "\\n"
+        fi
 
         printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
 
@@ -9516,7 +10620,7 @@ ipfs_update_port() {
 ipfs_create_service() {
 
 # If you want to make changes to how IPFS services are created/managed for diferent systems, refer to this website:
-# https://github.com/ipfs/go-ipfs/tree/master/misc 
+# https://github.com/ipfs/kobo/tree/master/misc 
 
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
@@ -9768,26 +10872,26 @@ fi
 
 
 
-# This function will check if NodeJS is installed, and if it is, check if there is an update available
+# This function will check if Node.js is installed, and if it is, check if there is an update available
 # LAtest distrbutions can be checked here: https://github.com/nodesource/distributions 
 
 nodejs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: NodeJS ======================================\\n\\n"
+    printf " =============== Checking: Node.js =====================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    # Get the local version number of Node.js (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
-    # Let's check if NodeJS is already installed
-    str="Is NodeJS already installed?..."
+    # Let's check if Node.js is already installed
+    str="Is Node.js already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_STATUS="not_detected"
@@ -9796,90 +10900,138 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         NODEJS_STATUS="installed"
         sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: NodeJS v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: Node.js v${NODEJS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Get current NodeJS major version
-    str="Is NodeJS at least version 16?..."
+    # Get current Node.js major version
+    str="Is Node.js at least version 16?..."
     NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
     if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
         printf "%b %s" "${INFO}" "${str}"
         if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
-            NODEJS_PPA_ADDED="NO"
-            printf "%b%b %s NO! NodeSource PPA will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
+            NODEJS_REPO_ADDED="NO"
+            printf "%b%b %s NO! NodeSource repo will be re-added.\\n" "${OVER}" "${CROSS}" "${str}"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     fi
 
+    # If this is the first time running the Node.js check, and we are doing a full install, let's add 
+    # the new official repositories to ensure we get the latest version
+    if [ "$NODEJS_REPO_ADDED" = "" ] || [ "$NODEJS_REPO_ADDED" = "NO" ]; then
 
-    # If this is the first time running the NodeJS check, and we are doing a full install, let's add the official repositories to ensure we get the latest version
-    if [ "$NODEJS_PPA_ADDED" = "" ] || [ "$NODEJS_PPA_ADDED" = "NO" ]; then
+        # Get version codename
+        LINUX_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+        LINUX_VERSION_CODENAME=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d'=' -f2)
+        printf "%b Linux ID: $LINUX_ID\\n" "${INFO}"
+        printf "%b Linux Version Codename: $LINUX_VERSION_CODENAME\\n" "${INFO}"
 
-        # Is this Debian or Ubuntu?
-        local is_debian=$(cat /etc/os-release | grep ID | grep debian -Eo)
-        local is_ubuntu=$(cat /etc/os-release | grep ID | grep ubuntu -Eo)
-        local is_fedora=$(cat /etc/os-release | grep ID | grep fedora -Eo)
-        local is_centos=$(cat /etc/os-release | grep ID | grep centos -Eo)
-
-        # Set correct PPA repository
-        if [ "$is_ubuntu" = "ubuntu" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Ubuntu...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_debian" = "debian" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Debian...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_fedora" = "fedora" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for Fedora...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        elif [ "$is_centos" = "centos" ]; then
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for CentOS...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
-        else
-            printf "%b Adding NodeSource PPA for NodeJS LTS version for unknown distro...\\n" "${INFO}"
-            curl -fsSL https://deb.nodesource.com/setup_lts.x | bash -
-            NODEJS_PPA_ADDED=YES
+        # Deleting deb repository
+        if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+            str="Preparing Node.js repository: Deleting old repo..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/sources.list.d/nodesource.list
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        # Deleting gpg key
+        if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+            str="Preparing Node.js repository: Deleting old GPG key..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/keyrings/nodesource.gpg
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Set correct Node.js 20 repository for Debian or Ubuntu
+        if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+
+            # create /etc/apt/keyrings folder if it does not already exist
+            if [ ! -d /etc/apt/keyrings ]; then #
+                str="Preparing Node.js repository: Creating /etc/apt/keyrings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                mkdir -p /etc/apt/keyrings
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # install gpg key
+            if [ ! -f /etc/apt/keyrings/nodesource.gpg ]; then 
+                str="Preparing Node.js repository: Installing GPG key..."
+                printf "%b %s" "${INFO}" "${str}"
+                sudo -u $USER_ACCOUNT curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+
+            # Figure out which version of Node.js to install
+            if [ "$LINUX_VERSION_CODENAME" = "jessie" ] || [ "$LINUX_VERSION_CODENAME" = "stretch" ] || [ "$LINUX_VERSION_CODENAME" = "bionic" ]; then
+                NODE_MAJOR=16
+            else
+                NODE_MAJOR=20
+            fi
+            printf "%b Node.js ${NODE_MAJOR}x will be used.\\n" "${INFO}"
+
+            # Create deb repository
+            if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then 
+                printf "%b Preparing Node.js repository: Creating repo for Debian/Ubuntu...\\n" "${INFO}"
+                sudo -u $USER_ACCOUNT echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+                NODEJS_REPO_ADDED=YES
+            fi
+
+            # Update package cache
+            update_package_cache
+
+        else
+
+            # Setup Node.js repositories for Enterprise Linux - Fedora, Redhat
+            str="Preparing Node.js repository: Creating repo for Enterprise Linux..."
+            printf "%b %s" "${INFO}" "${str}"
+            yum install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
+            NODEJS_REPO_ADDED=YES
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
 
         # Update variable in diginode.settings so this does not run again
-        sed -i -e "/^NODEJS_PPA_ADDED=/s|.*|NODEJS_PPA_ADDED=\"$NODEJS_PPA_ADDED\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"$NODEJS_REPO_ADDED\"|" $DGNT_SETTINGS_FILE
+
     else
-        printf "%b NodeSource PPA repository has already been added or is not required.\\n" "${TICK}"
+        printf "%b NodeSource repository has already been added or is not required.\\n" "${TICK}"
         printf "%b If needed, you can have this script attempt to add it, by editing the diginode.settings\\n" "${INDENT}"
-        printf "%b file in the ~/.digibyte folder and changing the NODEJS_PPA_ADDED value to NO. \\n" "${INDENT}"
+        printf "%b file in the ~/.digibyte folder and changing the NODEJS_REPO_ADDED value to NO. \\n" "${INDENT}"
     fi
 
     # Look up the latest candidate release
-    str="Checking for the latest NodeJS release..."
+    str="Checking for the latest Node.js release..."
     printf "%b %s" "${INFO}" "${str}"
 
     if [ "$PKG_MANAGER" = "apt-get" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
         NODEJS_VER_RELEASE=$(apt-cache policy nodejs | grep Candidate | cut -d' ' -f4 | cut -d'-' -f1 | cut -d'~' -f1)
     fi
 
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with dnf.\\n" "${CROSS}"
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: DigiNode Setup is not yet able to check for Node.js releases with dnf.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
+        printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 
     if [ "$PKG_MANAGER" = "yum" ]; then
-        # Gets latest NodeJS release version, disregarding releases candidates (they contain 'rc' in the name).
-        printf "%b ERROR: DigiNode Setup is not yet able to check for NodeJS releases with yum.\\n" "${CROSS}"
+        # Gets latest Node.js release version, disregarding releases candidates (they contain 'rc' in the name).
+        printf "%b ERROR: DigiNode Setup is not yet able to check for Node.js releases with yum.\\n" "${CROSS}"
+        printf "\\n"
+        printf "%b Please get in touch via the DigiNode Tools Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
+        printf "%b You may be able to help me to add support for this. Olly\\n" "${INDENT}"
+        printf "\\n"
         exit 1
     fi
 
     if [ "$NODEJS_VER_RELEASE" = "" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-        printf "%b Unable to check for release version of NodeJS.\\n" "${CROSS}"
+        printf "%b Unable to check for release version of Node.js.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b NodeJS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b Node.js cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
@@ -9890,13 +11042,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_VER_RELEASE=/s|.*|NODEJS_VER_RELEASE=\"$NODEJS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # If a NodeJS local version already exists.... (i.e. we have a local version number)
+    # If a Node.js local version already exists.... (i.e. we have a local version number)
     if [ "$NODEJS_VER_LOCAL" != "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $NODEJS_VER_LOCAL) -ge $(version $NODEJS_VER_RELEASE) ]; then
-          printf "%b NodeJS is already up to date.\\n" "${TICK}"
+          printf "%b Node.js is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install NodeJS v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install Node.js v${NODEJS_VER_RELEASE}.\\n" "${INFO}"
             NODEJS_INSTALL_TYPE="askreset"
             NODEJS_DO_INSTALL=YES
           else
@@ -9908,7 +11060,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b %bNodeJS can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b %bNode.js can be upgraded from v${NODEJS_VER_LOCAL} to v${NODEJS_VER_RELEASE}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           NODEJS_INSTALL_TYPE="upgrade"
           NODEJS_ASK_UPGRADE=YES
       fi
@@ -9924,7 +11076,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$NODEJS_STATUS" = "not_detected" ]; then
-      printf "%b %bNodeJS v${NODEJS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bNode.js v${NODEJS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       NODEJS_INSTALL_TYPE="new"
       NODEJS_DO_INSTALL="if_doing_full_install"
     fi
@@ -9935,7 +11087,7 @@ fi
 
 }
 
-# This function will install NodeJS if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install Node.js if it not yet installed, and if it is, upgrade it to the latest release
 nodejs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -9943,16 +11095,16 @@ if [ "$UNATTENDED_MODE" == true ] && [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
     NODEJS_DO_INSTALL=YES
 fi
 
-# If we are in reset mode, ask the user if they want to re-install NodeJS
+# If we are in reset mode, ask the user if they want to re-install Node.js
 if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install NodeJS v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete NodeJS and re-install it." "${r}" "${c}"; then
+    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Node.js v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete Node.js and re-install it." "${r}" "${c}"; then
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
-        printf " =============== Resetting: NodeJS =====================================\\n\\n"
+        printf " =============== Resetting: Node.js ====================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You skipped re-installing NodeJS.\\n" "${INFO}"
+        printf "%b Reset Mode: You skipped re-installing Node.js.\\n" "${INFO}"
         printf "\\n"
         NODEJS_DO_INSTALL=NO
         NODEJS_INSTALL_TYPE="none"
@@ -9962,7 +11114,7 @@ if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
 fi
 
-# If this is a new install of NodeJS, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
+# If this is a new install of Node.js, and the user has opted to do a full DigiNode install, then proceed, If the user is doing a full install, and this is a new install, then proceed
 if  [ "$NODEJS_INSTALL_TYPE" = "new" ] && [ "$NODEJS_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
     NODEJS_DO_INSTALL=YES
 fi
@@ -9972,44 +11124,44 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: NodeJS =======================================\\n\\n"
+        printf " =============== Install: Node.js ======================================\\n\\n"
         # ==============================================================================
     elif [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ] || [ $NODEJS_INSTALL_TYPE = "upgrade" ]; then
-        printf " =============== Upgrade: NodeJS =======================================\\n\\n"
+        printf " =============== Upgrade: Node.js ======================================\\n\\n"
         # ==============================================================================
     elif [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: NodeJS =========================================\\n\\n"
+        printf " =============== Reset: Node.js ========================================\\n\\n"
         # ==============================================================================
-        printf "%b Reset Mode: You chose re-install NodeJS.\\n" "${INFO}"
+        printf "%b Reset Mode: You chose re-install Node.js.\\n" "${INFO}"
     fi
 
 
-    # Do apt-get installation of NodeJS
+    # Do apt-get installation of Node.js
     if [ "$PKG_MANAGER" = "apt-get" ]; then
 
-        # Install NodeJS if it does not exist
+        # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             printf "\\n"
         fi
 
-        # If NodeJS 14 exists, upgrade it
+        # If Node.js 14 exists, upgrade it
         if [ "$NODEJS_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Updating to NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Updating to Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
-        # If NodeJS exists, but needs a major upgrade, remove the old versions first as there can be conflicts
+        # If Node.js exists, but needs a major upgrade, remove the old versions first as there can be conflicts
         if [ "$NODEJS_INSTALL_TYPE" = "majorupgrade" ]; then
-            printf "%b Since this is a major upgrade, the old versions of NodeJS will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
-            printf "%b Purging old versions of NodeJS v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
+            printf "%b Since this is a major upgrade, the old versions of Node.js will be removed first, to ensure there are no conflicts.\\n" "${INFO}"
+            printf "%b Purging old versions of Node.js v${NODEJS_VER_LOCAL} ...\\n" "${INFO}"
             sudo apt-get purge nodejs-legacy nodejs -y -q
             sudo apt-get autoremove -y -q
             printf "\\n"
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
@@ -10017,11 +11169,11 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
         # If we are in Reset Mode, remove and re-install
         if [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
-            printf "%b Reset Mode is ENABLED. Removing NodeJS v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
+            printf "%b Reset Mode is ENABLED. Removing Node.js v${NODEJS_VER_RELEASE} with apt-get...\\n" "${INFO}"
             sudo apt-get purge nodejs-legacy nodejs -y -q
             sudo apt-get autoremove -y -q
             printf "\\n"
-            printf "%b Re-installing NodeJS v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
+            printf "%b Re-installing Node.js v${NODEJS_VER_RELEASE} ...\\n" "${INFO}"
             sudo apt-get install nodejs -y -q
             DIGINODE_UPGRADED="YES"
             printf "\\n"
@@ -10029,23 +11181,23 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
     fi
 
-    # Do yum installation of NodeJS
+    # Do yum installation of Node.js
     if [ "$PKG_MANAGER" = "yum" ]; then
-            # Install NodeJS if it does not exist
+            # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
-            yum install nodejs14
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with yum..\\n" "${INFO}"
+            sudo yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1
             DIGINODE_UPGRADED="YES"
             printf "\\n"
         fi
 
     fi
 
-    # Do dnf installation of NodeJS
+    # Do dnf installation of Node.js
     if [ "$PKG_MANAGER" = "dnf" ]; then
-        # Install NodeJS if it does not exist
+        # Install Node.js if it does not exist
         if [ "$NODEJS_INSTALL_TYPE" = "new" ]; then
-            printf "%b Installing NodeJS v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
+            printf "%b Installing Node.js v${NODEJS_VER_RELEASE} with dnf..\\n" "${INFO}"
             dnf module install nodejs:12
             printf "\\n"
             DIGINODE_UPGRADED="YES"
@@ -10054,15 +11206,16 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Get the new version number of the NodeJS install
-    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
+    # Get the new version number of the Node.js install
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
-        NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
+        NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
-    # Update diginode.settings with new NodeJS local version number and the install/upgrade date
+
+    # Update diginode.settings with new Node.js local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
     if [ "$NODEJS_INSTALL_TYPE" = "new" ] || [ "$NODEJS_INSTALL_TYPE" = "reset" ]; then
         NODEJS_INSTALL_DATE="$(date)"
@@ -10072,7 +11225,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Reset NodeJS Install and Upgrade Variables
+    # Reset Node.js Install and Upgrade Variables
     NODEJS_INSTALL_TYPE=""
     NODEJS_UPDATE_AVAILABLE=NO
     NODEJS_POSTUPDATE_CLEANUP=YES
@@ -10081,7 +11234,7 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
 fi
 
-# If there is no install date (i.e. NodeJS was already installed when this script was first run) add it now, since it was up-to-date at this time
+# If there is no install date (i.e. Node.js was already installed when this script was first run) add it now, since it was up-to-date at this time
 if [ "$NODEJS_INSTALL_DATE" = "" ]; then
     NODEJS_INSTALL_DATE="$(date)"
     sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -10449,22 +11602,22 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         printf "%b Reset Mode: You chose to re-install DigiAsset Node.\\n" "${INFO}"
     fi
 
-    # Get the local version number of NodeJS (this will also tell us if it is installed)
+    # Get the local version number of Node.js (this will also tell us if it is installed)
     NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
-    # Later versions use purely the 'node --version' command, (rather than nodejs)
+    # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
 
-    # Get current NodeJS major version
-    str="Is NodeJS installed and at least version 16?..."
+    # Get current Node.js major version
+    str="Is Node.js installed and at least version 16?..."
     NODEJS_VER_LOCAL_MAJOR=$(echo $NODEJS_VER_LOCAL | cut -d'.' -f 1)
     if [ "$NODEJS_VER_LOCAL_MAJOR" != "" ]; then
         printf "%b %s" "${INFO}" "${str}"
         if [ "$NODEJS_VER_LOCAL_MAJOR" -lt "16" ]; then
             printf "\\n"
-            printf "%b%b ${txtred}ERROR: NodeJS 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
+            printf "%b%b ${txtred}ERROR: Node.js 16.x or greater is required to run a DigiAsset Node!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b You need to install the correct Nodesource PPA for your distro.\\n" "${INFO}"
             printf "%b Please get in touch via the 'DigiNode Tools' Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
@@ -10475,9 +11628,9 @@ if [ "$DGA_DO_INSTALL" = "YES" ]; then
         fi
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: NodeJS is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: Node.js is not installed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b You need to install NodeJS. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
+        printf "%b You need to install Node.js. It should have been installed before this, but there was likely an error.\\n" "${INFO}"
         printf "%b Please get in touch via the DigiNode Tools Telegram group so a fix can be made for your distro.\\n" "${INDENT}"
         printf "\\n"
         exit 1
@@ -10828,16 +11981,57 @@ digiasset_node_create_settings() {
 
     # Display title if the settings file already exist
     if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
-            printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
-            # ==============================================================================
+        printf " =============== Checking: DigiAsset Node settings =====================\\n\\n"
+        # ==============================================================================
+    elif [ "$RESET_MODE" != true ]; then
+        printf " =============== Checking: DigiByte RPC credentials ====================\\n\\n"
+        # ==============================================================================
     fi
 
     # Let's get the latest RPC credentials from digibyte.conf if it exists
     if [ -f $DGB_CONF_FILE ]; then
-        source $DGB_CONF_FILE
         if [ -f $DGA_SETTINGS_FILE ] || [ -f $DGA_SETTINGS_BACKUP_FILE ]; then
             printf "%b Getting latest RPC credentials from digibyte.conf\\n" "${INFO}"
         fi
+ 
+        # Import variables from global section of digibyte.conf
+        str="Located digibyte.conf file. Importing..."
+        printf "%b %s" "${INFO}" "${str}"
+        scrape_digibyte_conf
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Find out the current  DGB network chain
+        str="Checking current DigiByte chain..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        digibyte_chain_query
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Import variables from global section of digibyte.conf
+        str="Querying RPC credentials..."
+        printf "%b %s" "${INFO}" "${str}"
+        digibyte_rpc_query
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Setting RPC variables
+        rpcuser=$RPC_USER
+        rpcpassword=$RPC_PASSWORD
+        rpcport=$RPC_PORT
+
     else
         local create_dummy_rpc_credentials="yes"
         rpcuser=no_digibyte_config_file_found
@@ -10848,6 +12042,14 @@ digiasset_node_create_settings() {
             create_dummy_rpc_credentials="done"
         fi
     fi
+
+    # Display discovered RPC credentials from digibyte.conf
+    if [ "$VERBOSE_MODE" = true ]; then
+        printf "%b Verbose Mode: RPC User - $rpcuser\\n" "${INFO}"
+        printf "%b Verbose Mode: RPC Pass - $rpcpassword\\n" "${INFO}"
+        printf "%b Verbose Mode: RPC Port - $rpcport\\n" "${INFO}"
+    fi
+
 
     # Check if DigiAsset settings file exists
     if [ -f $DGA_SETTINGS_FILE ]; then
@@ -11189,7 +12391,7 @@ if [ "$RESET_MODE" = true ]; then
             PM2_SERVICE_DO_INSTALL=YES
             PM2_SERVICE_INSTALL_TYPE="reset"
         else
-            printf " =============== Resetting: NodeJS PM2 Service =========================\\n\\n"
+            printf " =============== Resetting: Node.js PM2 Service ========================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_SERVICE_DO_INSTALL=NO
@@ -11211,7 +12413,7 @@ if [ ! -f "$PM2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
             PM2_SERVICE_INSTALL_TYPE="new"
 fi
 
-# If this is a new install of NodeJS PM2 service file, and the user has opted to do a full DigiNode install, then proceed
+# If this is a new install of Node.js PM2 service file, and the user has opted to do a full DigiNode install, then proceed
 if  [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ] && [ "$PM2_SERVICE_DO_INSTALL" = "if_doing_full_install" ] && [ "$DO_FULL_INSTALL" = "YES" ]; then
     PM2_SERVICE_DO_INSTALL=YES
 fi
@@ -11222,10 +12424,10 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
     # Display section break
     printf "\\n"
     if [ "$PM2_SERVICE_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: NodeJS PM2 Service ===========================\\n\\n"
+        printf " =============== Install: Node.js PM2 Service ==========================\\n\\n"
         # ==============================================================================
     elif [ "$PM2_SERVICE_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: NodeJS PM2 Service =============================\\n\\n"
+        printf " =============== Reset: Node.js PM2 Service ============================\\n\\n"
         printf "%b Reset Mode: You chose re-configure the DigiAsset Node PM2 service.\\n" "${INFO}"
         # ==============================================================================
     fi
@@ -11304,7 +12506,7 @@ fi
 # This function will ask the user if they want to install the system upgrades that have been found
 menu_ask_install_updates() {
 
-# If there is an upgrade available for DigiByte Core, IPFS, NodeJS, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
+# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
@@ -11317,10 +12519,10 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_GITHUB\\n"
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs=" >> Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs=" >> Kubo IPFS v$IPFS_VER_RELEASE\\n"
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs=" >> NodeJS v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs=" >> Node.js v$NODEJS_VER_RELEASE\\n"
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dga=" >> DigiAsset Node v$DGA_VER_RELEASE\\n"
@@ -11715,6 +12917,10 @@ fi
 # Perform uninstall if requested
 uninstall_do_now() {
 
+    # Get version codename
+    LINUX_ID=$(cat /etc/os-release | grep ^ID= | cut -d'=' -f2)
+    LINUX_VERSION_CODENAME=$(cat /etc/os-release | grep VERSION_CODENAME | cut -d'=' -f2)
+
     printf " =============== Uninstall DigiNode ====================================\\n\\n"
     # ==============================================================================
 
@@ -11880,10 +13086,102 @@ uninstall_do_now() {
         printf "\\n"
     fi
 
+    ################## UNINSTALL NODE.JS #################################################
+
+    # Only uninstall Node.js if DigiAsset Node has already been uninstalled
+    if [ "$uninstall_dga" = "yes" ]; then
+
+        # Get the local version number of Node.js (this will also tell us if it is installed)
+        NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+
+        if [ "$NODEJS_VER_LOCAL" = "" ]; then
+            NODEJS_STATUS="not_detected"
+            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        else
+            NODEJS_STATUS="installed"
+            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        fi
+
+
+        # Ask to uninstall Node.js if it exists
+        if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || [ "$NODEJS_STATUS" = "installed" ]; then
+
+            printf " =============== Uninstall: Node.js ====================================\\n\\n"
+            # ==============================================================================
+
+            # Delete IPFS
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely uninstall it if you do not use Node.js for anything else." "${r}" "${c}"; then
+
+                printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
+
+                # Deleting deb repository
+                if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+                    str="Deleting Nodesource deb repository..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f /etc/apt/sources.list.d/nodesource.list
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Deleting gpg key
+                if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+                    str="Deleting Nodesource GPG key..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f /etc/apt/keyrings/nodesource.gpg
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Delete Node.js packages
+                if [ "$NODEJS_STATUS" = "installed" ]; then
+                    if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+                        printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                        sudo apt-get purge nodejs -y -q
+                    elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
+                        printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                        yum remove nodejs -y
+                        str="Deleting Nodesource key for Enterprise Linux..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf /etc/yum.repos.d/nodesource*.repo
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                        yum clean all -y
+                    fi
+                    NODEJS_STATUS="not_detected"
+                    NODEJS_VER_LOCAL=""
+                    delete_nodejs="yes"
+                    sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+                    NODEJS_INSTALL_DATE=""
+                    sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+                    NODEJS_UPGRADE_DATE=""
+                    sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+                fi
+
+                # Reset Nodesource repo variable in diginode.settings so it will run again
+                sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
+
+                # Delete .npm settings
+                if [ -d "$USER_HOME/.npm" ]; then
+ #                   if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your Node.js settings folder?\\n\\nThis will delete the folder: ~/.npm\\n\\nThis folder contains all the settings related to the Node package manager." "${r}" "${c}"; then
+                        str="Deleting ~/.npm settings folder..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -r $USER_HOME/.npm
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+#                    else
+#                        printf "%b You chose not to delete the Node.js settings folder (~/.npm).\\n" "${INFO}"
+#                    fi
+                fi
+
+            else
+                printf "%b You chose not to uninstall Node.js.\\n" "${INFO}"
+                delete_nodejs="no"
+            fi    
+
+        printf "\\n"
+        fi
+    fi
+
 
     ################## UNINSTALL IPFS #################################################
 
-    # Get the local version number of Kubo (this will also tell us if it is installed)
+    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     if [ "$IPFS_VER_LOCAL" = "" ]; then
@@ -11907,13 +13205,13 @@ uninstall_do_now() {
     # Ask to uninstall GoIPFS
     if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
 
-    printf " =============== Uninstall: Kubo (Go-IPFS) =============================\\n\\n"
+    printf " =============== Uninstall: Kubo IPFS ==================================\\n\\n"
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo IPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
 
-            printf "%b You chose to uninstall Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
+            printf "%b You chose to uninstall Kubo IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
 
             # Stop IPFS service if it is running, as we need to upgrade or reset it
@@ -11964,7 +13262,7 @@ uninstall_do_now() {
 
             # Delete Kubo binary
             if [ -f /usr/local/bin/ipfs ]; then
-                str="Deleting current Kubo binary: /usr/local/bin/ipfs..."
+                str="Deleting current Kubo IPFS binary: /usr/local/bin/ipfs..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
@@ -12001,7 +13299,7 @@ uninstall_do_now() {
 
             # Restart the DigiAsset Node, if we uninstalled Kobu. This is to force it to switch over to using JS-IPFS
             if [ "$delete_kubo" = "yes" ] && [ "$delete_dga" = "no" ]; then
-                str="Restarting DigiAsset Node so it switches from using Kubo to JS-IPFS..."
+                str="Restarting DigiAsset Node so it switches from using Kubo IPFS to JS-IPFS..."
                 printf "%b %s" "${INFO}" "${str}"
                 sudo -u $USER_ACCOUNT pm2 restart digiasset
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -12150,6 +13448,28 @@ uninstall_do_now() {
 
                 else
                     printf "%b You chose to keep the existing DigiByte TESTNET blockchain data.\\n" "${INFO}"
+                fi
+
+            fi
+
+            # Only prompt to delete the regtest blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/regtest/indexes" ] || [ -d "$DGB_DATA_LOCATION/regtest/chainstate" ] || [ -d "$DGB_DATA_LOCATION/regtest/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte REGTEST blockchain data?\\n\\nNote: Your regtest wallet will be kept." "${r}" "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
+                        str="Deleting DigiByte Core REGTEST blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/regtest/indexes
+                        rm -rf $DGB_DATA_LOCATION/regtest/chainstate
+                        rm -rf $DGB_DATA_LOCATION/regtest/blocks
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                else
+                    printf "%b You chose to keep the existing DigiByte REGTEST blockchain data.\\n" "${INFO}"
                 fi
 
             fi
@@ -12971,10 +14291,10 @@ fi
 
 if [ "$DIGIFACT" = "digifact50" ]; then
     DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-    DIGIFACT_L1="DigiByte Faucet is a useful website where anyone can get some"
-    DIGIFACT_L2="free DGB and experience this amazing technology first hand."
-    DIGIFACT_L3="For developers, they also provide a testnet faucet."
-    DIGIFACT_L4="Tell your friends."
+    DIGIFACT_L1="The DigiByte Faucet by Renzo Diaz gives you an easy way"
+    DIGIFACT_L2="to get some free DGB. It's a great way for DigiByte"
+    DIGIFACT_L3="newcomers to experience this amazing technology first hand."
+    DIGIFACT_L4="For developers, there is also a testnet faucet."
     DIGIFACT_L5=""
     DIGIFACT_L6="https://www.digifaucet.org/"
 fi
@@ -13260,13 +14580,13 @@ if [ "$DIGIFACT" = "social1" ]; then
 fi
 
 if [ "$DIGIFACT" = "social2" ]; then
-    DIGIFACT_TITLE="Join the DigiByte Community on Discord!"
-    DIGIFACT_L1="Have you joined the DigiByte Community on Discord yet?"
-    DIGIFACT_L2=" "
-    DIGIFACT_L3="Join here: https://dsc.gg/digibytediscord"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
+    DIGIFACT_TITLE="Join the DigiByte Discord Server!"
+    DIGIFACT_L1="Everyone in in the DigiByte community is strongly encouraged"
+    DIGIFACT_L2="to join the DigiByte Discord server. This is where you will"
+    DIGIFACT_L3="find the most active members of the community, and is great"
+    DIGIFACT_L4="way to get more involved with DigiByte and find ways to help."
+    DIGIFACT_L5=" "
+    DIGIFACT_L6="Join here: https://dsc.gg/digibytediscord"
 fi
 
 if [ "$DIGIFACT" = "help1" ]; then
@@ -13281,12 +14601,13 @@ fi
 
 if [ "$DIGIFACT" = "help2" ]; then
     DIGIFACT_TITLE="Need Help with DigiNode Tools?"
-    DIGIFACT_L1="You can reach out to $SOCIAL_TWITTER_HANDLE on Twitter or"
-    DIGIFACT_L2="$SOCIAL_BLUESKY_URL on Bluesky."
+    DIGIFACT_L1="Please join the DigiNode Tools Telegram group here: "
+    DIGIFACT_L2="$SOCIAL_TELEGRAM_URL"
     DIGIFACT_L3=" "
-    DIGIFACT_L4="You can also join the 'DigiNode Tools' Telegram group here: "
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="$SOCIAL_TELEGRAM_URL"
+    DIGIFACT_L4="You can also contact $SOCIAL_TWITTER_HANDLE on Twitter or"
+    DIGIFACT_L5="$SOCIAL_BLUESKY_HANDLE on Bluesky."
+    DIGIFACT_L6=""
+
 fi
 
 if [ "$DIGIFACT" = "help3" ]; then
@@ -13555,6 +14876,9 @@ printf "\\n"
 
 main() {
 
+    # Display the help screen if the --help or -h flags have been used
+    display_help
+
     ######## FIRST CHECK ########
     # Must be root to install
     local str="Root user check"
@@ -13592,9 +14916,6 @@ main() {
         # Show the DigiNode logo
         diginode_logo_v3
         make_temporary_log
-
-        # Display the help screen if the --help or -h flags have been used
-        display_help
 
     else
         # show DigiNode Setup title box
@@ -13687,6 +15008,15 @@ main() {
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGANODE_ONLY" = true ]; then
         printf "%b %bWARNING: DigiByte Node Detected. DigiAsset Node ONLY Mode has been disabled.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
+        DGANODE_ONLY=false
+    fi
+
+    # If we still don't know whether or not we are running a DigiAsset Node ONLY, assume that we are running a full DigiNode, so that Raspberry Pi checks etc. are run
+    if [ "$DGANODE_ONLY" = "" ]; then
+        if [ "$VERBOSE_MODE" = true ]; then
+            printf "%b Verbose Mode: DGANODE_ONLY variable not set - setting to false.\\n" "${INFO}"
+            printf "\\n"
+        fi
         DGANODE_ONLY=false
     fi
 
@@ -14093,7 +15423,7 @@ install_or_upgrade() {
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create/update digibyte.conf file
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Install/upgrade DigiByte Core
     digibyte_do_install
@@ -14234,7 +15564,7 @@ add_digibyte_node() {
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
     # Create/update digibyte.conf file
-    digibyte_create_conf
+    create_digibyte_conf
 
     # Install/upgrade DigiByte Core
     digibyte_do_install

@@ -81,8 +81,9 @@ DigiNode Status Monitor can be run from the command line by entering: ```diginod
 ## System Compatibility
 
 - System Requirements:
-    + DigiNode Tools runs on most Ubuntu or Debian based systems. A Raspberry Pi 4 8Gb is an excellent choice.
+    + DigiNode Tools runs on most Ubuntu or Debian based systems. Debian 10 Buster or later is recommended. Ubuntu Focal 20.04 or later is recommended.  
     + Both ARM64 and x86_64 hardware are supported. A 64-bit OS is required. 
+    + A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite is an excellent choice.
     + DigiNode has been designed with headless operation in mind - no display, keyboard or mouse are queired. (Note: These are not needed at all for Raspberry Pi setup, though may be required during setup on other Linux devices.)
 - Memory Requirements:
     + A device with at least 8GB RAM is recommended. 
