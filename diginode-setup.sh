@@ -10283,10 +10283,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
 
         fi
-
-        sleep 4
-
-        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
+        
         printf "\\n"
     fi
 
@@ -10852,6 +10849,10 @@ EOF
         service ipfs start
         IPFS_STATUS="running"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+
+        # Test IPFS
+        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
 
     fi
 
