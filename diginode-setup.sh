@@ -10273,6 +10273,8 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         fi
 
+        sleep 1
+
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
         printf "\\n"
     fi
@@ -14996,6 +14998,8 @@ main() {
         printf "\\n"
         DGANODE_ONLY=false
     fi
+
+    echo "DGANODE_ONLY: $DGANODE_ONLY" # banana test
 
     # Check for Raspberry Pi hardware
     if [[ "$DGANODE_ONLY" == false ]]; then
