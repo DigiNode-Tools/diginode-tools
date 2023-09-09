@@ -11207,12 +11207,13 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
 
 
     # Get the new version number of the Node.js install
-    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | cut -d' ' -f3)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
 
     # Later versions use purely the 'node --version' command, (rather than Node.js)
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
-        NODEJS_VER_LOCAL=$(node --version 2>/dev/null | cut -d' ' -f3)
+        NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
+
 
     # Update diginode.settings with new Node.js local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
