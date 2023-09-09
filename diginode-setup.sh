@@ -10263,17 +10263,28 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
         elif [ "$use_ipfs_server_profile" = "no" ]; then
-            echo "IS_RPI: $IS_RPI" # banana test
             if [ "$IS_RPI" = "YES" ]; then
                 printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
                 sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
             else
-                sudo -u $USER_ACCOUNT ipfs init
+                # Just in case we are are DigiAsset Node Mode ONLY and we never performed the Pi checks
+                # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
+                pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
+                if [[ $pigen == "Raspberry Pi" ]]; then
+                    IS_RPI="YES"
+                fi
+                if [ "$IS_RPI" = "YES" ]; then
+                    printf "%b We are in DigiAsset Mode ONLY.\\n" "${INFO}"
+                    printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+                    sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+                else
+                    sudo -u $USER_ACCOUNT ipfs init
+                fi
             fi
 
         fi
 
-        sleep 2
+        sleep 4
 
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
         printf "\\n"
