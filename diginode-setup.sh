@@ -271,8 +271,6 @@ display_help() {
             DGNT_RUN_LOCATION="local"
         fi
 
-        echo "banana"
-
         printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
