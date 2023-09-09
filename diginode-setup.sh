@@ -254,9 +254,23 @@ txtbld=$(tput bold) # Set bold mode
 # Display DigiNode Setup help screen if the --help or -h flags was used
 display_help() {
     if [ "$DISPLAY_HELP" = true ]; then
-        printf "\\n"
-        printf "%b %bDigiNode Setup Help%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
+        echo ""
+        echo "  ╔═════════════════════════════════════════════════════════╗"
+        echo "  ║                                                         ║"
+        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+        echo "  ║                                                         ║"
+        echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
+        echo "  ║                                                         ║"
+        echo "  ╚═════════════════════════════════════════════════════════╝" 
+        echo ""
+
+        # are we running remotely or locally?
+        if [[ "$0" == "bash" ]]; then
+            DGNT_RUN_LOCATION="remote"
+        else
+            DGNT_RUN_LOCATION="local"
+        fi
+
         printf "%b You can use the following flags when running DigiNode Setup:\\n" "${INDENT}"
         printf "\\n"
         printf "%b %b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -288,6 +302,7 @@ display_help() {
         printf "\\n"
         printf "\\n"
         printf "%b For more help, visit: $DGBH_URL_ADVANCED\\n" "${INDENT}"
+        printf "\\n"
         printf "\\n"
         exit
     fi
@@ -14846,6 +14861,9 @@ printf "\\n"
 
 main() {
 
+    # Display the help screen if the --help or -h flags have been used
+    display_help
+
     ######## FIRST CHECK ########
     # Must be root to install
     local str="Root user check"
@@ -14883,9 +14901,6 @@ main() {
         # Show the DigiNode logo
         diginode_logo_v3
         make_temporary_log
-
-        # Display the help screen if the --help or -h flags have been used
-        display_help
 
     else
         # show DigiNode Setup title box
