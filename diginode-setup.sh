@@ -10273,7 +10273,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         fi
 
-        sleep 1
+        sleep 2
 
         sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
         printf "\\n"
