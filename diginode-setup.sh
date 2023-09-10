@@ -10968,9 +10968,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 NODE_MAJOR=16
             else
                 # At the moment the DigiAsset Node won't work with any version later than 16 but this may change in future. This could later be changed to 18, 20 or later.
-                NODE_MAJOR=16
+                NODE_MAJOR=18
             fi
-            printf "%b Node.js ${NODE_MAJOR}x will be used.\\n" "${INFO}"
+            printf "%b Node.js ${NODE_MAJOR} will be used.\\n" "${INFO}"
 
             # Create deb repository
             if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then 
