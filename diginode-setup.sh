@@ -10967,7 +10967,8 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             if [ "$LINUX_VERSION_CODENAME" = "jessie" ] || [ "$LINUX_VERSION_CODENAME" = "stretch" ] || [ "$LINUX_VERSION_CODENAME" = "bionic" ]; then
                 NODE_MAJOR=16
             else
-                NODE_MAJOR=18
+                # At the moment the DigiAsset Node won't work with any version later than 16 but this may change in future
+                NODE_MAJOR=16
             fi
             printf "%b Node.js ${NODE_MAJOR}x will be used.\\n" "${INFO}"
 
