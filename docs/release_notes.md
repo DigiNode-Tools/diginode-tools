@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.8 - 2023-09-xx
+DigiNode Tools v0.8.8 - 2023-09-10
 - Fix: Roll back using IPFS lowpower mode with a Raspberry Pi. It seems to be causing performance issues.
 
 DigiNode Tools v0.8.7 - 2023-09-09
