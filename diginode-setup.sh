@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.7
+#           Name:  DigiNode Setup v0.8.8
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -10263,29 +10263,29 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         if [ "$use_ipfs_server_profile" = "yes" ]; then
             sudo -u $USER_ACCOUNT ipfs init -p server
         elif [ "$use_ipfs_server_profile" = "no" ]; then
-            if [ "$IS_RPI" = "YES" ]; then
-                printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
-                sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
-            else
+#            if [ "$IS_RPI" = "YES" ]; then
+#                printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+#                sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+#            else
                 # Just in case we are are DigiAsset Node Mode ONLY and we never performed the Pi checks
                 # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
-                pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
-                if [[ $pigen == "Raspberry Pi" ]]; then
-                    IS_RPI="YES"
-                fi
-                if [ "$IS_RPI" = "YES" ]; then
-                    printf "%b We are in DigiAsset Mode ONLY.\\n" "${INFO}"
-                    printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
-                    sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
-                else
+#                pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
+#                if [[ $pigen == "Raspberry Pi" ]]; then
+#                    IS_RPI="YES"
+#                fi
+#                if [ "$IS_RPI" = "YES" ]; then
+#                    printf "%b We are in DigiAsset Mode ONLY.\\n" "${INFO}"
+#                    printf "%b Raspberry Pi Detected! Initializing IPFS daemon with the lowpower profile.\\n" "${INFO}"
+#                    sudo -u $USER_ACCOUNT ipfs init --profile=lowpower
+#                else
                     sudo -u $USER_ACCOUNT ipfs init
-                fi
-            fi
+#                fi
+#            fi
 
         fi
 
         # Test IPFS
-        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
+#        sudo -u $USER_ACCOUNT ipfs cat /ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme
         
         printf "\\n"
     fi
@@ -10424,22 +10424,22 @@ ipfs_update_port() {
         printf " =============== Starting: IPFS ========================================\\n\\n"
         # ==============================================================================
 
-        if [ "$VERBOSE_MODE" = true ]; then
-            printf "%b Verbose Mode: DGB_NETWORK_FINAL - $DGB_NETWORK_FINAL\\n" "${INFO}"
-            printf "%b Verbose Mode: IPFS_PORT_IP4 - $IPFS_PORT_IP4\\n" "${INFO}"
-            printf "%b Verbose Mode: IPFS_PORT_IP6 - $IPFS_PORT_IP6\\n" "${INFO}"
-            printf "%b Verbose Mode: IPFS_PORT_IP4_QUIC - $IPFS_PORT_IP4_QUIC\\n" "${INFO}"
-            printf "%b Verbose Mode: IPFS_PORT_IP6_QUIC - $IPFS_PORT_IP6_QUIC\\n" "${INFO}"
-            printf "\\n"
-        fi
-
-        printf "%b IPFS is installed but not currently running.\\n" "${INFO}"
+#        if [ "$VERBOSE_MODE" = true ]; then
+#            printf "%b Verbose Mode: DGB_NETWORK_FINAL - $DGB_NETWORK_FINAL\\n" "${INFO}"
+#            printf "%b Verbose Mode: IPFS_PORT_IP4 - $IPFS_PORT_IP4\\n" "${INFO}"
+#            printf "%b Verbose Mode: IPFS_PORT_IP6 - $IPFS_PORT_IP6\\n" "${INFO}"
+#            printf "%b Verbose Mode: IPFS_PORT_IP4_QUIC - $IPFS_PORT_IP4_QUIC\\n" "${INFO}"
+#            printf "%b Verbose Mode: IPFS_PORT_IP6_QUIC - $IPFS_PORT_IP6_QUIC\\n" "${INFO}"
+#            printf "\\n"
+#        fi
 
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
         # If using DigiByte testnet, change default Kubo IPFS port to 4004
 
         local update_ipfsport_now
+
+        printf "%b Checking Kubo IPFS ports...\\n" "${INFO}"
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP4" = "4001" ]]; then
             printf "%b Using DigiByte testnet. Updating Kobo IPFS ports...\\n" "${INFO}"
@@ -10532,6 +10532,8 @@ ipfs_update_port() {
     if [ -f "$USER_HOME/.jsipfs/config" ]; then
 
         # If using DigiByte testnet, change default JS-IPFS port to 4004
+
+        printf "%b Checking JS-IPFS ports...\\n" "${INFO}"
 
         local update_ipfsport_now
 
@@ -10965,9 +10967,10 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             if [ "$LINUX_VERSION_CODENAME" = "jessie" ] || [ "$LINUX_VERSION_CODENAME" = "stretch" ] || [ "$LINUX_VERSION_CODENAME" = "bionic" ]; then
                 NODE_MAJOR=16
             else
-                NODE_MAJOR=20
+                # At the moment the DigiAsset Node won't work with any version later than 16 but this may change in future. This could later be changed to 18, 20 or later.
+                NODE_MAJOR=16
             fi
-            printf "%b Node.js ${NODE_MAJOR}x will be used.\\n" "${INFO}"
+            printf "%b Node.js ${NODE_MAJOR} will be used.\\n" "${INFO}"
 
             # Create deb repository
             if [ ! -f /etc/apt/sources.list.d/nodesource.list ]; then 
@@ -11213,7 +11216,6 @@ if [ "$NODEJS_DO_INSTALL" = "YES" ]; then
     if [ "$NODEJS_VER_LOCAL" = "" ]; then
         NODEJS_VER_LOCAL=$(node -v 2>/dev/null | sed 's/v//g')
     fi
-
 
     # Update diginode.settings with new Node.js local version number and the install/upgrade date
     sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -14929,7 +14931,7 @@ main() {
         printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Setup requires elevated privileges to get started.\\n" "${INDENT}"
         printf "%b Please review the source code on GitHub for any concerns regarding this\\n" "${INDENT}"
-        printf "%b requirement. Make sure to download this script from a trusted source.\\n\\n" "${INDENT}"
+        printf "%b requirement. Make sure to run this script from a trusted source.\\n\\n" "${INDENT}"
         printf "%b Sudo utility check" "${INFO}"
 
         # If the sudo command exists, try rerunning as admin
