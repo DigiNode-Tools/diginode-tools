@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.8 - 2023-09-xx
+- Fix: Roll back using IPFS lowpower mode with a Raspberry Pi. It seems to be causing performance issues.
+
 DigiNode Tools v0.8.7 - 2023-09-09
 - New: Add new sections in digibyte.conf for [main], [test], [regtest] and [signet]. These are required in DigiByte v8.
 - New: DigiNode Setup can now automatically upgrade an existing digibyte.conf to add any missing sections and/or required variables. If it is unable to do it automatically, it instructs the user how to do this manually. The user has the option to simply delete their existing digibyte.conf, and have the script recreate based on the new template.
