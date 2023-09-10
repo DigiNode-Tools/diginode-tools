@@ -10968,7 +10968,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
                 NODE_MAJOR=16
             else
                 # At the moment the DigiAsset Node won't work with any version later than 16 but this may change in future. This could later be changed to 18, 20 or later.
-                NODE_MAJOR=18
+                NODE_MAJOR=16
             fi
             printf "%b Node.js ${NODE_MAJOR} will be used.\\n" "${INFO}"
 
@@ -14931,7 +14931,7 @@ main() {
         printf "%b %bScript called with non-root privileges%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Setup requires elevated privileges to get started.\\n" "${INDENT}"
         printf "%b Please review the source code on GitHub for any concerns regarding this\\n" "${INDENT}"
-        printf "%b requirement. Make sure to download this script from a trusted source.\\n\\n" "${INDENT}"
+        printf "%b requirement. Make sure to run this script from a trusted source.\\n\\n" "${INDENT}"
         printf "%b Sudo utility check" "${INFO}"
 
         # If the sudo command exists, try rerunning as admin

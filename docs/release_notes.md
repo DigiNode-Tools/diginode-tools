@@ -2,6 +2,7 @@
 
 DigiNode Tools v0.8.8 - 2023-09-10
 - Fix: Roll back using IPFS lowpower mode with a Raspberry Pi. It seems to be causing performance issues.
+- Fix: Switch back to using Node.js 16. There are problems with the web UI in Node.js 18 and 20.
 
 DigiNode Tools v0.8.7 - 2023-09-09
 - New: Add new sections in digibyte.conf for [main], [test], [regtest] and [signet]. These are required in DigiByte v8.
