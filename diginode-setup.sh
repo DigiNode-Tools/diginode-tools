@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.8
+#           Name:  DigiNode Setup v0.8.9
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -7462,13 +7462,14 @@ donation_qrcode() {
     printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
     # ==============================================================================
 
-    echo "    I created DigiNode Tools to make it easy for everybody to run their own"
-    echo "    DigiByte Node and DigiAsset Node. I have devoted thousands of unpaid hours"
-    echo "    on this goal, all for the benefit of the DigiByte community. PLEASE DONATE"
-    echo "    to help me cover server costs and to support future development."
-    echo "               Thank you very much for your support, Olly"
+    echo "   I created DigiNode Tools to make it easy for everybody to run a"
+    echo "   DigiByte Node and DigiAsset Node. I have devoted thousands of hours"
+    echo "   working on this goal, all for the benefit of the DigiByte community."
+    echo "   This software is DONATIONWARE. If you find it useful, you are kindly"
+    echo "   requested to make a donation so that I can keep improving it."
+    echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "        >> Find me on Twitter \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a and Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a <<"
+    echo -e "          >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a and X \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a. <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  

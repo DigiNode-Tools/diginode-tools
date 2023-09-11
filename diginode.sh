@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.8
+#           Name:  DigiNode Status Monitor v0.8.9
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.8
-# Last Updated: 2023-09-10
+DGNT_VER_LOCAL=0.8.9
+# Last Updated: 2023-09-11
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -1457,7 +1457,6 @@ if [ "$auto_quit" = true ]; then
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
-    printf "%b To edit it: diginode \\n" "${INDENT}"
     printf "%b To edit it: ${txtbld}diginode --dgntset${txtrst}\\n" "${INDENT}"
     echo ""
 fi
