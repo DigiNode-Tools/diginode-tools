@@ -88,14 +88,6 @@ fi
 DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 
-# This variable stores the approximate amount of space required to download the entire DigiByte blockchain
-# This value needs updating periodically as the size of the blockchain increases over time
-# It is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
-# (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
-DGB_DATA_REQUIRED_DATE="August 2023" 
-DGB_DATA_REQUIRED_HR="52Gb"
-DGB_DATA_REQUIRED_KB="52000000"
-
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
 DGNT_SETUP_OFFICIAL_URL=setup.diginode.tools
@@ -106,7 +98,6 @@ DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/digi
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
 DGA_GITHUB_REPO_MAIN="--depth 1 https://github.com/digiassetX/digiasset_node.git"
 DGA_GITHUB_REPO_DEV="--branch development https://github.com/digiassetX/digiasset_node.git"
-
 
 # These are the commands that the user pastes into the terminal to run DigiNode Setup
 DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
@@ -590,7 +581,7 @@ DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_SETTINGS_FILE_VER_BRANCH_NEW
 
 ############################################
 ####### FOLDER AND FILE LOCATIONS ##########
-##########################################
+############################################
 
 # DEFAULT FOLDER AND FILE LOCATIONS
 # If you want to change the default location of folders you can edit them here
@@ -870,6 +861,25 @@ MOTD_STATUS="$MOTD_STATUS"
 # Store number of available system updates so the script only checks this occasionally
 SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
 SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
+
+
+###############################################
+####### STATE VARIABLES ########£££############
+###############################################
+
+# These variables are periodically updated when there is a new release of DigiNode Tools
+# These are used to display the current state of the DigiByte blockchain
+# There is no need to change these values your self. They will be updated automatically.
+
+# Current DigiByte Block height in Millions. Used in the DigiFacts.
+DGB_BLOCK_HEIGHT_MIL="17"
+
+# These variables stores the approximate amount of space required to download the entire DigiByte blockchain
+# This is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
+# (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
+DGB_DATA_REQUIRED_DATE="August 2023" 
+DGB_DATA_REQUIRED_HR="52Gb"
+DGB_DATA_REQUIRED_KB="52000000"
 
 EOF
 
@@ -13805,7 +13815,7 @@ digifact_display() {
 if [ "$DIGIFACT" = "digifact1" ]; then
     DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
     DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
-    DIGIFACT_L2="15 million blocks. Bitcoin will take until the next century to"
+    DIGIFACT_L2="$DGB_BLOCK_HEIGHT_MIL million blocks. Bitcoin will take until the next century to"
     DIGIFACT_L3="reach that many blocks."
     DIGIFACT_L4=""
     DIGIFACT_L5=""
