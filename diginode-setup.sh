@@ -719,7 +719,7 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
 
 # Do not change this value. If you wish to change the location where the
-# blockchin data is stored, use the DGB_DATA_LOCATION variable above.
+# blockchain data is stored, use the DGB_DATA_LOCATION variable above.
 DGB_SETTINGS_LOCATION=\$USER_HOME/.digibyte
 
 # DIGIBYTE NODE FILES: (Do not change these values)
@@ -14047,11 +14047,11 @@ fi
 if [ "$DIGIFACT" = "digifact23" ]; then
     DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
     DIGIFACT_L1="DigiByte was founded by Jared Tate in 2013 and the Genesis block"
-    DIGIFACT_L2="was mined on 10th January 2014. Jared has helped nurture the"
-    DIGIFACT_L3="project over the years and remains an active member of the"
-    DIGIFACT_L4="DigiByte community."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
+    DIGIFACT_L2="was mined on 10th January 2014. While Jared remains an active"
+    DIGIFACT_L3="member of the DigiByte community, and is one of the Core"
+    DIGIFACT_L4="developers, he does not dictate the direction of the project."
+    DIGIFACT_L5="DigiByte has no boss - it is entirely run and managed by a"
+    DIGIFACT_L6="global community of dedicated volunteers."
 fi
 
 if [ "$DIGIFACT" = "digifact24" ]; then
