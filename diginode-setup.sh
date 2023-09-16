@@ -705,31 +705,32 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 ####### SYSTEM VARIABLES ####################
 #############################################
 
-# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES. THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and the Status Monitor.
-# Changing them will likely break your install, as the changes will be overwritten whenever a new version of DigiNode Tools is released.
+# IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES !!!!
+#
+# THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and the Status Monitor.
+# Changing them yourself may break your DigiNode.
 
-# DIGIBYTE NODE LOCATION:
-# This references a symbolic link that points at the actual install folder. Please do not change this.
+# DIGIBYTE NODE LOCATION: (Do not change this value)
+# This references a symbolic link that points at the actual install folder. 
 # If you are using DigiNode Setup to manage your node there is no reason to change this.
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
 # Be aware that DigiNode Setup upgrades will likely not work if you do this. The Status Monitor script will help you create one.
-#  
 DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
 
-# Do not change this.
-# You can change the location of the blockchain data with the DGB_DATA_LOCATION variable above.
+# Do not change this value. If you wish to change the location where the
+# blockchin data is stored, use the DGB_DATA_LOCATION variable above.
 DGB_SETTINGS_LOCATION=\$USER_HOME/.digibyte
 
-# DIGIBYTE NODE FILES: (do not change these)
+# DIGIBYTE NODE FILES: (Do not change these values)
 DGB_CONF_FILE=\$DGB_SETTINGS_LOCATION/digibyte.conf 
 DGB_CLI=\$DGB_INSTALL_LOCATION/bin/digibyte-cli
 DGB_DAEMON=\$DGB_INSTALL_LOCATION/bin/digibyted
 
-# IPFS NODE LOCATION (do not change this)
+# IPFS NODE LOCATION: (Do not change this value)
 IPFS_SETTINGS_LOCATION=\$USER_HOME/.ipfs
 
-# DIGIASSET NODE LOCATION: (do not change these)
+# DIGIASSET NODE LOCATION: (Do not change these values)
 # The backup location variable is a temporary folder that stores your _config folder backup during a reset or uninstall.
 # When reinstalling, this folder is automatically restored to the correct location, typically ~/digiasset_node/_config
 DGA_INSTALL_LOCATION=\$USER_HOME/digiasset_node
@@ -743,6 +744,8 @@ DGA_SETTINGS_BACKUP_FILE=\$DGA_SETTINGS_BACKUP_LOCATION/main.json
 # SYSTEM SERVICE FILES: (do not change these)
 DGB_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted.service
 DGB_UPSTART_SERVICE_FILE=/etc/init/digibyted.conf
+DGB2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/digibyted-testnet.service
+DGB2_UPSTART_SERVICE_FILE=/etc/init/digibyted-testnet.conf
 IPFS_SYSTEMD_SERVICE_FILE=/etc/systemd/system/ipfs.service
 IPFS_UPSTART_SERVICE_FILE=/etc/init/ipfs.conf
 PM2_SYSTEMD_SERVICE_FILE=/etc/systemd/system/pm2-$USER_ACCOUNT.service
@@ -757,6 +760,7 @@ DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 DGB_PRERELEASE="$DGB_PRERELEASE"
 DGB_NETWORK_CURRENT="$DGB_NETWORK_CURRENT"
+DGB_DUAL_NODE="$DGB_DUAL_NODE"
 
 # DIGINODE TOOLS LOCATION:
 # This is the default location where the scripts get installed to. (Do not change this.)
@@ -833,13 +837,21 @@ IP4_EXTERNAL="$IP4_EXTERNAL"
 DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_DIGINODE"
 DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 
-# Stores when an DigiByte Core port test last ran successfully.
-# If you wish to re-enable the DigiByte Core port test, change the DGB_PORT_TEST_ENABLED variable to YES.
+# Stores when a DigiByte Core port test last ran successfully.
+# If you wish to re-enable the port test, change the DGB_PORT_TEST_ENABLED variable to YES.
 DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
 DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
 DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
 DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
 DGB_PORT_NUMBER_SAVED="$DGB_PORT_NUMBER_SAVED"
+
+# Stores when a DigiByte Core port test last ran successfully for the testnet node, when running a DUAL NODE.
+# If you wish to re-enable the port test, change the DGB2_PORT_TEST_ENABLED variable to YES.
+DGB2_PORT_TEST_ENABLED="$DGB2_PORT_TEST_ENABLED"
+DGB2_PORT_FWD_STATUS="$DGB2_PORT_FWD_STATUS"
+DGB2_PORT_TEST_PASS_DATE="$DGB2_PORT_TEST_PASS_DATE"
+DGB2_PORT_TEST_EXTERNAL_IP="$DGB2_PORT_TEST_EXTERNAL_IP"
+DGB2_PORT_NUMBER_SAVED="$DGB2_PORT_NUMBER_SAVED"
 
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
@@ -869,7 +881,7 @@ SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
 # These variables are periodically updated when there is a new release of DigiNode Tools
 # These are used to display the current state of the DigiByte blockchain
-# There is no need to change these values your self. They will be updated automatically.
+# There is no need to change these values yourself. They will be updated automatically.
 
 # Current DigiByte Block height in Millions. Used in the DigiFacts.
 DGB_BLOCK_HEIGHT_MIL="17"
