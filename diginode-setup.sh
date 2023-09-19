@@ -13826,10 +13826,10 @@ digifact_display() {
 
 if [ "$DIGIFACT" = "digifact1" ]; then
     DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
-    DIGIFACT_L1="DigiByte is the longest UTXO blockchain in existence with over"
-    DIGIFACT_L2="$DGB_BLOCK_HEIGHT_MIL million blocks. Bitcoin will take until the next century to"
-    DIGIFACT_L3="reach that many blocks."
-    DIGIFACT_L4=""
+    DIGIFACT_L1="The DigiByte blockchain launched in 2014. Thanks to its 15"
+    DIGIFACT_L2="second block time, it is the longest UTXO blockchain in"
+    DIGIFACT_L3="existence with over $DGB_BLOCK_HEIGHT_MIL  million blocks. Bitcoin will take until"
+    DIGIFACT_L4="the 22nd century to reach that many blocks."
     DIGIFACT_L5=""
     DIGIFACT_L6=""
 fi
@@ -13837,10 +13837,10 @@ fi
 if [ "$DIGIFACT" = "digifact2" ]; then
     DIGIFACT_TITLE="DigiFact # 2 - Did you know..."
     DIGIFACT_L1="DigiByte has upgraded the network a number of times to include"
-    DIGIFACT_L2="\"Improvement milestones\". These forks were not splits that"
-    DIGIFACT_L3="generated additional coins, but rather a \"reorientation of the"
-    DIGIFACT_L4="ship\" that everyone was onboard with."
-    DIGIFACT_L5=""
+    DIGIFACT_L2="\"Improvement milestones\". These hard forks were not contentious"
+    DIGIFACT_L3="splits that generated additional coins, but rather a "
+    DIGIFACT_L4="\"reorientation of the ship\" that the DigiByte community was"
+    DIGIFACT_L5="onboard with. Learn more: https://rb.gy/egrt5"
     DIGIFACT_L6=""
 fi
 
