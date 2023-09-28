@@ -176,8 +176,8 @@ for var in "$@"; do
         "--dganodeonly" ) DGANODE_ONLY=true;;
         "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
-        "--dgbpre" ) INSTALL_DGB_RELEASE_TYPE="prerelease";;
-        "--dgbnopre" ) INSTALL_DGB_RELEASE_TYPE="release";;
+        "--dgbpre" ) REQUEST_DGB_RELEASE_TYPE="prerelease";;
+        "--dgbnopre" ) REQUEST_DGB_RELEASE_TYPE="release";;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
     esac
@@ -309,7 +309,7 @@ get_term_size() {
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
     if [ "$VERBOSE_MODE" = true ]; then
-        printf "%b Verbose Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bVerbose Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
@@ -329,7 +329,7 @@ where_are_we() {
 # Inform user if Verbose Mode is enabled
 is_unattended_mode() {
     if [ "$UNATTENDED_MODE" = true ]; then
-        printf "%b Unattended Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bUnattended Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b   No menus will be displayed - diginode.settings values will be used\\n" "${INDENT}"
         elif [ "$SKIP_CUSTOM_MSG" = true ]; then
@@ -344,25 +344,25 @@ is_unattended_mode() {
 # Inform user if DigiAsset Node ONLY is enable
 is_dganode_only_mode() {
     if [ "$DGANODE_ONLY" = true ]; then
-        printf "%b DigiAsset Node ONLY Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDigiAsset Node ONLY Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
     if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b FULL DigiNode Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bFULL DigiNode Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
     fi
 }
 
 # Inform user if DigiAsset Node ONLY is enable
 is_dgb_prerelease_mode() {
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-        printf "%b DigiByte Core: %bPre-release Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ]; then
+        printf "%b %bDigiByte Core PRE-RELEASE Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b   If available, the pre-release version of DigiByte Core will be used.\\n" "${INDENT}"
         printf "\\n"
     fi
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
-        printf "%b DigiByte Core: %bRelease Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   DigiByte Core will be downgraded from the pre-release version to the latest release version.\\n" "${INDENT}"
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then
+        printf "%b %bDigiByte Core RELEASE Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b   If DigiByte Core is currently running a pre-release version, it will be downgraded the latest release version.\\n" "${INDENT}"
         printf "\\n"
     fi
 }
@@ -370,7 +370,7 @@ is_dgb_prerelease_mode() {
 # Inform user if DigiAsset Dev Mode is enable
 is_dgadev_mode() {
     if [ "$DGA_BRANCH" = "development" ]; then
-        printf "%b DigiAsset Node Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDigiAsset Node Developer Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b   The development version of DigiAsset Node will be installed.\\n" "${INDENT}"
         printf "\\n"
         DGA_GITHUB_REPO=$DGA_GITHUB_REPO_DEV
@@ -393,7 +393,7 @@ is_reset_mode() {
 
     # Inform user if Reset Mode is enabled
     if [ "$RESET_MODE" = true ]; then
-        printf "%b Reset Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bReset Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Your DigiNode will be reset. All settings and configuration files\\n" "${INDENT}"
         printf "%b will be deleted and recreated. DigiByte and DigiAssets\\n" "${INDENT}"
         printf "%b software will be reinstalled. Any DigiByte blockchain data or\\n" "${INDENT}"
@@ -6812,6 +6812,38 @@ change_upnp_status() {
     # Check DigiByte Node to make sure it is finished starting up
     check_digibyte_core
 
+    # If this is a DUAL NODE
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+        DGB_NETWORK_OLD="MAINNET"
+        DGB_NETWORK_FINAL="MAINNET"
+        SETUP_DUAL_NODE="YES" 
+    # or if it is just a regular MAINNET node
+    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        DGB_NETWORK_OLD="MAINNET"
+        DGB_NETWORK_FINAL="MAINNET"
+        SETUP_DUAL_NODE="NO" 
+    elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        DGB_NETWORK_OLD="TESTNET"
+        DGB_NETWORK_FINAL="TESTNET"
+        SETUP_DUAL_NODE="NO" 
+    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        DGB_NETWORK_OLD="REGTEST"
+        DGB_NETWORK_FINAL="REGTEST"
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            SETUP_DUAL_NODE="YES" 
+        else
+            SETUP_DUAL_NODE="NO" 
+        fi
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        DGB_NETWORK_OLD="SIGNET"
+        DGB_NETWORK_FINAL="SIGNET"
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            SETUP_DUAL_NODE="YES" 
+        else
+            SETUP_DUAL_NODE="NO" 
+        fi
+    fi
+
     printf "\\n"
 
     printf " =============== Checking: IPFS Node ===================================\\n\\n"
@@ -8168,6 +8200,12 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
+    ##################################
+    # Banana Temporary Alert Message
+    #################################
+
+    whiptail --msgbox --title "WARNING!" "WARNING: The next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). It is inadvisable to setup a testnet node, or Dual Node unless you are running DigiByte Core 8.22.0-rc3 or later. It will not work with the DigiByte 7.17.3 release.\\n\\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take many hours to launch, sometimes as much as 24 or longer. It is recommended to wait for the DigiByte Core 8.22.0-rc3 prerelease before trying it. Do not attempt to run a Dual Node or Testnet Node with the 7.71.3 release." 20 "${c}"
+
 
     # Setup Menu options
 
@@ -8185,7 +8223,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
         # Display the information to the user
-        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --menu "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\n" --nocancel 27 80 4 \
+        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --menu "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\n" --nocancel 25 80 4 \
         "${opt1a}"  "${opt1b}" \
         "${opt2a}"  "${opt2b}" \
         "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
@@ -8788,7 +8826,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # Format dgb port message
     if [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        dgb_port_msg="  DigiByte Primary Node:    $DGB_LISTEN_PORT TCP\\n  DigiByte Secondary Node:    $DGB2_LISTEN_PORT TCP\\n"
+        dgb_port_msg="  DigiByte Primary Node:    $DGB_LISTEN_PORT TCP\\n  DigiByte Secondary Node:  $DGB2_LISTEN_PORT TCP\\n"
     else
         dgb_port_msg="  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n"
     fi
@@ -9652,15 +9690,21 @@ check_digibyte_core() {
     fi
 
     # If this is a new install, and the user did not choose to install the pre-release, then instruct it to install the release version
-    if [ "$DGB_STATUS" = "not_detected" ] && [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+    if [ "$DGB_STATUS" = "not_detected" ] && [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
         INSTALL_DGB_RELEASE_TYPE="release"
         DGB_PRERELEASE=""
         printf "%b New install. DigiByte Core release version will be used.\\n" "${INFO}"
     fi
 
-    # Display if the user requested the latest pre-release version of DigiByte Core
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+    # If the user requested the latest pre-release version of DigiByte Core, display a message, and set install variable
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ]; then
         printf "%b ${txtbylw}DigiByte Core pre-release version requested using --dgbpre flag.${txtrst}\\n" "${INFO}"
+        INSTALL_DGB_RELEASE_TYPE="prerelease"
+    fi
+
+    # If the user requested the latest release version of DigiByte Core, set install variable
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then
+        INSTALL_DGB_RELEASE_TYPE="release"
     fi
 
     # Check for latest pre-release version if it is currently being used or has been requested
@@ -9693,10 +9737,11 @@ check_digibyte_core() {
         else
             printf "%b%b %s Found: v${DGB_VER_PRERELEASE}\\n" "${OVER}" "${TICK}" "${str}"
             sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+            if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
                 INSTALL_DGB_RELEASE_TYPE="prerelease"
-            elif [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ];then
+            elif [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ];then
                 printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
+                INSTALL_DGB_RELEASE_TYPE="release"
             fi
         fi
 
@@ -9724,7 +9769,7 @@ check_digibyte_core() {
         else
             printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
             sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "" ]; then
+            if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
                 INSTALL_DGB_RELEASE_TYPE="release"
             fi
         fi
