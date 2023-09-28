@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.0 - 2023-09-xx
+- New: DigiNode Tools can now set up a Dual Node - i.e. Running a DigiByte mainnet node and testnet node simultaneously on the same device. You can also switch between them from the DigiNode Setup menu.
+
 DigiNode Tools v0.8.8 - 2023-09-10
 - Fix: Roll back using IPFS lowpower mode with a Raspberry Pi. It seems to be causing performance issues.
 - Fix: Switch back to using Node.js 16. There are problems with the web UI in Node.js 18 and 20.

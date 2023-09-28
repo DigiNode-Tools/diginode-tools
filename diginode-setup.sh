@@ -484,7 +484,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DGB_ENABLE_UPNP=NO
     UI_IPFS_ENABLE_UPNP=NO
     UI_IPFS_SERVER_PROFILE=NO
-    UI_DGB_NETWORK=MAINNET
+    UI_DGB_CHAIN=MAINNET
     UI_SETUP_DIGINODE_MOTD=YES
 
     # SYSTEM VARIABLES
@@ -693,8 +693,9 @@ UI_IPFS_ENABLE_UPNP=$UI_IPFS_ENABLE_UPNP
 # Learn more: https://github.com/ipfs/kubo/blob/master/docs/config.md#profiles 
 UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 
-# Choose which DigiByte Blockchain Network to use. (Set to MAINNET or TESTNET. Default is MAINNET)
-UI_DGB_NETWORK=$UI_DGB_NETWORK
+# Choose which DigiByte Core chain to use. (Set to MAINNET or TESTNET. Default is MAINNET.)
+# Alternatively, set to DUALNODE to setup DigiByte Core to run on both mainnet and testnet.
+UI_DGB_CHAIN=$UI_DGB_CHAIN
 
 # Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
 # If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
@@ -1880,6 +1881,8 @@ EOF
     # Set the dgb network values, if we are changing between testnet and mainnet
     if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
         chain=test
+    elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+        chain="dualnode"
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
         chain=main
     elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
@@ -2092,8 +2095,8 @@ rpcallowip=127.0.0.1 \
 
         if ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
 
-            # If chain= declaration is commented out, uncomment it, and set it to the correct chain
-            if grep -q ^"# chain=" $DGB_CONF_FILE; then
+            # If chain= declaration is commented out, uncomment it, and set it to the correct chain, provided we are NOT running a Dual Node
+            if grep -q ^"# chain=" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" != "YES" ]; then
                 echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: chain=$chain (Uncommented)" 
                 sed -i -e "/^# chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
@@ -2102,8 +2105,8 @@ rpcallowip=127.0.0.1 \
                     printf "%b Verbose Mode: # chain= was uncommented.\\n" "${INFO}"
                 fi
 
-            # Change chain= declaration exists, but is not set to the correct chain, update it
-            elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE; then
+            # If chain= declaration exists, but is not set to the correct chain, update it
+            elif grep -q ^"chain=" $DGB_CONF_FILE && ! grep -q ^"chain=$chain" $DGB_CONF_FILE && [ "$SETUP_DUAL_NODE" != "YES" ]; then
                 echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: chain=$chain"
                 sed -i -e "/^chain=/s|.*|chain=$chain|" $DGB_CONF_FILE
@@ -2111,25 +2114,43 @@ rpcallowip=127.0.0.1 \
                 if [ $VERBOSE_MODE = true ]; then
                     printf "%b Verbose Mode: chain= value was changed to $chain.\\n" "${INFO}"
                 fi
+            # If chain= declaration exists, and we are running a Dual Node, then comment it out
+            elif grep -q ^"chain=" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+                echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: # chain=$chain (Commented out to allow Dual Node support)"
+                sed -i -e "/^chain=/s|.*|# chain=$chain|" $DGB_CONF_FILE
+                DGB_NETWORK_IS_CHANGED="YES"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b Verbose Mode: chain= value was commented out.\\n" "${INFO}"
+                fi
             else
-                # If the chain= declaration does not exist in digibyte.conf, append it after: # [chain], if that line exists
-                if grep -q ^"# [chain]" $DGB_CONF_FILE; then
-                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - After: # [chain]"
-                    sed -i "/# \[chain\]/ a \\
+
+                # Only append chain= values if we are not running a Dual Node
+                if [ "$SETUP_DUAL_NODE" != "YES" ]; then
+
+                    # If the chain= declaration does not exist in digibyte.conf, append it after: # [chain], if that line exists
+                    if grep -q ^"# [chain]" $DGB_CONF_FILE; then
+                        echo "$INDENT   Appending to digibyte.conf: chain=$chain - After: # [chain]"
+                        sed -i "/# \[chain\]/ a \\
 # Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
 # (WARNING: Only set the current chain using the chain= variable below. Do not use \\
 # testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+# When running a Dual Node, this must be commented out or the DigiByte daemon will not run.
 chain=$chain \\
 " $DGB_CONF_FILE
+                    else
+                        # If the chain= declaration does not exist in digibyte.conf, append it before the sections
+                        echo "$INDENT   Appending to digibyte.conf: chain=$chain - Before: # [Sections]"
+                        sed -i "/# \[Sections\]/ i \\
+# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
+# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
+# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
+# When running a Dual Node, this must be commented out or the DigiByte daemon will not run. \\
+chain=$chain \\
+" $DGB_CONF_FILE
+                    fi
                 else
-                    # If the chain= declaration does not exist in digibyte.conf, append it before the sections
-                    echo "$INDENT   Appending to digibyte.conf: chain=$chain - Before: # [Sections]"
-                    sed -i "/# \[Sections\]/ i \\
-# Choose which DigiByte chain to use. Options: main, test, regtest, signet. (Default: main) \\
-# (WARNING: Only set the current chain using the chain= variable below. Do not use \\
-# testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.) \\
-chain=$chain \\
-" $DGB_CONF_FILE
+                    echo "$INDENT   Skipped appending chain=$chain to digibyte.conf - not required when running a Dual Node."
                 fi
             fi 
 
@@ -2202,6 +2223,7 @@ chain=$chain \\
 # Choose which DigiByte chain to use. Options: main. test, regtest, signet. (Default: main)
 # (WARNING: Only set the current chain using the chain= variable below. Do not use 
 # testnet=1, regtest=1 or signet=1 to select the current chain or your node will not start.)
+# When running a Dual Node, this must be commented out or the DigiByte daemon will not run.
 chain=$chain
 
 
@@ -3607,11 +3629,15 @@ fi
 
 # If running unattended, and the flag to change the hostname in diginode.settings is set to yes, then go ahead with the change.
 
-if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_NETWORK" = "MAINNET" ] && [[ "$HOSTNAME" != "digibyte" ]]; then
+if [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_CHAIN" = "MAINNET" ] && [[ "$HOSTNAME" != "diginode" ]]; then
 
         HOSTNAME_DO_CHANGE="YES"
 
-elif [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_NETWORK" = "TESTNET" ] && [[ "$HOSTNAME" != "digibyte-testnet" ]]; then
+elif [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_CHAIN" = "DUALNODE" ] && [[ "$HOSTNAME" != "diginode" ]]; then
+
+        HOSTNAME_DO_CHANGE="YES"
+
+elif [[ "$NewInstall" = true ]] && [[ "$UNATTENDED_MODE" == true ]] && [[ "$UI_HOSTNAME_SET" = "YES" ]] && [ "$UI_DGB_CHAIN" = "TESTNET" ] && [[ "$HOSTNAME" != "diginode-testnet" ]]; then
 
         HOSTNAME_DO_CHANGE="YES"
 
@@ -6636,8 +6662,8 @@ menu_existing_install() {
     opt4a="UPnP"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
-    opt5a="Network"
-    opt5b="Change DigiByte network - mainnet or testnet."
+    opt5a="Chain"
+    opt5b="Change DigiByte chain - mainnet, testnet or dual node."
 
     opt6a="MOTD"
     opt6b="Enable or disable the DigiNode Custom MOTD."
@@ -6699,7 +6725,7 @@ menu_existing_install() {
             ;;
         # Change DigiByte Network - mainnet or testnet
         ${opt5a})
-            printf "%b You selected the DIGIBYTE NETWORK option.\\n" "${INFO}"
+            printf "%b You selected the DigiByte Chain option.\\n" "${INFO}"
             printf "\\n"
             change_dgb_network
             ;;
@@ -6941,7 +6967,44 @@ change_dgb_network() {
     # Update digibyte.conf
     create_digibyte_conf
 
-    # Restart DigiByte daemon if dgb network has changed
+    # If we are switching to a mainnet/testnet node from Dual Node, shut down, disable and delete the secondary DigiByte Node
+    if [ "$SETUP_DUAL_NODE" = "NO" ]; then
+
+        # Restart Digibyted if the network has just been changed
+        if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ]; then
+            printf "%b Stopping DigiByte Core testnet daemon for Dual Node...\\n" "${INFO}"
+            stop_service digibyted-testnet
+            disable_service digibyted-testnet
+        fi
+        if [ "$DGB2_STATUS" = "stopped" ]; then
+            printf "%b Disabling DigiByte Core testnet daemon for Dual Node...\\n" "${INFO}"
+            disable_service digibyted-testnet
+        fi
+
+        # Delete systemd service file
+        if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
+            str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB2_SYSTEMD_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete upstart service file
+        if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
+            str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB2_UPSTART_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        DGB2_STATUS="not_detected"
+
+        DGB_DUAL_NODE="NO"
+        sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"NO\"|" $DGNT_SETTINGS_FILE
+
+    fi
+
+    # Restart primary DigiByte node if dgb network has changed
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ]; then
 
         # Restart Digibyted if the network has just been changed
@@ -6951,6 +7014,25 @@ change_dgb_network() {
         fi
 
     fi
+
+    # Get updated digibyte.conf
+    scrape_digibyte_conf
+
+    # Get current chain
+    digibyte_chain_query
+
+    # Lookup new ports
+    digibyte_port_query
+
+    # Lookup new rpc credentials
+    digibyte_rpc_query
+
+    # If we are switching from only a mainnet/testnet node to a Dual Node, generate the service file, and start the DigiByte Node
+    if [ "$SETUP_DUAL_NODE" = "YES" ]; then
+
+        digibyte_create_dualnode_service
+
+    fi    
 
     printf "\\n"
 
@@ -6986,9 +7068,16 @@ change_dgb_network() {
 
     printf "\\n"
 
+
+
+
+    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour RPC ports are now $RPC_PORT (Mainnet) and $RPC2_PORT (Testnet)." 20 "${c}"
+
+
     # Display alert box informing the user that listening port and rpcport have changed.
-    if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "testnet" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
+    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
 
         # Prompt to delete the mainnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
@@ -7012,8 +7101,8 @@ change_dgb_network() {
             fi
         fi
 
-    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$chain" = "main" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $port. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $rpcport. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+    elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
         # Prompt to delete the testnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
@@ -7114,7 +7203,7 @@ fi
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE! If you find it useful, please make a donation to show your support and help fund future development:
+whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE. If you find it useful, you are requested to please make a donation to help fund future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
@@ -7342,6 +7431,7 @@ exec start-stop-daemon \
     --chuid \$DIGIBYTED_USER:\$DIGIBYTED_GROUP \
     --exec "\$DIGIBYTED_BIN" \
     -- \
+    -daemon \
     -pid="\$DIGIBYTED_PIDFILE" \
     -conf="\$DIGIBYTED_CONFIGFILE" \
     -datadir="\$DIGIBYTED_DATADIR"
@@ -7365,6 +7455,219 @@ EOF
     fi
 
 printf "\\n"
+
+fi
+
+}
+
+# Create the secondary DigiByte service file for the testnet daemon, when runnning a DigiByte Dual Node
+digibyte_create_dualnode_service() {
+
+# Only run if we are setting up a Dual Node
+if [ "$SETUP_DUAL_NODE" = "YES" ]; then
+
+    # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
+    if [ "$RESET_MODE" = true ]; then
+
+        # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
+        if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
+
+            if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted-testnet.service file?\\n\\nNote: This will delete the testnet systemd service file used when running a Dual Node, and re-create it with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the testnet DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+                DGB2_SERVICE_CREATE=YES
+                DGB2_SERVICE_INSTALL_TYPE="reset"
+            else
+                printf " =============== Resetting: DigiByte Dual Node service file ============\\n\\n"
+                # ==============================================================================
+                printf "%b Reset Mode: You skipped re-configuring the DigiByte DUAL NODE daemon service for testnet.\\n" "${INFO}"
+                printf "\\n"
+                DGB2_SERVICE_CREATE=NO
+                DGB2_SERVICE_INSTALL_TYPE="none"
+                return
+            fi
+        fi
+    fi
+
+    # If the SYSTEMD service files do not yet exist, then assume this is a new install
+    if [ ! -f "$DGB2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+                DGB2_SERVICE_CREATE="YES"
+                DGB2_SERVICE_INSTALL_TYPE="new"
+    fi
+
+    # If the UPSTART service files do not yet exist, then assume this is a new install
+    if [ ! -f "$DGB2_DAEMON_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+                DGB2_SERVICE_CREATE="YES"
+                DGB2_SERVICE_INSTALL_TYPE="new"
+    fi
+
+
+    if [ "$DGB2_SERVICE_CREATE" = "YES" ]; then
+
+        # Display section break
+        if [ "$DGB2_SERVICE_INSTALL_TYPE" = "new" ]; then
+            printf " =============== Install: DigiByte Dual Node service ===================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGB2_SERVICE_INSTALL_TYPE" = "update" ]; then
+            printf " =============== Update: DigiByte Dual Node service =======================\\n\\n"
+            # ==============================================================================
+        elif [ "$DGB2_SERVICE_INSTALL_TYPE" = "reset" ]; then
+            printf " =============== Reset: DigiByte Dual Node service ========================\\n\\n"
+            # ==============================================================================
+        fi
+
+        # If DigiByte testnet daemon systemd service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+        if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] && [ "$DGB2_SERVICE_INSTALL_TYPE" = "reset" ]; then
+
+            printf "%b Reset Mode: You chose to re-create the digibyted-testnet systemd service file for Dual Node.\\n" "${INFO}"
+
+            printf "%b Reset Mode: Stopping DigiByte testnet systemd service for Dual Node...\\n" "${INFO}"
+
+            # Stop the service now
+            systemctl stop digibyted-testnet
+
+            printf "%b Reset Mode: Disabling DigiByte testnet systemd service for Dual Node...\\n" "${INFO}"
+
+            # Disable the service now
+            systemctl disable digibyted-testnet
+
+            str="Reset Mode: Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB2_SYSTEMD_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If DigiByte testnet daemon upstart service file already exists, and we are in Reset Mode, stop it and delete it, since we will replace it
+        if [ -f "$DGB2_UPSTART_SERVICE_FILE" ] && [ "$DGB2_SERVICE_INSTALL_TYPE" = "reset" ]; then
+
+            printf "%b Reset Mode: You chose to re-create the digibyted-testnet upstart service file for Dual Node.\\n" "${INFO}"
+
+            printf "%b Reset Mode: Stopping DigiByte testnet upstart service for Dual Node...\\n" "${INFO}"
+
+            # Stop the service now
+            service digibyted-testnet stop
+
+            printf "%b Reset Mode: Disabling DigiByte testnet upstart service for Dual Node...\\n" "${INFO}"
+
+            # Disable the service now
+            service digibyted-testnet disable
+
+            str="Reset Mode: Deleting DigiByte testnet systemd service file: $DGB2_UPSTART_SERVICE_FILE ..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $DGB2_UPSTART_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If using systemd and the DigiByte testnet daemon service file does not exist yet, let's create it
+        if [ ! -f "$DGB2_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+
+            # Create a new DigiByte daemon testnet service file for Dual Node
+
+            str="Creating DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch $DGB2_SYSTEMD_SERVICE_FILE
+            cat <<EOF > $DGB2_SYSTEMD_SERVICE_FILE
+[Unit]
+Description=DigiByte's distributed currency daemon - testnet on Dual Node
+After=network.target
+
+[Service]
+User=$USER_ACCOUNT
+Group=$USER_ACCOUNT
+
+Type=forking
+PIDFile=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid
+ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid \\
+-conf=${DGB_CONF_FILE} -datadir=${DGB_DATA_LOCATION}
+
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=60s
+TimeoutStartSec=2s
+StartLimitInterval=120s
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Enable the service to run at boot
+            printf "%b Enabling DigiByte testnet systemd service for Dual Node...\\n" "${INFO}"
+            systemctl enable digibyted-testnet
+
+            # Start the service now
+            printf "%b Starting DigiByte testnet systemd service for Dual Node...\\n" "${INFO}"
+            systemctl start digibyted-testnet
+
+            DGB_DUAL_NODE="YES"
+            sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"YES\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+
+        # If using upstart and the DigiByte daemon service file does not exist yet, let's create it
+        if [ ! -f "$DGB2_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+
+            # Create a new DigiByte testnet upstart service file
+
+            str="Creating DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ... "
+            printf "%b %s" "${INFO}" "${str}"
+            touch $DGB2_UPSTART_SERVICE_FILE
+            cat <<EOF > $DGB2_UPSTART_SERVICE_FILE
+description "DigiByte Testnet Daemon for Dual Node"
+
+start on runlevel [2345]
+stop on starting rc RUNLEVEL=[016]
+
+env DIGBYTED_BIN="$DGB_DAEMON"
+env DIGIBYTED_USER="$USER_ACCOUNT"
+env DIGIBYTED_GROUP="$USER_ACCOUNT"
+env DIGIBYTED_PIDFILE="$DGB_SETTINGS_LOCATION/digibyted.pid"
+env DIGIBYTED_CONFIGFILE="$DGB_CONF_FILE"
+env DIGIBYTED_DATADIR="$DGB_DATA_LOCATION"
+
+expect fork
+
+respawn
+respawn limit 5 120
+kill timeout 600
+
+exec start-stop-daemon \
+--start \
+--pidfile "\$DIGIBYTED_PIDFILE" \
+    --chuid \$DIGIBYTED_USER:\$DIGIBYTED_GROUP \
+    --exec "\$DIGIBYTED_BIN" \
+    -- \
+    -daemon \
+    -testnet \
+    -pid="\$DIGIBYTED_PIDFILE" \
+    -conf="\$DIGIBYTED_CONFIGFILE" \
+    -datadir="\$DIGIBYTED_DATADIR" \
+
+EOF
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+
+            # Start the service now
+            printf "%b Starting DigiByte testnet upstart service for Dual Node...\\n" "${INFO}"
+            service digibyted start
+
+            DGB_DUAL_NODE="YES"
+            sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"YES\"|" $DGNT_SETTINGS_FILE
+
+        fi
+
+        # If using sysv-init or another unknown system, we don't yet support creating the DigiByte daemon service
+        if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
+
+            printf "%b Unable to create a DigiByte testnet service for Dual Node on your system - systemd/upstart not found.\\n" "${CROSS}"
+            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
+            exit 1
+
+        fi
+
+    printf "\\n"
+
+    fi
 
 fi
 
@@ -7867,68 +8170,198 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     fi
 
 
-    # SHOW THE DGB NETWORK MENU FOR ANEW INSTALL
+    # Setup Menu options
+
+    opt1a="MAINNET"
+    opt1b=" Run DigiByte Core on Mainnet."
+
+    opt2a="TESTNET"
+    opt2b=" Run DigiByte Core on Testnet."
+
+    opt3a="DUAL NODE"
+    opt3b=" Run DigiByte Core on both Mainnet and Testnet."
+
+
+    # SHOW THE DGB NETWORK MENU FOR A NEW INSTALL
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "Would you like to run DigiByte Core on MAINNET or TESTNET?\\n\\nThe testnet is used by developers for testing. It is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, consider also running a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Mainnet (Recommended)" --no-button "Testnet" "${r}" "${c}"; then
-            printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
-            DGB_NETWORK_OLD=""
-            DGB_NETWORK_FINAL="MAINNET"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to setup DigiByte Core on TESTNET.\\n" "${INFO}"
-            DGB_NETWORK_OLD=""
-            DGB_NETWORK_FINAL="TESTNET"
-        fi
+        # Display the information to the user
+        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --menu "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\n" --nocancel 27 80 4 \
+        "${opt1a}"  "${opt1b}" \
+        "${opt2a}"  "${opt2b}" \
+        "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
+        { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Setup DigiByte Core on Mainnet
+            ${opt1a})
+                printf "%b You chose to setup DigiByte Core on MAINNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD=""
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="NO"     
+                ;;
+            # Setup DigiByte Core on Testnet
+            ${opt2a})
+                printf "%b You chose to setup DigiByte Core on TESTNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD=""
+                DGB_NETWORK_FINAL="TESTNET"
+                SETUP_DUAL_NODE="NO"
+                ;;
+            # Setup DigiByte Core on Mainnet and Testnet (Dual Node)
+            ${opt3a})
+                printf "%b You chose to setup DigiByte Core as a DUAL NODE (Mainnet & Testnet).\\n" "${INFO}"
+                DGB_NETWORK_OLD=""
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="YES"     
+                ;;
+        esac
         printf "\\n"
 
     # SHOW THE DGB NETWORK MENU FOR AN EXISTING TESTNET INSTALL
     elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the TESTNET network.\\n\\nWould you like to switch it to use the MAINNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to MAINNET" --no-button "Cancel" "${r}" "${c}"; then
-            printf "%b You chose to switch DigiByte Core to run MAINNET.\\n" "${INFO}"
-            DGB_NETWORK_OLD="TESTNET"
-            DGB_NETWORK_FINAL="MAINNET"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to leave DigiByte Core on TESTNET. Returning to menu...\\n" "${INFO}"
-            DGB_NETWORK_OLD="TESTNET"
-            DGB_NETWORK_FINAL="TESTNET"
-            menu_existing_install 
-        fi
+        # Display the information to the user
+        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a TESTNET node.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        "${opt1a}"  "${opt1b}" OFF \
+        "${opt2a}"  "${opt2b}" ON \
+        "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Switch DigiByte Core from Testnet to Mainnet
+            ${opt1a})
+                printf "%b You chose to switch DigiByte Core from running TESTNET to running MAINNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD="TESTNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="NO"
+                ;;
+            # Leave DigiByte Core on Testnet
+            ${opt2a})
+                printf "%b You chose to leave DigiByte Core on TESTNET. Returning to menu...\\n" "${INFO}"
+                DGB_NETWORK_OLD="TESTNET"
+                DGB_NETWORK_FINAL="TESTNET"
+                SETUP_DUAL_NODE="NO"
+                menu_existing_install 
+                ;;
+            # Setup DigiByte Core as a Dual Node
+            ${opt3a})
+                printf "%b You chose to switch DigiByte Core from running TESTNET to a DUAL NODE\\n" "${INFO}"
+                DGB_NETWORK_OLD="TESTNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="YES"     
+                ;;
+        esac
         printf "\\n"
 
     # SHOW THE DGB NETWORK MENU FOR AN EXISTING MAINNET INSTALL
-    elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+    elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" != "YES" ]; then
 
-        if whiptail --backtitle "" --title "DIGIBYTE NETWORK SELECTION" --yesno "DigiByte Core is currently set to run on the MAINNET network.\\n\\nWould you like to switch it to use the TESTNET network?\\n\\nThe testnet network is used by developers for testing. It is functionally identical to the mainnet network, except the DigiByte on it are worthless.\\n\\nUnless you are a developer, your first priority should always be to run a mainnet node. However, to support the DigiByte network even further, you can also run a testnet node. By doing so, you are helping developers building on the DigiByte blockchain, and is another great way to support the network." --yes-button "Switch to TESTNET" --no-button "Cancel" "${r}" "${c}"; then
-            printf "%b You chose to switch DigiByte Core to run TESTNET.\\n" "${INFO}"
-            DGB_NETWORK_OLD="MAINNET"
-            DGB_NETWORK_FINAL="TESTNET"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to leave DigiByte Core on MAINNET. Returning to menu...\\n" "${INFO}"
-            DGB_NETWORK_OLD="MAINNET"
-            DGB_NETWORK_FINAL="MAINNET"
-            menu_existing_install 
-        fi
+
+        # Display the information to the user
+        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a MAINNET node.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        "${opt1a}"  "${opt1b}" ON \
+        "${opt2a}"  "${opt2b}" OFF \
+        "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Leave DigiByte Core on Mainnet
+            ${opt1a})
+                printf "%b You chose to leave DigiByte Core on MAINNET. Returning to menu...\\n" "${INFO}"
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="NO"
+                menu_existing_install 
+                ;;
+            # Switch DigiByte Core from Mainnet to Testnet
+            ${opt2a})
+                printf "%b You chose to switch DigiByte Core from running MAINNET to running TESTNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="TESTNET"
+                SETUP_DUAL_NODE="NO"
+                ;;
+            # Setup DigiByte Core as a Dual Node
+            ${opt3a})
+                printf "%b You chose to switch DigiByte Core from running MAINNET to a DUAL NODE\\n" "${INFO}"
+                DGB_NETWORK_OLD="TESTNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="YES"     
+                ;;
+        esac
+        printf "\\n"
+
+    # SHOW THE DGB NETWORK MENU FOR AN EXISTING DUAL NODE INSTALL
+    elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Display the information to the user
+        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a DUAL NODE.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        "${opt1a}"  "${opt1b}" OFF \
+        "${opt2a}"  "${opt2b}" OFF \
+        "${opt3a}"  "${opt3b}" ON 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Leave DigiByte Core on Mainnet
+            ${opt1a})
+                printf "%b You chose to switch DigiByte Core from running a DUAL NODE to running MAINNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="NO"
+                ;;
+            # Switch DigiByte Core from Mainnet to Testnet
+            ${opt2a})
+                printf "%b You chose to switch DigiByte Core from running a DUAL NODE to running TESTNET.\\n" "${INFO}"
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="TESTNET"
+                SETUP_DUAL_NODE="NO"
+                ;;
+            # Setup DigiByte Core as a Dual Node
+            ${opt3a})
+                printf "%b You chose to leave DigiByte Core running a DUAL NODE. Returning to menu...\\n" "${INFO}"
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="YES"     
+                menu_existing_install 
+                ;;
+        esac
         printf "\\n"
 
     elif [ "$show_dgb_network_menu" = "no" ]; then
 
-        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        # If this is a DUAL NODE
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
             DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="YES" 
+        # or if it is just a regular MAINNET node
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
+            DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="NO" 
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
+            SETUP_DUAL_NODE="NO" 
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
             DGB_NETWORK_OLD="REGTEST"
             DGB_NETWORK_FINAL="REGTEST"
+            if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                SETUP_DUAL_NODE="YES" 
+            else
+                SETUP_DUAL_NODE="NO" 
+            fi
         elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
             DGB_NETWORK_OLD="SIGNET"
             DGB_NETWORK_FINAL="SIGNET"
-
+            if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                SETUP_DUAL_NODE="YES" 
+            else
+                SETUP_DUAL_NODE="NO" 
+            fi
         fi
 
     fi
@@ -7945,32 +8378,71 @@ else
         # ==============================================================================
 
 
-        if [ "$UI_DGB_NETWORK" = "MAINNET" ]; then
+        if [ "$UI_DGB_CHAIN" = "MAINNET" ]; then
 
-            printf "%b Unattended Mode: DigiByte Core will run MAINNET\\n" "${INFO}"
-            printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+            printf "%b Unattended Mode: DigiByte Core will run MAINNET chain\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_CHAIN value in diginode.settings)\\n" "${INDENT}"
 
             DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="NO"
 
-        elif [ "$UI_DGB_NETWORK" = "TESTNET" ]; then
+        elif [ "$UI_DGB_CHAIN" = "TESTNET" ]; then
 
-            printf "%b Unattended Mode: DigiByte Core will run TESTNET\\n" "${INFO}"
-            printf "%b                  (Set from UI_DGB_NETWORK value in diginode.settings)\\n" "${INDENT}"
+            printf "%b Unattended Mode: DigiByte Core will run TESTNET chain\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_CHAIN value in diginode.settings)\\n" "${INDENT}"
 
             DGB_NETWORK_OLD=""
             DGB_NETWORK_FINAL="TESTNET"
+            SETUP_DUAL_NODE="NO" 
+
+        elif [ "$UI_DGB_CHAIN" = "DUALNODE" ]; then
+
+            printf "%b Unattended Mode: DigiByte Core will run a DUAL NODE (Mainnet & Testnet) \\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_CHAIN value in diginode.settings)\\n" "${INDENT}"
+
+            DGB_NETWORK_OLD=""
+            DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="YES" 
 
         else
 
-            printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
+            if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+                printf "%b Unattended Mode: Skipping changing the DigiByte Core chain. It will remain running a DUAL NODE.\\n" "${INFO}"
+            else
+                printf "%b Unattended Mode: Skipping changing the DigiByte Core chain. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
+            fi
 
-            if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            # If this is a DUAL NODE
+            if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
                 DGB_NETWORK_OLD="MAINNET"
                 DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="YES" 
+            # or if it is just a regular MAINNET node
+            elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+                DGB_NETWORK_OLD="MAINNET"
+                DGB_NETWORK_FINAL="MAINNET"
+                SETUP_DUAL_NODE="NO" 
             elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
                 DGB_NETWORK_OLD="TESTNET"
                 DGB_NETWORK_FINAL="TESTNET"
+                SETUP_DUAL_NODE="NO" 
+            elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+                DGB_NETWORK_OLD="REGTEST"
+                DGB_NETWORK_FINAL="REGTEST"
+                if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                    SETUP_DUAL_NODE="YES" 
+                else
+                    SETUP_DUAL_NODE="NO" 
+                fi
+            elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+                DGB_NETWORK_OLD="SIGNET"
+                DGB_NETWORK_FINAL="SIGNET"
+                if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                    SETUP_DUAL_NODE="YES" 
+                else
+                    SETUP_DUAL_NODE="NO" 
+                fi
             fi
 
         fi
@@ -7984,14 +8456,42 @@ else
 
         # If we are not changing the DigiByte network, then set the final as current
 
-        printf "%b Unattended Mode: Skipping changing the DigiByte Core network. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+            printf "%b Unattended Mode: Skipping changing the DigiByte Core chain. It will remain running a DUAL NODE.\\n" "${INFO}"
+        else
+            printf "%b Unattended Mode: Skipping changing the DigiByte Core chain. It will remain on $DGB_NETWORK_CURRENT.\\n" "${INFO}"
+        fi
 
-        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        # If this is a DUAL NODE
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
             DGB_NETWORK_OLD="MAINNET"
             DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="YES" 
+        # or if it is just a regular MAINNET node
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_NETWORK_OLD="MAINNET"
+            DGB_NETWORK_FINAL="MAINNET"
+            SETUP_DUAL_NODE="NO" 
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             DGB_NETWORK_OLD="TESTNET"
             DGB_NETWORK_FINAL="TESTNET"
+            SETUP_DUAL_NODE="NO" 
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_NETWORK_OLD="REGTEST"
+            DGB_NETWORK_FINAL="REGTEST"
+            if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                SETUP_DUAL_NODE="YES" 
+            else
+                SETUP_DUAL_NODE="NO" 
+            fi
+        elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_NETWORK_OLD="SIGNET"
+            DGB_NETWORK_FINAL="SIGNET"
+            if [ "$DGB_DUAL_NODE" = "YES" ]; then
+                SETUP_DUAL_NODE="YES" 
+            else
+                SETUP_DUAL_NODE="NO" 
+            fi
         fi
   
         printf "\\n"
@@ -8004,7 +8504,7 @@ fi
 
 
 
-# This function will ask the user if they want to enable or disbale upnp for digibyte core and/or ipfs
+# This function will ask the user if they want to enable or disable upnp for digibyte core and/or ipfs
 menu_ask_upnp() {
 
 local show_dgb_upnp_menu="no"
@@ -8158,6 +8658,61 @@ fi
         fi
     fi
 
+
+    # If we will be running mainnet, get current listening port from [main] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
+        DGB_LISTEN_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^port= | cut -d'=' -f 2)
+        if [ "$DGB_LISTEN_PORT_MAIN" != "" ]; then
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_MAIN"
+        fi
+    fi
+
+    # If we will be running testnet, get current listening port from [test] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
+        DGB_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
+        if [ "$DGB_LISTEN_PORT_TEST" != "" ]; then
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+        fi
+    fi
+
+    # If we will be running regtest, get current listening port from [regtest] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
+        DGB_LISTEN_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^port= | cut -d'=' -f 2)
+        if [ "$DGB_LISTEN_PORT_REGTEST" != "" ]; then
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_REGTEST"
+        fi
+    fi
+
+    # If we will be running signet, get current listening port from [signet] section of digibyte.conf, if available
+    if [ "$DGB_NETWORK_FINAL" = "SIGNET" ]; then
+        DGB_LISTEN_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^port= | cut -d'=' -f 2)
+        if [ "$DGB_LISTEN_PORT_SIGNET" != "" ]; then
+            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_SIGNET"
+        fi
+    fi
+
+    # banana
+
+    # If we will be running a Dual Node, we also need to get the current testnet listening port
+    if [ "$SETUP_DUAL_NODE" = "YES" ]; then
+
+        if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+            DGB2_LISTEN_PORT="12026"
+            DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        else
+            DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
+            DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # Get current listening port from [test] section of digibyte.conf, if available
+        DGB2_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
+        if [ "$DGB2_LISTEN_PORT_TEST" != "" ]; then
+            DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+        fi
+
+    fi
+
+
     # Get current ipfs listen port
 
     # Lookup the current Kubo IPFS ports
@@ -8232,11 +8787,18 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         upnp_current_status="$upnp_current_status_1$upnp_current_status_2$upnp_current_status_3\\n"
     fi
 
+    # Format dgb port message
+    if [ "$SETUP_DUAL_NODE" = "YES" ]; then
+        dgb_port_msg="  DigiByte Primary Node:    $DGB_LISTEN_PORT TCP\\n  DigiByte Secondary Node:    $DGB2_LISTEN_PORT TCP\\n"
+    else
+        dgb_port_msg="  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n"
+    fi
+
 
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -8251,7 +8813,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n${dgb_port_msg}\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -8358,9 +8920,11 @@ fi
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
 digibyte_chain_query() {
-    DGB_NETWORK_CHAIN_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
-    if [ "$DGB_NETWORK_CHAIN_QUERY" != "" ]; then
-        DGB_NETWORK_CHAIN=$DGB_NETWORK_CHAIN_QUERY
+    DGB_NETWORK_CHAIN=""
+    local dgb_network_chain_query
+    dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    if [ "$dgb_network_chain_query" != "" ]; then
+        DGB_NETWORK_CHAIN=$dgb_network_chain_query
     fi
 
     if [ "$DGB_NETWORK_CHAIN" = "test" ]; then 
@@ -8479,6 +9043,26 @@ digibyte_port_query() {
             if [ "$DGB_LISTEN_PORT_SIGNET" != "" ]; then
                 DGB_LISTEN_PORT="$DGB_LISTEN_PORT_SIGNET"
             fi
+        fi
+
+
+        # If we are running a Dual Node, or setting one up, we also need to get the current testnet listening port
+        if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+            if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
+                DGB2_LISTEN_PORT="12026"
+                DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+            else
+                DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
+                DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+            fi
+
+            # Get current listening port from [test] section of digibyte.conf, if available
+            DGB2_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
+            if [ "$DGB2_LISTEN_PORT_TEST" != "" ]; then
+                DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+            fi
+
         fi
 
     fi
@@ -8712,6 +9296,24 @@ if [ -f "$DGB_CONF_FILE" ]; then
         fi
     fi
 
+    # If we are running a Dual Node, or setting one up, we also need to get the current testnet RPC port
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Look up rpcport from the [test] section of digibyte.conf
+        RPC2_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcport= | cut -d'=' -f 2)
+        if [ "$RPC2_PORT_TEST" != "" ]; then
+            RPC2_PORT="$RPC_PORT_TEST"
+        else
+            # If testnet rpcport was not set anywhere else, then set the testnet default
+            if [ "$RPC2_PORT" = "" ]; then 
+                RPC2_PORT="14023"
+            else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
+                RPC2_PORT=""
+            fi
+        fi
+
+    fi
+
 fi
 
 }
@@ -8759,9 +9361,35 @@ digibyte_check() {
           DGB_STATUS="notrunning"
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
       fi
+
+      # Is Dual Node detected?
+      str="Is a DigiByte Dual Node detected?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
+          DGB2_STATUS="installed"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+          DGB_DUAL_NODE="YES"
+          sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"YES\"|" $DGNT_SETTINGS_FILE
+      else
+          DGB2_STATUS="not_detected"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB_DUAL_NODE="NO"
+          sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"NO\"|" $DGNT_SETTINGS_FILE
+      fi
+
+      str="Is the secondary DigiByte Node running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "digibyted-testnet"; then
+          DGB2_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          DGB2_STATUS="notrunning"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+
     fi
 
-    # Restart if the RPC port has changed and it can't connect
+    # Restart primary DigiByte Node if the RPC port has changed and it can't connect
     if [ "$DGB_STATUS" = "running" ]; then
         IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
@@ -8770,24 +9398,39 @@ digibyte_check() {
         fi
     fi
 
-    # Restart Digibyted if the RPC username or password in digibyte.conf have recently been changed
+    # Restart secondary DigiByte Node if the RPC port has changed and it can't connect
+    if [ "$DGB2_STATUS" = "running" ]; then
+        IS_RPC2_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC2_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "%b RPC port has been changed. Secondary DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted-testnet
+        fi
+    fi
+
+   # Restart primary DigiByte Node if the RPC listening port has changed and it can't connect
     if [ "$DGB_STATUS" = "running" ]; then
-        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
-        if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
-            printf "%b RPC credentials have been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "%b RPC port has been changed. DigiByte daemon will be restarted.\\n" "${INFO}"
             restart_service digibyted
         fi
     fi
 
-    # If it's running, is digibyted in the process of starting up, and not yet ready to respond to requests?
-    if [ "$DGB_STATUS" = "running" ]; then
-        str="Is DigiByte Core finished starting up?..."
-        printf "%b %s" "${INFO}" "${str}"
-        BLOCKCOUNT_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
+   # Restart secondary DigiByte Node if the RPC listening port has changed and it can't connect
+    if [ "$DGB2_STATUS" = "running" ]; then
+        IS_RPC2_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        if [ "$IS_RPC2_PORT_CHANGED" = "Could not connect to the server" ]; then
+            printf "%b RPC port has been changed. Seondary DigiByte daemon will be restarted.\\n" "${INFO}"
+            restart_service digibyted-testnet
+        fi
+    fi
 
-        # Check if the value returned is an integer (we we know digibyted is responding)
- #       if [ "$BLOCKCOUNT_LOCAL" -eq "$BLOCKCOUNT_LOCAL" ] 2>/dev/null; then
-        if [ "$BLOCKCOUNT_LOCAL" = "" ]; then
+    # If primary DigiByte Node is running, is it in the process of starting up, and not yet ready to respond to requests?
+    if [ "$DGB_STATUS" = "running" ]; then
+        str="Is DigiByte node finished starting up?..."
+        printf "%b %s" "${INFO}" "${str}"
+        IS_DGB_STARTED_UP=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
+        if [ "$IS_DGB_STARTED_UP" = "" ]; then
           printf "%b%b %s NOT YET...\\n" "${OVER}" "${CROSS}" "${str}"
           DGB_STATUS="startingup"
         else
@@ -8795,9 +9438,30 @@ digibyte_check() {
         fi
     fi
 
-    # If DigiByte Core is currently in the process of starting up, we need to wait until it
+    # If secondary "Dual Node" DigiByte Node is running, is it in the process of starting up, and not yet ready to respond to requests?
+    if [ "$DGB2_STATUS" = "running" ]; then
+        str="Is secondary DigiByte node finished starting up?..."
+        printf "%b %s" "${INFO}" "${str}"
+        IS_DGB2_STARTED_UP=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getblockcount 2>/dev/null)
+        if [ "$IS_DGB2_STARTED_UP" = "" ]; then
+          printf "%b%b %s NOT YET...\\n" "${OVER}" "${CROSS}" "${str}"
+          DGB2_STATUS="startingup"
+        else
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
+    # Check if any at least one chain is running
+    if [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
+        query_which_chain="main"
+    elif [ "$DGB_STATUS" = "running" ]; then
+        query_which_chain="main"
+    elif [ "$DGB2_STATUS" = "running" ]; then
+        query_which_chain="testnet"
+
+    # If primary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
-    if [ "$DGB_STATUS" = "startingup" ]; then
+    elif [ "$DGB_STATUS" = "startingup" ]; then
         every15secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -8832,6 +9496,7 @@ digibyte_check() {
                     sleep 0.5
                 else
                     DGB_STATUS="running"
+                    query_which_chain="main"
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     tput cnorm
                 fi
@@ -8842,13 +9507,60 @@ digibyte_check() {
             fi
         done
 
+    # If secondary DigiByte Node is currently in the process of starting up, we need to wait until it
+    # can actually respond to requests so we can get the current version number from digibyte-cli
+    elif [ "$DGB2_STATUS" = "startingup" ]; then
+        every15secs=0
+        progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+        printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        str="Please wait..."
+        printf "%b %s" "${INDENT}" "${str}"
+        tput civis
+        # Query if digibyte has finished starting up. Display error. Send success to null.
+        is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet uptime 2>&1 1>/dev/null)
+        if [ "$is_dgb_live_query" != "" ]; then
+            dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+        fi
+        while [ $DGB2_STATUS = "startingup" ]; do
+
+            # Show Spinner while waiting for DigiByte Core to finishing starting up
+            if [ "$progress" = "[${COL_BOLD_WHITE}◜ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◝${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◝${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE} ◞${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE} ◞${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◟ ${COL_NC}]"
+            elif [ "$progress" = "[${COL_BOLD_WHITE}◟ ${COL_NC}]" ]; then
+              progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
+            fi 
+
+            if [ "$every15secs" -ge 30 ]; then
+                # Query if digibyte has finished starting up. Display error. Send success to null.
+                is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet uptime 2>&1 1>/dev/null)
+                if [ "$is_dgb_live_query" != "" ]; then
+                    dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+                    printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
+                    every15secs=0
+                    sleep 0.5
+                else
+                    DGB2_STATUS="running"
+                    query_which_chain="testnet"
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    tput cnorm
+                fi
+            else
+                every15secs=$((every15secs + 1))
+                printf "%b%b %s $dgb_error_msg $progress" "${OVER}" "${INDENT}" "${str}"
+                sleep 0.5
+            fi
+        done
+
+
     fi
 
-
-
-
-        # Get the version number of the current DigiByte Node and write it to to the settings file
-    if [ "$DGB_STATUS" = "running" ]; then
+    # Get the version number of the current DigiByte Node and write it to to the settings file
+    # Use whichever node is running to find this out (primary node, or the secondary testnet node, if we are running a Dual Node)
+    if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
 
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
@@ -8857,36 +9569,17 @@ digibyte_check() {
         if [ "$DGB_PRERELEASE" = "YES" ]; then
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
         else
-            DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            if [ "$query_which_chain" = "main" ]; then
+                DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            elif [ "$query_which_chain" = "testnet" ]; then
+                DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            fi
+
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
         fi
 
-        # Find out the current  DGB network chain
-        str="Checking current DigiByte chain..."
-        printf "%b %s" "${INFO}" "${str}"
-
-        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        digibyte_chain_query
-
-        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    fi
-
-      # If DigiByte Core is not running, we can't get the version number from there, so we will resort to what is in the diginode.settings file
-    if [ "$DGB_STATUS" = "notrunning" ]; then
+    elif [ "$DGB_STATUS" = "notrunning" ] || [ "$DGB2_STATUS" = "notrunning" ]; then
 
         printf "%b DigiByte Core is installed, but not currently running (digibyte-cli is not responding).\\n" "${INFO}"
 
@@ -8908,7 +9601,11 @@ digibyte_check() {
             printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Find out the current  DGB network chain
+    fi
+
+    # Find out the current  DGB network chain
+    if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "notrunning" ]; then
+
         str="Checking current DigiByte chain..."
         printf "%b %s" "${INFO}" "${str}"
 
@@ -9106,13 +9803,22 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Stop DigiByte Core if it is running, as we need to upgrade or reset it
+    # Stop primary DigiByte Node if it is running, as we need to upgrade or reset it
     if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
        DGB_STATUS="stopped"
     elif [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
        stop_service digibyted
        DGB_STATUS="stopped"
+    fi
+
+    # Stop secondary DigiByte Node (Dual Node) if it is running, as we need to upgrade or reset it
+    if [ "$DGB2_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
+       stop_service digibyted-testnet
+       DGB2_STATUS="stopped"
+    elif [ "$DGB2_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "reset" ]; then
+       stop_service digibyted-testnet
+       DGB2_STATUS="stopped"
     fi
     
    # Delete old DigiByte Core tar files, if present
@@ -9151,18 +9857,30 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
             printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
 
-            # Re-enable and re-start DigiByte daemon service as the download failed
+            # Re-enable and re-start DigiByte digibyted.service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
                 enable_service digibyted
                 restart_service digibyted
                 DGB_STATUS="running"
-                DIGINODE_UPGRADED="YES"
             elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-                printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+                printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
                 enable_service digibyted
                 restart_service digibyted
                 DGB_STATUS="running"
+            fi
+
+            # Re-enable and re-start DigiByte digibyted-testnet.service as the download failed
+            if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
+                enable_service digibyted-testnet
+                restart_service digibyted-testnet
+                DGB2_STATUS="running"
+            elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+                printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
+                enable_service digibyted-testnet
+                restart_service digibyted-testnet
+                DGB2_STATUS="running"
             fi
 
             printf "\\n"
@@ -9240,16 +9958,28 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
         # Re-enable and re-start DigiByte daemon service as the download failed
         if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-            printf "%b Upgrade Failed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
             enable_service digibyted
             restart_service digibyted
             DGB_STATUS="running"
-            DIGINODE_UPGRADED="YES"
         elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-            printf "%b Reset Failed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+            printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
             enable_service digibyted
             restart_service digibyted
             DGB_STATUS="running"
+        fi
+
+        # Re-enable and re-start digibyted-testnet.service as the download failed
+        if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
+        elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
         fi
 
         printf "\\n"
@@ -9310,18 +10040,32 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
-    # Re-enable and re-start DigiByte daemon service after reset/upgrade
+    # Re-enable and re-start digibyted.service after reset/upgrade
     if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-        printf "%b Upgrade Completed: Re-enabling and re-starting DigiByte daemon service ...\\n" "${INFO}"
+        printf "%b Upgrade Completed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
         enable_service digibyted
         restart_service digibyted
         DGB_STATUS="running"
         DIGINODE_UPGRADED="YES"
     elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-        printf "%b Reset Completed: Renabling and restarting DigiByte daemon service ...\\n" "${INFO}"
+        printf "%b Reset Completed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
         enable_service digibyted
         restart_service digibyted
         DGB_STATUS="running"
+    fi
+
+    # Re-enable and re-start digibyted-testnet.service after reset/upgrade
+    if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+        printf "%b Upgrade Completed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
+        enable_service digibyted-testnet
+        restart_service digibyted-testnet
+        DGB2_STATUS="running"
+        DIGINODE_UPGRADED="YES"
+    elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        printf "%b Reset Completed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
+        enable_service digibyted-testnet
+        restart_service digibyted-testnet
+        DGB2_STATUS="running"
     fi
 
     # Reset DGB Install and Upgrade Variables
@@ -10273,7 +11017,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
         else
             # Ask the user if they want to use the server profile
-            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS server profile?\\n\\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\\n\\nIf you are setting up your DigiAsset Node on a device on your local network, then you likely do not need to do this." "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS server profile?\\n\\nIf you are running your DigiAsset Node on a device on your local network, then you most likely do not need to do this.\\n\\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS." "${r}" "${c}"; then
                 printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
                 use_ipfs_server_profile="yes"
             else
@@ -13374,6 +14118,32 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
+            # If we are running a Dual Node, stop the service and delete it
+            if [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+                printf "%b Stopping DigiByte Core testnet daemon for Dual Node...\\n" "${INFO}"
+                stop_service digibyted
+                disable_service digibyted
+                DGB2_STATUS="stopped"
+
+                # Delete systemd service file
+                if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
+                    str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f $DGB2_SYSTEMD_SERVICE_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+                # Delete upstart service file
+                if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
+                    str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+                    printf "%b %s" "${INFO}" "${str}"
+                    rm -f $DGB2_UPSTART_SERVICE_FILE
+                    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                fi
+
+            fi
+
            # Delete old DigiByte Core tar files, if present
             if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
                 str="Deleting old DigiByte Core tar.gz files from home folder..."
@@ -13822,6 +14592,8 @@ fi
 # Display the DigiFact
 digifact_display() {
 
+# banana
+
 #             ╔════════════════════════════════════════════════════════════════════╗
 
 if [ "$DIGIFACT" = "digifact1" ]; then
@@ -13846,11 +14618,11 @@ fi
 
 if [ "$DIGIFACT" = "digifact3" ]; then
     DIGIFACT_TITLE="DigiFact # 3 - Did you know..."
-    DIGIFACT_L1="DigiByte was fairly launched in 2014, long before the 2017"
-    DIGIFACT_L2="Initial Coin Offering (ICO) craze of whitepaper projects."
-    DIGIFACT_L3="DigiByte launched with a fully working blockchain that has been"
-    DIGIFACT_L4="improved upon consistently ever since."
-    DIGIFACT_L5=""
+    DIGIFACT_L1="The DigiByte blockchain was fairly launched in 2014, long"
+    DIGIFACT_L2="before the 2017 Initial Coin Offering (ICO) craze of"
+    DIGIFACT_L3="whitepaper projects. DigiByte began with a fully working"
+    DIGIFACT_L4="blockchain that has been improved upon consistently"
+    DIGIFACT_L5="ever since."
     DIGIFACT_L6=""
 fi
 
@@ -13858,17 +14630,20 @@ if [ "$DIGIFACT" = "digifact4" ]; then
     DIGIFACT_TITLE="DigiFact # 4 - Did you know..."
     DIGIFACT_L1="When DigiByte launched in 2014, a tiny DigiByte pre-mine (0.5%)"
     DIGIFACT_L2="was given away to community members within the first 30 days,"
-    DIGIFACT_L3="and the details can be seen on BitcoinTalk. This was to done"
-    DIGIFACT_L4="to incentivize people to download and run a full node helping to"
+    DIGIFACT_L3="and the details can be seen on BitcoinTalk. This was done to"
+    DIGIFACT_L4="incentivize people to download and run a full node helping to"
     DIGIFACT_L5="distribute the blockchain. None of the pre-mine was retained"
     DIGIFACT_L6="by the founder or developers."
 fi
 
+## Twitter NEXT ->
+#             ╔════════════════════════════════════════════════════════════════════╗
+
 if [ "$DIGIFACT" = "digifact5" ]; then
     DIGIFACT_TITLE="DigiFact # 5 - Did you know..."
-    DIGIFACT_L1="There is no founders reward in DigiByte. Nobody gets part of"
-    DIGIFACT_L2="each blocks reward except whoever mined it."
-    DIGIFACT_L3=""
+    DIGIFACT_L1="There is no founders reward with the DigiByte blockchain."
+    DIGIFACT_L2="The reward for mining each block only ever goes to whoever"
+    DIGIFACT_L3="mined it. No part of it goes to anyone else."
     DIGIFACT_L4=""
     DIGIFACT_L5=""
     DIGIFACT_L6=""
@@ -13876,21 +14651,22 @@ fi
 
 if [ "$DIGIFACT" = "digifact6" ]; then
     DIGIFACT_TITLE="DigiFact # 6 - Did you know..."
-    DIGIFACT_L1="The DigiByte founder and developers all purchased their DigiByte"
-    DIGIFACT_L2="on an exchange at market rates, or mined their own DGB, just"
-    DIGIFACT_L3="like you do."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
+    DIGIFACT_L1="The DigiByte founder and developers have either purchased"
+    DIGIFACT_L2="their DGB coins on an exchange at market rates, or"
+    DIGIFACT_L3="mined them, just like everybody else. There was no ICO (Initial"
+    DIGIFACT_L4="Coin Offering) for the DigiByte blockchain. Every coin has"
+    DIGIFACT_L5="been fairly mined since the genesis block."
     DIGIFACT_L6=""
 fi
 
+
 if [ "$DIGIFACT" = "digifact7" ]; then
     DIGIFACT_TITLE="DigiFact # 7 - Did you know..."
-    DIGIFACT_L1="Fees for DigiByte are incredibly low. In Block 7658349, a user "
-    DIGIFACT_L2="sent 342,000,000 DGB (worth \$6 million USD at the time) from the "
-    DIGIFACT_L3="inputs of over 200 different addresses. It cost 1/10th of a "
-    DIGIFACT_L4="cent (USD) in fees and took only a few seconds to confirm."
-    DIGIFACT_L5=""
+    DIGIFACT_L1="Transaction fees on the DigiByte blockchain are typically"
+    DIGIFACT_L2="incredibly low. In Block 7658349, a user sent 342,000,000 DGB"
+    DIGIFACT_L3="(worth \$6 million USD at the time) from the inputs of over 200"
+    DIGIFACT_L4="different addresses. It cost 1/10th of a cent (USD) in fees and"
+    DIGIFACT_L5="took only a minute or two to confirm."
     DIGIFACT_L6=""
 fi
 
@@ -13903,6 +14679,9 @@ if [ "$DIGIFACT" = "digifact8" ]; then
     DIGIFACT_L5="What is DigiShield (a.k.a MultiShield)? Learn more here:"
     DIGIFACT_L6="https://j.mp/3oivy5u"
 fi
+
+## Bluesky NEXT ->
+#             ╔════════════════════════════════════════════════════════════════════╗
 
 if [ "$DIGIFACT" = "digifact9" ]; then
     DIGIFACT_TITLE="DigiFact # 9 - Did you know..."
@@ -15435,7 +16214,7 @@ install_or_upgrade() {
 
     ### ASK SETUP QUESTIONS ###
 
-    # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node
+    # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node, or a Dual Node
     menu_ask_dgb_network
 
     # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
@@ -15455,6 +16234,9 @@ install_or_upgrade() {
 
     # Create digibyted.service
     digibyte_create_service
+
+    # Create digibyted.service (if running Dual Node)
+    digibyte_create_dualnode_service
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
