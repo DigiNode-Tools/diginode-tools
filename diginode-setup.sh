@@ -1882,7 +1882,7 @@ EOF
     if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
         chain=test
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        chain="dualnode"
+        chain=dualnode
     elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
         chain=main
     elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
@@ -7030,7 +7030,7 @@ change_dgb_network() {
     # If we are switching from only a mainnet/testnet node to a Dual Node, generate the service file, and start the DigiByte Node
     if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
-        digibyte_create_dualnode_service
+        create_digibyte_service_dualnode
 
     fi    
 
@@ -7258,7 +7258,7 @@ fi
 
 
 # Create service so that DigiByte daemon will run at boot
-digibyte_create_service() {
+create_digibyte_service() {
 
 # If you want to make changes to how DigiByte daemon services are created/managed for diferent systems, refer to this website:
 #
@@ -7461,7 +7461,7 @@ fi
 }
 
 # Create the secondary DigiByte service file for the testnet daemon, when runnning a DigiByte Dual Node
-digibyte_create_dualnode_service() {
+create_digibyte_service_dualnode() {
 
 # Only run if we are setting up a Dual Node
 if [ "$SETUP_DUAL_NODE" = "YES" ]; then
@@ -9453,11 +9453,11 @@ digibyte_check() {
 
     # Check if any at least one chain is running
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
-        query_which_chain="main"
+        query_which_dgb_node="primary"
     elif [ "$DGB_STATUS" = "running" ]; then
-        query_which_chain="main"
+        query_which_dgb_node="primary"
     elif [ "$DGB2_STATUS" = "running" ]; then
-        query_which_chain="testnet"
+        query_which_dgb_node="secondary"
 
     # If primary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
@@ -9472,6 +9472,7 @@ digibyte_check() {
         is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
             dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+            dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
         fi
         while [ $DGB_STATUS = "startingup" ]; do
 
@@ -9491,18 +9492,19 @@ digibyte_check() {
                 is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
                 if [ "$is_dgb_live_query" != "" ]; then
                     dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
-                    printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
+                    dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
+                    printf "%b%b %s $dgb_error_msg  $progress Querying..." "${OVER}" "${INDENT}" "${str}"
                     every15secs=0
                     sleep 0.5
                 else
                     DGB_STATUS="running"
-                    query_which_chain="main"
+                    query_which_dgb_node="primary"
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     tput cnorm
                 fi
             else
                 every15secs=$((every15secs + 1))
-                printf "%b%b %s $dgb_error_msg $progress" "${OVER}" "${INDENT}" "${str}"
+                printf "%b%b %s $dgb_error_msg  $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
         done
@@ -9512,7 +9514,7 @@ digibyte_check() {
     elif [ "$DGB2_STATUS" = "startingup" ]; then
         every15secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
-        printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bDigiByte secondary node is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         str="Please wait..."
         printf "%b %s" "${INDENT}" "${str}"
         tput civis
@@ -9520,6 +9522,7 @@ digibyte_check() {
         is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet uptime 2>&1 1>/dev/null)
         if [ "$is_dgb_live_query" != "" ]; then
             dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+            dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
         fi
         while [ $DGB2_STATUS = "startingup" ]; do
 
@@ -9539,12 +9542,13 @@ digibyte_check() {
                 is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet uptime 2>&1 1>/dev/null)
                 if [ "$is_dgb_live_query" != "" ]; then
                     dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
+                    dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
                     printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
                     every15secs=0
                     sleep 0.5
                 else
                     DGB2_STATUS="running"
-                    query_which_chain="testnet"
+                    query_which_dgb_node="secondary"
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     tput cnorm
                 fi
@@ -9569,9 +9573,9 @@ digibyte_check() {
         if [ "$DGB_PRERELEASE" = "YES" ]; then
             printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
         else
-            if [ "$query_which_chain" = "main" ]; then
+            if [ "$query_which_dgb_node" = "primary" ]; then
                 DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-            elif [ "$query_which_chain" = "testnet" ]; then
+            elif [ "$query_which_dgb_node" = "secondary" ]; then
                 DGB_VER_LOCAL=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             fi
 
@@ -9758,7 +9762,7 @@ digibyte_check() {
 
 # This function will install DigiByte Core if it not yet installed, and if it is, upgrade it to the latest release
 # Note: It does not (re)start the digibyted.service automatically when done
-digibyte_do_install() {
+do_digibyte_install_upgrade() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
 if [ "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
@@ -16230,13 +16234,13 @@ install_or_upgrade() {
     create_digibyte_conf
 
     # Install/upgrade DigiByte Core
-    digibyte_do_install
+    do_digibyte_install_upgrade
 
     # Create digibyted.service
-    digibyte_create_service
+    create_digibyte_service
 
     # Create digibyted.service (if running Dual Node)
-    digibyte_create_dualnode_service
+    create_digibyte_service_dualnode
 
     ### INSTALL/UPGRADE DIGINODE TOOLS ###
 
@@ -16374,10 +16378,10 @@ add_digibyte_node() {
     create_digibyte_conf
 
     # Install/upgrade DigiByte Core
-    digibyte_do_install
+    do_digibyte_install_upgrade
 
     # Create digibyted.service
-    digibyte_create_service
+    create_digibyte_service
 
     # Update DigiAsset RPC settings
     digiasset_node_create_settings
