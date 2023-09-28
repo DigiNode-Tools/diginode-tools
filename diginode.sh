@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.8.8
+#           Name:  DigiNode Status Monitor v0.8.9
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.8.8
-# Last Updated: 2023-09-10
+DGNT_VER_LOCAL=0.8.9
+# Last Updated: 2023-09-11
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -186,7 +186,7 @@ if [ $EDIT_DGBCFG = true ] || \
     # Work out which DigiByte log file to display based on which chain is in use
     if [ $VIEW_DGBLOG = true ]; then # --dgblog
         diginode_tools_import_settings
-        digibyte_chain_query
+        query_digibyte_chain
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             VIEW_DGBLOGTN=true
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
@@ -709,7 +709,7 @@ is_dgbnode_installed() {
     printf "%b %s" "${INFO}" "${str}"
 
     # Query if DigiByte Core is running the mainn, test, regtest ro signet chain
-    digibyte_chain_query
+    query_digibyte_chain
 
     if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
         printf "%b%b %s %bTESTNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
@@ -1457,7 +1457,6 @@ if [ "$auto_quit" = true ]; then
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
-    printf "%b To edit it: diginode \\n" "${INDENT}"
     printf "%b To edit it: ${txtbld}diginode --dgntset${txtrst}\\n" "${INDENT}"
     echo ""
 fi
@@ -2091,7 +2090,7 @@ if [ $DGB_STATUS != "not_detected" ]; then
             # scrape digibyte.conf
             scrape_digibyte_conf
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
             # query for digibyte listening port
             digibyte_port_query
             # update rpc credentials
@@ -2211,7 +2210,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             scrape_digibyte_conf
 
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
 
             # update max connections
             digibyte_maxconnections_query
@@ -2234,7 +2233,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             # scrape digibyte.conf
             scrape_digibyte_conf
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
             # query for digibyte listening port
             digibyte_port_query
             # update rpc credentials
@@ -3072,7 +3071,7 @@ clear -x
 scrape_digibyte_conf
 
 # query for digibyte network
-digibyte_chain_query
+query_digibyte_chain
 
 # query for digibyte listening port
 digibyte_port_query
