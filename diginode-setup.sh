@@ -8204,7 +8204,10 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # Banana Temporary Alert Message
     #################################
 
-    whiptail --msgbox --title "WARNING!" "WARNING: The next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). It is inadvisable to setup a testnet node, or Dual Node unless you are running DigiByte Core 8.22.0-rc3 or later. It will not work with the DigiByte 7.17.3 release.\\n\\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take many hours to launch, sometimes as much as 24 or longer. It is recommended to wait for the DigiByte Core 8.22.0-rc3 prerelease before trying it. Do not attempt to run a Dual Node or Testnet Node with the 7.71.3 release." 20 "${c}"
+
+    if [ "$show_dgb_network_menu" = "yes" ]; then
+        whiptail --msgbox --title "WARNING!" "WARNING: The next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). It is inadvisable to setup a testnet node, or Dual Node unless you are running DigiByte Core 8.22.0-rc3 or later. It will not work with the DigiByte 7.17.3 release.\\n\\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take many hours to launch, sometimes as much as 24 or longer. It is recommended to wait for the DigiByte Core 8.22.0-rc3 prerelease before trying it. Do not attempt to run a Dual Node or Testnet Node with the 7.71.3 release." 19 "${c}"
+    fi
 
 
     # Setup Menu options
@@ -8263,7 +8266,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         "${opt1a}"  "${opt1b}" OFF \
         "${opt2a}"  "${opt2b}" ON \
         "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
-        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_DGB_NETWORK_MENU=false; menu_existing_install; }
 
         # Set the variable based on if the user chooses
         case ${UpdateCmd} in
@@ -8301,7 +8304,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         "${opt1a}"  "${opt1b}" ON \
         "${opt2a}"  "${opt2b}" OFF \
         "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
-        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_DGB_NETWORK_MENU=false; menu_existing_install; }
 
         # Set the variable based on if the user chooses
         case ${UpdateCmd} in
@@ -8338,7 +8341,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
         "${opt1a}"  "${opt1b}" OFF \
         "${opt2a}"  "${opt2b}" OFF \
         "${opt3a}"  "${opt3b}" ON 3>&2 2>&1 1>&3) || \
-        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; menu_existing_install; }
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_DGB_NETWORK_MENU=false; menu_existing_install; }
 
         # Set the variable based on if the user chooses
         case ${UpdateCmd} in
