@@ -186,7 +186,7 @@ if [ $EDIT_DGBCFG = true ] || \
     # Work out which DigiByte log file to display based on which chain is in use
     if [ $VIEW_DGBLOG = true ]; then # --dgblog
         diginode_tools_import_settings
-        digibyte_chain_query
+        query_digibyte_chain
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             VIEW_DGBLOGTN=true
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
@@ -709,7 +709,7 @@ is_dgbnode_installed() {
     printf "%b %s" "${INFO}" "${str}"
 
     # Query if DigiByte Core is running the mainn, test, regtest ro signet chain
-    digibyte_chain_query
+    query_digibyte_chain
 
     if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
         printf "%b%b %s %bTESTNET%b (live)\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_YEL}" "${COL_NC}"
@@ -2090,7 +2090,7 @@ if [ $DGB_STATUS != "not_detected" ]; then
             # scrape digibyte.conf
             scrape_digibyte_conf
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
             # query for digibyte listening port
             digibyte_port_query
             # update rpc credentials
@@ -2210,7 +2210,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             scrape_digibyte_conf
 
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
 
             # update max connections
             digibyte_maxconnections_query
@@ -2233,7 +2233,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             # scrape digibyte.conf
             scrape_digibyte_conf
             # query for digibyte network
-            digibyte_chain_query
+            query_digibyte_chain
             # query for digibyte listening port
             digibyte_port_query
             # update rpc credentials
@@ -3071,7 +3071,7 @@ clear -x
 scrape_digibyte_conf
 
 # query for digibyte network
-digibyte_chain_query
+query_digibyte_chain
 
 # query for digibyte listening port
 digibyte_port_query

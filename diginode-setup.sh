@@ -4905,9 +4905,9 @@ usb_backup() {
             printf "\\n"
         
 
-            # Run the digibyte_check function, because we need to be sure that DigiByte Core is not only running, 
+            # Run the check_digibyte_core function, because we need to be sure that DigiByte Core is not only running, 
             # but has also completely finished starting up, and this function will wait until it has finished starting up before continuing.
-            digibyte_check
+            check_digibyte_core
 
             printf " =============== Checking: DigiByte Wallet =============================\\n\\n"
             # ==============================================================================
@@ -6810,7 +6810,7 @@ change_upnp_status() {
     fi
 
     # Check DigiByte Node to make sure it is finished starting up
-    digibyte_check
+    check_digibyte_core
 
     printf "\\n"
 
@@ -6959,13 +6959,16 @@ change_dgb_network() {
     fi
 
     # Check to see if DigiByte Core is running or not, and find out which network (mainnet/testnet) it is currently using
-    digibyte_check
+    check_digibyte_core
 
     # Prompt to change dgb network
     menu_ask_dgb_network
 
     # Update digibyte.conf
     create_digibyte_conf
+
+    printf " =============== Updating: DigiByte Chain ==============================\\n\\n"
+    # ==============================================================================
 
     # If we are switching to a mainnet/testnet node from Dual Node, shut down, disable and delete the secondary DigiByte Node
     if [ "$SETUP_DUAL_NODE" = "NO" ]; then
@@ -7019,7 +7022,7 @@ change_dgb_network() {
     scrape_digibyte_conf
 
     # Get current chain
-    digibyte_chain_query
+    query_digibyte_chain
 
     # Lookup new ports
     digibyte_port_query
@@ -7027,14 +7030,14 @@ change_dgb_network() {
     # Lookup new rpc credentials
     digibyte_rpc_query
 
+    printf "\\n"
+
     # If we are switching from only a mainnet/testnet node to a Dual Node, generate the service file, and start the DigiByte Node
     if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         create_digibyte_service_dualnode
 
     fi    
-
-    printf "\\n"
 
     # Run IPFS cehck to discover the current ports that are being used
     ipfs_check
@@ -7072,12 +7075,12 @@ change_dgb_network() {
 
 
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour RPC ports are now $RPC_PORT (Mainnet) and $RPC2_PORT (Testnet)." 20 "${c}"
+        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour DigiByte listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour DigiByte RPC ports are now $RPC_PORT (Mainnet) and $RPC2_PORT (Testnet)." 20 "${c}"
 
 
     # Display alert box informing the user that listening port and rpcport have changed.
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour listening port is now $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
+        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour DigiByte testnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
 
         # Prompt to delete the mainnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
@@ -7102,7 +7105,7 @@ change_dgb_network() {
         fi
 
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour listening port is now $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
         # Prompt to delete the testnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
@@ -7126,15 +7129,6 @@ change_dgb_network() {
             fi
         fi  
     fi
-
-    # Get the default listening port number, if it is not manually set in digibyte.conf
-#    if [ "$port" = "" ]; then
-#        if [ "$testnet" = "1" ]; then
-#            port="12026"
-#        else
-#            port="12024"
-#        fi
-#    fi 
 
 
     # Display alert box informing the user that the IPFS port changed.
@@ -8155,6 +8149,11 @@ if [ "$show_dgb_network_menu" = "no" ] && [ "$FORCE_DISPLAY_DGB_NETWORK_MENU" = 
 fi
 
 
+if [ $VERBOSE_MODE = true ]; then
+    echo "Verbose Mode - show_dgb_network_menu: $show_dgb_network_menu"
+    echo "Verbose Mode - DGB_NETWORK_CURRENT: $DGB_NETWORK_CURRENT"
+    echo "Verbose Mode - DGB_DUAL_NODE: $DGB_DUAL_NODE"
+fi
 
 # SHOW DGB NETWORK MENU
 
@@ -8164,7 +8163,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # Display dgb network section break
     if [ "$show_dgb_network_menu" = "yes" ]; then
 
-            printf " =============== DIGIBYTE NETWORK SELECTION ============================\\n\\n"
+            printf " =============== DIGIBYTE CHAIN SELECTION ==============================\\n\\n"
             # ==============================================================================
 
     fi
@@ -8919,7 +8918,7 @@ fi
 # This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
-digibyte_chain_query() {
+query_digibyte_chain() {
     DGB_NETWORK_CHAIN=""
     local dgb_network_chain_query
     dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
@@ -8991,7 +8990,7 @@ digibyte_port_query() {
 
         # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
         if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-            digibyte_chain_query
+            query_digibyte_chain
         fi
 
         DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
@@ -9083,7 +9082,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
 
     # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
     if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-        digibyte_chain_query
+        query_digibyte_chain
     fi
 
     # Look maxconnections from the global section of digibyte.conf and set default of 125 if not found
@@ -9143,7 +9142,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
 
     # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
     if [ "$DGB_NETWORK_CURRENT" = "" ]; then
-        digibyte_chain_query
+        query_digibyte_chain
     fi
 
     # Look up rpcuser from the global section of digibyte.conf
@@ -9322,7 +9321,7 @@ fi
 
 # This function will check if DigiByte Node is installed, and if it is, check if there is an update available
 
-digibyte_check() {
+check_digibyte_core() {
 
     printf " =============== Checking: DigiByte Node ===============================\\n\\n"
     # ==============================================================================
@@ -9350,18 +9349,6 @@ digibyte_check() {
         fi
     fi
 
-    # Next let's check if DigiByte daemon is running
-    if [ "$DGB_STATUS" = "installed" ]; then
-      str="Is DigiByte Core running?..."
-      printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "digibyted"; then
-          DGB_STATUS="running"
-          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-      else
-          DGB_STATUS="notrunning"
-          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-      fi
-
       # Is Dual Node detected?
       str="Is a DigiByte Dual Node detected?..."
       printf "%b %s" "${INFO}" "${str}"
@@ -9377,14 +9364,33 @@ digibyte_check() {
           sed -i -e "/^DGB_DUAL_NODE=/s|.*|DGB_DUAL_NODE=\"NO\"|" $DGNT_SETTINGS_FILE
       fi
 
-      str="Is the secondary DigiByte Node running?..."
+    # Next let's check if DigiByte daemon is running
+    if [ "$DGB_STATUS" = "installed" ]; then
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            str="Is the primary DigiByte Node running?..."
+        else
+            str="Is the DigiByte Node running?..."
+        fi
       printf "%b %s" "${INFO}" "${str}"
-      if check_service_active "digibyted-testnet"; then
-          DGB2_STATUS="running"
+      if check_service_active "digibyted"; then
+          DGB_STATUS="running"
           printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
       else
-          DGB2_STATUS="notrunning"
+          DGB_STATUS="notrunning"
           printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+
+      # If available, is the secondary DigiByte Node running?
+      if [ "$DGB_DUAL_NODE" = "YES" ]; then
+          str="Is the secondary DigiByte Node running?..."
+          printf "%b %s" "${INFO}" "${str}"
+          if check_service_active "digibyted-testnet"; then
+              DGB2_STATUS="running"
+              printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+          else
+              DGB2_STATUS="notrunning"
+              printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+          fi
       fi
 
     fi
@@ -9427,7 +9433,11 @@ digibyte_check() {
 
     # If primary DigiByte Node is running, is it in the process of starting up, and not yet ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ]; then
-        str="Is DigiByte node finished starting up?..."
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            str="Is the primary DigiByte Node finished starting up?..."
+        else
+            str="Is the DigiByte Node finished starting up?..."
+        fi
         printf "%b %s" "${INFO}" "${str}"
         IS_DGB_STARTED_UP=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>/dev/null)
         if [ "$IS_DGB_STARTED_UP" = "" ]; then
@@ -9440,7 +9450,7 @@ digibyte_check() {
 
     # If secondary "Dual Node" DigiByte Node is running, is it in the process of starting up, and not yet ready to respond to requests?
     if [ "$DGB2_STATUS" = "running" ]; then
-        str="Is secondary DigiByte node finished starting up?..."
+        str="Is the secondary DigiByte node finished starting up?..."
         printf "%b %s" "${INFO}" "${str}"
         IS_DGB2_STARTED_UP=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getblockcount 2>/dev/null)
         if [ "$IS_DGB2_STARTED_UP" = "" ]; then
@@ -9462,7 +9472,7 @@ digibyte_check() {
     # If primary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
     elif [ "$DGB_STATUS" = "startingup" ]; then
-        every15secs=0
+        every10secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         str="Please wait..."
@@ -9473,6 +9483,7 @@ digibyte_check() {
         if [ "$is_dgb_live_query" != "" ]; then
             dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
             dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
+            dgb_error_msg="${dgb_error_msg/…/...}"
         fi
         while [ $DGB_STATUS = "startingup" ]; do
 
@@ -9487,14 +9498,15 @@ digibyte_check() {
               progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
             fi 
 
-            if [ "$every15secs" -ge 30 ]; then
+            if [ "$every10secs" -ge 20 ]; then
                 # Query if digibyte has finished starting up. Display error. Send success to null.
                 is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI uptime 2>&1 1>/dev/null)
                 if [ "$is_dgb_live_query" != "" ]; then
                     dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
                     dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
+                    dgb_error_msg="${dgb_error_msg/…/...}"
                     printf "%b%b %s $dgb_error_msg  $progress Querying..." "${OVER}" "${INDENT}" "${str}"
-                    every15secs=0
+                    every10secs=0
                     sleep 0.5
                 else
                     DGB_STATUS="running"
@@ -9503,7 +9515,7 @@ digibyte_check() {
                     tput cnorm
                 fi
             else
-                every15secs=$((every15secs + 1))
+                every10secs=$((every10secs + 1))
                 printf "%b%b %s $dgb_error_msg  $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
@@ -9512,7 +9524,7 @@ digibyte_check() {
     # If secondary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
     elif [ "$DGB2_STATUS" = "startingup" ]; then
-        every15secs=0
+        every10secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bDigiByte secondary node is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         str="Please wait..."
@@ -9523,6 +9535,7 @@ digibyte_check() {
         if [ "$is_dgb_live_query" != "" ]; then
             dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
             dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
+            dgb_error_msg="${dgb_error_msg/…/...}"
         fi
         while [ $DGB2_STATUS = "startingup" ]; do
 
@@ -9537,14 +9550,15 @@ digibyte_check() {
               progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
             fi 
 
-            if [ "$every15secs" -ge 30 ]; then
+            if [ "$every10secs" -ge 20 ]; then
                 # Query if digibyte has finished starting up. Display error. Send success to null.
                 is_dgb_live_query=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet uptime 2>&1 1>/dev/null)
                 if [ "$is_dgb_live_query" != "" ]; then
                     dgb_error_msg=$(echo $is_dgb_live_query | cut -d ':' -f3)
                     dgb_error_msg=$(sed 's/%/%%/g' <<<"$dgb_error_msg")
+                    dgb_error_msg="${dgb_error_msg/…/...}"
                     printf "%b%b %s $dgb_error_msg $progress Querying..." "${OVER}" "${INDENT}" "${str}"
-                    every15secs=0
+                    every10secs=0
                     sleep 0.5
                 else
                     DGB2_STATUS="running"
@@ -9553,7 +9567,7 @@ digibyte_check() {
                     tput cnorm
                 fi
             else
-                every15secs=$((every15secs + 1))
+                every10secs=$((every10secs + 1))
                 printf "%b%b %s $dgb_error_msg $progress" "${OVER}" "${INDENT}" "${str}"
                 sleep 0.5
             fi
@@ -9608,13 +9622,18 @@ digibyte_check() {
     fi
 
     # Find out the current  DGB network chain
-    if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "notrunning" ]; then
+    if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "notrunning" ] || [ "$DGB_STATUS" = "startingup" ]; then
 
-        str="Checking current DigiByte chain..."
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            str="Checking primary DigiByte Node chain..."
+        else
+            str="Checking DigiByte Node chain..."
+        fi
+
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        digibyte_chain_query
+        query_digibyte_chain
 
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
             printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
@@ -9753,6 +9772,8 @@ digibyte_check() {
       DGB_INSTALL_TYPE="new"
       DGB_DO_INSTALL=YES
     fi
+
+    # banana verbose
 
     printf "\\n"
 
@@ -12778,7 +12799,7 @@ digiasset_node_create_settings() {
         printf "%b %s" "${INFO}" "${str}"
 
         # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        digibyte_chain_query
+        query_digibyte_chain
 
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
             printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
@@ -16193,7 +16214,7 @@ install_or_upgrade() {
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
     # Check if DigiByte Core is installed, and if there is an upgrade available
-    digibyte_check
+    check_digibyte_core
 
     # Check if IPFS installed, and if there is an upgrade available
     ipfs_check
@@ -16353,7 +16374,7 @@ add_digibyte_node() {
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
     # Check if DigiByte Core is installed, and if there is an upgrade available
-    digibyte_check
+    check_digibyte_core
 
     # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
     diginode_tools_check
