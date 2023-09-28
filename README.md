@@ -32,6 +32,7 @@ DigiNode Setup helps you to setup and manage your DigiNode:
    + Automatically configures your DigiAsset Node with your RPC credentials, ensuring your DigiAsset Node can connect to your DigiByte wallet. (No manual configuration required.)
 - Quickly and easilly upgrade your DigiByte and DigiAssets Node software to the latest release.
 - Optionally, install a pre-release version of DigiByte Core (See [Advanced Features](GETSTARTED.md#advanced-features).)
+- Set up a DigiByte mainnet node, testnode node, ot a Dual Node (mainnet and testnet side-by-side)
 - Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
 - Option to create a 'digibyte' user and set system hostname to 'diginode'. 
 - Option to enable zeroconf networking (Bonjour) so you can access your node at http://diginode.local:8090 - i.e. no need to remember the IP address.
@@ -50,7 +51,7 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Backup**: Helps you to backup your DigiByte wallet and/or your DigiAsset Node settings to an external USB stick.
 - **Restore**: Helps you to restore your DigiNode from an existing backup.
 - **UPnP**: Enable/disable using UPnP to forward required ports. Use of UPnP is generally not reccomeneded as some routers do not support it correctly. For best results, set up port forwarding manually.
-- **Network**: Switch between running DigiByte Core on mainnet or testnet
+- **Chain**: Switch between running DigiByte Core on mainnet or testnet, or a Dual Node.
 - **MOTD**: Enable the custom DigiNode Message of the Day. This displays the DigiNode logo and usage instructions whenever you login via the terminal.
 - **Extras**: Install additional software such as the cooling fan software for the Argon ONE case for the Rasperry Pi.
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
