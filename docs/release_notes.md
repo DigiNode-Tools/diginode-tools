@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.8.9 - 2023-09-28
+DigiNode Tools v0.8.9 - 2023-09-29
 - New: DigiNode Tools can now set up a Dual Node - i.e. Running a DigiByte mainnet node and testnet node simultaneously on the same device. You can also switch between them from the DigiNode Setup menu.
 - Fix: Switching between chains and enabling/disabling uPnP from the DigiNode Setup should now work correctly again. v0.8.7 introducted some bugs which hopefully are now solved.
 - IMPORTANT: Running a DigiByte testnet node or a Dual Node should only be attempted with DigiByte Core 8.22.0-rc3 or later, which is not yet released at time of writing. There is a bug in earlier versions of DigiByte Core, that causes the testnet chain to take many hours to start up - sometimes 24 or more. Running it on a Raspbeery Pi will not work. A more powerful system will get there eventually but will still take many hours to start up. In short, it is advisable to wait for the upcoming release before trying these.
