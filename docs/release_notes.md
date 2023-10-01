@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.8.10 - 2023-10-xx
+- New: Add support for new port tester developed by @JongJan88
+
 DigiNode Tools v0.8.9 - 2023-09-29
 - New: DigiNode Tools can now set up a Dual Node - i.e. Running a DigiByte mainnet node and testnet node simultaneously on the same device. You can also switch between them from the DigiNode Setup menu.
 - Fix: Switching between chains and enabling/disabling uPnP from the DigiNode Setup should now work correctly again. v0.8.7 introducted some bugs which hopefully are now solved.
