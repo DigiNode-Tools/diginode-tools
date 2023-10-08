@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.9
+#           Name:  DigiNode Setup v0.8.10
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -156,6 +156,7 @@ DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
 DISPLAY_HELP=false
 INSTALL_DGB_RELEASE_TYPE=""
+DGNS_UNKNOWN_FLAG=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -180,6 +181,8 @@ for var in "$@"; do
         "--dgbnopre" ) REQUEST_DGB_RELEASE_TYPE="release";;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
+        # If an unknown flag is used...
+        * ) DGNS_UNKNOWN_FLAG=true;;
     esac
 done
 
@@ -236,7 +239,31 @@ txtbld=$(tput bold) # Set bold mode
 # tput smso : Enter standout mode (bold on rxvt)
 # tput rmso : Exit standout mode
 
+# If this is an unknown flag, warn and quit
+if [ $DGNS_UNKNOWN_FLAG = true ]; then # 
 
+    # are we running remotely or locally?
+    if [[ "$0" == "bash" ]]; then
+        DGNT_RUN_LOCATION="remote"
+    else
+        DGNT_RUN_LOCATION="local"
+    fi
+
+    printf "\\n"
+    printf "%b ERROR: Unrecognised flag used: $var\\n" "${WARN}"
+    printf "\\n"
+    printf "%b For help, enter:\\n" "${INDENT}"
+    printf "\\n"
+    
+    if [ "$DGNT_RUN_LOCATION" = "local" ]; then
+        printf "%b$ %bdiginode-setup --help%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+    fi
+    if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
+        printf "%b $ %bcurl -sSL setup.diginode.tools | bash -s -- --help%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+    fi
+    printf "\\n"
+    exit
+fi
 
 #####################################################################################################
 ### FUNCTIONS
@@ -833,26 +860,27 @@ DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"
 # IP addresses (only rechecked once every 15 minutes)
 IP4_INTERNAL="$IP4_INTERNAL"
 IP4_EXTERNAL="$IP4_EXTERNAL"
+IP6_EXTERNAL="$IP6_EXTERNAL"
 
 # This records when DigiNode was last backed up to a USB stick
 DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$DGB_WALLET_BACKUP_DATE_ON_DIGINODE"
 DGA_CONFIG_BACKUP_DATE_ON_DIGINODE="$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE"
 
-# Stores when a DigiByte Core port test last ran successfully.
-# If you wish to re-enable the port test, change the DGB_PORT_TEST_ENABLED variable to YES.
-DGB_PORT_TEST_ENABLED="$DGB_PORT_TEST_ENABLED"
-DGB_PORT_FWD_STATUS="$DGB_PORT_FWD_STATUS"
-DGB_PORT_TEST_PASS_DATE="$DGB_PORT_TEST_PASS_DATE"
-DGB_PORT_TEST_EXTERNAL_IP="$DGB_PORT_TEST_EXTERNAL_IP"
-DGB_PORT_NUMBER_SAVED="$DGB_PORT_NUMBER_SAVED"
+# Stores when a DigiByte Core MAINNET port test last ran successfully.
+# If you wish to re-enable the port test, change the DGB_MAINNET_PORT_TEST_ENABLED variable to YES.
+DGB_MAINNET_PORT_TEST_ENABLED="$DGB_MAINNET_PORT_TEST_ENABLED"
+DGB_MAINNET_PORT_FWD_STATUS="$DGB_MAINNET_PORT_FWD_STATUS"
+DGB_MAINNET_PORT_TEST_PASS_DATE="$DGB_MAINNET_PORT_TEST_PASS_DATE"
+DGB_MAINNET_PORT_TEST_EXTERNAL_IP="$DGB_MAINNET_PORT_TEST_EXTERNAL_IP"
+DGB_MAINNET_PORT_NUMBER_SAVED="$DGB_MAINNET_PORT_NUMBER_SAVED"
 
-# Stores when a DigiByte Core port test last ran successfully for the testnet node, when running a DUAL NODE.
-# If you wish to re-enable the port test, change the DGB2_PORT_TEST_ENABLED variable to YES.
-DGB2_PORT_TEST_ENABLED="$DGB2_PORT_TEST_ENABLED"
-DGB2_PORT_FWD_STATUS="$DGB2_PORT_FWD_STATUS"
-DGB2_PORT_TEST_PASS_DATE="$DGB2_PORT_TEST_PASS_DATE"
-DGB2_PORT_TEST_EXTERNAL_IP="$DGB2_PORT_TEST_EXTERNAL_IP"
-DGB2_PORT_NUMBER_SAVED="$DGB2_PORT_NUMBER_SAVED"
+# Stores when a DigiByte Core TESTNET port test last ran successfully for the testnet node
+# If you wish to re-enable the port test, change the DGB_TESTNET_PORT_TEST_ENABLED variable to YES.
+DGB_TESTNET_PORT_TEST_ENABLED="$DGB_TESTNET_PORT_TEST_ENABLED"
+DGB_TESTNET_PORT_FWD_STATUS="$DGB_TESTNET_PORT_FWD_STATUS"
+DGB_TESTNET_PORT_TEST_PASS_DATE="$DGB_TESTNET_PORT_TEST_PASS_DATE"
+DGB_TESTNET_PORT_TEST_EXTERNAL_IP="$DGB_TESTNET_PORT_TEST_EXTERNAL_IP"
+DGB_TESTNET_PORT_NUMBER_SAVED="$DGB_TESTNET_PORT_NUMBER_SAVED"
 
 # Stores when an IPFS port test last ran successfully.
 # If you wish to re-enable the IPFS port test, change the IPFS_PORT_TEST_ENABLED variable to YES.
@@ -862,11 +890,22 @@ IPFS_PORT_TEST_PASS_DATE="$IPFS_PORT_TEST_PASS_DATE"
 IPFS_PORT_TEST_EXTERNAL_IP="$IPFS_PORT_TEST_EXTERNAL_IP"
 IPFS_PORT_NUMBER_SAVED="$IPFS_PORT_NUMBER_SAVED"
 
+# DigiByte MAINNET Node ID on digibyteseed.com
+DGB_MAINNET_NODE_ID="$DGB_MAINNET_NODE_ID"
+DGB_MAINNET_NODE_IP="$DGB_MAINNET_NODE_IP"
+DGB_MAINNET_NODE_PORT="$DGB_MAINNET_NODE_PORT"
+
+# DigiByte TESTNET Node ID on digibyteseed.com
+DGB_TESTNET_NODE_ID="$DGB_TESTNET_NODE_ID"
+DGB_TESTNET_NODE_IP="$DGB_TESTNET_NODE_IP"
+DGB_TESTNET_NODE_PORT="$DGB_TESTNET_NODE_PORT"
+
 # Do not display donation plea more than once every 15 mins (value should be YES or WAIT15)
 DONATION_PLEA="$DONATION_PLEA"
 
 # Store DigiByte blockchain sync progress
-BLOCKSYNC_VALUE="$BLOCKSYNC_VALUE"
+DGB_BLOCKSYNC_VALUE="$DGB_BLOCKSYNC_VALUE"
+DGB2_BLOCKSYNC_VALUE="$DGB2_BLOCKSYNC_VALUE"
 
 # User has chosen to enable/disable the DigiNode custom MOTD. This is set to ENABLED or DISABLED automatically by the script.
 MOTD_STATUS="$MOTD_STATUS"
@@ -885,7 +924,7 @@ SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 # There is no need to change these values yourself. They will be updated automatically.
 
 # Current DigiByte Block height in Millions. Used in the DigiFacts.
-DGB_BLOCK_HEIGHT_MIL="17"
+DGB_BLOCK_HEIGHT_MIL="18"
 
 # These variables stores the approximate amount of space required to download the entire DigiByte blockchain
 # This is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
@@ -7107,7 +7146,7 @@ change_dgb_network() {
 
 
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour DigiByte listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour DigiByte RPC ports are now $RPC_PORT (Mainnet) and $RPC2_PORT (Testnet)." 20 "${c}"
+        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour DigiByte listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour DigiByte RPC ports are now $RPC_PORT (Mainnet) and $DGB2_RPC_PORT (Testnet)." 20 "${c}"
 
 
     # Display alert box informing the user that listening port and rpcport have changed.
@@ -8206,7 +8245,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
 
     if [ "$show_dgb_network_menu" = "yes" ]; then
-        whiptail --msgbox --title "WARNING!" "WARNING: The next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). It is inadvisable to setup a testnet node, or Dual Node unless you are running DigiByte Core v8.22.0-rc3 or later. It will not work with the DigiByte 7.17.3 release.\\n\\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take many hours to launch a testnet node, sometimes as much as 24 or longer. This has been fixed in the upcoming DigiByte Core 8.22.0-rc3 prerelease. It is recommended to wait for that before trying it. Do not attempt to run a Dual Node or Testnet Node with the DigiByte v7.17.3 release." 19 "${c}"
+        whiptail --msgbox --title "WARNING!" "WARNING: The next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). It is inadvisable to setup a testnet node, or Dual Node unless you are running DigiByte Core v8.22.0-rc3 or later. It will not work with the DigiByte v7.17.3 release.\\n\\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take many hours to launch a testnet node, sometimes as much as 24 hours or longer. This issue has been fixed in the upcoming DigiByte Core v8.22.0-rc3 pre-release which, once available, can be install with the --dgbpre flag. It is recommended to wait for that before trying it. Do not attempt to run a Dual Node or Testnet Node with the DigiByte v7.17.3 release." 20 "${c}"
     fi
 
 
@@ -9014,14 +9053,14 @@ query_digibyte_chain() {
 
 digibyte_port_query() {
 
-    # Get current listening port
+    # Get primary DigiByte Node listening port
     DGB_LISTEN_PORT_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
         DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
         DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
     fi
 
-    # If we failed to get a result from digibyte-cli, check digibyte.conf instead
+    # If we failed to get a result from digibyte-cli for primary node, check digibyte.conf instead
     if  [ "$DGB_LISTEN_PORT_QUERY" = "" ] || [ "$DGB_LISTEN_PORT_QUERY" = "null" ]; then
 
         # Make sure we have already scraped digibyte.conf
@@ -9085,9 +9124,32 @@ digibyte_port_query() {
             fi
         fi
 
+    fi
 
-        # If we are running a Dual Node, or setting one up, we also need to get the current testnet listening port
-        if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+    # If we are running a Dual Node, or setting one up, we also need to get the current testnet listening port
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Get secondary DigiByte Node listening port
+        DGB2_LISTEN_PORT_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        if [ "$DGB2_LISTEN_PORT_QUERY" != "" ]; then
+            DGB2_LISTEN_PORT=$DGB2_LISTEN_PORT_QUERY
+            DGB2_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
+        fi
+
+        # If we failed to get a result from digibyte-cli for the secondary node, check digibyte.conf instead
+        if  [ "$DGB2_LISTEN_PORT_QUERY" = "" ] || [ "$DGB2_LISTEN_PORT_QUERY" = "null" ]; then
+
+            # Make sure we have already scraped digibyte.conf
+            if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+                scrape_digibyte_conf
+            fi
+
+            # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+            if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+                query_digibyte_chain
+            fi
+
+            DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
 
             if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
                 DGB2_LISTEN_PORT="12026"
@@ -9342,7 +9404,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         # Look up rpcport from the [test] section of digibyte.conf
         RPC2_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^rpcport= | cut -d'=' -f 2)
         if [ "$RPC2_PORT_TEST" != "" ]; then
-            RPC2_PORT="$RPC_PORT_TEST"
+            RPC2_PORT="$RPC2_PORT_TEST"
         else
             # If testnet rpcport was not set anywhere else, then set the testnet default
             if [ "$RPC2_PORT" = "" ]; then 
