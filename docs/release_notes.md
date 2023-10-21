@@ -1,7 +1,10 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.9.0 - 2023-10-xx
-- New: 
+- New: "DigiNode Dashboard". The old Status Monitor has been completely redesigned from the ground up. It now resizes automatically to fit the width of the terminal, increasing or decreasing the information density based on the space available. It also now displays the CPU status and more detailed disk space usage.
+- New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information here: https://github.com/saltedlolly/DigiByte-DigiFacts-JSON
+- New: Added "diginode --dgbpeers" flag to display the current DigiByte peers. User --dgb2peers for the secondary textnet neode when running a Dual Node.
+- New: Added "diginode --rpc" flag to display the current RPC credentials for the DigiByte Node. It saves you from having to look them up in digibyte.conf
 
 DigiNode Tools v0.8.10 - 2023-10-08
 - New: Add support for new DigiByte port tester developed by @JongJan88

@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Status Monitor v0.9.0
+#           Name:  DigiNode Dashboard v0.9.0
 #
-#        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
+#        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
 #                  Other distros may not work at present. Please help test so that support can be added.
@@ -24,7 +24,7 @@
 #                  git clone https://github.com/saltedlolly/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode.sh
 #
-#                  To run DigiNode Status Monitor:
+#                  To run DigiNode Dashboard:
 #
 #                  ~/diginode-tools/diginode.sh      
 #
@@ -38,7 +38,7 @@
 # in the same folder when it runs. Tne setup script contains functions and variables
 # used by this one.
 #
-# Both DigiNode Setup and Status Monitor scripts make use of a settings file
+# Both DigiNode Setup and Dashboard scripts make use of a settings file
 # located at: ~/.digibyte/diginode.settings
 #
 # It want to make changes to folder locations etc. please edit this file.
@@ -90,7 +90,7 @@ INDENT="     "
 DONE="${COL_LIGHT_GREEN} done!${COL_NC}"
 OVER="\\r\\033[K"
 
-## Set variables for colors and formatting
+## Set ANSI code variables for colors and formatting
 
 txtred=$(tput setaf 1) # Red
 txtgrn=$(tput setaf 2) # Green
@@ -123,6 +123,18 @@ txtbld=$(tput bold) # Set bold mode
 # tput smso : Enter standout mode (bold on rxvt)
 # tput rmso : Exit standout mode
 
+# Dashboard colors
+dbcol_bwht="\e[97m"        # Bright White
+dbcol_bred="\e[91m"        # Bright Red
+dbcol_bylw="\e[93m"        # Bright Yellow
+dbcol_bgrn="\e[92m"        # Bright Green
+dbcol_bblu="\e[94m"        # Bright Blue
+#########
+dbcol_bld="\e[1m"          # Bold Text
+dbcol_rst="\e[0m"          # Text Reset
+#########
+dbcol_bld_bwht="\e[1;37m"  # Bold Bright White Text
+
 
 ######## Undocumented Flags. Shhh ########
 # These are undocumented flags; 
@@ -141,6 +153,9 @@ DGBCORE_RESTART=false
 DGBCORE_STOP=false
 DGB2CORE_RESTART=false
 DGB2CORE_STOP=false
+DGBPEERS=false
+DGB2PEERS=false
+VIEW_RPC_CREDENTIALS=false
 UNKNOWN_FLAG=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
@@ -163,6 +178,9 @@ for var in "$@"; do
         "--dgbstop" ) DGBCORE_STOP=true;;
         "--dgb2restart" ) DGB2CORE_RESTART=true;;
         "--dgb2stop" ) DGB2CORE_STOP=true;;
+        "--dgbpeers" ) DGBPEERS=true;;
+        "--dgb2peers" ) DGB2PEERS=true;;
+        "--rpc" ) VIEW_RPC_CREDENTIALS=true;;
         # If an unknown flag is used...
         *) UNKNOWN_FLAG=true;;
     esac
@@ -176,7 +194,8 @@ done
 
 # Run a command via a launch flag
 flag_commands() {
-if [ $EDIT_DGBCFG = true ] || \
+if [ $UNKNOWN_FLAG = true ] || \
+   [ $EDIT_DGBCFG = true ] || \
    [ $EDIT_DGNTSET = true ] || \
    [ $VIEW_DGBLOG = true ] || \
    [ $VIEW_DGBLOGMN = true ] || \
@@ -187,7 +206,10 @@ if [ $EDIT_DGBCFG = true ] || \
    [ $DGBCORE_STOP = true ] || \
    [ $DGB2CORE_RESTART = true ] || \
    [ $DGB2CORE_STOP = true ] || \
-   [ $UNKNOWN_FLAG = true ]; then
+   [ $DGB2CORE_STOP = true ] || \
+   [ $DGBPEERS = true ] || \
+   [ $DGB2PEERS = true ] || \
+   [ $VIEW_RPC_CREDENTIALS = true ]; then
     printf "\\n"
     get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
     import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
@@ -205,7 +227,7 @@ if [ $EDIT_DGBCFG = true ] || \
 
     # Work out which DigiByte log file to display based on which chain is in use
     if [ $VIEW_DGBLOG = true ]; then # --dgblog
-        diginode_tools_import_settings
+        diginode_tools_import_settings silent
         query_digibyte_chain
         if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             VIEW_DGBLOGTN=true
@@ -219,15 +241,16 @@ if [ $EDIT_DGBCFG = true ] || \
     fi
 
     if [ $EDIT_DGBCFG = true ]; then # --dgbcfg
-        diginode_tools_import_settings
+        diginode_tools_import_settings silent
         set_text_editor
         if test -f $DGB_CONF_FILE; then
             exec $TEXTEDITOR $DGB_CONF_FILE
         else
             printf "%bError: digibyte.conf file does not exist\\n\\n" "${INDENT}"
+            exit 1
         fi
     elif [ $EDIT_DGNTSET = true ]; then # --dgntset
-        diginode_tools_import_settings
+        diginode_tools_import_settings silent
         set_text_editor  
         if test -f $DGNT_SETTINGS_FILE ; then
             exec $TEXTEDITOR $DGNT_SETTINGS_FILE 
@@ -236,7 +259,7 @@ if [ $EDIT_DGBCFG = true ] || \
         fi
     elif [ $VIEW_DGBLOGMN = true ]; then # --dgblogmn
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
-            diginode_tools_import_settings
+            diginode_tools_import_settings silent
         fi
         if test -f $DGB_SETTINGS_LOCATION/debug.log ; then
             echo "      ====================================="
@@ -248,10 +271,11 @@ if [ $EDIT_DGBCFG = true ] || \
             exec tail -n50 -f $DGB_SETTINGS_LOCATION/debug.log
         else
             printf "%bError: DigiByte Core MAINNET log file does not exist\\n\\n" "${INDENT}"
+            exit 1
         fi
     elif [ $VIEW_DGBLOGTN = true ]; then # --dgblogtn
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
-            diginode_tools_import_settings
+            diginode_tools_import_settings silent
         fi
         if test -f $DGB_SETTINGS_LOCATION/testnet4/debug.log ; then
             echo "      ====================================="
@@ -263,10 +287,11 @@ if [ $EDIT_DGBCFG = true ] || \
             exec tail -n50 -f $DGB_SETTINGS_LOCATION/testnet4/debug.log
         else
             printf "%bError: DigiByte Core TESTNET log file does not exist\\n\\n" "${INDENT}"
+            exit 1
         fi
     elif [ $VIEW_DGBLOGRT = true ]; then # --dgblogrt
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
-            diginode_tools_import_settings
+            diginode_tools_import_settings silent
         fi
         if test -f $DGB_SETTINGS_LOCATION/regtest/debug.log ; then
             echo "      ====================================="
@@ -278,10 +303,11 @@ if [ $EDIT_DGBCFG = true ] || \
             exec tail -n50 -f $DGB_SETTINGS_LOCATION/regtest/debug.log
         else
             printf "%bError: DigiByte Core REGTEST log file does not exist\\n\\n" "${INDENT}"
+            exit 1
         fi
     elif [ $VIEW_DGBLOGSN = true ]; then # --dgblogrt
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
-            diginode_tools_import_settings
+            diginode_tools_import_settings silent
         fi
         if test -f $DGB_SETTINGS_LOCATION/signet/debug.log ; then
             echo "      ====================================="
@@ -293,6 +319,7 @@ if [ $EDIT_DGBCFG = true ] || \
             exec tail -n50 -f $DGB_SETTINGS_LOCATION/signet/debug.log
         else
             printf "%bError: DigiByte Core SIGNET log file does not exist\\n\\n" "${INDENT}"
+            exit 1
         fi
     elif [ $DGBCORE_RESTART = true ]; then # --dgbrestart
         local str="Restarting digibyted service"
@@ -319,7 +346,7 @@ if [ $EDIT_DGBCFG = true ] || \
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
     elif [ $DGB2CORE_RESTART = true ]; then # --dgbrestart
-        diginode_tools_import_settings
+        diginode_tools_import_settings silent
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             local str="Restarting digibyted-testnet service"
             printf "%b %s..." "${INFO}" "${str}"
@@ -336,7 +363,7 @@ if [ $EDIT_DGBCFG = true ] || \
         fi
         exit
      elif [ $DGB2CORE_STOP = true ]; then # --stopdgb
-        diginode_tools_import_settings
+        diginode_tools_import_settings silent
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             local str="Stopping digibyted-testnet service"
             printf "%b %s..." "${INFO}" "${str}"
@@ -350,6 +377,72 @@ if [ $EDIT_DGBCFG = true ] || \
             printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%bError: DigiByte Dual Node not installed.\\n\\n" "${INDENT}"
+        fi
+        exit
+    elif [ $DGBPEERS = true ]; then # --dgbpeers
+        diginode_tools_import_settings silent
+        query_digibyte_chain
+        if check_service_active "digibyted"; then
+            printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
+            printf "IP4 Peers:\\n"
+            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[')
+            if [ -z "$ip4peers" ]; then
+                echo "none"
+            else
+                echo "$ip4peers"
+            fi
+            printf "\\n"
+            printf "IP6 Peers:\\n"
+            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[')
+            if [ -z "$ip6peers" ]; then
+                echo "none"
+            else
+                echo "$ip6peers"
+            fi
+            printf "\\n"
+            exit
+        elsediginode
+            printf "%b %bERROR: DigiByte $DGB_NETWORK_CURRENT Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            exit 1
+        fi
+    elif [ $DGB2PEERS = true ]; then # --dgb2peers
+        if check_service_active "digibyted-testnet"; then
+            printf "DigiByte TESTNET Node Peers:\\n\\n"
+            printf "IP4 Peers:\\n"
+            ip4peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[')
+            if [ -z "$ip4peers" ]; then
+                echo "none"
+            else
+                echo "$ip4peers"
+            fi
+            printf "\\n"
+            printf "IP6 Peers:\\n"
+            ip6peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[')
+            if [ -z "$ip6peers" ]; then
+                echo "none"
+            else
+                echo "$ip6peers"
+            fi
+            printf "\\n"
+            exit
+        else
+            printf "%b %bERROR: DigiByte TESTNET Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "\\n"
+            exit 1
+        fi
+    elif [ $VIEW_RPC_CREDENTIALS = true ]; then # --rpc
+        diginode_tools_import_settings silent
+        scrape_digibyte_conf
+        query_digibyte_chain
+        digibyte_rpc_query
+        printf "DigiByte Core RPC Credentials:\\n\\n"
+        printf "      RPC User: $RPC_USER\\n\\n"
+        printf "  RPC Password: $RPC_PASSWORD\\n\\n"
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+        printf "     RPC Ports: $RPC_PORT (%s)   $RPC2_PORT (Testnet)\\n\\n" "$(echo "${DGB_NETWORK_CURRENT,,}" | sed 's/./\U&/1')"
+        else
+        printf "     RPC Ports: $RPC_PORT (%s)\\n\\n" "$(echo "${DGB_NETWORK_CURRENT,,}" | sed 's/./\U&/1')"
         fi
         exit
     fi
@@ -379,30 +472,34 @@ display_help() {
         echo ""
         echo "  ╔════════════════════════════════════════════════════════╗"
         echo "  ║                                                        ║"
-        echo "  ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
+        echo "  ║          ${txtbld}D I G I N O D E   D A S H B O A R D${txtrst}           ║ "
         echo "  ║                                                        ║"
         echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
-        printf "%bOptional flags when running DigiNode Status Monitor:\\n" "${INDENT}"
+        printf "%bOptional flags when running DigiNode Dashboard:\\n" "${INDENT}"
         printf "\\n"
         printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgbrestart%b    - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "%b%b--dgbstop%b       - Stop primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbpeers%b      - List peers for primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         else
             printf "%b%b--dgbrestart%b    - Restart DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "%b%b--dgbstop%b       - Stop DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbpeers%b      - List peers for DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgb2restart%b   - Restart secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "%b%b--dgb2stop%b      - Stop secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgb2peers%b     - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "\\n"
         printf "%b%b--dgbcfg%b        - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgntset%b       - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--rpc%b           - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -461,14 +558,14 @@ import_setup_functions() {
         printf "%b %bERROR: diginode-setup.sh file not found.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b The diginode-setup.sh file is required to continue.\\n" "${INDENT}"
-        printf "%b It contains functions we need to run the DigiNode Status Monitor.\\n" "${INDENT}"
+        printf "%b It contains functions we need to run the DigiNode Dashboard.\\n" "${INDENT}"
         printf "\\n"
         printf "%b If you have not already setup your DigiNode, please use\\n" "${INDENT}"
         printf "%b the official DigiNode Setup script:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   $DGNT_SETUP_OFFICIAL_CMD\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Alternatively, to use 'DigiNode Status Monitor' with your existing\\n" "${INDENT}"
+        printf "%b Alternatively, to use 'DigiNode Dashboard' with your existing\\n" "${INDENT}"
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
@@ -483,7 +580,7 @@ import_setup_functions() {
     fi
 }
 
-# A simple function that clears the sreen and displays the status monitor title in a box
+# A simple function that clears the sreen and displays the Dashboard title in a box
 digimon_title_box() {
     clear -x
     tput civis
@@ -491,7 +588,7 @@ digimon_title_box() {
     echo ""
     echo "  ╔════════════════════════════════════════════════════════╗"
     echo "  ║                                                        ║"
-    echo "  ║      ${txtbld}D I G I N O D E   S T A T U S   M O N I T O R${txtrst}     ║ "
+    echo "  ║          ${txtbld}D I G I N O D E   D A S H B O A R D${txtrst}           ║ "
     echo "  ║                                                        ║"
     echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
     echo "  ║                                                        ║"
@@ -528,7 +625,7 @@ locate_digibyte_node() {
         printf "%b    it will not be monitored.\\n" "${INDENT}"
         printf "\\n"
         printf "%b 4. ${txtbld}EXIT${txtrst}\\n" "${INDENT}"
-        printf "%b    Exit DigiNode Status Monitor.\\n" "${INDENT}"
+        printf "%b    Exit DigiNode Dashboard.\\n" "${INDENT}"
         printf "\\n"
         read -n 1 -r -s -p "                  Please choose option 1, 2, 3 or 4: "        
         printf "\\n" 
@@ -907,8 +1004,8 @@ is_dgbnode_installed() {
         else
 #          printf "\\n"
 #          printf "%b %bERROR: DigiByte daemon is not running.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-#          printf "%b DigiNode Status Monitor cannot start as your DigiByte Node is not currently running.\\n" "${INDENT}"
-#          printf "%b Please start digibyted and then relaunch the status monitor.\\n" "${INDENT}"
+#          printf "%b DigiNode Dashboard cannot start as your DigiByte Node is not currently running.\\n" "${INDENT}"
+#          printf "%b Please start digibyted and then relaunch the Dashboard.\\n" "${INDENT}"
 #          printf "%b DigiNode Setup can help you to setup DigiByte daemon to run as a service\\n" "${INDENT}"
 #          printf "%b so that it launches automatically at boot.\\n" "${INDENT}"
 #          printf "\\n"
@@ -1379,50 +1476,68 @@ format_dga_console() {
 
 # Format Stream
 if [ "$DGA_CONSOLE_STREAM" = "Connected" ]; then
-    DGA_CONSOLE_STREAM="[✓] Stream"
+    DGA_CONSOLE_STREAM="[✓]"
 else
-    DGA_CONSOLE_STREAM="[✗] Stream"
+    DGA_CONSOLE_STREAM="[✗]"
 fi
 
-# Format Security
+# Format Security (PAssword)
 if [ "$DGA_CONSOLE_SECURITY" = "Connected" ]; then
-    DGA_CONSOLE_SECURITY="[✓] Password"
+    DGA_CONSOLE_SECURITY="[✓]"
 else
-    DGA_CONSOLE_SECURITY="[✗] Password"
+    DGA_CONSOLE_SECURITY="[✗]"
 fi
 
 # Format Wallet
 if [ "$DGA_CONSOLE_WALLET" = "Connected" ]; then
-    DGA_CONSOLE_WALLET="[✓] Wallet"
+    DGA_CONSOLE_WALLET="[✓]"
 else
-    DGA_CONSOLE_WALLET="[✗] Wallet"
+    DGA_CONSOLE_WALLET="[✗]"
 fi
 
 if [ "$DGA_PAYOUT_ADDRESS" = "null" ] || [ "$DGA_PAYOUT_ADDRESS" = "" ]; then
-    DGA_PAYOUT_ADDRESS_STATUS="[✗] Payout"
+    DGA_PAYOUT_ADDRESS_STATUS="[✗]"
 else
-    DGA_PAYOUT_ADDRESS_STATUS="[✓] Payout"
+    DGA_PAYOUT_ADDRESS_STATUS="[✓]"
 fi
 
-
+#IPFS_PORT_STATUS_CONSOLE="BLOCKED"
+#IPFS_PORT_STATUS_COLOR="YELLOW"
+#DGA_BLOCK_HEIGHT_COLOR="YELLOW"
 
 # Display IPFS Status in red if the port is blocked
 if [ "$IPFS_PORT_STATUS_CONSOLE" = "BLOCKED" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbred}$DGA_CONSOLE_IPFS${txtrst}" "║"
+    printf " ║ DIGIASSET NODE ║    IPFS STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}$DGA_CONSOLE_IPFS${txtrst}" " ║ "
 elif [ "$IPFS_PORT_STATUS_COLOR" = "YELLOW" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s %-1s\n" "IPFS: ${txtbylw}$DGA_CONSOLE_IPFS${txtrst}" "║"
+    printf " ║ DIGIASSET NODE ║    IPFS STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}$DGA_CONSOLE_IPFS${txtrst}" " ║ "
 else
-printf "  ║ DIGIASSET NODE ║  " && printf "%-49s %-1s\n" "IPFS: $DGA_CONSOLE_IPFS" "║"
+    printf " ║ DIGIASSET NODE ║    IPFS STATUS ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$DGA_CONSOLE_IPFS" " ║ "
 fi
-printf "  ║                ║  " && printf "%-57s %-1s\n" "$DGA_CONSOLE_WALLET  $DGA_CONSOLE_STREAM  $DGA_CONSOLE_SECURITY  $DGA_PAYOUT_ADDRESS_STATUS" "║"
+
+echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+if [ $term_width -gt 124 ]; then 
+    printf " ║                ║    NODE STATUS ║  " && printf "%-${col_width_dga_status}s %-3s\n" "$DGA_CONSOLE_WALLET DigiByte Wallet Connection   $DGA_CONSOLE_STREAM Stream   $DGA_CONSOLE_SECURITY Password   $DGA_PAYOUT_ADDRESS_STATUS DGB Payout Address" " ║ "
+elif [ $term_width -gt 111 ]; then 
+    printf " ║                ║    NODE STATUS ║  " && printf "%-${col_width_dga_status}s %-3s\n" "$DGA_CONSOLE_WALLET Wallet Connection   $DGA_CONSOLE_STREAM Stream   $DGA_CONSOLE_SECURITY Password   $DGA_PAYOUT_ADDRESS_STATUS Payout Address" " ║ "
+else
+    printf " ║                ║    NODE STATUS ║  " && printf "%-${col_width_dga_status}s %-3s\n" "$DGA_CONSOLE_WALLET Wallet   $DGA_CONSOLE_STREAM Stream   $DGA_CONSOLE_SECURITY Password   $DGA_PAYOUT_ADDRESS_STATUS Payout" " ║ "
+fi
+
+echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 if [ "$DGA_BLOCK_HEIGHT_COLOR" = "RED" ]; then
-printf "  ║                ║  " && printf "%-60s %-1s\n" "ERROR: ${txtbred}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" "║"
+    printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "ERROR: ${txtbred}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" " ║ "
 elif [ "$DGA_BLOCK_HEIGHT_COLOR" = "YELLOW" ]; then
-printf "  ║                ║  " && printf "%-60s %-1s\n" "Block Height: ${txtbylw}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" "║"
+    printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}$DGA_CONSOLE_BLOCK_HEIGHT${txtrst}" " ║ "
 else
-printf "  ║                ║  " && printf "%-49s %-1s\n" "Block Height: $DGA_CONSOLE_BLOCK_HEIGHT" "║"
+    printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$DGA_CONSOLE_BLOCK_HEIGHT Blocks" " ║ "
 fi
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+
+echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+if [ "$IS_AVAHI_INSTALLED" = "yes" ]; then
+    printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$HOSTNAME.local:8090    http://$IP4_INTERNAL:8090" " ║ "
+else
+    printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$IP4_INTERNAL:8090" " ║ "
+fi
 
 }
 
@@ -1492,9 +1607,9 @@ if [ "$DGB_STATUS" = "running" ]; then
     # ===============================================================================
 
     if [ -f "$DGB_CONF_FILE" ]; then
-      WALLET_STATUS=$(cat $DGB_CONF_FILE | grep disablewallet | cut -d'=' -f 2)
-      if [ "$WALLET_STATUS" = "1" ]; then
-        WALLET_STATUS="disabled"
+      DGB_WALLET_STATUS=$(cat $DGB_CONF_FILE | grep disablewallet | cut -d'=' -f 2)
+      if [ "$DGB_WALLET_STATUS" = "1" ]; then
+        DGB_WALLET_STATUS="disabled"
         printf "%b %bDigiByte Wallet Status: DISABLED%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         if [ "$DGA_STATUS" = "running" ]; then
             printf "\\n"
@@ -1504,7 +1619,7 @@ if [ "$DGB_STATUS" = "running" ]; then
         fi
         STARTWAIT="yes"
       else
-        WALLET_STATUS="enabled"
+        DGB_WALLET_STATUS="enabled"
         printf "%b %bDigiByte Wallet Status: ENABLED%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       fi
       printf "\\n"
@@ -1523,8 +1638,11 @@ install_required_pkgs() {
     fi
 }
 
-# Quit message
+# Quit message - this functions runs automatically before exiting
 quit_message() {
+
+    kill $bg_cpu_stats_pid
+    rm -f "$cpu1_file" "$cpu2_file" "$avg_file"
 
     tput rmcup
     stty echo
@@ -1547,7 +1665,7 @@ quit_message() {
 #      digifact_randomize
 
       # Display a random DigiFact
-      digifact_display
+      display_digifact_fixedwidth
 
       printf "  %b %bThere are software updates available for your DigiNode.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       printf "\\n"
@@ -1595,7 +1713,7 @@ quit_message() {
       printf "\\n"
 
       # Display a random DigiFact
-      digifact_display
+      display_digifact_fixedwidth
 
       #Display donation QR code
       donation_qrcode
@@ -1616,7 +1734,7 @@ quit_message() {
  #     digifact_randomize
 
       # Display a random DigiFact
-      digifact_display
+      display_digifact_fixedwidth
 
       printf "\\n"
 
@@ -1629,7 +1747,7 @@ quit_message() {
 
 if [ "$auto_quit" = true ]; then
     echo ""
-    printf "%b DigiNode Status Monitor quit automatically as it was left running\\n" "${INFO}"
+    printf "%b DigiNode Dashboard quit automatically as it was left running\\n" "${INFO}"
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
@@ -1824,85 +1942,12 @@ get_country_name() {
 
 firstrun_monitor_configs() {
 
-# If this is the first time running the status monitor, set the variables that update periodically
+# If this is the first time running the Dashboard, set the variables that update periodically
 if [ "$DGNT_MONITOR_FIRST_RUN" = "" ]; then
 
-    printf "%b First time running DigiNode Status Monitor. Performing initial setup...\\n" "${INFO}"
+    printf "%b First time running DigiNode Dashboard. Performing initial setup...\\n" "${INFO}"
 
-    # update external IP address and save to settings file
-    str="Looking up external IP address..."
-    printf "  %b %s" "${INFO}" "${str}"
-    IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
-    if [ $IP4_EXTERNAL_QUERY != "" ]; then
-        IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
-        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
-    else
-        IP4_EXTERNAL="OFFLINE"
-        sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
-    fi
-    printf "  %b%b %s Done!\\n" "  ${OVER}" "${TICK}" "${str}"
-
-
-    # update internal IP address and save to settings file
-    str="Looking up internal IP address..."
-    printf "  %b %s" "${INFO}" "${str}"
-    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-    if [ $IP4_INTERNAL_QUERY != "" ]; then
-        IP4_INTERNAL=$IP4_INTERNAL_QUERY
-        sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
-    fi
-    printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-    str="Setting up Status Monitor timers..."
-    printf "  %b %s" "${INFO}" "${str}"
-    # set 15 sec timer and save to settings file
-    SAVED_TIME_10SEC="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-
-    # set 1 min timer and save to settings file
-    SAVED_TIME_1MIN="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-
-    # set 15 min timer and save to settings file
-    SAVED_TIME_15MIN="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-
-    # set daily timer and save to settings file
-    SAVED_TIME_1DAY="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-
-    # set weekly timer and save to settings file
-    SAVED_TIME_1WEEK="$(date +%s)"
-    sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-    printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-
-    # check for current version number of DigiByte Core and save to settings file
-    str="Looking up DigiByte Core version number..."
-    printf "  %b %s" "${INFO}" "${str}"
-
-    if [ "$DGB_PRERELEASE" = "YES" ]; then
-        printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL} [ Pre-release ]\\n" "${OVER}" "${TICK}" "${str}"
-        IS_DGB_RUNNING_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        if [ "$IS_DGB_RUNNING_QUERY" = "" ] && [ $DGB_STATUS != "not_detected" ]; then
-            DGB_STATUS="startingup"
-            printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
-        fi
-    else
-        DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-        if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
-            DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
-            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-            printf "  %b%b %s Found: DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            if [ $DGB_STATUS != "not_detected" ]; then
-                DGB_STATUS="startingup"
-                printf "  %b%b %s ERROR: DigiByte daemon is still starting up.\\n" "${OVER}" "${CROSS}" "${str}"
-            fi
-        fi
-    fi
-
-    # Log date of Status Monitor first run to diginode.settings
+    # Log date of Dashboard first run to diginode.settings
     str="Logging date of first run to diginode.settings file..."
     printf "  %b %s" "${INFO}" "${str}"
     DGNT_MONITOR_FIRST_RUN=$(date)
@@ -1993,24 +2038,6 @@ clean_dgb_error_msg() {
     DGB2_ERROR_MSG="${DGB2_ERROR_MSG/…/...}"
 }
 
-# displays the current network chain in the dashboard
-
-display_network_chain() {
-
-# Display if we are using the testnet chain
-if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then 
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}TESTNET${txtrst} [Thanks for supporting DigiByte devs!] " " ║"
-elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then 
-# printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}REGTEST${txtrst} [Developer Mode!] " " ║"
-elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then 
-# printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ DGB CHAIN      ║  " && printf "%-59s %-4s\n" "${txtbylw}SIGNET${txtrst} [Developer Mode!] " " ║"
-fi
-
-}
-
 
 # displays the current DigiByte Core listening port
 display_listening_port() {
@@ -2030,6 +2057,103 @@ fi
 
 }
 
+
+# check for a digibyte update
+check_digibyte_update() {
+
+    # Check for latest pre-release version of DigiByte Core if it is currently being used
+    if [ "$DGB_PRERELEASE" = "YES" ]; then
+
+        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+
+        # If there is no pre-release version, then we will lookup the release version
+        if [ "$DGB_VER_PRERELEASE" = "null" ]; then
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+            INSTALL_DGB_RELEASE_TYPE="release"
+        else
+            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            INSTALL_DGB_RELEASE_TYPE="prerelease"
+        fi
+    fi
+
+
+    # Check for latest release version of DigiByte Core on Github
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+        DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+        if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
+          DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+          sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        fi
+    fi
+
+
+    # Set DGB_VER_GITHUB to the version we are comparing against
+    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
+        DGB_VER_GITHUB=$DGB_VER_RELEASE
+    elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+        DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+    fi
+
+    # Compare current DigiByte Core version with Github version to know if there is a new version available
+    dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
+    if [ "$dgb_update_status" = "update_available" ]; then
+        DGB_VER_LOCAL_CHECK_FREQ="10secs"
+        sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
+        DGB_UPDATE_AVAILABLE="yes"
+    else
+        DGB_UPDATE_AVAILABLE="no"
+    fi
+
+
+    
+#    if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
+#      DGB_UPDATE_AVAILABLE="no"
+#    else
+#      DGB_VER_LOCAL_CHECK_FREQ="10secs"
+#      sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
+#      DGB_UPDATE_AVAILABLE="yes"
+#    fi
+
+
+}
+
+# Function to gather CPU stats in the background
+get_cpu_stats() {
+    while true; do
+        stats=$(mpstat -P ALL 1 1 | awk '/Average:/ && $2 ~ /[0-9]/ {print $2, 100-$NF}')
+
+        num_cores=$(echo "$stats" | wc -l)
+        split_point=$(( (num_cores + 1) / 2 ))
+
+        cpu_usage_1=""
+        cpu_usage_2=""
+        total_usage=0
+        counter=1
+
+        while IFS= read -r line; do
+            core=$(echo "$line" | awk '{print $1}')
+            usage=$(echo "$line" | awk '{printf "%.1f", $2}')
+            
+            total_usage=$(echo "$total_usage + $usage" | bc)
+
+            if [ "$counter" -le "$split_point" ]; then
+                cpu_usage_1+="#${core}: ${usage}%    "
+            else
+                cpu_usage_2+="#${core}: ${usage}%    "
+            fi
+
+            counter=$((counter + 1))
+        done <<< "$stats"
+
+        average_usage=$(echo "scale=1; $total_usage / $num_cores" | bc)
+
+        echo "$cpu_usage_1" > "$cpu1_file"
+        echo "$cpu_usage_2" > "$cpu2_file"
+        echo "$average_usage" > "$avg_file"
+        sleep 0.95
+    done
+}
+
 pre_loop() {
 
     printf " =============== Performing Startup Checks ==============================\\n\\n"
@@ -2046,48 +2170,173 @@ pre_loop() {
 
     if [ "$SAVED_TIME_10SEC" = "" ]; then
         str="Repairing 10 Second timer..."
-        printf "  %b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         # set 10 sec timer and save to settings file
         SAVED_TIME_10SEC="$(date +%s)"
         sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ "$SAVED_TIME_1MIN" = "" ]; then
         str="Repairing 1 Minute timer..."
-        printf "  %b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         # set 1 min timer and save to settings file
         SAVED_TIME_1MIN="$(date +%s)"
         sed -i -e "/^SAVED_TIME_1MIN=/s|.*|SAVED_TIME_1MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ "$SAVED_TIME_15MIN" = "" ]; then
         str="Repairing 15 Minute timer..."
-        printf "  %b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         # set 15 min timer and save to settings file
         SAVED_TIME_15MIN="$(date +%s)"
         sed -i -e "/^SAVED_TIME_15MIN=/s|.*|SAVED_TIME_15MIN=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ "$SAVED_TIME_1DAY" = "" ]; then
         str="Repairing 1 Day timer..."
-        printf "  %b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         # set 15 min timer and save to settings file
         SAVED_TIME_1DAY="$(date +%s)"
         sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     if [ "$SAVED_TIME_1WEEK" = "" ]; then
         str="Repairing 1 Week timer..."
-        printf "  %b %s" "${INFO}" "${str}"
+        printf "%b %s" "${INFO}" "${str}"
         # set 1 week timer and save to settings file
         SAVED_TIME_1WEEK="$(date +%s)"
         sed -i -e "/^SAVED_TIME_1WEEK=/s|.*|SAVED_TIME_1WEEK=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
-        printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
+
+
+    # update external IP address and save to settings file
+    if [ "$IP4_EXTERNAL" = "" ]; then
+        str="Looking up IP4 external address..."
+        printf "%b %s" "${INFO}" "${str}"
+        IP4_EXTERNAL_QUERY=$(dig @resolver4.opendns.com myip.opendns.com +short 2>/dev/null)
+        if [ $IP4_EXTERNAL_QUERY != "" ]; then
+            IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Offline!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
+    # update internal IP address and save to settings file
+    str="Looking up IP4 internal address..."
+    printf "%b %s" "${INFO}" "${str}"
+    IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+    if [ "$IP4_INTERNAL_QUERY" != "" ]; then
+        IP4_INTERNAL=$IP4_INTERNAL_QUERY
+        sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        IP4_INTERNAL="OFFLINE"
+        sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Offline!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+
+    # update IP6 link-local address and save to settings file
+    str="Looking up IP6 link-local address..."
+    printf "%b %s" "${INFO}" "${str}"
+    IP6_LINKLOCAL_QUERY=$(ip -6 addr show | grep 'inet6 fe80:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+    if [ $IP6_LINKLOCAL_QUERY != "" ]; then
+        IP6_LINKLOCAL=$IP6_LINKLOCAL_QUERY
+        sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"$IP6_LINKLOCAL\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        IP6_LINKLOCAL=""
+        sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Not Available!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    # update IP6 ULA address and save to settings file
+    str="Looking up IP6 unique local address (ULA) address..."
+    printf "%b %s" "${INFO}" "${str}"
+    IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+    if [ "$IP6_ULA_QUERY" != "" ]; then
+        IP6_ULA=$IP6_ULA_QUERY
+        sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"$IP6_ULA\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        IP6_ULA=""
+        sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Not Available!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    # update IP6 GUA address and save to settings file
+    str="Looking up IP6 global unicast address (GUA) address..."
+    printf "%b %s" "${INFO}" "${str}"
+    IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
+    if [ $IP6_GUA_QUERY != "" ]; then
+        IP6_GUA=$IP6_GUA_QUERY
+        sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        IP6_GUA=""
+        sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Not Available!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    # update IP6 public address and save to settings file (sometimes this is different from GUA)
+    if [ "$IP6_EXTERNAL" = "" ]; then
+        str="Looking up IP6 public address..."
+        printf "  %b %s" "${INFO}" "${str}"
+        IP6_EXTERNAL_QUERY=$(curl -6 icanhazip.com)
+        if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
+            IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+            printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            IP6_EXTERNAL=""
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
+            printf "  %b%b %s Not Available!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi  
+    fi  
+
+    printf "\\n"
+
+
+    # Check the current version of DigiByte Core, as well as the release type, if we don't already know them
 
       if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
         printf "%b Checking DigiByte Core...\\n" "${INFO}"
       fi
+
+    # If we don't already know, let's check if this is a pre-release version?
+    if [ "$DGB_PRERELEASE" = "" ] && [ "$DGB_STATUS" != "not_detected" ]; then
+        str="Is DigiByte Core the pre-release version?..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ -f "$DGB_INSTALL_LOCATION/.prerelease" ]; then
+            DGB_PRERELEASE="YES"
+            sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s YES! [ .prerelease file located ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_PRERELEASE="NO"
+            sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
+
+    # If this is a pre-release version, get the current version from inside the .prerelease file 
+    if [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_STATUS" != "not_detected" ]; then
+        str="Getting the version number from .prerelease file..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ -f "$DGB_INSTALL_LOCATION/.prerelease" ]; then
+            source "$DGB_INSTALL_LOCATION/.prerelease"
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
 
       # Is primary DigiByte Node starting up?
       if [ "$DGB_STATUS" = "running" ]; then
@@ -2158,11 +2407,12 @@ pre_loop() {
       fi
 
 
-      ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
+      # Compare sored software versions to check if there are any updates
 
       printf "%b Checking Software Versions...\\n" "${INFO}"
 
       # Are we running a pre-release or a release version of DigiByte Core?
+      # Refer to the stored variables in diginode.settings
         if [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_GITHUB=$DGB_VER_RELEASE
         elif [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_PRERELEASE" = "" ]; then
@@ -2171,14 +2421,38 @@ pre_loop() {
             DGB_VER_GITHUB=$DGB_VER_PRERELEASE
         fi
 
-      # If there is actually a local version of DigiByte Core, check for an update
-      if [ "$DGB_VER_LOCAL" != "" ]; then
-          if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-            DGB_UPDATE_AVAILABLE="no"
-          else
+      # If there is actually a local version of DigiByte Core, and a stored remote version, check for an update
+      if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_VER_GITHUB" != "" ]; then
+
+           dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
+
+          if [ "$dgb_update_status" = "update_available" ]; then
             DGB_UPDATE_AVAILABLE="yes"
+          else
+            DGB_UPDATE_AVAILABLE="no"
           fi
       fi
+
+      # Check remotely for release versions if there is not already one stored
+      # This can happen when the script if running for the first time, or the diginode.settings file has been deleted
+
+      if [ "$DGB_VER_GITHUB" = "" ]; then
+
+            check_digibyte_update
+
+    fi
+
+    # Get the current network chain
+    if [ "$DGB_STATUS" = "startingup" ] && [ "$DGB_STATUS" = "running" ]; then
+        # scrape digibyte.conf
+        scrape_digibyte_conf
+
+        # query for digibyte network
+        query_digibyte_chain
+    fi
+
+
+      ##### CHECK FOR UPDATES BY COMPARING VERSION NUMBERS #######
 
       # Check if there is an update for DigiNode Tools
       if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
@@ -2219,7 +2493,7 @@ pre_loop() {
 
       # If SM_DISPLAY_VALUE is to to neither YES or NO, update diginode.settings
     if [ "$SM_DISPLAY_BALANCE" != "YES" ] && [ "$SM_DISPLAY_BALANCE" != "NO" ]; then
-          # Log date of this Status Monitor run to diginode.settings
+          # Log date of this Dashboard run to diginode.settings
           str="No value detected for displaying DigiByte wallet balance. Setting to YES..."
           printf "%b %s" "${INFO}" "${str}"
           SM_DISPLAY_BALANCE=YES
@@ -2227,9 +2501,9 @@ pre_loop() {
           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
+    if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_WALLET_STATUS" = "enabled" ]; then
         # Lookup current wallet balance
-        get_wallet_balance
+        get_dgb_wallet_balance
     fi
 
     if [ "$DGA_STATUS" = "running" ]; then
@@ -2439,8 +2713,63 @@ pre_loop() {
 
     fi
 
+    str="Is Argon One Fan software installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+
+    which argonone-cli 2>/dev/null
+    if [ $? -eq 0 ]; then
+        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        ARGON_FAN="yes"
+    else
+        printf "%b%b %s No!\\n" "${OVER}" "${INFO}" "${str}"
+        ARGON_FAN="no"
+    fi
+
+#    if [ "$ARGON_FAN" = "yes" ]; then
+#        str="Getting Argon One fan setttings..."
+#        printf "%b %s" "${INFO}" "${str}"
+# 
+         # Query fan speeds and temps from argonone-cli
+ #       argon_fan_speeds=$(argonone-cli --decode | grep "Fan Speeds set to" | awk -F 'set to ' '{print $2}')
+ #       argon_fan_temps=$(argonone-cli --decode | grep "Fan Temps set to" | awk -F 'set to ' '{print $2}')
+
+        # Convert fan speeds and temps to arrays
+ #       IFS=' ' read -ra argon_speeds <<< "$argon_fan_speeds"
+ #       IFS=' ' read -ra argon_temps <<< "$argon_fan_speeds"
+
+ #       printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+ #   fi
+
+    #banana
+
+    str="Starting background process for CPU stats..."
+    printf "%b %s" "${INFO}" "${str}"
+
+    # Get number of CPU cores
+    cpu_cores=$(nproc)
+
+    # Paths for temporary files to store CPU usage values
+    cpu1_file=$(mktemp)
+    cpu2_file=$(mktemp)
+    avg_file=$(mktemp)
+
+    # Start the get_cpu_stats function in the background
+    get_cpu_stats &
+
+    bg_cpu_stats_pid=$!
+
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+
     # Enable displaying startup messaging for first loop
     STARTUP_LOOP=true
+
+    # Declare the associative array to store the table variables
+    declare -A global_variables_table
+
+    # Get the current terminal width
+    term_width=$(tput cols)
 
 }
 
@@ -2458,8 +2787,8 @@ do
 # Optional loop counter - useful for debugging
 # echo "Loop Count: $loopcounter"
 
-# Quit status monitor automatically based on the time set in diginode.settings
-# Status Monitor will run indefinitely if the value is set to 0
+# Quit Dashboard automatically based on the time set in diginode.settings
+# Dashboard will run indefinitely if the value is set to 0
 
 # First convert SM_AUTO_QUIT from minutes into seconds
 
@@ -2472,9 +2801,11 @@ if [ $SM_AUTO_QUIT -gt 0 ]; then
   fi
 fi
 
-if [ "$STARTUP_LOOP" = "true" ]; then
+if [ "$STARTUP_LOOP" = true ]; then
     printf "%b Updating Status: 1 Second Loop...\\n" "${INFO}"
 fi
+
+
 
 
 # ------------------------------------------------------------------------------
@@ -2505,6 +2836,14 @@ if [ "$temperature" != "" ]; then
   TEMP_F=$(((9/5) * $TEMP_C + 32))
 
 fi
+
+# ------------------------------------------------------------------------------
+#    UPDATE EVERY 1 SECOND - CPU USAGE 
+# ------------------------------------------------------------------------------
+
+
+# This all runs as a background process now. See get_cpu_stats function
+
 
 
 # ------------------------------------------------------------------------------
@@ -2616,6 +2955,11 @@ if [ "$DGB_STATUS" = "running" ]; then
   dgb_uptime_seconds=$($DGB_CLI uptime 2>/dev/null)
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
+  # Calculate when it was first online
+  current_time=$(date +"%s")
+  dgb_start_time=$((current_time - dgb_uptime_seconds))
+  dgb_online_since=$(date -d "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
+
   # Show port warning if connections are less than or equal to 7
   DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
@@ -2716,6 +3060,11 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   dgb2_uptime_seconds=$($DGB_CLI -testnet uptime 2>/dev/null)
   dgb2_uptime=$(eval "echo $(date -ud "@$dgb2_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
+  # Calculate when it was first online
+  current_time=$(date +"%s")
+  dgb2_start_time=$((current_time - dgb2_uptime_seconds))
+  dgb2_online_since=$(date -d "@$dgb2_start_time" +"%H:%M %d %b %Y %Z")
+
 # Show port warning if connections are less than or equal to 7
   DGB2_CONNECTIONS=$($DGB_CLI -testnet getconnectioncount 2>/dev/null)
   if [ $DGB2_CONNECTIONS -le 8 ]; then
@@ -2736,7 +3085,7 @@ TIME_DIF_10SEC=$(($TIME_NOW_UNIX-$SAVED_TIME_10SEC))
 
 if [ $TIME_DIF_10SEC -ge 10 ]; then 
 
-    if [ "$STARTUP_LOOP" = "true" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
         printf "%b Updating Status: 10 Second Loop...\\n" "${INFO}"
     fi
 
@@ -2841,14 +3190,17 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             DGB_VER_GITHUB=$DGB_VER_PRERELEASE
         fi
 
-        # If DigiByte Core is up to date, switch back to checking the local version number daily
-        if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-          DGB_VER_LOCAL_CHECK_FREQ="daily"
-          sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
-          DGB_UPDATE_AVAILABLE="no"
-        else
-          DGB_UPDATE_AVAILABLE="yes"
-        fi
+          # If there is actually a local version of DigiByte Core, and a stored remote version, check for an update
+          if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_VER_GITHUB" != "" ]; then
+
+                dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
+
+              if [ "$dgb_update_status" = "update_available" ]; then
+                DGB_UPDATE_AVAILABLE="yes"
+              else
+                DGB_UPDATE_AVAILABLE="no"
+              fi
+          fi
 
       fi
 
@@ -2982,13 +3334,24 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
                 sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
             fi
+
+            IP6_EXTERNAL_QUERY=$(curl -6 icanhazip.com)
+            if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
+                IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
+                sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+            else
+                IP6_EXTERNAL=""
+                sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
+            fi
+
         fi
+
     fi
 
     # update external IP, unless it is offline
     if [ "$IP4_INTERNAL" = "OFFLINE" ]; then
 
-          IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
+          IP4_INTERNAL_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
           if [ $IP4_INTERNAL_QUERY != "" ]; then
             IP4_INTERNAL=$IP4_INTERNAL_QUERY
             sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
@@ -2996,6 +3359,34 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             IP4_INTERNAL="OFFLINE"
             sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
           fi
+
+          IP6_LINKLOCAL_QUERY=$(ip -6 addr show | grep 'inet6 fe80:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+          if [ $IP6_ULA_QUERY != "" ]; then
+            IP6_LINKLOCAL=$IP6_LINKLOCAL_QUERY
+            sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"$IP6_LINKLOCAL\"|" $DGNT_SETTINGS_FILE
+          else
+            IP6_LINKLOCAL=""
+            sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"\"|" $DGNT_SETTINGS_FILE
+          fi
+
+          IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+          if [ $IP6_ULA_QUERY != "" ]; then
+            IP6_ULA=$IP6_ULA_QUERY
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"$IP6_ULA\"|" $DGNT_SETTINGS_FILE
+          else
+            IP6_ULA=""
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"\"|" $DGNT_SETTINGS_FILE
+          fi
+
+          IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
+          if [ $IP6_GUA_QUERY != "" ]; then
+            IP6_GUA=$IP6_GUA_QUERY
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
+          else
+            IP6_GUA=""
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"\"|" $DGNT_SETTINGS_FILE
+          fi
+
     fi
 
     # Lookup disk usage, and store in diginode.settings if present
@@ -3018,7 +3409,7 @@ TIME_DIF_1MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_1MIN))
 
 if [ $TIME_DIF_1MIN -ge 60 ]; then
 
-    if [ "$STARTUP_LOOP" = "true" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
     printf "%b Updating Status: 1 Minute Loop...\\n" "${INFO}"
     fi
 
@@ -3071,9 +3462,9 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
             # Check if sync progress is not 100%
             if [ "$DGB_BLOCKSYNC_PERC" = "100 " ]; then
                 DGB_BLOCKSYNC_PROGRESS="synced"
-                if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
+                if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_WALLET_STATUS" = "enabled" ]; then
                     # get the wallet balance
-                    get_wallet_balance
+                    get_dgb_wallet_balance
                 fi
             else
                DGB_BLOCKSYNC_PROGRESS="notsynced"
@@ -3125,9 +3516,9 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
             # Check if sync progress is not 100%
             if [ "$DGB2_BLOCKSYNC_PERC" = "100 " ]; then
                 DGB2_BLOCKSYNC_PROGRESS="synced"
-                if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$WALLET_STATUS" = "enabled" ]; then
+                if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_WALLET_STATUS" = "enabled" ]; then
                     # get the wallet balance
-                    get_wallet_balance
+                    get_dgb2_wallet_balance
                 fi
             else
                DGB2_BLOCKSYNC_PROGRESS="notsynced"
@@ -3138,20 +3529,51 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
     fi
 
-    # Choose a random DigiFact
+    # Choose a new random DigiFact
     digifact_randomize
 
-    # update external IP, unless it is offline
+    # update internal IP, unless it is offline
     if [ "$IP4_INTERNAL" != "OFFLINE" ]; then
 
           IP4_INTERNAL_QUERY=$(ip a | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' 2>/dev/null| grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n 1)
-          if [ $IP4_INTERNAL_QUERY != "" ]; then
+          if [ "$IP4_INTERNAL_QUERY" != "" ]; then
             IP4_INTERNAL=$IP4_INTERNAL_QUERY
             sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"$IP4_INTERNAL\"|" $DGNT_SETTINGS_FILE
           else
             IP4_INTERNAL="OFFLINE"
             sed -i -e "/^IP4_INTERNAL=/s|.*|IP4_INTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
           fi
+
+        # update IP6 link-local address and save to settings file
+        IP6_LINKLOCAL_QUERY=$(ip -6 addr show | grep 'inet6 fe80:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+        if [ "$IP6_LINKLOCAL_QUERY" != "" ]; then
+            IP6_LINKLOCAL=$IP6_LINKLOCAL_QUERY
+            sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"$IP6_LINKLOCAL\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_LINKLOCAL=""
+            sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # update IP6 ULA address and save to settings file
+        IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+        if [ "$IP6_ULA_QUERY" != "" ]; then
+            IP6_ULA=$IP6_ULA_QUERY
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"$IP6_ULA\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_ULA=""
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        # update IP6 GUA address and save to settings file
+        IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
+        if [ "$IP6_GUA_QUERY" != "" ]; then
+            IP6_GUA=$IP6_GUA_QUERY
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_GUA=""
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
     fi
 
 
@@ -3163,7 +3585,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     fi
 
 
-    # Update diginode.settings with when Status Monitor last ran
+    # Update diginode.settings with when Dashboard last ran
     DGNT_MONITOR_LAST_RUN=$(date)
     sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
 
@@ -3181,7 +3603,7 @@ TIME_DIF_15MIN=$(($TIME_NOW_UNIX-$SAVED_TIME_15MIN))
 
 if [ $TIME_DIF_15MIN -ge 900 ]; then
 
-    if [ "$STARTUP_LOOP" = "true" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
     printf "%b Updating Status: 15 Minute Loop...\\n" "${INFO}"
     fi
 
@@ -3196,6 +3618,34 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             IP4_EXTERNAL="OFFLINE"
             sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
         fi
+
+        IP6_EXTERNAL_QUERY=$(curl --silent -6 icanhazip.com)
+        if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
+            IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_EXTERNAL=""
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+        if [ "$IP6_ULA_QUERY" != "" ]; then
+            IP6_ULA=$IP6_ULA_QUERY
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"$IP6_ULA\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_ULA=""
+            sed -i -e "/^IP6_ULA=/s|.*|IP6_ULA=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
+        IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
+        if [ "$IP6_GUA_QUERY" != "" ]; then
+            IP6_GUA=$IP6_GUA_QUERY
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
+        else
+            IP6_GUA=""
+            sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"\"|" $DGNT_SETTINGS_FILE
+        fi
+
     fi
 
     # If DigiAssets server is running, lookup local version number of DigiAssets server IP
@@ -3294,7 +3744,7 @@ TIME_DIF_1DAY=$(($TIME_NOW_UNIX-$SAVED_TIME_1DAY))
 
 if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
-    if [ "$STARTUP_LOOP" = "true" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
     printf "%b Updating Status: 24 Hour Loop...\\n" "${INFO}"
     fi
 
@@ -3312,6 +3762,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
 
+
             # Get current software version, and write to diginode.settings (unless pre-release)
             if [ "$DGB_PRERELEASE" = "NO" ]; then
                 if [ "$DGB_STATUS" = "running" ]; then
@@ -3322,48 +3773,9 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
                 sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
             fi
 
-            # Check for latest pre-release version of DigiByte Core if it is currently being used
-            if [ "$DGB_PRERELEASE" = "YES" ]; then
+            # Check for an update to DigiBye Core
+            check_digibyte_update
 
-                DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
-
-                # If there is no pre-release version, then we will lookup the release version
-                if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-                    sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-                    INSTALL_DGB_RELEASE_TYPE="release"
-                else
-                    sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-                    INSTALL_DGB_RELEASE_TYPE="prerelease"
-                fi
-            fi
-
-
-            # Check for latest release version of DigiByte Core on Github
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
-                DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-                if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-                  DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-                  sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-                fi
-            fi
-
-
-            # Set DGB_VER_GITHUB to the version we are comparing against
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
-                DGB_VER_GITHUB=$DGB_VER_RELEASE
-            elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-                DGB_VER_GITHUB=$DGB_VER_PRERELEASE
-            fi
-
-
-            # Compare current DigiByte Core version with Github version to know if there is a new version available
-            if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-              DGB_UPDATE_AVAILABLE="no"
-            else
-              DGB_VER_LOCAL_CHECK_FREQ="10secs"
-              sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
-              DGB_UPDATE_AVAILABLE="yes"
-            fi
         fi
     fi
 
@@ -3456,203 +3868,1014 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
 
-if [ "$STARTUP_LOOP" = "true" ]; then
-    printf "%b Generating Display output...\\n" "${INFO}"
+if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Generating dashboard...\\n" "${INFO}"
 fi
 
 
 ###################################################################
-#### GENERATE NORMAL DISPLAY #############################################
+#### GENERATE DISPLAY OUTPUT ######################################
+###################################################################
+
+# Store the previous terminal width (in case it has been resized since the previous loop)
+term_width_previous=$term_width
+
+# Get the width of the terminal
+term_width=$(tput cols)
+
+# Has the table been rezized since previous loop?
+if [ "$term_width" != "$term_width_previous" ]; then
+    terminal_resized="yes"
+else
+    terminal_resized="no"
+fi
+
+###################################################################
+# DISPLAY REGENERATING SCREEN WHEN THE TERMINAL WIDTH HAS CHANGED #
+###################################################################
+
+if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
+
+    # Define the strings with line breaks
+    string1="        Tip: If you find the dashboard suddenly gets duplicated down the\n             screen, you can fix this by scrolling to the bottom of the\n             window. This is caused by a limitation of the terminal.\n"
+    string2="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
+    string3="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
+
+    # Create an array from the individual strings
+    strings=("$string1" "$string2" "$string3")
+
+    # Get the current time
+#    current_time=$(date +%s)
+
+    # Check if 60 seconds have passed since the last selection
+#    if ((current_time - last_tip_selection_time >= 500)) || [ "$change_tip" = "yes" ]; then
+    if [ "$change_tip" = "yes" ]; then
+
+        # Use shuf to generate a random index
+        random_index=$(shuf -i 0-2 -n 1)
+
+        # Use the random index to select a random string from the array
+        random_tip="${strings[random_index]}"
+
+        # Update the last tip selection time
+ #       last_tip_selection_time=$current_time   
+
+        change_tip="no"
+    else
+
+        # Display the random string
+        printf "$random_tip"
+
+    fi
+
+    # Gernerate out to display when regenerating dashboard after the terminal is resized
+    output_regenerating=$(printf '\e[2J\e[H';
+
+    #echo -e "${txtbld}"
+    echo -e "${txtbld}        ____   _         _   _   __            __     "             
+    echo -e "       / __ \ (_)____ _ (_) / | / /____   ____/ /___   "
+    echo -e "      / / / // // __ '// / /  |/ // __ \ / __  // _ \  ${txtrst}┳┓   ┓ ┓        ┓${txtbld}"
+    echo -e "     / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}┃┃┏┓┏┣┓┣┓┏┓┏┓┏┓┏┫${txtbld}"
+    echo -e "    /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}┻┛┗┻┛┛┗┗┛┗┛┗┻┛ ┗┻${txtbld}"
+    echo -e "               /____/                                  ${txtrst}"                    
+    #echo ""  
+    echo ""
+    echo ""
+    echo ""
+    echo "               ╔═══════════════════════════════════════════╗ "
+    echo "               ║                                           ║"
+    echo "               ║   ${txtbld}Regenerating dashboard. Please wait...${txtrst}  ║"
+    echo "               ║                                           ║"
+    echo "               ╚═══════════════════════════════════════════╝"
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+    echo ""
+
+    # Display the random tip
+    printf "$random_tip"
+
+    )
+
+    echo "$output_regenerating"
+fi
+
+#####################################
+### GENERATE DIGINODE DASHBOARD #####
+#####################################
+
+# Calculate column widths based on terminal width
+col1_width=16
+col2_width=16
+col3_width=$((term_width - col1_width - col2_width - 6))  # 13 is for padding and borders
+col4_width=10
+
+generate_table_border() {
+    # Using printf's repetition functionality to fill space or other characters
+
+    local col1_content col2_content col3_content
+
+    # Determine content for column 1
+    if [ "$2" = "═" ]; then
+        col1_content=$(printf "%0.s═" $(seq 1 $col1_width))
+    else
+        col1_content=$(printf "%-*s" $col1_width "$2")
+    fi
+
+    # Determine content for column 2
+    if [ "$4" = "═" ]; then
+        col2_content=$(printf "%0.s═" $(seq 1 $col2_width))
+    else
+        col2_content=$(printf "%-*s" $col2_width "$4")
+    fi
+
+    # Determine content for column 3
+    col3_content=$(printf "%0.s$6" $(seq 1 $col3_width))
+
+    # Construct the full row, with a leading space, and print it
+    printf " %s%s%s%s%s%s%s\n" "$1" "$col1_content" "$3" "$col2_content" "$5" "$col3_content" "$7"
+}
+
+
+# Recalculate the Dashboard layout if the width of the terminal has changed
+if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
+
+    # Generate table border rows
+    sm_row_01=$(generate_table_border "╔" "═" "╦" "═" "╦" "═" "╗")
+    sm_row_02_mainnet=$(generate_table_border "║" " (MAINNET)" "╠" "═" "╬" "═" "╣")
+    sm_row_02_testnet=$(generate_table_border "║" " (TESTNET)" "╠" "═" "╬" "═" "╣")
+    sm_row_02_regtest=$(generate_table_border "║" " (REGTEST)" "╠" "═" "╬" "═" "╣")
+    sm_row_02_signet=$(generate_table_border "║" " (SIGNET)" "╠" "═" "╬" "═" "╣")
+    sm_row_03=$(generate_table_border "╠" "═" "╬" "═" "╬" "═" "╣")
+    sm_row_04=$(generate_table_border "║" " " "╠" "═" "╬" "═" "╣")
+    sm_row_05=$(generate_table_border "╚" "═" "╩" "═" "╩" "═" "╝")
+    sm_row_06=$(generate_table_border "╔" "═" "╦" "═" "═" "═" "╗")
+    sm_row_07=$(generate_table_border "║" "═" "╬" "═" "═" "═" "╣")
+    sm_row_08=$(generate_table_border "╚" "═" "╩" "═" "═" "═" "╝")
+    sm_row_digifact_topbar=$(generate_table_border "╔" "═" "═" "═" "═" "═" "╗")
+    sm_row_digifact_middle=$(generate_table_border "╠" "═" "═" "═" "═" "═" "╣")
+    sm_row_digifact_bottom=$(generate_table_border "╚" "═" "═" "═" "═" "═" "╝")
+
+    # Calculate the column widths based on terminal width
+    col_width_dgb_connections_low=$((term_width - 38 - 29 - 3 - 2)) 
+    col_width_dgb_connections_max=$((term_width - 38 - 29 - 3 - 2))
+    col_width_dgb_blockheight=$((term_width - 38 - 19 - 3 - 2)) 
+    col_width_dgb_uptime=$((term_width - 38 - 3 - 1)) 
+    col_width_dgb_uptime_long=$((term_width - 38 - 39 - 3 - 2)) 
+    col_width_dgb_ports=$((term_width - 38 - 3 - 1)) 
+    col_width_dgb_ports_long=$((term_width - 38 - 17 - 3 - 3)) 
+    col_width_dgb_wallet_balance=$((term_width - 38 - 3 - 1)) 
+    col_width_dgb_status=$((term_width - 38 - 3 - 1 + 11)) 
+    col_width_dgb_startingup=$((term_width - 38 - 14 - 3 - 2 + 11)) 
+    col_width_dga_status=$((term_width - 38 - 3 - 1 + 8)) 
+
+    col_width_software_wide=$((term_width - 21 - 50 - 2)) 
+    col_width_software=$((term_width - 21 - 35 - 3 + 4)) 
+    col_width_software_narrow=$((term_width - 21 - 27 - 3 - 2 + 8)) 
+    col_width_software_noupdate=$((term_width - 21 - 3 - 1)) 
+
+    col_width_software_dgnt_wide=$((term_width - 21 - 50 + 1)) 
+
+    col_width_software_dgbpr_wide=$((term_width - 21 - 50 - 3 + 1)) 
+    col_width_software_dgbpr=$((term_width - 21 - 37 - 3 + 2)) 
+    col_width_software_dgbpr_lessnarrow=$((term_width - 21 - 35 - 3 + 9))
+    col_width_software_dgbpr_narrow=$((term_width - 21 - 27 - 3 + 2)) 
+
+    col_width_software_dgb_wide=$((term_width - 21 - 50 - 2)) 
+    col_width_software_dgb=$((term_width - 21 - 37 - 3 + 2)) 
+    col_width_software_dgb_narrow=$((term_width - 21 - 27 - 3 + 2)) 
+
+    col_width_software_kubo_wide=$((term_width - 21 - 50 + 6)) 
+    col_width_software_kobo=$((term_width - 21 - 35 - 3 + 4)) 
+    col_width_software_kubo_narrow=$((term_width - 21 - 27 - 3 - 2 + 8)) 
+
+    col_width_software_node_wide=$((term_width - 21 - 50 + 6)) 
+    col_width_software_node=$((term_width - 21 - 42 - 3 + 9)) 
+    col_width_software_node_narrow=$((term_width - 21 - 35 - 3 + 9)) 
+
+    col_width_software_dga_wide=$((term_width - 21 - 50 + 4)) 
+    col_width_software_dga=$((term_width - 21 - 35 - 3 + 7)) 
+    col_width_software_dga_narrow=$((term_width - 21 - 27 - 3 + 9)) 
+
+    col_width_sys_ip4_bothoffline=$((term_width - 17 - 3)) 
+    col_width_sys_ip4_oneoffline=$((term_width - 17 - 3)) 
+
+    generate_digifact_box="yes"
+    generate_dgb_lowcon_msg="yes"
+    if [ "$DGB_DUAL_NODE" = "YES" ]; then
+        generate_dgb2_lowcon_msg="yes"
+    fi
+    generate_quit_message="yes"
+    generate_quit_message_with_porttest="yes"
+fi
+
+
+
+### GENERATE DIGINODE DASHBOARD - TABLE ROWS #####
+
+right_border="  ║ "
+right_border_width=${#right_border} 
+
+# Three/two column row (first two narrow columns are one static string, main content is 3rd.)
+db_content_c1_c2_c3f() {
+    local combined_col1_2_text="$1"
+    local col3_text="$2"
+
+    # Calculate width for first two columns combined e.g. " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  "
+    combined_col1_2_width=${#combined_col1_2_text} 
+
+    # Calculate width available for column three content
+    col3_width=$(( term_width - combined_col1_2_width - right_border_width ))  # Width of column 3 fill area
+
+    # Strip ANSI color codes for calculation purposes
+    local stripped_col3_text=$(echo -e "$col3_text" | sed 's/\x1b\[[0-9;]*m//g')
+    local col3_text_length=${#stripped_col3_text}
+
+    local col3_padding=$(( col3_width - col3_text_length ))
+
+    # Constructing the row based on the described format
+    local full_row
+    full_row=$(printf "%-${combined_col1_2_width}s" "${combined_col1_2_text}")  # Combined Column 1 and 2 with added space (left-aligned)
+    full_row+=$(printf "%b%-${col3_padding}s" "$col3_text")  # Column 3 content (left-aligned) with spacer
+    full_row+=$(printf "$right_border")  # The right edge border with spaces
+
+    # Print the row without it wrapping to the next line
+    printf "%s\n" "$full_row"
+
+}
+
+# Four/three column row (first two columns are one static string, main content is 3rd, 4th column is right-aligned inside square brackets )
+db_content_c1_c2_c3f_c4() {
+    local combined_col1_2_text="$1"
+    local col3_text="$2"
+    local col4_text="[ $3 ]"
+
+    # Calculate width for first two columns combined
+    combined_col1_2_width=${#combined_col1_2_text} 
+
+    # Strip ANSI color codes for calculation purposes
+    local stripped_col3_text=$(echo -e "$col3_text" | sed 's/\x1b\[[0-9;]*m//g')
+    local col3_text_length=${#stripped_col3_text}
+
+    local stripped_col4_text=$(echo -e "$col4_text" | sed 's/\x1b\[[0-9;]*m//g')
+    local col4_text_length=${#stripped_col4_text}
+
+    # Calculate width available for column three and four content
+    local col3_4_width=$(( term_width - combined_col1_2_width - right_border_width - col4_text_length))
+    local col3_padding=$(( col3_4_width - col3_text_length ))
+
+    # Constructing the row based on the described format
+    local full_row
+    full_row=$(printf "%-${combined_col1_2_width}s" "${combined_col1_2_text}")  # Combined Column 1 and 2 with added space (left-aligned)
+    full_row+=$(printf "%b%-${col3_padding}s" "$col3_text")  # Column 3 content (left-aligned) with spacer
+    full_row+=$(printf "%b%s" "$col4_text" "$right_border")  # Column 4 and The right edge border with spaces
+
+    # Print the row without it wrapping to the next line
+    printf "%s\n" "$full_row"
+}
+
+
+
+
+# Create finite width chain variables for first column
+if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+    dgb_chain_firstcol="(MAINNET)     "
+    dgb_chain_caps="MAINNET"
+elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+    dgb_chain_firstcol="(TESTNET)     "
+    dgb_chain_caps="TESTNET"
+elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+    dgb_chain_firstcol="(REGTEST)     "
+    dgb_chain_caps="REGTEST"
+elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+    dgb_chain_firstcol="(SIGNET)      "
+    dgb_chain_caps="SIGNET"
+else
+    dgb_chain_firstcol="              "
+fi
+
+# May sure displayed RPC port only changes when there is a new value
+if [ "$RPC_PORT" != "" ]; then
+    dgb_rpcport_display=$RPC_PORT
+fi
+if [ "$RPC2_PORT" != "" ]; then
+    dgb2_rpcport_display=$RPC2_PORT
+fi
+
+# FORMAT DIGIFACT BASED ON TERMINAL WIDTH
+
+# regenerate digifact box
+if [ "$generate_digifact_box" = "yes" ]; then
+    digifact_box_termwidth_title=$(format_bordered_title "$digifact_title" " ║ " " ║ " "terminal_width")
+    digifact_box_termwidth_content=$(format_bordered_paragraph "$digifact_content" " ║ " " ║ " "  ║ " "terminal_width")
+    generate_digifact_box="no"
+fi   
+
+# Setup function to display DigiFact dashboard
+display_digifact_termwidth() {
+    echo "$sm_row_digifact_topbar" # "╔" "═" "═" "═" "═" "═" "╗"
+    echo "$digifact_box_termwidth_title"
+    echo "$sm_row_digifact_middle" # "╠" "═" "═" "═" "═" "═" "╣"
+    echo "$digifact_box_termwidth_content"
+    echo "$sm_row_digifact_bottom" # "╚" "═" "═" "═" "═" "═" "╝"
+} 
+
+# FORMAT LOWCON MESSAGES BASED ON TERMINAL WIDTH
+
+# Enable primary mainnet node port test message when connections are low
+if { [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; } && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
+    if [ "$dgb_lowcon_porttest_msg" != "For more help, press P to run a Port Test." ]; then
+        dgb_lowcon_porttest_msg="For more help, press P to run a Port Test."
+        generate_dgb_lowcon_msg="yes"
+    fi
+# Enable primary node testnet port test message when connections are low
+elif { [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; } && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
+    if [ "$dgb_lowcon_porttest_msg" != "For more help, press P to run a Port Test." ]; then
+        dgb_lowcon_porttest_msg="For more help, press P to run a Port Test."
+        generate_dgb_lowcon_msg="yes"
+    fi
+else
+    if [ "$dgb_lowcon_porttest_msg" != "" ]; then
+        dgb_lowcon_porttest_msg=""
+        generate_dgb_lowcon_msg="yes"
+    fi
+fi
+
+# Enable secondary node port test message when connections are low
+if { [ "$DGB2_STATUS" = "running" ] && [ $DGB2_CONNECTIONS -le 8 ]; } && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
+    if [ "$dgb_lowcon_porttest_msg" != "For more help, press P to run a Port Test." ]; then
+        dgb2_lowcon_porttest_msg="For more help, press P to run a Port Test."
+        generate_dgb2_lowcon_msg="yes"
+    fi
+else
+    if [ "$dgb_lowcon_porttest_msg" != "" ]; then
+        dgb2_lowcon_porttest_msg=""
+        generate_dgb2_lowcon_msg="yes"
+    fi
+fi
+
+
+# regenerate dgb_lowcon_msg
+if { [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; } && [ "$generate_dgb_lowcon_msg" = "yes" ]; then
+    dgb_lowcon_msg="WARNING: Your DigiByte ${DGB_NETWORK_CURRENT,,} connection count is low. Have you forwarded port $DGB_LISTEN_PORT on your router? If yes, wait a few minutes. This message will disappear when the total connections reaches 9 or more. $dgb_lowcon_porttest_msg"
+    dgb_lowcon_msg=$(format_bordered_paragraph "$dgb_lowcon_msg" " ║                ║         STATUS ║  " " ║                ║                ║  " "  ║ " "terminal_width")
+    generate_dgb_lowcon_msg="no"
+fi
+
+# Setup function to display DigiFact primary DigiByte Node low connection message
+display_dgb_lowcon_msg() {
+    echo "$dgb_lowcon_msg"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+} 
+
+# regenerate dgb2_lowcon_msg
+if { [ "$DGB2_STATUS" = "running" ] && [ $DGB2_CONNECTIONS -le 8 ]; } && [ "$generate_dgb2_lowcon_msg" = "yes" ]; then
+    dgb2_lowcon_msg="WARNING: Your DigiByte testnet connection count is low. Have you forwarded port $DGB2_LISTEN_PORT on your router? If yes, wait a few minutes. This message will disappear when the total connections reaches 9 or more. $dgb2_lowcon_porttest_msg"
+    dgb2_lowcon_msg=$(format_bordered_paragraph "$dgb2_lowcon_msg" " ║                ║         STATUS ║  " " ║                ║                ║  " "  ║ " "terminal_width")
+    generate_dgb2_lowcon_msg="no"
+fi
+
+# Setup function to display DigiFact primary DigiByte Node low connection message
+display_dgb2_lowcon_msg() {
+    echo "$dgb2_lowcon_msg"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+} 
+
+
+# FORMAT QUIT MESSAGE BASED ON TERMINAL WIDTH
+
+# Function to center quit message
+center_quit_message() {
+    local quit_msg_text="$1"
+
+    # Strip ANSI color codes for calculation purposes
+    local stripped_quit_msg=$(echo -e "$quit_msg_text" | sed 's/\x1b\[[0-9;]*m//g')
+    local quit_msg_length=${#stripped_quit_msg}
+
+    # Calculate padding required to center text
+    local left_padding=$(( (term_width - quit_msg_length) / 2 ))
+    local right_padding=$(( term_width - left_padding - quit_msg_length ))
+
+    # Construct the padded title string using # as the spacer and return it
+    printf "%${left_padding}s"
+    printf "%b" "$quit_msg_text"
+    printf "%${right_padding}s"
+}
+
+
+
+# generate quit message
+if [ "$generate_quit_message" = "yes" ]; then
+    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit."
+    quit_message=$(center_quit_message "$quit_message_text")
+    generate_quit_message="no"
+fi
+
+# generate quit message with port test
+if [ "$generate_quit_message_with_porttest" = "yes" ]; then
+    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}P${dbcol_rst} to test open ports."
+    quit_messsage_with_port_test=$(center_quit_message "$quit_message_text")
+    generate_quit_message_with_porttest="no"
+fi
+
+# FORMAT URL POSITION IN HEADER
+
+# Calculate the https://diginodetools URL position based on the Terminal width
+term_width_2=$(tput cols)
+if [ $term_width_2 -le 72 ]; then
+    col_width_url_position_2=""
+else
+    col_width_url_position_2=$((((term_width_2 - 72) / 2) - 11))
+    if [ $col_width_url_position_2 -le 22 ]; then
+        col_width_url_position_spaces_2=$(printf '%*s' "$col_width_url_position_2")
+    else
+        col_width_url_position_spaces_2=$(printf '%*s' 22)
+    fi
+fi
+
+if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Buffering dashboard...\\n" "${INFO}"
+fi
+
+###################################################################
+#### BUFFER DIGNODE DASHBOARD #####################################
 ###################################################################
 
 # Double buffer output to reduce display flickering
-output=$(printf '\e[2J\e[H';
+# output=$(printf '\e[2J\e[H'; - old double buffer
+output=$(tput cup 0 0;
 
-echo -e "${txtbld}"
-echo -e "         ____   _         _   _   __            __     "             
-echo -e "        / __ \ (_)____ _ (_) / | / /____   ____/ /___   ${txtrst}╔═════════╗${txtbld}"
-echo -e "       / / / // // __ '// / /  |/ // __ \ / __  // _ \  ${txtrst}║ STATUS  ║${txtbld}"
-echo -e "      / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}║ MONITOR ║${txtbld}"
-echo -e "     /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}╚═════════╝${txtbld}"
-echo -e "                /____/                                  ${txtrst}"                         
-echo ""  
-printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
-if [ "$DGB_STATUS" = "running" ]; then # Only display if digibyted is running
-if [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then # don't display connections if this is regtest mode
-if [ $DGB_CONNECTIONS -le 8 ]; then
-printf "  ║ CONNECTIONS    ║  " && printf "%-18s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst}" "]  ║"
+#echo -e "${txtbld}"
+printf "${txtbld}        ____   _         _   _   __            __     " && tput el && printf "\\n"          
+printf "       / __ \ (_)____ _ (_) / | / /____   ____/ /___   " && tput el && printf "\\n"
+printf "      / / / // // __ '// / /  |/ // __ \ / __  // _ \  ${txtrst}┳┓   ┓ ┓        ┓${txtbld}" && tput el && printf "\\n"
+if [ $term_width -gt 97 ]; then
+printf "     / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}┃┃┏┓┏┣┓┣┓┏┓┏┓┏┓┏┫${txtbld}${col_width_url_position_spaces_2}https://diginode.tools"  && tput el && printf "\\n"
 else
-printf "  ║ CONNECTIONS    ║  " && printf "%-10s %35s %-4s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG" "]  ║"
+printf "     / /_/ // // /_/ // / / /|  // /_/ // /_/ //  __/  ${txtrst}┃┃┏┓┏┣┓┣┓┏┓┏┓┏┓┏┫${txtbld}" && tput el && printf "\\n"
 fi
+printf "    /_____//_/ \__, //_/ /_/ |_/ \____/ \__,_/ \___/   ${txtrst}┻┛┗┻┛┛┗┗┛┗┛┗┻┛ ┗┻${txtbld}" && tput el && printf "\\n"
+printf "               /____/                                  ${txtrst}"  && tput el && printf "\\n"                        
+#echo ""  
+
+### DEBUGGING ###
+
+# Debug output
+# echo "col_width_url_position: $col_width_url_position"
+#echo ""
+
+# DGB_CONNECTIONS_MSG="Warning: Low Connections!"
+# DGB_CONNECTIONS=5
+# DGB_BLOCKSYNC_PERC=72.63
+# WALLET_BALANCE=1000.0000000
+# DGB_NETWORK_CURRENT="TESTNET"
+# DGB_STATUS="not_detected"
+
+# Debugging:
+#echo ""
+#echo ""
+#echo "Border Type: $border_type"
+#echo ""
+#echo "border_id: $border_id"
+#echo "Variable name: ${border_id}"
+#echo "Variable value: ${!border_id}"
+
+#echo ""
+#echo ""
+
+
+# STATUS MONITOR DASHBOARD - GENERATE NODE TABLE
+
+echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
+
+# STATUS MONITOR DASHBOARD - DIGIBYTE PRIMARY NODE
+
+if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node is running
+    if [ $DGB_CONNECTIONS -le 8 ]; then
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
+    else
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+    fi
+    # Choose the correct network chain border
+    if [ "$dgb_chain_caps" = "MAINNET" ]; then
+        echo "$sm_row_02_mainnet" # "║" "(MAINNET)" "╠" "═" "╬" "═" "╣"
+    elif [ "$dgb_chain_caps" = "TESTNET" ]; then
+        echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
+    elif [ "$dgb_chain_caps" = "REGTEST" ]; then
+        echo "$sm_row_02_regtest" # "║" "(REGTEST)" "╠" "═" "╬" "═" "╣"
+    elif [ "$dgb_chain_caps" = "SIGNET" ]; then
+        echo "$sm_row_02_signet" # "║" "(SIGNET)" "╠" "═" "╬" "═" "╣"
+    fi
+
+    # Display primary dgb node lowcon message
+    if [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then
+        display_dgb_lowcon_msg
+    fi
+
+    printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC% ]" " ║ "
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    if [ $term_width -gt 121 ]; then 
+        printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime_long}s %19s %-3s\n" "$dgb_uptime" "[ Online Since: $dgb_online_since ]" " ║ "
+    else
+        printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$dgb_uptime" " ║ "
+    fi
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    if grep -q ^"upnp=1" $DGB_CONF_FILE; then
+        if [ $term_width -gt 99 ]; then 
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+        else
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
+        fi
+    else
+        if [ $term_width -gt 100 ]; then 
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+        else
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
+        fi
+    fi
+
+    # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
+    if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_BLOCKSYNC_PERC" = "100 " ] && [ "$DGB_WALLET_BALANCE" != "" ]; then 
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] || [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then 
+            printf " ║                ║ WALLET BALANCE ║  " && printf "%-${col_width_dgb_wallet_balance}s %-3s\n" "$DGB_WALLET_BALANCE DGBT" " ║ "
+        else
+            printf " ║                ║ WALLET BALANCE ║  " && printf "%-${col_width_dgb_wallet_balance}s %-3s\n" "$DGB_WALLET_BALANCE DGB" " ║ "
+        fi
+    fi
+
+    echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+
 fi
-display_network_chain
-display_listening_port
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ BLOCK HEIGHT   ║  " && printf "%-26s %19s %-4s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC%" "]  ║"
-# Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
-if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_BLOCKSYNC_PERC" = "100 " ] && [ "$WALLET_BALANCE" != "" ]; then 
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] || [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then 
-printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE TDGB" " ║"
-else
-printf "  ║ WALLET BALANCE ║  " && printf "%-48s %-4s\n" "$WALLET_BALANCE DGB" " ║"
+
+if [ "$DGB_STATUS" = "stopped" ]; then # Only display if primary DigiByte Node is stopped running
+    if [ "$DGB_DUAL_NODE" = "YES" ]; then
+        printf " ║ DIGIBYTE NODE  ║  NODE 1 STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiByte $dgb_chain_caps Node is not running.${txtrst}" " ║ "
+    else
+        printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiByte $dgb_chain_caps Node is not running.${txtrst}" " ║ "
+    fi
+    echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 fi
+
+if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if primary DigiByte Node is not detected
+    printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiByte Node not detected.${txtrst}" " ║ "
+    echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 fi
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ NODE UPTIME    ║  " && printf "%-48s %-4s\n" "$dgb_uptime" " ║"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-fi # end check to see of digibyted is running
-if [ "$DGB_STATUS" = "stopped" ]; then # Only display if digibyted is NOT running
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte daemon is not running.${txtrst}"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+
+if [ "$DGB_STATUS" = "startingup" ]; then # Only display if secondary DigiByte Node is starting
+    printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte $dgb_chain_caps Node is currently starting up.${txtrst}" " ║ "
+    printf " ║ $dgb_chain_firstcol ║                ║  " && printf "%-14s %-${col_width_dgb_startingup}s %-3s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║ "
+
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    if grep -q ^"upnp=1" $DGB_CONF_FILE; then
+        if [ $term_width -gt 99 ]; then 
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+        else
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
+        fi
+    else
+        if [ $term_width -gt 100 ]; then 
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+        else
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
+        fi
+    fi
+    echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 fi
-if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if digibyted is NOT detected
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbred}DigiByte Node not detected.${txtrst}"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+
+# STATUS MONITOR DASHBOARD - DIGIBYTE SECONDARY NODE
+
+if [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+    if [ "$DGB2_STATUS" = "running" ]; then # Only display if secondary DigiByte Node is running
+        if [ $DGB2_CONNECTIONS -le 8 ]; then
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
+        else
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+        fi
+        # Display the TESTNET network chain border
+        echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
+
+        # Display primary dgb node lowcon message
+        if [ $DGB2_CONNECTIONS -le 8 ]; then
+            display_dgb2_lowcon_msg
+        fi
+
+        printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% ]" " ║ "
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+        if [ $term_width -gt 121 ]; then 
+            printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime_long}s %19s %-3s\n" "$dgb2_uptime" "[ Online Since: $dgb2_online_since ]" " ║ "
+        else
+            printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$dgb2_uptime" " ║ "
+        fi
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+        if grep -q ^"upnp=1" $DGB_CONF_FILE; then
+            if [ $term_width -gt 99 ]; then 
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+            else
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
+            fi
+        else
+            if [ $term_width -gt 100 ]; then 
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+            else
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
+            fi
+        fi
+
+        # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
+        if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB2_BLOCKSYNC_PERC" = "100 " ] && [ "$DGB2_WALLET_BALANCE" != "" ]; then 
+            echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+            printf " ║                ║ WALLET BALANCE ║  " && printf "%-${col_width_dgb_wallet_balance}s %-3s\n" "$DGB2_WALLET_BALANCE DGBT" " ║ "
+        fi
+
+        echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+
+    fi
+
+    if [ "$DGB2_STATUS" = "stopped" ]; then # Only display if secondary DigiByte Node is stopped running
+        
+        printf " ║ DIGIBYTE NODE  ║  NODE 2 STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiByte TESTNET Node is not running.${txtrst}" " ║ "
+        echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+    fi
+
+    if [ "$DGB2_STATUS" = "startingup" ]; then # Only display if secondary DigiByte Node (TESTNET) is starting up
+        printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte TESTNET Node is currently starting up.${txtrst}" " ║ "
+        printf " ║ (TESTNET)      ║                ║  " && printf "%-14s %-${col_width_dgb_startingup}s %-3s\n" "Please wait..." "${txtbwht}$DGB2_ERROR_MSG${txtrst}" " ║ "
+
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+        if grep -q ^"upnp=1" $DGB_CONF_FILE; then
+            if [ $term_width -gt 99 ]; then 
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+            else
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
+            fi
+        else
+            if [ $term_width -gt 100 ]; then 
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+            else
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
+            fi
+        fi
+        echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+    fi
+
 fi
-if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "  ║ DIGIBYTE NODE  ║  " && printf "%-60s ║ \n" "${txtbylw}DigiByte daemon is currently starting up.${txtrst}"
-printf "  ║                ║  " && printf "%-14s %-44s %-2s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║"
-display_network_chain
-display_listening_port
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-fi
-if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-printf "  ║ IP ADDRESS     ║  " && printf "%-71s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
-elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: $IP4_INTERNAL  External: ${txtbred}$IP4_EXTERNAL${txtrst}" "║" 
-elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-printf "  ║ IP ADDRESS     ║  " && printf "%-60s %-1s\n" "Internal: ${txtbred}$IP4_INTERNAL${txtrst}  External: $IP4_EXTERNAL" "║" 
-else
-printf "  ║ IP ADDRESS     ║  " && printf "%-49s %-1s\n" "Internal: $IP4_INTERNAL  External: $IP4_EXTERNAL" "║" 
-fi
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$IS_AVAHI_INSTALLED" = "yes" ] && [ "$DGA_STATUS" = "running" ]; then # Use .local domain if available, otherwise use the IP address
-printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$HOSTNAME.local:8090" "║"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGA_CONSOLE_QUERY" != "" ]; then
-format_dga_console
-fi
-elif [ "$DGA_STATUS" = "running" ]; then
-printf "  ║ WEB UI         ║  " && printf "%-49s %-1s\n" "http://$IP4_INTERNAL:8090" "║"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$DGA_CONSOLE_QUERY" != "" ]; then
-format_dga_console
-fi
+
+# STATUS MONITOR DASHBOARD - DIGIASSET NODE
+
+if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
+    format_dga_console
+
 elif [ "$DGA_STATUS" = "stopped" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node is not running.${txtrst}"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-printf "  ║ DIGIASSET NODE ║  " && printf "%-60s ║ \n" "${txtbred}DigiAsset Node not detected.${txtrst}"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
 fi
-if [ -f "$DGB_CONF_FILE" ]; then
-printf "  ║ RPC ACCESS     ║  " && printf "%-49s %-1s\n" "User: $RPC_USER     RPC Port: $RPC_PORT" "║" 
-printf "  ║                ║  " && printf "%-49s %-1s\n" "Pass: $RPC_PASSWORD" "║" 
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-fi
+
+echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+
+
+# STATUS MONITOR DASHBOARD - SOFTWARE
+
+### START DEBUGGING ###
+
+#DGNT_UPDATE_AVAILABLE="yes"
+#DGB_UPDATE_AVAILABLE="yes"
+#DGB_PRERELEASE="YES"
+#IPFS_UPDATE_AVAILABLE="yes"
+#NODEJS_UPDATE_AVAILABLE="yes"
+#NODEJS_VER_RELEASE="16.20.200"
+#DGA_UPDATE_AVAILABLE="yes"
+
+### END DEBUGGING ###
+
+
+echo "$sm_row_06" # "╔" "═" "═" "═" "╦" "═" "╗"
+
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
-printf "  ║ SOFTWARE       ║  " && printf "%-31s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst}" " ║"
+    if [ $term_width -gt 111 ]; then 
+        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_dgnt_wide}s %50s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update Available: DigiNode Tools v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+    elif [ $term_width -gt 97 ]; then
+        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software}s %35s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update Available: v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+    else
+        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+    fi
 else
-printf "  ║ SOFTWARE       ║  " && printf "%-48s %-4s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" " ║"
+    printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" " ║ "
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-28s %30s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst}" " ║"
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+            if [ $term_width -gt 111 ]; then 
+                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_wide}s %50s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            elif [ $term_width -gt 97 ]; then
+                printf " ║                ║  " && printf "%-${col_width_software_dgbpr}s %37s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update Available: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            elif [ $term_width -gt 88 ]; then
+                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_lessnarrow}s %35s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            else
+                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_narrow}s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (PR)" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            fi    
+        else   
+            if [ $term_width -gt 111 ]; then 
+                printf " ║                ║  " && printf "%-${col_width_software_dgb_wide}s %50s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            elif [ $term_width -gt 97 ]; then
+                printf " ║                ║  " && printf "%-${col_width_software_dgb}s %37s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update Available: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            else
+                printf " ║                ║  " && printf "%-${col_width_software_dgb_narrow}s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+            fi   
+        fi
     else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║"
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+            printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" " ║ "
+        else
+            printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL" " ║ "
+        fi
     fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst}" " ║"
+    if [ $term_width -gt 111 ]; then 
+        printf " ║                ║  " && printf "%-${col_width_software_kubo_wide}s %50s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: Kubo IPFS v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+    elif [ $term_width -gt 97 ]; then
+        printf " ║                ║  " && printf "%-${col_width_software}s %35s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+    else
+        printf " ║                ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+    fi
   else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║"
+    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║ "
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$NODEJS_VER_LOCAL" != "" ]; then
   if [ "$NODEJS_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst}" " ║"
+    if [ $term_width -gt 111 ]; then 
+        printf " ║                ║  " && printf "%-${col_width_software_node_wide}s %50s %-3s\n" "NodeJS v$NODEJS_VER_LOCAL" "[ ${txtbgrn}Update Available: NodeJS v$NODEJS_VER_RELEASE${txtrst} ]" " ║ "
+    elif [ $term_width -gt 97 ]; then
+        printf " ║                ║  " && printf "%-${col_width_software_node}s %42s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$NODEJS_VER_RELEASE${txtrst} ]" " ║ "
+    else
+        printf " ║                ║  " && printf "%-${col_width_software_node_narrow}s %35s %3s\n" "NodeJS v$NODEJS_VER_LOCAL" "[ ${txtbgrn}Update: v$NODEJS_VER_RELEASE${txtrst} ]" " ║ "
+    fi
   else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "NodeJS v$NODEJS_VER_LOCAL" " ║"
+    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "NodeJS v$NODEJS_VER_LOCAL" " ║ "
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGA_VER_LOCAL" != "" ]; then
   if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
-    printf "  ║                ║  " && printf "%-31s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "${txtbgrn}Update: v$DGA_VER_LOCAL${txtrst}" " ║"
+    if [ $term_width -gt 111 ]; then 
+        printf " ║                ║  " && printf "%-${col_width_software_dga_wide}s %50s %-3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtbgrn}Update Available: DigiAsset Node v$DGA_VER_RELEASE${txtrst} ]" " ║ "
+    elif [ $term_width -gt 97 ]; then
+        printf " ║                ║  " && printf "%-${col_width_software_dga}s %35s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtbgrn}Update Available: v$DGA_VER_RELEASE${txtrst} ]" " ║ "
+    else
+        printf " ║                ║  " && printf "%-${col_width_software_dga_narrow}s %27s %3s\n" "DigiAsset Node v$DGA_VER_LOCAL" "[ ${txtbgrn}Update: v$DGA_VER_RELEASE${txtrst} ]" " ║ "
+    fi
   else
-    printf "  ║                ║  " && printf "%-48s %-4s\n" "DigiAsset Node v$DGA_VER_LOCAL" " ║"
+    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "DigiAsset Node v$DGA_VER_LOCAL" " ║ "
   fi
 fi
-printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
-if [ "$DGB_STATUS" = "startingup" ]; then # Only display if digibyted is NOT running
-printf "\\n"
-printf "   NOTE: DigiByte daemon is currently in the process of starting up.\\n"
-printf "         This can sometimes take 10 minutes or more. Please wait...\\n"
+
+echo "$sm_row_08" # "╚" "═" "╩" "═" "═" "═" "╝"
+
+
+# Print empty line
+# printf "%${term_width}s\n"
+
+
+
+# STATUS MONITOR DASHBOARD - NETWORK - IP4 ADDRESS
+
+# NETWORK DEBUGGING:
+#IP4_EXTERNAL="OFFLINE"
+#IP4_INTERNAL="OFFLINE"
+
+echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
+
+ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
+ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_on_ext_off="Internal: $IP4_INTERNAL    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: $IP4_EXTERNAL"
+ip4_int_on_ext_on="Internal: $IP4_INTERNAL    External: $IP4_EXTERNAL"
+
+# Display IP4 addresses
+if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_off"
+elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
+elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
+else
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
 fi
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -le 8 ] && [ "$DGB_NETWORK_CURRENT" != "REGTEST" ]; then # Only show port forwarding instructions if connection count is less or equal to 10 since it is clearly working with a higher count
-printf "\\n"
-printf "   WARNING: Your current connection count is low. Have you forwarded port\\n"
-printf "            $DGB_LISTEN_PORT on your router? If yes, wait a few minutes. This message\\n"
-printf "            will disappear when the total connections reaches 9 or more.\\n"
-if [ "$DGB_PORT_TEST_ENABLED" = "YES" ]; then
-printf "            For help with port forwarding, press ${txtbld}P${txtrst} to run a Port Test.\\n"
+
+
+# STATUS MONITOR DASHBOARD - NETWORK - IP6 ADDRESS
+
+if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then 
+
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+    # Setup IP6 display array
+    ip6_leftcol=" ║                ║    IP6 ADDRESS ║  "
+    ip6_leftcol2=" ║                ║                ║  "
+    ip6_1st_part="Link-Local: ${IP6_LINKLOCAL:-unavailable}   GUA: ${IP6_GUA:-unavailable}"
+    ip6_1st_part_width=${#ip6_1st_part}
+    ip6_1st_part_l1="Link-Local: ${IP6_LINKLOCAL:-unavailable}"
+    ip6_1st_part_l2="GUA: ${IP6_GUA:-unavailable}"
+
+    # Display first IP6 part
+    if [ $term_width -gt $(( ip6_1st_part_width + combined_col1_2_width + right_border_width )) ]; then
+        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part"
+    else
+        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part_l1"
+        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_1st_part_l2"
+    fi
+
+    # If public IP6 is the same as GUA then remove it
+    if [ "$IP6_GUA" = "$IP6_EXTERNAL" ]; then
+        IP6_EXTERNAL=""
+    fi
+
+    # Setup ip6 second part if needed
+    if [ "$IP6_EXTERNAL" != "" ] && [ "$IP6_ULA" != "" ]; then
+        ip6_2nd_part="ULA: ${IP6_ULA}  External: ${IP6_EXTERNAL}"
+        ip6_2nd_part_width=${#ip6_2nd_part}
+        ip6_2nd_part_l1="External: ${IP6_EXTERNAL}"
+        ip6_2nd_part_l2="ULA: $IP6_ULA"
+        # Display second IP6 part
+        if [ $term_width -gt $(( ip6_2nd_part_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+        else
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l1"
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l2"
+        fi
+    elif [ "$IP6_EXTERNAL" != "" ]; then
+        ip6_2nd_part="External: ${IP6_EXTERNAL}"
+        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+    elif [ "$IP6_ULA" != "" ]; then
+        ip6_2nd_part="ULA: $IP6_ULA"
+        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+    fi
+
 fi
-fi
-printf "\\n"
-printf "  ╔════════════════╦════════════════════════════════════════════════════╗\\n"
+
+echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - DEVICE
+
 if [ "$MODEL" != "" ]; then
-printf "  ║ DEVICE         ║  " && printf "%-35s %10s %-4s\n" "$MODEL" "[ $MODELMEM RAM" "]  ║"
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
+
+    col_1_2_text=" ║ SYSTEM         ║         DEVICE ║  "
+    col3_text="$MODEL"
+    col4_text="$MODELMEM RAM"
+    db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
 fi
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - DISK USAGE
+
+# Display the section title, if the device was not displayed above
+if [ "$MODEL" != "" ]; then
+    col_1_2_text=" ║                ║     DISK USAGE ║  "
+else
+    col_1_2_text=" ║ SYSTEM         ║     DISK USAGE ║  "
+fi
+
 if [ "$DGB_DATA_DISKUSED_PERC_CLEAN" -ge "80" ]; then # Display current disk usage percentage in red if it is 80% or over
-printf "  ║ DISK USAGE     ║  " && printf "%-42s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${txtbred}$DGB_DATA_DISKUSED_PERC${txtrst} )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+    col3_text="${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${dbcol_bred}$DGB_DATA_DISKUSED_PERC${dbcol_rst} )"
+    col4_text="${DGB_DATA_DISKFREE_HR}b free"
+    db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
 else
-printf "  ║ DISK USAGE     ║  " && printf "%-31s %16s %3s\n" "${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )" "[ ${DGB_DATA_DISKFREE_HR}b free ]" " ║"
+    col3_text="${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( $DGB_DATA_DISKUSED_PERC )"
+    col4_text="${DGB_DATA_DISKFREE_HR}b free"
+    db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
 fi
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ MEMORY USAGE   ║  " && printf "%-33s %-18s\n" "${RAMUSED_HR}b of ${RAMTOTAL_HR}b" "[ ${RAMAVAIL_HR}b free ]  ║"
+
+echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - MEMORY USAGE
+
+col_1_2_text=" ║                ║   MEMORY USAGE ║  "
+col3_text="${RAMUSED_HR}b of ${RAMTOTAL_HR}b"
+col4_text="${RAMAVAIL_HR}b free"
+db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - SWAP USAGE
+
 if [ "$SWAPTOTAL_HR" != "0B" ] && [ "$SWAPTOTAL_HR" != "" ]; then # only display the swap file status if there is one, and the current value is above 0B
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-if [ "$SWAPUSED_HR" = "0B" ]; then # If swap used is 0B, drop the added b, used for Gb or Mb
-printf "  ║ SWAP USAGE     ║  " && printf "%-26s %19s %-4s\n" "${SWAPUSED_HR} of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free" "]  ║"
-else
-printf "  ║ SWAP USAGE     ║  " && printf "%-26s %19s %-4s\n" "${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b" "[ ${SWAPAVAIL_HR}b free" "]  ║"
-fi    
+    col_1_2_text=" ║                ║     SWAP USAGE ║  "
+    if [ "$SWAPUSED_HR" = "0B" ]; then # If swap used is 0B, drop the added b, used for Gb or Mb
+        col3_text="${SWAPUSED_HR} of ${SWAPTOTAL_HR}b"
+        col4_text="${SWAPAVAIL_HR}b free"
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    else
+        col3_text="${SWAPUSED_HR}b of ${SWAPTOTAL_HR}b"
+        col4_text="${SWAPAVAIL_HR}b free"
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    fi  
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"  
 fi 
-if [ "$temperature" != "" ]; then
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM TEMP    ║  " && printf "%-49s %-3s\n" "$TEMP_C °C     $TEMP_F °F" "  ║"
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - CPU USAGE (Only displays with 12 cores or less)
+
+if [ "$cpu_cores" -le 12 ]; then
+
+    # Read CPU values from the temporary files (these are updated by a background process)
+    cpu_usage_1=$(cat "$cpu1_file")
+    cpu_usage_2=$(cat "$cpu2_file")
+    average_cpu_usage=$(cat "$avg_file")
+
+    # Setup CPU display array
+    cpu_leftcol=" ║                ║      CPU USAGE ║  "
+    cpu_leftcol2=" ║                ║                ║  "
+    cpu_one_line="$cpu_usage_1$cpu_usage_2"
+    cpu_one_line_width=${#cpu_one_line}
+    cpu_one_line_l1="$cpu_usage_1"
+    cpu_one_line_l2="$cpu_usage_2"
+    cpu_total_perc="Total: ${average_cpu_usage}%"
+    cpu_total_perc_width=${#cpu_total_perc}
+
+    # Display first IP6 part
+    if [ $term_width -gt $(( cpu_one_line_width + combined_col1_2_width + cpu_total_perc_width + right_border_width )) ]; then
+        db_content_c1_c2_c3f_c4 "$cpu_leftcol" "$cpu_one_line" "$cpu_total_perc"
+    else
+        db_content_c1_c2_c3f_c4 "$cpu_leftcol" "$cpu_one_line_l1" "$cpu_total_perc"
+        db_content_c1_c2_c3f "$cpu_leftcol2" "$cpu_one_line_l2"
+    fi
+
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
 fi
-printf "  ╠════════════════╬════════════════════════════════════════════════════╣\\n"
-printf "  ║ SYSTEM CLOCK   ║  " && printf "%-47s %-3s\n" "$TIME_NOW" "  ║"
-printf "  ╚════════════════╩════════════════════════════════════════════════════╝\\n"
-printf "\\n"
-printf "\\n"
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - TEMPERATURE
+
+if [ "$temperature" != "" ]; then
+    col_1_2_text=" ║                ║    TEMPERATURE ║  "
+    col3_text="$TEMP_C °C     $TEMP_F °F"
+    db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+fi
+
+# STATUS MONITOR DASHBOARD - SYSTEM - CLOCK
+col_1_2_text=" ║                ║   SYSTEM CLOCK ║  "
+col3_text="$TIME_NOW"
+db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+
+echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+
+# Print empty line
+printf "%${term_width}s\n"
+
+
+# STATUS MONITOR DASHBOARD - DIGIFACT
 
 # Display a random DigiFact
-if [ "$DGB_STATUS" = "running" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
-digifact_display
+if [ "$DGB_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "NO" ] && [ $DGB_CONNECTIONS -ge 9 ]; then
+    display_digifact_termwidth
+elif [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ] && [ $DGB_CONNECTIONS -ge 9 ] && [ $DGB2_CONNECTIONS -ge 9 ]; then
+    display_digifact_termwidth
 fi
-if [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; then
-digifact_display
+
+if { [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; } && [ "$DGB_DUAL_NODE" = "NO" ]; then
+    display_digifact_termwidth
+elif { [ "$DGB_STATUS" = "not_detected" ] || [ "$DGB_STATUS" = "stopped" ]; } && [ "$DGB_DUAL_NODE" = "YES" ] && { [ "$DGB2_STATUS" = "not_detected" ] || [ "$DGB2_STATUS" = "stopped" ]; }; then
+    display_digifact_termwidth
 fi
+
+# Print empty line
+printf "%${term_width}s\n"
+
+
+##########################################
+
+
+
+# STATUS MONITOR DASHBOARD - QUIT MESSAGE
+
 if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    echo "$quit_messsage_with_port_test"
 elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    echo "$quit_messsage_with_port_test"
 elif [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    echo "$quit_messsage_with_port_test"
 elif [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
-    printf "           Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit. Press ${txtbld}P${txtrst} to test open ports.\\n"
+    echo "$quit_messsage_with_port_test"
 else
-    printf "                         Press ${txtbld}Ctrl-C${txtrst} or ${txtbld}Q${txtrst} to Quit.\\n"
+    echo "$quit_message"
 fi
-printf "\\n"
 
 #####################################
 # Display TROUBLESHOOTING variables #
@@ -3665,44 +4888,50 @@ if [ "$VERBOSE_MODE" = true ]; then
     TIME_DIF_15MIN_COUNTDOWN=$((900-$TIME_DIF_15MIN))
     TIME_DIF_1DAY_COUNTDOWN=$((86400-$TIME_DIF_1DAY))
 
-
-    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} =========\\n"
-    printf "\\n"
-    printf "                    DGB_STATUS: $DGB_STATUS ($DGB_NETWORK_CURRENT)\\n"
-    printf "                   DGB2_STATUS: $DGB2_STATUS\\n"
-    printf "\\n"
-    printf "                DGB_PRERELEASE: $DGB_PRERELEASE\\n"
-    printf "                 DGB_VER_LOCAL: $DGB_VER_LOCAL\\n"
-    printf "\\n"
-    printf "               DGB_VER_RELEASE: $DGB_VER_RELEASE\\n"
-    printf "            DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE\\n"
-    printf "                DGB_VER_GITHUB: $DGB_VER_GITHUB\\n"
-    printf "\\n"
-    printf "                    DGA_STATUS: $DGA_STATUS\\n"
-    printf "\\n"
+    printf "%${term_width}s\n"
+    printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} ========="  && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "                Terminal Width: $term_width" && tput el && printf "\\n" 
+    printf "                    DGB_STATUS: $DGB_STATUS ($DGB_NETWORK_CURRENT)" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "                   DGB2_STATUS: $DGB2_STATUS" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "                DGB_PRERELEASE: $DGB_PRERELEASE" && tput el && printf "\\n" 
+    printf "                 DGB_VER_LOCAL: $DGB_VER_LOCAL" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "               DGB_VER_RELEASE: $DGB_VER_RELEASE" && tput el && printf "\\n" 
+    printf "            DGB_VER_PRERELEASE: $DGB_VER_PRERELEASE" && tput el && printf "\\n" 
+    printf "                DGB_VER_GITHUB: $DGB_VER_GITHUB" && tput el && printf "\\n" 
+    printf "             dgb_update_status: $dgb_update_status" && tput el && printf "\\n" 
+    printf "          DGB_UPDATE_AVAILABLE: $DGB_UPDATE_AVAILABLE" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "                    DGA_STATUS: $DGA_STATUS" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
 #    printf "                TIME_DIF_10SEC: $TIME_DIF_10SEC_COUNTDOWN\\n"
 #    printf "                 TIME_DIF_1MIN: $TIME_DIF_1MIN_COUNTDOWN\\n"
 #    printf "                TIME_DIF_15MIN: $TIME_DIF_15MIN_COUNTDOWN\\n"
 #    printf "                 TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
 #    printf "\\n"
 #    printf "                 DGB_ERROR_MSG: $DGB_ERROR_MSG\\n"
-    printf "       DGB_TROUBLESHOOTING_MSG: $DGB_TROUBLESHOOTING_MSG\\n"
-    printf "\\n"
-    printf "        DGB_BLOCKSYNC_PROGRESS: $DGB_BLOCKSYNC_PROGRESS\\n"
-    printf "       DGB2_BLOCKSYNC_PROGRESS: $DGB2_BLOCKSYNC_PROGRESS\\n"
-    printf "\\n"
-    printf "           ==================================================\\n\\n"
+    printf "       DGB_TROUBLESHOOTING_MSG: $DGB_TROUBLESHOOTING_MSG" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "        DGB_BLOCKSYNC_PROGRESS: $DGB_BLOCKSYNC_PROGRESS" && tput el && printf "\\n" 
+    printf "       DGB2_BLOCKSYNC_PROGRESS: $DGB2_BLOCKSYNC_PROGRESS" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
+    printf "           ==================================================" && tput el && printf "\\n\\n"
 fi
+
+tput ed
 
 )
 
-if [ "$STARTUP_LOOP" = "true" ]; then
+if [ "$STARTUP_LOOP" = true ]; then
 
     printf "%b Startup Loop Completed.\\n" "${INFO}"
 
     printf "\\n"
 
-    # Log date of this Status Monitor run to diginode.settings
+    # Log date of this Dashboard run to diginode.settings
     str="Logging date of this run to diginode.settings file..."
     printf "%b %s" "${INFO}" "${str}"
     sed -i -e "/^DGNT_MONITOR_LAST_RUN=/s|.*|DGNT_MONITOR_LAST_RUN=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -3734,7 +4963,10 @@ if [ "$STARTUP_LOOP" = "true" ]; then
 fi
 
 # end output double buffer
-echo "$output"
+if [ "$terminal_resized" = "no" ]; then
+    change_tip="yes"
+    echo "$output"
+fi
 
 # Display the quit message on exit
 trap quit_message EXIT
@@ -4513,6 +5745,8 @@ echo ""
 
 read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
 
+clear -x
+
 loopcounter=0
 
 status_loop
@@ -4553,6 +5787,7 @@ startup_checks() {
   is_avahi_installed               # Check if avahi-daemon is installed
   is_jq_installed                  # Check if jq is installed
   install_required_pkgs            # Install jq
+  download_digifacts               # Download the digifacts.json file from Github
   firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
   firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
   startup_waitpause                # Wait for key press or pause for a few seconds 
