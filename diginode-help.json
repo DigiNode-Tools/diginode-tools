@@ -1,0 +1,22 @@
+{
+    "diginodehelp1": {
+        "title": "DigiFact Tip!",
+        "content": "Some of these DigiFacts include a website URL which can be dificult to open from the terminal. To open a link, try holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows as you click on it. Try it now: $DGNT_WEBSITE_URL",
+        "url": "$DGNT_WEBSITE_URL"
+    },
+    "diginodehelp2": {
+        "title": "Need Help with DigiNode Tools?",
+        "content": "Please join the DigiNode Tools Telegram group here: $SOCIAL_TELEGRAM_URL. You can also contact $SOCIAL_TWITTER_HANDLE on Twitter or $SOCIAL_BLUESKY_HANDLE on Bluesky.",
+        "url": "$SOCIAL_TELEGRAM_URL"
+    },
+   	"diginodehelp3": {
+        "title": "DigiNode Tip!",
+        "content": "Did you know that you can view your DigiNode on a map?\nDigiByte Node: https://nodes.digibyte.host/\nDigiAsset Node: https://ipfs.digiassetx.com/\nThis is a good way to check your DigiNode is setup correctly!",
+        "url": "https://nodes.digibyte.host/"
+    },
+    "diginodehelp4": {
+        "title": "Need DigiAsset Support?",
+        "content": "For help with creating DigiAssets, a good place to start is the DigiAssetX Telegram group here: https://t.me/digiassetX",
+        "url": "https://t.me/digiassetX"
+    }
+}
