@@ -3306,13 +3306,16 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB_VER_GITHUB=$DGB_VER_PRERELEASE
             fi
 
-            # If DigiByte Core is up to date, switch back to checking the local version number daily
-            if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-              DGB_VER_LOCAL_CHECK_FREQ="daily"
-              sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
-              DGB_UPDATE_AVAILABLE="no"
+
+
+            # Compare current DigiByte Core version with Github version to know if there is a new version available
+            dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
+            if [ "$dgb_update_status" = "update_available" ]; then
+                DGB_UPDATE_AVAILABLE="yes"
             else
-              DGB_UPDATE_AVAILABLE="yes"
+                DGB_VER_LOCAL_CHECK_FREQ="daily"
+                sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
+                DGB_UPDATE_AVAILABLE="no"
             fi
 
           fi
