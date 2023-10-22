@@ -8,7 +8,7 @@ A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node a
 ### What are DigiNode Tools?
 DigiNode Tools are a suite of Linux bash scripts that make it really easy to setup, monitor and manage a DigiNode on a Raspberry Pi 4 or Ubuntu/Debian system.
 - **DigiNode Setup** - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
-- **DigiNode Status Monitor** - Provides a live dashboard to quickly check the status of your DigiNode.
+- **DigiNode Dashboard** - Provides a live dashboard to quickly check the status of your DigiNode.
 
 ### What do I need to run a DigiNode?
 
@@ -26,19 +26,17 @@ DigiNode Setup helps you to setup and manage your DigiNode:
    + Fast! The entire DigiNode Setup takes only a few minutes.
    + Automatically checks your system hardware and OS are compatible, and that there is sufficient disk space and memory.
    + Checks for swap file, and helps create one on low memory devices.
-   + Prompts you to run a mainnet or testnet DigiByte Node.
+   + Prompts you to run a mainnet or testnet DigiByte Node, or a Dual Node - run both simultaneously on the same system!
    + Creates or updates the digibyte.conf settings file with optimal settings.
    + Creates system services (systemd or upstart) to ensure your DigiByte Node and DigiAsset Node are kept running 24/7, even after a reboot.
    + Automatically configures your DigiAsset Node with your RPC credentials, ensuring your DigiAsset Node can connect to your DigiByte wallet. (No manual configuration required.)
 - Quickly and easilly upgrade your DigiByte and DigiAssets Node software to the latest release.
-- Optionally, install a pre-release version of DigiByte Core (See [Advanced Features](GETSTARTED.md#advanced-features).)
-- Set up a DigiByte mainnet node, testnode node, ot a Dual Node (mainnet and testnet side-by-side)
-- Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
+- Optionally, install a pre-release version of DigiByte Core (See [Advanced Features](GETSTARTED.md#advanced-features).) Easilly downgrade DigiByte Core pre-release back to the release version, if needed. 
 - Option to create a 'digibyte' user and set system hostname to 'diginode'. 
 - Option to enable zeroconf networking (Bonjour) so you can access your node at http://diginode.local:8090 - i.e. no need to remember the IP address.
 - Option to install a custom DiigNode MOTD (Message of the Day). This is displayed whenever you connect to your DigiNode via the terminal and reminds you of the commands to run it.
 - Unattended Install mode - install can be pre-configured to run without any prompts. Great for batch setups.
-- Includes DigiNode Status Monitor, a powerful dashboard for monitoring the status of your DigiNode. (More info [below](#about-diginode-status-monitor).)
+- Includes DigiNode Dashboard, a powerful dashboard for monitoring the status of your DigiNode. (More info [below](#about-diginode-dashboard).)
 
 Go [here](GETSTARTED.md) to get started setting up your DigiNode. Once installed, DigiNode Setup can be run from the command line by entering: ```diginode-setup```
 
@@ -57,11 +55,11 @@ Once DigiNode Tools have been installed, you can access additional features via 
 - **Reset**: Gives you the ability to selectively reset your DigiNode settings in the event of a problem.
 - **Uninstall**: Unistalls DigiNode software from your system. It lets you choose which individual components you wish to remove. Your DigByte wallet will not be harmed.
 
-## About DigiNode Status Monitor
+## About DigiNode Dashboard
 
-![DigiNode Status Monitor](images/diginode_status_monitor.png)
+![DigiNode Dashboard](images/diginode_dashboard.png)
 
-DigiNode Status Monitor is a powerful dashboard for monitoring the status of your DigiNode:
+DigiNode Dashboard is a powerful dashboard for monitoring the status of your DigiNode:
 
 - Monitor your DigiNode on your local machine via the command line, locally or remotely over SSH.
 - Quickly check that your DigiByte and DigiAsset Nodes are running correctly.
@@ -75,9 +73,9 @@ DigiNode Status Monitor is a powerful dashboard for monitoring the status of you
 - Periodically checks for software updates to your DigiNode (not more than once every 24 hours) and helps you install them.
 - Built-in port checker to ensure the correct ports are open on your router.
 
-DigiNode Status Monitor can be run from the command line by entering: ```diginode```
+DigiNode Dashboard can be run from the command line by entering: ```diginode```
 
-*Note: If you already have a DigiByte Node running on your machine, and simply want to use the DigiNode Status Monitor with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools. You should then be able to use the Status Monitor with your existing DigiByte node.*
+*Note: If you already have a DigiByte Node running on your machine, and simply want to use the DigiNode Dashboard with it, DigiNode Setup gives you the option to install DigiNode Tools only (i.e. these scripts). They will be installed to: ~/diginode-tools. You should then be able to use the Dashboard with your existing DigiByte node.*
 
 ## System Compatibility
 
