@@ -1,5 +1,15 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.0 - 2023-10-22
+- New: Introducing "DigiNode Dashboard" with Dual Node support! The old Status Monitor has been completely redesigned and rewritten from the ground up which called for a new new name - goodbye DigiNode Status Monitor, hello DigiNode Dashboard! It now resizes automatically to fit the width of the terminal, increasing or decreasing the information density based on the space available. It also now displays the CPU stats and other useful data. Most importantly it also has support for a Dual Node - displaying data from both your mainnet and testnet nodes at the same time.
+- New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information here: https://github.com/saltedlolly/DigiByte-DigiFacts-JSON
+- New: Added "diginode --dgbpeers" flag to display the current DigiByte peers. User --dgb2peers for the secondary textnet neode when running a Dual Node.
+- New: Added "diginode --rpc" flag to display the current RPC credentials for the DigiByte Node. These were previously displayed in the Status Monitor but for privacy reasons they have been removed. This command saves you from having to look them up in digibyte.conf. 
+- Fix: New improved update checker for DigiByte Core. It can now handle comparing release versions to pre-release versions, including test variants (e.g. 8.22.0-rc3-faststart), to detect if there is an update available. If you are creating your own test variants, each one should be in its own folder in the home folder (e.g. ~/8.22.0-rc3-faststart). Within this folder you need to also create a hidden file called .prerelease and inside that file include a variable assignment for the current version (e.g. DGB_VER_LOCAL="8.22.0-rc3-faststart"). Finally you need to create a symbolic link in the home folder called 'digibyte' that points at the test variant folder. Be sure to delete the existing 'digibyte' symbolic link first, if it already exists.
+- Fix: DigiNode Dashboard no longer flickers as it was prone to do in all previous versions.
+- Fix: DigiNode Dashboard no longer gets duplicated down the screen! This used to happen occasionally when using the mouse with the terminal particularly on macOS. Clicking on the terminal window would could the Status Monitor to get duplicated down the terminal and the only way to solve it was to scroll down all the way to the bottom. It was an infuriating bug that has been there since the beginning. Hopefully it is now gone for good.
+- Fix: Windows users should now see colors in DigiNode Dashboard. If you don't please download Windows Terminal from the Microsoft store. This is the recommended terminal software for DigiNode users on Windows: https://apps.microsoft.com/detail/9N0DX20HK701?hl=en-us&gl=US
+
 DigiNode Tools v0.8.10 - 2023-10-08
 - New: Add support for new DigiByte port tester developed by @JongJan88
 - New: More backend work in preperation for adding Dual Node support in the Status Monitor

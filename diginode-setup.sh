@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.8.10
+#           Name:  DigiNode Setup v0.9.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -35,8 +35,10 @@
 # instead of continuing the installation with something broken
 # set -e
 
-# Play an error beep if it exits with an error
-trap error_beep exit 1
+# Play an error beep if it exits with an error, but not if this is sourced from the DigiNode Status Monitor script
+if [[ "$RUN_SETUP" != "NO" ]] ; then
+    trap error_beep exit 1
+fi
 
 # Function to beep on an exit 1
 error_beep() {
@@ -222,7 +224,7 @@ txtbylw=$(tput setaf 11) # Bright Yellow
 txtbblu=$(tput setaf 12) # Bright Blue
 txtbpur=$(tput setaf 13) # Bright Purple
 txtbcyn=$(tput setaf 14) # Bright Cyan
-txtbwht=$(tput setaf 15) # Bright White
+txtbwht="$(tput setaf 15)" # Bright White
 
 txtrst=$(tput sgr0) # Text reset.
 
@@ -787,7 +789,6 @@ DGB_VER_PRERELEASE="$DGB_VER_PRERELEASE"
 DGB_VER_LOCAL="$DGB_VER_LOCAL"
 DGB_VER_LOCAL_CHECK_FREQ="$DGB_VER_LOCAL_CHECK_FREQ"
 DGB_PRERELEASE="$DGB_PRERELEASE"
-DGB_NETWORK_CURRENT="$DGB_NETWORK_CURRENT"
 DGB_DUAL_NODE="$DGB_DUAL_NODE"
 
 # DIGINODE TOOLS LOCATION:
@@ -844,6 +845,7 @@ SAVED_TIME_1MIN="$SAVED_TIME_1MIN"
 SAVED_TIME_15MIN="$SAVED_TIME_15MIN"
 SAVED_TIME_1DAY="$SAVED_TIME_1DAY"
 SAVED_TIME_1WEEK="$SAVED_TIME_1WEEK"
+SAVED_TIME_DIGIFACTS="$SAVED_TIME_DIGIFACTS"
 
 # Disk usage variables (updated every 10 seconds)
 BOOT_DISKFREE_HR="$BOOT_DISKFREE_HR"
@@ -851,15 +853,31 @@ BOOT_DISKFREE_KB="$BOOT_DISKFREE_KB"
 BOOT_DISKUSED_HR="$BOOT_DISKUSED_HR"
 BOOT_DISKUSED_KB="$BOOT_DISKUSED_KB"
 BOOT_DISKUSED_PERC="$BOOT_DISKUSED_PERC"
+DGB_DATA_TOTALDISK_KB="$DGB_DATA_TOTALDISK_KB"
 DGB_DATA_DISKFREE_HR="$DGB_DATA_DISKFREE_HR"
 DGB_DATA_DISKFREE_KB="$DGB_DATA_DISKFREE_KB"
 DGB_DATA_DISKUSED_HR="$DGB_DATA_DISKUSED_HR"
 DGB_DATA_DISKUSED_KB="$DGB_DATA_DISKUSED_KB"
 DGB_DATA_DISKUSED_PERC="$DGB_DATA_DISKUSED_PERC"
 
-# IP addresses (only rechecked once every 15 minutes)
+DGB_DATA_DISKUSED_MAIN_HR="$DGB_DATA_DISKUSED_MAIN_HR"
+DGB_DATA_DISKUSED_MAIN_KB="$DGB_DATA_DISKUSED_MAIN_KB"
+DGB_DATA_DISKUSED_MAIN_PERC="$DGB_DATA_DISKUSED_MAIN_PERC"
+
+DGB_DATA_DISKUSED_TEST_HR="$DGB_DATA_DISKUSED_TEST_HR"
+DGB_DATA_DISKUSED_TEST_KB="$DGB_DATA_DISKUSED_TEST_KB"
+DGB_DATA_DISKUSED_TEST_PERC="$DGB_DATA_DISKUSED_TEST_PERC"
+
+IPFS_DATA_DISKUSED_HR="$IPFS_DATA_DISKUSED_HR"
+IPFS_DATA_DISKUSED_KB="$IPFS_DATA_DISKUSED_KB"
+IPFS_DATA_DISKUSED_PERC="$IPFS_DATA_DISKUSED_PERC"
+
+# IP addresses (external IPs only rechecked once every 15 minutes)
 IP4_INTERNAL="$IP4_INTERNAL"
 IP4_EXTERNAL="$IP4_EXTERNAL"
+IP6_LINKLOCAL="$IP6_LINKLOCAL"
+IP6_ULA="$IP6_ULA"
+IP6_GUA="$IP6_GUA"
 IP6_EXTERNAL="$IP6_EXTERNAL"
 
 # This records when DigiNode was last backed up to a USB stick
@@ -941,7 +959,13 @@ EOF
 # check if diginode.settings file exists
 diginode_tools_import_settings() {
 
-if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; then
+local display_output="$1"
+
+if [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ] && [ "$display_output" = "silent" ]; then
+
+    source $DGNT_SETTINGS_FILE
+
+elif [ -f "$DGNT_SETTINGS_FILE" ] && [ "$IS_DGNT_SETTINGS_FILE_NEW" != "YES" ]; then
 
     # The settings file exists, so source it
     str="Importing diginode.settings file..."
@@ -1278,22 +1302,41 @@ fi
 
 }
 
+
+# OLD VERSION_CODENAME
+
 # Lookup disk usage, and store in diginode.settings if present
 update_disk_usage() {
 
         # Update current disk usage variables
-        BOOT_DISKUSED_HR=$(df . -h --output=used | tail -n +2)
-        BOOT_DISKUSED_KB=$(df . --output=used | tail -n +2)
-        BOOT_DISKUSED_PERC=$(df . --output=pcent | tail -n +2)
-        BOOT_DISKFREE_HR=$(df . -h --si --output=avail | tail -n +2)
-        BOOT_DISKFREE_KB=$(df . --output=avail | tail -n +2)
+        BOOT_DISKUSED_HR=$(df $USER_HOME -h --output=used | tail -n +2)
+        BOOT_DISKUSED_KB=$(df $USER_HOME --output=used | tail -n +2)
+        BOOT_DISKUSED_PERC=$(df $USER_HOME --output=pcent | tail -n +2)
+        BOOT_DISKFREE_HR=$(df $USER_HOME -h --si --output=avail | tail -n +2)
+        BOOT_DISKFREE_KB=$(df $USER_HOME --output=avail | tail -n +2)
 
         # Update current data disk usage variables
+        DGB_DATA_TOTALDISK_KB=$(df $DGB_DATA_LOCATION | tail -1 | awk '{print $2}')
         DGB_DATA_DISKUSED_HR=$(df $DGB_DATA_LOCATION -h --output=used | tail -n +2)
         DGB_DATA_DISKUSED_KB=$(df $DGB_DATA_LOCATION --output=used | tail -n +2)
         DGB_DATA_DISKUSED_PERC=$(df $DGB_DATA_LOCATION --output=pcent | tail -n +2)
         DGB_DATA_DISKFREE_HR=$(df $DGB_DATA_LOCATION -h --si --output=avail | tail -n +2)
         DGB_DATA_DISKFREE_KB=$(df $DGB_DATA_LOCATION --output=avail | tail -n +2)
+
+        # DigiByte mainnet disk used
+        DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+        DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+        DGB_DATA_DISKUSED_MAIN_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_MAIN_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+
+        # DigiByte testnet disk used
+        DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+        DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+        DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+
+        # IPFS disk used
+        IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
+        IPFS_DATA_DISKUSED_KB=$(du -sk $USER_HOME/.ipfs | awk '{print $1}')
+        IPFS_DATA_DISKUSED_PERC=$(echo "scale=2; ($IPFS_DATA_DISKUSED_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
 
         # Trim white space from disk variables
         BOOT_DISKUSED_HR=$(echo -e " \t $BOOT_DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -1307,24 +1350,37 @@ update_disk_usage() {
         DGB_DATA_DISKFREE_HR=$(echo -e " \t $DGB_DATA_DISKFREE_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
         DGB_DATA_DISKFREE_KB=$(echo -e " \t $DGB_DATA_DISKFREE_KB \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
 
+
         # Get clean percentage (no percentage symbol)
         DGB_DATA_DISKUSED_PERC_CLEAN=$(echo -e " \t $DGB_DATA_DISKUSED_PERC \t " | cut -d'%' -f1)
 
         # Update diginode.settings file it it exists
         if [ -f "$DGNT_SETTINGS_FILE" ]; then
-            sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=\"$BOOT_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=\"$BOOT_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=\"$BOOT_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=\"$BOOT_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=\"$BOOT_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=\"$DGB_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=\"$DGB_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=\"$DGB_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=\"$DGB_DATA_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
-            sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=\"$DGB_DATA_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^BOOT_DISKFREE_HR=/s|.*|BOOT_DISKFREE_HR=\"$BOOT_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^BOOT_DISKFREE_KB=/s|.*|BOOT_DISKFREE_KB=\"$BOOT_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^BOOT_DISKUSED_HR=/s|.*|BOOT_DISKUSED_HR=\"$BOOT_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^BOOT_DISKUSED_KB=/s|.*|BOOT_DISKUSED_KB=\"$BOOT_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^BOOT_DISKUSED_PERC=/s|.*|BOOT_DISKUSED_PERC=\"$BOOT_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_TOTALDISK_KB=/s|.*|DGB_DATA_TOTALDISK_KB=\"$DGB_DATA_TOTALDISK_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKFREE_HR=/s|.*|DGB_DATA_DISKFREE_HR=\"$DGB_DATA_DISKFREE_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKFREE_KB=/s|.*|DGB_DATA_DISKFREE_KB=\"$DGB_DATA_DISKFREE_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_HR=/s|.*|DGB_DATA_DISKUSED_HR=\"$DGB_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_KB=/s|.*|DGB_DATA_DISKUSED_KB=\"$DGB_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_PERC=/s|.*|DGB_DATA_DISKUSED_PERC=\"$DGB_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_DATA_DISKUSED_HR=/s|.*|IPFS_DATA_DISKUSED_HR=\"$IPFS_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_DATA_DISKUSED_KB=/s|.*|IPFS_DATA_DISKUSED_KB=\"$IPFS_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
+        sed -i -e "/^IPFS_DATA_DISKUSED_PERC=/s|.*|IPFS_DATA_DISKUSED_PERC=\"$IPFS_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
         fi
 
 }
+
+
 
 # Scrape the contents of digibyte.conf and store the sections in variables
 scrape_digibyte_conf() {
@@ -3072,7 +3128,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make ca-certificates curl gnupg sysstat)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
 
@@ -3108,7 +3164,7 @@ elif is_command rpm ; then
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
     SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux)
+    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -6475,7 +6531,7 @@ menu_first_install() {
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -6520,7 +6576,7 @@ install_diginode_tools_only() {
     digifact_randomize
 
     # Display a random DigiFact
-    digifact_display
+    display_digifact_fixedwidth
 
     # Display donation QR Code
     donation_qrcode
@@ -6630,7 +6686,7 @@ install_digiasset_node_only() {
     digifact_randomize
 
     # Display a random DigiFact
-    digifact_display
+    display_digifact_fixedwidth
 
     # Display donation QR Code
     donation_qrcode
@@ -6728,7 +6784,7 @@ menu_existing_install() {
     "${opt7a}"  "${opt7b}" \
     "${opt8a}"  "${opt8b}" \
     "${opt9a}"  "${opt9b}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -6818,7 +6874,7 @@ menu_extras() {
     UpdateCmd=$(whiptail --title "EXTRAS MENU" --menu "\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 5 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; digifact_display; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -7029,6 +7085,9 @@ change_dgb_network() {
         DO_FULL_INSTALL=YES
     fi
 
+    # Lookup disk usage, and update diginode.settings if present
+    update_disk_usage
+
     # Check to see if DigiByte Core is running or not, and find out which network (mainnet/testnet) it is currently using
     check_digibyte_core
 
@@ -7157,7 +7216,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
@@ -7176,13 +7235,13 @@ change_dgb_network() {
         fi
 
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nYour DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
 
         # Prompt to delete the testnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nDeleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
@@ -7226,7 +7285,7 @@ change_dgb_network() {
         digifact_randomize
 
         # Display a random DigiFact
-        digifact_display
+        display_digifact_fixedwidth
 
     fi
 
@@ -7881,23 +7940,44 @@ donation_qrcode() {
     echo ""
 }
 
-# Get the wallet balance, remove trailing zeroes and seperate into commas
-get_wallet_balance() {
-    WALLET_BALANCE=$($DGB_CLI getbalance 2>/dev/null)
+# Get the wallet balance from the primary DigiByte Node, remove trailing zeroes and seperate into commas
+get_dgb_wallet_balance() {
+    DGB_WALLET_BALANCE=$($DGB_CLI getbalance 2>/dev/null)
     # If the wallet balance is 0, then set the value to "" so it is hidden
-    if [ "$WALLET_BALANCE" = "0.00000000" ]; then
-        WALLET_BALANCE=""
-    elif [ "$WALLET_BALANCE" != "" ]; then
+    if [ "$DGB_WALLET_BALANCE" = "0.00000000" ]; then
+        DGB_WALLET_BALANCE=""
+    elif [ "$DGB_WALLET_BALANCE" != "" ]; then
         # Remove any trailing zeroes and decimal point
-        WALLET_BALANCE=$(echo "$WALLET_BALANCE" | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+        DGB_WALLET_BALANCE=$(echo "$DGB_WALLET_BALANCE" | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
 
-        if [[ "$WALLET_BALANCE" =~ ^[0-9]+$ ]]; then # If the balance is an integer format the number with commas
-            WALLET_BALANCE=$(printf "%'d" $WALLET_BALANCE)
+        if [[ "$DGB_WALLET_BALANCE" =~ ^[0-9]+$ ]]; then # If the balance is an integer format the number with commas
+            DGB_WALLET_BALANCE=$(printf "%'d" $DGB_WALLET_BALANCE)
         else
-            WALLET_BALANCE_DECIMAL=$(echo $WALLET_BALANCE | cut -d'.' -f2)
-            WALLET_BALANCE_INTEGER=$(echo $WALLET_BALANCE | cut -d'.' -f1)
-            WALLET_BALANCE_INTEGER=$(printf "%'d" $WALLET_BALANCE_INTEGER)
-            WALLET_BALANCE=${WALLET_BALANCE_INTEGER}.${WALLET_BALANCE_DECIMAL}
+            DGB_WALLET_BALANCE_DECIMAL=$(echo $DGB_WALLET_BALANCE | cut -d'.' -f2)
+            DGB_WALLET_BALANCE_INTEGER=$(echo $DGB_WALLET_BALANCE | cut -d'.' -f1)
+            DGB_WALLET_BALANCE_INTEGER=$(printf "%'d" $DGB_WALLET_BALANCE_INTEGER)
+            DGB_WALLET_BALANCE=${DGB_WALLET_BALANCE_INTEGER}.${DGB_WALLET_BALANCE_DECIMAL}
+        fi
+    fi
+}
+
+# Get the wallet balance from the secondary DigiByte Node, remove trailing zeroes and seperate into commas
+get_dgb2_wallet_balance() {
+    DGB2_WALLET_BALANCE=$($DGB_CLI -testnet getbalance 2>/dev/null)
+    # If the wallet balance is 0, then set the value to "" so it is hidden
+    if [ "$DGB2_WALLET_BALANCE" = "0.00000000" ]; then
+        DGB2_WALLET_BALANCE=""
+    elif [ "$DGB2_WALLET_BALANCE" != "" ]; then
+        # Remove any trailing zeroes and decimal point
+        DGB2_WALLET_BALANCE=$(echo "$DGB2_WALLET_BALANCE" | sed '/\./ s/\.\{0,1\}0\{1,\}$//')
+
+        if [[ "$DGB2_WALLET_BALANCE" =~ ^[0-9]+$ ]]; then # If the balance is an integer format the number with commas
+            DGB2_WALLET_BALANCE=$(printf "%'d" $DGB2_WALLET_BALANCE)
+        else
+            DGB2_WALLET_BALANCE_DECIMAL=$(echo $DGB2_WALLET_BALANCE | cut -d'.' -f2)
+            DGB2_WALLET_BALANCE_INTEGER=$(echo $DGB2_WALLET_BALANCE | cut -d'.' -f1)
+            DGB2_WALLET_BALANCE_INTEGER=$(printf "%'d" $DGB2_WALLET_BALANCE_INTEGER)
+            DGB2_WALLET_BALANCE=${DGB_WALLET_BALANCE_INTEGER}.${DGB2_WALLET_BALANCE_DECIMAL}
         fi
     fi
 }
@@ -7909,10 +7989,10 @@ backup_reminder() {
     if [ "$NewInstall" != true ]; then
 
         # Lookup current wallet balance
-        get_wallet_balance
+        get_dgb_wallet_balance
 
         # If this is a full install, and no backup exists
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGB_WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiNode%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -7932,7 +8012,7 @@ backup_reminder() {
         fi
 
         # If only DigiByte core is installed, but not DigiAsset Node, and no wallet backup had been done
-        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$WALLET_BALANCE" != "" ]; then
+        if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGB_WALLET_BALANCE" != "" ]; then
 
             printf "%b %bReminder: Don't forget to backup your DigiByte wallet%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -9228,6 +9308,25 @@ if [ -f "$DGB_CONF_FILE" ]; then
         fi
     fi
 
+    # If we are running a Dual Node, or setting one up, we also need to get the current testnet maxconnections
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Look maxconnections from the global section of digibyte.conf and set default of 125 if not found
+        DGB2_MAXCONNECTIONS_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB2_MAXCONNECTIONS_GLOBAL" = "" ]; then
+            DGB2_MAXCONNECTIONS="125" # use default value
+        else
+            DGB2_MAXCONNECTIONS="$DGB2_MAXCONNECTIONS_GLOBAL"   
+        fi
+
+        # Look up maxconnections from the [test] section of digibyte.conf, if available
+        DGB2_MAXCONNECTIONS_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^maxconnections= | cut -d'=' -f 2)
+        if [ "$DGB2_MAXCONNECTIONS_TEST" != "" ]; then
+            DGB2_MAXCONNECTIONS="$DGB2_MAXCONNECTIONS_TEST"
+        fi
+
+    fi
+
 fi
 
 }
@@ -9421,6 +9520,99 @@ fi
 }
 
 
+# -----------------------------------------------------------------------------
+# is_dgb_newer_version: Compares two version strings to determine if the remote 
+# version is newer than the local version of DigiByte Core.
+#
+# The function can handle standard versions as well as pre-release versions.
+# Standard versions are of the format: major.minor.patch (e.g., 7.17.2).
+# Pre-release versions can be of two formats: 
+# 1. major.minor.patch-rc# (e.g., 8.22.0-rc1)
+# 2. major.minor.patch-rc#-suffix (e.g., 8.22.0-rc3-fastcode), where the suffix 
+#    denotes a specialized or test variant of that release candidate.
+# 
+# The ordering logic is:
+# 1. major.minor.patch versions are ordered numerically.
+# 2. For the same major.minor.patch, a version with -rc#-suffix is considered 
+#    newer than one with a lower rc number but older than the same rc number 
+#    without the suffix.
+#
+# The function is also case-insensitive to variations like "RC" and "rc".
+#
+# Usage:
+#     result=$(is_newer_version <local_version> <remote_version>)
+# 
+# Parameters:
+#     local_version: The current version string.
+#     remote_version: The version string to compare against.
+#
+# Returns:
+#     "update_available" if the remote version is newer than the local version.
+#     "update_not_available" otherwise.
+# 
+# Example:
+#     local_v="8.22.0-rc2"
+#     remote_v="8.22.0-rc3-fastcode"
+#     result=$(is_newer_version "$local_v" "$remote_v")
+#     echo "$result"  # Outputs: "update_available"
+# -----------------------------------------------------------------------------
+
+function is_dgb_newer_version() {
+    local_version="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+    remote_version="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
+
+    # Split version numbers into array
+    IFS='.' read -ra local_parts <<< "$local_version"
+    IFS='.' read -ra remote_parts <<< "$remote_version"
+
+    # Extract major, minor, and patch versions
+    local_major="${local_parts[0]}"
+    local_minor="${local_parts[1]}"
+    local_patch="${local_parts[2]%%-*}"  # Remove rc part and suffix if exists
+
+    remote_major="${remote_parts[0]}"
+    remote_minor="${remote_parts[1]}"
+    remote_patch="${remote_parts[2]%%-*}"
+
+    # Compare major, minor, and patch versions
+    if (( remote_major > local_major )); then
+        echo "update_available"
+        return
+    elif (( remote_major == local_major )); then
+        if (( remote_minor > local_minor )); then
+            echo "update_available"
+            return
+        elif (( remote_minor == local_minor )); then
+            if (( remote_patch > local_patch )); then
+                echo "update_available"
+                return
+            elif (( remote_patch == local_patch )); then
+                # Check for release candidate versions
+                local_rc="${local_version#*rc}"
+                local_rc="${local_rc%%-*}"  # Extract just the rc number
+                remote_rc="${remote_version#*rc}"
+                remote_rc="${remote_rc%%-*}"  # Extract just the rc number
+
+                if (( remote_rc > local_rc )); then
+                    echo "update_available"
+                    return
+                elif (( remote_rc == local_rc )); then
+                    # If remote version has a suffix and local doesn't
+                    if [[ "$remote_version" == *"-rc${remote_rc}-"* ]] && [[ "$local_version" != *"-rc${local_rc}-"* ]]; then
+                        echo "update_not_available"
+                        return
+                    # If local version has a suffix and remote doesn't
+                    elif [[ "$local_version" == *"-rc${local_rc}-"* ]] && [[ "$remote_version" != *"-rc${remote_rc}-"* ]]; then
+                        echo "update_available"
+                        return
+                    fi
+                fi
+            fi
+        fi
+    fi
+    echo "update_not_available"
+}
+
 
 # This function will check if DigiByte Node is installed, and if it is, check if there is an update available
 
@@ -9437,6 +9629,34 @@ check_digibyte_core() {
         printf "%b%b %s YES! [ DigiNode Install Detected. ] \\n" "${OVER}" "${TICK}" "${str}"
     else
         DGB_STATUS="not_detected"
+    fi
+
+    # If we don't already know, let's check if this is a pre-release version?
+    if [ "$DGB_PRERELEASE" = "" ] && [ "$DGB_STATUS" = "installed" ]; then
+        str="Is installed DigiByte Core the pre-release version?..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ -f "$DGB_INSTALL_LOCATION/.prerelease" ]; then
+            DGB_PRERELEASE="YES"
+            sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s YES! [ .prerelease file located ] \\n" "${OVER}" "${TICK}" "${str}"
+        else
+            DGB_PRERELEASE="NO"
+            sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
+    # If this is a pre-release version, and we don't already know the version number, get it from inside the .prerelease file 
+    if [ "$DGB_PRERELEASE" = "YES" ] && [ "$DGB_VER_LOCAL" = "" ] && [ "$DGB_STATUS" = "installed" ]; then
+        str="Getting the version number from .prerelease file..."
+        printf "%b %s" "${INFO}" "${str}"
+        if [ -f "$DGB_INSTALL_LOCATION/.prerelease" ]; then
+            source "$DGB_INSTALL_LOCATION/.prerelease"
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
     fi
 
     # Just to be sure, let's try another way to check if DigiByte Core installed by looking for the digibyte-cli binary
@@ -9851,29 +10071,37 @@ check_digibyte_core() {
 
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
-      # ....then check if a DigiByte Core upgrade is required
-      if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-          printf "%b DigiByte Core is already up to date.\\n" "${INFO}"
-          if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
-            DGB_INSTALL_TYPE="askreset"
-          else
-            printf "%b Upgrade not required.\\n" "${INFO}"
-            DGB_DO_INSTALL=NO
-            DGB_INSTALL_TYPE="none"
-            DGB_UPDATE_AVAILABLE=NO
-            printf "\\n"
-            return
-          fi
-      else
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
-                printf "%b %bDigiByte Core will be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+
+        # ....then check if a DigiByte Core upgrade is required
+
+        dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
+
+        if [ "$dgb_update_status" = "update_not_available" ]; then
+            if [ "$RESET_MODE" = true ]; then
+                printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
+                DGB_INSTALL_TYPE="askreset"
             else
-                printf "%b %bDigiByte Core will be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                printf "%b Upgrade not required.\\n" "${INFO}"
+                DGB_DO_INSTALL=NO
+                DGB_INSTALL_TYPE="none"
+                DGB_UPDATE_AVAILABLE=NO
+                printf "\\n"
+                return
             fi
-          DGB_INSTALL_TYPE="upgrade"
-          DGB_ASK_UPGRADE=YES
-      fi
+
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] && [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then # --dgbnopre
+                printf "%b %bDigiByte Core can be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+                DGB_INSTALL_TYPE="upgrade"
+                DGB_ASK_UPGRADE=YES
+            fi
+
+
+        else
+            printf "%b %bDigiByte Core can be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGB_INSTALL_TYPE="upgrade"
+            DGB_ASK_UPGRADE=YES
+        fi
+
     fi 
 
     # If no current version is installed, then do a clean install
@@ -10173,6 +10401,34 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
         DGB_PRERELEASE="YES"
         sed -i -e "/^DGB_PRERELEASE=/s|.*|DGB_PRERELEASE=\"$DGB_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Create hidden file to denote this is a pre-release version and add version number to it
+    # This file is used to have a local reference of which pre-release version this is since
+    # DigiByte Core typically does not know this precisely. This is used as backup for the value in diginode.settings
+    # for the rare situations where that file gets deleted,
+    if [ ! -f "$DGB_INSTALL_LOCATION/.prerelease" ] && [ "$DGB_PRERELEASE" = "YES" ]; then
+        str="Labeling as DigiByte Core pre-release version..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.prerelease
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+       # Create a new digibyte.conf file
+        str="Logging pre-release version number in .prerelease file..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
+        cat <<EOF > $DGB_INSTALL_LOCATION/.prerelease
+# This file is used to store the local version number of a pre-release version of DigiByte Core.
+# Given that DigiByte Core pre-releases typically do not know their precise version number,
+# this file is used as a workaround to remember which version is currently installed. 
+# Do not delete this file or upgrades will break.
+
+# Example: "8.22.0-rc3"
+
+DGB_VER_LOCAL="$DGB_VER_LOCAL"
+
+EOF
+printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Re-enable and re-start digibyted.service after reset/upgrade
@@ -10639,6 +10895,9 @@ fi
             fi
 
         fi
+
+        # Download digifacts.json
+        download_digifacts
 
         # Reset DGNT Install and Upgrade Variables
         DGNT_UPDATE_AVAILABLE=NO
@@ -14341,7 +14600,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte MAINNET blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte MAINNET blockchain data?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
@@ -14364,7 +14623,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte TESTNET blockchain data?\\n\\nIf you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take several days.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte TESTNET blockchain data?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
@@ -14613,1025 +14872,323 @@ fi
 
 }
 
-# Select a random DigiFact to display
-digifact_randomize() {
+# Download the DigiFacts file from Github (at most once every 24 hours)
+download_digifacts() {
 
-array[0]="digifact1"
-array[1]="digifact2"
-array[2]="digifact3"
-array[3]="digifact4"
-array[4]="digifact5"
-array[5]="digifact6"
-array[6]="digifact7"
-array[7]="digifact8"
-array[8]="digifact9"
-array[9]="digifact10"
-array[10]="digifact11"
-array[11]="digifact12"
-array[12]="digifact13"
-array[13]="digifact14"
-array[14]="digifact15"
-array[15]="digifact16"
-array[16]="digifact17"
-array[17]="digifact18"
-array[18]="digifact19"
-array[19]="digifact20"
-array[20]="digifact21"
-array[21]="digifact22"
-array[22]="digifact23"
-array[23]="digifact24"
-array[24]="digifact25"
-array[25]="digifact26"
-array[26]="digifact27"
-array[27]="digifact28"
-array[28]="digifact29"
-array[29]="digifact30"
-array[30]="digifact31"  
-array[31]="digifact32"
-array[32]="digifact33"
-array[33]="digifact34"
-array[34]="digifact35"
-array[35]="digifact36"
-array[36]="digifact37"
-array[37]="digifact38"
-array[38]="digifact39"
-array[39]="digifact40"
-array[40]="digifact41"
-array[41]="digifact42"
-array[42]="digifact43"
-array[43]="digifact44"
-array[44]="digifact45"
-array[45]="digifact46"
-array[46]="digifact47"
-array[47]="digifact48"
-array[48]="digifact49"
-array[49]="digifact50"
-array[50]="digifact51"
-array[51]="digifact52"
-array[52]="digifact53"
-array[53]="digifact54"   
-array[54]="digifact55"
-array[55]="digifact56"
-array[56]="digifact57"
-array[57]="digifact58"
-array[58]="digifact59"
-array[59]="digifact60"
-array[60]="digifact61"
-array[61]="digifact62"
-array[62]="digifact63"
-array[63]="digifact64"
-array[64]="digifact65"
-array[65]="digifact66"
-array[66]="digifact67"
-array[67]="digifact68"
-array[68]="digifact69"
-array[69]="digifact70"
-array[70]="digifact71"
-array[71]="digifact72"
-array[72]="digifact73"
-array[73]="digifact74"
-array[74]="digifact75"
-array[75]="digifact76"
-array[76]="digifact77"
-array[77]="social1"
-array[78]="social2"
-array[79]="help1"
-array[80]="help2"
-array[81]="help3"
-array[82]="help4"
-array[83]="help5"
-array[84]="help6"
+    printf " =============== Checking: DigiFacts ===================================\\n\\n"
+    # ==============================================================================
 
-size=${#array[@]}
-index=$(($RANDOM % $size))
+    local digifacts_file="$DGNT_LOCATION/digifacts.json"
+    local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
+    local diginode_help_file="$DGNT_LOCATION/diginode-help.json"
 
-# Store previous one, so we can make sure we don't display the same one twice in a row
-DIGIFACT_PREVIOUS=$DIGIFACT
+    # If the last download time file doesn't exist, create one with an old timestamp
+    if [ "$SAVED_TIME_DIGIFACTS" = "" ]; then
+        SAVED_TIME_DIGIFACTS=0
+        sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=0|" $DGNT_SETTINGS_FILE
+    fi
 
-# Get new random DigiFact
-DIGIFACT="${array[$index]}"
+    local current_time=$(date +%s)  # in seconds
 
-# If the new DigiFact is the same as the previous one, try again until we get a diferent one
-if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
-    DIGIFACT="${array[$index]}"
-fi
-if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
-    DIGIFACT="${array[$index]}"
-fi
-if [ "$DIGIFACT" = "$DIGIFACT_PREVIOUS" ]; then
-    DIGIFACT="${array[$index]}"
-fi
+    printf "%b Checking for digifacts.json ...\\n" "${INFO}"
+
+    # Function to download and process the digifacts.json
+    download_and_process() {
+        # If a backup exists, delete it
+        if [[ -f $digifacts_backup_file ]]; then
+            str="Delete existing digifacts.json.backup ..."
+            printf "%b %s" "${INFO}" "${str}" 
+            rm -f "$digifacts_backup_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Rename the existing digifacts.json to digifacts.json.backup, if it exists
+        if [[ -f $digifacts_file ]]; then
+            str="Create backupup of existing digifacts.json ..."
+            printf "%b %s" "${INFO}" "${str}" 
+            mv "$digifacts_file" "$digifacts_backup_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Download the digifacts.json file
+        str="Downloading digifacts.json from Github repo ..."
+        printf "%b %s" "${INFO}" "${str}"          
+        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://raw.githubusercontent.com/saltedlolly/DigiByte-DigiFacts-JSON/main/digifacts.json
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Check if the downloaded file is valid JSON
+        str="Is downloaded digifacts.json okay? ..."
+        printf "%b %s" "${INFO}" "${str}"
+        if ! jq empty "$digifacts_file" &> /dev/null; then
+            rm "$digifacts_file"
+            if [[ -f $digifacts_backup_file ]]; then
+                mv "$digifacts_backup_file" "$digifacts_file"
+            fi
+            printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            return 1
+        else
+            # If the JSON is valid, delete the backup file
+            rm -f "$digifacts_backup_file"
+            printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Check if the diginode-help.json file is valid JSON
+        str="Is the diginode-help.json file valid json? ..."
+        printf "%b %s" "${INFO}" "${str}"
+        if ! jq empty "$diginode_help_file" &> /dev/null; then
+            printf "%b%b %s No! diginode-help.json file is bad JSON! Please fix it and run again!\\n" "${OVER}" "${CROSS}" "${str}"
+            exit 1
+        else
+            # If the JSON is valid, continue
+            printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # If diginode-help.json exists, append its values to digifacts.json
+        if [[ -f $diginode_help_file ]]; then
+            str="Appending diginode-help.json to digifacts.json ..."
+            printf "%b %s" "${INFO}" "${str}" 
+            local tmp_file=$(mktemp)
+            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$tmp_file" && mv "$tmp_file" "$digifacts_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Update the last download timestamp
+        SAVED_TIME_DIGIFACTS=$current_time
+         sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=\"$SAVED_TIME_DIGIFACTS\"|" $DGNT_SETTINGS_FILE
+    }
+
+
+    if [[ ! -f $digifacts_file ]]; then
+        printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
+        download_and_process
+    elif (( current_time - SAVED_TIME_DIGIFACTS >= 86400 )); then
+        printf "%b digifacts.json will be upgraded...\\n" "${INFO}"
+        download_and_process
+    else
+        printf "%b digifacts.json will not be updated - updates occur at most once every 24 hours.\\n" "${INFO}"
+    fi
+
+    printf "\\n"
 
 }
 
-# Display the DigiFact
-digifact_display() {
-
-# banana
-
-#             ╔════════════════════════════════════════════════════════════════════╗
-
-if [ "$DIGIFACT" = "digifact1" ]; then
-    DIGIFACT_TITLE="DigiFact # 1 - Did you know..."
-    DIGIFACT_L1="The DigiByte blockchain launched in 2014. Thanks to its 15"
-    DIGIFACT_L2="second block time, it is the longest UTXO blockchain in"
-    DIGIFACT_L3="existence with over $DGB_BLOCK_HEIGHT_MIL  million blocks. Bitcoin will take until"
-    DIGIFACT_L4="the 22nd century to reach that many blocks."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact2" ]; then
-    DIGIFACT_TITLE="DigiFact # 2 - Did you know..."
-    DIGIFACT_L1="DigiByte has upgraded the network a number of times to include"
-    DIGIFACT_L2="\"Improvement milestones\". These hard forks were not contentious"
-    DIGIFACT_L3="splits that generated additional coins, but rather a "
-    DIGIFACT_L4="\"reorientation of the ship\" that the DigiByte community was"
-    DIGIFACT_L5="onboard with. Learn more: https://rb.gy/egrt5"
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact3" ]; then
-    DIGIFACT_TITLE="DigiFact # 3 - Did you know..."
-    DIGIFACT_L1="The DigiByte blockchain was fairly launched in 2014, long"
-    DIGIFACT_L2="before the 2017 Initial Coin Offering (ICO) craze of"
-    DIGIFACT_L3="whitepaper projects. DigiByte began with a fully working"
-    DIGIFACT_L4="blockchain that has been improved upon consistently"
-    DIGIFACT_L5="ever since."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact4" ]; then
-    DIGIFACT_TITLE="DigiFact # 4 - Did you know..."
-    DIGIFACT_L1="When DigiByte launched in 2014, a tiny DigiByte pre-mine (0.5%)"
-    DIGIFACT_L2="was given away to community members within the first 30 days,"
-    DIGIFACT_L3="and the details can be seen on BitcoinTalk. This was done to"
-    DIGIFACT_L4="incentivize people to download and run a full node helping to"
-    DIGIFACT_L5="distribute the blockchain. None of the pre-mine was retained"
-    DIGIFACT_L6="by the founder or developers."
-fi
-
-## Twitter NEXT ->
-#             ╔════════════════════════════════════════════════════════════════════╗
-
-if [ "$DIGIFACT" = "digifact5" ]; then
-    DIGIFACT_TITLE="DigiFact # 5 - Did you know..."
-    DIGIFACT_L1="There is no founders reward with the DigiByte blockchain."
-    DIGIFACT_L2="The reward for mining each block only ever goes to whoever"
-    DIGIFACT_L3="mined it. No part of it goes to anyone else."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact6" ]; then
-    DIGIFACT_TITLE="DigiFact # 6 - Did you know..."
-    DIGIFACT_L1="The DigiByte founder and developers have either purchased"
-    DIGIFACT_L2="their DGB coins on an exchange at market rates, or"
-    DIGIFACT_L3="mined them, just like everybody else. There was no ICO (Initial"
-    DIGIFACT_L4="Coin Offering) for the DigiByte blockchain. Every coin has"
-    DIGIFACT_L5="been fairly mined since the genesis block."
-    DIGIFACT_L6=""
-fi
-
-
-if [ "$DIGIFACT" = "digifact7" ]; then
-    DIGIFACT_TITLE="DigiFact # 7 - Did you know..."
-    DIGIFACT_L1="Transaction fees on the DigiByte blockchain are typically"
-    DIGIFACT_L2="incredibly low. In Block 7658349, a user sent 342,000,000 DGB"
-    DIGIFACT_L3="(worth \$6 million USD at the time) from the inputs of over 200"
-    DIGIFACT_L4="different addresses. It cost 1/10th of a cent (USD) in fees and"
-    DIGIFACT_L5="took only a minute or two to confirm."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact8" ]; then
-    DIGIFACT_TITLE="DigiFact # 8 - Did you know..."
-    DIGIFACT_L1="DigiByte pioneered the DigiShield difficulty adjustment. It's"
-    DIGIFACT_L2="used in Dogecoin, Ubiq, ZCash, Monacoin and parts of the code"
-    DIGIFACT_L3="are even used in Ethereum."
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="What is DigiShield (a.k.a MultiShield)? Learn more here:"
-    DIGIFACT_L6="https://j.mp/3oivy5u"
-fi
-
-## Bluesky NEXT ->
-#             ╔════════════════════════════════════════════════════════════════════╗
-
-if [ "$DIGIFACT" = "digifact9" ]; then
-    DIGIFACT_TITLE="DigiFact # 9 - Did you know..."
-    DIGIFACT_L1="DigiByte was the first non-Bitcoin blockchain to fix the major"
-    DIGIFACT_L2="inflation bug in 2018. Rapid response from our rock-star"
-    DIGIFACT_L3="developers!"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact10" ]; then
-    DIGIFACT_TITLE="DigiFact # 10 - Did you know..."
-    DIGIFACT_L1="The DigiByte \"Genesis Block\" contained the following headline:"
-    DIGIFACT_L2="\"USA Today: 10/Jan/2014, Target: Data stolen from up to"
-    DIGIFACT_L3="110M customers.\" This forever cemented DigiByte's focus on"
-    DIGIFACT_L4="cybersecurity."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact11" ]; then
-    DIGIFACT_TITLE="DigiFact # 11 - Did you know..."
-    DIGIFACT_L1="DigiByte was the first coin to upgrade from a single mining "
-    DIGIFACT_L2="algorithm to MultiAlgo, for the additional security provided by"
-    DIGIFACT_L3="having 5x algorithms. This upgrade occurred in late 2014 as"
-    DIGIFACT_L4="the \"MultiAlgo\" network upgrade."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="What's MultiAlgo? Learn more here: https://j.mp/3oivy5u"
-fi
-
-if [ "$DIGIFACT" = "digifact12" ]; then
-    DIGIFACT_TITLE="DigiFact # 12 - Did you know..."
-    DIGIFACT_L1="Initially DigiByte only used the Scrypt algorithm for mining."
-    DIGIFACT_L2="In September 2014, the network upgraded to MultiAlgo,"
-    DIGIFACT_L3="utilizing Scrypt, SHA256, Skein, Qubit & Myriad-Groestl."
-    DIGIFACT_L4="This massively improved decentralization by enabling a broader"
-    DIGIFACT_L5="variety of mining hardware to be used."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact13" ]; then
-    DIGIFACT_TITLE="DigiFact # 13 - Did you know..."
-    DIGIFACT_L1="In 2019, DigiByte upgraded the network, replacing the"
-    DIGIFACT_L2="Myriad-Groestl algorithm for Odocrypt, to specifically target"
-    DIGIFACT_L3="FPGA mining making that algorithm ASIC-resistant."
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="Learn more about Odocrypt here: https://j.mp/3kpZKKB"
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact14" ]; then
-    DIGIFACT_TITLE="DigiFact # 14 - Did you know..."
-    DIGIFACT_L1="In 2018, the DigiByte community raised enough funds to supply"
-    DIGIFACT_L2="Venezuelan refugees crossing the border with over a thousand"
-    DIGIFACT_L3="bottles of water, feed 160 orphaned children for a month, provide"
-    DIGIFACT_L4="essential maintenance for a hospital, refurbish an Adicora "
-    DIGIFACT_L5="school kitchen, and hosting several free community lunches for"
-    DIGIFACT_L6="hundreds of people."
-fi
-
-if [ "$DIGIFACT" = "digifact15" ]; then
-    DIGIFACT_TITLE="DigiFact # 15 - Did you know..."
-    DIGIFACT_L1="DigiByte is not an ICO or a token launched on another network,"
-    DIGIFACT_L2="but rather a pure blockchain project with it's own consensus"
-    DIGIFACT_L3="rules such as Bitcoin or Vertcoin."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact16" ]; then
-    DIGIFACT_TITLE="DigiFact # 16 - Did you know..."
-    DIGIFACT_L1="DigiByte was the first mobile wallet with a major focus on "
-    DIGIFACT_L2="translations for worldwide accessibility, being available"
-    DIGIFACT_L3="in 50+ languages on both Android & iOS."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact17" ]; then
-    DIGIFACT_TITLE="DigiFact # 17 - Did you know..."
-    DIGIFACT_L1="DigiByte can be used to store tiny amounts (80-bytes) of data"
-    DIGIFACT_L2="along with a transaction known as OP_RETURN. This is useful for "
-    DIGIFACT_L3="document hashes for notarization / validation, dApps, scripting"
-    DIGIFACT_L4="and more."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact18" ]; then
-    DIGIFACT_TITLE="DigiFact # 18 - Did you know..."
-    DIGIFACT_L1="You can look up any transaction on the DigiByte Blockchain by"
-    DIGIFACT_L2="inputting a transaction ID, DigiByte address, or block number"
-    DIGIFACT_L3="into a \"Blockchain Explorer\". The community maintains one such"
-    DIGIFACT_L4="explorer you can use at: https://digiexplorer.info."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact19" ]; then
-    DIGIFACT_TITLE="DigiFact # 19 - Did you know..."
-    DIGIFACT_L1="Have you wanted to run your own DigiExplorer? Or get other data"
-    DIGIFACT_L2="out of the blockchain so you can integrate it with your business? "
-    DIGIFACT_L3="There are handy guides at dgbwiki.com that will help you."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact20" ]; then
-    DIGIFACT_TITLE="DigiFact # 20 - Did you know..."
-    DIGIFACT_L1="In 2019, DigiByte implemented the unique algorithm Odocrypt,"
-    DIGIFACT_L2="replacing the older Myriad-Groestl. This Odocrypt hashing"
-    DIGIFACT_L3="algorithm is not used in any other project and was made"
-    DIGIFACT_L4="specifically by DigiByte developers for DigiByte FPGA mining."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact21" ]; then
-    DIGIFACT_TITLE="DigiFact # 21 - Did you know..."
-    DIGIFACT_L1="Odocrypt was developed for DigiByte as a polymorphic algorithm"
-    DIGIFACT_L2="that resists ASICs, due to Odocrypt reprogramming itself every"
-    DIGIFACT_L3="10 days. It is only viable for FPGA mining, not ASICs."
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="Learn more about Odocrypt here: https://j.mp/3kpZKKB"
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact22" ]; then
-    DIGIFACT_TITLE="DigiFact # 22 - Did you know..."
-    DIGIFACT_L1="DigiByte is available on 100+ exchanges, including many"
-    DIGIFACT_L2="different fiat pairings with local currencies, making it easier"
-    DIGIFACT_L3="than ever to buy DigiByte."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact23" ]; then
-    DIGIFACT_TITLE="DigiFact # 23 - Did you know..."
-    DIGIFACT_L1="DigiByte was founded by Jared Tate in 2013 and the Genesis block"
-    DIGIFACT_L2="was mined on 10th January 2014. While Jared remains an active"
-    DIGIFACT_L3="member of the DigiByte community, and is one of the Core"
-    DIGIFACT_L4="developers, he does not dictate the direction of the project."
-    DIGIFACT_L5="DigiByte has no boss - it is entirely run and managed by a"
-    DIGIFACT_L6="global community of dedicated volunteers."
-fi
-
-if [ "$DIGIFACT" = "digifact24" ]; then
-    DIGIFACT_TITLE="DigiFact # 24 - Did you know..."
-    DIGIFACT_L1="DigiByte can do smart-contracts thanks to its \"script\" language"
-    DIGIFACT_L2="You can run a whole lot of powerful tools on top of DigiByte to"
-    DIGIFACT_L3="power a dApp."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact25" ]; then
-    DIGIFACT_TITLE="DigiFact # 25 - Did you know..."
-    DIGIFACT_L1="DigiByte has wallets for Windows, MacOS, Linux, Raspberry Pi,"
-    DIGIFACT_L2="Android, iOS and even Chrome OS. We are also supported on several"
-    DIGIFACT_L3="dozen other 3rd party & hardware wallets, each unique from the"
-    DIGIFACT_L4="others."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact26" ]; then
-    DIGIFACT_TITLE="DigiFact # 26 - Did you know..."
-    DIGIFACT_L1="Digi-ID by DigiByte is one of the simplest yet most secure"
-    DIGIFACT_L2="authentication methods in the world. Even Google warns against"
-    DIGIFACT_L3="using their own time-based 2FA codes or SMS-2FA, but Digi-ID"
-    DIGIFACT_L4="overcomes all the shortcomings. Digi-ID is open source, free,"
-    DIGIFACT_L5="ad-free (forever), private & secure."
-    DIGIFACT_L6="To learn more visit: https://www.digi-id.io/"
-fi
-
-if [ "$DIGIFACT" = "digifact27" ]; then
-    DIGIFACT_TITLE="DigiFact # 27 - Did you know..."
-    DIGIFACT_L1="The development of DigiByte is done by a worldwide team of"
-    DIGIFACT_L2="volunteers, who all donate their time out of a passion for the"
-    DIGIFACT_L3="project. There is no central company employing and paying"
-    DIGIFACT_L4="people, it's all given freely by our incredible developers"
-    DIGIFACT_L5="and supporting community."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact28" ]; then
-    DIGIFACT_TITLE="DigiFact # 28 - Did you know..."
-    DIGIFACT_L1="The last DigiByte will be mined by the year 2035. There is less"
-    DIGIFACT_L2="than half of all remaining \$DGB waiting to be mined by anybody"
-    DIGIFACT_L3="in the world. These are not \"owned\" by anybody, unlike an, "
-    DIGIFACT_L4="ICO and will be newly \"minted\"."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact29" ]; then
-    DIGIFACT_TITLE="DigiFact # 29 - Did you know..."
-    DIGIFACT_L1="DigiByte can be used for Atomic Swaps with other blockchains"
-    DIGIFACT_L2="safely and securely since the implementation of SegWit in "
-    DIGIFACT_L3="early 2017. There is no need for a second layer network to"
-    DIGIFACT_L4="perform this and it can instead be done directly."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact30" ]; then
-    DIGIFACT_TITLE="DigiFact # 30 - Did you know..."
-    DIGIFACT_L1="When all DigiByte have been mined, the network will continue to"
-    DIGIFACT_L2="function with the miners mining / securing the network as they"
-    DIGIFACT_L3="do at present. They will only get the transaction fees from"
-    DIGIFACT_L4="sending \$DGB."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact31" ]; then
-    DIGIFACT_TITLE="DigiFact # 31 - Did you know..."
-    DIGIFACT_L1="If you ever have issues with getting your DigiByte out of a"
-    DIGIFACT_L2="wallet, you can sweep the funds to a new wallet using the"
-    DIGIFACT_L3="DigiSweep tool created by Matthew Cornelisse of DigiAssetX."
-    DIGIFACT_L4="It's easy to use & open-source. Go here if you ever need it:"
-    DIGIFACT_L5=""
-    DIGIFACT_L6="https://digisweep.digiassetx.com/"
-fi
-
-if [ "$DIGIFACT" = "digifact32" ]; then
-    DIGIFACT_TITLE="DigiFact # 32 - Did you know..."
-    DIGIFACT_L1="When DigiByte launched, there was a count-down to the release"
-    DIGIFACT_L2="of the code, and to the first block being mined. This was one"
-    DIGIFACT_L3="of the things done to encourage a \"fair\" distribution, right"
-    DIGIFACT_L4="from the very beginning in 2014."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact33" ]; then
-    DIGIFACT_TITLE="DigiFact # 33 - Did you know..."
-    DIGIFACT_L1="DigiByte was originally based on a fork of the Litecoin code-base"
-    DIGIFACT_L2="(Though, a 100% independent blockchain with unique Genesis"
-    DIGIFACT_L3="Block). DigiByte has since maintained closer features with"
-    DIGIFACT_L4="Bitcoin, while also significantly innovating and surpassing it!"
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="View the code at: https://github.com/digibyte-core/digibyte/"
-fi
-
-if [ "$DIGIFACT" = "digifact34" ]; then
-    DIGIFACT_TITLE="DigiFact # 34 - Did you know..."
-    DIGIFACT_L1="You can build second-layer networks on top of DigiByte such as"
-    DIGIFACT_L2="DigiAssets, Lightning Networks, ICOs, Tokens, assets and more."
-    DIGIFACT_L3=""
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact35" ]; then
-    DIGIFACT_TITLE="DigiFact # 35 - Did you know..."
-    DIGIFACT_L1="Theres a mind boggling number of possible DigiByte addresses."
-    DIGIFACT_L2="1,461,501,637,330,902,918,203,684,832,716,283,019,655,932,542,976"
-    DIGIFACT_L3="(2¹⁶⁰). This is a quindecillion. It's so big you could randomly   "
-    DIGIFACT_L4="generate trillions a second & never generate the same as"
-    DIGIFACT_L5="somebody else."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact36" ]; then
-    DIGIFACT_TITLE="DigiFact # 36 - Did you know..."
-    DIGIFACT_L1="You can accept DigiByte in retail scenarios just by entering"
-    DIGIFACT_L2="the desired amount in to your wallet. The QR code will"
-    DIGIFACT_L3="automatically include your address and amount when the"
-    DIGIFACT_L4=" sender scans it. Super simple, straight from your wallet."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact37" ]; then
-    DIGIFACT_TITLE="DigiFact # 37 - Did you know..."
-    DIGIFACT_L1="The Core DigiByte wallet connects to a variety of peers, not"
-    DIGIFACT_L2="just the 'closest' or 'fastest'. It finds connections from"
-    DIGIFACT_L3="all over the world, to ensure you get a broad consensus"
-    DIGIFACT_L4="on the DigiByte blockchain and protects you against sybil"
-    DIGIFACT_L5="attacks."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact38" ]; then
-    DIGIFACT_TITLE="DigiFact # 38 - Did you know..."
-    DIGIFACT_L1="DigiByte implemented the DigiSpeed protocol in 2015. This allowed"
-    DIGIFACT_L2="allowed DigiByte to decrease from 30 second to 15 second block"
-    DIGIFACT_L3="timings. Lightning fast!"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact39" ]; then
-    DIGIFACT_TITLE="DigiFact # 39 - Did you know..."
-    DIGIFACT_L1="DigiByte Critical Infrastructure Team (DGBCIT) was founded in"
-    DIGIFACT_L2="Jan 2023. with the goal of ensuring that the DigiByte blockchain,"
-    DIGIFACT_L3="along with its critical services, are kept running at all times." 
-    DIGIFACT_L4="This is achieved though a community effort of coordinated"
-    DIGIFACT_L5="decentralization and redundancy. Please join us in the #DGBCIT"
-    DIGIFACT_L6="channel on DigiByte Discord server: https://t.ly/DGBCIT"
-fi
-
-if [ "$DIGIFACT" = "digifact40" ]; then
-    DIGIFACT_TITLE="DigiFact # 40 - Did you know..."
-    DIGIFACT_L1="Did you know that DigiByte is permissionless? This means there"
-    DIGIFACT_L2="is no individual or company to ask if you can build a dApp"
-    DIGIFACT_L3="on top of it, use it, send it, receive it, accept it for your"
-    DIGIFACT_L4="business, advertise it, promote it. You simply \"can\"!"
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact41" ]; then
-    DIGIFACT_TITLE="DigiFact # 41 - Did you know..."
-    DIGIFACT_L1="DigiByte is now working on its 8th \"protocol\" version in 6 years"
-    DIGIFACT_L2="since creation. This is what the first number in the DigiByte"
-    DIGIFACT_L3="Core Wallet version means, the protocol version. DigiByte"
-    DIGIFACT_L4="has consistently grown and improved throughout its history,"
-    DIGIFACT_L5="and continues to do-so."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact42" ]; then
-    DIGIFACT_TITLE="DigiFact # 42 - Did you know..."
-    DIGIFACT_L1="DigiBytes MultiAlgo means 5x algorithms all continuously compete"
-    DIGIFACT_L2="for every single block. Others such as X16R are very different,"
-    DIGIFACT_L3="instead rotating through each sub-algorithm with all miners"
-    DIGIFACT_L4="swapping and using that same. As such, X16R is still a \"single"
-    DIGIFACT_L5="algorithm\" compared with DigiBytes 5x MultiAlgo implementation."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact43" ]; then
-    DIGIFACT_TITLE="DigiFact # 43 - Did you know..."
-    DIGIFACT_L1="The Dandelion privacy protocol has been implemented in to"
-    DIGIFACT_L2="DigiByte Core, as well as the DigiByte Android & iOS apps."
-    DIGIFACT_L3="It helps protect your privacy, by masking the originating IP"
-    DIGIFACT_L4="address."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="To learn more about Dandelion, visit: https://j.mp/3Hag6AX"
-fi
-
-if [ "$DIGIFACT" = "digifact44" ]; then
-    DIGIFACT_TITLE="DigiFact # 44 - Did you know..."
-    DIGIFACT_L1="MultiShield is a powerful difficulty adjustment algorithm. It"
-    DIGIFACT_L2="ensures each of DigiBytes 5X algorithms all mine roughly an equal"
-    DIGIFACT_L3="amount of blocks, while maintaining a steady 15 second timing."
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="What is MultiShield? Learn more here:"
-    DIGIFACT_L6="https://j.mp/3oivy5u"
-fi
-
-if [ "$DIGIFACT" = "digifact45" ]; then
-    DIGIFACT_TITLE="DigiFact # 45 - Did you know..."
-    DIGIFACT_L1="Because of MultiShield, DigiByte has some of the most accurate"
-    DIGIFACT_L2="and stable block-timings. Where other projects usually wait"
-    DIGIFACT_L3="for 3-4 days to adjust, MultiShield tweaks. adjusts & refines"
-    DIGIFACT_L4="every single block."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="Learn more here: https://j.mp/3oivy5u"
-fi
-
-if [ "$DIGIFACT" = "digifact46" ]; then
-    DIGIFACT_TITLE="DigiFact # 46 - Did you know..."
-    DIGIFACT_L1="DigiByte was the first major blockchain project to enable the"
-    DIGIFACT_L2="Dandelion privacy protocol, to protect your IP address. You can"
-    DIGIFACT_L3="opt out of the privacy-protection it offers if you want even"
-    DIGIFACT_L4="faster transactions."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="To learn more about Dandelion, visit: https://j.mp/3Hag6AX"
-fi
-
-if [ "$DIGIFACT" = "digifact47" ]; then
-    DIGIFACT_TITLE="DigiFact # 47 - Did you know..."
-    DIGIFACT_L1="DigiByte is all about choice, and what works for you personally."
-    DIGIFACT_L2="DigiByte is available on over two dozen wallets, so there's"
-    DIGIFACT_L3="something that will fit everyone's requirements."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact48" ]; then
-    DIGIFACT_TITLE="DigiFact # 48 - Did you know..."
-    DIGIFACT_L1="DigiByte originally had 60 second block timings, however through"
-    DIGIFACT_L2="multiple network upgrades that were improved upon, first to 30,"
-    DIGIFACT_L3="and now to the 15 seconds it is today."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact49" ]; then
-    DIGIFACT_TITLE="DigiFact # 49 - Did you know..."
-    DIGIFACT_L1="DigiByte has had 100% uptime since its launch. While some people"
-    DIGIFACT_L2="restart their computers from time to time, hundreds of others"
-    DIGIFACT_L3="remain online all the time so that even in event of a major"
-    DIGIFACT_L4="nationwide internet outage, DigiByte would still continue to"
-    DIGIFACT_L5="function."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact50" ]; then
-    DIGIFACT_TITLE="DigiFact # 50 - Did you know..."
-    DIGIFACT_L1="The DigiByte Faucet by Renzo Diaz gives you an easy way"
-    DIGIFACT_L2="to get some free DGB. It's a great way for DigiByte"
-    DIGIFACT_L3="newcomers to experience this amazing technology first hand."
-    DIGIFACT_L4="For developers, there is also a testnet faucet."
-    DIGIFACT_L5=""
-    DIGIFACT_L6="https://www.digifaucet.org/"
-fi
-
-if [ "$DIGIFACT" = "digifact51" ]; then
-    DIGIFACT_TITLE="DigiFact # 51 - Did you know..."
-    DIGIFACT_L1="Anybody is able to contribute to the DigiByte code and make"
-    DIGIFACT_L2="improvements. All submissions get reviewed by other developers"
-    DIGIFACT_L3="to ensure no malicious code is accidentally accepted."
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="Join the Gitter developer chat here:"
-    DIGIFACT_L6="https://gitter.im/DigiByte-Core/protocol"
-fi
-
-if [ "$DIGIFACT" = "digifact52" ]; then
-    DIGIFACT_TITLE="DigiFact # 52 - Did you know..."
-    DIGIFACT_L1="Have you ever wanted to see some statistics about the DigiByte"
-    DIGIFACT_L2="network? For an overview of the of the DigiByte network, visit:"
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="https://digistats.digibyteservers.io"
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact53" ]; then
-    DIGIFACT_TITLE="DigiFact # 53 - Did you know..."
-    DIGIFACT_L1="Nobody knows exactly how many \"nodes\" there are on the DigiByte"
-    DIGIFACT_L2="network, because there is no central point that all computers"
-    DIGIFACT_L3="check in with. This ensures your privacy when you download"
-    DIGIFACT_L4="the wallet software."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact54" ]; then
-    DIGIFACT_TITLE="DigiFact # 54 - Did you know..."
-    DIGIFACT_L1="DigiByte has never hand a contentious hard fork despite ongoing"
-    DIGIFACT_L2="major code changes. Mining is so decentralized that when the"
-    DIGIFACT_L3="myriad-groestl algorithm was replaced with odocrypt, MG mining"
-    DIGIFACT_L4="pools installed the upgrade even when it meant they would no"
-    DIGIFACT_L5="longer be able to mine."
-    DIGIFACT_L6=""
-fi
-
- if [ "$DIGIFACT" = "digifact55" ]; then
-    DIGIFACT_TITLE="DigiFact # 55 - Did you know..."
-    DIGIFACT_L1="DigiByte mining is some of the most distributed in the industry."
-    DIGIFACT_L2="When a 7-day period in September 2019 was compared against"
-    DIGIFACT_L3="Bitcoin and Litecoin, DigiByte had over 10X the number of unique"
-    DIGIFACT_L4="miners. This grew to over 20X the unique miners when looking at"
-    DIGIFACT_L5="a 3-month period. View more stats here: https://j.mp/3ojzV08"
-    DIGIFACT_L6=""
- fi
-
-if [ "$DIGIFACT" = "digifact56" ]; then
-    DIGIFACT_TITLE="DigiFact # 56 - Did you know..."
-    DIGIFACT_L1="If the biggest 5x pools from Bitcoin were to collude, they could"
-    DIGIFACT_L2="control the Bitcoin, Bitcoin Cash, and Bitcoin SV networks"
-    DIGIFACT_L3="permanently until others grew to have more hash-power than them."
-    DIGIFACT_L4="Those same pools would not be a threat to DigiByte thanks to"
-    DIGIFACT_L5="DigiBytes MultiAlgo and MultiShield aspects."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact57" ]; then
-    DIGIFACT_TITLE="DigiFact # 57 - Did you know..."
-    DIGIFACT_L1="Every month, the DigiByte that miners get as a block-reward is"
-    DIGIFACT_L2="decreased by 1%. This gives DigiByte a very smooth supply-curve"
-    DIGIFACT_L3="for new DigiByte, rather than a \"halving\" event every few years."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact58" ]; then
-    DIGIFACT_TITLE="DigiFact # 58 - Did you know..."
-    DIGIFACT_L1="Transactions on the DigiByte network are public, but"
-    DIGIFACT_L2="pseudo-anonymous. You can see them on a Blockchain explorer,"
-    DIGIFACT_L3="however there is nothing inherently that can link a new"
-    DIGIFACT_L4="transaction / address to an end-user. There are no usernames,"
-    DIGIFACT_L5="email addresses etc required to use the DigiByte network."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact59" ]; then
-    DIGIFACT_TITLE="DigiFact # 59 - Did you know..."
-    DIGIFACT_L1="DigiByte addresses can be re-used, but it's completely optional."
-    DIGIFACT_L2="The best practice is for a wallet to give you a new address"
-    DIGIFACT_L3="each time after your previous address has received a"
-    DIGIFACT_L4="transaction. This is why you get a newly generated address each"
-    DIGIFACT_L5="time in the DigiByte Android & iOS apps."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact60" ]; then
-    DIGIFACT_TITLE="DigiFact # 60 - Did you know..."
-    DIGIFACT_L1="The source code for the DigiByte blockchain is completely"
-    DIGIFACT_L2="open-source, anybody can see it, inspect it, and review it."
-    DIGIFACT_L3="The Core Wallet is available at: "
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="https://github.com/DigiByte-Core/DigiByte"
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact61" ]; then
-    DIGIFACT_TITLE="DigiFact # 61 - Did you know..."
-    DIGIFACT_L1="DigiByte blocks have an expected 15 second time, which means "
-    DIGIFACT_L2="every single day there are 5,760 new blocks added to the"
-    DIGIFACT_L3="DigiByte blockchain."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact62" ]; then
-    DIGIFACT_TITLE="DigiFact # 62 - Did you know..."
-    DIGIFACT_L1="A single DigiByte can be divided up to 8 decimal places. That's"
-    DIGIFACT_L2="1/100,000,000 of a DigiByte. This is known as a Digit or DIT"
-    DIGIFACT_L3="for short. (e.g. 1000 DITS)"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact63" ]; then
-    DIGIFACT_TITLE="DigiFact # 63 - Did you know..."
-    DIGIFACT_L1="Each of the 5x algorithms that DigiByte uses to secure the"
-    DIGIFACT_L2="network and mine new blocks has an equal 20% chance to find every"
-    DIGIFACT_L3="single block. There is no priority given to one or another."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact64" ]; then
-    DIGIFACT_TITLE="DigiFact # 64 - Did you know..."
-    DIGIFACT_L1="DigiByte has 3x address types, each starting with a different"
-    DIGIFACT_L2="prefix. Modern addresses start with the letters \"dgb1\""
-    DIGIFACT_L3="for Bech32 formatted addresses or the letter \"S\" for"
-    DIGIFACT_L4="SegWit (Segregated Witness). Legacy addresses start with the"
-    DIGIFACT_L5="letter \"D\". While support for these will remain, they are"
-    DIGIFACT_L6="gradually being phased out in favor of of Bech32 addresses."
-fi
-
-if [ "$DIGIFACT" = "digifact65" ]; then
-    DIGIFACT_TITLE="DigiFact # 65 - Did you know..."
-    DIGIFACT_L1="DigiByte addresses starting with \"dgb1\" (known as Bech32 format)"
-    DIGIFACT_L2="have multiple advantages, such as error correction in the event"
-    DIGIFACT_L3="they were incorrectly written-down, as well as being much easier"
-    DIGIFACT_L4="for both humans and computers to recognise that they are"
-    DIGIFACT_L5="DigiByte-specific addresses."
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact66" ]; then
-    DIGIFACT_TITLE="DigiFact # 66 - Did you know..."
-    DIGIFACT_L1="For a protocol upgrade to take place, over 70% of the network"
-    DIGIFACT_L2="must agree and be in consensus that the upgrade will take place."
-    DIGIFACT_L3="This occurs by \"signalling\" support for it when blocks are"
-    DIGIFACT_L4="mined, over the course of a 1-week period."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact67" ]; then
-    DIGIFACT_TITLE="DigiFact # 67 - Did you know..."
-    DIGIFACT_L1="There is a maximum of 21 billion DigiByte that will ever exist."
-    DIGIFACT_L2="This was intentionally chosen as a 1000:1 ratio compared to"
-    DIGIFACT_L3="Bitcoins 21 million. No more can ever be created."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact68" ]; then
-    DIGIFACT_TITLE="DigiFact # 68 - Did you know..."
-    DIGIFACT_L1="DigiByte is available on thousands of Crypto ATMs around the"
-    DIGIFACT_L2="world! This is a great way for people new to cryptocurrency"
-    DIGIFACT_L3="to get involved through a more \"traditional\" method of currency"
-    DIGIFACT_L4="exchange."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact69" ]; then
-    DIGIFACT_TITLE="DigiFact # 69 - Did you know..."
-    DIGIFACT_L1="DigiByte can be used to verify and validate documents, music,"
-    DIGIFACT_L2="media, identity and more! Although DigiByte excels as a means of"
-    DIGIFACT_L3="exchanging value, it is not limited to just being a currency."
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact70" ]; then
-    DIGIFACT_TITLE="DigiFact # 70 - Did you know..."
-    DIGIFACT_L1="You can use multiple wallets! DigiByte is not just limited to a"
-    DIGIFACT_L2="single piece of software, and the community is encouraged to find"
-    DIGIFACT_L3="an app that works best for them, so try one, try a few, and keep"
-    DIGIFACT_L4="using the ones you like the most."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact71" ]; then
-    DIGIFACT_TITLE="DigiFact # 71 - Did you know..."
-    DIGIFACT_L1="DigiByte cannot ever have a centralized \"burning\" of the maximum"
-    DIGIFACT_L2="supply as other ICO's or centrally controlled tokens can. Because"
-    DIGIFACT_L3="DigiByte is a fully decentralized proejct, it's impossible to"
-    DIGIFACT_L4="issue a large scale \"burning\" of unused DigiByte. At most, you"
-    DIGIFACT_L5="could only ever destroy your own if you willingly transferred"
-    DIGIFACT_L6="them in to the void."
-fi
-
-if [ "$DIGIFACT" = "digifact72" ]; then
-    DIGIFACT_TITLE="DigiFact # 72 - Did you know..."
-    DIGIFACT_L1="Transactions on the DigiByte blockchain cannot be undone, by"
-    DIGIFACT_L2="anybody. Once a transaction has been made, it is permanent. Did"
-    DIGIFACT_L3="you accidentally send 50 DigiByte instead of 5 DigiByte? You'll"
-    DIGIFACT_L4="need to ask the recipient to return the surplus, as there is no"
-    DIGIFACT_L5="\"Undo\" function, and no central banking authority who can"
-    DIGIFACT_L6="roll back transactions."
-fi
-
-if [ "$DIGIFACT" = "digifact73" ]; then
-    DIGIFACT_TITLE="DigiFact # 73 - Did you know..."
-    DIGIFACT_L1="Do you want to start a DigiByte podcast, or meet-up? Go for it!"
-    DIGIFACT_L2="There is nobody to ask for permission, part of DigiByte being a"
-    DIGIFACT_L3="\"permissionless\" project. It is implied that you can, so go"
-    DIGIFACT_L4="right ahead and do it."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact74" ]; then
-    DIGIFACT_TITLE="DigiFact # 74 - Did you know..."
-    DIGIFACT_L1="The name \"DigiByte\" was originally chosen as it signifies a"
-    DIGIFACT_L2="\"Digital Byte\" of data. This is because blockchain technology"
-    DIGIFACT_L3="such as DigiByte can be used for so much more than as a \"coin\""
-    DIGIFACT_L4="such as silver or gold. DigiByte is incredibly multi-purpose."
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact75" ]; then
-    DIGIFACT_TITLE="DigiFact # 75 - Did you know..."
-    DIGIFACT_L1="A copy of the DigiByte blockchain open source code v7.17.2 is"
-    DIGIFACT_L2="laying in cold storage 250 meters deep in the permafrost of an"
-    DIGIFACT_L3="Arctic mountain! Thanks to the GitHub Arctic Code Vault program!"
-    DIGIFACT_L4=""
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "digifact76" ]; then
-    DIGIFACT_TITLE="DigiFact # 76 - Did you know..."
-    DIGIFACT_L1="If you have ever had the misfortune to accidentally send your"
-    DIGIFACT_L2="DigiByte to a Dogecoin address, your coins may not be lost."
-    DIGIFACT_L3="DigiSweep by @mctrivia may be able to help you recover them."
-    DIGIFACT_L4="Go here:"
-    DIGIFACT_L5=""
-    DIGIFACT_L6="https://digisweep.digiassetx.com/"
-fi
-
-if [ "$DIGIFACT" = "digifact77" ]; then
-    DIGIFACT_TITLE="DigiFact # 76 - Did you know..."
-    DIGIFACT_L1="The DigiByte Alliance is a public non-profit foundation founded"
-    DIGIFACT_L2="in Wyoming in March 2021. Its mission is to to accelerate the"
-    DIGIFACT_L3="growth and adoption of DigiByte."
-    DIGIFACT_L4=""
-    DIGIFACT_L5="Learn more: https://www.dgballiance.org/"
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "social1" ]; then
-    DIGIFACT_TITLE="Join the DigiByte Community on Reddit!"
-    DIGIFACT_L1="Have you joined the DigiByte subreddit yet?"
-    DIGIFACT_L2="We have a growing community of over 45,000 members."
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="Join here: https://reddit.com/r/Digibyte"
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "social2" ]; then
-    DIGIFACT_TITLE="Join the DigiByte Discord Server!"
-    DIGIFACT_L1="Everyone in in the DigiByte community is strongly encouraged"
-    DIGIFACT_L2="to join the DigiByte Discord server. This is where you will"
-    DIGIFACT_L3="find the most active members of the community, and is great"
-    DIGIFACT_L4="way to get more involved with DigiByte and find ways to help."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="Join here: https://dsc.gg/digibytediscord"
-fi
-
-if [ "$DIGIFACT" = "help1" ]; then
-    DIGIFACT_TITLE="      DigiFact Tip!"
-    DIGIFACT_L1="Some of these DigiFacts include a website URL which can be"
-    DIGIFACT_L2="dificult to open from the terminal. To open a link,"
-    DIGIFACT_L3="try holding the \"Cmd\" key on Mac or the \"Ctrl\" key"
-    DIGIFACT_L4="on Windows as you click on it."
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="Try it now: $DGNT_WEBSITE_URL"
-fi
-
-if [ "$DIGIFACT" = "help2" ]; then
-    DIGIFACT_TITLE="Need Help with DigiNode Tools?"
-    DIGIFACT_L1="Please join the DigiNode Tools Telegram group here: "
-    DIGIFACT_L2="$SOCIAL_TELEGRAM_URL"
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="You can also contact $SOCIAL_TWITTER_HANDLE on Twitter or"
-    DIGIFACT_L5="$SOCIAL_BLUESKY_HANDLE on Bluesky."
-    DIGIFACT_L6=""
-
-fi
-
-if [ "$DIGIFACT" = "help3" ]; then
-    DIGIFACT_TITLE="    Need DigiByte Support?"
-    DIGIFACT_L1="For general DigiByte support, the best place to start is with"
-    DIGIFACT_L2="the community support tool available here:"
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="https://dgbsupport.digiassetx.com/"
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "help4" ]; then
-    DIGIFACT_TITLE="      DigiNode Tip!"
-    DIGIFACT_L1="Did you know that you can view your DigiNode on a map?"
-    DIGIFACT_L2=" "
-    DIGIFACT_L3=" DigiByte Node: https://nodes.digibyte.host/"
-    DIGIFACT_L4="DigiAsset Node: https://ipfs.digiassetx.com/"
-    DIGIFACT_L5=" "
-    DIGIFACT_L6="This is a good way to check your DigiNode is setup correctly!"
-fi
-
-if [ "$DIGIFACT" = "help5" ]; then
-    DIGIFACT_TITLE="    Need DigiAsset Support?"
-    DIGIFACT_L1="For help with creating DigiAssets, a good place to start is"
-    DIGIFACT_L2="the DigiAssetX Telegram group here:"
-    DIGIFACT_L3=" "
-    DIGIFACT_L4="https://t.me/digiassetX"
-    DIGIFACT_L5=""
-    DIGIFACT_L6=""
-fi
-
-if [ "$DIGIFACT" = "help6" ]; then
-    DIGIFACT_TITLE="    Want to learn more about DigiByte?"
-    DIGIFACT_L1="The DGB Wiki is a fanatastic resource of information on all"
-    DIGIFACT_L2="things DigiByte, written and maintained by members of the"
-    DIGIFACT_L3="DigiByte community:"
-    DIGIFACT_L4=" "
-    DIGIFACT_L5="https://dgbwiki.com/"
-    DIGIFACT_L6=""
-fi
 
-
-
+# Choose a random digifact and store the result in two variables - digifact_title and digifact_content
+digifact_randomize() {
+
+    local digifacts_file="$DGNT_LOCATION/digifacts.json"
+
+    # Get all keys from the JSON file into a bash array
+    local keys=($(jq -r 'keys[]' "$digifacts_file"))
+
+    # Count the number of keys (digifacts) in the JSON file
+    local count=${#keys[@]}
+
+    # Generate a random number between 0 (inclusive) and the number of keys (exclusive)
+    local random_index=$(( RANDOM % count ))
+
+    # Fetch the key corresponding to the random index
+    local random_key="${keys[$random_index]}"
+
+    # Ensure the new random digifact doesn't match the previous one
+    while [ "$random_key" == "$last_digifact_key" ]; do
+        random_index=$(( RANDOM % count ))
+        random_key="${keys[$random_index]}"
+    done
+
+    # Update the last shown digifact key
+    last_digifact_key="$random_key"  # changed from local to global to remember the last key
+
+    # Update the global digifact_title and digifact_content variables
+    digifact_title=$(jq -r ".\"$random_key\".title" "$digifacts_file")
+    digifact_content=$(jq -r ".\"$random_key\".content" "$digifacts_file")
+
+    # Replace \n in string with <br> temporaily so it does not get interpreted prematurely
+    digifact_content="${digifact_content//<br>/\\n}"
+
+    # Declare the variable inside the function, right at the end
+    generate_digifact_box="yes"
+}
+
+
+# format_bordered_paragraph (used for DigiFacts)
+#
+# Formats a given text to fit within a bordered box. The box adjusts based on either
+# the terminal width or a user-defined fixed width. The function ensures that the right
+# border of the box is always visible, even if the terminal width is smaller than the box width.
+# Additionally, the content can optionally be centered within the terminal.
+#
+# Usage:
+#     format_bordered_paragraph <text> <first_left_str> <subsequent_left_str> <right_str> [<width_mode>] [<fixed_width>] [<alignment>]
+#
+# Arguments:
+#     text                : The main content that will be displayed within the box.
+#     first_left_str      : The left border string for the first line.
+#     subsequent_left_str : The left border string for all lines after the first.
+#     right_str           : The right border string for all lines.
+#     width_mode          : (Optional) Can be 'terminal_width' or 'fixed_width'. 
+#                           Defaults to 'terminal_width' if not provided.
+#     fixed_width         : (Optional) Specifies the total width of the box when width_mode is 'fixed_width'.
+#                           If width_mode is 'fixed_width' and this argument isn't provided, it defaults to terminal width.
+#     alignment           : (Optional) Can be 'left' or 'center'. Specifies the alignment of the box 
+#                           relative to the terminal. If 'center' and the terminal width is greater 
+#                           than the fixed width, the box will be centered. Defaults to 'left'.
+#
+# Examples:
+#     format_bordered_paragraph "$digifact_content" " ║ HEADER ║  " " ║       ║  " "  ║ " "fixed_width" 120
+#     format_bordered_paragraph "$digifact_content" " ║ HEADER ║  " " ║       ║  " "  ║ " "fixed_width" 120 "center"
+#     format_bordered_paragraph "$digifact_content" " ║ HEADER ║  " " ║       ║  " "  ║ "
+
+
+format_bordered_paragraph() {
+    local text="$1"
+    local first_left_str="$2"
+    local subsequent_left_str="$3"
+    local right_str="$4"
+    local width_mode="${5:-terminal_width}"  # Default to terminal_width
+    local fixed_width="${6:-100}"            # Default fixed width if not provided
+    local alignment="${7:-left}"             # Default alignment is left
+
+    declare -a LINES
+    local idx=0
+
+    # Replace \n with <br> temporarily
+    text="${text//\\n/<br>}"
+
+    # Handle variable replacement using parameter expansion
+    while [[ "$text" =~ \$([a-zA-Z_][a-zA-Z_0-9]*) ]]; do
+        local varname="${BASH_REMATCH[1]}"
+        local varvalue=$(eval "echo \$$varname")
+        text="${text//\$$varname/$varvalue}"
+    done
+
+    # Convert <br> back to new lines to break text into segments
+    mapfile -t segments <<< "${text//<br>/$'\n'}"
+
+    local isFirstLine=true
+
+    for segment in "${segments[@]}"; do
+        idx=0
+        LINES=()  # Clear the LINES array for each segment
+
+        local terminal_width
+        if [[ "$width_mode" == "terminal_width" ]]; then
+            terminal_width=$(tput cols)
+        else
+            terminal_width=$fixed_width
+        fi
+
+        local space_for_text_first=$(( terminal_width - ${#first_left_str} - ${#right_str} ))
+        local space_for_text_subsequent=$(( terminal_width - ${#subsequent_left_str} - ${#right_str} ))
+
+        if [[ "$alignment" == "center" ]]; then
+            local padding=$(( (terminal_width - fixed_width) / 2 ))
+            padding=$(( padding > 0 ? padding : 0 ))
+
+            first_left_str=$(printf "%${padding}s%s" "" "$first_left_str")
+            subsequent_left_str=$(printf "%${padding}s%s" "" "$subsequent_left_str")
+            right_str=$(printf "%s%${padding}s" "$right_str" "")
+        else
+            if (( $terminal_width > $(tput cols) )); then
+                terminal_width=$(tput cols)
+                space_for_text_first=$(( terminal_width - ${#first_left_str} - ${#right_str} ))
+                space_for_text_subsequent=$(( terminal_width - ${#subsequent_left_str} - ${#right_str} ))
+            fi
+        fi
+
+        read -ra words <<< "$segment"
+        local line=""
+        local current_space_for_text=$space_for_text_first
+
+        for word in "${words[@]}"; do
+            if (( ${#line} + ${#word} + 1 <= current_space_for_text )); then
+                [ -n "$line" ] && line="$line $word" || line="$word"
+            else
+                while (( ${#line} < current_space_for_text )); do
+                    line="$line "
+                done
+                LINES[idx++]="$line"
+                line="$word"
+                current_space_for_text=$space_for_text_subsequent
+            fi
+        done
+        while (( ${#line} < current_space_for_text )); do
+            line="$line "
+        done
+        [ -n "$line" ] && LINES[idx++]="$line"
+
+        if $isFirstLine; then
+            echo "$first_left_str${LINES[0]}$right_str"
+            isFirstLine=false
+        else
+            echo "$subsequent_left_str${LINES[0]}$right_str"
+        fi
+
+        for i in $(seq 1 $((idx-1))); do
+            echo "$subsequent_left_str${LINES[i]}$right_str"
+        done
+    done
+}
+
+
+#######################################
+# Formats and prints a centered title with borders.
+# Arguments:
+#   1. Title string to be displayed.
+#   2. Left border string.
+#   3. Right border string.
+#   4. Width mode (optional, default: "terminal_width"). Use "fixed_width" to specify a fixed width.
+#   5. Fixed width (optional, default: 100). Specify width if using "fixed_width" mode.
+# Example:
+#   format_bordered_title "$digifact_title" "║ " " ║"
+# Output:
+#   ║     DIGIFACT TITLE     ║
+#######################################
+format_bordered_title() {
+    local title="$1"
+    local left_str="$2"
+    local right_str="$3"
+    local width_mode="${4:-terminal_width}"  # Default to terminal_width
+    local fixed_width="${5:-100}"            # Default fixed width if not provided
+
+    local terminal_width
+    if [[ "$width_mode" == "terminal_width" ]]; then
+        terminal_width=$(tput cols)
+    else
+        terminal_width=$fixed_width
+    fi
+
+    # Calculate total available space for the title (subtracting space taken up by left and right strings)
+    local space_for_text=$(( terminal_width - ${#left_str} - ${#right_str} ))
+
+    # Calculate the amount of padding needed on each side of the title to center it
+    local padding_left=$(( (space_for_text - ${#title}) / 2 ))
+    local padding_right=$(( space_for_text - padding_left - ${#title} ))
+
+    # Construct the padded title string
+    local padded_title=$(printf "%${padding_left}s%s%${padding_right}s" "" "$title" "")
+
+    # Print the final bordered title
+    echo "$left_str$padded_title$right_str"
+}
+
+
+# Display the DigiFact fixed width box
+display_digifact_fixedwidth() {
 
 printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-66s %-4s\n" "              $DIGIFACT_TITLE" " ║"
+printf "  ║ " && printf "%-66s %-4s\n" "              $digifact_title" " ║"
 printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 
-if [ "$DIGIFACT_L1" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L1" " ║"
-fi
-
-if [ "$DIGIFACT_L2" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L2" " ║"
-fi
-
-if [ "$DIGIFACT_L3" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L3" " ║"
-fi
-
-if [ "$DIGIFACT_L4" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L4" " ║"
-fi
-
-if [ "$DIGIFACT_L5" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L5" " ║"
-fi
-
-if [ "$DIGIFACT_L6" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L6" " ║"
-fi
-
-if [ "$DIGIFACT_L7" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L7" " ║"
-fi
-
-if [ "$DIGIFACT_L8" != "" ]; then
-printf "  ║ " && printf "%-66s %-4s\n" "$DIGIFACT_L8" " ║"
-fi
+format_bordered_paragraph "$digifact_content" "  ║ " "  ║ " "  ║ " "fixed_width" 74
 
 printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
+
 printf "\\n"
 
 }
+
+
 
 
 
@@ -16059,7 +15616,7 @@ main() {
             UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can check for updates to DigiNode Tools itself to upgrade the Status Monitor. You can also choose to Uninstall DigiNode Tools.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
 
             # Set the variable based on if the user chooses
             case ${UpdateCmd} in
@@ -16075,7 +15632,7 @@ main() {
                     printf "\\n"
                     uninstall_diginode_tools_now
                     digifact_randomize
-                    digifact_display
+                    display_digifact_fixedwidth
                     donation_qrcode
                     printf "\\n"
                     exit
@@ -16093,7 +15650,7 @@ main() {
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
                 printf "\\n"
                 digifact_randomize
-                digifact_display
+                display_digifact_fixedwidth
                 printf "\\n"
                 exit
             fi
@@ -16124,7 +15681,7 @@ main() {
                 printf "%b Exiting: You chose not to install a DigiAsset Node.\\n" "${INFO}"
                 printf "\\n"
                 digifact_randomize
-                digifact_display
+                display_digifact_fixedwidth
                 printf "\\n"
                 exit
             fi
@@ -16256,7 +15813,7 @@ menu_dganode_only(){
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; digifact_display; printf "\\n"; exit; }
+    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
 
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
@@ -16432,7 +15989,7 @@ install_or_upgrade() {
         digifact_randomize
 
         # Display a random DigiFact
-        digifact_display
+        display_digifact_fixedwidth
 
     fi
 
@@ -16554,7 +16111,7 @@ add_digibyte_node() {
         digifact_randomize
 
         # Display a random DigiFact
-        digifact_display
+        display_digifact_fixedwidth
 
     fi
 
