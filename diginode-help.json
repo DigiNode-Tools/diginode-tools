@@ -11,10 +11,15 @@
     },
    	"diginodehelp3": {
         "title": "DigiNode Tip!",
-        "content": "Did you know that you can view your DigiNode on a map?\nDigiByte Node: https://nodes.digibyte.host/\nDigiAsset Node: https://ipfs.digiassetx.com/\nThis is a good way to check your DigiNode is setup correctly!",
+        "content": "To view a global map of DigiByte nodes, visit this website: https://nodes.digibyte.host/",
         "url": "https://nodes.digibyte.host/"
     },
-    "diginodehelp4": {
+   	"diginodehelp4": {
+        "title": "DigiNode Tip!",
+        "content": "To view a global map of the DigiAsset Nodes, visit this website: https://ipfs.digiassetx.com",
+        "url": "https://ipfs.digiassetx.com"
+    },
+    "diginodehelp5": {
         "title": "Need DigiAsset Support?",
         "content": "For help with creating DigiAssets, a good place to start is the DigiAssetX Telegram group here: https://t.me/digiassetX",
         "url": "https://t.me/digiassetX"

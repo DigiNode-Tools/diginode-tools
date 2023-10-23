@@ -14964,7 +14964,7 @@ download_digifacts() {
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT local tmp_file=$(mktemp)
+            local tmp_file=$(sudo -u $USER_ACCOUNT mktemp)
             sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$tmp_file" && mv "$tmp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
