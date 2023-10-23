@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.0
+#           Name:  DigiNode Setup v0.9.1
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -1329,9 +1329,15 @@ update_disk_usage() {
         DGB_DATA_DISKUSED_MAIN_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_MAIN_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
 
         # DigiByte testnet disk used
-        DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
-        DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
-        DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        else
+            DGB_DATA_DISKUSED_TEST_HR=""
+            DGB_DATA_DISKUSED_TEST_KB=""
+            DGB_DATA_DISKUSED_TEST_PERC=""
+        fi
 
         # IPFS disk used
         IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
@@ -9557,59 +9563,64 @@ fi
 #     echo "$result"  # Outputs: "update_available"
 # -----------------------------------------------------------------------------
 
-function is_dgb_newer_version() {
-    local_version="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-    remote_version="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
+is_dgb_newer_version() {
+    local local_version="$1"
+    local remote_version="$2"
 
-    # Split version numbers into array
-    IFS='.' read -ra local_parts <<< "$local_version"
-    IFS='.' read -ra remote_parts <<< "$remote_version"
+    # Extract major, minor, patch, rc, and suffix
+    local regex="([0-9]+)\.([0-9]+)\.([0-9]+)(-rc([0-9]+))?(-([a-zA-Z0-9]+))?"
+    if [[ $local_version =~ $regex ]]; then
+        local_major=${BASH_REMATCH[1]}
+        local_minor=${BASH_REMATCH[2]}
+        local_patch=${BASH_REMATCH[3]}
+        local_rc=${BASH_REMATCH[5]:-0}  # Default to 0 if no -rc part
+        local_suffix=${BASH_REMATCH[7]}
+    fi
 
-    # Extract major, minor, and patch versions
-    local_major="${local_parts[0]}"
-    local_minor="${local_parts[1]}"
-    local_patch="${local_parts[2]%%-*}"  # Remove rc part and suffix if exists
+    if [[ $remote_version =~ $regex ]]; then
+        remote_major=${BASH_REMATCH[1]}
+        remote_minor=${BASH_REMATCH[2]}
+        remote_patch=${BASH_REMATCH[3]}
+        remote_rc=${BASH_REMATCH[5]:-0}  # Default to 0 if no -rc part
+        remote_suffix=${BASH_REMATCH[7]}
+    fi
 
-    remote_major="${remote_parts[0]}"
-    remote_minor="${remote_parts[1]}"
-    remote_patch="${remote_parts[2]%%-*}"
-
-    # Compare major, minor, and patch versions
+    # Compare versions
     if (( remote_major > local_major )); then
         echo "update_available"
         return
-    elif (( remote_major == local_major )); then
-        if (( remote_minor > local_minor )); then
+    elif (( remote_major == local_major && remote_minor > local_minor )); then
+        echo "update_available"
+        return
+    elif (( remote_major == local_major && remote_minor == local_minor && remote_patch > local_patch )); then
+        echo "update_available"
+        return
+    fi
+
+    # If remote is a stable release and local is an RC of that release
+    if (( remote_major == local_major && remote_minor == local_minor && remote_patch == local_patch && remote_rc == 0 && local_rc > 0 )); then
+        echo "update_available"
+        return
+    fi
+
+    # Handle the case where RC versions are involved
+    if (( remote_major == local_major && remote_minor == local_minor && remote_patch == local_patch && remote_rc > local_rc )); then
+        echo "update_available"
+        return
+    fi
+
+    # Handle the case where RC versions and suffixes are involved
+    if (( remote_major == local_major && remote_minor == local_minor && remote_patch == local_patch && remote_rc == local_rc )); then
+        if [[ -z "$remote_suffix" && -n "$local_suffix" ]]; then
             echo "update_available"
             return
-        elif (( remote_minor == local_minor )); then
-            if (( remote_patch > local_patch )); then
-                echo "update_available"
-                return
-            elif (( remote_patch == local_patch )); then
-                # Check for release candidate versions
-                local_rc="${local_version#*rc}"
-                local_rc="${local_rc%%-*}"  # Extract just the rc number
-                remote_rc="${remote_version#*rc}"
-                remote_rc="${remote_rc%%-*}"  # Extract just the rc number
-
-                if (( remote_rc > local_rc )); then
-                    echo "update_available"
-                    return
-                elif (( remote_rc == local_rc )); then
-                    # If remote version has a suffix and local doesn't
-                    if [[ "$remote_version" == *"-rc${remote_rc}-"* ]] && [[ "$local_version" != *"-rc${local_rc}-"* ]]; then
-                        echo "update_not_available"
-                        return
-                    # If local version has a suffix and remote doesn't
-                    elif [[ "$local_version" == *"-rc${local_rc}-"* ]] && [[ "$remote_version" != *"-rc${remote_rc}-"* ]]; then
-                        echo "update_available"
-                        return
-                    fi
-                fi
-            fi
+        elif [[ -n "$remote_suffix" && -z "$local_suffix" ]]; then
+            echo "update_not_available"
+            return
         fi
     fi
+
+    # If none of the above conditions are met
     echo "update_not_available"
 }
 
@@ -10896,14 +10907,14 @@ fi
 
         fi
 
-        # Download digifacts.json
-        download_digifacts
-
         # Reset DGNT Install and Upgrade Variables
         DGNT_UPDATE_AVAILABLE=NO
         DGNT_POSTUPDATE_CLEANUP=YES
 
         printf "\\n"
+
+        # Download digifacts.json
+        download_digifacts        
     fi
 }
 
@@ -14978,36 +14989,40 @@ digifact_randomize() {
 
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
 
-    # Get all keys from the JSON file into a bash array
-    local keys=($(jq -r 'keys[]' "$digifacts_file"))
+    if [[ -f $digifacts_file ]]; then
 
-    # Count the number of keys (digifacts) in the JSON file
-    local count=${#keys[@]}
+        # Get all keys from the JSON file into a bash array
+        local keys=($(jq -r 'keys[]' "$digifacts_file"))
 
-    # Generate a random number between 0 (inclusive) and the number of keys (exclusive)
-    local random_index=$(( RANDOM % count ))
+        # Count the number of keys (digifacts) in the JSON file
+        local count=${#keys[@]}
 
-    # Fetch the key corresponding to the random index
-    local random_key="${keys[$random_index]}"
+        # Generate a random number between 0 (inclusive) and the number of keys (exclusive)
+        local random_index=$(( RANDOM % count ))
 
-    # Ensure the new random digifact doesn't match the previous one
-    while [ "$random_key" == "$last_digifact_key" ]; do
-        random_index=$(( RANDOM % count ))
-        random_key="${keys[$random_index]}"
-    done
+        # Fetch the key corresponding to the random index
+        local random_key="${keys[$random_index]}"
 
-    # Update the last shown digifact key
-    last_digifact_key="$random_key"  # changed from local to global to remember the last key
+        # Ensure the new random digifact doesn't match the previous one
+        while [ "$random_key" == "$last_digifact_key" ]; do
+            random_index=$(( RANDOM % count ))
+            random_key="${keys[$random_index]}"
+        done
 
-    # Update the global digifact_title and digifact_content variables
-    digifact_title=$(jq -r ".\"$random_key\".title" "$digifacts_file")
-    digifact_content=$(jq -r ".\"$random_key\".content" "$digifacts_file")
+        # Update the last shown digifact key
+        last_digifact_key="$random_key"  # changed from local to global to remember the last key
 
-    # Replace \n in string with <br> temporaily so it does not get interpreted prematurely
-    digifact_content="${digifact_content//<br>/\\n}"
+        # Update the global digifact_title and digifact_content variables
+        digifact_title=$(jq -r ".\"$random_key\".title" "$digifacts_file")
+        digifact_content=$(jq -r ".\"$random_key\".content" "$digifacts_file")
 
-    # Declare the variable inside the function, right at the end
-    generate_digifact_box="yes"
+        # Replace \n in string with <br> temporaily so it does not get interpreted prematurely
+        digifact_content="${digifact_content//<br>/\\n}"
+
+        # Declare the variable inside the function, right at the end
+        generate_digifact_box="yes"
+
+    fi
 }
 
 
@@ -15176,15 +15191,18 @@ format_bordered_title() {
 # Display the DigiFact fixed width box
 display_digifact_fixedwidth() {
 
-printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
-printf "  ║ " && printf "%-66s %-4s\n" "              $digifact_title" " ║"
-printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
+if [ "$digifact_content" != "" ]; then
+    printf "  ╔═════════════════════════════════════════════════════════════════════╗\\n"
+    printf "  ║ " && printf "%-66s %-4s\n" "              $digifact_title" " ║"
+    printf "  ╠═════════════════════════════════════════════════════════════════════╣\\n"
 
-format_bordered_paragraph "$digifact_content" "  ║ " "  ║ " "  ║ " "fixed_width" 74
+    format_bordered_paragraph "$digifact_content" "  ║ " "  ║ " "  ║ " "fixed_width" 74
 
-printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
+    printf "  ╚═════════════════════════════════════════════════════════════════════╝\\n"
 
-printf "\\n"
+    printf "\\n"
+
+fi
 
 }
 

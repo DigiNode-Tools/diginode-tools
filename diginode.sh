@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.0
+#           Name:  DigiNode Dashboard v0.9.1
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Wheneve there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.0
-# Last Updated: 2023-10-08
+DGNT_VER_LOCAL=0.9.1
+# Last Updated: 2023-10-22
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -2064,7 +2064,7 @@ check_digibyte_update() {
     # Check for latest pre-release version of DigiByte Core if it is currently being used
     if [ "$DGB_PRERELEASE" = "YES" ]; then
 
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --max-time 4 https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
 
         # If there is no pre-release version, then we will lookup the release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
@@ -2287,7 +2287,7 @@ pre_loop() {
     if [ "$IP6_EXTERNAL" = "" ]; then
         str="Looking up IP6 public address..."
         printf "  %b %s" "${INFO}" "${str}"
-        IP6_EXTERNAL_QUERY=$(curl -6 icanhazip.com)
+        IP6_EXTERNAL_QUERY=$(curl -6 --max-time 4 -sfL icanhazip.com)
         if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
             IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
             sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
@@ -3338,7 +3338,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
             fi
 
-            IP6_EXTERNAL_QUERY=$(curl -6 icanhazip.com)
+            IP6_EXTERNAL_QUERY=$(curl -6 --max-time 4 -sfL icanhazip.com)
             if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
                 IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
                 sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
@@ -3622,7 +3622,7 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
         fi
 
-        IP6_EXTERNAL_QUERY=$(curl --silent -6 icanhazip.com)
+        IP6_EXTERNAL_QUERY=$(curl -6 --max-time 4 -sfL icanhazip.com)
         if [ "$IP6_EXTERNAL_QUERY" != "" ]; then
             IP6_EXTERNAL=$IP6_EXTERNAL_QUERY
             sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"$IP6_EXTERNAL\"|" $DGNT_SETTINGS_FILE
