@@ -1,5 +1,11 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.1 - 2023-10-23
+- Fix: Error detecting testnet disk usage when no testnet4 folder exists.
+- Fix: Error with DigiByte update checker when version numbers are the same. It should hopefully be able to correctly identify updates now.
+- Fix: Detecting public/external IP6 address as detected by icanhazip.com
+- Fix: Hide digifacts if they are not present due to a failed download or other error
+
 DigiNode Tools v0.9.0 - 2023-10-22
 - New: Introducing "DigiNode Dashboard" with Dual Node support! The old Status Monitor has been completely redesigned and rewritten from the ground up which called for a new new name - goodbye DigiNode Status Monitor, hello DigiNode Dashboard! It now resizes automatically to fit the width of the terminal, increasing or decreasing the information density based on the space available. It also now displays the CPU stats and other useful data. Most importantly it also has support for a Dual Node - displaying data from both your mainnet and testnet nodes at the same time.
 - New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information here: https://github.com/saltedlolly/DigiByte-DigiFacts-JSON
