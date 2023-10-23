@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.1
+#           Name:  DigiNode Dashboard v0.9.2
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -57,11 +57,11 @@
 # Local variables will be in lowercase and will exist only within functions
 
 # This variable stores the version number of this release of 'DigiNode Tools'.
-# Wheneve there is a new release, this number gets updated to match the release number on GitHub.
+# Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.1
-# Last Updated: 2023-10-22
+DGNT_VER_LOCAL=0.9.2
+# Last Updated: 2023-10-23
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -4169,7 +4169,7 @@ fi
 # FORMAT DIGIFACT BASED ON TERMINAL WIDTH
 
 # regenerate digifact box
-if [ "$generate_digifact_box" = "yes" ]; then
+if [ "$generate_digifact_box" = "yes" ] && [ "$digifact_content" != "" ]; then
     digifact_box_termwidth_title=$(format_bordered_title "$digifact_title" " ║ " " ║ " "terminal_width")
     digifact_box_termwidth_content=$(format_bordered_paragraph "$digifact_content" " ║ " " ║ " "  ║ " "terminal_width")
     generate_digifact_box="no"
@@ -4177,11 +4177,14 @@ fi
 
 # Setup function to display DigiFact dashboard
 display_digifact_termwidth() {
-    echo "$sm_row_digifact_topbar" # "╔" "═" "═" "═" "═" "═" "╗"
-    echo "$digifact_box_termwidth_title"
-    echo "$sm_row_digifact_middle" # "╠" "═" "═" "═" "═" "═" "╣"
-    echo "$digifact_box_termwidth_content"
-    echo "$sm_row_digifact_bottom" # "╚" "═" "═" "═" "═" "═" "╝"
+
+    if [ "$digifact_content" != "" ]; then
+        echo "$sm_row_digifact_topbar" # "╔" "═" "═" "═" "═" "═" "╗"
+        echo "$digifact_box_termwidth_title"
+        echo "$sm_row_digifact_middle" # "╠" "═" "═" "═" "═" "═" "╣"
+        echo "$digifact_box_termwidth_content"
+        echo "$sm_row_digifact_bottom" # "╚" "═" "═" "═" "═" "═" "╝"
+    fi
 } 
 
 # FORMAT LOWCON MESSAGES BASED ON TERMINAL WIDTH

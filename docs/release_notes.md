@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.2 - 2023-10-23
+- Fix:
+
 DigiNode Tools v0.9.1 - 2023-10-23
 - Fix: Error detecting testnet disk usage when no testnet4 folder exists.
 - Fix: Error with DigiByte update checker when version numbers are the same. It should hopefully be able to correctly identify updates now.
