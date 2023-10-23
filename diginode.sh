@@ -4562,12 +4562,18 @@ echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
 echo "$sm_row_06" # "╔" "═" "═" "═" "╦" "═" "╗"
 
 if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
+    dgnt_upd_leftcol=" ║ SOFTWARE       ║  "
+    dgnt_upd_maincol="DigiNode Tools $DGNT_VER_LOCAL_DISPLAY"
+
     if [ $term_width -gt 111 ]; then 
-        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_dgnt_wide}s %50s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update Available: DigiNode Tools v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+        dgnt_upd_rightcol="${dbcol_bgrn}Update Available: DigiNode Tools v$DGNT_VER_RELEASE${dbcol_rst}"
+        db_content_c1_c2_c3f_c4 "$dgnt_upd_leftcol" "$dgnt_upd_maincol" "$dgnt_upd_rightcol"
     elif [ $term_width -gt 97 ]; then
-        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software}s %35s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update Available: v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+        dgnt_upd_rightcol="${dbcol_bgrn}Update Available: v$DGNT_VER_RELEASE${dbcol_rst}"
+        db_content_c1_c2_c3f_c4 "$dgnt_upd_leftcol" "$dgnt_upd_maincol" "$dgnt_upd_rightcol"
     else
-        printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" "[ ${txtbgrn}Update: v$DGNT_VER_RELEASE${txtrst} ]" " ║ "
+        dgnt_upd_rightcol="${dbcol_bgrn}Update: v$DGNT_VER_RELEASE${dbcol_rst}"
+        db_content_c1_c2_c3f_c4 "$dgnt_upd_leftcol" "$dgnt_upd_maincol" "$dgnt_upd_rightcol"
     fi
 else
     printf " ║ SOFTWARE       ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "DigiNode Tools $DGNT_VER_LOCAL_DISPLAY" " ║ "
@@ -4575,23 +4581,39 @@ fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
 if [ "$DGB_VER_LOCAL" != "" ]; then
     if [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
+        sw_upd_leftcol=" ║                ║  "
         if [ "$DGB_PRERELEASE" = "YES" ]; then
+
             if [ $term_width -gt 111 ]; then 
-                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_wide}s %50s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${txtrst} ]" " ║ "
-            elif [ $term_width -gt 97 ]; then
-                printf " ║                ║  " && printf "%-${col_width_software_dgbpr}s %37s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update Available: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
-            elif [ $term_width -gt 88 ]; then
-                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_lessnarrow}s %35s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (Pre-Release)" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL (Pre-Release)"
+                dgb_upd_rightcol="${dbcol_bgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
+            elif [ $term_width -gt 99 ]; then
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL (Pre-Release)"
+                dgb_upd_rightcol="${dbcol_bgrn}Update Available: v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
+            elif [ $term_width -gt 90 ]; then
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL (Pre-Release)"
+                dgb_upd_rightcol="${dbcol_bgrn}Update: v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
             else
-                printf " ║                ║  " && printf "%-${col_width_software_dgbpr_narrow}s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL (PR)" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL (PR)"
+                dgb_upd_rightcol="${dbcol_bgrn}Update: v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
             fi    
         else   
             if [ $term_width -gt 111 ]; then 
-                printf " ║                ║  " && printf "%-${col_width_software_dgb_wide}s %50s %-3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL"
+                dgb_upd_rightcol="${dbcol_bgrn}Update Available: DigiByte Core v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
             elif [ $term_width -gt 97 ]; then
-                printf " ║                ║  " && printf "%-${col_width_software_dgb}s %37s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update Available: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL"
+                dgb_upd_rightcol="${dbcol_bgrn}Update Available: v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
             else
-                printf " ║                ║  " && printf "%-${col_width_software_dgb_narrow}s %27s %3s\n" "DigiByte Core v$DGB_VER_LOCAL" "[ ${txtbgrn}Update: v$DGB_VER_GITHUB${txtrst} ]" " ║ "
+                dgb_upd_maincol="DigiByte Core v$DGB_VER_LOCAL"
+                dgb_upd_rightcol="${dbcol_bgrn}Update: v$DGB_VER_GITHUB${dbcol_rst}"
+                db_content_c1_c2_c3f_c4 "$sw_upd_leftcol" "$dgb_upd_maincol" "$dgb_upd_rightcol"
             fi   
         fi
     else
