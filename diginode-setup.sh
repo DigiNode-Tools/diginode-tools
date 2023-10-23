@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.1
+#           Name:  DigiNode Setup v0.9.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -1340,9 +1340,15 @@ update_disk_usage() {
         fi
 
         # IPFS disk used
-        IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
-        IPFS_DATA_DISKUSED_KB=$(du -sk $USER_HOME/.ipfs | awk '{print $1}')
-        IPFS_DATA_DISKUSED_PERC=$(echo "scale=2; ($IPFS_DATA_DISKUSED_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        if [ -d "$IPFS_SETTINGS_LOCATION" ]; then
+            IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
+            IPFS_DATA_DISKUSED_KB=$(du -sk $USER_HOME/.ipfs | awk '{print $1}')
+            IPFS_DATA_DISKUSED_PERC=$(echo "scale=2; ($IPFS_DATA_DISKUSED_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        else
+            IPFS_DATA_DISKUSED_HR=""
+            IPFS_DATA_DISKUSED_KB=""
+            IPFS_DATA_DISKUSED_PERC=""
+        fi
 
         # Trim white space from disk variables
         BOOT_DISKUSED_HR=$(echo -e " \t $BOOT_DISKUSED_HR \t " | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -14958,7 +14964,7 @@ download_digifacts() {
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            local tmp_file=$(mktemp)
+            local tmp_file=$(sudo -u $USER_ACCOUNT mktemp)
             sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$tmp_file" && mv "$tmp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
