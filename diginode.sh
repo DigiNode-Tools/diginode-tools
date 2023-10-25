@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.2
+#           Name:  DigiNode Dashboard v0.9.3
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.2
-# Last Updated: 2023-10-23
+DGNT_VER_LOCAL=0.9.3
+# Last Updated: 2023-10-25
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -457,9 +457,9 @@ fi
 display_help() {
     if [ "$DISPLAY_HELP" = true ]; then
         echo ""
-        get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
-        import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
-        diginode_tools_import_settings
+        get_script_location                     # Find which folder this script is running in (in case this is an unnoficial DigiNode)
+        import_setup_functions                  # Import diginode-setup.sh file because it contains functions we need
+        diginode_tools_import_settings silent
         query_digibyte_chain
 
         # Is Dual Node detected?

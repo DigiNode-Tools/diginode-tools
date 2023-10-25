@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.2
+#           Name:  DigiNode Setup v0.9.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -35,7 +35,7 @@
 # instead of continuing the installation with something broken
 # set -e
 
-# Play an error beep if it exits with an error, but not if this is sourced from the DigiNode Status Monitor script
+# Play an error beep if it exits with an error, but not if this is sourced from the DigiNode Dashboard script
 if [[ "$RUN_SETUP" != "NO" ]] ; then
     trap error_beep exit 1
 fi
@@ -74,13 +74,13 @@ fi
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
 # This can be overridden when needed by the --verbose or --verboseoff flags.
 # (Note: The RUN_SETUP condition ensures that the VERBOSE_MODE setting only applies to DigiNode Setup
-# and is ignored if running the Status Monitor script - that has its own VERBOSE_MODE setting.)
+# and is ignored if running the DigiNode Dashboard script - that has its own VERBOSE_MODE setting.)
 if [[ "$RUN_SETUP" != "NO" ]] ; then
     VERBOSE_MODE=false
 fi
 
 ######### IMPORTANT NOTE ###########
-# Both the DigiNode Setup and Status Monitor scripts make use of a setting file
+# Both the DigiNode Setup and DigiNode Dashboard scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
 # If you want to change the default folder locations, you should change the settings in this file.
 # (e.g. To store your DigiByte Core data file on an external drive.)
@@ -602,7 +602,7 @@ printf "%b %s" "${INFO}" "${str}"
 sudo -u $USER_ACCOUNT touch $DGNT_SETTINGS_FILE
 cat <<EOF > $DGNT_SETTINGS_FILE
 #!/bin/bash
-# This settings file is used to store variables for DigiNode Setup and DigiNode Status Monitor
+# This settings file is used to store variables for DigiNode Setup and DigiNode Dashboard
 
 # DIGINODE.SETTINGS FILE VERSION
 DGNT_SETTINGS_FILE_VER=$DGNT_SETTINGS_FILE_VER_NEW
@@ -642,13 +642,13 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
-# Stop the DigiNode Status Monitor automatically if it is left running. The default is 20 minutes.
-# To avoid putting unnecessary strain on your device, it is inadvisable to run the Status Monitor for
+# Stop the DigiNode Dashboard automatically if it is left running. The default is 20 minutes.
+# To avoid putting unnecessary strain on your device, it is inadvisable to run DigiNode Dashboard for
 # long periods. Enter the number of minutes before it exits automatically, or set to 0 to run indefinitely.
 # e.g. To stop after 1 hour enter: 60 
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
-# Choose whether to display the current wallet balance in the DigiNode Status Monitor. (Specify either YES or NO.)
+# Choose whether to display the current wallet balance in the DigiNode Dashboard. (Specify either YES or NO.)
 # Note: The current wallet balance will only be displayed when (a) this variable is set to YES, and (b) the blockchain 
 # has completed syncing, and (c) there are actually funds in the wallet (i.e. the balance is > 0).
 SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
@@ -737,7 +737,7 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 
 # IMPORTANT: DO NOT CHANGE ANY OF THESE VALUES !!!!
 #
-# THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and the Status Monitor.
+# THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and DigiNode Dashboard.
 # Changing them yourself may break your DigiNode.
 
 # DIGIBYTE NODE LOCATION: (Do not change this value)
@@ -745,7 +745,7 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 # If you are using DigiNode Setup to manage your node there is no reason to change this.
 # If you must change the install location, do not edit it here - it may break things. Instead, create a symbolic link 
 # called 'digibyte' in your home folder that points to the location of your DigiByte Core install folder.
-# Be aware that DigiNode Setup upgrades will likely not work if you do this. The Status Monitor script will help you create one.
+# Be aware that DigiNode Setup upgrades will likely not work if you do this. The DigiNode Dashboard script will help you create one.
 DGB_INSTALL_LOCATION=$DGB_INSTALL_LOCATION
 
 # Do not change this value. If you wish to change the location where the
@@ -839,7 +839,7 @@ NODEJS_INSTALL_DATE="$NODEJS_INSTALL_DATE"
 NODEJS_UPGRADE_DATE="$NODEJS_UPGRADE_DATE"
 NODEJS_REPO_ADDED="$NODEJS_REPO_ADDED"
 
-# Timer variables (these control the timers in the Status Monitor loop)
+# Timer variables (these control the timers in the DigiNode Dashboard loop)
 SAVED_TIME_10SEC="$SAVED_TIME_10SEC"
 SAVED_TIME_1MIN="$SAVED_TIME_1MIN"
 SAVED_TIME_15MIN="$SAVED_TIME_15MIN"
@@ -1244,7 +1244,7 @@ set_sys_variables() {
         printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
- #   # No need to update the disk usage variables if running the status monitor, as it does it itself
+ #   # No need to update the disk usage variables if running the DigiNode Dashboard, as it does it itself
  #   if [[ "$RUN_SETUP" != "NO" ]] ; then
 
         # Get internal IP address
@@ -1858,7 +1858,7 @@ create_digibyte_conf() {
 # EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
 # only apply to mainnet unless they appear in the appropriate section below.
 #
-# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# WARNING: Do not remove these sections or DigiNode Dashboard may not work correctly.
 # You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
 # [main], [test], [regtest] and [signet]. Do not remove any of these.
 
@@ -2406,7 +2406,7 @@ disablewallet=0
 # EXCEPTIONS: The options addnode, connect, port, bind, rpcport, rpcbind and wallet
 # only apply to mainnet unless they appear in the appropriate section below.
 #
-# WARNING: Do not remove these sections or DigiNode Status Monitor may not work correctly.
+# WARNING: Do not remove these sections or DigiNode Dashboard may not work correctly.
 # You must ensure the "# [Sections]" line exists above, followed by the four section headers: 
 # [main], [test], [regtest] and [signet]. Do not remove any of these.
 
@@ -6534,11 +6534,11 @@ menu_first_install() {
     opt3b=" Install DigiAsset Node ONLY."
 
     opt4a="DigiNode Tools"
-    opt4b=" Use Status Monitor with an existing DigiByte Node."
+    opt4b=" Use DigiNode Dashboard with an existing DigiByte Node."
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the Status Monitor with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -6593,7 +6593,7 @@ install_diginode_tools_only() {
     # Display donation QR Code
     donation_qrcode
 
-    printf "%b %b'DigiNode Status Monitor' can be used to monitor your existing DigiByte Node if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %b'DigiNode Dashboard' can be used to monitor your existing DigiByte Node if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
     printf "\\n"
@@ -6721,7 +6721,7 @@ install_digiasset_node_only() {
     if [ "$INSTALLING_DGANODE_ONLY" = "YES" ]; then
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -7304,7 +7304,7 @@ change_dgb_network() {
     # Display donation QR Code
     donation_qrcode
 
-    # Show final messages - Display reboot message (and how to run Status Monitor)
+    # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
     final_messages
 
     # Share backup reminder
@@ -8082,7 +8082,7 @@ final_messages() {
     if [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -8095,7 +8095,7 @@ final_messages() {
         printf "\\n"
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -8103,7 +8103,7 @@ final_messages() {
         if [ "$STATUS_MONITOR" = "false" ] && [ "$DGNT_RUN_LOCATION" = "remote" ]; then
             printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
-            printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+            printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
             printf "\\n"
             printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
             printf "\\n"
@@ -8178,9 +8178,9 @@ final_messages() {
     if [ "$INSTALL_ERROR" != "YES" ] && [ "$ADDING_FULL_DGBNODE" = "YES" ]; then
         printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b It will take a few minutes to finish starting up. You can check its progress in the Status Monitor. \\n" "${INDENT}"
+        printf "%b It will take a few minutes to finish starting up. You can check its progress in the DigiNode Dashboard. \\n" "${INDENT}"
         printf "\\n"
-        printf "%b To launch 'DigiNode Status Monitor' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
+        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -14727,7 +14727,7 @@ uninstall_diginode_tools_now() {
     if [ -d "$DGNT_LOCATION" ]; then
 
         # Delete DigiNode Tools
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Status Monitor' and 'DigiNode Setup' scripts." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Dashboard' and 'DigiNode Setup' scripts." "${r}" "${c}"; then
 
             printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
@@ -15637,7 +15637,7 @@ main() {
 
 
             # Display the information to the user
-            UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can check for updates to DigiNode Tools itself to upgrade the Status Monitor. You can also choose to Uninstall DigiNode Tools.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
+            UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 3 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
             { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
@@ -15666,7 +15666,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the Status Monitor with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
+            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the DigiNode Dashboard with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
 
                 install_diginode_tools_only
 
@@ -16020,7 +16020,7 @@ install_or_upgrade() {
     # Display donation QR Code
     donation_qrcode
 
-    # Show final messages - Display reboot message (and how to run Status Monitor)
+    # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
     final_messages
 
     # Share backup reminder
@@ -16142,7 +16142,7 @@ add_digibyte_node() {
     # Display donation QR Code
     donation_qrcode
 
-    # Show final messages - Display reboot message (and how to run Status Monitor)
+    # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
     final_messages
 
     exit
