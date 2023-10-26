@@ -1,7 +1,11 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.3 - 2023-10-xx
+DigiNode Tools v0.9.4 - 2023-10-xx
 - Fix:
+
+DigiNode Tools v0.9.3 - 2023-10-26
+- Fix: DigiNode Dashboard now installs sysstat if not present
+- Fix: Replace mentions of DigiNode Status Monitor with DigiNode Dashboard
 
 
 DigiNode Tools v0.9.2 - 2023-10-23
