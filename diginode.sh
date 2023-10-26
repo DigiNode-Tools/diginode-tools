@@ -1587,12 +1587,29 @@ is_jq_installed() {
     if [ "" = "$PKG_OK" ]; then
       printf "%b jq is NOT installed.\\n"  "${CROSS}"
       printf "\\n"
-      printf "%b jq is a required package and will be installed. It is required for this\\n"  "${INFO}"
-      printf "%b script to be able to retrieve data from the DigiAsset Node.\\n"  "${INDENT}"
+      printf "%b jq is a required package and will be installed. It is required for\\n"  "${INFO}"
+      printf "%b manipulating JSON files.\\n"  "${INDENT}"
       install_jq="yes"
       printf "\\n"
     else
       printf "%b jq is installed.\\n"  "${TICK}"
+    fi
+    printf "\\n"
+}
+
+##  Check if jq package is installed
+is_sysstat_installed() {
+    REQUIRED_PKG="sysstat"
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+    if [ "" = "$PKG_OK" ]; then
+      printf "%b sysstat is NOT installed.\\n"  "${CROSS}"
+      printf "\\n"
+      printf "%b sysstat is a required package and will be installed. It contains\\n"  "${INFO}"
+      printf "%b mpstat that is used for monitoring CPU usage.\\n"  "${INDENT}"
+      install_sysstat="yes"
+      printf "\\n"
+    else
+      printf "%b sysstat is installed.\\n"  "${TICK}"
     fi
     printf "\\n"
 }
@@ -1630,11 +1647,16 @@ fi
 
 # Install needed packages
 install_required_pkgs() {
-    if [ "$install_jq" = "yes" ]; then
+    if [ "$install_jq" = "yes" ] || [ "$install_sysstat" = "yes" ]; then
       printf "\\n"
       printf "%b Enter your password to install required packages. Press Ctrl-C to cancel.\n" "${INFO}"
       printf "\\n"
+    fi
+    if [ "$install_jq" = "yes" ]; then
       sudo apt-get --yes install jq
+    fi
+    if [ "$install_sysstat" = "yes" ]; then
+      sudo apt-get --yes install sysstat
     fi
 }
 
@@ -5814,7 +5836,8 @@ startup_checks() {
   check_dgb_rpc_credentials        # Check the RPC username and password from digibyte.conf file. Warn if not present.
   is_avahi_installed               # Check if avahi-daemon is installed
   is_jq_installed                  # Check if jq is installed
-  install_required_pkgs            # Install jq
+  is_sysstat_installed             # Check if sysstat is installed
+  install_required_pkgs            # Install jq and sysstat
   download_digifacts               # Download the digifacts.json file from Github
   firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
   firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
