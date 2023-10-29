@@ -1534,7 +1534,23 @@ fi
 
 echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 if [ "$IS_AVAHI_INSTALLED" = "yes" ]; then
-    printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$HOSTNAME.local:8090    http://$IP4_INTERNAL:8090" " ║ "
+
+    # Setup IP6 display array
+    webui_leftcol=" ║                ║         WEB UI ║  "
+    webui_leftcol2=" ║                ║                ║  "
+    webui_bothurl="http://$HOSTNAME.local:8090   http://$IP4_INTERNAL:8090"
+    webui_bothurl_width=${#webui_bothurl}
+    webui_bothurl1="http://$HOSTNAME.local:8090"
+    webui_bothurl2="http://$IP4_INTERNAL:8090"
+
+    # Display web UI urls
+    if [ $term_width -gt $(( webui_bothurl_width + 41 )) ]; then
+        db_content_c1_c2_c3f "$webui_leftcol" "$webui_bothurl"
+    else
+        db_content_c1_c2_c3f "$webui_leftcol" "$webui_bothurl1"
+        db_content_c1_c2_c3f "$webui_leftcol2" "$webui_bothurl2"
+    fi
+
 else
     printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$IP4_INTERNAL:8090" " ║ "
 fi
@@ -2154,7 +2170,7 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf "%.1f", $2}')
+            usage=$(echo "$line" | awk '{printf "%.0f", $2}')
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
@@ -2167,7 +2183,7 @@ get_cpu_stats() {
             counter=$((counter + 1))
         done <<< "$stats"
 
-        average_usage=$(echo "scale=1; $total_usage / $num_cores" | bc)
+        average_usage=$(echo "scale=0; $total_usage / $num_cores" | bc)
 
         echo "$cpu_usage_1" > "$cpu1_file"
         echo "$cpu_usage_2" > "$cpu2_file"
@@ -4706,10 +4722,10 @@ echo "$sm_row_08" # "╚" "═" "╩" "═" "═" "═" "╝"
 echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
 ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
-ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_on_ext_off="Internal: $IP4_INTERNAL    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: $IP4_EXTERNAL"
-ip4_int_on_ext_on="Internal: $IP4_INTERNAL    External: $IP4_EXTERNAL"
+ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
+ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
 
 # Display IP4 addresses
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
@@ -4842,6 +4858,8 @@ fi
 
 if [ "$cpu_cores" -le 12 ]; then
 
+    average_cpu_usage=90
+
     # Read CPU values from the temporary files (these are updated by a background process)
     cpu_usage_1=$(cat "$cpu1_file")
     cpu_usage_2=$(cat "$cpu2_file")
@@ -4854,7 +4872,11 @@ if [ "$cpu_cores" -le 12 ]; then
     cpu_one_line_width=${#cpu_one_line}
     cpu_one_line_l1="$cpu_usage_1"
     cpu_one_line_l2="$cpu_usage_2"
-    cpu_total_perc="Total: ${average_cpu_usage}%"
+    if [ "$average_cpu_usage" -ge 80 ]; then
+        cpu_total_perc="Total: ${dbcol_bred}${average_cpu_usage}%${dbcol_rst}"
+    else
+        cpu_total_perc="Total: ${average_cpu_usage}%"
+    fi
     cpu_total_perc_width=${#cpu_total_perc}
 
     # Display first IP6 part

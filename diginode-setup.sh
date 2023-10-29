@@ -14927,7 +14927,7 @@ download_digifacts() {
 
         # Rename the existing digifacts.json to digifacts.json.backup, if it exists
         if [[ -f $digifacts_file ]]; then
-            str="Create backupup of existing digifacts.json ..."
+            str="Create backup of existing digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
             mv "$digifacts_file" "$digifacts_backup_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14964,6 +14964,15 @@ download_digifacts() {
         else
             # If the JSON is valid, continue
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Remove DigiFact 78 since this promotes DigiNode Tools itself
+        if [[ -f $digifacts_file ]]; then
+            str="Remove digifact78, as this describes DigiNode Tools ..."
+            printf "%b %s" "${INFO}" "${str}" 
+            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
+            mv "$DGNT_LOCATION/digifacts.json.temp" "$digifacts_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If diginode-help.json exists, append its values to digifacts.json

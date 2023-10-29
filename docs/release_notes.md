@@ -1,12 +1,13 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.9.4 - 2023-10-xx
-- Fix:
+- Fix: Web UI URL in Dashboard now gets split across two lines when required, if there are two URLs.
+- Change: CPU usage is now displayed as a whole number.
+- Change: Remove digifact78 from digifacts.json as this describes DigiNode Tools itself.
 
 DigiNode Tools v0.9.3 - 2023-10-26
 - Fix: DigiNode Dashboard now installs sysstat if not present
 - Fix: Replace mentions of DigiNode Status Monitor with DigiNode Dashboard
-
 
 DigiNode Tools v0.9.2 - 2023-10-23
 - Fix: Dashboard spacing when there is an update available in the Software section
