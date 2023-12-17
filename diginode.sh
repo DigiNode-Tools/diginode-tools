@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/diginode
+#                  Twitter -  https://twitter.com/diginodetools
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -157,6 +157,7 @@ DGBPEERS=false
 DGB2PEERS=false
 VIEW_RPC_CREDENTIALS=false
 UNKNOWN_FLAG=false
+REENABLE_PORT_TEST=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -181,6 +182,7 @@ for var in "$@"; do
         "--dgbpeers" ) DGBPEERS=true;;
         "--dgb2peers" ) DGB2PEERS=true;;
         "--rpc" ) VIEW_RPC_CREDENTIALS=true;;
+        "--porttest" ) REENABLE_PORT_TEST=true;;
         # If an unknown flag is used...
         *) UNKNOWN_FLAG=true;;
     esac
@@ -209,7 +211,8 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $DGB2CORE_STOP = true ] || \
    [ $DGBPEERS = true ] || \
    [ $DGB2PEERS = true ] || \
-   [ $VIEW_RPC_CREDENTIALS = true ]; then
+   [ $VIEW_RPC_CREDENTIALS = true ] || \
+   [ $REENABLE_PORT_TEST = true ]; then
     printf "\\n"
     get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
     import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
@@ -445,6 +448,47 @@ if [ $UNKNOWN_FLAG = true ] || \
         printf "     RPC Ports: $RPC_PORT (%s)\\n\\n" "$(echo "${DGB_NETWORK_CURRENT,,}" | sed 's/./\U&/1')"
         fi
         exit
+    elif [ $REENABLE_PORT_TEST = true ]; then # --porttest
+        diginode_tools_import_settings silent
+
+        printf "%b Re-enabling DigiByte Core MAINNET Port Test...\n" "${INFO}"
+        DGB_MAINNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_FWD_STATUS=""
+        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=\"$DGB_MAINNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_NUMBER_SAVED=""
+        sed -i -e "/^DGB_MAINNET_PORT_NUMBER_SAVED=/s|.*|DGB_MAINNET_PORT_NUMBER_SAVED=\"$DGB_MAINNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+        
+        printf "%b Re-enabling DigiByte Core TESTNET Port Test...\n" "${INFO}"
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_FWD_STATUS=""
+        sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=\"$DGB_TESTNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_NUMBER_SAVED=""
+        sed -i -e "/^DGB_TESTNET_PORT_NUMBER_SAVED=/s|.*|DGB_TESTNET_PORT_NUMBER_SAVED=\"$DGB_TESTNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        printf "%b Re-enabling IPFS Port Test...\n" "${INFO}"
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_FWD_STATUS=""
+        sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_NUMBER_SAVED=""
+        sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        sleep 2
+
     fi
 
 
@@ -500,6 +544,7 @@ display_help() {
         printf "%b%b--dgbcfg%b        - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgntset%b       - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--rpc%b           - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--porttest%b      - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -5309,6 +5354,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     DGB_MAINNET_PORT_TEST_QUERY_ISP=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
 
     # Check network and capitalize
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
@@ -5354,6 +5400,15 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
         fi
     fi
 
+    # Port test - Get server time
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
+        DGB_MAINNET_PORT_TEST_SERVERTIME="$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME UTC"
+        server_local_time=$(date -d "$DGB_MAINNET_PORT_TEST_SERVERTIME")
+        if [ "$server_local_time" != "" ]; then
+            DGB_MAINNET_PORT_TEST_SERVERTIME=$server_local_time
+        fi
+    fi
+
 
     if [ "$DGB_MAINNET_PORT_FWD_STATUS" = "OPEN" ]; then
 
@@ -5377,6 +5432,9 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
         fi
         if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" != "" ]; then
             printf "%b   First Online:  $DGB_MAINNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
+        fi
+        if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_MAINNET_PORT_TEST_SERVERTIME" != "" ]; then
+            printf "%b   Server Time:  $DGB_MAINNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
         fi
         printf "\\n"
 
@@ -5518,6 +5576,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     DGB_TESTNET_PORT_TEST_QUERY_ISP=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
 
     # Check network and capitalize
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
@@ -5563,6 +5622,15 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
         fi
     fi
 
+    # Port test - Get server time
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
+        DGB_TESTNET_PORT_TEST_SERVERTIME="$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME UTC"
+        server_local_time=$(date -d "$DGB_TESTNET_PORT_TEST_SERVERTIME")
+        if [ "$server_local_time" != "" ]; then
+            DGB_TESTNET_PORT_TEST_SERVERTIME=$server_local_time
+        fi
+    fi
+
 
     if [ "$DGB_TESTNET_PORT_FWD_STATUS" = "OPEN" ]; then
 
@@ -5586,6 +5654,9 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
         fi
         if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" != "" ]; then
             printf "%b   First Online:  $DGB_TESTNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
+        fi
+        if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_TESTNET_PORT_TEST_SERVERTIME" != "" ]; then
+            printf "%b   Server Time:  $DGB_TESTNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
         fi
         printf "\\n"
 

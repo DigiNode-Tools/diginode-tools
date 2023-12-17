@@ -1,6 +1,7 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.9.4 - 2023-10-xx
+- New: Added "diginode --porttest" flag to re-enable the DigiByte Node and DigiAsset Node port tests.
 - Fix: Web UI URL in Dashboard now gets split across two lines when required, if there are two URLs.
 - Change: CPU usage is now displayed as a whole number.
 - Change: Remove digifact78 from digifacts.json as this describes DigiNode Tools itself.
