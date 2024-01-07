@@ -4442,9 +4442,9 @@ echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
 if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node is running
     if [ $DGB_CONNECTIONS -le 8 ]; then
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
     else
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
     fi
     # Choose the correct network chain border
     if [ "$dgb_chain_caps" = "MAINNET" ]; then
