@@ -154,7 +154,6 @@ SKIP_OS_CHECK=false
 SKIP_PKG_UPDATE_CHECK=false
 DGA_BRANCH="main"
 STATUS_MONITOR=false
-DGANODE_ONLY=
 SKIP_CUSTOM_MSG=false
 DISPLAY_HELP=false
 INSTALL_DGB_RELEASE_TYPE=""
@@ -176,8 +175,6 @@ for var in "$@"; do
         "--statusmonitor" ) STATUS_MONITOR=true;;
         "--runlocal" ) DGNT_RUN_LOCATION="local";;
         "--runremote" ) DGNT_RUN_LOCATION="remote";;
-        "--dganodeonly" ) DGANODE_ONLY=true;;
-        "--fulldiginode" ) DGANODE_ONLY=false;;
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
         "--dgbpre" ) REQUEST_DGB_RELEASE_TYPE="prerelease";;
         "--dgbnopre" ) REQUEST_DGB_RELEASE_TYPE="release";;
@@ -298,9 +295,6 @@ display_help() {
         printf "%b                   To also skip the customization message displayed on first run, include --skipcustommsg.\\n" "${INDENT}"
         printf "%b %b--dgbpre%b        - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dganodeonly%b   - Install a DigiAsset Node ONLY. This bypasses the hardware checks required\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                   to run a DigiByte Node. Useful on low spec devices. If you later decide to install\\n" "${INDENT}"
-        printf "%b                   a DigiByte Node as well, use the --fulldiginode flag to upgrade your existing DigiAsset Node.\\n" "${INDENT}"
         printf "%b %b--skiposcheck%b   - Skip startup OS check in case of problems with your system. Proceed with caution.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--skippkgupdate%b - Skip package cache update. (Some VPS won't let you update.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -370,19 +364,7 @@ is_unattended_mode() {
     fi
 }
 
-# Inform user if DigiAsset Node ONLY is enable
-is_dganode_only_mode() {
-    if [ "$DGANODE_ONLY" = true ]; then
-        printf "%b %bDigiAsset Node ONLY Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-    fi
-    if [ "$DGANODE_ONLY" = false ]; then
-        printf "%b %bFULL DigiNode Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-    fi
-}
-
-# Inform user if DigiAsset Node ONLY is enable
+# Inform user if DigiByte Core Prerelease version is being requested, or not
 is_dgb_prerelease_mode() {
     if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ]; then
         printf "%b %bDigiByte Core PRE-RELEASE Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -6536,19 +6518,15 @@ menu_first_install() {
     opt2a="DigiByte Node"
     opt2b=" Install DigiByte Node ONLY."
 
-    opt3a="DigiAsset Node"
-    opt3b=" Install DigiAsset Node ONLY."
-
-    opt4a="DigiNode Tools"
-    opt4b=" Use DigiNode Dashboard with an existing DigiByte Node."
+    opt3a="DigiNode Tools"
+    opt3b=" Use DigiNode Dashboard with an existing DigiByte Node."
 
 
     # Display the information to the user
     UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" \
-    "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
 
     # Set the variable based on if the user chooses
@@ -6563,15 +6541,8 @@ menu_first_install() {
             DO_FULL_INSTALL=NO
             printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
             ;;
-        # Install DigiByte Core ONLY
+        # Install DigiNode Tools ONLY
         ${opt3a})
-            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
-            printf "\\n"
-            INSTALLING_DGANODE_ONLY="YES"
-            install_digiasset_node_only
-            ;;
-        # Install DigiNode ONLY
-        ${opt4a})
             printf "%b %soption selected\\n" "${INFO}" "${opt3a}"
             printf "\\n"
             install_diginode_tools_only
@@ -6612,134 +6583,6 @@ install_diginode_tools_only() {
     printf "\\n"
 
     exit
-}
-
-install_digiasset_node_only() {
-
-    # Install packages used by the actual software
-    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
-    # ==============================================================================
-    
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    # Check again for supported package managers so that we may install dependencies
-    package_manager_detect
-    local dep_install_list=("${DIGINODE_DEPS[@]}")
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
-
-    # Set variable to install DigiAsset Node stuff
-    DO_FULL_INSTALL="YES"
-
-    # Prompt for upnp
-    menu_ask_upnp
-
-    # Prompt for motd
-    motd_check
-    menu_ask_motd
-
-    # Check if IPFS installed, and if there is an upgrade available
-    ipfs_check
-
-    # Check if Node.js installed, and if there is an upgrade available
-    nodejs_check
-
-    # Check if DigiAssets Node is installed, and if there is an upgrade available
-    digiasset_node_check
-
-    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
-    diginode_tools_check
-
-    ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
-
-    # Ask to install any upgrades, if there are any
-    menu_ask_install_updates
-
-    ### INSTALL/UPGRADE DIGINODE TOOLS ###
-
-    # Install DigiNode Tools
-    diginode_tools_do_install
-
-    ### INSTALL/UPGRADE DIGIASSETS NODE ###
-
-    # Install/upgrade IPFS
-    ipfs_do_install
-
-    # Create IPFS service
-    ipfs_create_service
-
-    # Install/upgrade Node.js
-    nodejs_do_install
-
-    # Create or update main.json file with RPC credentials
-    digiasset_node_create_settings
-
-    # Install DigiAssets along with IPFS
-    digiasset_node_do_install
-
-    # Setup PM2 init service
-    digiasset_node_create_pm2_service
-
-
-    ##### INSTALL THE MOTD MESSAGE ########
-
-    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
-    motd_do_install_uninstall
-
-
-    ### CHANGE THE HOSTNAME TO DIGINODE ###
-
-    # Check if the hostname is set to 'diginode'
-    hostname_check
-
-    # Ask to change the hostname
-    hostname_ask_change
-
-
-    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
-
-    # Change the hostname
-    hostname_do_change
-
-    # Choose a random DigiFact
-    digifact_randomize
-
-    # Display a random DigiFact
-    display_digifact_fixedwidth
-
-    # Display donation QR Code
-    donation_qrcode
-
-    printf "\\n"
-    printf "%b %bYour DigiAsset Node should now be accessible via the web UI.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    if [ "$HOSTNAME" = "diginode" ]; then
-        printf "%b Access it at ${txtbld}http://diginode.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
-    elif [ "$HOSTNAME" = "diginode-testnet" ]; then
-        printf "%b Access it at ${txtbld}http://diginode-testnet.local:8090${txtrst} or ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"
-    else
-        printf "%b You can access it at: ${txtbld}http://${IP4_INTERNAL}:8090${txtrst}\\n" "${INDENT}"       
-    fi
-    printf "\\n"
-    if [ "$HOSTNAME" != "diginode" ] && [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
-        printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}http://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-    fi
-    if [ "$INSTALLING_DGANODE_ONLY" = "YES" ]; then
-        printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b Please note:\\n" "${INFO}"
-        printf "\\n"
-        printf "%b - If this is your first time installing DigiNode Tools, the above aliases will not work yet.\\n" "${INDENT}"
-        printf "%b   If you are connected over SSH you will need to exit and re-connect before you can use it.\\n" "${INDENT}"
-        printf "\\n"
-    fi
-
-    exit
-
 }
 
 lookup_external_ip() {
@@ -8085,7 +7928,7 @@ final_messages() {
         fi
     fi
 
-    if [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
+    if [ $NewInstall = true ]; then
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
@@ -8146,7 +7989,7 @@ final_messages() {
             printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
         fi
         printf "\\n"       
-    elif [ $NewInstall = true ] && [ "$ADDING_FULL_DGBNODE" != "YES" ]; then
+    elif [ $NewInstall = true ]; then
         printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
@@ -8177,16 +8020,6 @@ final_messages() {
         printf "%b or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
         printf "\\n"
         printf "%b You can also get in touch via the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
-        printf "\\n"
-    fi
-
-    # If upgrading from DigiAsset Node only to a full DigiNode (and there were no errors), displaya success message
-    if [ "$INSTALL_ERROR" != "YES" ] && [ "$ADDING_FULL_DGBNODE" = "YES" ]; then
-        printf "%b %bYou have successfully installed DigiByte Core v${DGB_VER_LOCAL}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b It will take a few minutes to finish starting up. You can check its progress in the DigiNode Dashboard. \\n" "${INDENT}"
-        printf "\\n"
-        printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -8689,13 +8522,8 @@ local show_ipfs_upnp_menu="no"
 
 # FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
 
-# If digibyte.conf file does not exist yet, and we are not already running a DigiAsset Node, show the DGB upnp menu
-if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" != true ]]; then
-    show_dgb_upnp_menu="yes"
-fi
-
-# If digibyte.conf file does not exist yet, and we are already running a DigiAsset Node, and we are installing a DGB Node, then show the DGB upnp menu
-if [ ! -f "$DGB_CONF_FILE" ] && [[ "$DGANODE_ONLY" = true ]] && [[ "$ADDING_FULL_DGBNODE" = "YES" ]]; then
+# If digibyte.conf file does not exist yet, show the DGB upnp menu
+if [ ! -f "$DGB_CONF_FILE" ]; then
     show_dgb_upnp_menu="yes"
 fi
 
@@ -8789,9 +8617,9 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
     # If this is a new install, show the upnp prompt menu regardless
-    if [ "$DGANODE_ONLY" = true ] && [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
-        show_ipfs_upnp_menu="yes"
-    fi
+#    if [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+#        show_ipfs_upnp_menu="yes"
+#    fi
 
     # If we are running this from the main menu, always show the menu prompts
     if [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
@@ -13854,9 +13682,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
                 CUSTOM_MOTD_MENU=""
                 menu_existing_install
-            elif [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ]; then
-                CUSTOM_MOTD_MENU=""
-                menu_dganode_only
             fi
 
         fi
@@ -13880,9 +13705,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ]; then
                 CUSTOM_MOTD_MENU=""
                 menu_existing_install
-            elif [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ]; then
-                CUSTOM_MOTD_MENU=""
-                menu_dganode_only
             fi
         fi
         printf "\\n"
@@ -14034,7 +13856,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     MOTD_STATUS="ENABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
 
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
         whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
         return
     fi
@@ -14084,7 +13906,7 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
     MOTD_STATUS="DISABLED"
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
-    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] || [ "$CUSTOM_MOTD_MENU" = "dganode_only_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
+    if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
         whiptail --msgbox --title "DigiNode MOTD has been uninstalled!" "The DigiNode MOTD file has been successfully uninstalled." 10 "${c}"
         return
     fi
@@ -15433,9 +15255,6 @@ main() {
         # Display if the release/pre-release version of DigiByte Core has been specifically requested
         is_dgb_prerelease_mode
 
-        # Display if DigiAsset Node only mode is manually enabled or disable via the launch flag
-        is_dganode_only_mode
-
         # Display a message if Verbose Mode is enabled
         is_verbose_mode
 
@@ -15534,34 +15353,8 @@ main() {
     # Lookup the external IP
     lookup_external_ip
 
-    # If there is an existing install of a DigiAsset Node, but no DigiByte Node then let's assume this is a DigiAsset Only setup
-    if [ ! -f "$DGB_INSTALL_LOCATION/bin/digibyted" ] && [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$UNOFFICIAL_DIGIBYTE_NODE" != "YES" ] && [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ] && [ -z "$DGANODE_ONLY" ]; then
-        printf "%b DigiAsset Asset Node ONLY Detected. Hardware checks will be skipped.\\n" "${INFO}"
-        DGANODE_ONLY=true
-    fi
-
-    if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] && [ "$DGANODE_ONLY" = true ]; then
-        printf "%b %bWARNING: DigiByte Node Detected. DigiAsset Node ONLY Mode has been disabled.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        DGANODE_ONLY=false
-    fi
-
-    # If we still don't know whether or not we are running a DigiAsset Node ONLY, assume that we are running a full DigiNode, so that Raspberry Pi checks etc. are run
-    if [ "$DGANODE_ONLY" = "" ]; then
-        if [ "$VERBOSE_MODE" = true ]; then
-            printf "%b Verbose Mode: DGANODE_ONLY variable not set - setting to false.\\n" "${INFO}"
-            printf "\\n"
-        fi
-        DGANODE_ONLY=false
-    fi
-
     # Check for Raspberry Pi hardware
-    if [[ "$DGANODE_ONLY" == false ]]; then
-        rpi_check
-    else
-        printf "%b Skipping Raspberry Pi hardware checks...\\n" "${INFO}"
-        printf "\\n"
-    fi
+    rpi_check
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for DigiNode Setup...\\n" "${INFO}"
@@ -15698,37 +15491,6 @@ main() {
     fi
 
 
-    # If the is a DigiAsset Node ONLY (No DigiByte Node)
-    if [[ "$DGANODE_ONLY" == true ]]; then
- 
-        # Display donation dialog
-        donationDialog
-
-        # If DigiNode Tools is installed, offer to check for an update
-        if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
-            
-            # Display main menu for when a DigiAsset Node ONLY is installed
-            menu_dganode_only
-
-        # If DigiNode Tools is not installed), offer to install them
-        else
-            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to setup a DigiAsset Node?\\n\\nYou ran DigiNode Setup with the --dganodeonly flag set. This allows you to setup a DigiAsset Node ONLY without a DigiByte Node.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. By running your own DigiAsset Node, you can get paid in DGB for hosting the DigiAsset metadata of others." "${r}" "${c}"; then
-
-                install_digiasset_node_only
-
-            else
-                printf "%b Exiting: You chose not to install a DigiAsset Node.\\n" "${INFO}"
-                printf "\\n"
-                digifact_randomize
-                display_digifact_fixedwidth
-                printf "\\n"
-                exit
-            fi
-        fi
-
-    fi
-
-
     # If this is a new interaactive Install, display the welcome dialogs
     if [[ "${NewInstall}" == true ]] && [[ "${UnattendedInstall}" == false ]]; then
 
@@ -15825,72 +15587,6 @@ main() {
         install_or_upgrade
 
     fi
-
-}
-
-menu_dganode_only(){
-
-    printf " =============== DIGIASSET NODE ONLY - MAIN MENU =======================\\n\\n"
-    # ==============================================================================
-
-    opt1a="Update"
-    opt1b=" Check for updates to your DigiAsset Node"
-
-    opt2a="Setup DigiByte Node"
-    opt2b=" Upgrade to a FULL DigiNode"
-
-    opt3a="MOTD"
-    opt3b=" Enable or disable the DigiNode Custom MOTD."
-    
-    opt4a="Uninstall"
-    opt4b=" Remove DigiAsset Node from your system"
-
-
-    # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nAn existing DigiAsset Node was discovered.\\n\\nYou can check for updates to your DigiAsset Node or uninstall it.\\nYou can also upgrade to a FULL DigiNode.\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
-    "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" \
-    "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
-
-    # Set the variable based on if the user chooses
-    case ${UpdateCmd} in
-        # Install DigiNode Tools
-        ${opt1a})
-            printf "%b You selected to UPDATE your DigiAsset Node.\\n" "${INFO}"
-            printf "\\n" 
-            INSTALLING_DGANODE_ONLY="UPGRADE"
-            install_digiasset_node_only          
-            ;;
-        # Add DigiByte Node,
-        ${opt2a})
-            printf "%b You selected to install a DigiByte Node.\\n" "${INFO}"
-            printf "\\n"
-            ADDING_FULL_DGBNODE="YES"
-            add_digibyte_node
-            ;;
-        # DigiNode MOTD
-        ${opt3a})
-            printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
-            printf "\\n"
-            MOTD_STATUS="ASK"
-            CUSTOM_MOTD_MENU="dganode_only_menu"
-            motd_check
-            menu_ask_motd
-            motd_do_install_uninstall
-            menu_dganode_only
-            ;;
-        # Uninstall,
-        ${opt4a})
-            printf "%b You selected to UNINSTALL your DigiAsset Node.\\n" "${INFO}"
-            printf "\\n"
-            uninstall_do_now
-            printf "\\n"
-            exit
-            ;;
-    esac
-    printf "\\n"
 
 }
 
@@ -16040,125 +15736,6 @@ install_or_upgrade() {
 
     # Share backup reminder
     backup_reminder
-
-    exit
-
-}
-
-
-# This function will run when you choose to add a DigiByte Node to an existing DigiAsset Node
-add_digibyte_node() {
-
-    ### INSTALL DIGINODE DEPENDENCIES ###
-
-    # Install packages used by the actual software
-    printf " =============== Checking: DigiNode dependencies =======================\\n\\n"
-    # ==============================================================================
-    
-    printf "%b Checking for / installing required dependencies for DigiNode software...\\n" "${INFO}"
-    # Check again for supported package managers so that we may install dependencies
-    package_manager_detect
-    local dep_install_list=("${DIGINODE_DEPS[@]}")
-    install_dependent_packages "${dep_install_list[@]}"
-    unset dep_install_list
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_check
-
-    # Check data drive disk space to ensure there is enough space to download the entire blockchain
-    disk_ask_lowspace
-
-    # Check if a swap file is needed
-    swap_check
-
-    # Ask to change the swap
-    swap_ask_change
-
-    # Do swap setup
-    swap_do_change
-
-    ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
-
-    # Check if DigiByte Core is installed, and if there is an upgrade available
-    check_digibyte_core
-
-    # Check if DigiNode Tools are installed (i.e. these scripts), and if there is an upgrade available
-    diginode_tools_check
-
-    # Check if the DigiNode custom MOTD is already installed
-    motd_check
-
-    ### ASK SETUP QUESTIONS ###
-
-    # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node
-    menu_ask_dgb_network
-
-    # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
-    menu_ask_upnp
-
-    # If this is a new install, ask to install the DigiNode MOTD
-    menu_ask_motd
-
-    ### INSTALL/UPGRADE DIGIBYTE CORE ###
-
-    # Create/update digibyte.conf file
-    create_digibyte_conf
-
-    # Install/upgrade DigiByte Core
-    do_digibyte_install_upgrade
-
-    # Create digibyted.service
-    create_digibyte_service
-
-    # Update DigiAsset RPC settings
-    digiasset_node_create_settings
-
-    ### INSTALL/UPGRADE DIGINODE TOOLS ###
-
-    # Install DigiNode Tools
-    diginode_tools_do_install
-
-    ##### INSTALL THE MOTD MESSAGE ########
-
-    # This will install or uninstall the motd message, based on what the user selected in the menu_ask_motd function
-    motd_do_install_uninstall
-
-
-    ### CHANGE THE HOSTNAME TO DIGINODE ###
-
-    # Check if the hostname is set to 'diginode'
-    hostname_check
-
-    # Ask to change the hostname
-    hostname_ask_change
-
-
-    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
-
-    # Change the hostname
-    hostname_do_change
-
-    
-    ### WRAP UP ###
-
-    # Display closing message
-    closing_banner_message
-
-    if [[ "${NewInstall}" == false ]]; then
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        display_digifact_fixedwidth
-
-    fi
-
-    # Display donation QR Code
-    donation_qrcode
-
-    # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
-    final_messages
 
     exit
 
