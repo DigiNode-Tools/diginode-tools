@@ -71,6 +71,13 @@ fi
 # These variables should all be GLOBAL variables, written in CAPS
 # Local variables will be in lowercase and will exist only within functions
 
+# Dialog result codes
+# dialog code values can be set by environment variables, we only override if
+# the env var is not set or empty.
+: "${DIALOG_OK:=0}"
+: "${DIALOG_CANCEL:=1}"
+: "${DIALOG_ESC:=255}"
+
 # Set VERBOSE_MODE to YES to get more verbose feedback. Very useful for troubleshooting.
 # This can be overridden when needed by the --verbose or --verboseoff flags.
 # (Note: The RUN_SETUP condition ensures that the VERBOSE_MODE setting only applies to DigiNode Setup
@@ -3113,24 +3120,13 @@ if is_command apt-get ; then
     PKG_COUNT="${PKG_MANAGER} -s -o Debug::NoLocking=true upgrade | grep -c ^Inst || true"
     # Update package cache. This is required already here to assure apt-cache calls have package lists available.
     update_package_cache || exit 1
-    # Debian 7 doesn't have iproute2 so check if it's available first
-    if apt-cache show iproute2 > /dev/null 2>&1; then
-        iproute_pkg="iproute2"
-    # Otherwise, check if iproute is available
-    elif apt-cache show iproute > /dev/null 2>&1; then
-        iproute_pkg="iproute"
-    # Else print error and exit
-    else
-        printf "%b Aborting installation: iproute2 and iproute packages were not found in APT repository.\\n" "${CROSS}"
-        exit 1
-    fi
  
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(git "${iproute_pkg}" whiptail bc gcc make ca-certificates curl gnupg sysstat)
+    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc sudo tmux)
+    DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -3163,7 +3159,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -7167,28 +7163,28 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    whiptail --msgbox --backtitle "" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\\n\\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    dialog --msgbox --backtitle "Welcome" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\\n\\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
 
-# Request that users donate if they find DigiNode Setup useful
-donationDialog
+    # Request that users donate if they find DigiNode Setup useful
+    donationDialog
 
-# Explain the need for a static address
-if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
-#Nothing to do, continue
-  printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
-  printf "\\n"
-else
-  printf "%b DigiNode Setup exited at static IP message.\\n" "${INFO}"
-  printf "\\n"
-  exit
-fi
+    # Explain the need for a static address
+    if dialog --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "\\Zb\\Z1IMPORTANT\\Zn: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        #Nothing to do, continue
+        printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
+        printf "\\n"
+    else
+        printf "%b DigiNode Setup exited at static IP message.\\n" "${INFO}"
+        printf "\\n"
+        exit
+    fi
 
 }
 
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-whiptail --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE. If you find it useful, you are requested to please make a donation to help fund future development:
+dialog --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE. If you find it useful, you are requested to please make a donation to help fund future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
