@@ -146,7 +146,7 @@ if [ -z "$NewInstall" ]; then
   NewInstall=true
 fi
 
-# whiptail dialog dimensions: 20 rows and 70 chars width assures to fit on small screens and is known to hold all content.
+# dialog dimensions: 24 rows and 70 chars width assures to fit on small screens and is known to hold all content.
 r=24
 c=70
 
@@ -7163,13 +7163,14 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    dialog --msgbox --backtitle "Welcome" --title "Welcome to DigiNode Setup" "DigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\\n\\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the network.\\n\\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \\n\\nTo learn more, visit: $DGBH_URL_INTRO" "${r}" "${c}"
+    dialog --backtitle "" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a DigiByte Full Node means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the network.\n\nWith a DigiAsset Node you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO" ${r} ${c}
+
 
     # Request that users donate if they find DigiNode Setup useful
     donationDialog
 
     # Explain the need for a static address
-    if dialog --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "\\Zb\\Z1IMPORTANT\\Zn: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "\\Zb\\Z1IMPORTANT\\Zn: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
         #Nothing to do, continue
         printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
         printf "\\n"
@@ -7184,7 +7185,7 @@ welcomeDialogs() {
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-dialog --msgbox --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" "DigiNode Tools is DONATIONWARE. If you find it useful, you are requested to please make a donation to help fund future development:
+dialog --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" --msgbox "DigiNode Tools is DONATIONWARE. If you find it useful, you are requested to please make a donation to help fund future development:
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
