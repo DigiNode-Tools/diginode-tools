@@ -3359,7 +3359,7 @@ os_check() {
                 printf "%b please contact $SOCIAL_TWITTER_HANDLE on Twitter or ask in the 'DigiNode Tools' Telegram group.\\n" "${INDENT}" 
             fi
             printf "\\n"
-            printf "%b %bhttps://digibyte.help/diginode%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b %b${SOCIAL_TELEGRAM_URL}%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b If you wish to attempt to continue anyway, you can try one of the\\n" "${INDENT}" 
             printf "%b following commands to skip this check:\\n" "${INDENT}" 
