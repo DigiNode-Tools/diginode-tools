@@ -3124,7 +3124,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(sudo git iproute2 dialog whiptail bc gcc make ca-certificates curl gnupg)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
@@ -3159,7 +3159,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(git dialog whiptail iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -7170,7 +7170,7 @@ welcomeDialogs() {
     donationDialog
 
     # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "\\Zb\\Z1IMPORTANT\\Zn: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if whiptail --defaultno --backtitle "" --title "Your DigiNode needs a Static IP address." --yesno "IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\\n\\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\\n\\nThe current IP address is: $IP4_INTERNAL\\n\\nFor more help, please visit: $DGBH_URL_STATICIP\\n\\nChoose Continue to indicate that you have understood this message." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
         #Nothing to do, continue
         printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
         printf "\\n"
@@ -7202,7 +7202,7 @@ whiptail --backtitle "" --title "DigiNode Tools is FREE and OPEN SOURCE" --msgbo
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup\Zn" 26 70
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 26 70
 }
 
 
