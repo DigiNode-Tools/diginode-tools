@@ -3356,10 +3356,8 @@ os_check() {
             else
                 printf "%b %bUnsupported OS detected: %s %s%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${detected_os^}" "${detected_version}" "${COL_NC}"
                 printf "%b If you are seeing this message and you believe your OS should be supported\\n" "${INDENT}" 
-                printf "%b please contact $SOCIAL_TWITTER_HANDLE on Twitter or ask in the 'DigiNode Tools' Telegram group.\\n" "${INDENT}" 
+                printf "%b please get in touch via the contact details below.\\n" "${INDENT}"  
             fi
-            printf "\\n"
-            printf "%b %b${SOCIAL_TELEGRAM_URL}%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b If you wish to attempt to continue anyway, you can try one of the\\n" "${INDENT}" 
             printf "%b following commands to skip this check:\\n" "${INDENT}" 
@@ -3368,8 +3366,10 @@ os_check() {
             printf "%b   %bcurl -sSL $DGNT_SETUP_OFFICIAL_URL | bash -s -- --skiposcheck%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             printf "%b It is possible that the installation will still fail at this stage\\n" "${INDENT}" 
-            printf "%b due to an unsupported configuration.\\n" "${INDENT}" 
-            printf "%b %bIf that is the case, feel free to ask $SOCIAL_TWITTER_HANDLE on Twitter.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b due to an unsupported configuration.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b If you need help, contact $SOCIAL_BLUESKY_HANDLE on Bluesky or $SOCIAL_TWITTER_HANDLE on X.\\n" "${INDENT}"
+            printf "%b You can also ask in the 'DigiNode Tools' Telegram group: ${SOCIAL_TELEGRAM_URL}\\n" "${INDENT}" 
             printf "\\n"
             exit 1
 
