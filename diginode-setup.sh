@@ -4567,9 +4567,9 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         fi
 
-
         # Ask the user what size of swap file they want
-        SWAP_TARG_SIZE_MB=$(whiptail  --inputbox "\\nPlease enter the desired swap file size in MB.\\n\\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\\n\\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" $SWAP_REC_SIZE_MB --title "Enter swap file size" 3>&1 1>&2 2>&3) 
+        SWAP_TARG_SIZE_MB=$(dialog --no-shadow --clear --keep-tite --backtitle "Enter swap file size" --title "Enter swap file size" --inputbox "\nPlease enter the desired swap file size in MB.\n\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\n\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" "$SWAP_REC_SIZE_MB" 3>&1 1>&2 2>&1)
+
 
         # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
         # Meaning instead of return the error code, it returns the value entered
