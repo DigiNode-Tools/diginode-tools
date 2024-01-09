@@ -6524,11 +6524,6 @@ menu_first_install() {
     "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
-    "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
-
     # Set the variable based on if the user chooses
     case ${UpdateCmd} in
         # Install Full DigiNode
