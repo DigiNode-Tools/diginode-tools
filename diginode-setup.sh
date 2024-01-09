@@ -3099,7 +3099,7 @@ rpi_microsd_remove() {
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        whiptail --msgbox --backtitle "" --title "Remove microSD card from the Raspberry Pi." "If there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 "${c}"
+        dialog --no-shadow --clear --keep-tite --backtitle "Remove microSD card from the Raspberry Pi." --title "Remove microSD card from the Raspberry Pi." --msgbox "\nIf there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 ${c}
 fi
 
 }
