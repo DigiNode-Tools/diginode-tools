@@ -13780,7 +13780,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-        whiptail --msgbox --title "DigiNode MOTD install file not found!" "The DigiNode MOTD install file was not found. Please upgrade DigiNode Tools and then try again." 10 "${c}"
+        dialog --no-shadow --clear --keep-tite --backtitle "DigiNode MOTD install file not found!" --title "DigiNode MOTD install file not found!" --msgbox "\nThe DigiNode MOTD install file was not found. Please upgrade DigiNode Tools and then try again." 10 ${c}
         printf "\\n"
         return
     fi
@@ -13839,7 +13839,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
 
     if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
-        whiptail --msgbox --title "DigiNode MOTD install has been installed!" "The DigiNode MOTD install file has been successfully installed." 10 "${c}"
+        dialog --no-shadow --clear --keep-tite --backtitle "DigiNode MOTD install has been installed!" --title "DigiNode MOTD install has been installed!" --msgbox "\nThe DigiNode MOTD install file has been successfully installed." 10 ${c}
         return
     fi
 
@@ -13889,7 +13889,7 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
     if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
-        whiptail --msgbox --title "DigiNode MOTD has been uninstalled!" "The DigiNode MOTD file has been successfully uninstalled." 10 "${c}"
+        dialog --no-shadow --clear --keep-tite --backtitle "DigiNode MOTD has been uninstalled!" --title "DigiNode MOTD has been uninstalled!" --msgbox "\nThe DigiNode MOTD file has been successfully uninstalled." 10 ${c}
         return
     fi
 
