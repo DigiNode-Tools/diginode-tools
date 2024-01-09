@@ -6518,7 +6518,12 @@ menu_first_install() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "DigiNode Setup - Main Menu" --menu "\\nPlease choose what to install. A FULL DigiNode is recommended.\\n\\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it.\\n\\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\\n\\n\\n\\nPlease choose an option:\\n\\n" --cancel-button "Exit" "${r}" 80 4 \
+    UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\n\n\nPlease choose an option:\n\n" "${r}" 80 3 \
+    "${opt1a}"  "${opt1b}" \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
+    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
+
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
