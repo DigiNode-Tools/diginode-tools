@@ -1590,7 +1590,7 @@ create_digibyte_conf() {
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyte.conf file?\\n\\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyte.conf file?\n\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." "${r}" "${c}"; then
             reset_digibyte_conf=true
         else
             reset_digibyte_conf=false
@@ -1696,7 +1696,7 @@ create_digibyte_conf() {
             # If we are NOT in unattended mode, ask the user if they want to delete and recreate digibyte.conf, since the script is unable to upgrade it automatically
             if [ "$UNATTENDED_MODE" == false ]; then
 
-                if whiptail --backtitle "" --title "digibyte.conf must be upgraded!" --yesno "Do you want to delete your digibyte.conf file and re-create it?\\n\\nYour existing digibyte.conf file needs to be upgraded to to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\\n\\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\\n\\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "digibyte.conf must be upgraded!" --title "digibyte.conf must be upgraded!" --yesno "\nDo you want to delete your digibyte.conf file and re-create it?\n\nYour existing digibyte.conf file needs to be upgraded to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\n\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\n\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
 
                     manually_edit_dgbconf=false
                     # Delete the existing digibyte.conf
@@ -3068,7 +3068,7 @@ rpi_microsd_ask() {
 # If this is a Raspberry Pi, booting from a microSD, advise that it is better to use an SSD.
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
 
-    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. MicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD. For advice on reccomended DigiNode hardware, visit:\\n$DGBH_URL_HARDWARE\\n\\nSince your Raspberry Pi only has $MODELMEM RAM, if you want to proceed, you will need an empty USB stick to store the swap file. An 8Gb stick is sufficient, but 16Gb or larger is better. An SSD is still recommended, so proceed at you own risk.\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Warning: Raspberry Pi is booting from microSD" --title "Warning: Raspberry Pi is booting from microSD" --yesno "\n\Z1WARNING: You are currently booting your Raspberry Pi from a microSD card.\Z0\n\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. MicroSD cards are prone to corruption and perform significantly slower than an SSD. For advice on recommended DigiNode hardware, visit:\n$DGBH_URL_HARDWARE\n\nSince your Raspberry Pi only has $MODELMEM RAM, if you want to proceed, you will need an empty USB stick to store the swap file. An 8Gb stick is sufficient, but 16Gb or larger is better. An SSD is still recommended, so proceed at you own risk.\n\n\nChoose Yes to indicate that you have understood this message, and wish to continue." "${r}" "${c}"; then
 
     #Nothing to do, continue
       printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
@@ -3081,7 +3081,7 @@ if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_
 
 elif [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]]; then
 
-    if whiptail --backtitle "" --title "Raspberry Pi is booting from microSD" --yesno "WARNING: You are currently booting your Raspberry Pi from a microSD card.\\n\\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\\n\\nMicroSD cards are prone to corruption and perform significantly slower than an SSD or HDD.\\n\\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\\n\\n\\n\\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." --defaultno "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Warning: Raspberry Pi is booting from microSD" --title "Warning: Raspberry Pi is booting from microSD" --yesno "\n\Z1WARNING: You are currently booting your Raspberry Pi from a microSD card.\Z0\n\nIt is strongly recommended to use a Solid State Drive (SSD) connected via USB for your DigiNode. A conventional Hard Disk Drive (HDD) will also work, but an SSD is preferred, being faster and more robust.\n\nMicroSD cards are prone to corruption and perform significantly slower than an SSD.\n\nFor advice on what hardware to get for your DigiNode, visit:\\n$DGBH_URL_HARDWARE\n\n\n\nChoose Yes to indicate that you have understood this message, and wish to continue installing on the microSD card." "${r}" "${c}"; then
     #Nothing to do, continue
       printf "%b Raspberry Pi Warning: You accepted the risks of running a DigiNode from a microSD.\\n" "${INFO}"
     else
@@ -3612,7 +3612,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing mainnet install which has the hostname 'diginode' has been converted to testnet
     if [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "MAINNET" ] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode-testnet' is recommended." --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode-testnet'?\n\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -3628,7 +3628,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing testnet install which has the hostname 'diginode-testnet' has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] && [ "$DGB_NETWORK_OLD" = "TESTNET" ] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode'?\n\nIf you are running your DigiNode on a dedicated device on your local network, then this change is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode"
@@ -3644,7 +3644,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to testnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\\n\\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode-testnet'?\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\n\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." "${r}" "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -3660,7 +3660,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode"
@@ -3676,7 +3676,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # A new mainnet install, and the hostname is still 'diginode-testnet' from a previous install
     elif [[ "$HOSTNAME" = "diginode-testnet" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode'?\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode'?\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on mainnet and not testnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode"
@@ -3692,7 +3692,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # A new testnet install, and the hostname is still 'diginode' from a previous install
     elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if whiptail  --backtitle "" --title "Changing your hostname to 'diginode' is recommended." --yesno "\\nYour hostname is currently '$HOSTNAME'.\\n\\nWould you like to change your hostname to 'diginode-testnet'?\\n\\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname."  --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\nWould you like to change your hostname to 'diginode-testnet'?\n\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." "${r}" "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -3839,16 +3839,16 @@ if [[ "$USER_ASK_SWITCH" = "YES" ]]; then
     # Only ask to change the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Installing as user 'digibyte' is recommended." --yesno "It is recommended that you login as 'digibyte' before installing your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\\n\\nFor more information visit:\\n  $DGBH_URL_USERCHANGE\\n\\n\\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\\n\\nChoose YES to exit and login as 'digibyte' from where you can run DigiNode Setup again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Installing as user 'digibyte' is recommended." --title "Installing as user 'digibyte' is recommended." --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nIt is recommended that you login as 'digibyte' before installing your DigiNode.\n\nThis is optional but encouraged, since it will isolate your DigiByte wallet its own user account.\n\nFor more information visit:\n  $DGBH_URL_USERCHANGE\n\n\nThere is already a 'digibyte' user account on this machine, but you are not currently using it - you are signed in as '$USER_ACCOUNT'. Would you like to switch users now?\n\nChoose YES to exit and login as 'digibyte' from where you can run DigiNode Setup again.\n\nChoose NO to continue installation as '$USER_ACCOUNT'." "${r}" "${c}"; then
 
-        USER_DO_SWITCH="YES"
-        printf "%b User Account: You chose to install as user: 'digibyte' (This account already exists.).\\n" "${INFO}"
-        printf "\\n"
-      else
-        printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'. (The existing 'digibyte' user will not be used).\\n" "${INFO}"
-        printf "\\n"
-      fi
-  fi
+            USER_DO_SWITCH="YES"
+            printf "%b User Account: You chose to install as user: 'digibyte' (This account already exists.).\\n" "${INFO}"
+            printf "\\n"
+        else
+            printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'. (The existing 'digibyte' user will not be used).\\n" "${INFO}"
+            printf "\\n"
+        fi
+    fi
 fi
 
 # Display a request to create the 'digibyte' user, if needed
@@ -3857,16 +3857,16 @@ if [[ "$USER_ASK_CREATE" = "YES" ]]; then
     # Only ask to create the user if DigiByte Core is not yet installed
     if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
-      if whiptail  --backtitle "" --title "Creating a new 'digibyte' user is recommended." --yesno "It is recommended that you create a new 'digibyte' user for your DigiNode.\\n\\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\\n\\nFor more information visit:\\n$DGBH_URL_USERCHANGE\\n\\n\\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\\n\\nChoose YES to create and sign in to the new user account, from where you can run DigiNode Setup again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'."  --yes-button "Yes (Recommended)" --no-button "No" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Creating a new 'digibyte' user is recommended." --title "Creating a new 'digibyte' user is recommended." --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nIt is recommended that you create a new 'digibyte' user for your DigiNode.\n\nThis is optional but encouraged, since it will isolate your DigiByte wallet in its own user account.\n\nFor more information visit:\\n$DGBH_URL_USERCHANGE\n\n\nYou are currently signed in as user '$USER_ACCOUNT'. Would you like to create a new 'digibyte' user now?\n\nChoose YES to create and sign in to the new user account, from where you can run DigiNode Setup again.\\n\\nChoose NO to continue installation as '$USER_ACCOUNT'." "${r}" "${c}"; then
 
-        USER_DO_CREATE="YES"
-        printf "%b User Account: You chose to install as user: 'digibyte'. (This account will be created.)\\n" "${INFO}"
-        printf "\\n"
-      else
-        printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'.\\n" "${INFO}"
-        printf "\\n"
-      fi
-  fi
+            USER_DO_CREATE="YES"
+            printf "%b User Account: You chose to install as user: 'digibyte'. (This account will be created.)\\n" "${INFO}"
+            printf "\\n"
+        else
+            printf "%b User Account: You chose to install as user: '$USER_ACCOUNT'.\\n" "${INFO}"
+            printf "\\n"
+        fi
+    fi
 fi
 
 }
@@ -4413,7 +4413,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if whiptail --title "Swap file not detected." --yesno "WARNING: You need to create a swap file.\\n\\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\\n\\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\\n\\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." "${r}" "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -4437,7 +4437,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
 
                 # Ask the user if they want to create a swap file now, or exit
-                if whiptail --title "USB stick required." --yesno "You need a USB stick to store your swap file.\\n\\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your swap file:\\n\\n - Minimum capacity is 16Gb.\\n - For best performance it should support USB 3.0 or greater.\\n - WARNING: The existing contents will be erased.\\n\\nDo not insert the USB stick into the Pi yet. If it is already plugged in, please UNPLUG it before continuing.\\n\\nChoose CONTINUE once you are ready, with the USB stick unplugged.\\n\\nChoose EXIT to quit DigiNode Setup and create a swap file manually." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "USB stick required." --title "USB stick required." --yes-label "Continue" --no-label "Exit" --yesno "\nYou will need a USB stick to store your Swap file.\n\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your Swap file:\n\n - Minimum capacity is 16Gb.\n - For best performance it should support USB 3.0 or greater.\n\n\Z1WARNING: The existing contents of the USB stick will be erased. Do not insert it into the Pi yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0\n\nChoose CONTINUE once you are ready, with the USB stick unplugged.\n\nChoose EXIT to quit DigiNode Setup and create a swap file manually." "${r}" "${c}"; then
 
                     #Nothing to do, continue
                     printf "%b You chose to continue and begin preparing the swap file on a USB stick.\\n" "${INFO}"
