@@ -6630,7 +6630,8 @@ menu_existing_install() {
 
 
     # Display the information to the user
-    UpdateCmd=$(whiptail --title "Existing DigiNode Detected!" --menu "\\n\\nAn existing DigiNode has been detected on this system.\\n\\nPlease choose from the following options:\\n\\n" --cancel-button "Exit" "${r}" "${c}" 9 \
+
+    UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" "${r}" "${c}" 9 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -8168,9 +8169,9 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
-    ##################################
-    # Banana Temporary Alert Message
-    #################################
+    ####################################
+    # Temporary Alert Message - Banana #
+    ####################################
 
 
     if [ "$show_dgb_network_menu" = "yes" ]; then
@@ -8195,7 +8196,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
         # Display the information to the user
-        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --menu "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\n" --nocancel 25 80 4 \
+        UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --menu "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\n" 25 80 4 \
         "${opt1a}"  "${opt1b}" \
         "${opt2a}"  "${opt2b}" \
         "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
@@ -8266,7 +8267,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # SHOW THE DGB NETWORK MENU FOR AN EXISTING MAINNET INSTALL
     elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" != "YES" ]; then
-
 
         # Display the information to the user
         UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a MAINNET node.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
@@ -8802,7 +8802,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\\n\\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\nHow would you like to setup port forwarding?\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -8817,7 +8817,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\\n\\n${dgb_port_msg}\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\nHow would you like to setup port forwarding?\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -8826,23 +8826,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             printf "%b You chose to ENABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="YES"
             IPFS_ENABLE_UPNP="SKIP"
-        fi
-        printf "\\n"
-
-
-    # SHOW THE IPFS ONLY UPnP MENU
-    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
-
-
-        if whiptail --backtitle "" --title "PORT FORWARDING" --yesno "How would you like to setup port forwarding?\\n\\nTo make your device discoverable by other nodes on the internet, you need to forward the following port on your router:\\n\\n  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\\n\\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\\n\\n${upnp_current_status}For help:\\n$DGBH_URL_PORTFWD" --yes-button "Setup Manually" --no-button "Use UPnP" "${r}" "${c}"; then
-            printf "%b You chose to DISABLE UPnP for IPFS" "${INFO}"
-            DGB_ENABLE_UPNP="SKIP"
-            IPFS_ENABLE_UPNP="NO"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to ENABLE UPnP for IPFS\\n" "${INFO}"
-            DGB_ENABLE_UPNP="SKIP"
-            IPFS_ENABLE_UPNP="YES"
         fi
         printf "\\n"
 
@@ -13666,7 +13649,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK TO INSTALL THE MOTD (displays during a new install or when accessed from the main menu)
     if [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
 
-        if whiptail --backtitle "" --title "DigiNode Custom MOTD" --yesno "Would you like to install a custom DigiNode MOTD?\\n\\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\\n\\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\\n\\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \\n\\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." --yes-button "Yes" --no-button "No" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Enable DigiNode Custom MOTD?" --title "Enable DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\nWould you like to enable the custom DigiNode MOTD?\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\n\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\n\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \n\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." "${r}" "${c}"; then
             printf "%b You chose to install the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL="YES"
             MOTD_DO_UNINSTALL=""
@@ -14645,8 +14628,8 @@ uninstall_motd() {
         printf " =============== Uninstall: DigiNode Custom MOTD =======================\\n\\n"
         # ==============================================================================
 
-        # Delete DigiNode Tools
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to remove the DigiNode Custom MOTD?\\n\\nThis is the DigiNode logo that you see whenever you SSH into your DigiNode via the terminal. Choosing YES will restore the default system MOTD." "${r}" "${c}"; then
+        # Remove DigiNode Custom MOTD
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Remove DigiNode Custom MOTD?" --title "Remove DigiNode Custom MOTD?" --yesno "\nWould you like to remove the DigiNode Custom MOTD?\\n\\nThis is the DigiNode logo that you see whenever you SSH into your DigiNode via the terminal. Choosing YES will restore the default system MOTD." "${r}" "${c}"; then
 
             printf "%b You chose to remove the DigiNode Custom MOTD.\\n" "${INFO}"
 
