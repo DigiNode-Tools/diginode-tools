@@ -6504,47 +6504,47 @@ fi
 # The menu displayed on first install - asks to install DigiByte Core alone, or also the DigiAsset Node
 menu_first_install() {
 
-    printf " =============== INSTALL MENU ==========================================\\n\\n"
+    printf " =============== INSTALL MENU ==========================================\n\n"
     # ==============================================================================
 
-    opt1a="FULL DigiNode "
-    opt1b=" Install DigiByte & DigiAsset Node (Recommended)"
+    opt1a="FULL DigiNode"
+    opt1b="Install DigiByte & DigiAsset Node (Recommended)"
     
     opt2a="DigiByte Node"
-    opt2b=" Install DigiByte Node ONLY."
+    opt2b="Install DigiByte Node ONLY."
 
     opt3a="DigiNode Tools"
-    opt3b=" Use DigiNode Dashboard with an existing DigiByte Node."
-
+    opt3b="Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
     UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\n\n\nPlease choose an option:\n\n" "${r}" 80 3 \
-    "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" \
-    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
+        "${opt1a}" "${opt1b}" \
+        "${opt2a}" "${opt2b}" \
+        "${opt3a}" "${opt3b}" 3>&1 1>&2 2>&1) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
     # Set the variable based on if the user chooses
-    case ${UpdateCmd} in
+    case "${UpdateCmd}" in
         # Install Full DigiNode
-        ${opt1a})
+        "${opt1a}")
             DO_FULL_INSTALL=YES
-            printf "%b %soption selected\\n" "${INFO}" "${opt1a}"
+            printf "%b %soption selected\n" "${INFO}" "${opt1a}"
             ;;
         # Install DigiByte Core ONLY
-        ${opt2a})
+        "${opt2a}")
             DO_FULL_INSTALL=NO
-            printf "%b %soption selected\\n" "${INFO}" "${opt2a}"
+            printf "%b %soption selected\n" "${INFO}" "${opt2a}"
             ;;
         # Install DigiNode Tools ONLY
-        ${opt3a})
-            printf "%b %soption selected\\n" "${INFO}" "${opt3a}"
-            printf "\\n"
+        "${opt3a}")
+            printf "%b %soption selected\n" "${INFO}" "${opt3a}"
+            printf "\n"
             install_diginode_tools_only
             ;;
     esac
-    printf "\\n"
+    printf "\n"
 }
+
 
 # This function will install or upgrade the DigiNode Tools script on this machine
 install_diginode_tools_only() {
@@ -7213,7 +7213,7 @@ ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
-    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\n\nTo proceed with the defaults, choose Continue (Recommended)\n\nTo exit and customize your installation, choose Exit" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\n\nTo proceed with the defaults, choose Continue (Recommended)\n\nTo exit and customize your installation, choose Exit" "${r}" "${c}"; then
 
     #Nothing to do, continue
       printf ""
