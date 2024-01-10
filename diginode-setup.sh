@@ -13504,8 +13504,10 @@ menu_ask_install_updates() {
 
 # TESTING UPGRADES (TROUBLESHOOTING)
 DGB_ASK_UPGRADE="YES"
-# DGA_ASK_UPGRADE="YES"
-# IPFS_ASK_UPGRADE="YES"
+DGA_ASK_UPGRADE="YES"
+IPFS_ASK_UPGRADE="YES"
+DGNT_ASK_UPGRADE="YES"
+NODEJS_ASK_UPGRADE="YES"
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
@@ -13545,65 +13547,65 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 if [ "$vert_space" -ge 12 ]; then
                     if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Core Upgrade" --title "DigiByte Core Upgrade" --yesno "\nDo you want to install DigiByte Core v$DGB_VER_GITHUB now?" 7 "${c}"; then
                         DGB_DO_INSTALL=YES
-                        printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                        printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
                     else
-                        printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                        printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
                     fi
                 else
                     DGB_DO_INSTALL=YES
-                    printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                    printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
                 fi
             fi
             if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
                     if dialog --no-shadow --clear --keep-tite --colors --backtitle "IPFS Kubo Upgrade" --title "IPFS Kubo Upgrade" --yesno "\nDo you want to install IPFS Kubo v$IPFS_VER_RELEASE now?" 7 "${c}"; then
                         IPFS_DO_INSTALL=YES
-                        printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                        printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE\\n" "${INFO}"
                     else
-                        printf "%b You chose NOT to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                        printf "%b You chose NOT to install IPFS Kubo v$IPFS_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
                     IPFS_DO_INSTALL=YES
-                    printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                    printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE\\n" "${INFO}"
                 fi
             fi
             if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
                     if dialog --no-shadow --clear --keep-tite --colors --backtitle "Node.js Upgrade" --title "Node.js Upgrade" --yesno "\nDo you want to install Node.js v$NODEJS_VER_RELEASE now?" 7 "${c}"; then
                         NODEJS_DO_INSTALL=YES
-                        printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                        printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE\\n" "${INFO}"
                     else
-                        printf "%b You chose NOT to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                        printf "%b You chose NOT to install Node.js v$NODEJS_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
                     NODEJS_DO_INSTALL=YES
-                    printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                    printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE\\n" "${INFO}"
                 fi
             fi
             if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
                     if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Node Upgrade" --title "DigiAsset Node Upgrade" --yesno "\nDo you want to install DigiAsset Node v$DGA_VER_RELEASE now?" 7 "${c}"; then
                         DGA_DO_INSTALL=YES
-                        printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                        printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE\\n" "${INFO}"
                     else
-                        printf "%b You chose NOT to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                        printf "%b You chose NOT to install DigiAsset Node v$DGA_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
                     DGA_DO_INSTALL=YES
-                    printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                    printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE\\n" "${INFO}"
                 fi
             fi
             if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
                     if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Tools Upgrade" --title "DigiNode Tools Upgrade" --yesno "\nDo you want to install DigiNode Tools v$DGNT_VER_RELEASE now?" 7 "${c}"; then
                         DGNT_DO_INSTALL=YES
-                        printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                        printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE\\n" "${INFO}"
                     else
-                        printf "%b You chose NOT to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                        printf "%b You chose NOT to install DigiNode Tools v$DGNT_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
                     DGNT_DO_INSTALL=YES
-                    printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                    printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE\\n" "${INFO}"
                 fi
             fi
         else
