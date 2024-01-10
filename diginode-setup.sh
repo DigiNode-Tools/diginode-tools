@@ -13615,6 +13615,16 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           exit
         fi
 
+        # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
+        if [[ "$DGB_DO_INSTALL" = "YES" ]] || [[ "$DGA_DO_INSTALL" = "YES" ]] || [[ "$IPFS_DO_INSTALL" = "YES" ]] || [[ "$NODEJS_DO_INSTALL" = "YES" ]] || [[ "$DGNT_DO_INSTALL" = "YES" ]]; then
+            printf "%b Proceeding with installing chosen updates...\\n" "${INFO}"
+        else
+          printf "%b You chose NOT to install any of the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
+          printf "\\n"
+          display_system_updates_reminder
+          exit
+        fi
+
     printf "\\n"
 
     fi
