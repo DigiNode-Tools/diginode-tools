@@ -13544,9 +13544,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # Change update message from singular to plural
         local updates_msg
         if [ "$vert_space" -eq 11 ]; then
-            updates_msg="The following updates are available for your DigiNode:"
-        else
             updates_msg="The following update is available for your DigiNode:"
+        else
+            updates_msg="The following updates are available for your DigiNode:"
         fi
 
         if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\n$updates_msg:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them?" "${vert_space}" "${c}"; then
