@@ -13541,7 +13541,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             vert_space=$(($vert_space + 1))
         fi
 
-        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\nThe following updates are available for your DigiNode:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them now?" "${vert_space}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\nThe following updates are available for your DigiNode:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them?" "${vert_space}" "${c}"; then
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
@@ -13549,6 +13549,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                         DGB_DO_INSTALL=YES
                         printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
                     else
+                        DGB_DO_INSTALL=NO
                         printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
                     fi
                 else
@@ -13562,6 +13563,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                         IPFS_DO_INSTALL=YES
                         printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE\\n" "${INFO}"
                     else
+                        IPFS_DO_INSTALL=NO
                         printf "%b You chose NOT to install IPFS Kubo v$IPFS_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
@@ -13575,6 +13577,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                         NODEJS_DO_INSTALL=YES
                         printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE\\n" "${INFO}"
                     else
+                        NODEJS_DO_INSTALL=NO
                         printf "%b You chose NOT to install Node.js v$NODEJS_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
@@ -13588,6 +13591,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                         DGA_DO_INSTALL=YES
                         printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE\\n" "${INFO}"
                     else
+                        DGA_DO_INSTALL=NO
                         printf "%b You chose NOT to install DigiAsset Node v$DGA_VER_RELEASE\\n" "${INFO}"
                     fi
                 else
@@ -13602,6 +13606,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                         printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE\\n" "${INFO}"
                     else
                         printf "%b You chose NOT to install DigiNode Tools v$DGNT_VER_RELEASE\\n" "${INFO}"
+                        DGNT_DO_INSTALL=NO
                     fi
                 else
                     DGNT_DO_INSTALL=YES
