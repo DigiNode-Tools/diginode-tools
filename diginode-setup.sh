@@ -13504,10 +13504,10 @@ menu_ask_install_updates() {
 
 # TESTING UPGRADES (TROUBLESHOOTING)
 DGB_ASK_UPGRADE="YES"
-DGA_ASK_UPGRADE="YES"
+# DGA_ASK_UPGRADE="YES"
 IPFS_ASK_UPGRADE="YES"
-DGNT_ASK_UPGRADE="YES"
-NODEJS_ASK_UPGRADE="YES"
+# DGNT_ASK_UPGRADE="YES"
+# NODEJS_ASK_UPGRADE="YES"
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
@@ -13622,7 +13622,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
 
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
         if [[ "$DGB_DO_INSTALL" = "YES" ]] || [[ "$DGA_DO_INSTALL" = "YES" ]] || [[ "$IPFS_DO_INSTALL" = "YES" ]] || [[ "$NODEJS_DO_INSTALL" = "YES" ]] || [[ "$DGNT_DO_INSTALL" = "YES" ]]; then
-            printf "%b Proceeding with installing chosen updates...\\n" "${INFO}"
+            printf "%b Proceeding to install chosen updates...\\n" "${INFO}"
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
