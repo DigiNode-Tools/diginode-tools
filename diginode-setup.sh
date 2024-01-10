@@ -13528,23 +13528,23 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_GITHUB\\n"
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs=" >> IPFS Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="      >> IPFS Kubo v$IPFS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs=" >> Node.js v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="      >> Node.js v$NODEJS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga=" >> DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="      >> DigiAsset Node v$DGA_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt=" >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="      >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
 
@@ -13650,9 +13650,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             fi
         else
             if [ "$vert_space" -eq 11 ]; then
-                printf "%b You chose NOT to install the available update:\\n      $upgrade_msg_dgb      $upgrade_msg_ipfs      $upgrade_msg_nodejs      $upgrade_msg_dga      $upgrade_msg_dgnt" "${INFO}"
+                printf "%b You chose NOT to install the available update:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
             else
-                printf "%b You chose NOT to install the available updates:\\n      $upgrade_msg_dgb      $upgrade_msg_ipfs      $upgrade_msg_nodejs      $upgrade_msg_dga      $upgrade_msg_dgnt" "${INFO}"
+                printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
             fi
             printf "\\n"
             display_system_updates_reminder
