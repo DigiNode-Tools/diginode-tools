@@ -13683,7 +13683,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
 fi
 
 # TESTING UPDATE MECHANISM
-exit
+# exit
 
 }
 
