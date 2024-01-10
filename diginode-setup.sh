@@ -3124,7 +3124,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog whiptail bc gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
@@ -3159,7 +3159,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git dialog whiptail iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -3905,8 +3905,8 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
 
     fi
 
-    DGB_USER_PASS1=$(whiptail --passwordbox "Please choose a password for the new 'digibyte' user.\\n\\nIMPORTANT: Don't forget this - you will need it to access your DigiNode!" 8 78 --title "Choose a password for new user: digibyte" 3>&1 1>&2 2>&3)
-                                                                        # A trick to swap stdout and stderr.
+    DGB_USER_PASS1=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "Choose a password" --title "Choose a password" --insecure --passwordbox "\nPlease choose a password for the new 'digibyte' user.\n\nIMPORTANT: Don't forget this - you will need it to access your DigiNode! \n\n\n" 11 78 3>&1 1>&2 2>&1)
+    # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
@@ -3933,8 +3933,8 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         exit
     fi
 
-    DGB_USER_PASS2=$(whiptail --passwordbox "Please re-enter the password to confirm." 8 78 --title "Re-enter password for new user: digibyte" 3>&1 1>&2 2>&3)
-                                                                        # A trick to swap stdout and stderr.
+    DGB_USER_PASS2=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "Please re-enter the password to confirm." --title "Please re-enter the password to confirm." --insecure --passwordbox "\nPlease re-enter the password to confirm." 8 78 3>&1 1>&2 2>&1)
+    # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
     if [ $exitstatus == 0 ]; then
@@ -5032,7 +5032,7 @@ usb_backup() {
 
     if [[ "$encrypt_wallet_now" == true ]]; then
 
-        WALLET_ENCRYT_PASS1=$(whiptail --passwordbox "Please enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\nIMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your wallet. You have been warned!!" 8 78 --title "Enter a passphrase to encrypt your DigiByte wallet" 3>&1 1>&2 2>&3)
+        WALLET_ENCRYT_PASS1=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "Enter an encryption passphrase" --title "Enter an encryption passphrase" --insecure --passwordbox "\nPlease enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -5046,7 +5046,7 @@ usb_backup() {
             menu_existing_install  
         fi
 
-        WALLET_ENCRYT_PASS2=$(whiptail --passwordbox "Please re-enter the passphrase to confirm." 8 78 --title "Re-enter passphrase for wallet encryption" 3>&1 1>&2 2>&3)
+        WALLET_ENCRYT_PASS2=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "Re-enter the passphrase to confirm" --title "Re-enter the passphrase to confirm" --insecure --passwordbox "\nPlease re-enter the passphrase to confirm.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -8231,7 +8231,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
 
         # Display the information to the user
-        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a TESTNET node.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --no-label "Cancel" --radiolist "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\nNote: DigiByte Core is currently running a TESTNET node.\n\nUse the arrow keys and tap space bar to select an option:\n\n" 27 80 4 \
         "${opt1a}"  "${opt1b}" OFF \
         "${opt2a}"  "${opt2b}" ON \
         "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
@@ -8268,7 +8268,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" != "YES" ]; then
 
         # Display the information to the user
-        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a MAINNET node.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --no-label "Cancel" --radiolist "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\nNote: DigiByte Core is currently running a MAINNET node.\n\nUse the arrow keys and tap space bar to select an option:\n\n" 27 80 4 \
         "${opt1a}"  "${opt1b}" ON \
         "${opt2a}"  "${opt2b}" OFF \
         "${opt3a}"  "${opt3b}" OFF 3>&2 2>&1 1>&3) || \
@@ -8305,7 +8305,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_network_menu" = "yes" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Display the information to the user
-        UpdateCmd=$(whiptail --title "DIGIBYTE NETWORK SELECTION" --radiolist "\\nPlease choose which DigiByte chain to run.\\n\\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\\n\\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\\n\\nNote: DigiByte Core is currently running a DUAL NODE.\\n\\nUse the arrow keys and tap space bar to select an option:\\n\\n" --no-button "Cancel" 27 80 4 \
+        UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --no-label "Cancel" --radiolist "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\nNote: DigiByte Core is currently running a DUAL NODE.\n\nUse the arrow keys and tap space bar to select an option:\n\n" 27 80 4 \
         "${opt1a}"  "${opt1b}" OFF \
         "${opt2a}"  "${opt2b}" OFF \
         "${opt3a}"  "${opt3b}" ON 3>&2 2>&1 1>&3) || \
