@@ -814,7 +814,7 @@ DGA_VER_MJR_RELEASE="$DGA_VER_MJR_RELEASE"
 DGA_VER_RELEASE="$DGA_VER_RELEASE"
 DGA_LOCAL_BRANCH="$DGA_LOCAL_BRANCH"
 
-# Store Kubo IPFS installation details:
+# Store IPFS Kubo installation details:
 IPFS_VER_LOCAL="$IPFS_VER_LOCAL"
 IPFS_VER_RELEASE="$IPFS_VER_RELEASE"
 IPFS_INSTALL_DATE="$IPFS_INSTALL_DATE"
@@ -4437,7 +4437,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
 
                 # Ask the user if they want to create a swap file now, or exit
-                if dialog --no-shadow --clear --keep-tite --colors --backtitle "USB stick required." --title "USB stick required." --yes-label "Continue" --no-label "Exit" --yesno "\nYou will need a USB stick to store your Swap file.\n\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick to store your Swap file:\n\n - Minimum capacity is 16Gb.\n - For best performance it should support USB 3.0 or greater.\n\n\Z1WARNING: The existing contents of the USB stick will be erased. Do not insert it into the Pi yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0\n\nChoose CONTINUE once you are ready, with the USB stick unplugged.\n\nChoose EXIT to quit DigiNode Setup and create a swap file manually." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "USB stick required." --title "USB stick required." --yes-label "Continue" --no-label "Exit" --yesno "\nYou will need a USB stick to store your Swap file.\n\nSince you are running your system off a microSD card, and this Pi only has $MODELMEM RAM, you need to use a USB stick connected to your Pi to store your Swap file:\n\n - Minimum capacity is 16Gb.\n - For best performance it should support USB 3.0 or greater.\n\n\Z1WARNING: The existing contents of the USB stick will be erased. Do not insert it into the Pi yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0\n\nChoose CONTINUE once you are ready, with the USB stick unplugged.\n\nChoose EXIT to quit DigiNode Setup and create a swap file manually." "${r}" "${c}"; then
 
                     #Nothing to do, continue
                     printf "%b You chose to continue and begin preparing the swap file on a USB stick.\\n" "${INFO}"
@@ -4921,7 +4921,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if whiptail --backtitle "" --title "DigiNode Backup" "This tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\\n\\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\\n\\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\\n\\nIMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you will likely not be able to use this tool." --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" "${r}" "${c}"; then
             printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -4934,7 +4934,7 @@ usb_backup() {
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if whiptail --backtitle "" --title "DIGIBYTE CORE WALLET BACKUP" --yesno "Would you like to backup your DigiByte wallet?\\n\\nThis is highly recomended, if you have not already done so, as it will safeguard the contents of your DigiByte wallet, and make it easy to restore your DigiNode in the event of hardware failure." --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to backup your DigiByte wallet to the USB stick?\\n\\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." "${r}" "${c}"; then
 
                 run_wallet_backup=true
             else
@@ -4954,7 +4954,7 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if whiptail --backtitle "" --title "DIGIASSET NODE BACKUP" --yesno "Would you like to also backup your DigiAsset Node settings?\\n\\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to backup your DigiAsset Node settings to the USB stick?\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." "${r}" "${c}"; then
 
                 run_dgaconfig_backup=true
             else
@@ -5009,7 +5009,7 @@ usb_backup() {
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
                 # Ask the user if they want to encrypt with a password?
-                if whiptail --backtitle "" --title "ENCRYPT WALLET" --yesno "Would you like to encrypt your DigiByte wallet with a passphrase?\\n\\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase."  --yes-button "Yes (Recommended)" "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to encrypt your DigiByte wallet with a passphrase?\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." "${r}" "${c}"; then
 
                     printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=true
@@ -5115,7 +5115,7 @@ usb_backup() {
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
-        if whiptail --backtitle "" --title "PREPARE BACKUP USB STICK" --yesno "Are you ready to proceed with DigiNode backup?\\n\\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work!\\n\\nIMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it before continuing."  --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\nAre you ready to proceed with DigiNode backup?\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" "${r}" "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
@@ -5275,7 +5275,7 @@ usb_backup() {
             printf "%b Asking to format USB stick...\\n" "${INFO}"
 
             # Ask the user if they want to format the USB stick
-            if whiptail --title "Inserted USB Stick is not writeable." --yesno "Would you like to format the USBs stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\\n\\nWARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu." --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Inserted USB Stick is not writeable." --title "Inserted USB Stick is not writeable." --yes-label "Continue" --no-label "Exit" --yesno "\nWould you like to format the USB stick?\\n\\nThe stick you inserted does not appear to be writeable, and needs to be formatted before it can be used for the backup.\n\n\Z1WARNING: If you continue, any existing data on the USB stick will be erased. If you prefer to try a different USB stick, please choose Exit, and run this again from the main menu.\Z0" "${r}" "${c}"; then
 
                 printf "%b You confirmed you want to format the USB stick.\\n" "${INFO}"
                 printf "\\n"
@@ -5482,7 +5482,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiByte wallet. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, and it appears that it was not created from this DigiNode. \\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiByte Wallet backup found on USB stick" --title "Existing DigiByte Wallet backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiByte wallet.\Z0\n\nDo you want to overwrite it? It is unknown when this backup was created, and it may be that it was not created from this DigiNode. \n\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5496,7 +5496,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of a DigiByte wallet. Do you want to overwrite it?\\n\\nThe existing wallet backup was created:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK \\n\\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiByte Wallet backup found on USB stick" --title "Existing DigiByte Wallet backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiByte wallet.\Z0\n\nDo you want to overwrite it? The existing wallet backup was created:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK \n\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5510,7 +5510,7 @@ EOF
                 #If the stick already contains a wallet.dat backup, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of a DigiByte wallet. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was previously backed up to another stick on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing wallet backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiByte Wallet backup found on USB stick" --title "Existing DigiByte Wallet backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiByte wallet.\Z0\n\nDo you want to overwrite it? It is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was previously backed up to another stick on:\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\n\nIf you continue the existing wallet backup will be overwritten." "${r}" "${c}"; then
 
                         do_wallet_backup_now=true
                         printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5528,7 +5528,7 @@ EOF
                     if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "$DGB_WALLET_BACKUP_DATE_ON_USB_STICK" ]; then
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of this DigiByte wallet. Do you want to overwrite it?\\n\\nThis backup was previously created on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new backup unless you have recently encrypted the wallet. If you continue your existing wallet backup will be overwritten." "${r}" "${c}"; then
+                        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiByte Wallet backup found on USB stick" --title "Existing DigiByte Wallet backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of this DigiByte wallet.\Z0\n\nDo you want to overwrite it? This backup was previously created on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYou should not need to create a new backup unless you have recently encrypted the wallet. If you continue your existing wallet backup will be overwritten." "${r}" "${c}"; then
 
                             do_wallet_backup_now=true
                             printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5541,7 +5541,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a DigiByte wallet backup. Do you want to overwrite it?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK.\\n\\nA previous backup was made to a different USB stick on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
+                        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiByte Wallet backup found on USB stick" --title "Existing DigiByte Wallet backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a DigiByte wallet backup.\Z0\n\nDo you want to overwrite it? This DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nA previous backup was made to a different USB stick on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\n\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                             do_wallet_backup_now=true
                             printf "%b DigiByte Wallet: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5695,7 +5695,7 @@ EOF
 
                 #If the stick already contains a 'dga_config_backup' folder, but there is no date logged anywhere of when a previous backup was conducted, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, and it appears that it was not created from this DigiNode. \\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiAsset Node backup found on USB stick" --title "Existing DigiAsset Node backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiAsset Node.\Z0\n\nDo you want to overwrite it? It is unknown when this backup was created, and it appears that it was not created from this DigiNode. \\n\\nIf you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5709,7 +5709,7 @@ EOF
                 #If the stick already contains a 'dga_config_backup' folder, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" != "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nThe existing backup was created:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK \\n\\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiAsset Node backup found on USB stick" --title "Existing DigiAsset Node backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiAsset Node.\Z0\n\nDo you want to overwrite it? The existing backup was created:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK \n\nIt is not known whether the backup was made from this DigiNode. If you continue the existing backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5723,7 +5723,7 @@ EOF
                 #If the stick already contains a DigiAsset Settings folder, but it was not created by this DigiNode, ask the user if they want to continue
                 if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" != "" ] && [ "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" = "" ]; then
                     # Ask the user to prepare their backup USB stick
-                    if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of another DigiAsset Node. Do you want to overwrite it?\\n\\nIt is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was preciously backed up to another stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the existing DigiAsset settings backup will be overwritten." "${r}" "${c}"; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiAsset Node backup found on USB stick" --title "Existing DigiAsset Node backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of another DigiAsset Node.\Z0\n\nDo you want to overwrite it? It is unknown when this backup was created, or whether it was created from this DigiNode. This DigiNode was preciously backed up to another stick on:\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\n\nIf you continue the existing DigiAsset settings backup will be overwritten." "${r}" "${c}"; then
 
                         do_dgaconfig_backup_now=true
                         printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5740,7 +5740,7 @@ EOF
                     # If this is the same backup stick as was used last time, then ask the user if they want to overwrite it
                     if [ "$DGA_CONFIG_BACKUP_DATE_ON_DIGINODE" = "$DGA_CONFIG_BACKUP_DATE_ON_USB_STICK" ]; then
 
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a backup of this DigiAsset Node. Do you want to overwrite it?\\n\\nThis backup was previously created on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nYou should not need to create a new DigiAsset Settings backup unless you have recently changed your configuration. If you continue your existing DigiAsset Settings backup will be overwritten." "${r}" "${c}"; then
+                        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiAsset Node backup found on USB stick" --title "Existing DigiAsset Node backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a backup of this DigiAsset Node.\Z0\n\nDo you want to overwrite it? This backup was previously created on:\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\n\nYou should not need to create a new DigiAsset Settings backup unless you have recently changed your configuration. If you continue your existing DigiAsset Settings backup will be overwritten." "${r}" "${c}"; then
 
                             do_dgaconfig_backup_now=true
                             printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5753,7 +5753,7 @@ EOF
                     else
 
                         # Ask the user to prepare their backup USB stick
-                        if whiptail --backtitle "" --title "Existing backup found on stick" --yesno "WARNING: This USB stick already contains a DigiAsset Node backup. Do you want to overwrite it?\\n\\nThis DigiAsset Node backup was made on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK.\\n\\nA previous backup was made to a different USB stick on:\\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\\n\\nIf you continue the current backup will be overwritten." "${r}" "${c}"; then
+                        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Existing DigiAsset Node backup found on USB stick" --title "Existing DigiAsset Node backup found on USB stick" --yesno "\n\Z1WARNING: This USB stick already contains a DigiAsset Node backup.\Z0\n\nDo you want to overwrite it? This DigiAsset Node backup was made on:\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\n\nA previous backup was made to a different USB stick on:\n  $DGA_CONFIG_BACKUP_DATE_ON_DIGINODE\n\nIf you continue the current backup will be overwritten." "${r}" "${c}"; then
 
                             do_dgaconfig_backup_now=true
                             printf "%b DigiAsset Settings: You agreed to overwrite the existing backup on the USB stick...\\n" "${INFO}"
@@ -5917,7 +5917,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if whiptail --backtitle "" --title "DigiNode Restore" "This tool will help you to restore your DigiByte Core wallet and/or DigiAsset Node settings from your USB backup stick.\\n\\nThe USB backup must previously have been made from the DigNode Tools backup menu. Please have your DigiNode USB backup stick ready before continuing. \\n\\nWARNING: If you continue, your current existing wallet and settings will be replaced with the ones on the USB backup. Any funds in the current wallet will be lost!!" --yesno --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' "${r}" "${c}"; then
         printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
@@ -6103,18 +6103,18 @@ usb_restore() {
 
     # Setup restore menu text for DigiByte Wallet
     if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$IS_LOCAL_WALLET" = "YES" ]; then
-        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nYour local wallet was likely created:\\n  $DGB_INSTALL_DATE\\n\\nWARNING: If you continue your current wallet will be replaced with the one from the USB backup stick and any funds will be lost."
+        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was likely created:\n  $DGB_INSTALL_DATE\n\n\Z1WARNING: If you continue your local wallet will be replaced with the one from the USB backup stick and any funds will be lost.\Z0"
     elif [ "$IS_LOCAL_WALLET" = "NO" ]; then
-        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nNote: There is currently no existing wallet on this DigiNode."
+        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nNote: There is currently no existing DigiByte wallet on this DigiNode."
     else
-        restore_str="Would you like to restore your DigiByte wallet from the USB backup?\\n\\nThis DigiByte wallet backup was made on:\\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n\\nYour local wallet was previously backed up on:\\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\\n\\nWARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost."
+        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was previously backed up on:\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\n\n\Z1WARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost.\Z0"
     fi
 
     # Ask to restore the DigiByte Core Wallet backup, if it exists
     if [ -f /media/usbbackup/diginode_backup/wallet.dat ]; then
 
         # Ask if the user wants to restore their DigiByte wallet
-        if whiptail --backtitle "" --title "RESTORE DIGIBYTE CORE WALLET" --yesno "$restore_str" --yes-button "Yes" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Restore DigiByte Wallet" --title "Restore DigiByte Wallet" --yesno "$restore_str" "${r}" "${c}"; then
 
             run_wallet_restore=true
         else
@@ -6131,8 +6131,7 @@ usb_restore() {
     if [ -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
 
         # Ask the user if they want to restore their DigiAsset Node settings
-        if whiptail --backtitle "" --title "RESTORE DIGIASSET NODE SETTINGS" --yesno "Would you like to also restore your DigiAsset Node settings?\\n\\nThis will replace your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc.\\n\\nThis DigiAsset settings backup was created:\\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n\\nWARNING: If you continue your current existing DigiAsset Node settings will be replaced with the backup."  --yes-button "Yes" "${r}" "${c}"; then
-
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Restore DigiAsset Node Settings" --title "Restore DigiAsset Node Settings" --yesno "\nWould you like to also restore your DigiAsset Node settings?\n\nThis will replace your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc.\n\nThis DigiAsset settings backup was created:\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\n\n\Z1WARNING: If you continue your current DigiAsset Node settings will be replaced with the ones from the USB backup stick.\Z0" "${r}" "${c}"; then
             run_dgaconfig_restore=true
         else
             run_dgaconfig_restore=false
@@ -6477,7 +6476,7 @@ if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
 
     # If low disk space is detected on in the default install location, ask the user if they want to continue
     if [[ "$QUERY_LOWDISK_SPACE" = "YES" ]]; then
-        if whiptail  --backtitle "" --title "Not enough free space to download the blockchain." --yesno "WARNING: There is not enough free space on this drive to download a full copy of the DigiByte blockchain.\\n\\nIf you continue, you will need to enable pruning the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\\n\\nDo you wish to continue with the install now?\\n\\nChoose YES to indicate that you have understood this message, and wish to continue." --defaultno "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Not enough free disk space." --title "Not enough free disk space." --yesno "\n\Z1WARNING: There is not enough free space on this drive to download a full copy of the DigiByte blockchain.\Z0\n\nIf you continue, you will need to enable pruning the blockchain to prevent it from filling up the drive. You can do this by editing the digibyte.conf settings file.\n\nDo you wish to continue with the install now?\n\nChoose YES to indicate that you have understood this message, and wish to continue." "${r}" "${c}"; then
 
             printf "%b %bIMPORTANT: You need to have DigiByte Core prune your blockchain or it will fill up your data drive%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
@@ -6801,11 +6800,11 @@ change_upnp_status() {
     printf " =============== Checking: IPFS Node ===================================\\n\\n"
     # ==============================================================================
 
-    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
+    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
-    # Let's check if Kubo IPFS is already installed
-    str="Is Kubo IPFS already installed?..."
+    # Let's check if IPFS Kubo is already installed
+    str="Is IPFS Kubo already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -6815,12 +6814,12 @@ change_upnp_status() {
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: IPFS Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo IPFS daemon upstart service running?..."
+      str="Is IPFS Kubo daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -6833,7 +6832,7 @@ change_upnp_status() {
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo IPFS daemon systemd service running?..."
+        str="Is IPFS Kubo daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -6868,7 +6867,7 @@ change_upnp_status() {
     # Set the IPFS upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
         if [ "$UPNP_IPFS_CURRENT" != "false" ]; then
-            str="Enabling UPnP port forwarding for Kubo IPFS..."
+            str="Enabling UPnP port forwarding for IPFS Kubo..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6884,7 +6883,7 @@ change_upnp_status() {
         fi
     elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
         if [ "$UPNP_IPFS_CURRENT" != "true" ]; then
-            str="Disabling UPnP port forwarding for Kubo IPFS..."
+            str="Disabling UPnP port forwarding for IPFS Kubo..."
             printf "%b %s" "${INFO}" "${str}"
             sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6902,11 +6901,11 @@ change_upnp_status() {
 
     if [ "$IPFS_UPNP_STATUS_UPDATED" = "YES" ]; then
 
-        # Restart Kubo IPFS if the upnp status has just been changed
+        # Restart IPFS Kubo if the upnp status has just been changed
         if [ "$IPFS_STATUS" = "running" ] || [ "$IPFS_STATUS" = "stopped" ]; then
 
             # Restart IPFS if the upnp status has just been changed
-            printf "%b Kubo IPFS UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            printf "%b IPFS Kubo UPnP status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
             restart_service ipfs
         fi
 
@@ -7036,11 +7035,11 @@ change_dgb_network() {
 
         ipfsport=$IPFS_PORT_IP4
 
-        # Restart Kubo IPFS if the IPFS port has just been changed
+        # Restart IPFS Kubo if the IPFS port has just been changed
         if [ "$IPFS_STATUS" = "running" ] || [ "$IPFS_STATUS" = "stopped" ]; then
 
-            # Restart IPFS if the Kubo IPFS has just been changed
-            printf "%b Kubo IPFS port has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            # Restart IPFS if the IPFS Kubo has just been changed
+            printf "%b IPFS Kubo port has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
             restart_service ipfs
         fi
 
@@ -7073,7 +7072,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if whiptail --backtitle "" --title "Delete mainnet blockchain data?" --yesno "Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain which can take several days.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Delete mainnet blockchain data?" --title "Delete mainnet blockchain data?" --yesno "\nWould you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain from scratch.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
@@ -7098,7 +7097,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\\n\\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\nWould you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
@@ -7253,7 +7252,7 @@ if [ "$RESET_MODE" = true ]; then
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB_UPSTART_SERVICE_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyted.service file?\\n\\nNote: This will delete your current systemd service file and re-create with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the DigiByte Core daemon starts automatically after a reboot or if it crashes." 13 "${c}"; then
             DGB_SERVICE_CREATE=YES
             DGB_SERVICE_INSTALL_TYPE="reset"
         else
@@ -7456,7 +7455,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
         # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
         if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
 
-            if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-create your digibyted-testnet.service file?\\n\\nNote: This will delete the testnet systemd service file used when running a Dual Node, and re-create it with default settings. Any customisations will be lost.\\n\\nNote: The service file ensures that the testnet DigiByte daemon starts automatically after a reboot or if it crashes." "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyted-testnet.service file?\n\nNote: This will delete the testnet systemd service file used when running a Dual Node, and re-create it with default settings. Any customisations will be lost.\n\nNote: The service file ensures that the testnet DigiByte daemon starts automatically after a reboot or if it crashes." 14 "${c}"; then
                 DGB2_SERVICE_CREATE=YES
                 DGB2_SERVICE_INSTALL_TYPE="reset"
             else
@@ -8556,7 +8555,7 @@ fi
 
 
 
-# IF THIS IS A FULL INSTALL CHECK FOR KUBO IPFS
+# IF THIS IS A FULL INSTALL CHECK FOR IPFS Kubo
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
@@ -8567,7 +8566,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         show_ipfs_upnp_menu="yes"
     fi
 
-    # Is there a working version of Kubo IPFS available?
+    # Is there a working version of IPFS Kubo available?
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
         local test_kubo_query
@@ -8719,7 +8718,7 @@ fi
 
     # Get current ipfs listen port
 
-    # Lookup the current Kubo IPFS ports
+    # Lookup the current IPFS Kubo ports
     if test -f "$USER_HOME/.ipfs/config"; then
         IPFS_PORT_IP4=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
     fi
@@ -9964,7 +9963,8 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\\n\\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\n\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." 11 "${c}"; then
+    
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
     else 
@@ -10533,7 +10533,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\\n\\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
@@ -10747,13 +10747,13 @@ ipfs_check() {
 
 if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    printf " =============== Checking: Kubo IPFS ===================================\\n\\n"
+    printf " =============== Checking: IPFS Kubo ===================================\\n\\n"
     # ==============================================================================
 
-    # Check for latest Kubo IPFS release online
-    str="Checking Github for the latest Kubo IPFS release..."
+    # Check for latest IPFS Kubo release online
+    str="Checking Github for the latest IPFS Kubo release..."
     printf "%b %s" "${INFO}" "${str}"
-    # Gets latest Kubo IPFS version, disregarding releases candidates (they contain 'rc' in the name).
+    # Gets latest IPFS Kubo version, disregarding releases candidates (they contain 'rc' in the name).
     IPFS_VER_RELEASE=$(curl -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
     # If can't get Github version number
@@ -10761,28 +10761,28 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
         printf "%b Unable to check for new version of Kubo. Is the Internet down?.\\n" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo IPFS cannot be upgraded at this time. Skipping...\\n" "${INFO}"
+        printf "%b IPFS Kubo cannot be upgraded at this time. Skipping...\\n" "${INFO}"
         printf "\\n"
         IPFS_DO_INSTALL=NO
         IPFS_INSTALL_TYPE="none"
         IPFS_UPDATE_AVAILABLE=NO
         return     
     else
-        printf "%b%b %s Found: Kubo IPFS v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s Found: IPFS Kubo v${IPFS_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
         sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
     fi
 
     # WORKAROUND: This is temporary to get around the Kubo release glitch
     if [ "$IPFS_VER_RELEASE" = "0.21.1" ]; then
         IPFS_VER_RELEASE="0.22.0"
-        printf "%b Temporary Workaround for Kubo IPFS release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
+        printf "%b Temporary Workaround for IPFS Kubo release glitch - switching v0.21.1 to v0.22.0\\n" "${WARN}"
     fi
 
-    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
+    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     # Let's check if Kubo is already installed
-    str="Is Kubo IPFS already installed?..."
+    str="Is IPFS Kubo already installed?..."
     printf "%b %s" "${INFO}" "${str}"
     if [ "$IPFS_VER_LOCAL" = "" ]; then
         IPFS_STATUS="not_detected"
@@ -10792,12 +10792,12 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     else
         IPFS_STATUS="installed"
         sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s YES!   Found: Kubo IPFS v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b%b %s YES!   Found: IPFS Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Next let's check if IPFS daemon is running with upstart
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-      str="Is Kubo IPFS daemon upstart service running?..."
+      str="Is IPFS Kubo daemon upstart service running?..."
       printf "%b %s" "${INFO}" "${str}"
       if check_service_active "ipfs"; then
           IPFS_STATUS="running"
@@ -10810,7 +10810,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # Next let's check if IPFS daemon is running with systemd
     if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-        str="Is Kubo IPFS daemon systemd service running?..."
+        str="Is IPFS Kubo daemon systemd service running?..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if it is running or not #CHECKLATER
@@ -10823,26 +10823,26 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
         fi
     fi
 
-    # Lookup the current Kubo IPFS ports
+    # Lookup the current IPFS Kubo ports
     if test -f "$USER_HOME/.ipfs/config"; then
-        printf "%b Retrieving current port numbers for Kubo IPFS...\\n" "${INFO}"
+        printf "%b Retrieving current port numbers for IPFS Kubo...\\n" "${INFO}"
 
-        str="Kubo IPFS IP4 Port:"
+        str="IPFS Kubo IP4 Port:"
         printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP4=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
         printf "  %b%b %s $IPFS_PORT_IP4\\n" "${OVER}" "${INFO}" "${str}"
         
-        str="Kubo IPFS IP6 Port:"
+        str="IPFS Kubo IP6 Port:"
         printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP6=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[1] | sed 's/"//g' | cut -d'/' -f5)
         printf "  %b%b %s $IPFS_PORT_IP6\\n" "${OVER}" "${INFO}" "${str}"
 
-        str="Kubo IPFS IP4 Quic Port:"
+        str="IPFS Kubo IP4 Quic Port:"
         printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP4_QUIC=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[2] | sed 's/"//g' | cut -d'/' -f5)
         printf "  %b%b %s $IPFS_PORT_IP4_QUIC\\n" "${OVER}" "${INFO}" "${str}"
         
-        str="Kubo IPFS IP6 Quic Port:"
+        str="IPFS Kubo IP6 Quic Port:"
         printf "  %b %s" "${INFO}" "${str}"
         IPFS_PORT_IP6_QUIC=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[3] | sed 's/"//g' | cut -d'/' -f5)
         printf "  %b%b %s $IPFS_PORT_IP6_QUIC\\n" "${OVER}" "${INFO}" "${str}"
@@ -10876,13 +10876,13 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
     fi
 
 
-    # If a Kubo IPFS local version already exists.... (i.e. we have a local version number)
+    # If a IPFS Kubo local version already exists.... (i.e. we have a local version number)
     if [ ! $IPFS_VER_LOCAL = "" ]; then
       # ....then check if an upgrade is required
       if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-          printf "%b Kubo IPFS is already up to date.\\n" "${TICK}"
+          printf "%b IPFS Kubo is already up to date.\\n" "${TICK}"
           if [ "$RESET_MODE" = true ]; then
-            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall Kubo IPFS v${IPFS_VER_RELEASE}.\\n" "${INFO}"
+            printf "%b Reset Mode is Enabled. You will be asked if you want to reinstall IPFS Kubo v${IPFS_VER_RELEASE}.\\n" "${INFO}"
             IPFS_INSTALL_TYPE="askreset"
             IPFS_DO_INSTALL=YES
           else
@@ -10894,7 +10894,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
             return
           fi
       else
-          printf "%b %bKubo IPFS can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+          printf "%b %bIPFS Kubo can be upgraded from v${IPFS_VER_LOCAL} to v${IPFS_VER_RELEASE}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
           IPFS_INSTALL_TYPE="upgrade"
           IPFS_ASK_UPGRADE=YES
       fi
@@ -10903,7 +10903,7 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
     # If no current version is installed, then do a clean install
     if [ "$IPFS_STATUS" = "not_detected" ]; then
-      printf "%b %bKubo IPFS v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "%b %bIPFS Kubo v${IPFS_VER_RELEASE} will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       IPFS_INSTALL_TYPE="new"
       IPFS_DO_INSTALL="if_doing_full_install"
     fi
@@ -10914,7 +10914,7 @@ fi
 
 }
 
-# This function will install Kubo IPFS if it not yet installed, and if it is, upgrade it to the latest release
+# This function will install IPFS Kubo if it not yet installed, and if it is, upgrade it to the latest release
 ipfs_do_install() {
 
 # If we are in unattended mode and an upgrade has been requested, do the install
@@ -10925,11 +10925,11 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Kubo IPFS v${IPFS_VER_RELEASE}?" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install IPFS Kubo v${IPFS_VER_RELEASE}?\n\nNote: IPFS Kubo is used by the DigiAsset Node to distribute DigiAsset metadata." 10 "${c}"; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
     else        
-        printf " =============== Resetting: Kubo IPFS ==================================\\n\\n"
+        printf " =============== Resetting: IPFS Kubo ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Kubo.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
@@ -10950,13 +10950,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Display section break
     if [ "$IPFS_INSTALL_TYPE" = "new" ]; then
-        printf " =============== Install: Kubo IPFS ====================================\\n\\n"
+        printf " =============== Install: IPFS Kubo ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "upgrade" ]; then
-        printf " =============== Upgrade: Kubo IPFS ====================================\\n\\n"
+        printf " =============== Upgrade: IPFS Kubo ====================================\\n\\n"
         # ==============================================================================
     elif [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        printf " =============== Reset: Kubo IPFS ======================================\\n\\n"
+        printf " =============== Reset: IPFS Kubo ======================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-install Kubo.\\n" "${INFO}"
     fi
@@ -11043,14 +11043,14 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # If we are re-installing the current version of Kubo, delete the existing binary
     if [ "$IPFS_INSTALL_TYPE" = "reset" ]; then
-        str="Reset Mode: Deleting Kubo IPFS v${IPFS_VER_LOCAL} ..."
+        str="Reset Mode: Deleting IPFS Kubo v${IPFS_VER_LOCAL} ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f /usr/local/bin/ipfs
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
 
         # Delete IPFS settings
         if [ -d "$USER_HOME/.ipfs" ]; then
-            if whiptail --backtitle "" --title "RESET MODE" --yesno "Would you like to reset your IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nWould you like to reset your IPFS settings folder?\n\nThis will delete the folder: ~/.ipfs" 9 "${c}"; then
                 str="Reset Mode: Deleting ~/.ipfs settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -rf $USER_HOME/.ipfs
@@ -11069,16 +11069,16 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo IPFS install tar file, delete it
+    # If there is an existing IPFS Kubo install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting existing Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting existing IPFS Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Downloading latest Kubo IPFS install file from GitHub
-    str="Downloading Kubo IPFS v${IPFS_VER_RELEASE} from Github repository..."
+    # Downloading latest IPFS Kubo install file from GitHub
+    str="Downloading IPFS Kubo v${IPFS_VER_RELEASE} from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/ipfs/kubo/releases/download/v${IPFS_VER_RELEASE}/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -P $USER_HOME
 
@@ -11089,9 +11089,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     else
         printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
         printf "\\n"
-        printf "%b%b ${txtbred}ERROR: Kubo IPFS v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtbred}ERROR: IPFS Kubo v${IPFS_VER_RELEASE} Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b Kubo IPFS could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
+        printf "%b IPFS Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
         if [ "$IPFS_STATUS" = "stopped" ]; then
             printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
         else
@@ -11139,7 +11139,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # If there is an existing Kubo IPFS install folder, delete it
+    # If there is an existing IPFS Kubo install folder, delete it
     if [ -d "$USER_HOME/kubo" ]; then
         str="Deleting existing ~/kubo folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -11147,27 +11147,27 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Extracting Kubo IPFS install files
-    str="Extracting Kubo IPFS v${IPFS_VER_RELEASE} ..."
+    # Extracting IPFS Kubo install files
+    str="Extracting IPFS Kubo v${IPFS_VER_RELEASE} ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT tar -xf $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz -C $USER_HOME
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete Kubo install tar file, delete it
     if [ -f "$USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz" ]; then
-        str="Deleting Kubo IPFS install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
+        str="Deleting IPFS Kubo install file: kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz..."
         printf "%b %s" "${INFO}" "${str}"
         rm $USER_HOME/kubo_v${IPFS_VER_RELEASE}_linux-${ipfsarch}.tar.gz
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
     # Install Kubo to bin folder
-    printf "%b Installing Kubo IPFS v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
+    printf "%b Installing IPFS Kubo v${IPFS_VER_RELEASE} ...\\n" "${INFO}"
     (cd $USER_HOME/kubo; ./install.sh)
 
     # If the command completed without error, then assume IPFS installed correctly
     if [ $? -eq 0 ]; then
-        printf "%b Kubo IPFS appears to have been installed correctly.\\n" "${INFO}"
+        printf "%b IPFS Kubo appears to have been installed correctly.\\n" "${INFO}"
         
         if [ "$IPFS_STATUS" = "not_detected" ];then
             IPFS_STATUS="installed"
@@ -11175,7 +11175,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         DIGINODE_UPGRADED="YES"
     else
         printf "\\n"
-        printf "%b%b ${txtred}ERROR: Kubo IPFS Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "%b%b ${txtred}ERROR: IPFS Kubo Installation Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b This can sometimes occur because of a connection problem - it seems to be caused by a problem connecting with their servers.\\n" "${INFO}"
         printf "%b It is advisable to wait a moment and then try again. The issue will typically resolve itself if you keep retrying.\\n" "${INDENT}"
@@ -11203,9 +11203,9 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Set default IPFS ports if this is the first time running Kubo IPFS, and the config files do not exist
+    # Set default IPFS ports if this is the first time running IPFS Kubo, and the config files do not exist
     if [ ! -f "$USER_HOME/.ipfs/config" ]; then
-        str="Kubo IPFS config file does not exist. Storing default ports in variables..."
+        str="IPFS Kubo config file does not exist. Storing default ports in variables..."
         printf "%b %s" "${INFO}" "${str}"
         IPFS_PORT_IP4="4001"
         IPFS_PORT_IP6="4001"
@@ -11244,7 +11244,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
         else
             # Ask the user if they want to use the server profile
-            if whiptail --backtitle "" --title "Use IPFS Server Profile?" --yesno --defaultno "Do you want to use the IPFS server profile?\\n\\nIf you are running your DigiAsset Node on a device on your local network, then you most likely do not need to do this.\\n\\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS." "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "Use IPFS Server Profile?" --defaultno --title "Use IPFS Server Profile?" --yesno "\nDo you want to use the IPFS server profile?\n\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\n\nChoose NO if you are running your DigiNode on a device on your local network.\n\nChoose YES if you are running your DigiNode in the cloud i.e. on a device with its own public IP.\\n\\nLearn more:\nhttps://medium.com/textileio/tutorial-setting-up-an-ipfs-peer-part-iv-1595d4ba221b" 21 "${c}"; then 
                 printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
                 use_ipfs_server_profile="yes"
             else
@@ -11286,7 +11286,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
     # Set the upnp values, if we are enabling/disabling the UPnP status
     if [ "$IPFS_ENABLE_UPNP" = "YES" ]; then
-        str="Enabling UPnP port forwarding for Kubo IPFS..."
+        str="Enabling UPnP port forwarding for IPFS Kubo..."
         printf "%b %s" "${INFO}" "${str}"
         
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -11298,7 +11298,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
     elif [ "$IPFS_ENABLE_UPNP" = "NO" ]; then
-        str="Disabling UPnP port forwarding for Kubo IPFS..."
+        str="Disabling UPnP port forwarding for IPFS Kubo..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -11412,7 +11412,7 @@ fi
 
 ipfs_update_port() {
 
-    # If we are using Kubo IPFS
+    # If we are using IPFS Kubo
 
         printf "\\n"
         printf " =============== Starting: IPFS ========================================\\n\\n"
@@ -11429,15 +11429,15 @@ ipfs_update_port() {
 
     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
-        # If using DigiByte testnet, change default Kubo IPFS port to 4004
+        # If using DigiByte testnet, change default IPFS Kubo port to 4004
 
         local update_ipfsport_now
 
-        printf "%b Checking Kubo IPFS ports...\\n" "${INFO}"
+        printf "%b Checking IPFS Kubo ports...\\n" "${INFO}"
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP4" = "4001" ]]; then
             printf "%b Using DigiByte testnet. Updating Kobo IPFS ports...\\n" "${INFO}"
-            str="Changing Kubo IPFS IP4 port from 4001 to 4004..."
+            str="Changing IPFS Kubo IP4 port from 4001 to 4004..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11447,7 +11447,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP6" = "4001" ]]; then
-            str="Changing Kubo IPFS IP6 port from 4001 to 4004..."
+            str="Changing IPFS Kubo IP6 port from 4001 to 4004..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4004\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11457,7 +11457,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP4_QUIC" = "4001" ]]; then
-            str="Changing Kubo IPFS IP4 quic port from 4001 to 4004..."
+            str="Changing IPFS Kubo IP4 quic port from 4001 to 4004..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11467,7 +11467,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]] && [[ "$IPFS_PORT_IP6_QUIC" = "4001" ]]; then
-            str="Changing Kubo IPFS IP6 quic port from 4001 to 4004..."
+            str="Changing IPFS Kubo IP6 quic port from 4001 to 4004..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4004/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11476,11 +11476,11 @@ ipfs_update_port() {
             printf "  %b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # If using DigiByte mainnet, change default Kubo IPFS port to 4001
+        # If using DigiByte mainnet, change default IPFS Kubo port to 4001
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP4" = "4004" ]]; then
             printf "%b Using DigiByte mainnet. Updating Kobo IPFS ports...\\n" "${INFO}"
-            str="Changing Kubo IPFS IP4 port from 4004 to 4001..."
+            str="Changing IPFS Kubo IP4 port from 4004 to 4001..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[0] = \"/ip4/0.0.0.0/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11490,7 +11490,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP6" = "4004" ]]; then
-            str="Changing Kubo IPFS IP6 port from 4004 to 4001..."
+            str="Changing IPFS Kubo IP6 port from 4004 to 4001..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[1] = \"/ip6/::/tcp/4001\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11500,7 +11500,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP4_QUIC" = "4004" ]]; then
-            str="Changing Kubo IPFS IP4 quic port from 4004 to 4001..."
+            str="Changing IPFS Kubo IP4 quic port from 4004 to 4001..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[2] = \"/ip4/0.0.0.0/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11510,7 +11510,7 @@ ipfs_update_port() {
         fi
 
         if [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]] && [[ "$IPFS_PORT_IP6_QUIC" = "4004" ]]; then
-            str="Changing Kubo IPFS IP6 quic port from 4004 to 4001..."
+            str="Changing IPFS Kubo IP6 quic port from 4004 to 4001..."
             printf "  %b %s" "${INFO}" "${str}"
             update_ipfsport_now="$(jq ".Addresses.Swarm[3] = \"/ip6/::/udp/4001/quic\"" $USER_HOME/.ipfs/config)" && \
             echo -E "${update_ipfsport_now}" > $USER_HOME/.ipfs/config
@@ -11625,7 +11625,7 @@ if [ "$RESET_MODE" = true ]; then
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] || [ test -f "$IPFS_UPSTART_SERVICE_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the IPFS service?\\n\\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-configure the IPFS service?\n\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." 11 "${c}"; then 
             IPFS_CREATE_SERVICE=YES
             IPFS_SERVICE_INSTALL_TYPE="reset"
         else
@@ -12095,7 +12095,7 @@ fi
 # If we are in reset mode, ask the user if they want to re-install Node.js
 if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install Node.js v${NODEJS_VER_RELEASE}\\n\\nNote: This will delete Node.js and re-install it." "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-install Node.js v${NODEJS_VER_RELEASE}\n\nNote: This will delete Node.js and re-install it." 9 "${c}"; then 
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
@@ -12561,7 +12561,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
-    if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\\n\\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\n\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." 11 "${c}"; then
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
@@ -12940,7 +12940,7 @@ digiasset_node_create_settings() {
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
     if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to reset your DigiAsset Node settings?\\n\\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to reset your DigiAsset Node settings?\n\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." 11 "${c}"; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="reset"
         else
@@ -13137,10 +13137,10 @@ digiasset_node_create_settings() {
         fi
     fi
 
-    # If live main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
+    # If live main.json file already exists, and we are not doing a reset, let's check if the IPFS Kubo URL needs adding
     if [ -f $DGA_SETTINGS_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking if Kubo IPFS API URL needs updating..."
+        str="Checking if IPFS Kubo API URL needs updating..."
         printf "%b %s" "${INFO}" "${str}"
 
         local ipfsurl_json_cur
@@ -13163,10 +13163,10 @@ digiasset_node_create_settings() {
         fi
     fi
 
-    # If backup main.json file already exists, and we are not doing a reset, let's check if the Kubo IPFS URL needs adding
+    # If backup main.json file already exists, and we are not doing a reset, let's check if the IPFS Kubo URL needs adding
     if [ -f $DGA_SETTINGS_BACKUP_FILE ] && [ "$DGA_SETTINGS_CREATE_TYPE" != "reset" ]; then
 
-        str="Checking if Kubo IPFS API URL needs updating..."
+        str="Checking if IPFS Kubo API URL needs updating..."
         printf "%b %s" "${INFO}" "${str}"
 
         local ipfsurl_json_cur
@@ -13383,7 +13383,7 @@ if [ "$RESET_MODE" = true ]; then
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
-        if whiptail --backtitle "" --title "RESET MODE" --yesno "Do you want to re-configure the DigiAsset Node PM2 service?\\n\\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-configure the DigiAsset Node PM2 service?\n\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." 11 "${c}"; then
             PM2_SERVICE_DO_INSTALL=YES
             PM2_SERVICE_INSTALL_TYPE="reset"
         else
@@ -13502,50 +13502,110 @@ fi
 # This function will ask the user if they want to install the system upgrades that have been found
 menu_ask_install_updates() {
 
+# TESTING UPGRADES (TROUBLESHOOTING)
+DGB_ASK_UPGRADE="YES"
+DGA_ASK_UPGRADE="YES"
+IPFS_ASK_UPGRADE="YES"
+
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
 
+        local vert_space=10
+
         printf " =============== UPDATE MENU ===========================================\\n\\n"
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dgb=" >> DigiByte Core v$DGB_VER_GITHUB\\n"
+            vert_space=$(($vert_space + 1))
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs=" >> Kubo IPFS v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs=" >> IPFS Kubo v$IPFS_VER_RELEASE\\n"
+            vert_space=$(($vert_space + 1))
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_nodejs=" >> Node.js v$NODEJS_VER_RELEASE\\n"
+            vert_space=$(($vert_space + 1))
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dga=" >> DigiAsset Node v$DGA_VER_RELEASE\\n"
+            vert_space=$(($vert_space + 1))
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dgnt=" >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            vert_space=$(($vert_space + 1))
         fi
 
-
-        if whiptail --backtitle "" --title "DigiNode software updates are available" --yesno "The following updates are available for your DigiNode:\\n\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\\nWould you like to install them now?" --yes-button "Yes (Recommended)" "${r}" "${c}"; then
-            printf "%b You chose to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
-        #Nothing to do, continue
-          if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            DGB_DO_INSTALL=YES
-          fi
-          if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            IPFS_DO_INSTALL=YES
-          fi
-          if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            NODEJS_DO_INSTALL=YES
-          fi
-          if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            DGA_DO_INSTALL=YES
-          fi
-          if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            DGNT_DO_INSTALL=YES
-          fi
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\nThe following updates are available for your DigiNode:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them now?" "${vert_space}" "${c}"; then
+            #Nothing to do, continue
+            if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+                if [ "$vert_space" -ge 12 ]; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Core Upgrade" --title "DigiByte Core Upgrade" --yesno "\nDo you want to install DigiByte Core v$DGB_VER_GITHUB now?" 7 "${c}"; then
+                        DGB_DO_INSTALL=YES
+                        printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                    else
+                        printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                    fi
+                else
+                    DGB_DO_INSTALL=YES
+                    printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB" "${INFO}"
+                fi
+            fi
+            if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
+                if [ "$vert_space" -ge 12 ]; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "IPFS Kubo Upgrade" --title "IPFS Kubo Upgrade" --yesno "\nDo you want to install IPFS Kubo v$IPFS_VER_RELEASE now?" 7 "${c}"; then
+                        IPFS_DO_INSTALL=YES
+                        printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                    else
+                        printf "%b You chose NOT to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                    fi
+                else
+                    IPFS_DO_INSTALL=YES
+                    printf "%b You chose to install IPFS Kubo v$IPFS_VER_RELEASE" "${INFO}"
+                fi
+            fi
+            if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
+                if [ "$vert_space" -ge 12 ]; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Node.js Upgrade" --title "Node.js Upgrade" --yesno "\nDo you want to install Node.js v$NODEJS_VER_RELEASE now?" 7 "${c}"; then
+                        NODEJS_DO_INSTALL=YES
+                        printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                    else
+                        printf "%b You chose NOT to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                    fi
+                else
+                    NODEJS_DO_INSTALL=YES
+                    printf "%b You chose to install Node.js v$NODEJS_VER_RELEASE" "${INFO}"
+                fi
+            fi
+            if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
+                if [ "$vert_space" -ge 12 ]; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Node Upgrade" --title "DigiAsset Node Upgrade" --yesno "\nDo you want to install DigiAsset Node v$DGA_VER_RELEASE now?" 7 "${c}"; then
+                        DGA_DO_INSTALL=YES
+                        printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                    else
+                        printf "%b You chose NOT to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                    fi
+                else
+                    DGA_DO_INSTALL=YES
+                    printf "%b You chose to install DigiAsset Node v$DGA_VER_RELEASE" "${INFO}"
+                fi
+            fi
+            if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+                if [ "$vert_space" -ge 12 ]; then
+                    if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Tools Upgrade" --title "DigiNode Tools Upgrade" --yesno "\nDo you want to install DigiNode Tools v$DGNT_VER_RELEASE now?" 7 "${c}"; then
+                        DGNT_DO_INSTALL=YES
+                        printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                    else
+                        printf "%b You chose NOT to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                    fi
+                else
+                    DGNT_DO_INSTALL=YES
+                    printf "%b You chose to install DigiNode Tools v$DGNT_VER_RELEASE" "${INFO}"
+                fi
+            fi
         else
           printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
           printf "\\n"
@@ -13558,6 +13618,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
     fi
 
 fi
+
+# TESTING UPDATE MECHANISM
+exit
 
 }
 
@@ -14171,7 +14234,7 @@ uninstall_do_now() {
 
     ################## UNINSTALL IPFS #################################################
 
-    # Get the local version number of Kubo IPFS (this will also tell us if it is installed)
+    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
     IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
 
     if [ "$IPFS_VER_LOCAL" = "" ]; then
@@ -14195,13 +14258,13 @@ uninstall_do_now() {
     # Ask to uninstall GoIPFS
     if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
 
-    printf " =============== Uninstall: Kubo IPFS ==================================\\n\\n"
+    printf " =============== Uninstall: IPFS Kubo ==================================\\n\\n"
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Kubo IPFS v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
+        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall IPFS Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
 
-            printf "%b You chose to uninstall Kubo IPFS v${IPFS_VER_LOCAL}.\\n" "${INFO}"
+            printf "%b You chose to uninstall IPFS Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
 
             # Stop IPFS service if it is running, as we need to upgrade or reset it
@@ -14252,7 +14315,7 @@ uninstall_do_now() {
 
             # Delete Kubo binary
             if [ -f /usr/local/bin/ipfs ]; then
-                str="Deleting current Kubo IPFS binary: /usr/local/bin/ipfs..."
+                str="Deleting current IPFS Kubo binary: /usr/local/bin/ipfs..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f /usr/local/bin/ipfs
                 IPFS_STATUS="not_detected"
@@ -14277,19 +14340,19 @@ uninstall_do_now() {
 
             # Delete IPFS settings
             if [ -d "$USER_HOME/.ipfs" ]; then
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your Kubo IPFS settings folder?\\n\\nThis will delete the folder: ~/.ipfs\\n\\nThis folder contains all the settings and metadata related to your Kubo IPFS node." "${r}" "${c}"; then
+                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your IPFS Kubo settings folder?\\n\\nThis will delete the folder: ~/.ipfs\\n\\nThis folder contains all the settings and metadata related to your IPFS Kubo node." "${r}" "${c}"; then
                     str="Deleting ~/.ipfs settings folder..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -r $USER_HOME/.ipfs
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
-                    printf "%b You chose not to delete the Kubo IPFS settings folder (~/.ipfs).\\n" "${INFO}"
+                    printf "%b You chose not to delete the IPFS Kubo settings folder (~/.ipfs).\\n" "${INFO}"
                 fi
             fi
 
             # Restart the DigiAsset Node, if we uninstalled Kobu. This is to force it to switch over to using JS-IPFS
             if [ "$delete_kubo" = "yes" ] && [ "$delete_dga" = "no" ]; then
-                str="Restarting DigiAsset Node so it switches from using Kubo IPFS to JS-IPFS..."
+                str="Restarting DigiAsset Node so it switches from using IPFS Kubo to JS-IPFS..."
                 printf "%b %s" "${INFO}" "${str}"
                 sudo -u $USER_ACCOUNT pm2 restart digiasset
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
