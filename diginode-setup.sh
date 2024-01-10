@@ -14059,7 +14059,7 @@ uninstall_do_now() {
     if [ -d "$DGA_INSTALL_LOCATION" ]; then
 
         # Do you want to uninstall your DigiAsset Node?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiAsset Node" --title "DigiNode Uninstall: Remove DigiAsset Node" --yesno "\nWould you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" 7 "${c}"; then
 
             local delete_dga=yes
 
@@ -14072,8 +14072,8 @@ uninstall_do_now() {
     # Ask to delete DigiAsset Node config folder if it exists
     if [ -d "$DGA_SETTINGS_LOCATION" ] && [ "$delete_dga" = "yes" ]; then
 
-        # Do you want to delete digibyte.conf?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\n(If you choose No, the _config folder will backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" "${r}" "${c}"; then
+        # Do you want to delete DigiAsset settings folder?
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiAsset settings" --title "DigiNode Uninstall: Delete DigiAsset settings" --yesno "\nWould you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\n(If you choose No, the configuration folder will be backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" 12 "${c}"; then
             local delete_dga_config=yes
         else
             local delete_dga_config=no
@@ -14145,7 +14145,7 @@ uninstall_do_now() {
 
     # Delete JS-IPFS settings
     if [ -d "$USER_HOME/.jsipfs" ]; then
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your JS-IPFS settings folder?\\n\\nThis will delete the folder: ~/.jsipfs\\n\\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete JS-IPFS settings folder" --title "DigiNode Uninstall: Delete JS-IPFS settings folder" --yesno "\nWould you like to also delete your JS-IPFS settings folder?\n\nThis will delete the folder: ~/.jsipfs\n\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." 12 "${c}"; then
             str="Deleting ~/.jsipfs settings folder..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r $USER_HOME/.jsipfs
@@ -14159,7 +14159,7 @@ uninstall_do_now() {
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         # Do you want to delete pm2 service?
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to delete your PM2 service file?\\n\\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete PM2 service file" --title "DigiNode Uninstall: Delete PM2 service file" --yesno "\nWould you like to delete your PM2 service file?\n\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." 11 "${c}"; then
 
                 # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
             if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
@@ -14225,8 +14225,8 @@ uninstall_do_now() {
             printf " =============== Uninstall: Node.js ====================================\\n\\n"
             # ==============================================================================
 
-            # Delete IPFS
-            if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\\n\\nYou can safely uninstall it if you do not use Node.js for anything else." "${r}" "${c}"; then
+            # Delete Node.js
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove Node.js" --title "DigiNode Uninstall: Remove Node.js" --yesno "\nWould you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\n\nYou can safely uninstall it if you do not use Node.js for anything else." 10 "${c}"; then
 
                 printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
 
@@ -14325,7 +14325,7 @@ uninstall_do_now() {
     # ==============================================================================
 
         # Delete IPFS
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall IPFS Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove IPFS Kubo" --title "DigiNode Uninstall: Remove IPFS Kubo" --yesno "\nWould you like to uninstall IPFS Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." 9 "${c}"; then
 
             printf "%b You chose to uninstall IPFS Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
@@ -14403,7 +14403,7 @@ uninstall_do_now() {
 
             # Delete IPFS settings
             if [ -d "$USER_HOME/.ipfs" ]; then
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your IPFS Kubo settings folder?\\n\\nThis will delete the folder: ~/.ipfs\\n\\nThis folder contains all the settings and metadata related to your IPFS Kubo node." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete IPFS Kubo settings" --title "DigiNode Uninstall: Delete IPFS Kubo settings" --yesno "\nWould you like to also delete your IPFS Kubo settings folder?\\n\\nThis will delete the folder: ~/.ipfs\n\nThis folder contains all the settings and metadata related to your IPFS Kubo node." 12 "${c}"; then
                     str="Deleting ~/.ipfs settings folder..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -r $USER_HOME/.ipfs
@@ -14440,7 +14440,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\\n\\nThis step uninstalls the DigiByte Core software only - your wallet, settings and blockchain data will not be affected." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\nWould you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\n\nThis step uninstalls the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 10 "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
@@ -14537,7 +14537,7 @@ uninstall_do_now() {
             if [ -f "$DGB_CONF_FILE" ]; then
 
                 # Do you want to delete digibyte.conf?
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete digibyte.conf" --title "DigiNode Uninstall: Delete digibyte.conf" --yesno "\nWould you like to also delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." 10 "${c}"; then
 
                     # Delete digibyte.conf
                     str="Deleting digibyte.conf file..."
@@ -14552,8 +14552,8 @@ uninstall_do_now() {
             # Only prompt to delete the blockchain data if it already exists
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte MAINNET blockchain data?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\\n\\nNote: Your mainnet wallet will be kept." "${r}" "${c}"; then
+                # Delete DigiByte blockchain MAINNET data
+               if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --title "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --yesno "\nWould you like to also delete the DigiByte MAINNET blockchain data?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your mainnet wallet will be kept." 14 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
@@ -14575,8 +14575,8 @@ uninstall_do_now() {
             # Only prompt to delete the testnet blockchain data if it already exists
             if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
-                # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte TESTNET blockchain data?\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\\n\\nNote: Your testnet wallet will be kept." "${r}" "${c}"; then
+                # Delete DigiByte blockchain TESTNET data
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\nWould you like to also delete the DigiByte TESTNET blockchain data?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
@@ -14598,7 +14598,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/regtest/indexes" ] || [ -d "$DGB_DATA_LOCATION/regtest/chainstate" ] || [ -d "$DGB_DATA_LOCATION/regtest/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete the DigiByte REGTEST blockchain data?\\n\\nNote: Your regtest wallet will be kept." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --title "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --yesno "\nWould you like to also delete the DigiByte REGTEST blockchain data?\\n\\nNote: Your regtest wallet will be kept." 10 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
@@ -14663,7 +14663,7 @@ uninstall_diginode_tools_now() {
     if [ -d "$DGNT_LOCATION" ]; then
 
         # Delete DigiNode Tools
-        if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Dashboard' and 'DigiNode Setup' scripts." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Tools" --title "DigiNode Uninstall: Remove DigiNode Tools" --yesno "\nWould you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Dashboard' and 'DigiNode Setup' scripts." 10 "${c}"; then
 
             printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
@@ -14714,7 +14714,7 @@ uninstall_diginode_tools_now() {
             if [ -f "$DGNT_SETTINGS_FILE" ]; then
 
                 # Delete diginode.settings
-                if whiptail --backtitle "" --title "UNINSTALL" --yesno "Would you like to also delete your diginode.settings file?\\n\\nThis wil remove any customisations you have made to your DigiNode Install." "${r}" "${c}"; then
+                if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Delete diginode.settings" --title "DigiNode Uninstall: Delete diginode.settings" --yesno "\nWould you like to also delete your diginode.settings file?\n\nThis will remove any customisations you have made to your DigiNode Install." 10 "${c}"; then
 
                     printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
 
@@ -14755,7 +14755,7 @@ uninstall_motd() {
         # ==============================================================================
 
         # Remove DigiNode Custom MOTD
-        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Remove DigiNode Custom MOTD?" --title "Remove DigiNode Custom MOTD?" --yesno "\nWould you like to remove the DigiNode Custom MOTD?\\n\\nThis is the DigiNode logo that you see whenever you SSH into your DigiNode via the terminal. Choosing YES will restore the default system MOTD." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Custom MOTD" --title "DigiNode Uninstall: Remove DigiNode Custom MOTD" --yesno "\nWould you like to remove the DigiNode Custom MOTD (Message of the Day)?\\n\\nThis is the DigiNode logo that you see whenever you log in to your DigiNode via the terminal. Choosing YES will restore the default system MOTD." 12 "${c}"; then
 
             printf "%b You chose to remove the DigiNode Custom MOTD.\\n" "${INFO}"
 
@@ -15194,7 +15194,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Install Argon One Daemon" --yesno "Would you like to install the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\\n\\nMore info: https://github.com/iandark/argon-one-daemon\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\nWould you like to install the Argon One Daemon?\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/iandark/argon-one-daemon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -15207,7 +15207,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if whiptail --defaultno --backtitle "" --title "Upgrade Argon One Daemon" --yesno "Would you like to upgrade the Argon One Daemon?\\n\\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\\n\\n" --yes-button "Continue" --no-button "Exit" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\nWould you like to upgrade the Argon One Daemon?\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/iandark/argon-one-daemon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -15582,7 +15582,7 @@ main() {
 
         # If DigiNode Tools is not installed), offer to install them
         else
-            if whiptail --backtitle "" --title "DigiNode Setup - Main Menu" --yesno "Would you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the DigiNode Dashboard with your existing DigiByte Node. Would you like to do that now?" "${r}" "${c}"; then
+            if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu"  --yesno "\nWould you like to install DigiNode Tools?\\n\\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\\n\\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n\\nYou can install DigiNode Tools, so you can use the DigiNode Dashboard with your existing DigiByte Node. Would you like to do that now?" 17 "${c}"; then
 
                 install_diginode_tools_only
 
