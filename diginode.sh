@@ -1268,11 +1268,11 @@ is_dganode_installed() {
       if [ "$ipfs_installed" = "yes" ]; then
 
           if [ "" = "$(pgrep ipfs)" ]; then
-              printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
+              printf "%b IPFS Kubo daemon is NOT running\\n" "${CROSS}"
               ipfs_running="no"
               DGA_STATUS="not_detected"
           else
-              printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
+              printf "%b IPFS Kubo daemon is running\\n" "${TICK}"
               if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
                 DGA_STATUS="ipfsrunning"
               fi
@@ -4711,14 +4711,14 @@ fi
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
     if [ $term_width -gt 111 ]; then 
-        printf " ║                ║  " && printf "%-${col_width_software_kubo_wide}s %50s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: Kubo IPFS v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software_kubo_wide}s %50s %-3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: IPFS Kubo v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     elif [ $term_width -gt 97 ]; then
-        printf " ║                ║  " && printf "%-${col_width_software}s %35s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software}s %35s %3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     else
-        printf " ║                ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     fi
   else
-    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║ "
+    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" " ║ "
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
