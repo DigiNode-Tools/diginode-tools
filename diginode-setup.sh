@@ -13509,6 +13509,13 @@ DGB_ASK_UPGRADE="YES"
 # DGNT_ASK_UPGRADE="YES"
 NODEJS_ASK_UPGRADE="YES"
 
+        # Troubleshooting
+        echo "DGB_DO_INSTALL: $DGB_DO_INSTALL"
+        echo "DGA_DO_INSTALL: $DGA_DO_INSTALL"
+        echo "IPFS_DO_INSTALL: $IPFS_DO_INSTALL"
+        echo "NODEJS_DO_INSTALL: $NODEJS_DO_INSTALL"
+        echo "DGNT_DO_INSTALL: $DGNT_DO_INSTALL"
+
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
