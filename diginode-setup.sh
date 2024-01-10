@@ -13505,7 +13505,7 @@ menu_ask_install_updates() {
 # TESTING UPGRADES (TROUBLESHOOTING)
 DGB_ASK_UPGRADE="YES"
 # DGA_ASK_UPGRADE="YES"
-IPFS_ASK_UPGRADE="YES"
+# IPFS_ASK_UPGRADE="YES"
 # DGNT_ASK_UPGRADE="YES"
 # NODEJS_ASK_UPGRADE="YES"
 
@@ -13541,7 +13541,15 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             vert_space=$(($vert_space + 1))
         fi
 
-        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\nThe following updates are available for your DigiNode:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them?" "${vert_space}" "${c}"; then
+        # Change update message from singular to plural
+        local updates_msg
+        if [ "$vert_space" -eq 11 ]; then
+            updates_msg="The following updates are available for your DigiNode:"
+        else
+            updates_msg="The following update is available for your DigiNode:"
+        fi
+
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\n$updates_msg:\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\nWould you like to install them?" "${vert_space}" "${c}"; then
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
