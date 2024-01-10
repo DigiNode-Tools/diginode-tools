@@ -3099,7 +3099,7 @@ rpi_microsd_remove() {
 # If they are booting their Pi from SSD, warn to unplug the microSD card, if present (just to double check!)
 if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "NO" ]] ; then
         
-        dialog --no-shadow --clear --keep-tite --backtitle "Remove microSD card from the Raspberry Pi." --title "Remove microSD card from the Raspberry Pi." --msgbox "\nIf there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 ${c}
+        dialog --no-shadow --clear --keep-tite --backtitle "Remove microSD card from the Raspberry Pi" --title "Remove microSD card from the Raspberry Pi" --msgbox "\nIf there is a microSD card in the slot on the Raspberry Pi, you can remove it. It will not be required." 9 ${c}
 fi
 
 }
@@ -3946,7 +3946,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
             digibyte_user_passwords_match="yes"
             printf "\\n"
         else
-            whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+            dialog --no-shadow --clear --keep-tite --backtitle "Passwords do not match!" --title "Passwords do not match!" --msgbox "\nThe passwords do not match. Please try again." 7 ${c}
             printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
             skip_if_reentering_password="yes"
 
@@ -4518,7 +4518,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
                 # Return to menu if a keypress was detected to cancel inserting a USB
                 if [ "$cancel_insert_usb" = "yes" ]; then
-                    whiptail --msgbox --backtitle "" --title "USB Swap Setup Cancelled." "USB Swap Setup Cancelled." "${r}" "${c}" 
+                    dialog --no-shadow --clear --keep-tite --backtitle "USB Swap Setup Cancelled" --title "USB Swap Setup Cancelled" --msgbox "\nYou cancelled the USB backup." 7 ${c}
                     printf "%b You cancelled the USB backup.\\n" "${INFO}"
                     printf "\\n"
                     cancel_insert_usb=""
@@ -4586,7 +4586,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         # Check the entered value is big enough
         if [ "$SWAP_TARG_SIZE_MB" -lt "$SWAP_MIN_SIZE_MB" ]; then
-            whiptail --msgbox --title "Alert: Swap file size is too small!" "The swap file size you entered is not big enough." 10 "${c}"
+            dialog --no-shadow --clear --keep-tite --backtitle "Swap file size is too small" --title "Swap file size is too small" --msgbox "\nThe swap file size you entered is not big enough." 7 ${c}
             printf "%b The swap file size you entered was too small.\\n" "${INFO}"
             skip_if_reentering_swap_size="yes"
             swap_ask_change
@@ -4789,7 +4789,7 @@ swap_do_change() {
 
             # Tell user the swap file has been created
             if [[ "${IS_RPI}" = "YES" ]] && [[ "$IS_MICROSD" = "YES" ]] && [[ "$REQUIRE_USB_STICK_FOR_SWAP" = "YES" ]]; then
-                whiptail --msgbox --title "Swap file created on USB stick." "The swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 10 "${c}"
+                dialog --no-shadow --clear --keep-tite --backtitle "Swap file created on USB stick" --title "Swap file created on USB stick" --msgbox "\nThe swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 8 ${c}
             fi
 
             REBOOT_NEEDED="YES"
@@ -4869,7 +4869,7 @@ swap_do_change() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}" 
 
                 # Tell user the swap file has been created
-                whiptail --msgbox --title "Swap file created on USB stick." "The swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 10 "${c}"
+                dialog --no-shadow --clear --keep-tite --backtitle "Swap file created on USB stick" --title "Swap file created on USB stick" --msgbox "\nThe swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 8 ${c}
 
             else
 
@@ -4944,7 +4944,7 @@ usb_backup() {
             printf "%b No DigiByte Core wallet file currently exists. Returning to menu...\\n" "${INFO}"
             run_wallet_backup=false
             # Display a message saying that the wallet.dat file does not exist
-            whiptail --msgbox --backtitle "" --title "ERROR: wallet.dat not found" "No DigiByte Core wallet.dat file currently exists to backup. The script will exit." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --backtitle "DigiByte Wallet not found" --title "DigiByte Wallet not found" --msgbox "\nNo DigiByte Core wallet.dat file currently exists to backup. The script will exit." 8 ${c}
             printf "\\n"
             menu_existing_install   
             printf "\\n"
@@ -5041,7 +5041,7 @@ usb_backup() {
         else
             printf "%b %bYou cancelled choosing a wallet encryption passphrase.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             # Display a message saying that the wallet.dat file does not exist
-            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering an encryption passphrase. The script will exit." "${r}" "${c}" 
+            dialog --no-shadow --clear --keep-tite --backtitle "Backup cancelled" --title "Backup cancelled" --msgbox "\nYou cancelled entering an encryption passphrase. The script will exit." 8 ${c}
             printf "\\n"
             menu_existing_install  
         fi
@@ -5058,7 +5058,7 @@ usb_backup() {
                 WALLET_ENCRYT_PASS=$WALLET_ENCRYT_PASS1
                 wallet_encryption_passphrases_match="yes"
             else
-                whiptail --msgbox --title "Passwords do not match!" "The passwords do not match. Please try again." 10 "${c}"
+                dialog --no-shadow --clear --keep-tite --backtitle "Passwords do not match!" --title "Passwords do not match!" --msgbox "\nThe passwords do not match. Please try again." 7 ${c}
                 printf "%b Passwords do not match. Please try again.\\n" "${CROSS}"
                 skip_if_reentering_encryption_passphrases="yes"
 
@@ -5068,7 +5068,7 @@ usb_backup() {
         else
             printf "%b %bYou cancelled choosing an encryption password.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
             # Display a message saying that the wall.dat file does not exist
-            whiptail --msgbox --backtitle "" --title "Backup cancelled." "You cancelled entering a backup password. The script will exit." "${r}" "${c}" 
+            dialog --no-shadow --clear --keep-tite --backtitle "Backup cancelled" --title "Backup cancelled" --msgbox "\nYou cancelled entering a backup password. The script will exit." 7 ${c}
             printf "\\n"
             menu_existing_install  
         fi
@@ -5085,13 +5085,13 @@ usb_backup() {
             # If the command completed without error, then assume the wallet is encrypted
             if [ $? -eq 0 ]; then
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                whiptail --msgbox --backtitle "" --title "DigiByte Wallet is now encrypted." "Your DigiByte wallet is now encrypted. Do not forget the passphrase!!" "${r}" "${c}" 
+                dialog --no-shadow --clear --keep-tite --backtitle "DigiByte Wallet is now encrypted" --title "DigiByte Wallet is now encrypted" --msgbox "\nYour DigiByte wallet is now encrypted. Do not forget the passphrase!" 8 ${c}
                 
                 # Restart the DigiByte service
                 printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
                 restart_service digibyted
             else
-                whiptail --msgbox --backtitle "" --title "DigiByte Wallet encryption failed." "ERROR: Your DigiByte wallet was not successfully encrypted. The script will exit." "${r}" "${c}" 
+                dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet encryption failed." --title "DigiByte Wallet encryption failed." --msgbox "\n\Z1ERROR: Your DigiByte wallet was not successfully encrypted.\Z0\n\nThe script wille exit." 9 ${c}
                 printf "\\n"
                 exit 1
             fi
@@ -5198,7 +5198,7 @@ usb_backup() {
 
         # Return to menu if a keypress was detected to cancel inserting a USB
         if [ "$cancel_insert_usb" = "yes" ]; then
-            whiptail --msgbox --backtitle "" --title "USB Backup Cancelled." "USB Backup Cancelled." "${r}" "${c}" 
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "USB Backup Cancelled" --title "USB Backup Cancelled" --msgbox "\nYou cancelled the USB backup." 7 ${c}
             printf "%b You cancelled the USB backup.\\n" "${INFO}"
             printf "\\n"
             cancel_insert_usb=""
@@ -5296,7 +5296,7 @@ usb_backup() {
                 UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "Format USB Stick" --title "Format USB Stick" --menu "\nPlease choose what file system you would like to format your USB stick.\n\n\Z1IMPORTANT: If you continue, any data currently on the stick will be erased.\Z0\n\n" "${r}" "${c}" 3 \
                 "${opt1a}"  "${opt1b}" \
                 "${opt2a}"  "${opt2b}" 4>&3 3>&2 2>&1 1>&3) || \
-                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"; format_usb_stick_now=false; printf "\\n"; menu_existing_install; }
+                { printf "%b %bCancel was selected. Returning to main menu.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; dialog --no-shadow --clear --keep-tite --colors --backtitle "Remove the USB stick." --title "Remove the USB stick." --msgbox "\nPlease unplug the USB stick now." 7 ${c}; format_usb_stick_now=false; printf "\\n"; menu_existing_install; }
 
                 # Set the variable based on if the user chooses
                 case ${UpdateCmd} in
@@ -5355,7 +5355,7 @@ usb_backup() {
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 else
                     printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
-                    whiptail --msgbox --backtitle "" --title "Creating GPT Partition Failed." "ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    dialog --no-shadow --clear --keep-tite --colors --backtitle "Creating GPT Partition Failed" --title "Creating GPT Partition Failed" --msgbox "\n\Z1ERROR: Your USB stick could not be partitioned. Try partioning it on another computer - exFAT or FAT32 are recommended.\Z0\\n\\nPlease unplug the USB stick now before continuing." 10 ${c}
                     printf "\\n"
                     format_usb_stick_now=false
                     menu_existing_install
@@ -5376,7 +5376,7 @@ usb_backup() {
                 else
                     printf "ERROR: Creating file system failed." "${CROSS}"
 
-                    whiptail --msgbox --backtitle "" --title "Creating File System Failed." "ERROR: The $USB_BACKUP_STICK_FORMAT file system could not be created. Try formatting it on another computer - exFAT or FAT32 are recommended.\\n\\nPlease unplug the USB stick now before continuing." "${r}" "${c}" 
+                    dialog --no-shadow --clear --keep-tite --colors --backtitle "Creating File System Failed" --title "Creating File System Failed" --msgbox "\n\Z1ERROR: The $USB_BACKUP_STICK_FORMAT file system could not be created. Try formatting it on another computer - exFAT or FAT32 are recommended.\Z0\\n\\nPlease unplug the USB stick now before continuing." 10 ${c}
                     printf "\\n"
                     format_usb_stick_now=false
                     menu_existing_install
@@ -5399,7 +5399,7 @@ usb_backup() {
 
             else
                 printf "%b You chose not to proceed with formatting the USB stick. Returning to menu...\\n" "${INFO}"
-                whiptail --msgbox --backtitle "" --title "Remove the USB stick" "Please unplug the USB stick now." "${r}" "${c}"
+                dialog --no-shadow --clear --keep-tite --colors --backtitle "Remove the USB stick" --title "Remove the USB stick" --msgbox "\nPlease unplug the USB stick now." 7 ${c}
                 run_wallet_backup=false
                 run_dgaconfig_backup=false
                 format_usb_stick_now=false
@@ -5873,21 +5873,21 @@ EOF
         # Display backup completed messages
 
         if [ "$dgb_backup_result" = "ok" ] && [ "$dga_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiNode Backup Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Backup Completed Successfully" --title "DigiNode Backup Completed Successfully" --msgbox "\nYour DigiByte wallet and DigiAsset settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." 11 ${c}
         elif [ "$dgb_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Completed Successfully" "Your DigiByte wallet has been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet Backup Completed Successfully" --title "DigiByte Wallet Backup Completed Successfully" --msgbox "\nYour DigiByte wallet has been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." 11 ${c}
         elif [ "$dga_backup_result" = "ok" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Succeeded" "Your DigiAsset Settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Settings Backup Succeeded" --title "DigiAsset Settings Backup Succeeded" --msgbox "\nYour DigiAsset Settings have been successfully backed up to the USB stick.\\n\\nPlease unplug the backup USB stick now. When you are done press OK." 11 ${c}
         fi
 
         # Display backup failed messages
 
         if [ "$dgb_backup_result" = "failed" ] && [ "$dga_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiNode Backup Failed" "ERROR: Your DigiByte wallet and DigiAsset settings backup failed. Please check the USB stick.\\n\\nPlease unplug the USB stick. When you have done so, press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Backup Failed" --title "DigiNode Backup Failed" --msgbox "\n\Z1ERROR: Your DigiByte wallet and DigiAsset settings backup failed. Please check the USB stick.\Z0\\n\\nPlease unplug the USB stick. When you have done so, press OK." 10 ${c}
         elif [ "$dgb_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiByte Wallet Backup Failed" "ERROR: Your DigiByte wallet backup failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet Backup Failed" --title "DigiByte Wallet Backup Failed" --msgbox "\n\Z1ERROR: Your DigiByte wallet backup failed due to an error. Please check the USB stick.\Z0\\n\\nPlease unplug the USB stick. When you have done so, press OK." 10 ${c}
         elif [ "$dga_backup_result" = "failed" ]; then
-            whiptail --msgbox --backtitle "" --title "DigiAsset Settings Backup Failed" "ERROR: Your DigiAsset Settings backup failed. Please check the USB stick.\\n\\nPlease unplug the backup USB now. When you have done so, press OK." "${r}" "${c}"
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Settings Backup Failed" --title "DigiAsset Settings Backup Failed" --msgbox "\n\Z1ERROR: Your DigiAsset Settings backup failed. Please check the USB stick.\Z0\\n\\nPlease unplug the backup USB now. When you have done so, press OK." 10 ${c}
         fi
 
         # BACKUP FINISHED
@@ -5998,9 +5998,9 @@ usb_restore() {
 
     # Return to menu if a keypress was detected to cancel inserting a USB
     if [ "$cancel_insert_usb" = "yes" ]; then
-        whiptail --msgbox --backtitle "" --title "USB Restore Cancelled." "USB Restore Cancelled." "${r}" "${c}" 
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "USB Restore Cancelled" --title "USB Restore Cancelled" --msgbox "\nYou cancelled the USB restore." 7 ${c}
         printf "\\n"
-        printf "%b You cancelled the USB backup.\\n" "${INFO}"
+        printf "%b You cancelled the USB restore.\\n" "${INFO}"
         printf "\\n"
         cancel_insert_usb=""
         menu_existing_install
@@ -6051,7 +6051,7 @@ usb_restore() {
             printf "%b DigiByte Wallet backup date: $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
             printf "%b DigiAsset Node backup date: $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\\n" "${INDENT}"
         else
-            whiptail --msgbox --backtitle "" --title "DigiNode Backup not found." "The USB stick does not appear to contain a DigiNode backup.\\n\\nPlease unplug the stick and choose OK to return to the main menu.\\n" "${r}" "${c}" 
+            dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Backup not found" --title "DigiNode Backup not found" --msgbox "\n\Z1ERROR: DigiNode backup not found on USB stick.\Z0\\n\\nPlease unplug the stick and choose OK to return to the main menu." 9 ${c}
             printf "\\n"
             printf "%b %bERROR: No DigiNode backup found on stick.%b Returning to menu.\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
@@ -6061,7 +6061,7 @@ usb_restore() {
 
     else
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-        whiptail --msgbox --backtitle "" --title "Could not mount USB Stick." "The USB stick could not be mounted. Is this the correct DigiNode backup stick?\\n\\nPlease unplug the stick and choose OK to return to the main menu.\\n" "${r}" "${c}" 
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "Could not mount USB Stick" --title "Could not mount USB Stick" --msgbox "\n\Z1ERROR: The USB stick could not be mounted. Is this the correct DigiNode backup stick?\Z0\\n\\nPlease unplug the stick and choose OK to return to the main menu." 10 ${c}
         printf "\\n"
         printf "%b %bERROR: USB stick could not be mounted.%b Returning to menu.\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
@@ -6124,7 +6124,7 @@ usb_restore() {
         printf "%b No DigiByte Core wallet backup was found on the USB stick.\\n" "${INFO}"
         run_wallet_restore=false
         # Display a message saying that the wallet.dat file does not exist
-        whiptail --msgbox --backtitle "" --title "ERROR: DigiByte wallet backup not found" "No DigiByte Core wallet.dat was found on the USB backup stick so there is nothing to restore." "${r}" "${c}" 
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte wallet backup not found" --title "DigiByte wallet backup not found" --msgbox "\n\Z1ERROR: No DigiByte Core wallet.dat was found on the USB backup stick so there is nothing to restore.\Z0" 8 ${c}
     fi
 
     # Ask to restore the DigiAsset Node _config folder, if it exists
@@ -6140,7 +6140,7 @@ usb_restore() {
         printf "%b No DigiAsset Node settings backup was found on the USB stick.\\n" "${INFO}"
         run_dgaconfig_restore=false
         # Display a message saying that the wallet.dat file does not exist
-        whiptail --msgbox --backtitle "" --title "ERROR: DigiAsset Node settings backup not found" "No DigiAsset Node settings backup was found on the USB backup stick so there is nothing to restore." "${r}" "${c}" 
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Node settings backup not found" --title "DigiAsset Node settings backup not found" --msgbox "\n\Z1ERROR: No DigiAsset Node settings backup was found on the USB backup stick so there is nothing to restore.\Z0" 8 ${c}
     fi
 
     # Return to main menu if the user has selected to restore neither the wallet nor the DigiAsset config
@@ -6397,21 +6397,21 @@ usb_restore() {
     # Display restore completed messages
 
     if [ "$dgb_restore_result" = "ok" ] && [ "$dga_restore_result" = "ok" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiNode Restore Completed Successfully" "Your DigiByte wallet and DigiAsset settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Restore Completed Successfully" --title "DigiNode Restore Completed Successfully" --msgbox "\nYour DigiByte wallet and DigiAsset settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." 10 ${c}
     elif [ "$dgb_restore_result" = "ok" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiByte Wallet Restore Completed Successfully" "Your DigiByte wallet has been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet Restore Completed Successfully" --title "DigiByte Wallet Restore Completed Successfully" --msgbox "\nYour DigiByte wallet has been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK" 10 ${c}
     elif [ "$dga_restore_result" = "ok" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiAsset Settings Successfully Restored" "Your DigiAsset Settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Settings Successfully Restored" --title "DigiAsset Settings Successfully Restored" --msgbox "\nYour DigiAsset Settings have been successfully restored from the USB stick.\\n\\nPlease unplug the USB stick now. When you are done press OK." 10 ${c}
     fi
 
     # Display backup failed messages
 
     if [ "$dgb_restore_result" = "failed" ] && [ "$dga_restore_result" = "failed" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiNode Restore Failed" "ERROR: Your DigiByte wallet and DigiAsset settings restore failed. Please check the USB stick.\\n\\nPlease unplug the USB stick. When you have done so, press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Restore Failed" --title "DigiNode Restore Failed" --msgbox "\n\Z1ERROR: Your DigiByte wallet and DigiAsset settings restore failed. Please check the USB stick.\Z0\\n\\nPlease unplug the USB stick. When you have done so, press OK." 10 ${c}
     elif [ "$dgb_restore_result" = "failed" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiByte Wallet Restore Failed" "ERROR: Your DigiByte wallet restore failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiByte Wallet Restore Failed" --title "DigiByte Wallet Restore Failed" --msgbox "\n\Z1ERROR: Your DigiByte wallet restore failed due to an error. Please check the USB stick.\Z0\\n\\nPlease unplug the USB stick now. When you have done so, press OK." 10 ${c}
     elif [ "$dga_restore_result" = "failed" ]; then
-        whiptail --msgbox --backtitle "" --title "DigiAsset Settings Restore Failed" "ERROR: Your DigiAsset Settings restore failed due to an error. Please check the USB stick.\\n\\nPlease unplug the USB stick now. When you have done so, press OK." "${r}" "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiAsset Settings Restore Failed" --title "DigiAsset Settings Restore Failed" --msgbox "\n\Z1ERROR: Your DigiAsset Settings restore failed due to an error. Please check the USB stick.\Z0\\n\\nPlease unplug the USB stick now. When you have done so, press OK." 10 ${c}
     fi
 
     # BACKUP FINISHED
@@ -7061,12 +7061,12 @@ change_dgb_network() {
 
 
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        whiptail --msgbox --title "You are now running a DigiByte Dual Node!" "Your DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour DigiByte listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour DigiByte RPC ports are now $RPC_PORT (Mainnet) and $DGB2_RPC_PORT (Testnet)." 20 "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "You are now running a DigiByte Dual Node!" --title "You are now running a DigiByte Dual Node!" --msgbox "\nYour DigiByte Node has been changed to run both a MAINNET node and TESTNET node simultaneously.\\n\\nYour DigiByte listening ports are now $DGB_LISTEN_PORT (Mainnet) and $DGB2_LISTEN_PORT (Testnet). If you have not already done so, please open both these ports on your router.\\n\\nYour DigiByte RPC ports are now $RPC_PORT (Mainnet) and $DGB2_RPC_PORT (Testnet)." 15 ${c}
 
 
     # Display alert box informing the user that listening port and rpcport have changed.
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte testnet!" "Your DigiByte Node has been changed to run on TESTNET.\\n\\nYour DigiByte testnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14022 on mainnet." 20 "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "You are now running on the DigiByte testnet!" --title "You are now running on the DigiByte testnet!" --msgbox "\nYour DigiByte Node has been changed to run on TESTNET.\\n\\nYour DigiByte testnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14022 on mainnet." 13 ${c}
 
         # Prompt to delete the mainnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
@@ -7091,7 +7091,7 @@ change_dgb_network() {
         fi
 
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        whiptail --msgbox --title "You are now running on the DigiByte mainnet!" "Your DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 20 "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "You are now running on the DigiByte mainnet!" --title "You are now running on the DigiByte mainnet!" --msgbox "\nYour DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 14 ${c}
 
         # Prompt to delete the testnet blockchain data if it already exists
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
@@ -7119,7 +7119,7 @@ change_dgb_network() {
 
     # Display alert box informing the user that the IPFS port changed.
     if [ "$kuboipfs_port_has_changed" = "yes" ] || [ "$jsipfs_port_has_changed" = "yes" ]; then
-        whiptail --msgbox --title "Your IPFS port has been changed!" "Your IPFS port has been changed to $ipfsport.\\n\\nIf you have not already done so, please open this port on your router.\\n\\nNote: This change is to ensure you can run both a mainnet DigiNode and a testnet DigiNode on the same network without them conflicting with each other." 15 "${c}"
+        dialog --no-shadow --clear --keep-tite --colors --backtitle "Your IPFS port has been changed!" --title "Your IPFS port has been changed!" --msgbox "\nYour IPFS port has been changed to $ipfsport.\\n\\nIf you have not already done so, please open this port on your router.\\n\\nNote: This change is to ensure you can run both a mainnet DigiNode and a testnet DigiNode on the same network without them conflicting with each other." 14 ${c}
   
     fi
 
