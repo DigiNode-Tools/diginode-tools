@@ -13635,6 +13635,13 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             exit
         fi
 
+        # Troubleshooting
+        echo "DGB_DO_INSTALL: $DGB_DO_INSTALL"
+        echo "DGA_DO_INSTALL: $DGA_DO_INSTALL"
+        echo "IPFS_DO_INSTALL: $IPFS_DO_INSTALL"
+        echo "NODEJS_DO_INSTALL: $NODEJS_DO_INSTALL"
+        echo "DGNT_DO_INSTALL: $DGNT_DO_INSTALL"
+
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
         if [[ "$DGB_DO_INSTALL" = "YES" ]] || [[ "$DGA_DO_INSTALL" = "YES" ]] || [[ "$IPFS_DO_INSTALL" = "YES" ]] || [[ "$NODEJS_DO_INSTALL" = "YES" ]] || [[ "$DGNT_DO_INSTALL" = "YES" ]]; then
             printf "%b Proceeding to install chosen updates...\\n" "${INFO}"
