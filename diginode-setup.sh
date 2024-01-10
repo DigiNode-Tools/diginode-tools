@@ -13625,10 +13625,14 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 fi
             fi
         else
-          printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
-          printf "\\n"
-          display_system_updates_reminder
-          exit
+            if [ "$vert_space" -eq 11 ]; then
+                printf "%b You chose NOT to install the available update:\\n      $upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
+            else
+                printf "%b You chose NOT to install the available updates:\\n      $upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
+            fi
+            printf "\\n"
+            display_system_updates_reminder
+            exit
         fi
 
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
