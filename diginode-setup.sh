@@ -6630,7 +6630,7 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 18 "${c}" 9 \
+    UpdateCmd=$(dialog --no-shadow --clear --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 19 "${c}" 9 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
