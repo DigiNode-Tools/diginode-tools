@@ -1,11 +1,13 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.4 - 2024-01-xx
+DigiNode Tools v0.9.4 - 2024-01-xx [COMING SOON]
 - New: Added "diginode --porttest" flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
 - Fix: Web UI URL in DigiNode Dashboard now gets split across two lines when required, if there are two URLs.
 - Change: CPU usage in DigiNode Dashboard is now displayed as a whole number.
 - Change: Remove digifact78 from digifacts.json as this describes DigiNode Tools itself.
 - Change: Remove support for running a DigiAsset Node ONLY. (DigiByte Core, which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed.)
+- Change: Rename "Kubo IPFS" to "IPFS Kubo" to match official IPFS naming
+- Fix: Switch from using whiptail menus to dialog menus. This is to get around the Debian bug that is causing the menus to be unresponsive at first launch - key presses do not work and it is impossible to proceed. This bug affected whiptail menus - dialog is not affected - and is triggered when piping through bash. By switching to dialog we bypass the issue, and no longer need the Ubuntu workaround.
 
 DigiNode Tools v0.9.3 - 2023-10-26
 - Fix: DigiNode Dashboard now installs sysstat if not present
