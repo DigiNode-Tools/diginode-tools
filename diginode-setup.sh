@@ -13510,11 +13510,11 @@ DGB_ASK_UPGRADE="YES"
 NODEJS_ASK_UPGRADE="YES"
 
         # Troubleshooting
-        echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
-        echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
-        echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
-        echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
-        echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+ #       echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
+ #       echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
+ #       echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
+ #       echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
+ #       echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
@@ -13658,11 +13658,11 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
         # Troubleshooting
-        echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
-        echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
-        echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
-        echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
-        echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+    #    echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
+    #    echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
+    #    echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
+    #    echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
+    #    echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
 
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
         if [[ "$DGB_REQ_INSTALL" = "YES" ]] || [[ "$DGA_REQ_INSTALL" = "YES" ]] || [[ "$IPFS_REQ_INSTALL" = "YES" ]] || [[ "$NODEJS_REQ_INSTALL" = "YES" ]] || [[ "$DGNT_REQ_INSTALL" = "YES" ]]; then
