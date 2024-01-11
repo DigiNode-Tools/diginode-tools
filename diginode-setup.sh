@@ -7938,7 +7938,8 @@ final_messages() {
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work until you reboot.\\n" "${INDENT}"
+        printf "%b Note: If this is your first time installing DigiNode Tools,\\n" "${INDENT}"
+        printf "%b       these aliases will not work until you log out or reboot.\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
