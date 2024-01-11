@@ -14922,7 +14922,7 @@ echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 6"
+        echo "test 7"
         
         exit
 
@@ -14934,7 +14934,7 @@ echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
 echo "DGNT_LOCATION: $DGNT_LOCATION"
 echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
 
-    if [ ! -f /home/digibyte/diginode-tools/digifacts.json ]; then
+    if [ test ! /home/digibyte/diginode-tools/digifacts.json ]; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
