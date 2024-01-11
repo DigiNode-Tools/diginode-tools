@@ -14872,7 +14872,7 @@ download_digifacts() {
         # Check if the downloaded file is valid JSON
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
-        if ! jq empty "$digifacts_file" &> /dev/null; then
+        if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
             rm "$digifacts_file"
             if [[ -f $digifacts_backup_file ]]; then
                 mv "$digifacts_backup_file" "$digifacts_file"
