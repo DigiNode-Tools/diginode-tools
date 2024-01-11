@@ -14874,14 +14874,14 @@ download_digifacts() {
         printf "%b %s" "${INFO}" "${str}"
         if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
             rm "$digifacts_file"
-            if [[ -f $digifacts_backup_file ]]; then
+            if [ -f "$digifacts_backup_file" ]; then
                 mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)
-            if [[ -f $digifacts_backup_file ]]; then
+            if [ -f "$digifacts_backup_file" ]; then
                 sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
                 printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
             else
