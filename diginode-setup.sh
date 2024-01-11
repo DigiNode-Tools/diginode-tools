@@ -8199,7 +8199,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     if [ "$show_dgb_network_menu" = "yes" ] && [ "$NewInstall" = true ]; then
 
         # Display the information to the user
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --cancel-label "Exit" --menu "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\n" 20 70 3 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Chain Selection" --title "DigiByte Chain Selection" --cancel-label "Exit" --menu "\nPlease choose which DigiByte chain to run.\n\nUnless you are a developer, your first priority should always be to run a MAINNET node. However, to support developers building on DigiByte, consider also running a TESTNET node. The testnet is used by developers for testing - it is functionally identical to mainnet, except the DigiByte on it are worthless.\n\nTo best support the DigiByte blockchain, consider running a DUAL NODE. This will setup both a mainnet node and a testnet node to run simultaneously on this device.\n\n" 21 70 3 \
         "${opt1a}"  "${opt1b}" \
         "${opt2a}"  "${opt2b}" \
         "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
@@ -8805,7 +8805,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 20 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -14861,7 +14861,7 @@ download_digifacts() {
         fi
 
         # Download the digifacts.json file
-        str="Downloading digifacts.json from DigiFacts JSON service ..."
+        str="Donloading DigiFacts from DigiByte DigiFacts JSON service ..."
         printf "%b %s" "${INFO}" "${str}"          
         sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14872,9 +14872,9 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if ! jq empty "$digifacts_file" &> /dev/null; then
-            sudo -u $USER_ACCOUNT rm "$digifacts_file"
+            rm "$digifacts_file"
             if [[ -f $digifacts_backup_file ]]; then
-                sudo -u $USER_ACCOUNT mv "$digifacts_backup_file" "$digifacts_file"
+                mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
             return 1
