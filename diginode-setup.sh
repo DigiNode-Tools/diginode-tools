@@ -14841,6 +14841,9 @@ download_digifacts() {
 
 # banana
 
+echo "DGNT_LOCATION: $DGNT_LOCATION"
+echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
+
     # Function to download and process the digifacts.json
     download_and_process() {
         # If a backup exists, delete it
@@ -14884,6 +14887,9 @@ download_digifacts() {
                 printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
             fi
         fi
+
+echo "DGNT_LOCATION: $DGNT_LOCATION"
+echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
 
         # Check if the diginode-help.json file is valid JSON
         str="Is the diginode-help.json file valid json? ..."
