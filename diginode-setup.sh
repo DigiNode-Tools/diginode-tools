@@ -14901,7 +14901,7 @@ download_digifacts() {
         fi
 
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        if [[ -f "$digifacts_file" ]]; then
+        if [ -f "$digifacts_file" ]; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
@@ -14919,6 +14919,8 @@ download_digifacts() {
             sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts-append-temp.json" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        echo "test 1"
         
         exit
 
