@@ -6523,22 +6523,24 @@ menu_first_install() {
         3>&1 1>&2 2>&1) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
+    echo "Selected option: ${UpdateCmd}"
+
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
         # Install Full DigiNode
-        ${opt1})
+        1)
             dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall Full DigiNode\n\n" 0 0
             DO_FULL_INSTALL=YES
             printf "%b You chose to install a FULL DiginNode.\n" "${INFO}"
             ;;
         # Install DigiByte Core ONLY
-        ${opt2})
+        2)
             dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall DigiByte Core ONLY\n\n" 0 0
             DO_FULL_INSTALL=NO
             printf "%b You chose to install DigiByte Core ONLY.\n" "${INFO}"
             ;;
         # Install DigiNode Tools ONLY
-        ${opt3})
+        3)
             printf "%b You chose to install DigiNode Tools ONLY.\n" "${INFO}"
             printf "\n"
             dialog --no-shadow --keep-tite --colors --backtitle "Install DigiNode Tools ONLY" --title "Install DigiNode Tools ONLY" --msgbox "\nDigiNode Tools ONLY will now be installed.\\n\\nIf you are doing this because you wish to use DigiNode Dashboard with your existing DigiByte Node, then you will need to create a symbolic link named 'digibyte' in your home folder (~/digbyte) that points at the install folder of DigiByte Core. If you don't do this, DigiNode Dashboard will not be able to communicate with your node.\\n\\n\Z1IMPORTANT: If you want to use DigiNode Dashboard, it is strongly recommended to use DigiNode Setup to configure your DigiByte Node. This will ensure that everything is configured correctly and works as expected.\Z0" 19 ${c}
