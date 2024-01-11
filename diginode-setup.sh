@@ -14867,12 +14867,6 @@ download_digifacts() {
         sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-echo "DGNT_LOCATION: $DGNT_LOCATION"
-
-
-
-        sudo -u $USER_ACCOUNT cat $DGNT_LOCATION/digifacts.json | jq
-
         # Check if the downloaded file is valid JSON
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
@@ -14884,9 +14878,13 @@ echo "DGNT_LOCATION: $DGNT_LOCATION"
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
             return 1
         else
-            # If the JSON is valid, delete the backup file
-            sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
-            printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
+            # If the JSON is valid, delete the backup file (if it exists)
+            if [[ -f $digifacts_backup_file ]]; then
+                sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
+                printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
         fi
 
 exit
@@ -14894,7 +14892,7 @@ exit
         # Check if the diginode-help.json file is valid JSON
         str="Is the diginode-help.json file valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
-        if ! jq empty "$diginode_help_file" &> /dev/null; then
+        if sudo -u $USER_ACCOUNT ! jq empty "$diginode_help_file" &> /dev/null; then
             printf "%b%b %s No! diginode-help.json file is bad JSON! Please fix it and run again!\\n" "${OVER}" "${CROSS}" "${str}"
             exit 1
         else
