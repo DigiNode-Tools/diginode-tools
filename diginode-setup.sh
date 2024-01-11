@@ -6516,7 +6516,7 @@ menu_first_install() {
     opt3b="Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 "${c}" 3 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 "${c}" 4 \
         "${opt1a}" "${opt1b}" \
         "${opt2a}" "${opt2b}" \
         "${opt3a}" "${opt3b}" 3>&1 1>&2 2>&1) || \
@@ -6526,11 +6526,13 @@ menu_first_install() {
     case "${UpdateCmd}" in
         # Install Full DigiNode
         "${opt1a}")
+            dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall Full DigiNode\n\n" 0 0
             DO_FULL_INSTALL=YES
             printf "%b %soption selected\n" "${INFO}" "${opt1a}"
             ;;
         # Install DigiByte Core ONLY
         "${opt2a}")
+            dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall DigiByte Core ONLY\n\n" 0 0
             DO_FULL_INSTALL=NO
             printf "%b %soption selected\n" "${INFO}" "${opt2a}"
             ;;
