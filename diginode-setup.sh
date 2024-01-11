@@ -1590,7 +1590,7 @@ create_digibyte_conf() {
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyte.conf file?\n\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." 11 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-create your digibyte.conf file?\Z0\n\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." 11 "${c}"; then
             reset_digibyte_conf=true
         else
             reset_digibyte_conf=false
@@ -1696,7 +1696,7 @@ create_digibyte_conf() {
             # If we are NOT in unattended mode, ask the user if they want to delete and recreate digibyte.conf, since the script is unable to upgrade it automatically
             if [ "$UNATTENDED_MODE" == false ]; then
 
-                if dialog --no-shadow --keep-tite --colors --backtitle "digibyte.conf must be upgraded!" --title "digibyte.conf must be upgraded!" --yesno "\nDo you want to delete your digibyte.conf file and re-create it?\n\nYour existing digibyte.conf file needs to be upgraded to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\n\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\n\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "digibyte.conf must be upgraded!" --title "digibyte.conf must be upgraded!" --yesno "\n\Z4Do you want to delete your digibyte.conf file and re-create it?\Z0\n\nYour existing digibyte.conf file needs to be upgraded to include the sections introduced in DigiByte v8. Since you have already customised the settings file yourself, this script is unable to upgrade it automatically.\n\nIf you answer YES, your existing digibyte.conf file will be deleted and re-created with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected.\n\nAlternatively, you may answer NO, to quit and manually edit it to add the sections yourself." "${r}" "${c}"; then
 
                     manually_edit_dgbconf=false
                     # Delete the existing digibyte.conf
@@ -4934,7 +4934,7 @@ usb_backup() {
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to backup your DigiByte wallet to the USB stick?\\n\\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiByte wallet to the USB stick?\Z0\n\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." "${r}" "${c}"; then
 
                 run_wallet_backup=true
             else
@@ -4954,7 +4954,7 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to backup your DigiAsset Node settings to the USB stick?\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiAsset Node settings to the USB stick?\Z0\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." "${r}" "${c}"; then
 
                 run_dgaconfig_backup=true
             else
@@ -5009,7 +5009,7 @@ usb_backup() {
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
                 # Ask the user if they want to encrypt with a password?
-                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to encrypt your DigiByte wallet with a passphrase?\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." "${r}" "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to encrypt your DigiByte wallet with a passphrase?\Z0\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." "${r}" "${c}"; then
 
                     printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=true
@@ -5115,7 +5115,7 @@ usb_backup() {
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
-        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\nAre you ready to proceed with DigiNode backup?\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\n\Z4Are you ready to proceed with DigiNode backup?\Z0\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" "${r}" "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
@@ -6103,11 +6103,11 @@ usb_restore() {
 
     # Setup restore menu text for DigiByte Wallet
     if [ "$DGB_WALLET_BACKUP_DATE_ON_DIGINODE" = "" ] && [ "$IS_LOCAL_WALLET" = "YES" ]; then
-        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was likely created:\n  $DGB_INSTALL_DATE\n\n\Z1WARNING: If you continue your local wallet will be replaced with the one from the USB backup stick and any funds will be lost.\Z0"
+        restore_str="\n\Z4Would you like to restore your DigiByte wallet from the USB backup?\Z0\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was likely created:\n  $DGB_INSTALL_DATE\n\n\Z1WARNING: If you continue your local wallet will be replaced with the one from the USB backup stick and any funds will be lost.\Z0"
     elif [ "$IS_LOCAL_WALLET" = "NO" ]; then
-        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nNote: There is currently no existing DigiByte wallet on this DigiNode."
+        restore_str="\n\Z4Would you like to restore your DigiByte wallet from the USB backup?\Z0\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nNote: There is currently no existing DigiByte wallet on this DigiNode."
     else
-        restore_str="\nWould you like to restore your DigiByte wallet from the USB backup?\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was previously backed up on:\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\n\n\Z1WARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost.\Z0"
+        restore_str="\n\Z4Would you like to restore your DigiByte wallet from the USB backup?\Z0\n\nThis DigiByte wallet backup was made on:\n  $DGB_WALLET_BACKUP_DATE_ON_USB_STICK\n\nYour local DigiByte wallet was previously backed up on:\n  $DGB_WALLET_BACKUP_DATE_ON_DIGINODE\n\n\Z1WARNING: If you continue your current wallet will be replaced with the one on the USB backup stick and any funds will be lost.\Z0"
     fi
 
     # Ask to restore the DigiByte Core Wallet backup, if it exists
@@ -6131,7 +6131,7 @@ usb_restore() {
     if [ -d /media/usbbackup/diginode_backup/dga_config_backup ]; then
 
         # Ask the user if they want to restore their DigiAsset Node settings
-        if dialog --no-shadow --keep-tite --colors --backtitle "Restore DigiAsset Node Settings" --title "Restore DigiAsset Node Settings" --yesno "\nWould you like to also restore your DigiAsset Node settings?\n\nThis will replace your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc.\n\nThis DigiAsset settings backup was created:\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\n\n\Z1WARNING: If you continue your current DigiAsset Node settings will be replaced with the ones from the USB backup stick.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Restore DigiAsset Node Settings" --title "Restore DigiAsset Node Settings" --yesno "\n\Z4Would you like to also restore your DigiAsset Node settings?\Z0\n\nThis will replace your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc.\n\nThis DigiAsset settings backup was created:\n  $DGA_CONFIG_BACKUP_DATE_ON_USB_STICK\n\n\Z1WARNING: If you continue your current DigiAsset Node settings will be replaced with the ones from the USB backup stick.\Z0" "${r}" "${c}"; then
             run_dgaconfig_restore=true
         else
             run_dgaconfig_restore=false
@@ -7076,7 +7076,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if dialog --no-shadow --keep-tite --colors --backtitle "Delete mainnet blockchain data?" --title "Delete mainnet blockchain data?" --yesno "\nWould you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain from scratch.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Delete mainnet blockchain data?" --title "Delete mainnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain from scratch.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
@@ -7101,7 +7101,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\nWould you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
@@ -7460,7 +7460,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
         # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
         if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] || [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
 
-            if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyted-testnet.service file?\n\nNote: This will delete the testnet systemd service file used when running a Dual Node, and re-create it with default settings. Any customisations will be lost.\n\nNote: The service file ensures that the testnet DigiByte daemon starts automatically after a reboot or if it crashes." 14 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-create your digibyted-testnet.service file?\Z0\n\nNote: This will delete the testnet systemd service file used when running a Dual Node, and re-create it with default settings. Any customisations will be lost.\n\nNote: The service file ensures that the testnet DigiByte daemon starts automatically after a reboot or if it crashes." 14 "${c}"; then
                 DGB2_SERVICE_CREATE=YES
                 DGB2_SERVICE_INSTALL_TYPE="reset"
             else
@@ -9967,7 +9967,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\n\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." 11 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." 11 "${c}"; then
     
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
@@ -10530,7 +10530,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
@@ -10922,7 +10922,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall IPFS
 if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-install IPFS Kubo v${IPFS_VER_RELEASE}?\n\nNote: IPFS Kubo is used by the DigiAsset Node to distribute DigiAsset metadata." 10 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install IPFS Kubo v${IPFS_VER_RELEASE}?\Z0\n\nNote: IPFS Kubo is used by the DigiAsset Node to distribute DigiAsset metadata." 10 "${c}"; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
     else        
@@ -11047,7 +11047,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
 
         # Delete IPFS settings
         if [ -d "$USER_HOME/.ipfs" ]; then
-            if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nWould you like to reset your IPFS settings folder?\n\nThis will delete the folder: ~/.ipfs" 9 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Would you like to reset your IPFS settings folder?\Z0\n\nThis will delete the folder: ~/.ipfs" 9 "${c}"; then
                 str="Reset Mode: Deleting ~/.ipfs settings folder..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -rf $USER_HOME/.ipfs
@@ -11241,7 +11241,7 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
             fi
         else
             # Ask the user if they want to use the server profile
-            if dialog --no-shadow --keep-tite --colors --backtitle "Use IPFS Server Profile?" --defaultno --title "Use IPFS Server Profile?" --yesno "\nDo you want to use the IPFS server profile?\n\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\n\nChoose NO if you are running your DigiNode on a device on your local network.\n\nChoose YES if you are running your DigiNode in the cloud i.e. on a device with its own public IP.\\n\\nLearn more:\nhttps://medium.com/textileio/tutorial-setting-up-an-ipfs-peer-part-iv-1595d4ba221b" 21 "${c}"; then 
+            if dialog --no-shadow --keep-tite --colors --backtitle "Use IPFS Server Profile?" --defaultno --title "Use IPFS Server Profile?" --yesno "\n\Z4Do you want to use the IPFS server profile?\Z0\n\nThe server profile disables local host discovery, and is recommended when running IPFS on machines with a public IPv4 address, such as on a cloud VPS.\n\nChoose NO if you are running your DigiNode on a device on your local network.\n\nChoose YES if you are running your DigiNode in the cloud i.e. on a device with its own public IP.\\n\\nLearn more:\nhttps://medium.com/textileio/tutorial-setting-up-an-ipfs-peer-part-iv-1595d4ba221b" 21 "${c}"; then 
                 printf "%b You chose to enable the IPFS Server profile.\\n" "${INFO}"
                 use_ipfs_server_profile="yes"
             else
@@ -11622,7 +11622,7 @@ if [ "$RESET_MODE" = true ]; then
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ test -f "$IPFS_SYSTEMD_SERVICE_FILE" ] || [ test -f "$IPFS_UPSTART_SERVICE_FILE" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-configure the IPFS service?\n\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." 11 "${c}"; then 
+        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\n\Z4Do you want to re-configure the IPFS service?\Z0\n\nThe IPFS service ensures that your IPFS daemon starts automatically at boot, and stays running 24/7. This will delete your existing IPFS service file and recreate it." 11 "${c}"; then 
             IPFS_CREATE_SERVICE=YES
             IPFS_SERVICE_INSTALL_TYPE="reset"
         else
@@ -12558,7 +12558,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiAsset Node
 if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\n\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." 11 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiAsset Node v${DGA_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiAsset Node folder at $DGA_INSTALL_LOCATION and re-install it. Your DigiAsset settings folder at ~/digiasset_node/_config will be kept." 11 "${c}"; then
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
@@ -12937,7 +12937,7 @@ digiasset_node_create_settings() {
     # If we are in reset mode, ask the user if they want to recreate the entire DigiAssets settings folder if it already exists
     if [ "$RESET_MODE" = true ] && [ -f "$DGA_SETTINGS_FILE" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to reset your DigiAsset Node settings?\n\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." 11 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\n\Z4Do you want to reset your DigiAsset Node settings?\Z0\n\nThis will delete your current DigiAsset Node settings located in ~/digiasset_node/_config and then recreate them with the default settings." 11 "${c}"; then
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="reset"
         else
@@ -13380,7 +13380,7 @@ if [ "$RESET_MODE" = true ]; then
     # ...but only ask if a service file has previously been created. (Currently can check for SYSTEMD and UPSTART)
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\nDo you want to re-configure the DigiAsset Node PM2 service?\n\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." 11 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --defaultno --title "Reset Mode" --yesno "\n\Z4Do you want to re-configure the DigiAsset Node PM2 service?\Z0\n\nThe PM2 service ensures that your DigiAsset Node starts automatically at boot, and stays running 24/7. This will delete your existing PM2 service file and recreate it." 11 "${c}"; then
             PM2_SERVICE_DO_INSTALL=YES
             PM2_SERVICE_INSTALL_TYPE="reset"
         else
@@ -13962,7 +13962,7 @@ if [ "$MOTD_DO_INSTALL" = "YES" ]; then
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"ENABLED\"|" $DGNT_SETTINGS_FILE
 
     if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ -f "/etc/update-motd.d/50-diginode" ]; then
-        dialog --no-shadow --keep-tite --backtitle "DigiNode MOTD install has been installed!" --title "DigiNode MOTD install has been installed!" --msgbox "\nThe DigiNode MOTD install file has been successfully installed." 10 ${c}
+        dialog --no-shadow --keep-tite --backtitle "DigiNode MOTD has been installed!" --title "DigiNode MOTD has been installed!" --msgbox "\nThe DigiNode MOTD has been successfully installed." 7 ${c}
         return
     fi
 
@@ -14142,7 +14142,7 @@ uninstall_do_now() {
 
     # Delete JS-IPFS settings
     if [ -d "$USER_HOME/.jsipfs" ]; then
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete JS-IPFS settings folder" --title "DigiNode Uninstall: Delete JS-IPFS settings folder" --yesno "\nWould you like to also delete your JS-IPFS settings folder?\n\nThis will delete the folder: ~/.jsipfs\n\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." 12 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete JS-IPFS settings folder" --title "DigiNode Uninstall: Delete JS-IPFS settings folder" --yesno "\n\Z4Would you like to also delete your JS-IPFS settings folder?\Z0\n\nThis will delete the folder: ~/.jsipfs\n\nThis folder contains all the settings and metadata related to the IPFS implementation built into the DigiAsset Node software." 12 "${c}"; then
             str="Deleting ~/.jsipfs settings folder..."
             printf "%b %s" "${INFO}" "${str}"
             rm -r $USER_HOME/.jsipfs
@@ -14156,7 +14156,7 @@ uninstall_do_now() {
     if [ -f "$PM2_UPSTART_SERVICE_FILE" ] || [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
 
         # Do you want to delete pm2 service?
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete PM2 service file" --title "DigiNode Uninstall: Delete PM2 service file" --yesno "\nWould you like to delete your PM2 service file?\n\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." 11 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete PM2 service file" --title "DigiNode Uninstall: Delete PM2 service file" --yesno "\n\Z4Would you like to delete your PM2 service file?\Z0\n\nNote: This ensures that the DigiAsset Node starts at launch, and relaunches if it crashes for some reason. You can safely delete this if you do not use PM2 for anything else." 11 "${c}"; then
 
                 # If SYSTEMD service file already exists, and we doing a Reset, stop it and delete it, since we will re-create it
             if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
@@ -14223,7 +14223,7 @@ uninstall_do_now() {
             # ==============================================================================
 
             # Delete Node.js
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove Node.js" --title "DigiNode Uninstall: Remove Node.js" --yesno "\nWould you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\n\nYou can safely uninstall it if you do not use Node.js for anything else." 10 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove Node.js" --title "DigiNode Uninstall: Remove Node.js" --yesno "\n\Z4Would you like to uninstall Node.js v${NODEJS_VER_LOCAL}?\Z0\n\nYou can safely uninstall it if you do not use Node.js for anything else." 10 "${c}"; then
 
                 printf "%b You chose to uninstall Node.js v${NODEJS_VER_LOCAL}.\\n" "${INFO}"
 
@@ -14437,7 +14437,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\nWould you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\n\nThis step uninstalls the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 10 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\n\Z4Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\Z0\n\nThis step uninstalls the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 10 "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
@@ -14550,7 +14550,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
                 # Delete DigiByte blockchain MAINNET data
-               if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --title "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --yesno "\nWould you like to also delete the DigiByte MAINNET blockchain data?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your mainnet wallet will be kept." 14 "${c}"; then
+               if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --title "DigiNode Uninstall: Delete DigiByte MAINNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte MAINNET blockchain data?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your mainnet wallet will be kept." 14 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION" ]; then
@@ -14573,7 +14573,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
                 # Delete DigiByte blockchain TESTNET data
-                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\nWould you like to also delete the DigiByte TESTNET blockchain data?\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte TESTNET blockchain data?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
@@ -14711,7 +14711,7 @@ uninstall_diginode_tools_now() {
             if [ -f "$DGNT_SETTINGS_FILE" ]; then
 
                 # Delete diginode.settings
-                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete diginode.settings" --title "DigiNode Uninstall: Delete diginode.settings" --yesno "\nWould you like to also delete your diginode.settings file?\n\nThis will remove any customisations you have made to your DigiNode Install." 10 "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete diginode.settings" --title "DigiNode Uninstall: Delete diginode.settings" --yesno "\n\Z4Would you like to also delete your diginode.settings file?\Z0\n\nThis will remove any customisations you have made to your DigiNode Install." 10 "${c}"; then
 
                     printf "%b You chose to delete your diginode.settings file.\\n" "${INFO}"
 
@@ -15191,7 +15191,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\nWould you like to install the Argon One Daemon?\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/iandark/argon-one-daemon" 13 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/iandark/argon-one-daemon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -15204,7 +15204,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\nWould you like to upgrade the Argon One Daemon?\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/iandark/argon-one-daemon" 12 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/iandark/argon-one-daemon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
