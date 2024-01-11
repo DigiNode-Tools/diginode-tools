@@ -14867,7 +14867,9 @@ download_digifacts() {
         sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-exit
+echo "DGNT_LOCATION: $DGNT_LOCATION"
+
+
 
         sudo -u $USER_ACCOUNT cat $DGNT_LOCATION/digifacts.json | jq
 
@@ -14886,6 +14888,8 @@ exit
             sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
             printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+exit
 
         # Check if the diginode-help.json file is valid JSON
         str="Is the diginode-help.json file valid json? ..."
