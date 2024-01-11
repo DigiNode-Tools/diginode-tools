@@ -6506,34 +6506,40 @@ menu_first_install() {
     printf " =============== INSTALL MENU ==========================================\n\n"
     # ==============================================================================
 
-    opt1="FULL DigiNode: Install DigiByte & DigiAsset Node (Recommended)" 
-    opt2="DigiByte Node: Install DigiByte Node ONLY."
-    opt3="DigiNode Tools ONLY: Use DigiNode Dashboard with an existing DigiByte Node."
+    opt1="1"
+    desc1="FULL DigiNode: Install DigiByte & DigiAsset Node (Recommended)"
+    
+    opt2="2"
+    desc2="DigiByte Node: Install DigiByte Node ONLY."
+
+    opt3="3"
+    desc3="DigiNode Tools ONLY: Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
     UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 84 3 \
-        1 "${opt1}" \
-        2 "${opt2}" \
-        3 "${opt3}" 3>&1 1>&2 2>&1) || \
+        "${opt1}" "${desc1}" \
+        "${opt2}" "${desc2}" \
+        "${opt3}" "${desc3}" \
+        3>&1 1>&2 2>&1) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
         # Install Full DigiNode
-        1)
+        ${opt1})
             dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall Full DigiNode\n\n" 0 0
             DO_FULL_INSTALL=YES
-            printf "%b %soption selected\n" "${INFO}" "${opt1}"
+            printf "%b You chose to install a FULL DiginNode.\n" "${INFO}"
             ;;
         # Install DigiByte Core ONLY
-        2)
+        ${opt2})
             dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall DigiByte Core ONLY\n\n" 0 0
             DO_FULL_INSTALL=NO
-            printf "%b %soption selected\n" "${INFO}" "${opt2}"
+            printf "%b You chose to install DigiByte Core ONLY.\n" "${INFO}"
             ;;
         # Install DigiNode Tools ONLY
-        3)
-            printf "%b %soption selected\n" "${INFO}" "${opt3}"
+        ${opt3})
+            printf "%b You chose to install DigiNode Tools ONLY.\n" "${INFO}"
             printf "\n"
             dialog --no-shadow --keep-tite --colors --backtitle "Install DigiNode Tools ONLY" --title "Install DigiNode Tools ONLY" --msgbox "\nDigiNode Tools ONLY will now be installed.\\n\\nIf you are doing this because you wish to use DigiNode Dashboard with your existing DigiByte Node, then you will need to create a symbolic link named 'digibyte' in your home folder (~/digbyte) that points at the install folder of DigiByte Core. If you don't do this, DigiNode Dashboard will not be able to communicate with your node.\\n\\n\Z1IMPORTANT: If you want to use DigiNode Dashboard, it is strongly recommended to use DigiNode Setup to configure your DigiByte Node. This will ensure that everything is configured correctly and works as expected.\Z0" 19 ${c}
             install_diginode_tools_only
