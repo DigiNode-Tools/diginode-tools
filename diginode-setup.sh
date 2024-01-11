@@ -6506,13 +6506,13 @@ menu_first_install() {
     printf " =============== INSTALL MENU ==========================================\n\n"
     # ==============================================================================
 
-    opt1a="FULL DigiNode"
+    opt1a="1 FULL DigiNode"
     opt1b="Install DigiByte & DigiAsset Node (Recommended)"
     
-    opt2a="DigiByte Node"
+    opt2a="2 DigiByte Node"
     opt2b="Install DigiByte Node ONLY."
 
-    opt3a="DigiNode Tools"
+    opt3a="3 DigiNode Tools"
     opt3b="Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
