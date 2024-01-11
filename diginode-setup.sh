@@ -6538,6 +6538,7 @@ menu_first_install() {
         "${opt3a}")
             printf "%b %soption selected\n" "${INFO}" "${opt3a}"
             printf "\n"
+            dialog --no-shadow --keep-tite --colors --backtitle "Install DigiNode Tools ONLY" --title "Install DigiNode Tools ONLY" --msgbox "\nDigiNode Tools ONLY will now be installed.\\n\\nIf you are doing this because you wish to use DigiNode Dashboard with your existing DigiByte Node, then you will need to create a symbolic link named 'digibyte' in your home folder (~/digbyte) that points at the install folder of DigiByte Core. If you don't do this, DigiNode Dashboard will not be able to communicate with your node.\\n\\n\Z1IMPORTANT: If you want to use DigiNode Dashboard, it is strongly recommended to use DigiNode Setup to configure your DigiByte Node. This will ensure that everything is configured correctly and works as expected.\Z0" 19 ${c}
             install_diginode_tools_only
             ;;
     esac
@@ -7162,14 +7163,14 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    dialog --no-shadow --clear --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" ${r} ${c}
+    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" ${r} ${c}
 
 
     # Request that users donate if they find DigiNode Setup useful
     donationDialog
 
     # Explain the need for a static address
-    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Your DigiNode needs a Static IP address." --title "Your DigiNode needs a Static IP address." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\Z0\n\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\n\nThe current IP address is: $IP4_INTERNAL\n\nFor more help, please visit: $DGBH_URL_STATICIP\n\nChoose Continue to indicate that you have understood this message." 20 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Your DigiNode needs a Static IP address." --title "Your DigiNode needs a Static IP address." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\Z0\n\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\n\nThe current IP address is: $IP4_INTERNAL\n\nFor more help, please visit: $DGBH_URL_STATICIP\n\nChoose Continue to indicate that you have understood this message." 20 "${c}"; then
         #Nothing to do, continue
         printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
         printf "\\n"
@@ -7184,7 +7185,7 @@ welcomeDialogs() {
 # Request that users donate if they find DigiNode Setup useful
 donationDialog() {
 
-dialog --no-shadow --clear --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
+dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
 \Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please make a donation to help fund future development:
 
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
