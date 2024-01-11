@@ -14870,7 +14870,7 @@ download_digifacts() {
         # Download the digifacts.json file
         str="Downloading digifacts.json from Github repo ..."
         printf "%b %s" "${INFO}" "${str}"          
-        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://raw.githubusercontent.com/saltedlolly/DigiByte-DigiFacts-JSON/main/digifacts.json
+        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the downloaded file is valid JSON
@@ -14905,7 +14905,7 @@ download_digifacts() {
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
-            mv "$DGNT_LOCATION/digifacts.json.temp" "$digifacts_file"
+            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.temp" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -14927,11 +14927,11 @@ download_digifacts() {
     if [[ ! -f $digifacts_file ]]; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
-    elif (( current_time - SAVED_TIME_DIGIFACTS >= 86400 )); then
+    elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
         printf "%b digifacts.json will be upgraded...\\n" "${INFO}"
         download_and_process
     else
-        printf "%b digifacts.json will not be updated - updates occur at most once every 24 hours.\\n" "${INFO}"
+        printf "%b digifacts.json will not be updated - updates occur at most once every hour.\\n" "${INFO}"
     fi
 
     printf "\\n"
