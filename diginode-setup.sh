@@ -6526,13 +6526,11 @@ menu_first_install() {
     case "${UpdateCmd}" in
         # Install Full DigiNode
         ${opt1})
-            dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall Full DigiNode\n\n" 0 0
             DO_FULL_INSTALL=YES
             printf "%b You chose to install a FULL DiginNode.\n" "${INFO}"
             ;;
         # Install DigiByte Core ONLY
         ${opt2})
-            dialog --no-shadow --keep-tite --colors  --msgbox "\nInstall DigiByte Core ONLY\n\n" 0 0
             DO_FULL_INSTALL=NO
             printf "%b You chose to install DigiByte Core ONLY.\n" "${INFO}"
             ;;
@@ -6548,8 +6546,6 @@ menu_first_install() {
             ;;
     esac
     printf "\n"
-
-    exit
 }
 
 
