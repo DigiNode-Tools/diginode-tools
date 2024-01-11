@@ -6540,6 +6540,9 @@ menu_first_install() {
             ;;
     esac
     printf "\n"
+
+    echo "nothing selected"
+    exit
 }
 
 
