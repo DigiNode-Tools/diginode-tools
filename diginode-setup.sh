@@ -14916,7 +14916,7 @@ download_digifacts() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 2"
+        echo "test 3"
         
         exit
 
@@ -14926,7 +14926,7 @@ download_digifacts() {
     }
 
 
-    if [[ ! -f "$DGNT_LOCATION/digifacts.json" ]]; then
+    if [ ! -f "$DGNT_LOCATION/digifacts.json" ]; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
