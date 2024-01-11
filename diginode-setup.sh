@@ -5285,10 +5285,10 @@ usb_backup() {
                 printf " =============== Format USB Stick ======================================\\n\\n"
                 # ==============================================================================
 
-                opt1a="exFAT"
+                opt1a="1 exFAT"
                 opt1b="Format the USB stick as exFAT."
                 
-                opt2a="FAT32"
+                opt2a="2 FAT32"
                 opt2b="Format the USB stick as FAT32."
 
 
@@ -6516,7 +6516,7 @@ menu_first_install() {
     desc3="Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 84 3 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 83 3 \
         "${opt1}" "${desc1}" \
         "${opt2}" "${desc2}" \
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
@@ -6608,31 +6608,31 @@ menu_existing_install() {
     printf " =============== MAIN MENU =============================================\\n\\n"
     # ==============================================================================
 
-    opt1a="Update"
+    opt1a="1 Update"
     opt1b="Check for updates to your DigiNode software."
 
-    opt2a="Backup"
+    opt2a="2 Backup"
     opt2b="Backup your wallet & settings to a USB stick."
 
-    opt3a="Restore"
+    opt3a="3 Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="UPnP"
+    opt4a="4 UPnP"
     opt4b="Enable or disable UPnP to automatically forward ports."
 
-    opt5a="Chain"
+    opt5a="5 Chain"
     opt5b="Change DigiByte chain - mainnet, testnet or dual node."
 
-    opt6a="MOTD"
+    opt6a="6 MOTD"
     opt6b="Enable or disable the DigiNode Custom MOTD."
 
-    opt7a="Extras"
+    opt7a="7 Extras"
     opt7b="Install optional extras for your DigiNode."
     
-    opt8a="Reset"
+    opt8a="8 Reset"
     opt8b="Reset all settings and reinstall DigiNode software."
 
-    opt9a="Uninstall"
+    opt9a="9 Uninstall"
     opt9b="Remove DigiNode from your system."
 
 
@@ -6727,10 +6727,10 @@ menu_extras() {
     printf " =============== EXTRAS MENU ===========================================\\n\\n"
     # ==============================================================================
 
-    opt1a="Argon One Daemon"
+    opt1a="1 Argon One Daemon"
     opt1b="Install fan software for Argon ONE RPi4 case."
 
-    opt2a="Main Menu"
+    opt2a="2 Main Menu"
     opt2b="Return to the main menu."
 
 
@@ -8190,13 +8190,13 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     # Setup Menu options
 
-    opt1a="MAINNET"
+    opt1a="1 MAINNET"
     opt1b=" Run DigiByte Core on Mainnet."
 
-    opt2a="TESTNET"
+    opt2a="2 TESTNET"
     opt2b=" Run DigiByte Core on Testnet."
 
-    opt3a="DUAL NODE"
+    opt3a="3 DUAL NODE"
     opt3b=" Run DigiByte Core on both Mainnet and Testnet."
 
 
@@ -15554,10 +15554,10 @@ main() {
             printf " =============== DIGINODE SETUP - MAIN MENU ============================\\n\\n"
             # ==============================================================================
 
-            opt1a="Update"
+            opt1a="1 Update"
             opt1b="Check for updates to DigiNode Tools"
             
-            opt2a="Uninstall"
+            opt2a="2 Uninstall"
             opt2b="Remove DigiNode Tools from your system"
 
 
