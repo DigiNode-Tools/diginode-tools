@@ -1590,7 +1590,7 @@ create_digibyte_conf() {
     # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
     if [ "$RESET_MODE" = true ] && [ -f "$DGB_CONF_FILE" ]; then
 
-        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyte.conf file?\n\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." "${r}" "${c}"; then
+        if dialog --no-shadow --clear --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\nDo you want to re-create your digibyte.conf file?\n\nNote: This will delete your current DigiByte Core configuration file and re-create with default settings. Any customisations will be lost. Your DigiByte wallet will not be affected." 11 "${c}"; then
             reset_digibyte_conf=true
         else
             reset_digibyte_conf=false
@@ -1599,7 +1599,7 @@ create_digibyte_conf() {
 
     #Display section header
     if [ -f "$DGB_CONF_FILE" ] && [ "$RESET_MODE" = true ] && [ "$reset_digibyte_conf" = true ]; then
-        printf " =============== Resetting: digibyte.conf ==============================\\n\\n"
+        printf " =============== Reset: digibyte.conf ==============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You chose to re-configure the digibyte.conf file.\\n" "${INFO}"
         printf "%b DigiByte daemon will be stopped.\\n" "${INFO}"
@@ -6953,7 +6953,7 @@ change_dgb_network() {
     # Update digibyte.conf
     create_digibyte_conf
 
-    printf " =============== Updating: DigiByte Chain ==============================\\n\\n"
+    printf " =============== Update: DigiByte Chain ==============================\\n\\n"
     # ==============================================================================
 
     # If we are switching to a mainnet/testnet node from Dual Node, shut down, disable and delete the secondary DigiByte Node
@@ -7213,7 +7213,7 @@ ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
-    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "Before proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\n\nTo proceed with the defaults, choose Continue (Recommended)\n\nTo exit and customize your installation, choose Exit" "${r}" "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\n\nTo proceed with the defaults, choose Continue (Recommended)\n\nTo exit and customize your installation, choose Exit" "${r}" "${c}"; then
 
     #Nothing to do, continue
       printf ""
@@ -7256,7 +7256,7 @@ if [ "$RESET_MODE" = true ]; then
             DGB_SERVICE_CREATE=YES
             DGB_SERVICE_INSTALL_TYPE="reset"
         else
-            printf " =============== Resetting: DigiByte daemon service ====================\\n\\n"
+            printf " =============== Reset: DigiByte daemon service ====================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiByte daemon service.\\n" "${INFO}"
             printf "\\n"
@@ -7459,7 +7459,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
                 DGB2_SERVICE_CREATE=YES
                 DGB2_SERVICE_INSTALL_TYPE="reset"
             else
-                printf " =============== Resetting: DigiByte Dual Node service file ============\\n\\n"
+                printf " =============== Reset: DigiByte Dual Node service file ============\\n\\n"
                 # ==============================================================================
                 printf "%b Reset Mode: You skipped re-configuring the DigiByte DUAL NODE daemon service for testnet.\\n" "${INFO}"
                 printf "\\n"
@@ -10538,7 +10538,7 @@ if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
     else
-        printf " =============== Resetting: DigNode Tools ==============================\\n\\n"
+        printf " =============== Reset: DigNode Tools ==============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing DigiNode Tools\\n" "${INFO}"
         printf "\\n"
@@ -10929,7 +10929,7 @@ if [ "$IPFS_INSTALL_TYPE" = "askreset" ]; then
         IPFS_DO_INSTALL=YES
         IPFS_INSTALL_TYPE="reset"
     else        
-        printf " =============== Resetting: IPFS Kubo ==================================\\n\\n"
+        printf " =============== Reset: IPFS Kubo ==================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Kubo.\\n" "${INFO}"
         IPFS_DO_INSTALL=NO
@@ -11629,7 +11629,7 @@ if [ "$RESET_MODE" = true ]; then
             IPFS_CREATE_SERVICE=YES
             IPFS_SERVICE_INSTALL_TYPE="reset"
         else
-            printf " =============== Resetting: IPFS Daemon Service ========================\\n\\n"
+            printf " =============== Reset: IPFS Daemon Service ========================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the IPFS service.\\n" "${INFO}"
             IPFS_CREATE_SERVICE=NO
@@ -12099,7 +12099,7 @@ if [ "$NODEJS_INSTALL_TYPE" = "askreset" ]; then
         NODEJS_DO_INSTALL=YES
         NODEJS_INSTALL_TYPE="reset"
     else
-        printf " =============== Resetting: Node.js ====================================\\n\\n"
+        printf " =============== Reset: Node.js ====================================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing Node.js.\\n" "${INFO}"
         printf "\\n"
@@ -12565,7 +12565,7 @@ if [ "$DGA_INSTALL_TYPE" = "askreset" ]; then
         DGA_DO_INSTALL=YES
         DGA_INSTALL_TYPE="reset"
     else
-        printf " =============== Resetting: DigiAsset Node =============================\\n\\n"
+        printf " =============== Reset: DigiAsset Node =============================\\n\\n"
         # ==============================================================================
         printf "%b Reset Mode: You skipped re-installing DigiAsset Node.\\n" "${INFO}"
         printf "\\n"
@@ -12944,7 +12944,7 @@ digiasset_node_create_settings() {
             DGA_SETTINGS_CREATE=YES
             DGA_SETTINGS_CREATE_TYPE="reset"
         else
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            printf " =============== Reset: DigiAsset Node settings ====================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node settings folder.\\n" "${INFO}"
             DGA_SETTINGS_CREATE=NO
@@ -13197,22 +13197,22 @@ digiasset_node_create_settings() {
          # Display section break
         if [ "$DGA_SETTINGS_CREATE_TYPE" = "new" ]; then
             # ==============================================================================
-            printf " =============== Creating: DigiAsset Node settings =====================\\n\\n"
+            printf " =============== Create: DigiAsset Node settings =====================\\n\\n"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update" ]; then
             # ==============================================================================
-            printf " =============== Updating: DigiAsset Node settings =====================\\n\\n"
+            printf " =============== Update: DigiAsset Node settings =====================\\n\\n"
             printf "%b RPC credentials in digibyte.conf have changed. The main.json file will be updated.\\n" "${INFO}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "restore" ]; then
             # ==============================================================================
-            printf " =============== Restoring: DigiAsset Node settings ====================\\n\\n"
+            printf " =============== Restore: DigiAsset Node settings ====================\\n\\n"
             printf "%b Your DigiAsset Node backup settings will be restored.\\n" "${INFO}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "update_restore" ]; then
             # ==============================================================================
-            printf " =============== Updating & Restoring: DigiAsset Node settings =========\\n\\n"
+            printf " =============== Update & Restore: DigiAsset Node settings =========\\n\\n"
             printf "%b RPC credentials in digibyte.conf have changed. DigiAsset backup settings will be updated and restored.\\n" "${INFO}"
         elif [ "$DGA_SETTINGS_CREATE_TYPE" = "reset" ]; then
             # ==============================================================================
-            printf " =============== Resetting: DigiAsset Node settings ====================\\n\\n"
+            printf " =============== Reset: DigiAsset Node settings ====================\\n\\n"
             printf "%b Reset Mode: You chose to re-configure your DigiAsset Node settings.\\n" "${INFO}"
         fi
 
@@ -13387,7 +13387,7 @@ if [ "$RESET_MODE" = true ]; then
             PM2_SERVICE_DO_INSTALL=YES
             PM2_SERVICE_INSTALL_TYPE="reset"
         else
-            printf " =============== Resetting: Node.js PM2 Service ========================\\n\\n"
+            printf " =============== Reset: Node.js PM2 Service ========================\\n\\n"
             # ==============================================================================
             printf "%b Reset Mode: You skipped re-configuring the DigiAsset Node PM2 service.\\n" "${INFO}"
             PM2_SERVICE_DO_INSTALL=NO
