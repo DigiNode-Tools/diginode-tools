@@ -14920,7 +14920,7 @@ download_digifacts() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 1"
+        echo "test 2"
         
         exit
 
