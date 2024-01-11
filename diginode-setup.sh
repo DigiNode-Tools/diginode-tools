@@ -14922,7 +14922,7 @@ echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 4"
+        echo "test 5"
         
         exit
 
@@ -14931,8 +14931,10 @@ echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
          sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=\"$SAVED_TIME_DIGIFACTS\"|" $DGNT_SETTINGS_FILE
     }
 
+echo "DGNT_LOCATION: $DGNT_LOCATION"
+echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
 
-    if [ ! -f "$DGNT_LOCATION/digifacts.json" ]; then
+    if [ ! -f $DGNT_LOCATION/digifacts.json ]; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
