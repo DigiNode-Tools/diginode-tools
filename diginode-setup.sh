@@ -14930,7 +14930,7 @@ download_digifacts() {
     }
 
 
-    if test ! -f "$digifacts_file" ; then
+    if test ! -f "$DGNT_LOCATION/digifacts.json" ; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
