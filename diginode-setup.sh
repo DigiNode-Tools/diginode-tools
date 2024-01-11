@@ -13697,7 +13697,7 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --title "Install DigiAsset Node?" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\nWould you like to install a DigiAsset Node?\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --title "Install DigiAsset Node?" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to install a DigiAsset Node?\Z0\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
             printf "%b You choose to install the DigiAsset Node.\\n" "${INFO}"
@@ -13779,7 +13779,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK TO INSTALL THE MOTD (displays during a new install or when accessed from the main menu)
     if [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "DISABLED" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Enable DigiNode Custom MOTD?" --title "Enable DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\nWould you like to enable the custom DigiNode MOTD?\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\n\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\n\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \n\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Enable DigiNode Custom MOTD?" --title "Enable DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like to enable the custom DigiNode MOTD?\Z0\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\n\nIf you answer YES, the default system MOTD will be backed up and replaced with a custom DigiNode MOTD which displays the DigiNode logo and usage instructions.\n\nIf you are running your DigiNode on a dedicated device on local network, such as a Raspberry Pi, then this change is recommended. \n\nIf you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change the MOTD." 20 "${c}"; then
             printf "%b You chose to install the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL="YES"
             MOTD_DO_UNINSTALL=""
@@ -13802,7 +13802,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK TO UNINSTALL THE MOTD (if accessed from the existing install menu, or the DigiNode only menu)
     elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" != "" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Disable DigiNode Custom MOTD?" --title "Disable DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\nWould you like to disable the custom DigiNode MOTD?\n\nIf you answer YES, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored from the backup." "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Disable DigiNode Custom MOTD?" --title "Disable DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like to disable the custom DigiNode MOTD?\Z0\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal.\n\nIf you answer YES, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored from the backup." 13 "${c}"; then
             printf "%b You chose to uninstall the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL="YES"
@@ -13824,7 +13824,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # ASK WHETHER TO USE THE MOTD (if this is a new install, but the custom MOTD is already installed)
     elif [ "$show_motd_menu" = "yes" ] && [ "$MOTD_STATUS_CURRENT" = "ENABLED" ] && [ "$CUSTOM_MOTD_MENU" = "" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Keep DigiNode Custom MOTD?" --title "Keep DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\nWould you like to keep the custom DigiNode MOTD?\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\n\nIf you answer YES, the DigiNode custom MOTD will be kept.\n\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Keep DigiNode Custom MOTD?" --title "Keep DigiNode Custom MOTD?" --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like to keep the custom DigiNode MOTD?\Z0\n\nThe MOTD (Message of the Day) is displayed whenever you login to the system via the terminal. You already have the DigiNode custom MOTD installed.\n\nIf you answer YES, the DigiNode custom MOTD will be kept.\n\nIf you choose NO, the custom DigiNode MOTD will be removed, amd the default system MOTD will be restored." 16 "${c}"; then
             printf "%b You chose to keep the DigiNode Custom MOTD.\\n" "${INFO}"
             MOTD_DO_INSTALL=""
             MOTD_DO_UNINSTALL=""
