@@ -7169,7 +7169,7 @@ welcomeDialogs() {
     donationDialog
 
     # Explain the need for a static address
-    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Your DigiNode needs a Static IP address." --title "Your DigiNode needs a Static IP address." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\Z0\n\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\n\nThe current IP address is: $IP4_INTERNAL\n\nFor more help, please visit: $DGBH_URL_STATICIP\n\nChoose Continue to indicate that you have understood this message." 19 "${c}"; then
+    if dialog --no-shadow --clear --keep-tite --colors --backtitle "Your DigiNode needs a Static IP address." --title "Your DigiNode needs a Static IP address." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1IMPORTANT: Your DigiNode is a SERVER so it needs a STATIC IP ADDRESS to function properly.\Z0\n\nIf you have not already done so, you must ensure that this device has a static IP address on the network. This can be done through DHCP reservation, or by manually assigning one. Depending on your operating system, there are many ways to achieve this.\n\nThe current IP address is: $IP4_INTERNAL\n\nFor more help, please visit: $DGBH_URL_STATICIP\n\nChoose Continue to indicate that you have understood this message." 20 "${c}"; then
         #Nothing to do, continue
         printf "%b You acknowledged that your system requires a Static IP Address.\\n" "${INFO}"
         printf "\\n"
