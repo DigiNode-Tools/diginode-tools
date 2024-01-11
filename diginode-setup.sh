@@ -6522,14 +6522,6 @@ menu_first_install() {
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
-    exit_status=$?
-    if [ $exit_status != 0 ]; then
-        echo "The dialog was cancelled or closed without selection."
-        exit
-    fi
-
-    echo "Selected option: ${UpdateCmd}"
-
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
         # Install Full DigiNode
