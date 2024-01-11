@@ -14829,10 +14829,6 @@ download_digifacts() {
     printf " =============== Checking: DigiFacts ===================================\\n\\n"
     # ==============================================================================
 
-    local digifacts_file="$DGNT_LOCATION/digifacts.json"
-    local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
-    local diginode_help_file="$DGNT_LOCATION/diginode-help.json"
-
     # If the last download time file doesn't exist, create one with an old timestamp
     if [ "$SAVED_TIME_DIGIFACTS" = "" ]; then
         SAVED_TIME_DIGIFACTS=0
@@ -14848,41 +14844,41 @@ download_digifacts() {
     # Function to download and process the digifacts.json
     download_and_process() {
         # If a backup exists, delete it
-        if [ -f "$digifacts_backup_file" ]; then
+        if [ -f "$DGNT_LOCATION/digifacts.json.backup" ]; then
             str="Delete existing digifacts.json.backup ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
+            sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts.json.backup"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Rename the existing digifacts.json to digifacts.json.backup, if it exists
-        if [ -f "$digifacts_file" ]; then
+        if [ -f "$DGNT_LOCATION/digifacts.json" ]; then
             str="Create backup of existing digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT mv "$digifacts_file" "$digifacts_backup_file"
+            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json" "$DGNT_LOCATION/digifacts.json.backup"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # Download the digifacts.json file
         str="Downloading DigiFacts from DigiByte DigiFacts JSON service ..."
         printf "%b %s" "${INFO}" "${str}"          
-        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
+        sudo -u $USER_ACCOUNT curl -s -o "$DGNT_LOCATION/digifacts.json" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the downloaded file is valid JSON
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
-        if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
-            rm "$digifacts_file"
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
+        if sudo -u $USER_ACCOUNT ! jq empty "$DGNT_LOCATION/digifacts.json" &> /dev/null; then
+            rm "$DGNT_LOCATION/digifacts.json"
+            if [ -f "$DGNT_LOCATION/digifacts.json.backup" ]; then
+                sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.backup" "$DGNT_LOCATION/digifacts.json"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)
-            if [ -f "$digifacts_backup_file" ]; then
-                sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
+            if [ -f "$DGNT_LOCATION/digifacts.json.backup" ]; then
+                sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts.json.backup"
                 printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
             else
                 printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14892,7 +14888,7 @@ download_digifacts() {
         # Check if the diginode-help.json file is valid JSON
         str="Is the diginode-help.json file valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
-        if sudo -u $USER_ACCOUNT ! jq empty "$diginode_help_file" &> /dev/null; then
+        if sudo -u $USER_ACCOUNT ! jq empty "$DGNT_LOCATION/diginode-help.json" &> /dev/null; then
             printf "%b%b %s No! diginode-help.json file is bad JSON! Please fix it and run again!\\n" "${OVER}" "${CROSS}" "${str}"
             exit 1
         else
@@ -14901,22 +14897,22 @@ download_digifacts() {
         fi
 
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        if [ -f "$digifacts_file" ]; then
+        if [ -f "$DGNT_LOCATION/digifacts.json" ]; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
-            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.temp" "$digifacts_file"
+            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$DGNT_LOCATION/digifacts.json" > "$DGNT_LOCATION/digifacts.json.temp"
+            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.temp" "$DGNT_LOCATION/digifacts.json"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
         # If diginode-help.json exists, append its values to digifacts.json
-        if [[ -f $diginode_help_file ]]; then
+        if [[ -f "$DGNT_LOCATION/diginode-help.json" ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT touch "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts-append-temp.json" "$digifacts_file"
+            sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts.json.temp2"
+            sudo -u $USER_ACCOUNT touch "$DGNT_LOCATION/digifacts.json.temp2"
+            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$DGNT_LOCATION/digifacts.json" "$DGNT_LOCATION/diginode-help.json" > "$DGNT_LOCATION/digifacts.json.temp2"
+            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.temp2" "$DGNT_LOCATION/digifacts.json"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -14930,7 +14926,7 @@ download_digifacts() {
     }
 
 
-    if [[ ! -f $digifacts_file ]]; then
+    if [[ ! -f "$DGNT_LOCATION/digifacts.json" ]]; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
