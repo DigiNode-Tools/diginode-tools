@@ -14843,10 +14843,12 @@ download_digifacts() {
 
     printf "%b Checking for digifacts.json ...\\n" "${INFO}"
 
+# banana
+
     # Function to download and process the digifacts.json
     download_and_process() {
         # If a backup exists, delete it
-        if [[ -f $digifacts_backup_file ]]; then
+        if [ -f "$digifacts_backup_file" ]; then
             str="Delete existing digifacts.json.backup ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
@@ -14854,7 +14856,7 @@ download_digifacts() {
         fi
 
         # Rename the existing digifacts.json to digifacts.json.backup, if it exists
-        if [[ -f $digifacts_file ]]; then
+        if [ -f "$digifacts_file" ]; then
             str="Create backup of existing digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT mv "$digifacts_file" "$digifacts_backup_file"
