@@ -10,7 +10,7 @@ DigiNode Tools v0.9.4 - 2024-01-xx [COMING SOON]
 - Change: Remove support for running a DigiAsset Node ONLY. (DigiByte Core, which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed.)
 - Change: Rename "Kubo IPFS" to "IPFS Kubo" to match official IPFS naming
 - Change: If there are multiple updates available, DigiNode Setup now lets you install them individually.
-
+- Change: Removed Ubuntu workaround as this is no longer required
 
 DigiNode Tools v0.9.3 - 2023-10-26
 - Fix: DigiNode Dashboard now installs sysstat if not present

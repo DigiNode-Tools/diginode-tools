@@ -80,18 +80,19 @@ DigiNode Dashboard can be run from the command line by entering: ```diginode```
 ## System Compatibility
 
 - System Requirements:
-    + DigiNode Tools runs on most Ubuntu or Debian based systems. Debian 10 Buster or later is recommended. Ubuntu Focal 20.04 or later is recommended.  
+    + DigiNode Tools was designed for the Raspberry Pi 4 8Gb running Rasperry Pi OS Lite 64-bit. The Raspberry Pi 5 8Gb is also supported.
+    + DigiNode Tools also runs on most Ubuntu or Debian based systems. Debian 10 Buster or later is recommended. Ubuntu Focal 20.04 or later is recommended.  
     + Both ARM64 and x86_64 hardware are supported. A 64-bit OS is required. 
-    + A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite is an excellent choice.
-    + DigiNode has been designed with headless operation in mind - no display, keyboard or mouse are queired. (Note: These are not needed at all for Raspberry Pi setup, though may be required during setup on other Linux devices.)
+    + DigiNode has been designed with headless operation in mind - no display, keyboard or mouse are required. (Note: These are not needed at all for Raspberry Pi setup, though may be required during setup on other Linux devices.)
 - Memory Requirements:
-    + A device with at least 8GB RAM is recommended. 
-    + With 8Gb RAM or more, you can safely run a FULL DigiNode (i.e. Both a DigiByte Node and DigiAssets Node). 8Gb is the recommended minimum.
-    + With 4Gb RAM, you can run a DigiByte Node OR a DigiAsset Node, but running both together is not recommended. (Note: By creating a large swap file, it is technically possible to run a full DigiNode with only 4Gb RAM, but performance will be very sluggish. This is fine for testing, but definitely not recommended for long term use - the read/write demands placed on the SSD mean that its lifespan will be significantly decreased.)
-    + With 2Gb RAM, there is not enough memory to run a DigiByte Node, but you can still run DigiAsset Node. (A DigiAsset Node requires ~2Gb RAM.) See the [Advanced Features](GETSTARTED.md#advanced-features) for how to do a 'DigiAsset Node ONLY' setup.
+    + At least 8GB RAM is strongly recommended. 
+    + With 8Gb RAM or more, you can safely run a DigiByte mainnet node, a DigiByte testnet node and a DigiAsset Node at the same time on the same device.
+    + With 4Gb RAM, you should be able to run a single DigiByte Node ONLY (i.e. No DigiAsset Node). However, performance can be sluggish, and it will require a large swap file that puts a lot of strain on the SSD. In short, 4Gb is fine for testing, but definitely not recommended for long term use.
+    + Less than 4Gb RAM is not supported.
     + Regardless of how much memory your device has, it is always sensible to have a swap file. DigiNode Setup can help configure this for you.
 - Disk Space Requirements:
-    + As of August 2023, the DigiByte blockchain currently requires around 46Gb of disk space. If you are setting up a DigiNode, a minimum 90Gb of free disk space is recommended, to allow for future growth.
+    + As of January 2024, the DigiByte blockchain currently requires just under 50Gb of disk space. 
+    + If you are setting up a DigiNode, at least 128Gb of free disk space is recommended, to allow for future growth. A 256Gb SSD or larger would be a good choice.
 - Raspberry Pi Requirements:
     + Booting from an SSD via USB is highly recommended. (If you have an 8Gb Pi, it is possible to boot from a microSD card, though this is not recommended for long term use.)
     + To build your own DigiNode with a Raspberry Pi 4, see [here](docs/suggested_hardware.md) for a list of recommended hardware. Detailed setup instructions are [here](docs/rpi_setup.md).
@@ -101,9 +102,9 @@ DigiNode has been tested and known to work with the following systems:
 | **Hardware**          | **Operating System**                               | **Notes**                                                                                                   |
 |-----------------------|----------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
 | Raspberry Pi 4 8Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | This is the recommended configuration. Booting from an SSD, rather than microSD, is highly recommended.     |
-| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  Note: There is currently a known issue with the recent releases of Ubuntu that causes the menus to become unresponsive when piping though bash. If you experience this, you may want to try using Raspberry Pi OS instead, or run the script locally with the workaround above. |
+| Raspberry Pi 4 8Gb    | Ubuntu Server 22.04 LTS 64-bit                     | Booting from an SSD, rather than microSD, is highly recommended.  |
 | Raspberry Pi 4 4Gb    | Raspberry Pi OS lite 64-bit (Debian Bullseye)      | Requires large swap file to run a full DigiNode. Runs slowly. Fine for testing - not recommended for long-term use. Recommended to run either a DigiByte node, or a DigiAsset node, but not both. |
-| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. Requires the Ubuntu workaround explained above. |
+| x86_64 (Intel/AMD)    | Ubuntu Server 22.04 LTS 64-bit                     | Tested and working on an Intel Core i3-380M laptop with 8Gb RAM. |
 
 # ➡️ GET STARTED
 
