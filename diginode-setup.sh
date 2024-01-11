@@ -14898,8 +14898,6 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-exit
-
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
         if [[ -f $digifacts_file ]]; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
@@ -14917,6 +14915,8 @@ exit
             sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$tmp_file" && mv "$tmp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+        exit
 
         # Update the last download timestamp
         SAVED_TIME_DIGIFACTS=$current_time
