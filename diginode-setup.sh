@@ -15537,8 +15537,9 @@ main() {
         donationDialog
 
         printf "%b %bUnable to upgrade this installation of DigiByte Core%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b An existing install of DigiByte Core was discovered, but it was not originally installed\\n" "${INDENT}"
-        printf "%b using DigiNode Setup and so cannot be upgraded. Please start with with a clean Linux installation.\\n" "${INDENT}"
+        printf "%b An existing install of DigiByte Core was discovered, but it was not\\n" "${INDENT}"
+        printf "%b originally installed using DigiNode Setup and so cannot be upgraded.\\n" "${INDENT}"
+        printf "%b Please start with with a clean Linux installation.\\n" "${INDENT}"
         printf "\\n"
         printf "%b DigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\\n" "${INFO}"
         printf "\\n"
