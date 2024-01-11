@@ -6516,22 +6516,12 @@ menu_first_install() {
     desc3="DigiNode Tools ONLY: Use DigiNode Dashboard with an existing DigiByte Node."
 
     # Display the information to the user
-#    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 84 3 \
-#        "${opt1}" "${desc1}" \
-#        "${opt2}" "${desc2}" \
-#        3>&1 1>&2 2>&1) || \
-#        "${opt3}" "${desc3}" \
-#    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
-
-    UpdateCmd=$(dialog --keep-tite --title "Test" --menu "Choose an option:" 10 30 3 1 "Option 1" 2 "Option 2" 3 "Option 3" 3>&2 2>&1 1>&3)
-
-    exit_status=$?
-    if [ $exit_status != 0 ]; then
-        echo "The dialog was cancelled or closed without selection."
-        exit
-    fi
-
-    echo "Selected option: ${UpdateCmd}"
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 22 84 3 \
+        "${opt1}" "${desc1}" \
+        "${opt2}" "${desc2}" \
+        3>&2 2>&1 1>&3) || \
+        "${opt3}" "${desc3}" \
+    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
