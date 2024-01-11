@@ -14070,7 +14070,7 @@ uninstall_do_now() {
     if [ -d "$DGA_SETTINGS_LOCATION" ] && [ "$delete_dga" = "yes" ]; then
 
         # Do you want to delete DigiAsset settings folder?
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiAsset settings" --title "DigiNode Uninstall: Delete DigiAsset settings" --yesno "\nWould you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\\n\\n(If you choose No, the configuration folder will be backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" 12 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiAsset settings" --title "DigiNode Uninstall: Delete DigiAsset settings" --yesno "\n\Z4Would you like to also delete your DigiAsset Node settings folder: ~/digiasset_node/_config ?\Z0\n\n(If you choose No, the configuration folder will be backed up to your home folder, and automatically restored to its original location, when you reinstall the DigiAsset Node software.)" 12 "${c}"; then
             local delete_dga_config=yes
         else
             local delete_dga_config=no
@@ -14322,7 +14322,7 @@ uninstall_do_now() {
     # ==============================================================================
 
         # Delete IPFS
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove IPFS Kubo" --title "DigiNode Uninstall: Remove IPFS Kubo" --yesno "\nWould you like to uninstall IPFS Kubo v${IPFS_VER_LOCAL}?\\n\\nThis will uninstall the IPFS software." 9 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove IPFS Kubo" --title "DigiNode Uninstall: Remove IPFS Kubo" --yesno "\n\Z4Would you like to uninstall IPFS Kubo v${IPFS_VER_LOCAL}?\Z0\n\nThis will uninstall the IPFS software." 9 "${c}"; then
 
             printf "%b You chose to uninstall IPFS Kubo v${IPFS_VER_LOCAL}.\\n" "${INFO}"
 
@@ -14400,7 +14400,7 @@ uninstall_do_now() {
 
             # Delete IPFS settings
             if [ -d "$USER_HOME/.ipfs" ]; then
-                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete IPFS Kubo settings" --title "DigiNode Uninstall: Delete IPFS Kubo settings" --yesno "\nWould you like to also delete your IPFS Kubo settings folder?\\n\\nThis will delete the folder: ~/.ipfs\n\nThis folder contains all the settings and metadata related to your IPFS Kubo node." 12 "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete IPFS Kubo settings" --title "DigiNode Uninstall: Delete IPFS Kubo settings" --yesno "\n\Z4Would you like to also delete your IPFS Kubo settings folder?\Z0\\n\\nThis will delete the folder: ~/.ipfs\n\nThis folder contains all the settings and metadata related to your IPFS Kubo node." 12 "${c}"; then
                     str="Deleting ~/.ipfs settings folder..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -r $USER_HOME/.ipfs
@@ -14534,7 +14534,7 @@ uninstall_do_now() {
             if [ -f "$DGB_CONF_FILE" ]; then
 
                 # Do you want to delete digibyte.conf?
-                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete digibyte.conf" --title "DigiNode Uninstall: Delete digibyte.conf" --yesno "\nWould you like to also delete your digibyte.conf settings file?\\n\\nThis will remove any customisations you made to your DigiByte install." 10 "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete digibyte.conf" --title "DigiNode Uninstall: Delete digibyte.conf" --yesno "\n\Z4Would you like to also delete your digibyte.conf settings file?\Z0\\n\\nThis will remove any customisations you made to your DigiByte install." 10 "${c}"; then
 
                     # Delete digibyte.conf
                     str="Deleting digibyte.conf file..."
@@ -14595,7 +14595,7 @@ uninstall_do_now() {
             if [ -d "$DGB_DATA_LOCATION/regtest/indexes" ] || [ -d "$DGB_DATA_LOCATION/regtest/chainstate" ] || [ -d "$DGB_DATA_LOCATION/regtest/blocks" ]; then
 
                 # Delete DigiByte blockchain data
-                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --title "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --yesno "\nWould you like to also delete the DigiByte REGTEST blockchain data?\\n\\nNote: Your regtest wallet will be kept." 10 "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --title "DigiNode Uninstall: Delete DigiByte REGTEST blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte REGTEST blockchain data?\Z0\\n\\nNote: Your regtest wallet will be kept." 10 "${c}"; then
 
                     # Delete systemd service file
                     if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
@@ -14660,7 +14660,7 @@ uninstall_diginode_tools_now() {
     if [ -d "$DGNT_LOCATION" ]; then
 
         # Delete DigiNode Tools
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Tools" --title "DigiNode Uninstall: Remove DigiNode Tools" --yesno "\nWould you like to uninstall DigiNode Tools?\\n\\nThis will delete the 'DigiNode Dashboard' and 'DigiNode Setup' scripts." 10 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Tools" --title "DigiNode Uninstall: Remove DigiNode Tools" --yesno "\n\Z4Would you like to uninstall DigiNode Tools?\Z0\n\nThis will delete the 'DigiNode Dashboard' and 'DigiNode Setup' scripts." 10 "${c}"; then
 
             printf "%b You chose to uninstall DigiNode Tools.\\n" "${INFO}"
 
@@ -14752,7 +14752,7 @@ uninstall_motd() {
         # ==============================================================================
 
         # Remove DigiNode Custom MOTD
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Custom MOTD" --title "DigiNode Uninstall: Remove DigiNode Custom MOTD" --yesno "\nWould you like to remove the DigiNode Custom MOTD (Message of the Day)?\\n\\nThis is the DigiNode logo that you see whenever you log in to your DigiNode via the terminal. Choosing YES will restore the default system MOTD." 12 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiNode Custom MOTD" --title "DigiNode Uninstall: Remove DigiNode Custom MOTD" --yesno "\n\Z4Would you like to remove the DigiNode Custom MOTD (Message of the Day)?\Z0\n\nThis is the DigiNode logo that you see whenever you log in to your DigiNode via the terminal. Choosing YES will restore the default system MOTD." 12 "${c}"; then
 
             printf "%b You chose to remove the DigiNode Custom MOTD.\\n" "${INFO}"
 
