@@ -14848,7 +14848,7 @@ download_digifacts() {
         if [[ -f $digifacts_backup_file ]]; then
             str="Delete existing digifacts.json.backup ..."
             printf "%b %s" "${INFO}" "${str}" 
-            rm -f "$digifacts_backup_file"
+            sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -14856,7 +14856,7 @@ download_digifacts() {
         if [[ -f $digifacts_file ]]; then
             str="Create backup of existing digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            mv "$digifacts_file" "$digifacts_backup_file"
+            sudo -u $USER_ACCOUNT mv "$digifacts_file" "$digifacts_backup_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -14872,15 +14872,15 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if ! jq empty "$digifacts_file" &> /dev/null; then
-            rm "$digifacts_file"
+            sudo -u $USER_ACCOUNT rm "$digifacts_file"
             if [[ -f $digifacts_backup_file ]]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
+                sudo -u $USER_ACCOUNT mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
             return 1
         else
             # If the JSON is valid, delete the backup file
-            rm -f "$digifacts_backup_file"
+            sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
             printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
