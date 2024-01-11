@@ -14867,6 +14867,8 @@ download_digifacts() {
         sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
+exit
+
         sudo -u $USER_ACCOUNT cat $DGNT_LOCATION/digifacts.json | jq
 
         # Check if the downloaded file is valid JSON
