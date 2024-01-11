@@ -14931,7 +14931,7 @@ download_digifacts() {
 
 echo "DGNT_LOCATION: $DGNT_LOCATION"
 
-    if test ! -f "$DGNT_LOCATION/digifacts.json"; then
+    if sudo -u $USER_ACCOUNT test ! -f "$DGNT_LOCATION/digifacts.json"; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
