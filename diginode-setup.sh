@@ -14862,12 +14862,12 @@ download_digifacts() {
         fi
 
         # Download the digifacts.json file
-        str="Donloading DigiFacts from DigiByte DigiFacts JSON service ..."
+        str="Downloading DigiFacts from DigiByte DigiFacts JSON service ..."
         printf "%b %s" "${INFO}" "${str}"          
         sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        sudo -u $USER_ACCOUNT nano $DGNT_LOCATION/digifacts.json
+        sudo -u $USER_ACCOUNT cat $DGNT_LOCATION/digifacts.json | jq
 
         # Check if the downloaded file is valid JSON
         str="Is downloaded digifacts.json okay? ..."
