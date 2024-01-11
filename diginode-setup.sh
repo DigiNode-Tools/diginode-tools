@@ -6525,6 +6525,12 @@ menu_first_install() {
 
     UpdateCmd=$(dialog --title "Test" --menu "Choose an option:" 10 30 3 1 "Option 1" 2 "Option 2" 3 "Option 3" 3>&1 1>&2 2>&1)
 
+    exit_status=$?
+    if [ $exit_status != 0 ]; then
+        echo "The dialog was cancelled or closed without selection."
+        exit
+    fi
+
     echo "Selected option: ${UpdateCmd}"
 
     # Set the variable based on if the user chooses
