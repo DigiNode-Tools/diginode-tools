@@ -6523,7 +6523,7 @@ menu_first_install() {
 #        "${opt3}" "${desc3}" \
 #    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
 
-    UpdateCmd=$(dialog --title "Test" --menu "Choose an option:" 10 30 3 1 "Option 1" 2 "Option 2" 3 "Option 3" 3>&1 1>&2 2>&1)
+    UpdateCmd=$(dialog --keep-tite --title "Test" --menu "Choose an option:" 10 30 3 1 "Option 1" 2 "Option 2" 3 "Option 3" 3>&1 1>&2 2>&1)
 
     exit_status=$?
     if [ $exit_status != 0 ]; then
