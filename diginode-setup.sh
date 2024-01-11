@@ -14887,8 +14887,6 @@ download_digifacts() {
             fi
         fi
 
-exit
-
         # Check if the diginode-help.json file is valid JSON
         str="Is the diginode-help.json file valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
@@ -14899,6 +14897,8 @@ exit
             # If the JSON is valid, continue
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+exit
 
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
         if [[ -f $digifacts_file ]]; then
