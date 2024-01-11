@@ -8779,15 +8779,15 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     fi
 
     if [ "$UPNP_DGB_CURRENT" = "1" ]; then
-        upnp_current_status_2=" - UPnP is ENABLED for DigiByte Core\\n"
+        upnp_current_status_2=" - \Z4UPnP is ENABLED for DigiByte Core\Z0\\n"
     elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
-        upnp_current_status_2=" - UPnP is DISABLED for DigiByte Core\\n"
+        upnp_current_status_2=" - \Z4UPnP is DISABLED for DigiByte Core\Z0\\n"
     fi
 
     if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
-        upnp_current_status_3=" - UPnP is ENABLED for IPFS\\n"
+        upnp_current_status_3=" - \Z4UPnP is ENABLED for IPFS\Z0\\n"
     elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
-        upnp_current_status_3=" - UPnP is DISABLED for IPFS\\n"
+        upnp_current_status_3=" - \Z4UPnP is DISABLED for IPFS\Z0\\n"
     fi
 
     if [ "$upnp_current_status_2" != "" ] || [ "$upnp_current_status_3" != "" ]; then
@@ -8805,7 +8805,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\nHow would you like to setup port forwarding?\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -8820,7 +8820,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\nHow would you like to setup port forwarding?\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -14019,7 +14019,7 @@ if [ "$MOTD_DO_UNINSTALL" = "YES" ]; then
     sed -i -e "/^MOTD_STATUS=/s|.*|MOTD_STATUS=\"DISABLED\"|" $DGNT_SETTINGS_FILE
 
     if [ "$CUSTOM_MOTD_MENU" = "existing_install_menu" ] && [ ! -f "/etc/update-motd.d/50-diginode" ]; then
-        dialog --no-shadow --keep-tite --backtitle "DigiNode MOTD has been uninstalled!" --title "DigiNode MOTD has been uninstalled!" --msgbox "\nThe DigiNode MOTD file has been successfully uninstalled." 10 ${c}
+        dialog --no-shadow --keep-tite --backtitle "DigiNode MOTD has been uninstalled!" --title "DigiNode MOTD has been uninstalled!" --msgbox "\nThe DigiNode MOTD file has been successfully uninstalled." 7 ${c}
         return
     fi
 
@@ -15557,7 +15557,7 @@ main() {
 
 
             # Display the information to the user
-            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nPlease choose an option:\n\n" "${r}" 80 3 \
+            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nPlease choose an option:\n\n" 15 "${c}" 3 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
             { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
