@@ -7186,6 +7186,7 @@ donationDialog() {
 
 dialog --no-shadow --clear --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
 \Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please make a donation to help fund future development:
+
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
                   █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █  
