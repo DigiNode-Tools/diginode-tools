@@ -14922,7 +14922,7 @@ echo "DGNT_LOCATION/digifacts.json: $DGNT_LOCATION/digifacts.json"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 3"
+        echo "test 4"
         
         exit
 
