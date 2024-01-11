@@ -14899,7 +14899,7 @@ download_digifacts() {
         fi
 
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        if [[ -f $digifacts_file ]]; then
+        if [[ -f "$digifacts_file" ]]; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
@@ -14911,11 +14911,13 @@ download_digifacts() {
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            local tmp_file=$(sudo -u $USER_ACCOUNT mktemp)
-            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$tmp_file" && mv "$tmp_file" "$digifacts_file"
+            sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts-append-temp.json"
+            sudo -u $USER_ACCOUNT touch "$DGNT_LOCATION/digifacts-append-temp.json"
+            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$DGNT_LOCATION/digifacts-append-temp.json"
+            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts-append-temp.json" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-
+        
         exit
 
         # Update the last download timestamp
