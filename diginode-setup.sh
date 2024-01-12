@@ -14933,6 +14933,7 @@ echo "DGNT_LOCATION: $DGNT_LOCATION"
 
     if test ! -e /home/digibyte/diginode-tools/digifacts.json; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
+        exit
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
         printf "%b digifacts.json will be upgraded...\\n" "${INFO}"
