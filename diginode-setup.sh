@@ -14930,7 +14930,7 @@ download_digifacts() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 9"
+        echo "test 10"
         
         exit
 
@@ -14939,11 +14939,12 @@ download_digifacts() {
          sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=\"$SAVED_TIME_DIGIFACTS\"|" $DGNT_SETTINGS_FILE
     }
 
-echo "DGNT_LOCATION: $DGNT_LOCATION"
+    # Important Note: If you are testing this using the --dgntdev flag, remember that the DigiNode Tools folder
+    # gets deleted every time the script runs, also deleting the digifacts.json file along with it. This means
+    # that the DigiFacts will be re-downloaded from scratch every time. It will never upgrade them.
 
-    if test ! -e /home/digibyte/diginode-tools/digifacts.json; then
+    if test ! -e "$digifacts_file"; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
-        exit
         download_and_process
     elif (( current_time - SAVED_TIME_DIGIFACTS >= 3600 )); then
         printf "%b digifacts.json will be upgraded...\\n" "${INFO}"
