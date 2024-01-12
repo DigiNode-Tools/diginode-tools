@@ -14829,6 +14829,7 @@ download_digifacts() {
     printf " =============== Checking: DigiFacts ===================================\\n\\n"
     # ==============================================================================
 
+    local digifacts_url="https://digifacts.digibyte.help/?lang=en&format=social"
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
     local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"
@@ -14876,7 +14877,7 @@ download_digifacts() {
         # Download the digifacts.json file
         str="Downloading DigiFacts from DigiByte DigiFacts JSON service ..."
         printf "%b %s" "${INFO}" "${str}"          
-        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" "https://digifacts.digibyte.help/?lang=en&format=social"
+        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" "$digifacts_url"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the downloaded file is valid JSON
@@ -14939,9 +14940,6 @@ download_digifacts() {
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        echo "test 16"
-        exit
-
         # If diginode-help.json exists, append its values to digifacts.json
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
@@ -14952,6 +14950,9 @@ download_digifacts() {
             sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
+
+    echo "text 1"
+    exit
 
         # Update the last download timestamp
         SAVED_TIME_DIGIFACTS=$current_time
