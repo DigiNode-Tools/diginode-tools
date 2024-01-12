@@ -14910,8 +14910,10 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        echo "digifacts_file: $digifacts_file"
+
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        if [[ -f $digifacts_file ]]; then
+        if test -f "$digifacts_file"; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
             sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
