@@ -14919,6 +14919,9 @@ download_digifacts() {
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
+        echo "test 12"
+        exit
+
         # If diginode-help.json exists, append its values to digifacts.json
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
@@ -14929,10 +14932,6 @@ download_digifacts() {
             sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
-
-        echo "test 11"
-        
-        exit
 
         # Update the last download timestamp
         SAVED_TIME_DIGIFACTS=$current_time
