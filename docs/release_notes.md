@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.4 - 2024-01-xx [COMING SOON]
+DigiNode Tools v0.9.4 - 2024-01-12
 - New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
 - New: Use the "diginode --porttest" flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
 - Fix: Switch from using whiptail menus to dialog menus. This is to get around the Debian bug that is causing the menus to be unresponsive at first launch - key presses do not work and it is impossible to proceed. This bug affected whiptail menus - dialog is not affected - and is triggered when piping through bash. By switching to dialog we bypass the issue, and no longer need the Ubuntu workaround.
