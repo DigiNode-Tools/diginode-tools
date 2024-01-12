@@ -43,6 +43,7 @@ Go [here](GETSTARTED.md) to get started setting up your DigiNode. Once installed
 ## Additional Features
 
 ![DigiNode Main Menu](images/diginode_main_menu.png)
+
 Once DigiNode Tools have been installed, you can access additional features via the DigiNode Setup menu by entering: ```diginode-setup```
 
 - **Update**: Installs any software updates for your DigiNode, and checks that all services are running correctly. It also ensures that the RPC credentials are correct and that the DigiAsset Node is able to connect with the DigiByte Node. Most DigiNode issues can be solved by performing an Update.
