@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.5 - 2024-01-xx [COMING SOON]
+- New: The DigiNode Tools website is finally live: [https://diginode.tools](https://diginode.tools)
+- Change: Most of the project documentation has been moved from Github to the DigiNode Tools website.
+
 DigiNode Tools v0.9.4 - 2024-01-12
 - New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
 - New: Use the ```diginode --porttest``` flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
