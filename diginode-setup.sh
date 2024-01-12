@@ -14876,11 +14876,31 @@ download_digifacts() {
         # Download the digifacts.json file
         str="Downloading DigiFacts from DigiByte DigiFacts JSON service ..."
         printf "%b %s" "${INFO}" "${str}"          
-        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" https://digifacts.digibyte.help/?lang=en&format=social
+        sudo -u $USER_ACCOUNT curl -s -o "$digifacts_file" "https://digifacts.digibyte.help/?lang=en&format=social"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Check if the downloaded file is valid JSON
         str="Is downloaded digifacts.json okay? ..."
+        printf "%b %s" "${INFO}" "${str}"
+        if test ! -s "$digifacts_file"; then
+            rm "$digifacts_file"
+            if [ -f "$digifacts_backup_file" ]; then
+                mv "$digifacts_backup_file" "$digifacts_file"
+            fi
+            printf "%b%b %s No! File empty! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            return 1
+        else
+            # If the JSON is valid, delete the backup file (if it exists)
+            if [ -f "$digifacts_backup_file" ]; then
+                sudo -u $USER_ACCOUNT rm -f "$digifacts_backup_file"
+                printf "%b%b %s Yes! Backup deleted!\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
+        fi
+
+        # Check if the downloaded file is valid JSON
+        str="Is downloaded digifacts.json valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
         if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
             rm "$digifacts_file"
@@ -14919,7 +14939,7 @@ download_digifacts() {
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        echo "test 15"
+        echo "test 16"
         exit
 
         # If diginode-help.json exists, append its values to digifacts.json
