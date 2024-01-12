@@ -15,6 +15,7 @@ IMPORTANT:
 - If it is not already installed, you will need to first install 'sudo' to use DigiNode Tools on Debian.
 - It is recommended to create a new user for your DigiNode called 'digibyte'. This will isolate your wallet in its own acccount.
 - Run the setup script as the 'digibyte' user (not as root).
+- [Windows Terminal](https://apps.microsoft.com/detail/9N0DX20HK701) is recommended for Windows. [iTerm2](https://iterm2.com/) is recommended for Mac.
 
 Launch DigiNode Setup by entering the following command in the terminal:
 

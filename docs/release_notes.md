@@ -1,11 +1,14 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.5 - 2024-01-xx [COMING SOON]
+- Coming soon...
+
 DigiNode Tools v0.9.4 - 2024-01-12
 - New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
 - New: Use the ```diginode --porttest``` flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
 - Fix: Switch from using whiptail menus to dialog menus. This is to get around the Debian bug that is causing the menus to be unresponsive at first launch - key presses do not work and it is impossible to proceed. This bug affected whiptail menus - dialog is not affected - and is triggered when piping through bash. By switching to dialog we bypass the issue, and no longer need the Ubuntu workaround.
 - Fix: Web UI URL in DigiNode Dashboard now gets split across two lines when required, if there are two URLs.
-- Change: Remove support for running a DigiAsset Node ONLY. (DigiByte Core, which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed.)
+- Change: Remove support for running a DigiAsset Node ONLY. [DigiAsset Core](https://github.com/DigiAsset-Core/DigiAsset_Core), which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed. You can learn more about DigiAsset Core [here](https://digiassetcore.digiassetx.com/).
 - Change: If there are multiple updates available, DigiNode Setup now lets you install them individually.
 - Change: CPU usage in DigiNode Dashboard is now displayed as a whole number.
 - Change: Remove digifact78 from digifacts.json as this describes DigiNode Tools itself.
@@ -35,7 +38,7 @@ DigiNode Tools v0.9.0 - 2023-10-22
 - Fix: New improved update checker for DigiByte Core. It can now handle comparing release versions to pre-release versions, including test variants (e.g. 8.22.0-rc3-faststart), to detect if there is an update available. If you are creating your own test variants, each one should be in its own folder in the home folder (e.g. ~/8.22.0-rc3-faststart). Within this folder you need to also create a hidden file called .prerelease and inside that file include a variable assignment for the current version (e.g. DGB_VER_LOCAL="8.22.0-rc3-faststart"). Finally you need to create a symbolic link in the home folder called 'digibyte' that points at the test variant folder. Be sure to delete the existing 'digibyte' symbolic link first, if it already exists.
 - Fix: DigiNode Dashboard no longer flickers as it was prone to do in all previous versions.
 - Fix: DigiNode Dashboard no longer gets duplicated down the screen! This used to happen occasionally when using the mouse with the terminal particularly on macOS. Clicking on the terminal window would could the Status Monitor to get duplicated down the terminal and the only way to solve it was to scroll down all the way to the bottom. It was an infuriating bug that has been there since the beginning. Hopefully it is now gone for good.
-- Fix: Windows users should now see colors in DigiNode Dashboard. If you don't please download Windows Terminal from the Microsoft store. This is the recommended terminal software for DigiNode users on Windows: https://apps.microsoft.com/detail/9N0DX20HK701?hl=en-us&gl=US
+- Fix: Windows users should now see colors in DigiNode Dashboard. If you don't, please download [Windows Terminal from the Microsoft store](https://apps.microsoft.com/detail/9N0DX20HK701). This is the recommended terminal software for DigiNode users on Windows. 
 
 DigiNode Tools v0.8.10 - 2023-10-08
 - New: Add support for new DigiByte port tester developed by @JongJan88
