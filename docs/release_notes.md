@@ -1,8 +1,20 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.3 - 2023-10-xx
-- Fix:
+DigiNode Tools v0.9.4 - 2024-01-12
+- New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
+- New: Use the "diginode --porttest" flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
+- Fix: Switch from using whiptail menus to dialog menus. This is to get around the Debian bug that is causing the menus to be unresponsive at first launch - key presses do not work and it is impossible to proceed. This bug affected whiptail menus - dialog is not affected - and is triggered when piping through bash. By switching to dialog we bypass the issue, and no longer need the Ubuntu workaround.
+- Fix: Web UI URL in DigiNode Dashboard now gets split across two lines when required, if there are two URLs.
+- Change: Remove support for running a DigiAsset Node ONLY. (DigiByte Core, which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed.)
+- Change: If there are multiple updates available, DigiNode Setup now lets you install them individually.
+- Change: CPU usage in DigiNode Dashboard is now displayed as a whole number.
+- Change: Remove digifact78 from digifacts.json as this describes DigiNode Tools itself.
+- Change: Removed Ubuntu workaround as this is no longer required
+- Change: Rename "Kubo IPFS" to "IPFS Kubo" to match official IPFS naming
 
+DigiNode Tools v0.9.3 - 2023-10-26
+- Fix: DigiNode Dashboard now installs sysstat if not present
+- Fix: Replace mentions of DigiNode Status Monitor with DigiNode Dashboard
 
 DigiNode Tools v0.9.2 - 2023-10-23
 - Fix: Dashboard spacing when there is an update available in the Software section
@@ -17,7 +29,7 @@ DigiNode Tools v0.9.1 - 2023-10-23
 
 DigiNode Tools v0.9.0 - 2023-10-22
 - New: Introducing "DigiNode Dashboard" with Dual Node support! The old Status Monitor has been completely redesigned and rewritten from the ground up which called for a new new name - goodbye DigiNode Status Monitor, hello DigiNode Dashboard! It now resizes automatically to fit the width of the terminal, increasing or decreasing the information density based on the space available. It also now displays the CPU stats and other useful data. Most importantly it also has support for a Dual Node - displaying data from both your mainnet and testnet nodes at the same time.
-- New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information here: https://github.com/saltedlolly/DigiByte-DigiFacts-JSON
+- New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON)
 - New: Added "diginode --dgbpeers" flag to display the current DigiByte peers. User --dgb2peers for the secondary textnet neode when running a Dual Node.
 - New: Added "diginode --rpc" flag to display the current RPC credentials for the DigiByte Node. These were previously displayed in the Status Monitor but for privacy reasons they have been removed. This command saves you from having to look them up in digibyte.conf. 
 - Fix: New improved update checker for DigiByte Core. It can now handle comparing release versions to pre-release versions, including test variants (e.g. 8.22.0-rc3-faststart), to detect if there is an update available. If you are creating your own test variants, each one should be in its own folder in the home folder (e.g. ~/8.22.0-rc3-faststart). Within this folder you need to also create a hidden file called .prerelease and inside that file include a variable assignment for the current version (e.g. DGB_VER_LOCAL="8.22.0-rc3-faststart"). Finally you need to create a symbolic link in the home folder called 'digibyte' that points at the test variant folder. Be sure to delete the existing 'digibyte' symbolic link first, if it already exists.

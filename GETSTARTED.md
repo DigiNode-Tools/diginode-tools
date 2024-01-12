@@ -8,25 +8,17 @@ Follow the instuctions below for you specific system:
 
 Go [here](docs/rpi_setup.md) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
 
-## ➡️ Setup a DigiNode on Debian
+## ➡️ Setup a DigiNode on Debian / Ubuntu
 
-On your Debian system, launch DigiNode Setup by entering the following command in the terminal:
+IMPORTANT:
+
+- If it is not already installed, you will need to first install 'sudo' to use DigiNode Tools on Debian.
+- It is recommended to create a new user for your DigiNode called 'digibyte'. This will isolate your wallet in its own acccount.
+- Run the setup script as the 'digibyte' user (not as root).
+
+Launch DigiNode Setup by entering the following command in the terminal:
 
   **```curl -sSL setup.diginode.tools | bash```**
-
-## ➡️ Setup a DigiNode on Ubuntu
-
-Due to a bug in the latest Ubuntu release, is is not currently possible to run the install script directly from Github - when you do, the menus will become unresponsive. (If you find yourself in this situation you can press Ctrl-C to Exit.)
-
-Until a fix is released, the workaround is to first download DigiNode Tools and then run it from your local machine. Enter the following command to download it:
-
-```cd ~ && DGNT_VER_RELEASE=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//') && git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null && touch ~/diginode-tools/ubuntu-workaround && chmod +x ~/diginode-tools/diginode-setup.sh```
-
-This command need only be run once. The latest release of DigiNode Tools will be downloaded to ~/diginode-tools. Once downloaded, you can run DigiNode Setup by entering:
-
-```~/diginode-tools/diginode-setup.sh```
-
-(Note: If needed, flags from the 'Advanced Features' section can be appended to this command.)
 
 # Advanced Features
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.3
+#           Name:  DigiNode Dashboard v0.9.4
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/diginode
+#                  Twitter -  https://twitter.com/diginodetools
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.3
-# Last Updated: 2023-10-25
+DGNT_VER_LOCAL=0.9.4
+# Last Updated: 2023-10-26
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -157,6 +157,7 @@ DGBPEERS=false
 DGB2PEERS=false
 VIEW_RPC_CREDENTIALS=false
 UNKNOWN_FLAG=false
+REENABLE_PORT_TEST=false
 # Check arguments for the undocumented flags
 # --dgndev (-d) will use and install the develop branch of DigiNode Tools (used during development)
 for var in "$@"; do
@@ -181,6 +182,7 @@ for var in "$@"; do
         "--dgbpeers" ) DGBPEERS=true;;
         "--dgb2peers" ) DGB2PEERS=true;;
         "--rpc" ) VIEW_RPC_CREDENTIALS=true;;
+        "--porttest" ) REENABLE_PORT_TEST=true;;
         # If an unknown flag is used...
         *) UNKNOWN_FLAG=true;;
     esac
@@ -209,7 +211,8 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $DGB2CORE_STOP = true ] || \
    [ $DGBPEERS = true ] || \
    [ $DGB2PEERS = true ] || \
-   [ $VIEW_RPC_CREDENTIALS = true ]; then
+   [ $VIEW_RPC_CREDENTIALS = true ] || \
+   [ $REENABLE_PORT_TEST = true ]; then
     printf "\\n"
     get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
     import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
@@ -445,6 +448,47 @@ if [ $UNKNOWN_FLAG = true ] || \
         printf "     RPC Ports: $RPC_PORT (%s)\\n\\n" "$(echo "${DGB_NETWORK_CURRENT,,}" | sed 's/./\U&/1')"
         fi
         exit
+    elif [ $REENABLE_PORT_TEST = true ]; then # --porttest
+        diginode_tools_import_settings silent
+
+        printf "%b Re-enabling DigiByte Core MAINNET Port Test...\n" "${INFO}"
+        DGB_MAINNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_FWD_STATUS=""
+        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=\"$DGB_MAINNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        DGB_MAINNET_PORT_NUMBER_SAVED=""
+        sed -i -e "/^DGB_MAINNET_PORT_NUMBER_SAVED=/s|.*|DGB_MAINNET_PORT_NUMBER_SAVED=\"$DGB_MAINNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+        
+        printf "%b Re-enabling DigiByte Core TESTNET Port Test...\n" "${INFO}"
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_FWD_STATUS=""
+        sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=\"$DGB_TESTNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        DGB_TESTNET_PORT_NUMBER_SAVED=""
+        sed -i -e "/^DGB_TESTNET_PORT_NUMBER_SAVED=/s|.*|DGB_TESTNET_PORT_NUMBER_SAVED=\"$DGB_TESTNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        printf "%b Re-enabling IPFS Port Test...\n" "${INFO}"
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_FWD_STATUS=""
+        sed -i -e "/^IPFS_PORT_FWD_STATUS=/s|.*|IPFS_PORT_FWD_STATUS=\"$IPFS_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_PASS_DATE=""
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_TEST_EXTERNAL_IP=""
+        sed -i -e "/^IPFS_PORT_TEST_EXTERNAL_IP=/s|.*|IPFS_PORT_TEST_EXTERNAL_IP=\"$IPFS_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+        IPFS_PORT_NUMBER_SAVED=""
+        sed -i -e "/^IPFS_PORT_NUMBER_SAVED=/s|.*|IPFS_PORT_NUMBER_SAVED=\"$IPFS_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+        sleep 2
+
     fi
 
 
@@ -500,6 +544,7 @@ display_help() {
         printf "%b%b--dgbcfg%b        - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgntset%b       - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--rpc%b           - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--porttest%b      - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -1223,11 +1268,11 @@ is_dganode_installed() {
       if [ "$ipfs_installed" = "yes" ]; then
 
           if [ "" = "$(pgrep ipfs)" ]; then
-              printf "%b Kubo IPFS daemon is NOT running\\n" "${CROSS}"
+              printf "%b IPFS Kubo daemon is NOT running\\n" "${CROSS}"
               ipfs_running="no"
               DGA_STATUS="not_detected"
           else
-              printf "%b Kubo IPFS daemon is running\\n" "${TICK}"
+              printf "%b IPFS Kubo daemon is running\\n" "${TICK}"
               if [ "$DGA_STATUS" = "ipfsinstalled" ]; then
                 DGA_STATUS="ipfsrunning"
               fi
@@ -1534,7 +1579,23 @@ fi
 
 echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 if [ "$IS_AVAHI_INSTALLED" = "yes" ]; then
-    printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$HOSTNAME.local:8090    http://$IP4_INTERNAL:8090" " ║ "
+
+    # Setup IP6 display array
+    webui_leftcol=" ║                ║         WEB UI ║  "
+    webui_leftcol2=" ║                ║                ║  "
+    webui_bothurl="http://$HOSTNAME.local:8090   http://$IP4_INTERNAL:8090"
+    webui_bothurl_width=${#webui_bothurl}
+    webui_bothurl1="http://$HOSTNAME.local:8090"
+    webui_bothurl2="http://$IP4_INTERNAL:8090"
+
+    # Display web UI urls
+    if [ $term_width -gt $(( webui_bothurl_width + 41 )) ]; then
+        db_content_c1_c2_c3f "$webui_leftcol" "$webui_bothurl"
+    else
+        db_content_c1_c2_c3f "$webui_leftcol" "$webui_bothurl1"
+        db_content_c1_c2_c3f "$webui_leftcol2" "$webui_bothurl2"
+    fi
+
 else
     printf " ║                ║         WEB UI ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "http://$IP4_INTERNAL:8090" " ║ "
 fi
@@ -2154,7 +2215,7 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf "%.1f", $2}')
+            usage=$(echo "$line" | awk '{printf "%.0f", $2}')
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
@@ -2167,7 +2228,7 @@ get_cpu_stats() {
             counter=$((counter + 1))
         done <<< "$stats"
 
-        average_usage=$(echo "scale=1; $total_usage / $num_cores" | bc)
+        average_usage=$(echo "scale=0; $total_usage / $num_cores" | bc)
 
         echo "$cpu_usage_1" > "$cpu1_file"
         echo "$cpu_usage_2" > "$cpu2_file"
@@ -4381,9 +4442,9 @@ echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
 if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node is running
     if [ $DGB_CONNECTIONS -le 8 ]; then
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
     else
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Nodes" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
     fi
     # Choose the correct network chain border
     if [ "$dgb_chain_caps" = "MAINNET" ]; then
@@ -4650,14 +4711,14 @@ fi
 if [ "$IPFS_VER_LOCAL" != "" ]; then
   if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
     if [ $term_width -gt 111 ]; then 
-        printf " ║                ║  " && printf "%-${col_width_software_kubo_wide}s %50s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: Kubo IPFS v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software_kubo_wide}s %50s %-3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: IPFS Kubo v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     elif [ $term_width -gt 97 ]; then
-        printf " ║                ║  " && printf "%-${col_width_software}s %35s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software}s %35s %3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update Available: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     else
-        printf " ║                ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
+        printf " ║                ║  " && printf "%-${col_width_software_narrow}s %27s %3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" "[ ${txtbgrn}Update: v$IPFS_VER_RELEASE${txtrst} ]" " ║ "
     fi
   else
-    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "Kubo IPFS v$IPFS_VER_LOCAL" " ║ "
+    printf " ║                ║  " && printf "%-${col_width_software_noupdate}s %-3s\n" "IPFS Kubo v$IPFS_VER_LOCAL" " ║ "
   fi
 fi
 # printf "  ║               ╠════════════════════════════════════════════════════╣\\n"
@@ -4706,10 +4767,10 @@ echo "$sm_row_08" # "╚" "═" "╩" "═" "═" "═" "╝"
 echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
 ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
-ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_on_ext_off="Internal: $IP4_INTERNAL    External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}    External: $IP4_EXTERNAL"
-ip4_int_on_ext_on="Internal: $IP4_INTERNAL    External: $IP4_EXTERNAL"
+ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
+ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
 
 # Display IP4 addresses
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
@@ -4842,6 +4903,8 @@ fi
 
 if [ "$cpu_cores" -le 12 ]; then
 
+    average_cpu_usage=90
+
     # Read CPU values from the temporary files (these are updated by a background process)
     cpu_usage_1=$(cat "$cpu1_file")
     cpu_usage_2=$(cat "$cpu2_file")
@@ -4854,7 +4917,11 @@ if [ "$cpu_cores" -le 12 ]; then
     cpu_one_line_width=${#cpu_one_line}
     cpu_one_line_l1="$cpu_usage_1"
     cpu_one_line_l2="$cpu_usage_2"
-    cpu_total_perc="Total: ${average_cpu_usage}%"
+    if [ "$average_cpu_usage" -ge 80 ]; then
+        cpu_total_perc="Total: ${dbcol_bred}${average_cpu_usage}%${dbcol_rst}"
+    else
+        cpu_total_perc="Total: ${average_cpu_usage}%"
+    fi
     cpu_total_perc_width=${#cpu_total_perc}
 
     # Display first IP6 part
@@ -5287,6 +5354,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     DGB_MAINNET_PORT_TEST_QUERY_ISP=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
 
     # Check network and capitalize
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
@@ -5332,6 +5400,15 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
         fi
     fi
 
+    # Port test - Get server time
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
+        DGB_MAINNET_PORT_TEST_SERVERTIME="$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME UTC"
+        server_local_time=$(date -d "$DGB_MAINNET_PORT_TEST_SERVERTIME")
+        if [ "$server_local_time" != "" ]; then
+            DGB_MAINNET_PORT_TEST_SERVERTIME=$server_local_time
+        fi
+    fi
+
 
     if [ "$DGB_MAINNET_PORT_FWD_STATUS" = "OPEN" ]; then
 
@@ -5356,11 +5433,14 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
         if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" != "" ]; then
             printf "%b   First Online:  $DGB_MAINNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
         fi
+        if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_MAINNET_PORT_TEST_SERVERTIME" != "" ]; then
+            printf "%b   Server Time:  $DGB_MAINNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
+        fi
         printf "\\n"
 
 
 
-        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
+        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
         DGB_MAINNET_PORT_TEST_ENABLED="NO"
         sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
         DGB_MAINNET_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
@@ -5496,6 +5576,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     DGB_TESTNET_PORT_TEST_QUERY_ISP=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
 
     # Check network and capitalize
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
@@ -5541,6 +5622,15 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
         fi
     fi
 
+    # Port test - Get server time
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
+        DGB_TESTNET_PORT_TEST_SERVERTIME="$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME UTC"
+        server_local_time=$(date -d "$DGB_TESTNET_PORT_TEST_SERVERTIME")
+        if [ "$server_local_time" != "" ]; then
+            DGB_TESTNET_PORT_TEST_SERVERTIME=$server_local_time
+        fi
+    fi
+
 
     if [ "$DGB_TESTNET_PORT_FWD_STATUS" = "OPEN" ]; then
 
@@ -5564,6 +5654,9 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
         fi
         if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" != "" ]; then
             printf "%b   First Online:  $DGB_TESTNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
+        fi
+        if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_TESTNET_PORT_TEST_SERVERTIME" != "" ]; then
+            printf "%b   Server Time:  $DGB_TESTNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
         fi
         printf "\\n"
 
