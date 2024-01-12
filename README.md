@@ -19,7 +19,6 @@ DigiNode Tools are a suite of Linux bash scripts that make it really easy to set
 ## About DigiNode Setup
 
 ![DigiNode Setup](images/diginode_install_menu.png)
-
 DigiNode Setup helps you to setup and manage your DigiNode:
 
 - Intuitively walks you though the process of setting up a DigiByte Node and/or DigiAsset Node. 
