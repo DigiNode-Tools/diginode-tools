@@ -14831,6 +14831,7 @@ download_digifacts() {
 
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
+    local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"
     local diginode_help_file="$DGNT_LOCATION/diginode-help.json"
 
     # If the last download time file doesn't exist, create one with an old timestamp
@@ -14847,6 +14848,15 @@ download_digifacts() {
 
     # Function to download and process the digifacts.json
     download_and_process() {
+
+        # If a temp file exists, delete it
+        if test -f "$digifacts_temp_file"; then
+            str="Delete existing digifacts.json.temp ..."
+            printf "%b %s" "${INFO}" "${str}" 
+            sudo -u $USER_ACCOUNT rm -f "$digifacts_temp_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
         # If a backup exists, delete it
         if test -f "$digifacts_backup_file"; then
             str="Delete existing digifacts.json.backup ..."
@@ -14904,8 +14914,8 @@ download_digifacts() {
         if [ -f "$digifacts_file" ]; then
             str="Remove digifact78, as this describes DigiNode Tools ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$DGNT_LOCATION/digifacts.json.temp"
-            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts.json.temp" "$digifacts_file"
+            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
+            sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
@@ -14913,14 +14923,14 @@ download_digifacts() {
         if [[ -f $diginode_help_file ]]; then
             str="Appending diginode-help.json to digifacts.json ..."
             printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT rm -f "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT touch "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$DGNT_LOCATION/digifacts-append-temp.json"
-            sudo -u $USER_ACCOUNT mv "$DGNT_LOCATION/digifacts-append-temp.json" "$digifacts_file"
+            sudo -u $USER_ACCOUNT rm -f "$digifacts_temp_file"
+            sudo -u $USER_ACCOUNT touch "$digifacts_temp_file"
+            sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$digifacts_temp_file"
+            sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        echo "test 8"
+        echo "test 9"
         
         exit
 
