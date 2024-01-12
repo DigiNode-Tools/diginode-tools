@@ -14913,17 +14913,13 @@ download_digifacts() {
         echo "digifacts_file: $digifacts_file"
 
         # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        if test -f "$digifacts_file"; then
-            str="Remove digifact78, as this describes DigiNode Tools ..."
-            printf "%b %s" "${INFO}" "${str}" 
-            sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
-            sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            echo "triggered"
-        fi
+        str="Remove digifact78, as this describes DigiNode Tools ..."
+        printf "%b %s" "${INFO}" "${str}" 
+        sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
+        sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        echo "test 13"
+        echo "test 15"
         exit
 
         # If diginode-help.json exists, append its values to digifacts.json
