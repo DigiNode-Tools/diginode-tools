@@ -14956,7 +14956,7 @@ download_digifacts() {
 
     # Important Note: If you are testing this using the --dgntdev flag, remember that the DigiNode Tools folder
     # gets deleted every time the script runs, also deleting the digifacts.json file along with it. This means
-    # that the DigiFacts will be re-downloaded from scratch every time. It will never upgrade them.
+    # that the DigiFacts will be re-downloaded from scratch every time. It will never be upgraded.
 
     if test ! -e "$digifacts_file"; then
         printf "%b digifacts.json does not exist and will be downloaded...\\n" "${INFO}"
