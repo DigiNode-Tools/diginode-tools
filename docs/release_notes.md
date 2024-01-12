@@ -2,7 +2,7 @@
 
 DigiNode Tools v0.9.4 - 2024-01-12
 - New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
-- New: Use the "diginode --porttest" flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
+- New: Use the ```diginode --porttest``` flag to manually re-enable the DigiByte Node and DigiAsset Node port tests, if needed.
 - Fix: Switch from using whiptail menus to dialog menus. This is to get around the Debian bug that is causing the menus to be unresponsive at first launch - key presses do not work and it is impossible to proceed. This bug affected whiptail menus - dialog is not affected - and is triggered when piping through bash. By switching to dialog we bypass the issue, and no longer need the Ubuntu workaround.
 - Fix: Web UI URL in DigiNode Dashboard now gets split across two lines when required, if there are two URLs.
 - Change: Remove support for running a DigiAsset Node ONLY. (DigiByte Core, which will soon replace the current DigiAsset Node software, requires a DigiByte Node to function. It will no longer be possible to run a DigiAsset Node without a DigiByte Node so this option has been removed.)
@@ -30,8 +30,8 @@ DigiNode Tools v0.9.1 - 2023-10-23
 DigiNode Tools v0.9.0 - 2023-10-22
 - New: Introducing "DigiNode Dashboard" with Dual Node support! The old Status Monitor has been completely redesigned and rewritten from the ground up which called for a new new name - goodbye DigiNode Status Monitor, hello DigiNode Dashboard! It now resizes automatically to fit the width of the terminal, increasing or decreasing the information density based on the space available. It also now displays the CPU stats and other useful data. Most importantly it also has support for a Dual Node - displaying data from both your mainnet and testnet nodes at the same time.
 - New: The DigiFacts are now automatically downloaded from the new "DigiByte-DigiFacts-JSON" repository on Github. The DigiFacts have been formatted into a JSON file so that anyone in the DigiByte community can use them in their own projects. More information [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON)
-- New: Added "diginode --dgbpeers" flag to display the current DigiByte peers. User --dgb2peers for the secondary textnet neode when running a Dual Node.
-- New: Added "diginode --rpc" flag to display the current RPC credentials for the DigiByte Node. These were previously displayed in the Status Monitor but for privacy reasons they have been removed. This command saves you from having to look them up in digibyte.conf. 
+- New: Added ```diginode --dgbpeers``` flag to display the current DigiByte peers. User ```--dgb2peers``` for the secondary textnet neode when running a Dual Node.
+- New: Added ```diginode --rpc``` flag to display the current RPC credentials for the DigiByte Node. These were previously displayed in the Status Monitor but for privacy reasons they have been removed. This command saves you from having to look them up in digibyte.conf. 
 - Fix: New improved update checker for DigiByte Core. It can now handle comparing release versions to pre-release versions, including test variants (e.g. 8.22.0-rc3-faststart), to detect if there is an update available. If you are creating your own test variants, each one should be in its own folder in the home folder (e.g. ~/8.22.0-rc3-faststart). Within this folder you need to also create a hidden file called .prerelease and inside that file include a variable assignment for the current version (e.g. DGB_VER_LOCAL="8.22.0-rc3-faststart"). Finally you need to create a symbolic link in the home folder called 'digibyte' that points at the test variant folder. Be sure to delete the existing 'digibyte' symbolic link first, if it already exists.
 - Fix: DigiNode Dashboard no longer flickers as it was prone to do in all previous versions.
 - Fix: DigiNode Dashboard no longer gets duplicated down the screen! This used to happen occasionally when using the mouse with the terminal particularly on macOS. Clicking on the terminal window would could the Status Monitor to get duplicated down the terminal and the only way to solve it was to scroll down all the way to the bottom. It was an infuriating bug that has been there since the beginning. Hopefully it is now gone for good.
@@ -58,7 +58,7 @@ DigiNode Tools v0.8.7 - 2023-09-09
 - New: Status Monitor now recognizes if a DigiByte Node is is running a regtest or signet chain and displays relevant status information.
 - New: Upgrade Status Monitor so that it can display the correct listening port, maxconnection count and RPC credentials from digibyte.conf depending on which chain we are running, and which section of digibyte.conf the values are in.
 - New: Status Monitor startup checks can now detect if digibyted has failed and display the error.
-- New: Add --help to DigiNode Status Monitor. To view a list of the optional flags, enter: diginode --help
+- New: Add ```--help``` flag to DigiNode Status Monitor. To view a list of the optional flags, enter: ```diginode --help```
 - New: Status Monitor now displays the listening port and upnp status. It disappears once it knows that the port is being forwarded correctly.
 - New: Uninstaller now lets you uninstall Node.js. You must uninstall the DigiAsset Node first.
 - Fix: Improve ability to recognize system RAM on an unknown Raspberry Pi model.
@@ -75,14 +75,14 @@ DigiNode Tools v0.8.6 - 2023-08-27
 - Change: DigiAsset Node node now displays block height with commas so it is easy to read
 
 DigiNode Tools v0.8.5 - 2023-08-26
-- Fix: Bug with --skippkgupdate
+- Fix: Bug with ```--skippkgupdate```
 
 DigiNode Tools v0.8.4 - 2023-08-21
-- Fix: Rework the process of upgrading from running a DigiAsset Node ONLY to a FULL DigiNode. Now works correctly when using the --dgbpre flag.
+- Fix: Rework the process of upgrading from running a DigiAsset Node ONLY to a FULL DigiNode. Now works correctly when using the ```--dgbpre``` flag.
 
 DigiNode Tools v0.8.3 - 2023-08-21
 - Change: More documentation improvements
-- Change: Add --help tip to MOTD
+- Change: Add ```--help``` tip to MOTD
 - Fix: Minor bug when installing MOTD
 - Fix: Status Monitor now displays "Block Height" from the DigiAsset Node console. I previously did not include this simply to save space, but I have recently discovered that this sometimes displays important error messages. It has also a revealed a bug with the DigiAssets Node which DigiAssetX is working to fix.
 
@@ -98,8 +98,8 @@ DigiNode Tools v0.8.1 - 2023-08-15
 - Change: Improved one-page setup instructions for Raspberry Pi to make it clearer
 
 DigiNode Tools v0.8.0 - 2023-08-14
-- New: Now supports installing a pre-release version of DigiByte Core with the --dgpre flag. Downgrade back to the release version with --dgbnopre
-- New: Add --help flag to DigiNode Setup script which describes all the available optional launch flags
+- New: Now supports installing a pre-release version of DigiByte Core with the ```--dgpre``` flag. Downgrade back to the release version with ```--dgbnopre```
+- New: Add ```--help``` flag to DigiNode Setup script which describes all the available optional launch flags
 - Fix: Improve checks for a failed install of DigiByte Core due to it using a non-standard folder structure. It will now restore the existing version from local backup and restart it.
 - Change: Official URL is now diginode.tools. Bash script now uses setup.diginode.tools
 - Change: Update Status Monitor to be able to detect a new prerelease/release version of DigiByte Core depending on which is in use
@@ -107,7 +107,7 @@ DigiNode Tools v0.8.0 - 2023-08-14
 
 DigiNode Tools v0.7.4 - 2023-02-26
 - More documentation tweaks
-- Fix: Fixes to --locatedgb feature
+- Fix: Fixes to ```--locatedgb``` feature
 - Add checksum comparison when backing up or restoring wallet.dat to/from a USB stick. This verifies that the wallet file has been copied correctly, during a backup or restore.
 
 DigiNode Tools v0.7.3 - 2023-01-15
@@ -180,7 +180,7 @@ DigiNode Tools v0.6.0 - 2022-08-05
 
 DigiNode Tools v0.5.6 - 2022-08-01
 - New: Status Monitor now quits automatically after one hour by default
-- New: When using Unattended mode, you can now use the --skipcustommsg to skip the option to customize diginode.settings at first run.
+- New: When using Unattended mode, you can now use the ```--skipcustommsg``` to skip the option to customize diginode.settings at first run.
 - New: Status Monitor now includes if there is a payout address for the DigiAsset Node
 
 DigiNode Tools v0.5.5 - 2022-07-31
@@ -294,7 +294,7 @@ DigiNode Tools v0.3.1 - 2022-07-09
 - Fix: Improve the scripts ability to detect if DigiAsset Node is installed and/or running.
 
 DigiNode Tools v0.2.5 - 2022-07-07
-- Fix: --skiposcheck flag now works as expected
+- Fix: ```--skiposcheck``` flag now works as expected
 - New: Improve documentation by adding equipment suggestions for building your own DigiNode
 
 DigiNode Tools v0.2.4 - 2022-07-01 
