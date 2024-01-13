@@ -2222,7 +2222,7 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf "%.0f", $2}')
+            usage=$(echo "$line" | awk '{printf ($2 < 10) ? " %.0f" : "%.0f", $2}') # Add a leading space if the usage is less than 10
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
