@@ -13503,7 +13503,7 @@ fi
 menu_ask_install_updates() {
 
 # TESTING UPGRADES (TROUBLESHOOTING)
-DGB_ASK_UPGRADE="YES"
+# DGB_ASK_UPGRADE="YES"
 # DGA_ASK_UPGRADE="YES"
 # IPFS_ASK_UPGRADE="YES"
 # DGNT_ASK_UPGRADE="YES"
@@ -13515,7 +13515,7 @@ DGB_ASK_UPGRADE="YES"
 # echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
 # echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
 
-DGB_VER_GITHUB="8.22.0"
+# DGB_VER_GITHUB="8.22.0"
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
