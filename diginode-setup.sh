@@ -9921,6 +9921,7 @@ check_digibyte_core() {
                 DGB_INSTALL_TYPE="askreset"
             else
                 printf "%b Upgrade not required.\\n" "${INFO}"
+                echo "hello"
                 DGB_DO_INSTALL=NO
                 DGB_INSTALL_TYPE="none"
                 DGB_UPDATE_AVAILABLE=NO
