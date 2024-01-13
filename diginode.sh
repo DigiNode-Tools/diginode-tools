@@ -519,7 +519,7 @@ display_help() {
         echo ""
         echo "  ╔════════════════════════════════════════════════════════╗"
         echo "  ║                                                        ║"
-        echo "  ║          ${txtbld}D I G I N O D E   C L I${txtrst}     ║ "
+        echo "  ║               ${txtbld}D I G I N O D E   C L I${txtrst}          ║ "
         echo "  ║                                                        ║"
         echo "  ║       Manage your DigiNode from the Command Line       ║"
         echo "  ║                                                        ║"
