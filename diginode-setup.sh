@@ -380,7 +380,8 @@ is_dgb_prerelease_mode() {
     fi
     if [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then
         printf "%b %bDigiByte Core RELEASE Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   If DigiByte Core is currently running a pre-release version, it will be downgraded the latest release version.\\n" "${INDENT}"
+        printf "%b   If DigiByte Core is currently running a pre-release version,\\n" "${INDENT}"
+        printf "%b   it will be downgraded the latest release version.\\n" "${INDENT}"
         printf "\\n"
     fi
 }
@@ -9833,7 +9834,7 @@ check_digibyte_core() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repository for the latest DigiByte Core pre-release..."
+        str="Checking GitHub repo for latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
         DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
@@ -9873,7 +9874,7 @@ check_digibyte_core() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repository for the latest DigiByte Core release..."
+        str="Checking GitHub repo for latest DigiByte Core release..."
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
