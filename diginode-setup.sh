@@ -6460,7 +6460,7 @@ disk_check() {
                 QUERY_LOWDISK_SPACE="YES"
             fi      
         else
-            printf "%b Disk Space Check: %bPASSED%b   There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b Disk Space Check: %bPASSED%b   There is enough space to download the blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
@@ -8822,7 +8822,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 20 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -10038,7 +10038,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repository..."
+    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repo..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
@@ -10200,7 +10200,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    str="Creating 'digibyte' symbolic link for $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -10214,7 +10214,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
     # If this is the alt url download, we need to add a v in the URL
     if [ "$use_dgb_alt_download" == true ]; then
@@ -14452,7 +14452,7 @@ uninstall_do_now() {
 
             # Delete systemd service file
             if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
-                str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+                str="Deleting DigiByte daemon systemd service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $DGB_SYSTEMD_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14476,7 +14476,7 @@ uninstall_do_now() {
 
                 # Delete systemd service file
                 if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
-                    str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+                    str="Deleting DigiByte testnet systemd service file for Dual Node..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -f $DGB2_SYSTEMD_SERVICE_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14484,7 +14484,7 @@ uninstall_do_now() {
 
                 # Delete upstart service file
                 if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
-                    str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+                    str="Deleting DigiByte testnet upstart service file for Dual Node..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -f $DGB2_UPSTART_SERVICE_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
