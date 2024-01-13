@@ -9928,6 +9928,9 @@ check_digibyte_core() {
                 return
             fi
 
+            echo "INSTALL_DGB_RELEASE_TYPE: $INSTALL_DGB_RELEASE_TYPE"
+            echo "REQUEST_DGB_RELEASE_TYPE: $REQUEST_DGB_RELEASE_TYPE"
+
             if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] && [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then # --dgbnopre
                 printf "%b %bDigiByte Core can be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
                 DGB_INSTALL_TYPE="upgrade"
