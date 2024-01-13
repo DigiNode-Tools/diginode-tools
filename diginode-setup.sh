@@ -9926,7 +9926,7 @@ check_digibyte_core() {
                 DGB_INSTALL_TYPE="none"
                 DGB_UPDATE_AVAILABLE=NO
                 printf "\\n"
-                return
+ #              return
             fi
 
             echo "INSTALL_DGB_RELEASE_TYPE: $INSTALL_DGB_RELEASE_TYPE"
