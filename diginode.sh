@@ -558,8 +558,8 @@ display_help() {
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgb2log%b       - View log file for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
-        printf "%b                  You can also view the log files for each chain with: %b--dgblogmn%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                  %b--dgblogtn%b (Testnet), %b--dgblogrt%b (Regtest), and %b--dgblogsn%b (Signet).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                  You can also view the log files using: %b--dgblogmn%b (Mainnet)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                  %b--dgblogtn%b (Testnet), %b--dgblogrt%b (Regtest) & %b--dgblogsn%b (Signet).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
