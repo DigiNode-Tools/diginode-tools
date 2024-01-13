@@ -145,6 +145,7 @@ DISPLAY_HELP=false
 EDIT_DGBCFG=false
 EDIT_DGNTSET=false
 VIEW_DGBLOG=false
+VIEW_DGB2LOG=false
 VIEW_DGBLOGMN=false
 VIEW_DGBLOGTN=false
 VIEW_DGBLOGRT=false
@@ -171,6 +172,7 @@ for var in "$@"; do
         "--dgbcfg" ) EDIT_DGBCFG=true;;
         "--dgntset" ) EDIT_DGNTSET=true;;
         "--dgblog" ) VIEW_DGBLOG=true;;
+        "--dgb2log" ) VIEW_DGB2LOG=true;;
         "--dgblogmn" ) VIEW_DGBLOGMN=true;;
         "--dgblogtn" ) VIEW_DGBLOGTN=true;;
         "--dgblogrt" ) VIEW_DGBLOGRT=true;;
@@ -200,6 +202,7 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $EDIT_DGBCFG = true ] || \
    [ $EDIT_DGNTSET = true ] || \
    [ $VIEW_DGBLOG = true ] || \
+   [ $VIEW_DGB2LOG = true ] || \
    [ $VIEW_DGBLOGMN = true ] || \
    [ $VIEW_DGBLOGTN = true ] || \
    [ $VIEW_DGBLOGRT = true ] || \
@@ -276,7 +279,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: DigiByte Core MAINNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
-    elif [ $VIEW_DGBLOGTN = true ]; then # --dgblogtn
+    elif [ $VIEW_DGBLOGTN = true ] || [ $VIEW_DGB2LOG = true ]; then # --dgblogtn
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
             diginode_tools_import_settings silent
         fi
@@ -404,7 +407,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             exit
-        elsediginode
+        else
             printf "%b %bERROR: DigiByte $DGB_NETWORK_CURRENT Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
@@ -546,19 +549,23 @@ display_help() {
         printf "%b%b--rpc%b           - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--porttest%b      - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
-        printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogtn%b      - View DigiByte Core log file for testnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogrt%b      - View DigiByte Core log file for regtest.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogsn%b      - View DigiByte Core log file for signet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            printf "%b%b--dgblog%b    - View log file for primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        else
+            printf "%b%b--dgblog%b    - View log file for DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        fi
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            printf "%b%b--dgb2log%b   - View log file for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        fi
+        printf "%b                      You can also view the specific log files for each chain with: %b--dgblogmn%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                      %b--dgblogtn%b (Testnet), %b--dgblogrt%b (Regtest) and %b--dgblogsn%b (Signet).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
         printf "\\n"
         printf "%bAppend the desired %b--flag%b to use:\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b$ %bdiginode --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
         printf "\\n"
         exit
     fi
