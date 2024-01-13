@@ -13691,7 +13691,7 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --title "Install DigiAsset Node?" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to install a DigiAsset Node?\Z0\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --title "Install DigiAsset Node?" --yesno "\n\Z4Would you like to install a DigiAsset Node?\Z0\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
             printf "%b You choose to install the DigiAsset Node.\\n" "${INFO}"
