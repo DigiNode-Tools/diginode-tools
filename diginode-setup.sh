@@ -14057,7 +14057,7 @@ uninstall_do_now() {
     if [ -d "$DGA_INSTALL_LOCATION" ]; then
 
         # Do you want to uninstall your DigiAsset Node?
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiAsset Node" --title "DigiNode Uninstall: Remove DigiAsset Node" --yesno "\nWould you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" 7 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiAsset Node" --title "DigiNode Uninstall: Remove DigiAsset Node" --yesno "\n\Z4Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?\Z0\n\nThis will remove the DigiAsset Node software itself but not your DigiAsset Node settings." 10 "${c}"; then
 
             local delete_dga=yes
 
