@@ -525,7 +525,7 @@ display_help() {
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
-        printf "%The followings flags can be used to manage your DigiNode:\\n" "${INDENT}"
+        printf "%bThe followings flags can be used to manage your DigiNode:\\n" "${INDENT}"
         printf "\\n"
         printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -559,7 +559,7 @@ display_help() {
             printf "%b%b--dgb2log%b       - View log file for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "%b                  You can also view each log files using: %b--dgblogmn%b (Mainnet)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                  %b--dgblogtn%b (Testnet), %b--dgblogrt%b (Regtest), & %b--dgblogsn%b (Signet).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                  %b--dgblogtn%b (Testnet), %b--dgblogrt%b (Regtest) & %b--dgblogsn%b (Signet).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
