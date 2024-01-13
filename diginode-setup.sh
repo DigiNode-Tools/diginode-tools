@@ -8806,7 +8806,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 20 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 21 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
