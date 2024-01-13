@@ -9865,6 +9865,7 @@ check_digibyte_core() {
             elif [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ];then
                 printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
                 INSTALL_DGB_RELEASE_TYPE="release"
+                dgb_downgrade_requested=true
             fi
         fi
 
@@ -9914,7 +9915,7 @@ check_digibyte_core() {
 
         dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
 
-        if [ "$dgb_update_status" = "update_not_available" ]; then
+        if [ "$dgb_update_status" = "update_not_available" ] || [ "$dgb_downgrade_requested" = true ]; then
             if [ "$RESET_MODE" = true ]; then
                 printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
                 DGB_INSTALL_TYPE="askreset"
