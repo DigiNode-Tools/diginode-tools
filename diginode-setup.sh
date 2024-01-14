@@ -380,7 +380,8 @@ is_dgb_prerelease_mode() {
     fi
     if [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then
         printf "%b %bDigiByte Core RELEASE Version Requested%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "%b   If DigiByte Core is currently running a pre-release version, it will be downgraded the latest release version.\\n" "${INDENT}"
+        printf "%b   If DigiByte Core is currently running a pre-release version,\\n" "${INDENT}"
+        printf "%b   it will be downgraded the latest release version.\\n" "${INDENT}"
         printf "\\n"
     fi
 }
@@ -3905,7 +3906,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
 
     fi
 
-    DGB_USER_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Choose a password" --title "Choose a password" --insecure --passwordbox "\nPlease choose a password for the new 'digibyte' user.\n\nIMPORTANT: Don't forget this - you will need it to access your DigiNode! \n\n\n" 11 78 3>&1 1>&2 2>&1)
+    DGB_USER_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Choose a password" --title "Choose a password" --insecure --passwordbox "\nPlease choose a password for the new 'digibyte' user.\n\nIMPORTANT: Don't forget this - you will need it to access your DigiNode! \n\n\n" 11 78 3>&1 1>&2 2>&3)
     # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
@@ -3933,7 +3934,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         exit
     fi
 
-    DGB_USER_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Please re-enter the password to confirm." --title "Please re-enter the password to confirm." --insecure --passwordbox "\nPlease re-enter the password to confirm." 8 78 3>&1 1>&2 2>&1)
+    DGB_USER_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Please re-enter the password to confirm." --title "Please re-enter the password to confirm." --insecure --passwordbox "\nPlease re-enter the password to confirm." 8 78 3>&1 1>&2 2>&3)
     # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
@@ -4413,7 +4414,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." 23 "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -4568,7 +4569,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Ask the user what size of swap file they want
-        SWAP_TARG_SIZE_MB=$(dialog --no-shadow --keep-tite --backtitle "Enter swap file size" --title "Enter swap file size" --inputbox "\nPlease enter the desired swap file size in MB.\n\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\n\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" "$SWAP_REC_SIZE_MB" 3>&1 1>&2 2>&1)
+        SWAP_TARG_SIZE_MB=$(dialog --no-shadow --keep-tite --backtitle "Enter swap file size" --title "Enter swap file size" --inputbox "\nPlease enter the desired swap file size in MB.\n\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\n\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" "$SWAP_REC_SIZE_MB" 3>&1 1>&2 2>&3)
 
 
         # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
@@ -4921,7 +4922,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
             printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -4934,7 +4935,7 @@ usb_backup() {
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiByte wallet to the USB stick?\Z0\n\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiByte wallet to the USB stick?\Z0\n\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." 12 "${c}"; then
 
                 run_wallet_backup=true
             else
@@ -4954,7 +4955,7 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiAsset Node settings to the USB stick?\Z0\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiAsset Node settings to the USB stick?\Z0\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." 17 "${c}"; then
 
                 run_dgaconfig_backup=true
             else
@@ -5009,7 +5010,7 @@ usb_backup() {
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
                 # Ask the user if they want to encrypt with a password?
-                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to encrypt your DigiByte wallet with a passphrase?\Z0\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." "${r}" "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to encrypt your DigiByte wallet with a passphrase?\Z0\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." 11 "${c}"; then
 
                     printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=true
@@ -5032,7 +5033,7 @@ usb_backup() {
 
     if [[ "$encrypt_wallet_now" == true ]]; then
 
-        WALLET_ENCRYT_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Enter an encryption passphrase" --title "Enter an encryption passphrase" --insecure --passwordbox "\nPlease enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
+        WALLET_ENCRYT_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Enter an encryption passphrase" --title "Enter an encryption passphrase" --insecure --passwordbox "\nPlease enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -5046,7 +5047,7 @@ usb_backup() {
             menu_existing_install  
         fi
 
-        WALLET_ENCRYT_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Re-enter the passphrase to confirm" --title "Re-enter the passphrase to confirm" --insecure --passwordbox "\nPlease re-enter the passphrase to confirm.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
+        WALLET_ENCRYT_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Re-enter the passphrase to confirm" --title "Re-enter the passphrase to confirm" --insecure --passwordbox "\nPlease re-enter the passphrase to confirm.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -5091,7 +5092,7 @@ usb_backup() {
                 printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
                 restart_service digibyted
             else
-                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet encryption failed." --title "DigiByte Wallet encryption failed." --msgbox "\n\Z1ERROR: Your DigiByte wallet was not successfully encrypted.\Z0\n\nThe script wille exit." 9 ${c}
+                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet encryption failed." --title "DigiByte Wallet encryption failed." --msgbox "\n\Z1ERROR: Your DigiByte wallet was not successfully encrypted.\Z0\n\nThe script will exit." 9 ${c}
                 printf "\\n"
                 exit 1
             fi
@@ -5115,7 +5116,7 @@ usb_backup() {
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
-        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\n\Z4Are you ready to proceed with DigiNode backup?\Z0\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\n\Z4Are you ready to proceed with DigiNode backup?\Z0\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" 13 "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
@@ -5191,8 +5192,8 @@ usb_backup() {
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                 LSBLK_BEFORE_USB_INSERTED=$(lsblk)
- #               sleep 0.5
-                read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
+                sleep 0.5
+ #              read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
             fi
         done
 
@@ -5917,7 +5918,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' "${r}" "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
         printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
@@ -6459,7 +6460,7 @@ disk_check() {
                 QUERY_LOWDISK_SPACE="YES"
             fi      
         else
-            printf "%b Disk Space Check: %bPASSED%b   There is sufficient space to download the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b Disk Space Check: %bPASSED%b   There is sufficient space for the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
@@ -7166,7 +7167,7 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" ${r} ${c}
+    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 23 ${c}
 
 
     # Request that users donate if they find DigiNode Setup useful
@@ -7314,7 +7315,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         # Disable the service now
         systemctl disable digibyted
 
-        str="Reset Mode: Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+        str="Reset Mode: Deleting DigiByte daemon systemd service file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7346,7 +7347,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
         # Create a new DigiByte daemon service file
 
-        str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
+        str="Creating DigiByte daemon systemd service file... "
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_SYSTEMD_SERVICE_FILE
         cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
@@ -7915,7 +7916,7 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" != "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" != "diginode-testnet" ]; then
             if [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
-                printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+                printf "%b If it is running in the cloud, try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
                 printf "\\n" 
             fi
         fi   
@@ -8806,7 +8807,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB + IPFS UPnP MENU
     if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
         
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 20 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 21 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="NO"
@@ -8821,7 +8822,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 20 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -9833,7 +9834,7 @@ check_digibyte_core() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repository for the latest DigiByte Core pre-release..."
+        str="Checking GitHub repo for latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
         DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
@@ -9864,6 +9865,7 @@ check_digibyte_core() {
             elif [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ];then
                 printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
                 INSTALL_DGB_RELEASE_TYPE="release"
+                dgb_downgrade_requested=true
             fi
         fi
 
@@ -9873,7 +9875,7 @@ check_digibyte_core() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
 
         # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repository for the latest DigiByte Core release..."
+        str="Checking GitHub repo for latest DigiByte Core release..."
         printf "%b %s" "${INFO}" "${str}"
         DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
 
@@ -9913,7 +9915,7 @@ check_digibyte_core() {
 
         dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
 
-        if [ "$dgb_update_status" = "update_not_available" ]; then
+        if [ "$dgb_update_status" = "update_not_available" ] || [ "$dgb_downgrade_requested" = true ]; then
             if [ "$RESET_MODE" = true ]; then
                 printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
                 DGB_INSTALL_TYPE="askreset"
@@ -9923,7 +9925,7 @@ check_digibyte_core() {
                 DGB_INSTALL_TYPE="none"
                 DGB_UPDATE_AVAILABLE=NO
                 printf "\\n"
-                return
+ #              return
             fi
 
             if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] && [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then # --dgbnopre
@@ -10036,7 +10038,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Downloading latest DigiByte Core binary from GitHub
-    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repository..."
+    str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repo..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
@@ -10100,7 +10102,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # If an there is an existing DigiByte install folder, move it to backup
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        str="Backing up DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
         printf "%b %s" "${INFO}" "${str}"
         mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -10198,21 +10200,21 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
     # Create new symbolic link
-    str="Creating new ~/digibyte symbolic link pointing at $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
+    str="Creating 'digibyte' symbolic link for $USER_HOME/digibyte-$DGB_VER_GITHUB ..."
     printf "%b %s" "${INFO}" "${str}"
     sudo -u $USER_ACCOUNT ln -s $USER_HOME/digibyte-$DGB_VER_GITHUB $USER_HOME/digibyte
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
-        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-backup ..."
+        str="Deleting DigiByte Core backup: $USER_HOME/digibyte-$DGB_VER_LOCAL-backup ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
     printf "%b %s" "${INFO}" "${str}"
     # If this is the alt url download, we need to add a v in the URL
     if [ "$use_dgb_alt_download" == true ]; then
@@ -13507,12 +13509,14 @@ menu_ask_install_updates() {
 # DGNT_ASK_UPGRADE="YES"
 # NODEJS_ASK_UPGRADE="YES"
 
-        # Troubleshooting
- #       echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
- #       echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
- #       echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
- #       echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
- #       echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+# echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
+# echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
+# echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
+# echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
+# echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+
+# DGB_VER_GITHUB="8.22.0"
+# INSTALL_DGB_RELEASE_TYPE="release"
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
@@ -13525,24 +13529,30 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         printf " =============== UPDATE MENU ===========================================\\n\\n"
         # ==============================================================================
 
-        if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n"
+        if [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$dgb_downgrade_requested" = true ]; then
+            local upgrade_msg_dgb="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB (Downgrade)\\n"
+            vert_space=$(($vert_space + 1))
+        elif [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+            local upgrade_msg_dgb="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB (Pre-Release)\\n"
+            vert_space=$(($vert_space + 1))
+        elif [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+            local upgrade_msg_dgb="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="      >> IPFS Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="     IPFS Kubo v$IPFS_VER_LOCAL  >>  v$IPFS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="      >> Node.js v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="      Node.js v$NODEJS_VER_LOCAL  >>  v$NODEJS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="      >> DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="      DigiAsset Node v$DGA_VER_LOCAL  >>  v$DGA_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt="      >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="      DigiNode Tools v$DGNT_VER_LOCAL  >>  v$DGNT_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
 
@@ -13551,7 +13561,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         local updates_msg2
         if [ "$vert_space" -eq 11 ]; then
             printf "%b There is a DigiNode software update available...\\n" "${INFO}"
-            updates_msg="The following update is available for your DigiNode:"
+            updates_msg="There is an update available for your DigiNode:"
             updates_msg2="Would you like to install it?"
         else
             printf "%b There are DigiNode software updates available...\\n" "${INFO}"
@@ -13559,7 +13569,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             updates_msg2="Would you like to install them?"
         fi
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Update" --title "DigiNode Software Update" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
@@ -13691,7 +13701,7 @@ menu_ask_install_digiasset_node() {
 # Provided we are not in unnatteneded mode, and it is not already installed, ask the user if they want to install a DigiAssets Node
 if [ ! -f $DGA_INSTALL_LOCATION/.officialdiginode ] && [ "$UNATTENDED_MODE" == false ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --title "Install DigiAsset Node?" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to install a DigiAsset Node?\Z0\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Install DigiAsset Node?" --defaultno --title "Install DigiAsset Node?" --yesno "\n\Z4Would you like to install a DigiAsset Node?\Z0\n\nYou do not currently have a DigiAsset Node installed. Running a DigiAsset Node along side your DigiByte Full Node helps to support the network by decentralizing DigiAsset metadata.\n\nYou can earn \$DGB for hosting other people's metadata, and it also gives you the ability to create your own DigiAssets from the web interface." 15 "${c}"; then
         #Nothing to do, continue
           DO_FULL_INSTALL=YES
             printf "%b You choose to install the DigiAsset Node.\\n" "${INFO}"
@@ -14057,7 +14067,7 @@ uninstall_do_now() {
     if [ -d "$DGA_INSTALL_LOCATION" ]; then
 
         # Do you want to uninstall your DigiAsset Node?
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiAsset Node" --title "DigiNode Uninstall: Remove DigiAsset Node" --yesno "\nWould you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?" 7 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiAsset Node" --title "DigiNode Uninstall: Remove DigiAsset Node" --yesno "\n\Z4Would you like to uninstall DigiAsset Node v${DGA_VER_LOCAL}?\Z0\n\nThis will remove the DigiAsset Node software only - your DigiAsset Node settings will be kept." 10 "${c}"; then
 
             local delete_dga=yes
 
@@ -14438,7 +14448,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\n\Z4Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\Z0\n\nThis step uninstalls the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 10 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\n\Z4Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\Z0\n\nThis will uninstall the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 11 "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 
@@ -14449,7 +14459,7 @@ uninstall_do_now() {
 
             # Delete systemd service file
             if [ -f "$DGB_SYSTEMD_SERVICE_FILE" ]; then
-                str="Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+                str="Deleting DigiByte daemon systemd service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $DGB_SYSTEMD_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14473,7 +14483,7 @@ uninstall_do_now() {
 
                 # Delete systemd service file
                 if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
-                    str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+                    str="Deleting DigiByte testnet systemd service file for Dual Node..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -f $DGB2_SYSTEMD_SERVICE_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14481,7 +14491,7 @@ uninstall_do_now() {
 
                 # Delete upstart service file
                 if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
-                    str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+                    str="Deleting DigiByte testnet upstart service file for Dual Node..."
                     printf "%b %s" "${INFO}" "${str}"
                     rm -f $DGB2_UPSTART_SERVICE_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"

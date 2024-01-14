@@ -145,6 +145,7 @@ DISPLAY_HELP=false
 EDIT_DGBCFG=false
 EDIT_DGNTSET=false
 VIEW_DGBLOG=false
+VIEW_DGB2LOG=false
 VIEW_DGBLOGMN=false
 VIEW_DGBLOGTN=false
 VIEW_DGBLOGRT=false
@@ -171,6 +172,7 @@ for var in "$@"; do
         "--dgbcfg" ) EDIT_DGBCFG=true;;
         "--dgntset" ) EDIT_DGNTSET=true;;
         "--dgblog" ) VIEW_DGBLOG=true;;
+        "--dgb2log" ) VIEW_DGB2LOG=true;;
         "--dgblogmn" ) VIEW_DGBLOGMN=true;;
         "--dgblogtn" ) VIEW_DGBLOGTN=true;;
         "--dgblogrt" ) VIEW_DGBLOGRT=true;;
@@ -200,6 +202,7 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $EDIT_DGBCFG = true ] || \
    [ $EDIT_DGNTSET = true ] || \
    [ $VIEW_DGBLOG = true ] || \
+   [ $VIEW_DGB2LOG = true ] || \
    [ $VIEW_DGBLOGMN = true ] || \
    [ $VIEW_DGBLOGTN = true ] || \
    [ $VIEW_DGBLOGRT = true ] || \
@@ -276,7 +279,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: DigiByte Core MAINNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
-    elif [ $VIEW_DGBLOGTN = true ]; then # --dgblogtn
+    elif [ $VIEW_DGBLOGTN = true ] || [ $VIEW_DGB2LOG = true ]; then # --dgblogtn
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
             diginode_tools_import_settings silent
         fi
@@ -404,7 +407,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             exit
-        elsediginode
+        else
             printf "%b %bERROR: DigiByte $DGB_NETWORK_CURRENT Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "\\n"
             exit 1
@@ -516,49 +519,49 @@ display_help() {
         echo ""
         echo "  ╔════════════════════════════════════════════════════════╗"
         echo "  ║                                                        ║"
-        echo "  ║          ${txtbld}D I G I N O D E   D A S H B O A R D${txtrst}           ║ "
+        echo "  ║                  ${txtbld}D I G I N O D E   C L I${txtrst}               ║ "
         echo "  ║                                                        ║"
-        echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
+        echo "  ║       Manage your DigiNode from the Command Line       ║"
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
-        printf "%bOptional flags when running DigiNode Dashboard:\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
-            printf "%b%b--dgbrestart%b    - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgbstop%b       - Stop primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgbpeers%b      - List peers for primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbrestart%b   - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbstop%b      - Stop primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbpeers%b     - List peers for primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         else
-            printf "%b%b--dgbrestart%b    - Restart DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgbstop%b       - Stop DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgbpeers%b      - List peers for DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbrestart%b   - Restart DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbstop%b      - Stop DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgbpeers%b     - List peers for DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
-            printf "%b%b--dgb2restart%b   - Restart secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgb2stop%b      - Stop secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-            printf "%b%b--dgb2peers%b     - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgb2restart%b  - Restart secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgb2stop%b     - Stop secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b%b--dgb2peers%b    - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "\\n"
-        printf "%b%b--dgbcfg%b        - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgntset%b       - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--rpc%b           - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--porttest%b      - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgbcfg%b       - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgntset%b      - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--rpc%b          - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--porttest%b     - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
-        printf "%b%b--dgblog%b        - View DigiByte Core log file for the current chain.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogmn%b      - View DigiByte Core log file for mainnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogtn%b      - View DigiByte Core log file for testnet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogrt%b      - View DigiByte Core log file for regtest.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgblogsn%b      - View DigiByte Core log file for signet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            printf "%b%b--dgblog%b       - View log file for primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        else
+            printf "%b%b--dgblog%b       - View log file for DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        fi
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            printf "%b%b--dgb2log%b      - View log file for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        fi
+        printf "%b                 (Note: You can also view each log file using: --dgblogmn (Mainnet),\\n" "${INDENT}"
+        printf "%b                 --dgblogtn (Testnet), --dgblogrt (Regtest) & --dgblogsn (Signet).)\\n" "${INDENT}"
         printf "\\n"
-        printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--verbose%b      - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
-        printf "\\n"
-        printf "%bAppend the desired %b--flag%b to use:\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
-        printf "%b$ %bdiginode --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
+        printf "   Usage: %bdiginode --flag%b   (Replace --flag with the desired flag.)\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         exit
     fi
@@ -753,11 +756,11 @@ digibyte_check_official() {
     # ==============================================================================
 
     if [ -f "$DGB_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Checking for Official DigiNode Install of DigiByte Core: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         is_dgb_installed="yes"
     else
-        printf "%b Checking for DigiNode Tools Install of DigiByte Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Checking for Official DigiNode Install of DigiByte Core: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
         printf "%b manual changes to make it work. It is possible things may break.\\n" "${INDENT}"
@@ -1143,11 +1146,11 @@ digiasset_check_official() {
     # ===============================================================================
 
     if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
-        printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Checking for Official DigiNode Install of DigiAsset Node: %bDETECTED%b\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         is_dga_installed="yes"
     elif [ -d "$DGA_INSTALL_LOCATION" ]; then
-        printf "%b Checking for DigiNode Tools Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Checking for Official DigiNode Install of DigiAsset Node: %bNOT DETECTED%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b DigiNode Setup was not used to install this DigiAsset Node.\\n" "${INFO}"
         printf "%b This script will attempt to detect your setup but may require you to make\\n" "${INDENT}"
@@ -2215,14 +2218,15 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf "%.0f", $2}')
+            usage=$(echo "$line" | awk '{printf ($2 < 10) ? "%.0f  " : (($2 < 100) ? "%.0f " : "%.0f"), $2}') # Add a trailing space if the usage is less than 100, two if it is less than 10
+
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
             if [ "$counter" -le "$split_point" ]; then
-                cpu_usage_1+="#${core}: ${usage}%    "
+                cpu_usage_1+="#${core}: ${usage}%   "
             else
-                cpu_usage_2+="#${core}: ${usage}%    "
+                cpu_usage_2+="#${core}: ${usage}%   "
             fi
 
             counter=$((counter + 1))
