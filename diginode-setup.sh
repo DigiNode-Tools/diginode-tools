@@ -4922,7 +4922,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
             printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -4935,7 +4935,7 @@ usb_backup() {
 
 
             # Ask if the user wants to backup their DigiBytewallet
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiByte wallet to the USB stick?\Z0\n\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet Backup" --title "DigiByte Wallet Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiByte wallet to the USB stick?\Z0\n\nThis is highly recomended, if you have not already done so. It will safeguard the contents of your DigiByte wallet and makes it easy to restore your DigiByte wallet in the event of a hardware failure, or to move your DigiNode to a new device." 12 "${c}"; then
 
                 run_wallet_backup=true
             else
@@ -4955,7 +4955,7 @@ usb_backup() {
         if [ -d "$DGA_SETTINGS_LOCATION" ]; then
 
             # Ask the user if they want to backup their DigiAsset Node settings
-            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiAsset Node settings to the USB stick?\Z0\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "DigiAsset Node Backup" --title "DigiAsset Node Backup" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to backup your DigiAsset Node settings to the USB stick?\Z0\n\nThis will backup your DigiAsset Node _config folder which stores your Amazon web services credentials, RPC password etc. It means you can quickly restore your DigiNode in the event of a hardware failure, or if you wish to move your DigiNode to a different device.\\n\\nNote: Before creating a backup, it is advisable to have first completed setting up your DigiAsset Node via the web UI." 17 "${c}"; then
 
                 run_dgaconfig_backup=true
             else
@@ -5010,7 +5010,7 @@ usb_backup() {
                 printf "%b DigiByte Wallet is NOT currently encrypted.\\n" "${CROSS}"
 
                 # Ask the user if they want to encrypt with a password?
-                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to encrypt your DigiByte wallet with a passphrase?\Z0\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." "${r}" "${c}"; then
+                if dialog --no-shadow --keep-tite --colors --backtitle "Encrypt DigiByte Wallet" --title "Encrypt DigiByte Wallet" --yes-label "Yes (Recommended)" --no-label "No" --yesno "\n\Z4Would you like to encrypt your DigiByte wallet with a passphrase?\Z0\n\nThis is highly recommended. It offers an additional level of security, since if someone finds the USB stick, they will not be able to access the wallet.dat file without the passphrase." 11 "${c}"; then
 
                     printf "%b You chose to encrypt your wallet with a passphrase.\\n" "${INFO}"
                     encrypt_wallet_now=true
@@ -5092,7 +5092,7 @@ usb_backup() {
                 printf "%b Restarting DigiByte daemon systemd service...\\n\\n" "${INFO}"
                 restart_service digibyted
             else
-                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet encryption failed." --title "DigiByte Wallet encryption failed." --msgbox "\n\Z1ERROR: Your DigiByte wallet was not successfully encrypted.\Z0\n\nThe script wille exit." 9 ${c}
+                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Wallet encryption failed." --title "DigiByte Wallet encryption failed." --msgbox "\n\Z1ERROR: Your DigiByte wallet was not successfully encrypted.\Z0\n\nThe script will exit." 9 ${c}
                 printf "\\n"
                 exit 1
             fi
