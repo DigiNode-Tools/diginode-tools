@@ -1,7 +1,10 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.5 - 2024-01-xx [COMING SOON]
-- Coming soon...
+DigiNode Tools v0.9.5 - 2024-01-14
+- New: Use the ```diginode --dgb2log``` flag to view the DigiByte Node testnet log while running a Dual Node.
+- Fix: Downgrading from a DigiByte pre-release back to the latest release now works as expected.
+- Change: 'Upgrade Available' dialog now shows exactly what will be upgraded
+- Fix: Passwordbox inputs now work as expected
 
 DigiNode Tools v0.9.4 - 2024-01-12
 - New: DigiFacts are now updated once per hour from the DigiByte DigiFacts - JSON Web Service. You can find it [here](https://digifacts.digibyte.help/?help). Developers are encouraged to use the DigiFacts web service in their DigiByte projects. You can help contribute new DigiFacts,improve existing ones, translate them into additional languages, or donate to the translation fund. Learn more [here](https://github.com/saltedlolly/DigiByte-DigiFacts-JSON).
