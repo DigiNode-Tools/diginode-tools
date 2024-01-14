@@ -3906,7 +3906,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
 
     fi
 
-    DGB_USER_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Choose a password" --title "Choose a password" --insecure --passwordbox "\nPlease choose a password for the new 'digibyte' user.\n\nIMPORTANT: Don't forget this - you will need it to access your DigiNode! \n\n\n" 11 78 3>&1 1>&2 2>&1)
+    DGB_USER_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Choose a password" --title "Choose a password" --insecure --passwordbox "\nPlease choose a password for the new 'digibyte' user.\n\nIMPORTANT: Don't forget this - you will need it to access your DigiNode! \n\n\n" 11 78 3>&1 1>&2 2>&3)
     # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
@@ -3934,7 +3934,7 @@ if [ "$USER_DO_CREATE" = "YES" ]; then
         exit
     fi
 
-    DGB_USER_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Please re-enter the password to confirm." --title "Please re-enter the password to confirm." --insecure --passwordbox "\nPlease re-enter the password to confirm." 8 78 3>&1 1>&2 2>&1)
+    DGB_USER_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Please re-enter the password to confirm." --title "Please re-enter the password to confirm." --insecure --passwordbox "\nPlease re-enter the password to confirm." 8 78 3>&1 1>&2 2>&3)
     # A trick to swap stdout and stderr.
     # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
     exitstatus=$?
@@ -4569,7 +4569,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         fi
 
         # Ask the user what size of swap file they want
-        SWAP_TARG_SIZE_MB=$(dialog --no-shadow --keep-tite --backtitle "Enter swap file size" --title "Enter swap file size" --inputbox "\nPlease enter the desired swap file size in MB.\n\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\n\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" "$SWAP_REC_SIZE_MB" 3>&1 1>&2 2>&1)
+        SWAP_TARG_SIZE_MB=$(dialog --no-shadow --keep-tite --backtitle "Enter swap file size" --title "Enter swap file size" --inputbox "\nPlease enter the desired swap file size in MB.\n\nNote: As a bare minimum, you should ensure that your total memory (system RAM + swap file) is at least 12GB, but 16GB is recommended to avoid any issues. Since your system has ${RAMTOTAL_HR}b RAM, it is recommended to create a swap file of at least $SWAP_REC_SIZE_HR.\n\nThe recommended size has been entered for you. If you are unsure, use this." "${r}" "${c}" "$SWAP_REC_SIZE_MB" 3>&1 1>&2 2>&3)
 
 
         # The `3>&1 1>&2 2>&3` is a small trick to swap the stderr with stdout
@@ -5033,7 +5033,7 @@ usb_backup() {
 
     if [[ "$encrypt_wallet_now" == true ]]; then
 
-        WALLET_ENCRYT_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Enter an encryption passphrase" --title "Enter an encryption passphrase" --insecure --passwordbox "\nPlease enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
+        WALLET_ENCRYT_PASS1=$(dialog --no-shadow --keep-tite --colors --backtitle "Enter an encryption passphrase" --title "Enter an encryption passphrase" --insecure --passwordbox "\nPlease enter a passphrase to encrypt your DigiByte Core wallet. It can be as long as you like and may include spaces.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
@@ -5047,7 +5047,7 @@ usb_backup() {
             menu_existing_install  
         fi
 
-        WALLET_ENCRYT_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Re-enter the passphrase to confirm" --title "Re-enter the passphrase to confirm" --insecure --passwordbox "\nPlease re-enter the passphrase to confirm.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&1)
+        WALLET_ENCRYT_PASS2=$(dialog --no-shadow --keep-tite --colors --backtitle "Re-enter the passphrase to confirm" --title "Re-enter the passphrase to confirm" --insecure --passwordbox "\nPlease re-enter the passphrase to confirm.\\n\\n\Z1IMPORTANT: DO NOT FORGET THIS PASSPHRASE - you will need it every time you want to access your wallet. Should you forget it, there is no way to regain access to your money. You have been warned! \Z0" 13 78 3>&1 1>&2 2>&3)
             # A trick to swap stdout and stderr.
             # Again, you can pack this inside if, but it seems really long for some 80-col terminal users.
         exitstatus=$?
