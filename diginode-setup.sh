@@ -5192,8 +5192,8 @@ usb_backup() {
             else
                 printf "%b%b %s $progress" "${OVER}" "${INDENT}" "${str}"
                 LSBLK_BEFORE_USB_INSERTED=$(lsblk)
- #               sleep 0.5
-                read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
+                sleep 0.5
+ #              read -t 0.5 -n 1 keypress && cancel_insert_usb="yes" && break
             fi
         done
 
