@@ -13529,29 +13529,29 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$dgb_downgrade_requested" = true ]; then
-            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n         (Requested Downgrade from v$DGB_VER_PRERELEASE)\\n"
-            vert_space=$(($vert_space + 2))
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_LOCAL to v$DGB_VER_GITHUB (Downgrade)\\n"
+            vert_space=$(($vert_space + 1))
         elif [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB (Pre-Release)\\n"
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_LOCAL to v$DGB_VER_GITHUB (Pre-Release)\\n"
             vert_space=$(($vert_space + 1))
         elif [ "$DGB_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n"
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_LOCAL to v$DGB_VER_GITHUB\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$IPFS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_ipfs="      >> IPFS Kubo v$IPFS_VER_RELEASE\\n"
+            local upgrade_msg_ipfs="      >> IPFS Kubo v$IPFS_VER_LOCAL to v$IPFS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$NODEJS_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_nodejs="      >> Node.js v$NODEJS_VER_RELEASE\\n"
+            local upgrade_msg_nodejs="      >> Node.js v$NODEJS_VER_LOCAL to v$NODEJS_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGA_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dga="      >> DigiAsset Node v$DGA_VER_RELEASE\\n"
+            local upgrade_msg_dga="      >> DigiAsset Node v$DGA_VER_LOCAL to v$DGA_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
         if [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
-            local upgrade_msg_dgnt="      >> DigiNode Tools v$DGNT_VER_RELEASE\\n"
+            local upgrade_msg_dgnt="      >> DigiNode Tools v$DGNT_VER_LOCAL to v$DGNT_VER_RELEASE\\n"
             vert_space=$(($vert_space + 1))
         fi
 
