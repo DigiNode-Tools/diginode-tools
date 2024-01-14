@@ -13569,7 +13569,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             updates_msg2="Would you like to install them?"
         fi
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Updates are available" --title "DigiNode Software Updates are available" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Update" --title "DigiNode Software Update" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
