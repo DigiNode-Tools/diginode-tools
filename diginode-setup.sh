@@ -7916,7 +7916,7 @@ final_messages() {
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" != "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" != "diginode-testnet" ]; then
             if [ "$IP4_EXTERNAL" != "$IP4_INTERNAL" ]; then
-                printf "%b If it is running in the cloud, you can try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
+                printf "%b If it is running in the cloud, try the external IP: ${txtbld}https://${IP4_EXTERNAL}:8090${txtrst}\\n" "${INDENT}"
                 printf "\\n" 
             fi
         fi   
