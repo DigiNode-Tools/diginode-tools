@@ -13561,7 +13561,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         local updates_msg2
         if [ "$vert_space" -eq 11 ]; then
             printf "%b There is a DigiNode software update available...\\n" "${INFO}"
-            updates_msg="The following update is available for your DigiNode:"
+            updates_msg="There is an update available for your DigiNode:"
             updates_msg2="Would you like to install it?"
         else
             printf "%b There are DigiNode software updates available...\\n" "${INFO}"
