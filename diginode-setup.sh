@@ -2220,7 +2220,7 @@ rpcallowip=127.0.0.1 \
             # If chain= declaration exists, and we are running a Dual Node, then comment it out
             elif grep -q ^"chain=" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" = "YES" ]; then
                 echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
-                echo "$INDENT   Updating digibyte.conf: # chain=$chain (Commented out to allow Dual Node support)"
+                echo "$INDENT   Updating digibyte.conf: # chain=$chain (Commented out to support Dual Node.)"
                 sed -i -e "/^chain=/s|.*|# chain=$chain|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
@@ -6977,7 +6977,7 @@ change_dgb_network() {
 
         # Delete systemd service file
         if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
-            str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            str="Deleting DigiByte testnet systemd service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_SYSTEMD_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6985,7 +6985,7 @@ change_dgb_network() {
 
         # Delete upstart service file
         if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
-            str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+            str="Deleting DigiByte testnet upstart service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_UPSTART_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7518,7 +7518,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
             # Disable the service now
             systemctl disable digibyted-testnet
 
-            str="Reset Mode: Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            str="Reset Mode: Deleting DigiByte testnet systemd service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_SYSTEMD_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7539,7 +7539,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
             # Disable the service now
             service digibyted-testnet disable
 
-            str="Reset Mode: Deleting DigiByte testnet systemd service file: $DGB2_UPSTART_SERVICE_FILE ..."
+            str="Reset Mode: Deleting DigiByte testnet systemd service file..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_UPSTART_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7550,7 +7550,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
             # Create a new DigiByte daemon testnet service file for Dual Node
 
-            str="Creating DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ... "
+            str="Creating DigiByte testnet systemd service file for Dual Node... "
             printf "%b %s" "${INFO}" "${str}"
             touch $DGB2_SYSTEMD_SERVICE_FILE
             cat <<EOF > $DGB2_SYSTEMD_SERVICE_FILE
@@ -13437,7 +13437,7 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
         # Disable the service now
         systemctl disable "pm2-$USER_ACCOUNT"
 
-        str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+        str="Deleting PM2 systemd service file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $PM2_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14178,7 +14178,7 @@ uninstall_do_now() {
                 # Disable the service now
                 systemctl disable "pm2-$USER_ACCOUNT"
 
-                str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+                str="Deleting PM2 systemd service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $PM2_SYSTEMD_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14193,7 +14193,7 @@ uninstall_do_now() {
                 # Disable the service now
                 service "pm2-$USER_ACCOUNT" disable
 
-                str="Deleting PM2 upstart service file: $PM2_UPSTART_SERVICE_FILE ..."
+                str="Deleting PM2 upstart service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $PM2_UPSTART_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
