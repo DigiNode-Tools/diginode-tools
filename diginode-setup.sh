@@ -5116,7 +5116,7 @@ usb_backup() {
         # ==============================================================================
 
         # Ask the user to prepare their backup USB stick
-        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\n\Z4Are you ready to proceed with DigiNode backup?\Z0\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" "${r}" "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Prepare USB Backup Stick" --title "Prepare USB Backup Stick" --yes-label "Continue" --no-label "Exit" --yesno "\n\Z4Are you ready to proceed with DigiNode backup?\Z0\n\nPlease have your backup USB stick ready - for best results make sure it is formatted in either exFAT or FAT32. NTFS may not work! \n\n\Z1IMPORTANT: Do not insert the USB stick into the DigiNode yet. If it is already plugged in, please UNPLUG it now before continuing.\Z0" 13 "${c}"; then
 
             printf "%b You confirmed your backup USB stick is ready.\\n" "${INFO}"
         else
@@ -5918,7 +5918,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' "${r}" "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
         printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
