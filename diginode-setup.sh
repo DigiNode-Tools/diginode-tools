@@ -6460,7 +6460,7 @@ disk_check() {
                 QUERY_LOWDISK_SPACE="YES"
             fi      
         else
-            printf "%b Disk Space Check: %bPASSED%b   There is enough space to download the blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b Disk Space Check: %bPASSED%b   There is sufficient space for the DigiByte blockchain.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b    Space Required: ${DGB_DATA_REQUIRED_HR}  Space Available: ${DGB_DATA_DISKFREE_HR}b\\n" "${INDENT}"
             printf "\\n"
         fi
