@@ -13528,7 +13528,10 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         printf " =============== UPDATE MENU ===========================================\\n\\n"
         # ==============================================================================
 
-        if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+        if [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$dgb_downgrade_requested" = true ]; then
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB (Requested Downgrade)\\n"
+            vert_space=$(($vert_space + 1))
+        elif [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n"
             vert_space=$(($vert_space + 1))
         fi
