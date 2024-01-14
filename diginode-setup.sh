@@ -10102,7 +10102,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # If an there is an existing DigiByte install folder, move it to backup
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}" ]; then
-        str="Backing up the existing version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
+        str="Backing up DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL ..."
         printf "%b %s" "${INFO}" "${str}"
         mv $USER_HOME/digibyte-${DGB_VER_LOCAL} $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -10207,7 +10207,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # Delete the backup version, now the new version has been installed
     if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
-        str="Deleting previous version of DigiByte Core: $USER_HOME/digibyte-$DGB_VER_LOCAL-backup ..."
+        str="Deleting DigiByte Core backup: $USER_HOME/digibyte-$DGB_VER_LOCAL-backup ..."
         printf "%b %s" "${INFO}" "${str}"
         rm -rf $USER_HOME/digibyte-${DGB_VER_LOCAL}-backup
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
