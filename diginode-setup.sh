@@ -13529,7 +13529,10 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         # ==============================================================================
 
         if [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$dgb_downgrade_requested" = true ]; then
-            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB (Requested Downgrade)\\n"
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB (Requested Downgrade from v$DGB_VER_PRERELEASE)\\n"
+            vert_space=$(($vert_space + 1))
+        elif [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+            local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB (Pre-Release)\\n"
             vert_space=$(($vert_space + 1))
         elif [ "$DGB_ASK_UPGRADE" = "YES" ]; then
             local upgrade_msg_dgb="      >> DigiByte Core v$DGB_VER_GITHUB\\n"
