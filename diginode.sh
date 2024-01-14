@@ -525,7 +525,7 @@ display_help() {
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
-        printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgbrestart%b   - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -561,7 +561,7 @@ display_help() {
         printf "\\n"
         printf "%b%b--verbose%b      - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
-        printf "%bUsage: %bdiginode --flag%b  (Replace --flag with the desired flag.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "   Usage: %bdiginode --flag%b   (Replace --flag with the desired flag.)\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         exit
     fi
