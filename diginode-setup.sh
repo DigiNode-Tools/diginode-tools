@@ -7315,7 +7315,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
         # Disable the service now
         systemctl disable digibyted
 
-        str="Reset Mode: Deleting DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ..."
+        str="Reset Mode: Deleting DigiByte daemon systemd service file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $DGB_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7347,7 +7347,7 @@ if [ "$DGB_SERVICE_CREATE" = "YES" ]; then
 
         # Create a new DigiByte daemon service file
 
-        str="Creating DigiByte daemon systemd service file: $DGB_SYSTEMD_SERVICE_FILE ... "
+        str="Creating DigiByte daemon systemd service file... "
         printf "%b %s" "${INFO}" "${str}"
         touch $DGB_SYSTEMD_SERVICE_FILE
         cat <<EOF > $DGB_SYSTEMD_SERVICE_FILE
