@@ -14441,7 +14441,7 @@ uninstall_do_now() {
 
 
         # Uninstall DigiByte Core
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\n\Z4Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\Z0\n\nThis step uninstalls the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 11 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Remove DigiByte Core" --title "DigiNode Uninstall: Remove DigiByte Core" --yesno "\n\Z4Would you like to uninstall DigiByte Core v${DGB_VER_LOCAL}?\Z0\n\nThis will uninstall the DigiByte Core software only - your wallet, digibyte.conf settings and blockchain data will not be affected." 11 "${c}"; then
 
             printf "%b You chose to uninstall DigiByte Core.\\n" "${INFO}"
 

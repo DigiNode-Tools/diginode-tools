@@ -525,8 +525,6 @@ display_help() {
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
-        printf "%bThe followings flags can be used to manage your DigiNode:\\n" "${INDENT}"
-        printf "\\n"
         printf "%b%b--help%b or %b-h%b    - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
@@ -563,9 +561,7 @@ display_help() {
         printf "\\n"
         printf "%b%b--verbose%b       - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
-        printf "%bAppend the desired %b--flag%b to use:\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "\\n"
-        printf "%b$ %bdiginode --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%bUsage: %bdiginode --flag%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         exit
     fi
