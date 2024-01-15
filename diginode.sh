@@ -2222,9 +2222,9 @@ get_cpu_stats() {
             total_usage=$(echo "$total_usage + $usage" | bc)
 
             if [ "$counter" -le "$split_point" ]; then
-                cpu_usage_1+="#${core}: ${usage}   "
+                cpu_usage_1+="#${core}: ${usage}%  "
             else
-                cpu_usage_2+="#${core}: ${usage}   "
+                cpu_usage_2+="#${core}: ${usage}%  "
             fi
 
             counter=$((counter + 1))
