@@ -526,7 +526,7 @@ display_help() {
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
         printf "%b%b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--verbose%b      - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--verbose%b      - Enable verbose mode in DigiNode Dashboard.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgbrestart%b   - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -2217,7 +2217,7 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf ($2 < 10) ? "%.0f  " : (($2 < 100) ? "%.0f " : "%.0f"), $2}') # Add a trailing space if the usage is less than 100, two if it is less than 10
+            usage=$(echo "$line" | awk '{printf ($2 < 10) ? "%.0f\%  " : (($2 < 100) ? "%.0f\% " : "%.0f\%"), $2}') # Add a trailing space if the usage is less than 100, two if it is less than 10
 
             
             total_usage=$(echo "$total_usage + $usage" | bc)
