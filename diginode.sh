@@ -2218,11 +2218,18 @@ get_cpu_stats() {
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
             usage=$(echo "$line" | awk '{printf "%.0f", $2}')
+            usage_length=${#usage}
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
             if [ "$counter" -le "$split_point" ]; then
-                cpu_usage_1+="#${core}: ${usage}%  "
+                if [ "$usage_length" -lt 3 ]; then  # Under 10%
+                    cpu_usage_1+="#${core}: ${usage}%    "
+                elif [ "$usage_length" -lt 4 ]; then  # 10% to 99%
+                    cpu_usage_1+="#${core}: ${usage}%   "
+                else
+                    cpu_usage_1+="#${core}: ${usage}%  " # Exactly 100%
+                fi
             else
                 cpu_usage_2+="#${core}: ${usage}%  "
             fi
