@@ -2231,7 +2231,13 @@ get_cpu_stats() {
                     cpu_usage_1+="#${core}: ${usage}%  " # Exactly 100%
                 fi
             else
-                cpu_usage_2+="#${core}: ${usage}%  "
+                if [ "$usage_length" -lt 2 ]; then  # Under 10%
+                    cpu_usage_2+="#${core}: ${usage}%    "
+                elif [ "$usage_length" -lt 3 ]; then  # 10% to 99%
+                    cpu_usage_2+="#${core}: ${usage}%   "
+                else
+                    cpu_usage_2+="#${core}: ${usage}%  " # Exactly 100%
+                fi
             fi
 
             counter=$((counter + 1))
