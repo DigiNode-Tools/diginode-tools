@@ -2223,9 +2223,9 @@ get_cpu_stats() {
             total_usage=$(echo "$total_usage + $usage" | bc)
 
             if [ "$counter" -le "$split_point" ]; then
-                if [ "$usage_length" -lt 3 ]; then  # Under 10%
+                if [ "$usage_length" -lt 2 ]; then  # Under 10%
                     cpu_usage_1+="#${core}: ${usage}%    "
-                elif [ "$usage_length" -lt 4 ]; then  # 10% to 99%
+                elif [ "$usage_length" -lt 3 ]; then  # 10% to 99%
                     cpu_usage_1+="#${core}: ${usage}%   "
                 else
                     cpu_usage_1+="#${core}: ${usage}%  " # Exactly 100%
