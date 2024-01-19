@@ -7219,7 +7219,7 @@ ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\nChoose 'Continue' to proceed with the defaults. (Recommended)\n\nChoose 'Exit' to first customize your install." 21 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Customize your DigiNode install (Optional)" --title "Customize your DigiNode install (Optional)" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\nChoose 'Continue' to proceed with the defaults. (Recommended)\n\nChoose 'Exit' to first customize your install." 22 "${c}"; then
 
     #Nothing to do, continue
       printf ""
