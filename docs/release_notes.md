@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.0 - 2024-01-xx [COMING SOON]
+- Coming soon...
+
 DigiNode Tools v0.9.6 - 2024-01-19
 - New: The DigiNode Tools website is finally live: [https://diginode.tools](https://diginode.tools)
 - Change: Most of the project documentation has been moved from Github to the DigiNode Tools website.
