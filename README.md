@@ -15,7 +15,7 @@ Learn more: [https://diginode.tools](https://diginode.tools)
 ### What do I need to run a DigiNode?
 
 - A **Raspberry Pi 4 8Gb** is the recommended device for running a DigiNode. It offers the most user-friendly setup experience. See [here](https://diginode.tools/build-your-own-raspberry-pi-diginode/) for the parts you need.
-- DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [Compatibility](#system-compatibility) section below.
+- DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [System Requirements](https://diginode.tools/system-requirements/) on the official website.
 - DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer. (Note: These may be needed during setup on some Linux systems, but are not needed at all for the Raspberry Pi 4.)
 
 ## About DigiNode Tools
@@ -65,5 +65,5 @@ These tools are provided as is. Use at your own risk. Always keep a backup of yo
 
 ## License
 
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@digibyte.help. For more information read the [Licence FAQ](https://diginode.tools/faq/). The full licence is [here](https://diginode.tools/software-licence/).
+DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@diginode.tools. For more information read the [Licence FAQ](https://diginode.tools/faq/). The full licence is [here](https://diginode.tools/software-licence/).
 
