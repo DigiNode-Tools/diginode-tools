@@ -1,5 +1,10 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.6 - 2024-01-19
+- New: The DigiNode Tools website is finally live: [https://diginode.tools](https://diginode.tools)
+- Change: Most of the project documentation has been moved from Github to the DigiNode Tools website.
+- Fix: Individual CPU usage in DigiNode Dashboard is correctly aligned regardless of percentage.
+
 DigiNode Tools v0.9.5 - 2024-01-14
 - New: Use the ```diginode --dgb2log``` flag to view the DigiByte Node testnet log while running a Dual Node.
 - Fix: Downgrading from a DigiByte pre-release back to the latest release now works as expected.

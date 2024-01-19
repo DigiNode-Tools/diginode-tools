@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.5
+#           Name:  DigiNode Dashboard v0.9.6
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.5
-# Last Updated: 2024-01-12
+DGNT_VER_LOCAL=0.9.6
+# Last Updated: 2024-01-14
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -526,6 +526,7 @@ display_help() {
         echo "  ╚════════════════════════════════════════════════════════╝" 
         echo ""
         printf "%b%b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--verbose%b      - Enable verbose mode in DigiNode Dashboard.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf "%b%b--dgbrestart%b   - Restart primary DigiByte Node ($DGB_NETWORK_CURRENT).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -558,8 +559,6 @@ display_help() {
         fi
         printf "%b                 (Note: You can also view each log file using: --dgblogmn (Mainnet),\\n" "${INDENT}"
         printf "%b                 --dgblogtn (Testnet), --dgblogrt (Regtest) & --dgblogsn (Signet).)\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b%b--verbose%b      - Enable verbose mode. Provides more detailed feedback.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "   Usage: %bdiginode --flag%b   (Replace --flag with the desired flag.)\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -2218,15 +2217,27 @@ get_cpu_stats() {
 
         while IFS= read -r line; do
             core=$(echo "$line" | awk '{print $1}')
-            usage=$(echo "$line" | awk '{printf ($2 < 10) ? "%.0f  " : (($2 < 100) ? "%.0f " : "%.0f"), $2}') # Add a trailing space if the usage is less than 100, two if it is less than 10
-
+            usage=$(echo "$line" | awk '{printf "%.0f", $2}')
+            usage_length=${#usage}
             
             total_usage=$(echo "$total_usage + $usage" | bc)
 
             if [ "$counter" -le "$split_point" ]; then
-                cpu_usage_1+="#${core}: ${usage}%   "
+                if [ "$usage_length" -lt 2 ]; then  # Under 10%
+                    cpu_usage_1+="#${core}: ${usage}%    "
+                elif [ "$usage_length" -lt 3 ]; then  # 10% to 99%
+                    cpu_usage_1+="#${core}: ${usage}%   "
+                else
+                    cpu_usage_1+="#${core}: ${usage}%  " # Exactly 100%
+                fi
             else
-                cpu_usage_2+="#${core}: ${usage}%   "
+                if [ "$usage_length" -lt 2 ]; then  # Under 10%
+                    cpu_usage_2+="#${core}: ${usage}%    "
+                elif [ "$usage_length" -lt 3 ]; then  # 10% to 99%
+                    cpu_usage_2+="#${core}: ${usage}%   "
+                else
+                    cpu_usage_2+="#${core}: ${usage}%  " # Exactly 100%
+                fi
             fi
 
             counter=$((counter + 1))

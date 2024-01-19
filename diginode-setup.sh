@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.5
+#           Name:  DigiNode Setup v0.9.6
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -2220,7 +2220,7 @@ rpcallowip=127.0.0.1 \
             # If chain= declaration exists, and we are running a Dual Node, then comment it out
             elif grep -q ^"chain=" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" = "YES" ]; then
                 echo "$INDENT   $DGB_NETWORK_FINAL chain will be enabled for DigiByte Core"
-                echo "$INDENT   Updating digibyte.conf: # chain=$chain (Commented out to allow Dual Node support)"
+                echo "$INDENT   Updating digibyte.conf: # chain=$chain (Commented out to support Dual Node.)"
                 sed -i -e "/^chain=/s|.*|# chain=$chain|" $DGB_CONF_FILE
                 DGB_NETWORK_IS_CHANGED="YES"
                 if [ $VERBOSE_MODE = true ]; then
@@ -6569,16 +6569,16 @@ install_diginode_tools_only() {
     # Display donation QR Code
     donation_qrcode
 
-    printf "%b %b'DigiNode Dashboard' can be used to monitor your existing DigiByte Node if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %bUse 'DigiNode Dashboard' to monitor your existing DigiByte Node, if you have one.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b %b'DigiNode Setup' can now be run locally to upgrade DigiNode Tools or setup your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "%b %bUse 'DigiNode Setup' to upgrade DigiNode Tools or setup a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b To run it enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
     printf "\\n"
-    printf "%b Note: If this is your first time installing DigiNode Tools, these aliases will not work yet.\\n" "${INDENT}"
-    printf "%b If you are connected over SSH you will need to exit and re-connect before you can use them.\\n" "${INDENT}"
+    printf "%b Note: If this is your first time installing DigiNode Tools, these aliases\\n" "${INDENT}"
+    printf "%b may not work yet. You will need to log out or restart before you can use them.\\n" "${INDENT}"
     printf "\\n"
 
     exit
@@ -6977,7 +6977,7 @@ change_dgb_network() {
 
         # Delete systemd service file
         if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ]; then
-            str="Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            str="Deleting DigiByte testnet systemd service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_SYSTEMD_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -6985,7 +6985,7 @@ change_dgb_network() {
 
         # Delete upstart service file
         if [ -f "$DGB2_UPSTART_SERVICE_FILE" ]; then
-            str="Deleting DigiByte testnet upstart service file for Dual Node: $DGB2_UPSTART_SERVICE_FILE ..."
+            str="Deleting DigiByte testnet upstart service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_UPSTART_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7219,7 +7219,7 @@ ask_customize() {
 
 if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Do you want to customize your DigiNode installation?" --title "Do you want to customize your DigiNode installation?" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\nChoose 'Continue' to proceed with the defaults. (Recommended)\n\nChoose 'Exit' to first customize your install." 21 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Customize your DigiNode install (Optional)" --title "Customize your DigiNode install (Optional)" --yes-label "Continue" --no-label "Exit" --yesno "\nBefore proceeding, you may wish to edit the diginode.settings file that has just been created in the ~/.digibyte folder.\n\nThis is for advanced users who want to customize their install, such as to change the location of where the DigiByte blockchain data is stored.\n\nIn most cases, there should be no need to do this, and you can safely continue with the defaults.\n\nFor more information on customizing your installation, visit: $DGBH_URL_CUSTOM\n\nChoose 'Continue' to proceed with the defaults. (Recommended)\n\nChoose 'Exit' to first customize your install." 22 "${c}"; then
 
     #Nothing to do, continue
       printf ""
@@ -7518,7 +7518,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
             # Disable the service now
             systemctl disable digibyted-testnet
 
-            str="Reset Mode: Deleting DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ..."
+            str="Reset Mode: Deleting DigiByte testnet systemd service file for Dual Node..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_SYSTEMD_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7539,7 +7539,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
             # Disable the service now
             service digibyted-testnet disable
 
-            str="Reset Mode: Deleting DigiByte testnet systemd service file: $DGB2_UPSTART_SERVICE_FILE ..."
+            str="Reset Mode: Deleting DigiByte testnet systemd service file..."
             printf "%b %s" "${INFO}" "${str}"
             rm -f $DGB2_UPSTART_SERVICE_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -7550,7 +7550,7 @@ if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
             # Create a new DigiByte daemon testnet service file for Dual Node
 
-            str="Creating DigiByte testnet systemd service file for Dual Node: $DGB2_SYSTEMD_SERVICE_FILE ... "
+            str="Creating DigiByte testnet systemd service file for Dual Node... "
             printf "%b %s" "${INFO}" "${str}"
             touch $DGB2_SYSTEMD_SERVICE_FILE
             cat <<EOF > $DGB2_SYSTEMD_SERVICE_FILE
@@ -13437,7 +13437,7 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
         # Disable the service now
         systemctl disable "pm2-$USER_ACCOUNT"
 
-        str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+        str="Deleting PM2 systemd service file..."
         printf "%b %s" "${INFO}" "${str}"
         rm -f $PM2_SYSTEMD_SERVICE_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14178,7 +14178,7 @@ uninstall_do_now() {
                 # Disable the service now
                 systemctl disable "pm2-$USER_ACCOUNT"
 
-                str="Deleting PM2 systemd service file: $PM2_SYSTEMD_SERVICE_FILE ..."
+                str="Deleting PM2 systemd service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $PM2_SYSTEMD_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -14193,7 +14193,7 @@ uninstall_do_now() {
                 # Disable the service now
                 service "pm2-$USER_ACCOUNT" disable
 
-                str="Deleting PM2 upstart service file: $PM2_UPSTART_SERVICE_FILE ..."
+                str="Deleting PM2 upstart service file..."
                 printf "%b %s" "${INFO}" "${str}"
                 rm -f $PM2_UPSTART_SERVICE_FILE
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
