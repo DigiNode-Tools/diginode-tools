@@ -4407,7 +4407,7 @@ fi
 
 # Double buffer output to reduce display flickering
 # output=$(printf '\e[2J\e[H'; - old double buffer
-output=$(tput cup 0 0;
+# output=$(tput cup 0 0;
 
 #echo -e "${txtbld}"
 printf "${txtbld}        ____   _         _   _   __            __     " && tput el && printf "\\n"          
@@ -5054,7 +5054,9 @@ fi
 
 tput ed
 
-)
+# )
+
+exit
 
 if [ "$STARTUP_LOOP" = true ]; then
 
