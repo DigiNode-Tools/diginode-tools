@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/diginodetools
+#                  X -        https://twitter.com/diginodetools
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -3998,12 +3998,11 @@ fi
 if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
 
     # Define the strings with line breaks
-    string1="        Tip: If you find the dashboard suddenly gets duplicated down the\n             screen, you can fix this by scrolling to the bottom of the\n             window. This is caused by a limitation of the terminal.\n"
-    string2="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
-    string3="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
+    string1="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
+    string2="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
 
     # Create an array from the individual strings
-    strings=("$string1" "$string2" "$string3")
+    strings=("$string1" "$string2")
 
     # Get the current time
 #    current_time=$(date +%s)
@@ -4013,7 +4012,7 @@ if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
     if [ "$change_tip" = "yes" ]; then
 
         # Use shuf to generate a random index
-        random_index=$(shuf -i 0-2 -n 1)
+        random_index=$(shuf -i 0-1 -n 1)
 
         # Use the random index to select a random string from the array
         random_tip="${strings[random_index]}"
