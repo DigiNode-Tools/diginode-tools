@@ -4915,6 +4915,11 @@ fi
 
 # STATUS MONITOR DASHBOARD - SYSTEM - CPU USAGE (Only displays with 12 cores or less)
 
+# If the cpu_cores value is unset, set the cpucores to 13 so they don't show
+if [ -z "$cpu_cores" ]; then
+    cpu_cores=13
+fi
+
 if [ "$cpu_cores" -le 12 ]; then
 
     average_cpu_usage=90
