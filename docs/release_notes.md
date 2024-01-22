@@ -1,7 +1,8 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.10.0 - 2024-01-xx [COMING SOON]
-- Coming soon...
+- Fix: DigiNode Dashboard - if the external and internal IP addresses are both the same (i.e. we are on a server), then it now only shows the external IP.
+- Fix: DigiNode Dashboard - error no longer displays if there is no IP6 address.
 
 DigiNode Tools v0.9.6 - 2024-01-19
 - New: The DigiNode Tools website is finally live: [https://diginode.tools](https://diginode.tools)

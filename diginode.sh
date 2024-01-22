@@ -2343,7 +2343,7 @@ pre_loop() {
     str="Looking up IP6 link-local address..."
     printf "%b %s" "${INFO}" "${str}"
     IP6_LINKLOCAL_QUERY=$(ip -6 addr show | grep 'inet6 fe80:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
-    if [ $IP6_LINKLOCAL_QUERY != "" ]; then
+    if [ "$IP6_LINKLOCAL_QUERY" != "" ]; then
         IP6_LINKLOCAL=$IP6_LINKLOCAL_QUERY
         sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"$IP6_LINKLOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -2371,7 +2371,7 @@ pre_loop() {
     str="Looking up IP6 global unicast address (GUA) address..."
     printf "%b %s" "${INFO}" "${str}"
     IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
-    if [ $IP6_GUA_QUERY != "" ]; then
+    if [ "$IP6_GUA_QUERY" != "" ]; then
         IP6_GUA=$IP6_GUA_QUERY
         sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -4785,6 +4785,7 @@ ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External
 ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
 ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
 ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
+ip4_ext_only="External: $IP4_EXTERNAL"
 
 # Display IP4 addresses
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
@@ -4793,6 +4794,8 @@ elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no externa
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
 elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
+elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
 else
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
 fi
