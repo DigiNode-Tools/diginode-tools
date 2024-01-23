@@ -2260,8 +2260,8 @@ pre_loop() {
     # Setup loopcounter - used for debugging
     loopcounter=0
 
-    # Set timenow variable with the current time
-    TIME_NOW=$(date)
+    # Set timenow variable with the current UTC time
+    TIME_NOW=$(date -u +"%A, %d %B %Y %H:%M:%S %Z")
     TIME_NOW_UNIX=$(date +%s)
 
     # Check timers in case they have been tampered with, and repair if necessary
