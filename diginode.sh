@@ -3054,9 +3054,9 @@ if [ "$DGB_STATUS" = "running" ]; then
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
-  current_time=$(date +"%s")
+  current_time=$(date -u +"%s")
   dgb_start_time=$((current_time - dgb_uptime_seconds))
-  dgb_online_since=$(date -d "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
+  dgb_online_since=$(date -ud "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
 
   # Show port warning if connections are less than or equal to 7
   DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
