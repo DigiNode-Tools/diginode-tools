@@ -2911,7 +2911,7 @@ fi
 # ------------------------------------------------------------------------------
 
 # Update timenow variable with current time
-TIME_NOW=$(date)
+TIME_NOW=$(date -u +"%A, %d %B %Y %H:%M:%S %Z")
 TIME_NOW_UNIX=$(date +%s)
 loopcounter=$((loopcounter+1))
 
