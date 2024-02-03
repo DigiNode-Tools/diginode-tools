@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.6
+#           Name:  DigiNode Dashboard v0.9.7
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -14,7 +14,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  Twitter -  https://twitter.com/diginodetools
+#                  X -        https://twitter.com/diginodetools
 #
 #    Get Started:  curl http://setup.diginode.tools | bash  
 #  
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.6
-# Last Updated: 2024-01-14
+DGNT_VER_LOCAL=0.9.7
+# Last Updated: 2024-01-19
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -391,7 +391,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[')
+            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -399,7 +399,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[')
+            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -2146,6 +2146,9 @@ fi
 # check for a digibyte update
 check_digibyte_update() {
 
+    # Set the verification hash file to use
+    get_hash_file
+
     # Check for latest pre-release version of DigiByte Core if it is currently being used
     if [ "$DGB_PRERELEASE" = "YES" ]; then
 
@@ -2153,11 +2156,17 @@ check_digibyte_update() {
 
         # If there is no pre-release version, then we will lookup the release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+            # sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
             INSTALL_DGB_RELEASE_TYPE="release"
         else
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="prerelease"
+
+            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
+            DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
+
+            if [ "$DGB_VER_PRERELEASE_HASH" != "null" ] && [ "$DGB_VER_PRERELEASE_HASH" != "" ]; then
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="prerelease"
+            fi
         fi
     fi
 
@@ -2166,8 +2175,14 @@ check_digibyte_update() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
         DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
         if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-          DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-          sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+
+            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
+            DGB_VER_RELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_RELEASE" '.[$v]' 2>/dev/null)
+
+            if [ "$DGB_VER_RELEASE_HASH" != "null" ] && [ "$DGB_VER_RELEASE_HASH" != "" ]; then
+                DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+                sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            fi
         fi
     fi
 
@@ -2260,8 +2275,8 @@ pre_loop() {
     # Setup loopcounter - used for debugging
     loopcounter=0
 
-    # Set timenow variable with the current time
-    TIME_NOW=$(date)
+    # Set timenow variable with the current UTC time
+    TIME_NOW=$(date -u +"%A, %d %B %Y %H:%M:%S %Z")
     TIME_NOW_UNIX=$(date +%s)
 
     # Check timers in case they have been tampered with, and repair if necessary
@@ -2343,7 +2358,7 @@ pre_loop() {
     str="Looking up IP6 link-local address..."
     printf "%b %s" "${INFO}" "${str}"
     IP6_LINKLOCAL_QUERY=$(ip -6 addr show | grep 'inet6 fe80:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
-    if [ $IP6_LINKLOCAL_QUERY != "" ]; then
+    if [ "$IP6_LINKLOCAL_QUERY" != "" ]; then
         IP6_LINKLOCAL=$IP6_LINKLOCAL_QUERY
         sed -i -e "/^IP6_LINKLOCAL=/s|.*|IP6_LINKLOCAL=\"$IP6_LINKLOCAL\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -2371,7 +2386,7 @@ pre_loop() {
     str="Looking up IP6 global unicast address (GUA) address..."
     printf "%b %s" "${INFO}" "${str}"
     IP6_GUA_QUERY=$(ip -6 addr show scope global | grep -Eo 'inet6 ([a-f0-9:]+)' | awk '{print $2}' | head -n 1)
-    if [ $IP6_GUA_QUERY != "" ]; then
+    if [ "$IP6_GUA_QUERY" != "" ]; then
         IP6_GUA=$IP6_GUA_QUERY
         sed -i -e "/^IP6_GUA=/s|.*|IP6_GUA=\"$IP6_GUA\"|" $DGNT_SETTINGS_FILE
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
@@ -2911,7 +2926,7 @@ fi
 # ------------------------------------------------------------------------------
 
 # Update timenow variable with current time
-TIME_NOW=$(date)
+TIME_NOW=$(date -u +"%A, %d %B %Y %H:%M:%S %Z")
 TIME_NOW_UNIX=$(date +%s)
 loopcounter=$((loopcounter+1))
 
@@ -3054,9 +3069,9 @@ if [ "$DGB_STATUS" = "running" ]; then
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
-  current_time=$(date +"%s")
+  current_time=$(date -u +"%s")
   dgb_start_time=$((current_time - dgb_uptime_seconds))
-  dgb_online_since=$(date -d "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
+  dgb_online_since=$(date -ud "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
 
   # Show port warning if connections are less than or equal to 7
   DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
@@ -3998,12 +4013,11 @@ fi
 if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
 
     # Define the strings with line breaks
-    string1="        Tip: If you find the dashboard suddenly gets duplicated down the\n             screen, you can fix this by scrolling to the bottom of the\n             window. This is caused by a limitation of the terminal.\n"
-    string2="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
-    string3="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
+    string1="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
+    string2="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
 
     # Create an array from the individual strings
-    strings=("$string1" "$string2" "$string3")
+    strings=("$string1" "$string2")
 
     # Get the current time
 #    current_time=$(date +%s)
@@ -4013,7 +4027,7 @@ if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
     if [ "$change_tip" = "yes" ]; then
 
         # Use shuf to generate a random index
-        random_index=$(shuf -i 0-2 -n 1)
+        random_index=$(shuf -i 0-1 -n 1)
 
         # Use the random index to select a random string from the array
         random_tip="${strings[random_index]}"
@@ -4786,6 +4800,7 @@ ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External
 ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
 ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
 ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
+ip4_ext_only="External: $IP4_EXTERNAL"
 
 # Display IP4 addresses
 if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
@@ -4794,6 +4809,8 @@ elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no externa
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
 elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
+elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
+    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
 else
     db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
 fi
@@ -4915,6 +4932,11 @@ fi
 
 
 # STATUS MONITOR DASHBOARD - SYSTEM - CPU USAGE (Only displays with 12 cores or less)
+
+# If the cpu_cores value is unset, set the cpucores to 13 so they don't show
+if [ -z "$cpu_cores" ]; then
+    cpu_cores=13
+fi
 
 if [ "$cpu_cores" -le 12 ]; then
 
@@ -5055,7 +5077,9 @@ fi
 
 tput ed
 
-)
+) # END OF THE DASHBOARD BUFFER
+
+
 
 if [ "$STARTUP_LOOP" = true ]; then
 
@@ -5901,7 +5925,7 @@ fi
 echo ""
 echo ""
 
-read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
+read -t 60 -n 1 -s -r -p "            < Press any key to return to the dashboard. >"
 
 clear -x
 
@@ -5927,7 +5951,7 @@ startup_checks() {
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
-  diginode_logo_v3                 # Display DigiNode logo
+  diginode_logo_v3                 # Display DigiNode logo    
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
@@ -5935,6 +5959,8 @@ startup_checks() {
   set_sys_variables                # Set various system variables once we know we are on linux
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
+  disclaimerDialog                 # Display Disclaimer
+  get_hash_file                    # Get the hash file related to the current update group.
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
@@ -5947,7 +5973,7 @@ startup_checks() {
   is_sysstat_installed             # Check if sysstat is installed
   install_required_pkgs            # Install jq and sysstat
   download_digifacts               # Download the digifacts.json file from Github
-  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
+  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Dashboard
   firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
   startup_waitpause                # Wait for key press or pause for a few seconds 
 }

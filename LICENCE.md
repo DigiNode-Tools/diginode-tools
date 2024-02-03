@@ -1,4 +1,4 @@
-Copyright Olly Stedall 2021-2022 (https://diginode.digibyte.help)
+Copyright Olly Stedall 2021-2024 (https://diginode.tools)
 
 DigiNode Tools and all previously released versions, is licensed under the following PolyForm Perimeter License 1.0.0.
 
