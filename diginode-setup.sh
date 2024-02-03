@@ -10008,7 +10008,7 @@ check_digibyte_core() {
 
             if [ "$SKIP_HASH" = false ]; then
                 # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-                str="Checking diginode.tools website for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
+                str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Check if a hash for this pre-release exists in chosen diginode.tools hash file
                 DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
@@ -10043,7 +10043,7 @@ check_digibyte_core() {
                 str="Checking for previous DigiByte Core pre-release..."
                 printf "%b %s" "${INFO}" "${str}"
 
-                DGB_VER_PRERELEASE=$(curl --silent "$DGB_RELEASE_JSON" | jq '[.[] | select(.prerelease == true) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[1] as $prev_pr | [.[] | select(.prerelease == false) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[0] as $latest_r | if ($prev_pr.published_at > $latest_r.published_at) then $prev_pr.tag_name else empty end' | sed 's/v//g')
+                DGB_VER_PRERELEASE=$(echo $DGB_RELEASE_JSON | jq -r '[.[] | select(.prerelease == true) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[1] as $prev_pr | [.[] | select(.prerelease == false) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[0] as $latest_r | if ($prev_pr.published_at > $latest_r.published_at) then $prev_pr.tag_name else empty end' | sed 's/v//g')
 
                 #########################################################
                 ########### TESTING: PREVIOUS PRE-RELEASE ###############
@@ -10082,7 +10082,7 @@ check_digibyte_core() {
                     sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
 
                     # Check diginode.tools website for SHA256 hash of the previous DigiByte Core pre-release
-                    str="Checking diginode.tools website for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
+                    str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
                     printf "%b %s" "${INFO}" "${str}"
 
                     # Check if a hash for the previous pre-release exists in the diginode.tools hash file
@@ -10189,7 +10189,7 @@ check_digibyte_core() {
 
             if [ "$SKIP_HASH" = false ]; then 
                 # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-                str="Checking diginode.tools website for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
+                str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
                 printf "%b %s" "${INFO}" "${str}"
 
                 # Check if a hash for this pre-release exists in chosen diginode.tools hash file
@@ -10252,7 +10252,7 @@ check_digibyte_core() {
                         sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
 
                         # Check diginode.tools website for SHA256 hash of the previous DigiByte Core release
-                        str="Checking diginode.tools website for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
+                        str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
                         printf "%b %s" "${INFO}" "${str}"
 
                         # Check if a hash for the previous release exists in the diginode.tools hash file
@@ -10525,7 +10525,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     if [ "$SKIP_HASH" = false ]; then 
 
         # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-        str="Checking diginode.tools website for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
+        str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
         printf "%b %s" "${INFO}" "${str}"
 
         # Check if a hash for this pre-release exists in diginode.tools hash file
@@ -11365,7 +11365,7 @@ check_dnsu() {
 
         if [ "$SKIP_HASH" = false ]; then 
             # Check diginode.tools website for SHA256 hash of the latest DNSU release
-            str="Checking diginode.tools website for SHA256 hash of DNSU v${DNSU_VER_RELEASE}..."
+            str="Checking diginode.tools for SHA256 hash of DNSU v${DNSU_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
 
             # Check if a hash for this pre-release exists in chosen diginode.tools hash file
