@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.0
+#           Name:  DigiNode Dashboard v0.9.7
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,7 +60,7 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.0
+DGNT_VER_LOCAL=0.9.7
 # Last Updated: 2024-01-19
 
 # This is the command people will enter to run the install script.
@@ -391,7 +391,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[')
+            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -399,7 +399,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[')
+            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -2146,6 +2146,9 @@ fi
 # check for a digibyte update
 check_digibyte_update() {
 
+    # Set the verification hash file to use
+    get_hash_file
+
     # Check for latest pre-release version of DigiByte Core if it is currently being used
     if [ "$DGB_PRERELEASE" = "YES" ]; then
 
@@ -2153,11 +2156,17 @@ check_digibyte_update() {
 
         # If there is no pre-release version, then we will lookup the release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+            # sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
             INSTALL_DGB_RELEASE_TYPE="release"
         else
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="prerelease"
+
+            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
+            DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
+
+            if [ "$DGB_VER_PRERELEASE_HASH" != "null" ] && [ "$DGB_VER_PRERELEASE_HASH" != "" ]; then
+                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+                INSTALL_DGB_RELEASE_TYPE="prerelease"
+            fi
         fi
     fi
 
@@ -2166,8 +2175,14 @@ check_digibyte_update() {
     if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
         DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
         if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-          DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-          sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+
+            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
+            DGB_VER_RELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_RELEASE" '.[$v]' 2>/dev/null)
+
+            if [ "$DGB_VER_RELEASE_HASH" != "null" ] && [ "$DGB_VER_RELEASE_HASH" != "" ]; then
+                DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
+                sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+            fi
         fi
     fi
 
@@ -5910,7 +5925,7 @@ fi
 echo ""
 echo ""
 
-read -t 60 -n 1 -s -r -p "            < Press any key to return to the Status Monitor >"
+read -t 60 -n 1 -s -r -p "            < Press any key to return to the dashboard. >"
 
 clear -x
 
@@ -5936,7 +5951,7 @@ startup_checks() {
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
-  diginode_logo_v3                 # Display DigiNode logo
+  diginode_logo_v3                 # Display DigiNode logo    
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
@@ -5944,6 +5959,8 @@ startup_checks() {
   set_sys_variables                # Set various system variables once we know we are on linux
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
+  disclaimerDialog                 # Display Disclaimer
+  get_hash_file                    # Get the hash file related to the current update group.
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
@@ -5956,7 +5973,7 @@ startup_checks() {
   is_sysstat_installed             # Check if sysstat is installed
   install_required_pkgs            # Install jq and sysstat
   download_digifacts               # Download the digifacts.json file from Github
-  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Status Monitor
+  firstrun_monitor_configs         # Do some configuration if this is the first time running the DigiNode Dashboard
   firstrun_dganode_configs         # Do some configuration if this is the first time running the DigiAssets Node
   startup_waitpause                # Wait for key press or pause for a few seconds 
 }

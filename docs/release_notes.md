@@ -1,9 +1,12 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.10.0 - 2024-01-xx [COMING SOON]
-- Fix: DigiNode Dashboard - if the external and internal IP addresses are both the same (i.e. we are on a server), then it now only shows the external IP.
-- Fix: DigiNode Dashboard - error no longer displays if there is no IP6 address.
-- Change: DigiNode Dashboard - "System Time" and "Online Since" are now displayed in UTC regardless of the server location on the user's local time.
+DigiNode Tools v0.9.7 - 2024-02-03
+- New: When installing/upgrading DigiByte Core the script now looks for a sha256 hash on the DigiNode Tools website and only allows the install/upgrade to proceed if it is available. Once downloaded, the new binary is checked against the hash to make sure that it has not been tampered with. This change significantly improves DigiNode security providing protection in the event that the DigiByte Core repo is compromised. In an emergency you can bypass these checks using the ```--skiphash``` flag though this is not recommended.
+- New: Users must now agree to the software disclaimer before using DigiNode Tools. Continued use of DigiNode Tools constitutes you agree to the terms in the disclaimer. You will be asked to agree each time there is a new release.
+- Change: ```--dgbpeers``` and ```--dgb2peers``` now list peers alphabetically.
+- Fix: In DigiNode Dashboard, if the external and internal IP addresses are both the same (i.e. we are on a server), then it now only shows the external IP.
+- Fix: In DigiNode Dashboard, an error no longer displays if there is no IP6 address.
+- Change: In DigiNode Dashboard, "System Time" and "Online Since" are now displayed in UTC regardless of the server location or the user's local time. This makes it easier to compare the current state of differnet nodes regarldess of where they are located.
 
 DigiNode Tools v0.9.6 - 2024-01-19
 - New: The DigiNode Tools website is finally live: [https://diginode.tools](https://diginode.tools)
