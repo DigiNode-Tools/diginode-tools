@@ -10043,7 +10043,7 @@ check_digibyte_core() {
                 str="Checking for previous DigiByte Core pre-release..."
                 printf "%b %s" "${INFO}" "${str}"
 
-                DGB_VER_PRERELEASE=$(curl --silent "$DGB_RELEASE_JSON" | jq '[.[] | select(.prerelease == true) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[1] as $prev_pr | [.[] | select(.prerelease == false) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[0] as $latest_r | if ($prev_pr.published_at > $latest_r.published_at) then $prev_pr.tag_name else empty end' | sed 's/v//g')
+                DGB_VER_PRERELEASE=$(echo $DGB_RELEASE_JSON | jq -r '[.[] | select(.prerelease == true) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[1] as $prev_pr | [.[] | select(.prerelease == false) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[0] as $latest_r | if ($prev_pr.published_at > $latest_r.published_at) then $prev_pr.tag_name else empty end' | sed 's/v//g')
 
                 #########################################################
                 ########### TESTING: PREVIOUS PRE-RELEASE ###############
