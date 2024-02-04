@@ -2,6 +2,7 @@
 
 DigiNode Tools v0.9.9 - 2024-02-04
 - Fix: Sync progress in DigiNode Dashboard is now correctly calculated
+- Fix: Error detecting avahi-daemon in Dashboard
 - Change: Remove testnet / dual node warning message
 
 DigiNode Tools v0.9.8 - 2024-02-03
