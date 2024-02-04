@@ -3543,13 +3543,13 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
 
             # Lookup the sync progress value from debug.log (mainnet, testnet, regtest, signet)
             if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                 DGB_BLOCKSYNC_VALUE=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/regtest/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/signet/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
             fi
          
             # Is the returned value numerical?

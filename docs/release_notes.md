@@ -1,7 +1,8 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.9 - 2024-02-xx [COMING SOON]
-- Coming sonn...
+DigiNode Tools v0.9.9 - 2024-02-04
+- Fix: Sync progress in DigiNode Dashboard is now correctly calculated
+- Change: Remove testnet / dual node warning message
 
 DigiNode Tools v0.9.8 - 2024-02-03
 - Fix: DigiNode Tools now correctly installs DigiByte Core 8.22.0-rc3 that has just been released.

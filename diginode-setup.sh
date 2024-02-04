@@ -8258,16 +8258,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
     fi
 
-    ####################################
-    # Temporary Alert Message - Banana #
-    ####################################
-
-
-    if [ "$show_dgb_network_menu" = "yes" ]; then
-        dialog --no-shadow --keep-tite --colors --backtitle "WARNING! Please read this!" --title "WARNING! Please read this!" --msgbox "\n\Z1WARNING: Do not setup a TESTNET NODE or DUAL NODE unless you are using DigiByte v8.22.0-rc3 or later.\Z0\n\nThe next screen lets you choose between running your DigiByte Node on MAINNET, TESTNET or as a DUAL NODE (both at the same time). Unless you have a very powerful system, you should not attempt to setup a Testnet Node or Dual Node unless you are running DigiByte Core v8.22.0-rc3 or later. It will not work with DigiByte v7.17.3.\n\nThere is a startup bug in earlier DigiByte releases that affects testnet only - it causes the software to take 24 hours or more to launch a testnet node. On the Pi 4 or other lower power devices, it is unable to finish syncing. This issue has been fixed in the upcoming DigiByte Core v8.22.0-rc3 pre-release which, once available, can be install with the --dgbpre flag. It is recommended to wait for that before attempting to run a testnet node on a Raspberry Pi, or other low power device.\n\n\Z1Do not attempt to run a DUAL NODE or TESTNET NODE with the DigiByte v7.17.3 release.\Z0" 26 ${c}
-    fi
-
-
     # Setup Menu options
 
     opt1a="1 MAINNET"
