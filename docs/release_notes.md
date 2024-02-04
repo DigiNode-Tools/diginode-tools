@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.8 - 2024-02-03
+- Fix: DigiNode Tools now correctly installs DigiByte Core 8.22.0-rc3 that has just been released.
+
 DigiNode Tools v0.9.7 - 2024-02-03
 - New: When installing/upgrading DigiByte Core the script now looks for a sha256 hash on the DigiNode Tools website and only allows the install/upgrade to proceed if it is available. Once downloaded, the new binary is checked against the hash to make sure that it has not been tampered with. This change significantly improves DigiNode security providing protection in the event that the DigiByte Core repo is compromised. In an emergency you can bypass these checks using the ```--skiphash``` flag though this is not recommended.
 - New: Users must now agree to the software disclaimer before using DigiNode Tools. Continued use of DigiNode Tools constitutes you agree to the terms in the disclaimer. You will be asked to agree each time there is a new release.
