@@ -1,7 +1,7 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.9.10 - 2024-02-xx [Coming Soon]
-- Coming soon...
+- Fix: Testnet peers now sort alphabetically as well when using ```--dgb2peers```.
 
 DigiNode Tools v0.9.9 - 2024-02-04
 - Fix: Sync progress in DigiNode Dashboard is now correctly calculated.
