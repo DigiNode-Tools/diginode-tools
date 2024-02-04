@@ -10681,6 +10681,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
+    # WORKAROUND: If this is 8.22.0-rc3, we need to manually rename the extracted directory name, since it is incorrect
+    if [ -d "$USER_HOME/digibyte-af6d4e3cdef0" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc3" ]; then
+        str="Renaming 8.22.0-rc3 download folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af6d4e3cdef0 $USER_HOME/digibyte-8.22.0-rc3
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
     # If we can't find the extracted folder because it is not using the standard folder name,
     # then we need to cancel the install and restore the previous version from backup
     if [ ! -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
