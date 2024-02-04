@@ -16078,6 +16078,7 @@ download_digifacts() {
             sudo -u $USER_ACCOUNT rm -f "$digifacts_temp_file"
             sudo -u $USER_ACCOUNT touch "$digifacts_temp_file"
             sudo -u $USER_ACCOUNT jq -s '.[0] + .[1]' "$digifacts_file" "$diginode_help_file" > "$digifacts_temp_file"
+            sudo -u $USER_ACCOUNT rm -f "$digifacts_file"
             sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
