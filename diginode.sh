@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.8
+#           Name:  DigiNode Dashboard v0.9.9
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.8
-# Last Updated: 2024-02-03
+DGNT_VER_LOCAL=0.9.9
+# Last Updated: 2024-02-04
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -1627,7 +1627,7 @@ is_avahi_installed() {
     printf "%b Checking for missing packages...\\n" "${INFO}"
 
     REQUIRED_PKG="avahi-daemon"
-    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
+    PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG 2>/dev/null|grep "install ok installed")
     if [ "" = "$PKG_OK" ]; then
       printf "%b %bavahi-daemon is not currently installed.%b\\n"  "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
       printf "\\n"
@@ -3023,15 +3023,15 @@ if [ "$DGB_STATUS" = "running" ]; then
   # This will update the blockchain sync progress every second until it is fully synced
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
-    # Lookup the sync progress value from debug.log. 
+    # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
     if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
     elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/regtest/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
     elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/signet/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
     elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
     fi
  
     # Is the returned value numerical?
@@ -3136,7 +3136,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+    DGB2_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3541,15 +3541,15 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
-            # Lookup the sync progress value from debug.log (mainnet, testnet, regtest, signet)
+            # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
             if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/regtest/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/signet/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
             elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
             fi
          
             # Is the returned value numerical?
@@ -3604,7 +3604,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$(tail -n 1 $DGB_SETTINGS_LOCATION/testnet4/debug.log | cut -d' ' -f12 | cut -d'=' -f2)
+            DGB2_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
