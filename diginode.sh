@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.9
+#           Name:  DigiNode Dashboard v0.9.10
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -21,7 +21,7 @@
 #                  Alternatively clone the repo to your home folder:
 #
 #                  cd ~
-#                  git clone https://github.com/saltedlolly/diginode-tools/
+#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode.sh
 #
 #                  To run DigiNode Dashboard:
@@ -60,7 +60,7 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.9
+DGNT_VER_LOCAL=0.9.10
 # Last Updated: 2024-02-04
 
 # This is the command people will enter to run the install script.
@@ -416,7 +416,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[')
+            ip4peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -424,7 +424,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[')
+            ip6peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -616,7 +616,7 @@ import_setup_functions() {
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
-        printf "%b   git clone https://github.com/saltedlolly/diginode-tools/ \\n" "${INDENT}"
+        printf "%b   git clone https://github.com/DigiNode-Tools/diginode-tools/ \\n" "${INDENT}"
         printf "%b   chmod +x ~/diginode-tools/diginode.sh \\n" "${INDENT}"
         printf "\\n"
         printf "%b To run it:\\n" "${INDENT}"
@@ -3896,7 +3896,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE

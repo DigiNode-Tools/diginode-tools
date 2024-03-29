@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.9
+#           Name:  DigiNode Setup v0.9.10
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -21,7 +21,7 @@
 #                  Alternatively clone the repo to your home folder:
 #
 #                  cd ~
-#                  git clone https://github.com/saltedlolly/diginode-tools/
+#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode-setup.sh
 #
 #                  To run DigiNode Setup:
@@ -100,8 +100,8 @@ DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
 DGNT_SETUP_OFFICIAL_URL=setup.diginode.tools
-DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/main/diginode-setup.sh
-DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/saltedlolly/diginode-tools/develop/diginode-setup.sh
+DGNT_SETUP_GITHUB_MAIN_URL=https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/main/diginode-setup.sh
+DGNT_SETUP_GITHUB_DEVELOP_URL=https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/develop/diginode-setup.sh
 
 # This is the Github repo for the DigiAsset Node (this only needs to be changed if you wish to test a new version.)
 # The main branch is used by default. The dev branch is installed if the --dgadev flag is used.
@@ -112,7 +112,7 @@ DGA_GITHUB_REPO_DEV="--branch development https://github.com/digiassetX/digiasse
 DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
-DGNT_RELEASE_URL="https://github.com/saltedlolly/diginode-tools.git"
+DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
@@ -463,7 +463,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
 
         #lookup latest release version on Github (need jq installed for this query)
-        local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+        local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
         # If we get a response, update the stored release version
         if [ "$dgnt_ver_release_query" != "" ]; then
@@ -1063,7 +1063,7 @@ diginode_tools_update_settings() {
             fi
 
             # Let's get the current release version
-            local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+            local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
              # If we get a response, update the stored release version
             if [ "$dgnt_ver_release_query" != "" ]; then
@@ -10905,7 +10905,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     local str
 
     #lookup latest release version on Github (need jq installed for this query)
-    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
 
     # If we get a response, update the stored release version
     if [ "$dgnt_ver_release_query" != "" ]; then
@@ -11131,7 +11131,7 @@ fi
         if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
             str="Installing DigiNode Tools develop branch..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/saltedlolly/diginode-tools/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch develop https://github.com/DigiNode-Tools/diginode-tools/
             DGNT_BRANCH_LOCAL="develop"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"develop\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
@@ -11140,7 +11140,7 @@ fi
         elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/DigiNode-Tools/diginode-tools/
             DGNT_BRANCH_LOCAL="main"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"main\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
@@ -11148,7 +11148,7 @@ fi
         elif [ "$DGNT_BRANCH_REMOTE" = "release" ]; then
             str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
             printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/DigiNode-Tools/diginode-tools/ 2>/dev/null
             DGNT_BRANCH_LOCAL="release"
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
             DGNT_VER_LOCAL=$DGNT_VER_RELEASE
@@ -11525,7 +11525,7 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
     if [ "$DNSU_BRANCH_REMOTE" = "main" ]; then
         str="Installing DNSU main branch..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/saltedlolly/diginode-tools/
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch main https://github.com/DigiNode-Tools/diginode-tools/
         DGNT_BRANCH_LOCAL="main"
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"main\"|" $DGNT_SETTINGS_FILE
         sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
@@ -11533,7 +11533,7 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
     else
         str="Installing DigiNode Tools v${DGNT_VER_RELEASE}..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/saltedlolly/diginode-tools/ 2>/dev/null
+        sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch v${DGNT_VER_RELEASE} https://github.com/DigiNode-Tools/diginode-tools/ 2>/dev/null
         DGNT_BRANCH_LOCAL="release"
         sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"release\"|" $DGNT_SETTINGS_FILE
         DGNT_VER_LOCAL=$DGNT_VER_RELEASE
@@ -15693,6 +15693,14 @@ uninstall_do_now() {
                         rm -rf $DGB_DATA_LOCATION/indexes
                         rm -rf $DGB_DATA_LOCATION/chainstate
                         rm -rf $DGB_DATA_LOCATION/blocks
+                        rm -f $DGB_DATA_LOCATION/banlist.dat
+                        rm -f $DGB_DATA_LOCATION/banlist.json
+                        rm -f $DGB_DATA_LOCATION/digibyted.pid
+                        rm -f $DGB_DATA_LOCATION/fee_estimates.dat
+                        rm -f $DGB_DATA_LOCATION/.lock
+                        rm -f $DGB_DATA_LOCATION/mempool.dat
+                        rm -f $DGB_DATA_LOCATION/peers.dat
+                        rm -f $DGB_DATA_LOCATION/settings.json
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -15709,13 +15717,21 @@ uninstall_do_now() {
                 # Delete DigiByte blockchain TESTNET data
                 if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte TESTNET blockchain data?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
 
-                    # Delete systemd service file
+                    # Delete testnet blockchain data
                     if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                         str="Deleting DigiByte Core TESTNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
                         rm -rf $DGB_DATA_LOCATION/testnet4/indexes
                         rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
                         rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
+                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
+                        rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
+                        rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
+                        rm -f $DGB_DATA_LOCATION/testnet4/.lock
+                        rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
+                        rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
+                        rm -f $DGB_DATA_LOCATION/testnet4/settings.json
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -15738,6 +15754,14 @@ uninstall_do_now() {
                         rm -rf $DGB_DATA_LOCATION/regtest/indexes
                         rm -rf $DGB_DATA_LOCATION/regtest/chainstate
                         rm -rf $DGB_DATA_LOCATION/regtest/blocks
+                        rm -f $DGB_DATA_LOCATION/regtest/banlist.dat
+                        rm -f $DGB_DATA_LOCATION/regtest/banlist.json
+                        rm -f $DGB_DATA_LOCATION/regtest/digibyted.pid
+                        rm -f $DGB_DATA_LOCATION/regtest/fee_estimates.dat
+                        rm -f $DGB_DATA_LOCATION/regtest/.lock
+                        rm -f $DGB_DATA_LOCATION/regtest/mempool.dat
+                        rm -f $DGB_DATA_LOCATION/regtest/peers.dat
+                        rm -f $DGB_DATA_LOCATION/regtest/settings.json
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -15959,14 +15983,19 @@ fi
 # Download the DigiFacts file from Github (at most once every 24 hours)
 download_digifacts() {
 
-    printf " =============== Checking: DigiFacts ===================================\\n\\n"
-    # ==============================================================================
-
     local digifacts_url="https://digifacts.digibyte.help/?lang=en&format=social"
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
     local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"
     local diginode_help_file="$DGNT_LOCATION/diginode-help.json"
+
+    if test -f "$digifacts_file"; then
+        printf " =============== Checking: DigiFacts ===================================\\n\\n"
+        # ==============================================================================
+    else
+        printf " =============== Installing: DigiFacts =================================\\n\\n"
+        # ==============================================================================
+    fi
 
     # If the last download time file doesn't exist, create one with an old timestamp
     if [ "$SAVED_TIME_DIGIFACTS" = "" ]; then
