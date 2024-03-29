@@ -1,7 +1,9 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.10 - 2024-02-xx [Coming Soon]
+DigiNode Tools v0.9.10 - 2024-03-29
 - Fix: Testnet peers now sort alphabetically as well when using ```--dgb2peers```.
+- Change: Uninstalling blockchain data now deletes everything except the wallet (previously it kept the banlist, mempool, peers etc.)
+- Change: DigiNode Tools Github repo has moved to the new DigiNode Tools org on Github. All links have been updated to reflect this.
 
 DigiNode Tools v0.9.9 - 2024-02-04
 - Fix: Sync progress in DigiNode Dashboard is now correctly calculated.

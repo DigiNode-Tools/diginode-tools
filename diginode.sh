@@ -21,7 +21,7 @@
 #                  Alternatively clone the repo to your home folder:
 #
 #                  cd ~
-#                  git clone https://github.com/saltedlolly/diginode-tools/
+#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
 #                  chmod +x ~/diginode-tools/diginode.sh
 #
 #                  To run DigiNode Dashboard:
@@ -616,7 +616,7 @@ import_setup_functions() {
         printf "%b DigiByte node, clone the official repo to your home folder:\\n" "${INDENT}"
         printf "\\n"
         printf "%b   cd ~ \\n" "${INDENT}"
-        printf "%b   git clone https://github.com/saltedlolly/diginode-tools/ \\n" "${INDENT}"
+        printf "%b   git clone https://github.com/DigiNode-Tools/diginode-tools/ \\n" "${INDENT}"
         printf "%b   chmod +x ~/diginode-tools/diginode.sh \\n" "${INDENT}"
         printf "\\n"
         printf "%b To run it:\\n" "${INDENT}"
@@ -3896,7 +3896,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/saltedlolly/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
