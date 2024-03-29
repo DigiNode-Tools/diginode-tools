@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.10
+#           Name:  DigiNode Setup v0.9.11
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,7 +16,7 @@
 #                  Bluesky  - https://bsky.app/profile/diginode.tools
 #                  X        - https://twitter.com/diginodetools
 #
-#    Get Started:  curl http://setup.diginode.tools | bash  
+#    Get Started:  curl -sSL setup.diginode.tools | bash 
 #  
 #                  Alternatively clone the repo to your home folder:
 #
