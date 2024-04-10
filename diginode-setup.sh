@@ -14685,13 +14685,11 @@ install_diginode_tools_update_first() {
     DGNT_DO_INSTALL=YES
     DGNT_REQ_INSTALL=YES
     printf "%b DigiNode Tools v$DGNT_VER_RELEASE must be installed first before you can install the other updates.\\n" "${INFO}"
+    printf "\\n"
 
     # Install the DigiNode Tools update
     diginode_tools_do_install
 
-    printf "\\n"
-    printf "\\n"
-    printf "%b DigiNode Tools has been updated.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
     printf "%b %bThere are additional updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
     printf "\\n"
