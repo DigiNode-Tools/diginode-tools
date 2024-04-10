@@ -2152,7 +2152,7 @@ check_digibyte_update() {
     # Check for latest pre-release version of DigiByte Core if it is currently being used
     if [ "$DGB_PRERELEASE" = "YES" ]; then
 
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --max-time 4 https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
+        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
 
         # If there is no pre-release version, then we will lookup the release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
@@ -3872,7 +3872,9 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
   #  sed -i -e "/^SYSTEM_SECURITY_UPDATES=/s|.*|SYSTEM_SECURITY_UPDATES=\"$SYSTEM_SECURITY_UPDATES\"|" $DGNT_SETTINGS_FILE
   #  sed -i -e "/^SYSTEM_REGULAR_UPDATES=/s|.*|SYSTEM_REGULAR_UPDATES=\"$SYSTEM_REGULAR_UPDATES\"|" $DGNT_SETTINGS_FILE
 
-
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for DigiByte Core update...\\n" "${INFO}"
+    fi
 
     # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
     if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
@@ -3895,6 +3897,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         fi
     fi
 
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
+    fi
+
     # Check for new release of DigiNode Tools on Github
     dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
       if [ "$dgnt_ver_release_query" != "" ]; then
@@ -3906,6 +3912,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         else
           DGNT_UPDATE_AVAILABLE="yes"
         fi
+    fi
+
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for NodeJS update...\\n" "${INFO}"
     fi
 
     # Check for the latest release of NodeJS
@@ -3925,6 +3935,9 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         fi
     fi
 
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for DigiAsset Node update...\\n" "${INFO}"
+    fi
 
     # Check for new release of DigiAsset Node
     DGA_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
@@ -3957,6 +3970,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
             DGA_UPDATE_AVAILABLE="yes"
           fi
       fi
+    fi
+
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for Kubo update...\\n" "${INFO}"
     fi
 
     # Check for new release of Kubo
