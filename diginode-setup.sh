@@ -2824,18 +2824,37 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         pitype="pi4"
     fi
 
-    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
+    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware
+    # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes
     if [ "$pitype" != "" ]; then
-        if [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
+        if [ $revision = 'd04170' ]; then #Pi 5 8Gb
+            pitype="pi5"
+            MODELMEM="8Gb"
+        elif [ $revision = 'c04170' ]; then #Pi 5 4Gb
+            pitype="pi5"
+            MODELMEM="4Gb"
+        elif [ $revision = 'd03140' ]; then #Pi CM4 8Gb
+            pitype="picm4"
+            MODELMEM="8Gb"
+        elif [ $revision = 'c03140' ]; then #Pi CM4 4Gb
+            pitype="picm4"
+            MODELMEM="4Gb"
+        elif [ $revision = 'b03140' ]; then #Pi CM4 2Gb
+            pitype="picm4_lowmem"
+            MODELMEM="2Gb"
+        elif [ $revision = 'a03140' ]; then #Pi CM4 1Gb
+            pitype="picm4_toolowmem"
+            MODELMEM="1Gb"
+        elif [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
         elif [ $revision = '902120' ]; then #Pi Zero 2 W
             pitype="piold"
             MODELMEM="1Gb"
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
-            pitype="pi4"
+            pitype="pi400"
             MODELMEM="4Gb"
-        elif [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
+        elif [ $revision = 'c03115' ] || [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
@@ -2973,6 +2992,15 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             rpi_microsd_check
         fi
         printf "\\n"
+    elif [ "$pitype" = "pi400" ]; then
+        printf "%b Raspberry Pi 400 Detected\\n" "${TICK}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
+            printf "\\n"
+            rpi_microsd_check
+        fi
+        printf "\\n"
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2992,11 +3020,35 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
+    elif [ "$pitype" = "picm4_lowmem" ]; then
+        printf "%b Raspberry Pi CM4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        # hide this part if running digimon
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
+            printf "\\n"
+            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "\\n"
+            rpi_microsd_check
+        fi
+        printf "\\n"
+    elif [ "$pitype" = "picm4_toolowmem" ]; then
+        printf "%b %bERROR: Raspberry Pi CM4 Detected   [ LOW MEMORY DEVICE!! ]%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bThis Raspberry Pi Compute Module only has 1Gb RAM which is not enough to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+        printf "\\n"
+        purge_dgnt_settings
+        exit 1
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -3007,7 +3059,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check     
         fi
@@ -3017,7 +3069,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -11090,7 +11142,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiNode Tools v${DGNT_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"

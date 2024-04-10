@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.12 - 2024-04-xx
+- Fix: Hide displayed download progress when checking for DigiByte Core update at Dashboard launch
+- New: Update Raspberry Pi detection to identify newer Pi 4, Pi CM4, Pi 400 and Pi 5 models.
+
 DigiNode Tools v0.9.11 - 2024-04-02
 - New: Add support for DigiByte Core v8.22.0-rc4
 
