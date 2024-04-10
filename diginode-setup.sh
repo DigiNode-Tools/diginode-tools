@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.11
+#           Name:  DigiNode Setup v0.9.12
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -2824,18 +2824,37 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         pitype="pi4"
     fi
 
-    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware 
+    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware
+    # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes
     if [ "$pitype" != "" ]; then
-        if [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
+        if [ $revision = 'd04170' ]; then #Pi 5 8Gb
+            pitype="pi5"
+            MODELMEM="8Gb"
+        elif [ $revision = 'c04170' ]; then #Pi 5 4Gb
+            pitype="pi5"
+            MODELMEM="4Gb"
+        elif [ $revision = 'd03140' ]; then #Pi CM4 8Gb
+            pitype="picm4"
+            MODELMEM="8Gb"
+        elif [ $revision = 'c03140' ]; then #Pi CM4 4Gb
+            pitype="picm4"
+            MODELMEM="4Gb"
+        elif [ $revision = 'b03140' ]; then #Pi CM4 2Gb
+            pitype="picm4_lowmem"
+            MODELMEM="2Gb"
+        elif [ $revision = 'a03140' ]; then #Pi CM4 1Gb
+            pitype="picm4_toolowmem"
+            MODELMEM="1Gb"
+        elif [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
             pitype="pi4"
             MODELMEM="8Gb"
         elif [ $revision = '902120' ]; then #Pi Zero 2 W
             pitype="piold"
             MODELMEM="1Gb"
         elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
-            pitype="pi4"
+            pitype="pi400"
             MODELMEM="4Gb"
-        elif [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
+        elif [ $revision = 'c03115' ] || [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
             pitype="pi4"
             MODELMEM="4Gb"
         elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
@@ -2973,6 +2992,15 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             rpi_microsd_check
         fi
         printf "\\n"
+    elif [ "$pitype" = "pi400" ]; then
+        printf "%b Raspberry Pi 400 Detected\\n" "${TICK}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
+            printf "\\n"
+            rpi_microsd_check
+        fi
+        printf "\\n"
     elif [ "$pitype" = "pi4" ]; then
         printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -2992,11 +3020,35 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
+    elif [ "$pitype" = "picm4_lowmem" ]; then
+        printf "%b Raspberry Pi CM4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        IS_RPI="YES"
+        # hide this part if running digimon
+        if [[ "$RUN_SETUP" != "NO" ]] ; then
+            printf "\\n"
+            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
+            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "\\n"
+            rpi_microsd_check
+        fi
+        printf "\\n"
+    elif [ "$pitype" = "picm4_toolowmem" ]; then
+        printf "%b %bERROR: Raspberry Pi CM4 Detected   [ LOW MEMORY DEVICE!! ]%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b %bThis Raspberry Pi Compute Module only has 1Gb RAM which is not enough to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+        printf "\\n"
+        purge_dgnt_settings
+        exit 1
     elif [ "$pitype" = "pi3" ]; then
         printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -3007,7 +3059,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
             printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check     
         fi
@@ -3017,7 +3069,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b A Raspberry Pi 4 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -10567,7 +10619,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         if [ "$hash_verification_failed" = "yes" ]; then
 
             if [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified. Rolling back...\\n" "${INFO}" #banana
+                printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified. Rolling back...\\n" "${INFO}"
                 printf "\\n"
             elif [ "$DGB_INSTALL_TYPE" = "new" ]; then
                 printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified.\\n" "${INFO}"
@@ -11090,7 +11142,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiNode Tools
 if [ $DGNT_INSTALL_TYPE = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiAsset Tools v${DGNT_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiNode Tools v${DGNT_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiNode Tools folder at $DGNT_LOCATION and re-install it." 10 "${c}"; then
         printf "%b Reset Mode: You chose to re-install DigiNode Tools\\n" "${INFO}"
         DGNT_DO_INSTALL=YES
         DGNT_INSTALL_TYPE="reset"
@@ -14625,7 +14677,28 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
 
 fi
 
+}
 
+# If there is an update to DigiNode Tools AND one of the other sofwtare packages, install the DigiNode 
+install_diginode_tools_update_first() {
+
+    DGNT_DO_INSTALL=YES
+    DGNT_REQ_INSTALL=YES
+    printf "%b DigiNode Tools v$DGNT_VER_RELEASE must be installed first before you can install the other updates.\\n" "${INFO}"
+
+    # Install the DigiNode Tools update
+    diginode_tools_do_install
+
+    printf "\\n"
+    printf "\\n"
+    printf "%b DigiNode Tools has been updated.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b %bThere are additional updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To install them now run DigiNode Setup again: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+
+    exit
 
 }
 
@@ -14649,8 +14722,33 @@ menu_ask_install_updates() {
 # DGB_VER_GITHUB="8.22.0"
 # INSTALL_DGB_RELEASE_TYPE="release"
 
-# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
+# This variable gets set to 'yes' if there is an update to any of the included DigiNode software, except DigiNode Tools itself.
+local diginode_software_update
+is_diginode_software_update="no"
+
+
+# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they want to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
+
+    # Are there are updates for anything other than DigiNode Tools itself?
+    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
+        is_diginode_software_update="yes"
+    fi
+
+    # If we are running unattended AND...
+    # If we are running DigiNode Setup locally, and there is an DigiNode Tools update available, we need to install it first, before installing any other updates
+    if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+
+        # We only need to do this if there are also other updates that also need to be installed (in addition to the DigiNode Tools update)
+        # Note: If there are new software tools to add here in future, this needs updating below as well
+        if [ "$is_diginode_software_update" = "yes" ]; then
+
+            # Install the DigiNode Tools update first
+            install_diginode_tools_update_first
+
+        fi
+
+    fi
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
@@ -14701,6 +14799,24 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
         if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Update" --title "DigiNode Software Update" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
+
+            # If we are running DigiNode Setup locally, and there is an DigiNode Tools update available, we need to install it first, before installing any other updates
+            # This is skipped when in development mode. The user must run DigiNode Setup again to install the other updates
+            if [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+
+                # We only need to do this if there are also other updates that also need to be installed (in addition to the DigiNode Tools update)
+                if [ "$is_diginode_software_update" = "yes" ]; then
+
+                    # Show an alert explaining that the diginode tools update must be installed first
+                    dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Tools must be updated seperately!" --title "DigiNode Tools must be updated seperately!" --msgbox "\n\Z1IMPORTANT: DigiNode Setup must be updated before you can install the other updates.\Z0\\n\\nWhen you click OK, the latest version of DigiNode Tools will be installed.\\n\\nPlease run DigiNode Setup again in a moment to install the other updates." 15 ${c}
+
+                    # Install the DigiNode Tools update first
+                    install_diginode_tools_update_first
+
+                fi
+
+            fi
+
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
@@ -14799,11 +14915,11 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
         # Troubleshooting
-    #    echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
-    #    echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
-    #    echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
-    #    echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
-    #    echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+        #    echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
+        #    echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
+        #    echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
+        #    echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
+        #    echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
 
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
         if [[ "$DGB_REQ_INSTALL" = "YES" ]] || [[ "$DGA_REQ_INSTALL" = "YES" ]] || [[ "$IPFS_REQ_INSTALL" = "YES" ]] || [[ "$NODEJS_REQ_INSTALL" = "YES" ]] || [[ "$DGNT_REQ_INSTALL" = "YES" ]]; then
@@ -14815,7 +14931,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           exit
         fi
 
-    printf "\\n"
+        printf "\\n"
 
     fi
 
@@ -16014,8 +16130,6 @@ download_digifacts() {
     local current_time=$(date +%s)  # in seconds
 
     printf "%b Checking for digifacts.json ...\\n" "${INFO}"
-
-# banana
 
     # Function to download and process the digifacts.json
     download_and_process() {
