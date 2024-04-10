@@ -10619,7 +10619,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         if [ "$hash_verification_failed" = "yes" ]; then
 
             if [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified. Rolling back...\\n" "${INFO}" #banana
+                printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified. Rolling back...\\n" "${INFO}"
                 printf "\\n"
             elif [ "$DGB_INSTALL_TYPE" = "new" ]; then
                 printf "%b DigiByte Core v$DGB_VER_GITHUB download cannot be verified.\\n" "${INFO}"
@@ -14677,7 +14677,28 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
 
 fi
 
+}
 
+# If there is an update to DigiNode Tools AND one of the other sofwtare packages, install the DigiNode 
+install_diginode_tools_update_first() {
+
+    DGNT_DO_INSTALL=YES
+    DGNT_REQ_INSTALL=YES
+    printf "%b DigiNode Tools v$DGNT_VER_RELEASE must be installed first before you can install the other updates.\\n" "${INFO}"
+
+    # Install the DigiNode Tools update
+    diginode_tools_do_install
+
+    printf "\\n"
+    printf "\\n"
+    printf "%b DigiNode Tools has been updated.\\n" "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b %bThere are additional updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    printf "\\n"
+    printf "%b To install them now run DigiNode Setup again: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
+    printf "\\n"
+
+    exit
 
 }
 
@@ -14701,8 +14722,33 @@ menu_ask_install_updates() {
 # DGB_VER_GITHUB="8.22.0"
 # INSTALL_DGB_RELEASE_TYPE="release"
 
-# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they wan to install them
+# This variable gets set to 'yes' if there is an update to any of the included DigiNode software, except DigiNode Tools itself.
+local diginode_software_update
+is_diginode_software_update="no"
+
+
+# If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they want to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
+
+    # Are there are updates for anything other than DigiNode Tools itself?
+    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
+        is_diginode_software_update="yes"
+    fi
+
+    # If we are running unattended AND...
+    # If we are running DigiNode Setup locally, and there is an DigiNode Tools update available, we need to install it first, before installing any other updates
+    if [ "$UNATTENDED_MODE" == true ] && [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+
+        # We only need to do this if there are also other updates that also need to be installed (in addition to the DigiNode Tools update)
+        # Note: If there are new software tools to add here in future, this needs updating below as well
+        if [ "$is_diginode_software_update" = "yes" ]; then
+
+            # Install the DigiNode Tools update first
+            install_diginode_tools_update_first
+
+        fi
+
+    fi
 
     # Don't ask if we are running unattended
     if [ ! "$UNATTENDED_MODE" == true ]; then
@@ -14753,6 +14799,24 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
         if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Software Update" --title "DigiNode Software Update" --yes-label "Yes" --yesno "\n$updates_msg\n\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt\n$updates_msg2" "${vert_space}" "${c}"; then
+
+            # If we are running DigiNode Setup locally, and there is an DigiNode Tools update available, we need to install it first, before installing any other updates
+            # This is skipped when in development mode. The user must run DigiNode Setup again to install the other updates
+            if [ "$DGNT_RUN_LOCATION" = "local" ] && [ "$DGNT_ASK_UPGRADE" = "YES" ]; then
+
+                # We only need to do this if there are also other updates that also need to be installed (in addition to the DigiNode Tools update)
+                if [ "$is_diginode_software_update" = "yes" ]; then
+
+                    # Show an alert explaining that the diginode tools update must be installed first
+                    dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Tools must be updated seperately!" --title "DigiNode Tools must be updated seperately!" --msgbox "\n\Z1IMPORTANT: DigiNode Setup must be updated before you can install the other updates.\Z0\\n\\nWhen you click OK, the latest version of DigiNode Tools will be installed.\\n\\nPlease run DigiNode Setup again in a moment to install the other updates." 15 ${c}
+
+                    # Install the DigiNode Tools update first
+                    install_diginode_tools_update_first
+
+                fi
+
+            fi
+
             #Nothing to do, continue
             if [ "$DGB_ASK_UPGRADE" = "YES" ]; then
                 if [ "$vert_space" -ge 12 ]; then
@@ -14851,11 +14915,11 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         fi
 
         # Troubleshooting
-    #    echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
-    #    echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
-    #    echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
-    #    echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
-    #    echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
+        #    echo "DGB_REQ_INSTALL: $DGB_REQ_INSTALL"
+        #    echo "DGA_REQ_INSTALL: $DGA_REQ_INSTALL"
+        #    echo "NODEJS_REQ_INSTALL: $NODEJS_REQ_INSTALL"
+        #    echo "IPFS_REQ_INSTALL: $IPFS_REQ_INSTALL"
+        #    echo "DGNT_REQ_INSTALL: $DGNT_REQ_INSTALL"
 
         # If the user has chosen to install one or more updates, then proceed. Otherwise exit.
         if [[ "$DGB_REQ_INSTALL" = "YES" ]] || [[ "$DGA_REQ_INSTALL" = "YES" ]] || [[ "$IPFS_REQ_INSTALL" = "YES" ]] || [[ "$NODEJS_REQ_INSTALL" = "YES" ]] || [[ "$DGNT_REQ_INSTALL" = "YES" ]]; then
@@ -14867,7 +14931,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           exit
         fi
 
-    printf "\\n"
+        printf "\\n"
 
     fi
 
@@ -16066,8 +16130,6 @@ download_digifacts() {
     local current_time=$(date +%s)  # in seconds
 
     printf "%b Checking for digifacts.json ...\\n" "${INFO}"
-
-# banana
 
     # Function to download and process the digifacts.json
     download_and_process() {
