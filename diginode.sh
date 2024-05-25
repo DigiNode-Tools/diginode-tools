@@ -3731,8 +3731,8 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
             sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
         else
-            IP4_EXTERNAL="OFFLINE"
-            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+            IP4_EXTERNAL=""
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
         fi
 
         IP6_EXTERNAL_QUERY=$(curl -6 --max-time 4 -sfL icanhazip.com)
@@ -3743,6 +3743,15 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             IP6_EXTERNAL=""
             sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
         fi
+
+        # If we get neither IPv4 or IPv6 for the external device, assume we are offline
+        if [ "$IP4_EXTERNAL" = "" ] && [ "$IP6_EXTERNAL" = "" ]; then
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+            IP6_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        fi
+
 
         IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
         if [ "$IP6_ULA_QUERY" != "" ]; then
