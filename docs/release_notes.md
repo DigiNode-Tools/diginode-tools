@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.9.13 - 2024-05-25
+- Change: Remove DigiAsset Node software. This is temporary. The legacy DigiAsset Node software has not been functioning correctly for some time and has therefore been retired. The release will automatically purge it from your DigiNide. Support for the new DigiAsset Core, which is a complete rewrite of the DigiAsset software, will be added in an upcoming release.
+- Fix: Better detection in the Dashboard for when the DigiNode is offline.
+
 DigiNode Tools v0.9.12 - 2024-04-10
 - Fix: Hide displayed download progress when checking for DigiByte Core update at Dashboard launch
 - New: Updated Raspberry Pi detection to identify newer Pi 4, Pi CM4, Pi 400 and Pi 5 models.

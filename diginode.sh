@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.12
+#           Name:  DigiNode Dashboard v0.9.13
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.12
-# Last Updated: 2024-04-03
+DGNT_VER_LOCAL=0.9.13
+# Last Updated: 2024-04-10
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -3731,8 +3731,8 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             IP4_EXTERNAL=$IP4_EXTERNAL_QUERY
             sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"$IP4_EXTERNAL\"|" $DGNT_SETTINGS_FILE
         else
-            IP4_EXTERNAL="OFFLINE"
-            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+            IP4_EXTERNAL=""
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
         fi
 
         IP6_EXTERNAL_QUERY=$(curl -6 --max-time 4 -sfL icanhazip.com)
@@ -3743,6 +3743,15 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
             IP6_EXTERNAL=""
             sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"\"|" $DGNT_SETTINGS_FILE
         fi
+
+        # If we get neither IPv4 or IPv6 for the external device, assume we are offline
+        if [ "$IP4_EXTERNAL" = "" ] && [ "$IP6_EXTERNAL" = "" ]; then
+            IP4_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP4_EXTERNAL=/s|.*|IP4_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+            IP6_EXTERNAL="OFFLINE"
+            sed -i -e "/^IP6_EXTERNAL=/s|.*|IP6_EXTERNAL=\"OFFLINE\"|" $DGNT_SETTINGS_FILE
+        fi
+
 
         IP6_ULA_QUERY=$(ip -6 addr show | grep -E 'inet6 fd[0-9a-f]{2}:' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
         if [ "$IP6_ULA_QUERY" != "" ]; then
