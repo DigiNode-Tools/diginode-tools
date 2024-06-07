@@ -3376,6 +3376,12 @@ $DGB_TOR_TESTNET_SETTINGS
 
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # If chain=dualnode declaration exists, and we are running a Dual Node, then comment it out
+        if grep -q ^"chain=dualnode" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+            echo "$INFO   Updating digibyte.conf: # chain=$chain (Commented out to support Dual Node.)"
+            sed -i -e "/^chain=dualnode/s|.*|# chain=dualnode|" $DGB_CONF_FILE
+        fi
     fi
 
     printf "\\n"
