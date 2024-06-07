@@ -1,7 +1,9 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.9.14 - 2024-05-xx
-- Coming Soon
+DigiNode Tools v0.10.0 - 2024-06-07
+- New: Tor support! - Your DigiByte nodes can now run over the Tor network for better privacy. You can switch your DigiByte mainnet and/or testnet node to run on Tor via the main menu.
+- Change: --dgbpeers and --dgb2peers now also displays the onion peers, if available.
+- Change: The flag --dgbcfg is now --dgbconf which is hopefully easier to remember.
 
 DigiNode Tools v0.9.13 - 2024-05-25
 - Change: Remove DigiAsset Node software. This is temporary. The legacy DigiAsset Node software has not been functioning correctly for some time and has therefore been retired. The release will automatically purge it from your DigiNode. Support for the new DigiAsset Core, which is a complete rewrite of the DigiAsset software, will be added in an upcoming release.
