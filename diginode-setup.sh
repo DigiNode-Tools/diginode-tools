@@ -4094,7 +4094,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq apt-transport-https)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo gawk git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
@@ -4129,7 +4129,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils jq apt-transport-https)
-    SETUP_DEPS=(git gawk dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
