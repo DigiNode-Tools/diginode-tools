@@ -2538,7 +2538,7 @@ chain=$chain \\
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^proxy=' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
 
@@ -8414,9 +8414,9 @@ if [ "$DIGINODE_DISCLAIMER" != "I Agree" ]; then
     response=$?
 
     case $response in
-    0) printf "%b You agreed to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"I Agree\"|" $DGNT_SETTINGS_FILE; printf "\\n";;
-    1) printf "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
-    255) "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
+    0) printf "%b You agreed to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="I Agree"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"I Agree\"|" $DGNT_SETTINGS_FILE; printf "\\n";;
+    1) printf "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="Ask"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
+    255) "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="Ask"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
     esac
 
 fi
