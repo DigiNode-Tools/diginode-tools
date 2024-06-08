@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.0
+#           Name:  DigiNode Dashboard v0.10.1
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.0
-# Last Updated: 2024-06-07
+DGNT_VER_LOCAL=0.10.1
+# Last Updated: 2024-06-08
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -1745,9 +1745,9 @@ quit_message() {
     kill $bg_cpu_stats_pid
     rm -f "$cpu1_file" "$cpu2_file" "$avg_file"
 
-    tput rmcup
-    stty echo
-    tput sgr0
+    tput rmcup   # Restore the previous screen
+    stty echo    # Ensure character echoing is turned on
+    tput sgr0    # Reset all terminal attributes
 
     # Enabling line wrapping.
     printf '\e[?7h'
@@ -1777,10 +1777,12 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
+
+       # Display cursor again
+        tput cnorm
+        
         exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
         
-        # Display cursor again
-        tput cnorm
         updates_installed="yes"
 
         # Enabling line wrapping.
@@ -1856,8 +1858,8 @@ if [ "$auto_quit" = true ]; then
     echo ""
 fi
 
-  # Display cursor again
-#  tput cnorm
+# Display cursor again
+tput cnorm
 
 # Showing the cursor.
 printf '\e[?25h'
