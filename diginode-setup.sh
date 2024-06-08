@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.9.13
+#           Name:  DigiNode Setup v0.10.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -521,7 +521,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_SWAP_SIZE_MB=
     UI_SWAP_FILE=/swapfile
     UI_DISKSPACE_OVERRIDE=NO
-    UI_TOR_SETUP=YES
+    UI_DGB_MAINNET_ENABLE_TOR=YES
+    UI_DGB_TESTNET_ENABLE_TOR=YES
+    UI_IPFS_ENABLE_TOR=YES
     UI_DO_FULL_INSTALL=YES
     UI_DGB_ENABLE_UPNP=NO
     UI_IPFS_ENABLE_UPNP=NO
@@ -728,8 +730,10 @@ UI_SWAP_FILE=$UI_SWAP_FILE
 # Will install regardless of available disk space on the data drive. Use with caution.
 UI_DISKSPACE_OVERRIDE=$UI_DISKSPACE_OVERRIDE
 
-# Choose whether to setup Tor [NOT WORKING YET]
-UI_TOR_SETUP=$UI_TOR_SETUP
+# Choose whether to setup Tor
+UI_DGB_MAINNET_ENABLE_TOR=$UI_DGB_MAINNET_ENABLE_TOR
+UI_DGB_TESTNET_ENABLE_TOR=$UI_DGB_TESTNET_ENABLE_TOR
+UI_IPFS_ENABLE_TOR=$UI_IPFS_ENABLE_TOR
 
 # Choose YES to do a FULL DigiNode with both DigiByte and DigiAsset Nodes
 # Choose NO to install DigiByte Core only
@@ -970,6 +974,9 @@ UPDATE_GROUP="$UPDATE_GROUP"
 
 # This keeps track of wther the user has agreed to the disclaimer.
 DIGINODE_DISCLAIMER="ASK"
+
+# Tor Config
+INSTALLED_TOR_GPG_KEY=$INSTALLED_TOR_GPG_KEY
 
 
 ###############################################
@@ -1789,13 +1796,13 @@ create_digibyte_conf() {
                 printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
                 printf "\\n"
                 if [ -f $DGNT_MONITOR_SCRIPT ]; then
-                    printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+                    printf "%b   %bdiginode --dgbconf%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
                 else
                     printf "%b   %b$TEXTEDITOR $DGB_CONF_FILE%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
                 fi
                 printf "\\n"
                 printf "%b IMPORTANT: It is very important that you include the \"# [Sections]\" line exactly as is,\\n" "${INFO}"
-                printf "%b            followed by the [main], [test], [regtest] and [signet] lines in order. This is so\\n" "${INDENT}"
+                printf "%b            followed by the [main], [test], [regtest] and [signet] lines in that order. This is so\\n" "${INDENT}"
                 printf "%b            that DigiNode Tools can find the values where it expects them. If you are running a\\n" "${INDENT}"
                 printf "%b            TESTNET Node, be sure to set the port= and rpcport= values in the [test] section,\\n" "${INDENT}"
                 printf "%b            or your DigiByte Node will not run.\\n" "${INDENT}"
@@ -1891,6 +1898,40 @@ create_digibyte_conf() {
                 printf "%b Deleting from digibyte.conf global section: testnet comment\\n" "${INFO}"
             fi
 
+            # Delete any values from the global section relating to Tor. These will be added to the sections below.
+            if grep -q ^"proxy=" $DGB_CONF_FILE; then
+                sed -i '/^proxy=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: proxy=\\n" "${INFO}"
+            fi
+            if grep -q ^"# proxy=" $DGB_CONF_FILE; then
+                sed -i '/^# proxy=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # proxy=\\n" "${INFO}"
+            fi
+            if grep -q ^"torcontrol=" $DGB_CONF_FILE; then
+                sed -i '/^torcontrol=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: torcontrol=\\n" "${INFO}"
+            fi
+            if grep -q ^"# torcontrol=" $DGB_CONF_FILE; then
+                sed -i '/^# torcontrol=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # torcontrol=\\n" "${INFO}"
+            fi
+            if grep -q ^"bind=" $DGB_CONF_FILE; then
+                sed -i '/^bind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: bind=\\n" "${INFO}"
+            fi
+            if grep -q ^"# bind=" $DGB_CONF_FILE; then
+                sed -i '/^# bind=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # bind=\\n" "${INFO}"
+            fi
+            if grep -q ^"onlynet=" $DGB_CONF_FILE; then
+                sed -i '/^onlynet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: onlynet=\\n" "${INFO}"
+            fi
+            if grep -q ^"# onlynet=" $DGB_CONF_FILE; then
+                sed -i '/^# onlynet=/d' $DGB_CONF_FILE
+                printf "%b Deleting from digibyte.conf global section: # onlynet=\\n" "${INFO}"
+            fi
+
 
             str="Appending sections to digibyte.conf: # [Sections], [main], [test], [regtest] and [signet] .."
             printf "%b %s" "${INFO}" "${str}"
@@ -1922,6 +1963,18 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC mainnet connections on this port. Mainnet default is 14022.
 # rpcport=14022
 
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for mainnet
+# torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
+
 # Options only for testnet
 [test]
 
@@ -1936,6 +1989,18 @@ rpcbind=127.0.0.1
 
 # Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
 # rpcport=14023
+
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for testnet
+# torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
 
 # Options only for regtest
 [regtest]
@@ -1952,6 +2017,18 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
 # rpcport=18443
 
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for regtest
+# torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
+
 # Options only for signet
 [signet]
 
@@ -1967,12 +2044,23 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC signet connections on this port. Signet default is 19443.
 # rpcport=19443
 
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for signet
+# torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
+
 EOF
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi    
 
     fi
-
 
     # Do some intial setup before creating the digibyte.conf file for the first time
     if [ ! -f "$DGB_CONF_FILE" ]; then
@@ -1991,6 +2079,51 @@ EOF
         printf "%b %s" "${INFO}" "${str}"
         set_rpcpassword=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # Set the intial Tor values for TESTNET, if we are creating digibyte.conf
+
+        TOR_ON_SETTINGS=$(cat <<EOF
+# Connect through Tor SOCKS5 proxy
+proxy=127.0.0.1:9050
+
+# Set the Tor control port
+torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
+
+EOF
+)
+        TOR_OFF_SETTINGS=$(cat <<EOF
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port
+# torcontrol=127.0.0.1:9151
+
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections.
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor. Generally not recommended.
+# onlynet=onion
+
+EOF
+)
+
+        if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+            DGB_TOR_MAINNET_SETTINGS=$TOR_ON_SETTINGS
+        else
+            DGB_TOR_MAINNET_SETTINGS=$TOR_OFF_SETTINGS
+        fi
+
+        if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+            DGB_TOR_TESTNET_SETTINGS=$TOR_ON_SETTINGS
+        else
+            DGB_TOR_TESTNET_SETTINGS=$TOR_OFF_SETTINGS
+        fi
 
 #        # Set the default rpcport
 #        local set_rpcport
@@ -2023,10 +2156,17 @@ EOF
 
     fi
 
-    # Set the upnp values, if we are enabling/disabling the UPnP status
+
+    # Set the UPnP values, if we are enabling/disabling the UPnP status
     if [ "$DGB_ENABLE_UPNP" = "YES" ]; then
         upnp=1
     elif [ "$DGB_ENABLE_UPNP" = "NO" ]; then
+        upnp=0
+    fi
+
+    # Disable UPnP if we are enabling Tor (UPnP messes with Tor)
+    if [ "$upnp" = 1 ] && { [ "$DGB_TOR_MAINNET" = "ON" ] || [ "$DGB_TOR_TESTNET" = "ON" ]; }; then
+        printf "%b UPnP has been disabled because Tor is enabled - they do not play nice together.\\n" "${WARN}"
         upnp=0
     fi
 
@@ -2178,7 +2318,7 @@ rpcpassword=$set_rpcpassword \\
             fi
         fi
 
-        # If upnp value is commented out, uncomment it
+        # If UPnP value is commented out, uncomment it
         if grep -q ^"# upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
@@ -2191,7 +2331,7 @@ rpcpassword=$set_rpcpassword \\
                 sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
-        # Change upnp status from enabled to disabled
+        # Change UPnP status from enabled to disabled
         elif grep -q ^"upnp=1" $DGB_CONF_FILE; then
             if [ "$upnp" = "0" ]; then
                 echo "$INDENT   UPnP will be disabled for DigiByte Core"
@@ -2199,7 +2339,7 @@ rpcpassword=$set_rpcpassword \\
                 sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
-        # Change upnp status from disabled to enabled
+        # Change UPnP status from disabled to enabled
         elif grep -q ^"upnp=0" $DGB_CONF_FILE; then
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
@@ -2207,7 +2347,7 @@ rpcpassword=$set_rpcpassword \\
                 sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
-        # Update upnp status in settings if it exists and is blank, otherwise append it
+        # Update UPnP status in settings if it exists and is blank, otherwise append it
         elif grep -q ^"upnp=" $DGB_CONF_FILE; then
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
@@ -2341,6 +2481,697 @@ chain=$chain \\
             sed -i -e "/^# signet=/s|.*|# signet=1|" $DGB_CONF_FILE
         fi
 
+        # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - PROXY
+
+        # If [main] proxy value is commented out: # proxy=
+        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="# proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [main] proxy value is commented out without a space: #proxy=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="#proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for proxy=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # proxy=127.0.0.1:9050"
+
+                input_line="proxy=127.0.0.1:9050"
+                output_line="# proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # proxy=127.0.0.1:9050"
+
+                input_line="proxy="
+                output_line="# proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
+                sed -i "/\[main\]/a \\
+\\
+# Connect through Tor SOCKS5 proxy \\
+proxy=127.0.0.1:9050" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # proxy=127.0.0.1:9050"
+                sed -i "/\[main\]/a \\
+\\
+# Connect through Tor SOCKS5 proxy \\
+# proxy=127.0.0.1:9050" $DGB_CONF_FILE
+            fi
+        fi  
+
+        # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - TORCONTROL
+
+        # If [main] torcontrol value is commented out: # torcontrol=
+        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="# torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [main] torcontrol value is commented out without a space: #torcontrol=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="#torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for torcontrol=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol=127.0.0.1:9151"
+                output_line="# torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol="
+                output_line="# torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
+                sed -i "/\[main\]/a \\
+\\
+# Set the Tor control port for mainnet. \\
+torcontrol=127.0.0.1:9151" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # torcontrol=127.0.0.1:9151"
+                sed -i "/\[main\]/a \\
+\\
+# Set the Tor control port for mainnet. \\
+# torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
+            fi
+        fi    
+
+        # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - BIND
+
+        # If [main] bind value is commented out: # bind=
+        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="# bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [main] bind value is commented out without a space: #bind=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="#bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for bind=
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # bind=127.0.0.1=onion"
+
+                input_line="bind=127.0.0.1=onion"
+                output_line="# bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_MAINNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [main] section for Tor: # bind=127.0.0.1=onion"
+
+                input_line="bind="
+                output_line="# bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_main_section=0 }
+                    /^\[main\]/ { in_main_section=1 }
+                    /^\[test\]/ { in_main_section=0 }
+                    in_main_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_MAINNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
+                sed -i "/\[main\]/a \\
+\\
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
+bind=127.0.0.1=onion" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # bind=127.0.0.1=onion"
+                sed -i "/\[main\]/a \\
+\\
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
+# bind=127.0.0.1=onion" $DGB_CONF_FILE
+            fi
+        fi   
+
+
+        # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - PROXY
+
+        # If [test] proxy value is commented out: # proxy=
+        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="# proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [test] proxy value is commented out without a space: #proxy=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="#proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for: proxy=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # proxy=127.0.0.1:9050"
+
+                input_line="proxy=127.0.0.1:9050"
+                output_line="# proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
+
+                input_line="proxy="
+                output_line="proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # proxy=127.0.0.1:9050"
+
+                input_line="proxy="
+                output_line="# proxy=127.0.0.1:9050"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
+                sed -i "/\[test\]/a \\
+\\
+# Connect through Tor SOCKS5 proxy \\
+proxy=127.0.0.1:9050" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # proxy=127.0.0.1:9050"
+                sed -i "/\[test\]/a \\
+\\
+# Connect through Tor SOCKS5 proxy \\
+# proxy=127.0.0.1:9050" $DGB_CONF_FILE
+            fi
+        fi  
+
+        # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - TORCONTROL
+
+        # If [test] torcontrol value is commented out: # torcontrol=
+        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="# torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [test] torcontrol value is commented out without a space: #torcontrol=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="#torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for torcontrol=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol=127.0.0.1:9151"
+                output_line="# torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol="
+                output_line="torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # torcontrol=127.0.0.1:9151"
+
+                input_line="torcontrol="
+                output_line="# torcontrol=127.0.0.1:9151"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
+                sed -i "/\[test\]/a \\
+\\
+# Set the Tor control port for testnet. \\
+torcontrol=127.0.0.1:9151" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # torcontrol=127.0.0.1:9151"
+                sed -i "/\[test\]/a \\
+\\
+# Set the Tor control port for testnet. \\
+# torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
+            fi
+        fi    
+
+        # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - BIND
+
+        # If [test] bind value is commented out: # bind=
+        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="# bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # If [test] bind value is commented out without a space: #bind=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="#bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi
+        # Change Tor status from enabled to disabled for bind=
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # bind=127.0.0.1=onion"
+
+                input_line="bind=127.0.0.1=onion"
+                output_line="# bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi    
+        # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
+
+                input_line="bind="
+                output_line="bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+
+            elif [ "$DGB_TOR_TESTNET" = "OFF" ]; then
+                echo "$INDENT   Updating digibyte.conf [test] section for Tor: # bind=127.0.0.1=onion"
+
+                input_line="bind="
+                output_line="# bind=127.0.0.1=onion"
+
+                awk -v input="$input_line" -v output="$output_line" '
+                    BEGIN { in_test_section=0 }
+                    /^\[test\]/ { in_test_section=1 }
+                    /^\[regtest\]/ { in_test_section=0 }
+                    in_test_section && $0 ~ "^" input { $0 = output }
+                    { print }
+                ' $DGB_CONF_FILE > temp && mv temp $DGB_CONF_FILE
+
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
+            fi   
+        else
+            if [ "$DGB_TOR_TESTNET" = "ON" ]; then
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
+                sed -i "/\[test\]/a \\
+\\
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
+bind=127.0.0.1=onion" $DGB_CONF_FILE 
+            else
+                echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # bind=127.0.0.1=onion"
+                sed -i "/\[test\]/a \\
+\\
+# Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
+# bind=127.0.0.1=onion" $DGB_CONF_FILE
+            fi
+        fi       
+
+  
+
+
+
+        # If upnp value is commented out, uncomment it
+        if grep -q ^"# upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            elif [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        # Change upnp status from enabled to disabled
+        elif grep -q ^"upnp=1" $DGB_CONF_FILE; then
+            if [ "$upnp" = "0" ]; then
+                echo "$INDENT   UPnP will be disabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        # Change upnp status from disabled to enabled
+        elif grep -q ^"upnp=0" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                DGB_UPNP_STATUS_UPDATED="YES"
+            fi
+        # Update upnp status in settings if it exists and is blank, otherwise append it
+        elif grep -q ^"upnp=" $DGB_CONF_FILE; then
+            if [ "$upnp" = "1" ]; then
+                echo "$INDENT   UPnP will be enabled for DigiByte Core"
+                echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+            elif [ "$upnp" = "0" ]; then
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+            fi
+        else
+            echo "$INDENT   Appending to digibyte.conf: upnp=$upnp"
+            sed -i "/# \[Sections\]/ i \\
+# Use UPnP to map the listening port. \\
+upnp=$upnp \\
+" $DGB_CONF_FILE                
+            fi    
+
+
+
+
+
 
         printf "%b Completed digibyte.conf checks.\\n" "${TICK}"
 
@@ -2420,7 +3251,7 @@ whitelist=127.0.0.1
 # Accept incoming connections from peers. Default is 1.
 listen=1
 
-# Use UPnP to map the listening port.
+# Use UPnP to map the listening port. Do not enable when running Tor.
 upnp=$upnp
 
 
@@ -2470,6 +3301,8 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC connections on this port. Mainnet default is 14022.
 # rpcport=14022
 
+$DGB_TOR_MAINNET_SETTINGS
+
 # Options only for testnet
 [test]
 
@@ -2484,6 +3317,8 @@ rpcbind=127.0.0.1
 
 # Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
 # rpcport=14023
+
+$DGB_TOR_TESTNET_SETTINGS
 
 # Options only for regtest
 [regtest]
@@ -2500,6 +3335,18 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC regtest connections on this port. Regtest default is 18443.
 # rpcport=18443
 
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for regtest
+# torcontrol=127.0.0.1:9151
+
+# Bind to given address and always listen on it. (default: 0.0.0.0). Use [host]:port notation for IPv6. Append =onion to tag any incoming connections to that address and port as incoming Tor connections
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor.
+# onlynet=onion
+
 # Options only for signet
 [signet]
 
@@ -2515,8 +3362,29 @@ rpcbind=127.0.0.1
 # Listen for JSON-RPC regtest connections on this port. Signet default is 19443.
 # rpcport=19443
 
+# Connect through Tor SOCKS5 proxy
+# proxy=127.0.0.1:9050
+
+# Set the Tor control port for signet
+# torcontrol=127.0.0.1:9151
+
+# Bind to given address and always listen on it. (default: 0.0.0.0). Use [host]:port notation for IPv6. Append =onion to tag any incoming connections to that address and port as incoming Tor connections
+# bind=127.0.0.1=onion
+
+# Only connect to peers via Tor.
+# onlynet=onion
+
 EOF
 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        # If chain=dualnode declaration exists, and we are running a Dual Node, then comment it out
+        if grep -q ^"chain=dualnode" $DGB_CONF_FILE  && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+
+            str="Updating digibyte.conf: # chain=dualnode (Commented out to support Dual Node.)..."
+            printf "%b %s" "${INFO}" "${str}"
+            sed -i -e "/^chain=dualnode/s|.*|# chain=dualnode|" $DGB_CONF_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
     fi
 
     printf "\\n"
@@ -3224,9 +4092,9 @@ if is_command apt-get ; then
     update_package_cache || exit 1
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(grep dnsutils jq)
+    SYS_CHECK_DEPS=(grep dnsutils jq apt-transport-https)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget)
+    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
@@ -3260,8 +4128,8 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    SYS_CHECK_DEPS=(grep bind-utils)
-    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig jq gcc make ca-certificates curl gnupg wget)
+    SYS_CHECK_DEPS=(grep bind-utils jq apt-transport-https)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
@@ -6716,28 +7584,31 @@ menu_existing_install() {
     opt3a="3 Restore"
     opt3b="Restore your wallet & settings from a USB stick."
 
-    opt4a="4 UPnP"
-    opt4b="Enable or disable UPnP to automatically forward ports."
+    opt4a="5 Chain"
+    opt4b="Change DigiByte chain - mainnet, testnet or dual node."
 
-    opt5a="5 Chain"
-    opt5b="Change DigiByte chain - mainnet, testnet or dual node."
+    opt5a="6 Tor"
+    opt5b="Enable or disable running your nodes over Tor."
 
-    opt6a="6 MOTD"
-    opt6b="Enable or disable the DigiNode Custom MOTD."
+    opt6a="4 UPnP"
+    opt6b="Enable or disable UPnP to automatically forward ports."
 
-    opt7a="7 Extras"
-    opt7b="Install optional extras for your DigiNode."
+    opt7a="7 MOTD"
+    opt7b="Enable or disable the DigiNode Custom MOTD."
+
+    opt8a="8 Extras"
+    opt8b="Install optional extras for your DigiNode."
     
-    opt8a="8 Reset"
-    opt8b="Reset all settings and reinstall DigiNode software."
+    opt9a="9 Reset"
+    opt9b="Reset all settings and reinstall DigiNode software."
 
-    opt9a="9 Uninstall"
-    opt9b="Remove DigiNode from your system."
+    opt0a="0 Uninstall"
+    opt0b="Remove DigiNode from your system."
 
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 19 73 9 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 20 73 10 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
@@ -6746,7 +7617,8 @@ menu_existing_install() {
     "${opt6a}"  "${opt6b}" \
     "${opt7a}"  "${opt7b}" \
     "${opt8a}"  "${opt8b}" \
-    "${opt9a}"  "${opt9b}" 3>&2 2>&1 1>&3 ) || \
+    "${opt9a}"  "${opt9b}" \
+    "${opt0a}"  "${opt0b}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
@@ -6775,20 +7647,26 @@ menu_existing_install() {
             printf "\\n"
             usb_restore
             ;;
-        # Change Port forwarding
+        # Change DigiByte Chain - mainnet, testnet or dual node
         ${opt4a})
-            printf "%b You selected the UPnP option.\\n" "${INFO}"
-            printf "\\n"
-            change_upnp_status
-            ;;
-        # Change DigiByte Network - mainnet or testnet
-        ${opt5a})
             printf "%b You selected the DigiByte Chain option.\\n" "${INFO}"
             printf "\\n"
             change_dgb_network
             ;;
-        # DigiNode MOTD
+        # Change Tor
+        ${opt5a})
+            printf "%b You selected the Tor option.\\n" "${INFO}"
+            printf "\\n"
+            change_tor_status
+            ;;
+        # Change Port forwarding
         ${opt6a})
+            printf "%b You selected the UPnP option.\\n" "${INFO}"
+            printf "\\n"
+            change_upnp_status
+            ;;
+        # DigiNode MOTD
+        ${opt7a})
             printf "%b You selected the DigiNode MOTD option.\\n" "${INFO}"
             printf "\\n"
             MOTD_STATUS="ASK"
@@ -6799,20 +7677,20 @@ menu_existing_install() {
             menu_existing_install
             ;;
         # Extras
-        ${opt7a})
+        ${opt8a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
             printf "\\n"
             menu_extras
             ;;
         # Reset,
-        ${opt8a})
+        ${opt9a})
             printf "%b You selected the RESET option.\\n" "${INFO}"
             printf "\\n"
             RESET_MODE=true
             install_or_upgrade
             ;;
         # Uninstall,
-        ${opt9a})
+        ${opt0a})
             printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
             printf "\\n"
             uninstall_do_now
@@ -6869,6 +7747,18 @@ change_upnp_status() {
 
     # Check DigiByte Node to make sure it is finished starting up
     check_digibyte_core
+
+    # Display warning dialog if Tor is running, and return to menu
+    if [ "$DGB_USING_TOR" = "YES" ] || [ "$DGB2_USING_TOR" = "YES" ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "UPnP is unavailable!" --title "UPnP is unavailable!" --msgbox "\n\Z1Warning: UPnP cannot be used when Tor is enabled.\Z0\n\nTor and UPnP do not play nice together. If you want to use UPnP you need to first disable Tor. Click OK to return to the main menu." 11 ${c}
+        FORCE_DISPLAY_UPNP_MENU=false
+        DGB_UPNP_STATUS_UPDATED=""
+        IPFS_UPNP_STATUS_UPDATED=""
+        jsipfs_upnp_updated=""
+        DGB_USING_TOR=""
+        DGB2_USING_TOR=""
+        menu_existing_install
+    fi
 
     # If this is a DUAL NODE
     if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
@@ -6963,10 +7853,16 @@ change_upnp_status() {
     # Restart DigiByte daemon if upnp status has changed
     if [ "$DGB_UPNP_STATUS_UPDATED" = "YES" ]; then
 
-        # Restart Digibyted if the upnp status has just been changed
+        # Restart Digibyte primary node if the upnp status has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
             restart_service digibyted
+        fi
+
+        # Restart Digibyte secondary node if the upnp status has just been changed
+        if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core UPnP status has been changed. DigiByte daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted-testnet
         fi
 
     fi
@@ -7033,6 +7929,185 @@ change_upnp_status() {
     DGB_UPNP_STATUS_UPDATED=""
     IPFS_UPNP_STATUS_UPDATED=""
     jsipfs_upnp_updated=""
+
+    menu_existing_install
+
+}
+
+# Function to change the current tor status
+change_tor_status() {
+
+    FORCE_DISPLAY_TOR_MENU=true
+
+    # If DigiAssets Node is installed, we already know this is a full install
+    if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+        DO_FULL_INSTALL=YES
+    fi
+
+    # Check DigiByte Node to make sure it is finished starting up
+    check_digibyte_core
+
+    # If this is a DUAL NODE
+    if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+        DGB_NETWORK_OLD="MAINNET"
+        DGB_NETWORK_FINAL="MAINNET"
+        SETUP_DUAL_NODE="YES" 
+    # or if it is just a regular MAINNET node
+    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+        DGB_NETWORK_OLD="MAINNET"
+        DGB_NETWORK_FINAL="MAINNET"
+        SETUP_DUAL_NODE="NO" 
+    elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+        DGB_NETWORK_OLD="TESTNET"
+        DGB_NETWORK_FINAL="TESTNET"
+        SETUP_DUAL_NODE="NO" 
+    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+        DGB_NETWORK_OLD="REGTEST"
+        DGB_NETWORK_FINAL="REGTEST"
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            SETUP_DUAL_NODE="YES" 
+        else
+            SETUP_DUAL_NODE="NO" 
+        fi
+    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+        DGB_NETWORK_OLD="SIGNET"
+        DGB_NETWORK_FINAL="SIGNET"
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            SETUP_DUAL_NODE="YES" 
+        else
+            SETUP_DUAL_NODE="NO" 
+        fi
+    fi
+
+    printf "\\n"
+
+    printf " =============== Checking: IPFS Node ===================================\\n\\n"
+    # ==============================================================================
+
+    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    # Let's check if IPFS Kubo is already installed
+    str="Is IPFS Kubo already installed?..."
+    printf "%b %s" "${INFO}" "${str}"
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s YES!   Found: IPFS Kubo v${IPFS_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Next let's check if IPFS daemon is running with upstart
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+      str="Is IPFS Kubo daemon upstart service running?..."
+      printf "%b %s" "${INFO}" "${str}"
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+      else
+          IPFS_STATUS="stopped"
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+      fi
+    fi
+
+    # Next let's check if IPFS daemon is running with systemd
+    if [ "$IPFS_STATUS" = "installed" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+        str="Is IPFS Kubo daemon systemd service running?..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Check if it is running or not #CHECKLATER
+        systemctl is-active --quiet ipfs && IPFS_STATUS="running" || IPFS_STATUS="stopped"
+
+        if [ "$IPFS_STATUS" = "running" ]; then
+          printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$IPFS_STATUS" = "stopped" ]; then
+          printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
+    printf "\\n"
+
+    # Prompt to change tor status
+    menu_ask_tor
+
+    # Update digibyte.conf
+    create_digibyte_conf
+
+    # Restart DigiByte mainnet daemon if Tor status has changed
+    if [ "$DGB_MAINNET_TOR_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart Digibyted if the Tor status has just been changed
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core Tor status has been changed. DigiByte Mainnet daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted
+        fi
+
+    fi
+
+    # Restart DigiByte testnet daemon if Tor status has changed (single node)
+    if [ "$DGB_TESTNET_TOR_STATUS_UPDATED" = "YES" ] && [ "$DGB_DUAL_NODE" = "NO" ]; then
+
+        # Restart Digibyted if the Tor status has just been changed
+        if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted
+        fi
+
+    fi
+
+    # Restart DigiByte testnet daemon if Tor status has changed (dual node)
+    if [ "$DGB_TESTNET_TOR_STATUS_UPDATED" = "YES" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Restart Digibyted if the Tor status has just been changed
+        if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
+            printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            restart_service digibyted-testnet
+        fi
+
+    fi
+
+    # Set the IPFS Tor values, if we are enabling/disabling the UPnP status
+    if [ "$IPFS_ENABLE_TOR" = "YES" ]; then
+ #       if [ "$UPNP_IPFS_CURRENT" != "false" ]; then
+ #           str="Enabling Tor for IPFS Kubo..."
+ #           printf "%b %s" "${INFO}" "${str}"
+ #           sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "false"
+ #           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IPFS_TOR_STATUS_UPDATED="YES"
+ #       fi
+    elif [ "$IPFS_ENABLE_TOR" = "NO" ]; then
+ #       if [ "$UPNP_IPFS_CURRENT" != "true" ]; then
+ #           str="Disabling UPnP port forwarding for IPFS Kubo..."
+ #           printf "%b %s" "${INFO}" "${str}"
+ #           sudo -u $USER_ACCOUNT ipfs config --bool Swarm.DisableNatPortMap "true"
+ #           printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            IPFS_TOR_STATUS_UPDATED="YES"
+ #       fi
+    fi 
+
+    if [ "$IPFS_TOR_STATUS_UPDATED" = "YES" ]; then
+
+        # Restart IPFS Kubo if the Tor status has just been changed
+        if [ "$IPFS_STATUS" = "running" ] || [ "$IPFS_STATUS" = "stopped" ]; then
+
+            # Restart IPFS if the upnp status has just been changed
+            printf "%b IPFS Kubo Tor status has been changed. IPFS daemon will be restarted...\\n" "${INFO}"
+            restart_service ipfs
+        fi
+
+    fi
+
+    printf "\\n"
+
+
+    FORCE_DISPLAY_TOR_MENU=false
+    DGB_MAINNET_TOR_STATUS_UPDATED=""
+    DGB_TESTNET_TOR_STATUS_UPDATED=""
+    IPFS_TOR_STATUS_UPDATED=""
 
     menu_existing_install
 
@@ -7118,10 +8193,10 @@ change_dgb_network() {
     query_digibyte_chain
 
     # Lookup new ports
-    digibyte_port_query
+    query_digibyte_port
 
     # Lookup new rpc credentials
-    digibyte_rpc_query
+    query_digibyte_rpc
 
     printf "\\n"
 
@@ -7342,9 +8417,9 @@ if [ "$DIGINODE_DISCLAIMER" != "I Agree" ]; then
     response=$?
 
     case $response in
-    0) printf "%b You agreed to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"I Agree\"|" $DGNT_SETTINGS_FILE; printf "\\n";;
-    1) printf "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
-    255) "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
+    0) printf "%b You agreed to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="I Agree"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"I Agree\"|" $DGNT_SETTINGS_FILE; printf "\\n";;
+    1) printf "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="Ask"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
+    255) "%b You did NOT agree to the DigiNode Tools Software Disclaimer.\\n" "${INFO}"; DIGINODE_DISCLAIMER="Ask"; sed -i -e "/^DIGINODE_DISCLAIMER=/s|.*|DIGINODE_DISCLAIMER=\"Ask\"|" $DGNT_SETTINGS_FILE; printf "\\n"; printf "\\n"; exit;;
     esac
 
 fi
@@ -8687,8 +9762,10 @@ if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$FORCE_DISPLAY_UPNP_MENU" = true ];
     show_dgb_upnp_menu="yes"
 fi
 
-
-
+# Disable the DigiByte UPnP menu if Tor is enabled
+if [ "$DGB_TOR_MAINNET" = "ON" ] || [ "$DGB_TOR_TESTNET" = "ON" ]; then
+    show_dgb_upnp_menu="no"
+fi
 
 # IF THIS IS A FULL INSTALL CHECK FOR IPFS Kubo
 
@@ -8951,7 +10028,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # SHOW THE DGB ONLY UPnP MENU
     elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 22 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 23 "${c}"; then
             printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
             DGB_ENABLE_UPNP="NO"
             IPFS_ENABLE_UPNP="SKIP"
@@ -8967,6 +10044,11 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
 
         DGB_ENABLE_UPNP="SKIP"
         IPFS_ENABLE_UPNP="SKIP"
+
+        # Disable UPnP
+        if [ "$DGB_TOR_MAINNET" = "ON" ] || [ "$DGB_TOR_TESTNET" = "ON" ]; then
+            DGB_ENABLE_UPNP="NO"
+        fi
 
     fi
 
@@ -9022,7 +10104,7 @@ else
         else
 
             printf "%b Unattended Mode: Skipping setting up UPnP for IPFS. It is already configured.\\n" "${INFO}"
-            DGB_ENABLE_UPNP="SKIP"
+            IPFS_ENABLE_UPNP="SKIP"
 
         fi
     fi
@@ -9041,44 +10123,27 @@ fi
 
 
 
-# This function will ask the user if they want to enable or disable tor for digibyte core and/or ipfs
+# This function will ask the user if they want to enable or disable Tor for digibyte core and/or ipfs
 menu_ask_tor() {
 
 local show_dgb_tor_menu="no"
 local show_ipfs_tor_menu="no"
 
-# FIRST DECIDE WHTHER TO SHOW THE UPNP MENU
+# FIRST DECIDE WHTHER TO SHOW THE TOR MENU
 
 # If digibyte.conf file does not exist yet, show the DGB tor menu
 if [ ! -f "$DGB_CONF_FILE" ]; then
-    show_dgb_tor_menu="yes"
+    local show_dgb_tor_menu="yes"
 fi
 
-# If digibyte.conf file already exists, show the upnp menu if it does not contain upnp variables
-if [ -f "$DGB_CONF_FILE" ]; then
-
-        # Update upnp status in settings if it exists and is blank, otherwise append it
-        if grep -q "^upnp=1" $DGB_CONF_FILE; then
-            show_dgb_upnp_menu="maybe"
-            UPNP_DGB_CURRENT=1
-        elif grep -q "^upnp=0" $DGB_CONF_FILE; then
-            show_dgb_upnp_menu="maybe"
-            UPNP_DGB_CURRENT=0
-        elif grep -q "^upnp=" $DGB_CONF_FILE; then
-            show_dgb_upnp_menu="yes"
-        else
-            show_dgb_upnp_menu="yes"
-        fi
-fi
-
-# If this is a new install and the upnp values already exist
-if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$NewInstall" = true ]; then
-    show_dgb_upnp_menu="yes"
+# If this is a new install and the Tor values already exist
+if [ "$NewInstall" = true ]; then
+    local show_dgb_tor_menu="yes"
 fi
 
 # If we are running this from the main menu, always show the menu prompts
-if [ "$show_dgb_upnp_menu" = "maybe" ] && [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
-    show_dgb_upnp_menu="yes"
+if [ "$show_dgb_tor_menu" = "no" ] && [ "$FORCE_DISPLAY_TOR_MENU" = true ]; then
+    local show_dgb_tor_menu="yes"
 fi
 
 
@@ -9086,62 +10151,38 @@ fi
 
 # IF THIS IS A FULL INSTALL CHECK FOR IPFS Kubo
 
-if [ "$DO_FULL_INSTALL" = "YES" ]; then
+#! if [ "$DO_FULL_INSTALL" = "YES" ]; then
 
-    local try_for_jsipfs="no"
+#!     local try_for_jsipfs="no"
 
     # If there are not any IPFS config files, show the menu
-    if [ ! -f "$USER_HOME/.ipfs/config" ] && [ ! -f "$USER_HOME/.jsipfs/config" ]; then
-        show_ipfs_upnp_menu="yes"
-    fi
+#!     if [ ! -f "$USER_HOME/.ipfs/config" ] && [ ! -f "$USER_HOME/.jsipfs/config" ]; then
+#!         show_ipfs_upnp_menu="yes"
+#!     fi
 
     # Is there a working version of IPFS Kubo available?
-    if [ -f "$USER_HOME/.ipfs/config" ]; then
+#!     if [ -f "$USER_HOME/.ipfs/config" ]; then
 
-        local test_kubo_query
+#!         local test_kubo_query
 
-        test_kubo_query=$(curl -X POST http://127.0.0.1:5001/api/v0/id 2>/dev/null)
-        test_kubo_query=$(echo $test_kubo_query | jq .AgentVersion | grep -Eo kubo)
+#!         test_kubo_query=$(curl -X POST http://127.0.0.1:5001/api/v0/id 2>/dev/null)
+#!         test_kubo_query=$(echo $test_kubo_query | jq .AgentVersion | grep -Eo kubo)
 
-        # If this is Kubo, check the current UPNP status, otherwise test for JS-IPFS
-        if [ "$test_kubo_query" = "kubo" ]; then
+#!         # If this is Kubo, check the current UPNP status, otherwise test for JS-IPFS
+#!         if [ "$test_kubo_query" = "kubo" ]; then
 
             # Is Kubo installed and running, and what is the upnp status?
-            query_ipfs_upnp_status=$(sudo -u $USER_ACCOUNT ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
+#!             query_ipfs_upnp_status=$(sudo -u $USER_ACCOUNT ipfs config show 2>/dev/null | jq .Swarm.DisableNatPortMap)
 
-            if [ "$query_ipfs_upnp_status" != "" ]; then
-                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
-            else
-                try_for_jsipfs="yes"
-            fi
+#!             if [ "$query_ipfs_upnp_status" != "" ]; then
+#!                 UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
+#!             else
+#!                 try_for_jsipfs="yes"
+#!             fi
 
-        fi
+#!         fi
 
-    fi
-
-    # Ok, there is no Kubo. Is there a JS-IPFS config file available?
-    if [ -f "$USER_HOME/.jsipfs/config" ] && [ "$try_for_jsipfs" = "yes" ]; then
-
-        # Test if JS-IPFS is in use
-        is_jsipfs_in_use=$(cat $DGA_SETTINGS_FILE | jq .ipfs | sed 's/"//g')
-
-        # If yes, then get the current JS-IPFS upnp status
-        if [ "$is_jsipfs_in_use" = "true" ]; then
-
-            # Get JS-IPFS upnp status
-            query_jsipfs_upnp_status=$(cat ~/.jsipfs/config | jq .Swarm.DisableNatPortMap)
-
-            if [ "$query_ipfs_upnp_status" != "" ]; then
-                UPNP_IPFS_CURRENT=$query_ipfs_upnp_status
-            fi
- 
-        else
-
-            show_ipfs_upnp_menu="yes"
-
-        fi
-
-    fi
+#!     fi
 
     # If this is a new install, show the upnp prompt menu regardless
 #    if [ ! -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
@@ -9149,280 +10190,547 @@ if [ "$DO_FULL_INSTALL" = "YES" ]; then
 #    fi
 
     # If we are running this from the main menu, always show the menu prompts
-    if [ "$FORCE_DISPLAY_UPNP_MENU" = true ]; then
-        show_ipfs_upnp_menu="yes"
-    fi
+ #!   if [ "$FORCE_DISPLAY_TOR_MENU" = true ]; then
+ #!       show_ipfs_tor_menu="yes"
+ #!   fi
 
-fi
+#! fi
 
-    # Get current digibyte listen port
-    port=""
-    DGB_LISTEN_PORT=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-    if  [ "$DGB_LISTEN_PORT" = "" ] || [ "$DGB_LISTEN_PORT" = "null" ]; then
-        # Re-source config file
-        if [ -f "$DGB_CONF_FILE" ]; then
-            # Import variables from global section of digibyte.conf
-            str="Located digibyte.conf file. Importing..."
-            printf "%b %s" "${INFO}" "${str}"
-            scrape_digibyte_conf
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Import variables from global section of digibyte.conf
-            str="Getting digibyte.conf global variables..."
-            printf "%b %s" "${INFO}" "${str}"
-            eval "$DIGIBYTE_CONFIG_GLOBAL"
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-        if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="12026"
-        elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
-            DGB_LISTEN_PORT="12026"
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="12024"
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
-            DGB_LISTEN_PORT="12024"
-        elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="18444"
-        elif [ "$DGB_NETWORK_FINAL" = "SIGNET" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="38443"
-        else
-            DGB_LISTEN_PORT="$port"   
-        fi
-    fi
+    # Get current Digibyte Tor status
+    DGB_MAINNET_USING_TOR=""
+    DGB_TESTNET_USING_TOR=""
+    DGB_TOR_DUALNODE_FLAG=""
+    DGB_TOR_MAINNET_ONLY_FLAG=""
+    DGB_TOR_TESTNET_ONLY_FLAG=""
+    DGB_TOR_NEITHER_FLAG=""
+    DGB_TOR_MAINNET_TOR_FLAG=""
+    DGB_TOR_MAINNET_CLEARNET_FLAG=""
+    DGB_TOR_TESTNET_TOR_FLAG=""
+    DGB_TOR_TESTNET_CLEARNET_FLAG=""
+    DGB_TOR_MAIN_PROXY=""
+    DGB_TOR_MAIN_TORCONTROL=""
+    DGB_TOR_MAIN_BIND=""
+    DGB_TOR_TEST_PROXY=""
+    DGB_TOR_TEST_TORCONTROL=""
+    DGB_TOR_TEST_BIND=""
 
 
-    # If we will be running mainnet, get current listening port from [main] section of digibyte.conf, if available
-    if [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        DGB_LISTEN_PORT_MAIN=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^port= | cut -d'=' -f 2)
-        if [ "$DGB_LISTEN_PORT_MAIN" != "" ]; then
-            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_MAIN"
-        fi
-    fi
+    # Scrape digibyte.conf
+    scrape_digibyte_conf
 
-    # If we will be running testnet, get current listening port from [test] section of digibyte.conf, if available
-    if [ "$DGB_NETWORK_FINAL" = "TESTNET" ]; then
-        DGB_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
-        if [ "$DGB_LISTEN_PORT_TEST" != "" ]; then
-            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
-        fi
-    fi
-
-    # If we will be running regtest, get current listening port from [regtest] section of digibyte.conf, if available
-    if [ "$DGB_NETWORK_FINAL" = "REGTEST" ]; then
-        DGB_LISTEN_PORT_REGTEST=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^port= | cut -d'=' -f 2)
-        if [ "$DGB_LISTEN_PORT_REGTEST" != "" ]; then
-            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_REGTEST"
-        fi
-    fi
-
-    # If we will be running signet, get current listening port from [signet] section of digibyte.conf, if available
-    if [ "$DGB_NETWORK_FINAL" = "SIGNET" ]; then
-        DGB_LISTEN_PORT_SIGNET=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^port= | cut -d'=' -f 2)
-        if [ "$DGB_LISTEN_PORT_SIGNET" != "" ]; then
-            DGB_LISTEN_PORT="$DGB_LISTEN_PORT_SIGNET"
-        fi
-    fi
-
-    # banana
-
-    # If we will be running a Dual Node, we also need to get the current testnet listening port
-    if [ "$SETUP_DUAL_NODE" = "YES" ]; then
-
-        if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-            DGB2_LISTEN_PORT="12026"
-            DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
-        else
-            DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
-            DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
-        fi
-
-        # Get current listening port from [test] section of digibyte.conf, if available
-        DGB2_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
-        if [ "$DGB2_LISTEN_PORT_TEST" != "" ]; then
-            DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
-        fi
-
-    fi
-
-
-    # Get current ipfs listen port
-
-    # Lookup the current IPFS Kubo ports
-    if test -f "$USER_HOME/.ipfs/config"; then
-        IPFS_PORT_IP4=$(cat $USER_HOME/.ipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
-    fi
-
-    # Lookup the current JS-IPFS ports
-    if test -f "$USER_HOME/.jsipfs/config"; then
-        JSIPFS_PORT_IP4=$(cat $USER_HOME/.jsipfs/config | jq .Addresses.Swarm[0] | sed 's/"//g' | cut -d'/' -f5)
-    fi
-
-    IPFS_LISTEN_PORT=""
-
-    if [ "$IPFS_PORT_IP4" != "" ]; then
-        IPFS_LISTEN_PORT=$IPFS_PORT_IP4
-    fi
-    if [ "$IPFS_LISTEN_PORT" != "" ] && [ "$JSIPFS_PORT_IP4" != "" ]; then
-        IPFS_LISTEN_PORT=$JSIPFS_PORT_IP4
-    fi
-
-    if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$IPFS_LISTEN_PORT" = "" ]; then
-        IPFS_LISTEN_PORT="4004"
-    elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$IPFS_LISTEN_PORT" = "4001" ]; then
-        IPFS_LISTEN_PORT="4004"
-    elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$IPFS_LISTEN_PORT" = "" ]; then
-        IPFS_LISTEN_PORT="4001"
-    elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$IPFS_LISTEN_PORT" = "4004" ]; then
-        IPFS_LISTEN_PORT="4001"
+    DGB_TOR_MAIN_PROXY=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^proxy=127.0.0.1:9050)
+    DGB_TOR_MAIN_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^torcontrol=127.0.0.1:9151)
+    DGB_TOR_MAIN_BIND=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^bind=127.0.0.1=onion)
+    if [ "$DGB_TOR_MAIN_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_MAIN_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_MAIN_BIND" = "bind=127.0.0.1=onion" ]; then
+        DGB_MAINNET_USING_TOR="YES"
+    elif [ "$DGB_TOR_MAIN_PROXY" != "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_MAIN_TORCONTROL" != "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_MAIN_BIND" != "bind=127.0.0.1=onion" ]; then
+        DGB_MAINNET_USING_TOR="NO"
     else
-        IPFS_LISTEN_PORT="$IPFS_LISTEN_PORT"   
+        DGB_MAINNET_USING_TOR=""
+        local show_dgb_tor_menu="yes"
+    fi
+
+    DGB_TOR_TEST_PROXY=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^proxy=127.0.0.1:9050)
+    DGB_TOR_TEST_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^torcontrol=127.0.0.1:9151)
+    DGB_TOR_TEST_BIND=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^bind=127.0.0.1=onion)
+    if [ "$DGB_TOR_TEST_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_TEST_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_TEST_BIND" = "bind=127.0.0.1=onion" ]; then
+        DGB_TESTNET_USING_TOR="YES"
+    elif [ "$DGB_TOR_TEST_PROXY" != "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_TEST_TORCONTROL" != "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_TEST_BIND" != "bind=127.0.0.1=onion" ]; then
+        DGB_TESTNET_USING_TOR="NO"
+    else
+        DGB_TESTNET_USING_TOR=""
+        local show_dgb_tor_menu="yes"
+    fi
+
+    if [ "$VERBOSE_MODE" = true ]; then
+        echo "DGB_TOR_MAIN_PROXY: $DGB_TOR_MAIN_PROXY"
+        echo "DGB_TOR_MAIN_TORCONTROL: $DGB_TOR_MAIN_TORCONTROL"
+        echo "DGB_TOR_MAIN_BIND: $DGB_TOR_MAIN_BIND"
+        echo ""
+        echo "DGB_MAINNET_USING_TOR: $DGB_MAINNET_USING_TOR"
+        echo ""
+        echo "DGB_TOR_TEST_PROXY: $DGB_TOR_TEST_PROXY"
+        echo "DGB_TOR_TEST_TORCONTROL: $DGB_TOR_TEST_TORCONTROL"
+        echo "DGB_TOR_TEST_BIND: $DGB_TOR_TEST_BIND"
+        echo ""
+        echo "DGB_TESTNET_USING_TOR: $DGB_TESTNET_USING_TOR"
+        echo ""
+        echo ""
+    fi
+
+    # Set Tor current status flags - dual node using tor
+    if [ "$DGB_MAINNET_USING_TOR" = "YES" ] && [ "$DGB_TESTNET_USING_TOR" = "YES" ]; then
+        DGB_TOR_DUALNODE_FLAG="ON"
+    else
+        DGB_TOR_DUALNODE_FLAG="OFF"
+    fi
+    # Set Tor current status flags - mainnet only
+    if [ "$DGB_MAINNET_USING_TOR" = "YES" ] && [ "$DGB_TESTNET_USING_TOR" = "NO" ]; then
+        DGB_TOR_MAINNET_ONLY_FLAG="ON"
+    else
+        DGB_TOR_MAINNET_ONLY_FLAG="OFF"
+    fi
+    # Set Tor current status flags - testnet only
+    if [ "$DGB_MAINNET_USING_TOR" = "NO" ] && [ "$DGB_TESTNET_USING_TOR" = "YES" ]; then
+        DGB_TOR_TESTNET_ONLY_FLAG="ON"
+    else
+        DGB_TOR_TESTNET_ONLY_FLAG="OFF"
+    fi
+    # Set Tor current status flags - neither using tor
+    if [ "$DGB_MAINNET_USING_TOR" = "NO" ] && [ "$DGB_TESTNET_USING_TOR" = "NO" ]; then
+        DGB_TOR_NEITHER_FLAG="ON"
+    else
+        DGB_TOR_NEITHER_FLAG="OFF"
+    fi
+    # Set Tor current status flag for Mainnet
+    if [ "$DGB_MAINNET_USING_TOR" = "YES" ]; then
+        DGB_TOR_MAINNET_TOR_FLAG="ON"
+        DGB_TOR_MAINNET_CLEARNET_FLAG="OFF"
+    else
+        DGB_TOR_MAINNET_TOR_FLAG="OFF"
+        DGB_TOR_MAINNET_CLEARNET_FLAG="ON"
+    fi
+    # Set Tor current status flag for Testnet
+    if [ "$DGB_TESTNET_USING_TOR" = "YES" ]; then
+        DGB_TOR_TESTNET_TOR_FLAG="ON"
+        DGB_TOR_TESTNET_CLEARNET_FLAG="OFF"
+    else
+        DGB_TOR_TESTNET_TOR_FLAG="OFF"
+        DGB_TOR_TESTNET_CLEARNET_FLAG="ON"
+    fi
+
+    if [ "$VERBOSE_MODE" = true ]; then
+        echo "DGB_TOR_DUALNODE_FLAG: $DGB_TOR_DUALNODE_FLAG"
+        echo "DGB_TOR_MAINNET_ONLY_FLAG: $DGB_TOR_MAINNET_ONLY_FLAG"
+        echo "DGB_TOR_TESTNET_ONLY_FLAG: $DGB_TOR_TESTNET_ONLY_FLAG"
+        echo "DGB_TOR_NEITHER_FLAG: $DGB_TOR_NEITHER_FLAG"
+        echo ""
+        echo "DGB_TOR_MAINNET_TOR_FLAG: $DGB_TOR_MAINNET_TOR_FLAG"
+        echo "DGB_TOR_MAINNET_CLEARNET_FLAG: $DGB_TOR_MAINNET_CLEARNET_FLAG"
+        echo "DGB_TOR_TESTNET_TOR_FLAG: $DGB_TOR_TESTNET_TOR_FLAG"
+        echo "DGB_TOR_TESTNET_CLEARNET_FLAG: $DGB_TOR_TESTNET_CLEARNET_FLAG"
     fi
 
 
-
-# SHOW UPNP MENU
+# SHOW TOR MENU
 
 # Don't ask if we are running unattended
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
-    # Display upnp section break
-    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+    # Display Tor section break
+    if [ "$show_dgb_tor_menu" = "yes" ] || [ "$show_ipfs_tor_menu" = "yes" ]; then
 
-            printf " =============== UPnP MENU =============================================\\n\\n"
+            printf " =============== TOR MENU ==============================================\\n\\n"
             # ==============================================================================
 
     fi
 
-    # Set up a string to display the current UPnP status
-    local upnp_current_status_1
-    local upnp_current_status_2
-    local upnp_current_status_3
-    local upnp_current_status
+     # Configure Tor service
+    enable_tor_service
 
-    if [ "$UPNP_DGB_CURRENT" != "" ] || [ "$UPNP_IPFS_CURRENT" != "" ]; then
-        upnp_current_status_1="Current Status:\\n"
-    fi
+    # FOR A NEW INSTALL, DUAL NODE, SHOW THE DGB TOR MENU
+    if [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
-    if [ "$UPNP_DGB_CURRENT" = "1" ]; then
-        upnp_current_status_2=" - \Z4UPnP is ENABLED for DigiByte Core\Z0\\n"
-    elif [ "$UPNP_DGB_CURRENT" = "0" ]; then
-        upnp_current_status_2=" - \Z4UPnP is DISABLED for DigiByte Core\Z0\\n"
-    fi
+        opt1a="1 BOTH"
+        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
 
-    if [ "$UPNP_IPFS_CURRENT" = "false" ]; then
-        upnp_current_status_3=" - \Z4UPnP is ENABLED for IPFS\Z0\\n"
-    elif [ "$UPNP_IPFS_CURRENT" = "true" ]; then
-        upnp_current_status_3=" - \Z4UPnP is DISABLED for IPFS\Z0\\n"
-    fi
+        opt2a="2 MAINNET ONLY"
+        opt2b=" Run DigiByte Mainnet over Tor. Testnet runs on clearnet."
 
-    if [ "$upnp_current_status_2" != "" ] || [ "$upnp_current_status_3" != "" ]; then
-        upnp_current_status="$upnp_current_status_1$upnp_current_status_2$upnp_current_status_3\\n"
-    fi
+        opt3a="3 TESTNET ONLY"
+        opt3b=" Run DigiByte Testnet over Tor. Mainnet runs on clearnet."
 
-    # Format dgb port message
-    if [ "$SETUP_DUAL_NODE" = "YES" ]; then
-        dgb_port_msg="  DigiByte Primary Node:    $DGB_LISTEN_PORT TCP\\n  DigiByte Secondary Node:  $DGB2_LISTEN_PORT TCP\\n"
-    else
-        dgb_port_msg="  DigiByte Node:    $DGB_LISTEN_PORT TCP\\n"
-    fi
+        opt4a="4 NEITHER"
+        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
 
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        "${opt1a}"  "${opt1b}" \
+        "${opt2a}"  "${opt2b}" \
+        "${opt3a}"  "${opt3b}" \
+        "${opt4a}"  "${opt4b}" 3>&2 2>&1 1>&3) || \
+        { printf "%b %bExit was selected.%b\\n\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
 
-    # SHOW THE DGB + IPFS UPnP MENU
-    if [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "yes" ]; then
-        
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following ports on your router:\n\n${dgb_port_msg}  DigiAsset Node:   $IPFS_LISTEN_PORT TCP\n\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 21 "${c}"; then
-            printf "%b You chose to DISABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
-            DGB_ENABLE_UPNP="NO"
-            IPFS_ENABLE_UPNP="NO"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to ENABLE UPnP for DigiByte Core and IPFS\\n" "${INFO}"
-            DGB_ENABLE_UPNP="YES"
-            IPFS_ENABLE_UPNP="YES"
-        fi
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Core on Mainnet & Testnet
+            ${opt1a})
+                printf "%b You chose to setup both DigiByte Mainnet and DigiByte Testnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"
+                DGB_TOR_TESTNET="ON"   
+                ;;
+            # Enable Tor for DigiByte Core Mainnet ONLY
+            ${opt2a})
+                printf "%b You chose to setup DigiByte Mainnet to run over Tor. DigiByte Testnet will run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"
+                DGB_TOR_TESTNET="OFF"   
+                ;;
+            # Enable Tor for DigiByte Core Mainnet ONLY
+            ${opt3a})
+                printf "%b You chose to setup DigiByte Testnet to run over Tor. DigiByte Mainnet will run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"
+                DGB_TOR_TESTNET="ON"     
+                ;;
+            # Enable Tor for DigiByte Core on Mainnet & Testnet
+            ${opt4a})
+                printf "%b You chose to setup both DigiByte Mainnet and DigiByte Testnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"
+                DGB_TOR_TESTNET="OFF"     
+                ;;
+        esac
         printf "\\n"
 
-    # SHOW THE DGB ONLY UPnP MENU
-    elif [ "$show_dgb_upnp_menu" = "yes" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+    # FOR A NEW INSTALL, TESTNET NODE ONLY, SHOW THE DGB TOR MENU
+    elif [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$SETUP_DUAL_NODE" = "NO" ]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Port Forwarding" --title "Port Forwarding" --yes-label "Setup Manually" --no-label "Use UPnP" --yesno "\n\Z4How would you like to setup port forwarding?\Z0\n\nTo make your device discoverable by other nodes on the Internet, you need to forward the following port on your router:\n\n${dgb_port_msg}\nIf you are comfortable configuring your router, it is recommended to do this manually. The alternative is to enable UPnP to automatically open the ports for you, though this can sometimes have issues depending on your router.\n\n${upnp_current_status}For help:\n$DGBH_URL_PORTFWD" 22 "${c}"; then
-            printf "%b You chose to DISABLE UPnP for DigiByte Core\\n" "${INFO}"
-            DGB_ENABLE_UPNP="NO"
-            IPFS_ENABLE_UPNP="SKIP"
-        #Nothing to do, continue
-        else
-            printf "%b You chose to ENABLE UPnP for DigiByte Core\\n" "${INFO}"
-            DGB_ENABLE_UPNP="YES"
-            IPFS_ENABLE_UPNP="SKIP"
-        fi
+        opt1a="1 TOR"
+        opt1b=" Run DigiByte Testnet Node over Tor. (Recommended)"
+
+        opt2a="2 CLEARNET"
+        opt2b=" Run DigiByte Testnet over clearnet."
+
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Testnet Node over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 75 2 \
+        "${opt1a}"  "${opt1b}" \
+        "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+        { printf "%b %bExit was selected.%b\\n\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Testnet
+            ${opt1a})
+                printf "%b You chose to setup DigiByte Testnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_TESTNET="ON"  
+                if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_MAINNET="ON"
+                else
+                    DGB_TOR_MAINNET="OFF"
+                fi
+                ;;
+            # Disable Tor for DigiByte Testnet
+            ${opt2a})
+                printf "%b You chose to setup DigiByte Testnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_TESTNET="OFF"  
+                if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_MAINNET="ON"
+                else
+                    DGB_TOR_MAINNET="OFF"
+                fi
+                ;;
+        esac
         printf "\\n"
 
-    elif [ "$show_dgb_upnp_menu" = "no" ] && [ "$show_ipfs_upnp_menu" = "no" ]; then
+    # FOR A NEW INSTALL, MAINNET NODE ONLY, SHOW THE DGB TOR MENU
+    elif [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "NO" ]; then
 
-        DGB_ENABLE_UPNP="SKIP"
-        IPFS_ENABLE_UPNP="SKIP"
+        opt1a="1 TOR"
+        opt1b=" Run DigiByte Mainnet Node over Tor. (Recommended)"
+
+        opt2a="2 CLEARNET"
+        opt2b=" Run DigiByte Mainnet over clearnet."
+
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Mainnet Node over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 75 2 \
+        "${opt1a}"  "${opt1b}" \
+        "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+        { printf "%b %bExit was selected.%b\\n\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; exit; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Mainnet
+            ${opt1a})
+                printf "%b You chose to setup DigiByte Mainnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"  
+                if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_TESTNET="ON"
+                else
+                    DGB_TOR_TESTNET="OFF"
+                fi
+                ;;
+            # Disable Tor for DigiByte Mainnet
+            ${opt2a})
+                printf "%b You chose to setup DigiByte Mainnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"  
+                if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_TESTNET="ON"
+                else
+                    DGB_TOR_TESTNET="OFF"
+                fi
+                ;;
+        esac
+        printf "\\n"
+
+    # FOR AN EXISTING INSTALL, DUAL NODE, SHOW THE DGB TOR MENU
+    elif [ "$show_dgb_tor_menu" = "yes" ]  && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
+
+        opt1a="1 BOTH"
+        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
+
+        opt2a="2 MAINNET ONLY"
+        opt2b=" Run DigiByte Mainnet node over Tor. Testnet runs on clearnet."
+
+        opt3a="3 TESTNET ONLY"
+        opt3b=" Run DigiByte Testnet node over Tor. Mainnet runs on clearnet."
+
+        opt4a="4 NEITHER"
+        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
+
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        "${opt1a}"  "${opt1b}" "${DGB_TOR_DUALNODE_FLAG}" \
+        "${opt2a}"  "${opt2b}" "${DGB_TOR_MAINNET_ONLY_FLAG}" \
+        "${opt3a}"  "${opt3b}" "${DGB_TOR_TESTNET_ONLY_FLAG}" \
+        "${opt4a}"  "${opt4b}" "${DGB_TOR_NEITHER_FLAG}" 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_TOR_MENU=false; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Core on Mainnet & Testnet
+            ${opt1a})
+                printf "%b You chose to setup both DigiByte Mainnet and DigiByte Testnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"
+                DGB_TOR_TESTNET="ON"
+                if [ "$DGB_TOR_DUALNODE_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi
+                ;;
+            # Enable Tor for DigiByte Core Mainnet ONLY
+            ${opt2a})
+                printf "%b You chose to setup DigiByte Mainnet to run over Tor. DigiByte Testnet will run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"
+                DGB_TOR_TESTNET="OFF"   
+                if [ "$DGB_TOR_MAINNET_ONLY_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi
+                ;;
+            # Enable Tor for DigiByte Core Mainnet ONLY
+            ${opt3a})
+                printf "%b You chose to setup DigiByte Testnet to run over Tor. DigiByte Mainnet will run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"
+                DGB_TOR_TESTNET="ON"    
+                if [ "$DGB_TOR_TESTNET_ONLY_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi   
+                ;;
+            # Enable Tor for DigiByte Core on Mainnet & Testnet
+            ${opt4a})
+                printf "%b You chose to setup both DigiByte Mainnet and DigiByte Testnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"
+                DGB_TOR_TESTNET="OFF"    
+                if [ "$DGB_TOR_NEITHER_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi       
+                ;;
+        esac
+        printf "\\n"
+
+    # FOR AN EXISTING INSTALL, TESTNET NODE, SHOW THE DGB TOR MENU
+    elif [ "$show_dgb_tor_menu" = "yes" ] && [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$SETUP_DUAL_NODE" = "NO" ]; then
+
+        opt1a="1 TOR"
+        opt1b=" Run DigiByte Testnet Node over Tor. (Recommended)"
+
+        opt2a="2 CLEARNET"
+        opt2b=" Run DigiByte Testnet over clearnet."
+
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte TESTNET Node over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 75 2 \
+        "${opt1a}"  "${opt1b}" $DGB_TOR_TESTNET_TOR_FLAG \
+        "${opt2a}"  "${opt2b}" $DGB_TOR_TESTNET_CLEARNET_FLAG 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_TOR_MENU=false; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Testnet
+            ${opt1a})
+                printf "%b You chose to switch DigiByte Testnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_TESTNET="ON"  
+                if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_MAINNET="ON"
+                else
+                    DGB_TOR_MAINNET="OFF"
+                fi
+                if [ "$DGB_TOR_TESTNET_TOR_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi  
+                ;;
+            # Disable Tor for DigiByte Testnet
+            ${opt2a})
+                printf "%b You chose to switch DigiByte Testnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_TESTNET="OFF"  
+                if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_MAINNET="ON"
+                else
+                    DGB_TOR_MAINNET="OFF"
+                fi
+                if [ "$DGB_TOR_TESTNET_CLEARNET_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi 
+                ;;
+        esac
+        printf "\\n"
+
+    # FOR AN EXISTING INSTALL, MAINNET NODE, SHOW THE DGB TOR MENU
+    elif [ "$show_dgb_tor_menu" = "yes" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "NO" ]; then
+
+        opt1a="1 TOR"
+        opt1b=" Run DigiByte Mainnet Node over Tor. (Recommended)"
+
+        opt2a="2 CLEARNET"
+        opt2b=" Run DigiByte Mainnet over clearnet."
+
+        # Display the information to the user
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte MAINNET Node over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 75 2 \
+        "${opt1a}"  "${opt1b}" $DGB_TOR_MAINNET_TOR_FLAG \
+        "${opt2a}"  "${opt2b}" $DGB_TOR_MAINNET_CLEARNET_FLAG 3>&2 2>&1 1>&3) || \
+        { printf "%b %bCancel was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; FORCE_DISPLAY_TOR_MENU=false; menu_existing_install; }
+
+        # Set the variable based on if the user chooses
+        case ${UpdateCmd} in
+            # Enable Tor for DigiByte Mainnet
+            ${opt1a})
+                printf "%b You chose to switch DigiByte Mainnet to run over Tor.\\n" "${INFO}"
+                DGB_TOR_MAINNET="ON"  
+                if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_TESTNET="ON"
+                else
+                    DGB_TOR_TESTNET="OFF"
+                fi
+                if [ "$DGB_TOR_MAINNET_TOR_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi  
+                ;;
+            # Disable Tor for DigiByte Mainnet
+            ${opt2a})
+                printf "%b You chose to switch DigiByte Mainnet to run over clearnet.\\n" "${INFO}"
+                DGB_TOR_MAINNET="OFF"  
+                if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+                    DGB_TOR_TESTNET="ON"
+                else
+                    DGB_TOR_TESTNET="OFF"
+                fi
+                if [ "$DGB_TOR_MAINNET_CLEARNET_FLAG" = "ON" ];then 
+                    FORCE_DISPLAY_TOR_MENU=false
+                    menu_existing_install
+                fi 
+                ;;
+        esac
+        printf "\\n"
+
+    elif [ "$show_dgb_tor_menu" = "no" ] && [ "$show_ipfs_tor_menu" = "no" ]; then
+
+        if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+            DGB_TOR_MAINNET="ON"
+        else
+            DGB_TOR_MAINNET="OFF"
+        fi
+        if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+            DGB_TOR_TESTNET="ON"
+        else
+            DGB_TOR_TESTNET="OFF"
+        fi
+
+        IPFS_ENABLE_TOR="SKIP"
 
     fi
 
 else
 
-    # If we are running unattended, and the script wants to prompt the user with the upnp menu, then get the values from diginode.settings
+    # If we are running unattended, and the script wants to prompt the user with the Tor menu, then get the values from diginode.settings
 
-    # Display upnp section break
-    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then
+    # Display Tor section break
+    if [ "$show_dgb_tor_menu" = "yes" ] || [ "$show_ipfs_tor_menu" = "yes" ]; then
 
-            printf " =============== Unattended Mode: Configuring UPnP =====================\\n\\n"
+            printf " =============== Unattended Mode: Configuring Tor ======================\\n\\n"
             # ==============================================================================
 
     fi
 
-    if [ "$show_dgb_upnp_menu" = "yes" ]; then
+    # Configure Tor service
+    enable_tor_service
 
-        if [ "$UI_DGB_ENABLE_UPNP" = "YES" ]; then
+    if [ "$show_dgb_tor_menu" = "yes" ]; then
 
-            printf "%b Unattended Mode: UPnP will be ENABLED for DigiByte Core\\n" "${INFO}"
-            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
-            DGB_ENABLE_UPNP="YES"
+        if [ "$UI_DGB_MAINNET_ENABLE_TOR" = "YES" ]; then
 
-        elif [ "$UI_DGB_ENABLE_UPNP" = "NO" ]; then
+            printf "%b Unattended Mode: Tor will be ENABLED for DigiByte Core Mainnet\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_MAINNET_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+            DGB_TOR_MAINNET="ON"
 
-            printf "%b Unattended Mode: UPnP will be DISABLED for DigiByte Core\\n" "${INFO}"
-            printf "%b                  (Set from UI_DGB_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
-            DGB_ENABLE_UPNP="NO"
+        elif [ "$UI_DGB_MAINNET_ENABLE_TOR" = "NO" ]; then
+
+            printf "%b Unattended Mode: Tor will be DISABLED for DigiByte Core Mainnet\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_MAINNET_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+            DGB_TOR_MAINNET="OFF"
 
         else
 
-            printf "%b Unattended Mode: Skipping setting up UPnP for DigiByte Core. It is already configured.\\n" "${INFO}"
-            DGB_ENABLE_UPNP="SKIP"
+            printf "%b Unattended Mode: Skipping setting up Tor for DigiByte Core Mainnet. It is already configured.\\n" "${INFO}"
+            if [ "$DGB_MAINNET_USING_TOR" = "YES" ];then 
+                DGB_TOR_MAINNET="ON"
+            else
+                DGB_TOR_MAINNET="OFF"
+            fi
 
         fi
-    fi
 
-    if [ "$show_ipfs_upnp_menu" = "yes" ]; then
+        if [ "$UI_DGB_TESTNET_ENABLE_TOR" = "YES" ]; then
 
-        if [ "$UI_IPFS_ENABLE_UPNP" = "YES" ]; then
+            printf "%b Unattended Mode: Tor will be ENABLED for DigiByte Core Testnet\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_TESTNET_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+            DGB_TOR_TESTNET="ON"
 
-            printf "%b Unattended Mode: UPnP will be ENABLED for IPFS" "${INFO}"
-            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
-            IPFS_ENABLE_UPNP="YES"
+        elif [ "$UI_DGB_TESTNET_ENABLE_TOR" = "NO" ]; then
 
-        elif [ "$UI_IPFS_ENABLE_UPNP" = "NO" ]; then
-
-            printf "%b Unattended Mode: UPnP will be DISABLED for IPFS" "${INFO}"
-            printf "%b                  (Set from UI_IPFS_ENABLE_UPNP value in diginode.settings)\\n" "${INDENT}"
-
-            IPFS_ENABLE_UPNP="NO"
+            printf "%b Unattended Mode: Tor will be DISABLED for DigiByte Core Testnet\\n" "${INFO}"
+            printf "%b                  (Set from UI_DGB_TESTNET_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+            DGB_TOR_TESTNET="OFF"
 
         else
 
-            printf "%b Unattended Mode: Skipping setting up UPnP for IPFS. It is already configured.\\n" "${INFO}"
-            DGB_ENABLE_UPNP="SKIP"
+            printf "%b Unattended Mode: Skipping setting up Tor for DigiByte Core Testnet. It is already configured.\\n" "${INFO}"
+            if [ "$DGB_TESTNET_USING_TOR" = "YES" ];then 
+                DGB_TOR_TESTNET="ON"
+            else
+                DGB_TOR_TESTNET="OFF"
+            fi
+
+        fi
+
+    fi
+
+    if [ "$show_ipfs_tor_menu" = "yes" ]; then
+
+        if [ "$UI_IPFS_ENABLE_TOR" = "YES" ]; then
+
+            printf "%b Unattended Mode: Tor will be ENABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+            IPFS_ENABLE_TOR="YES"
+
+        elif [ "$UI_IPFS_ENABLE_TOR" = "NO" ]; then
+
+            printf "%b Unattended Mode: Tor will be DISABLED for IPFS" "${INFO}"
+            printf "%b                  (Set from UI_IPFS_ENABLE_TOR value in diginode.settings)\\n" "${INDENT}"
+
+            IPFS_ENABLE_TOR="NO"
+
+        else
+
+            printf "%b Unattended Mode: Skipping setting up Tor for IPFS. It is already configured.\\n" "${INFO}"
+            IPFS_ENABLE_TOR="SKIP"
 
         fi
     fi
 
     # Insert blank row if anything was displayed above
-    if [ "$show_dgb_upnp_menu" = "yes" ] || [ "$show_ipfs_upnp_menu" = "yes" ]; then  
+    if [ "$show_dgb_tor_menu" = "yes" ] || [ "$show_ipfs_tor_menu" = "yes" ]; then  
         printf "\\n"
     fi
 
@@ -9430,9 +10738,6 @@ else
 fi
 
 }
-
-
-
 
 
 
@@ -9490,13 +10795,134 @@ query_digibyte_chain() {
     fi
 }
 
+# Query DigiByte Core to find out if it is running on Tor
+# If DigiByte Core is not running, lookup the Tor status from digibyte.conf
+
+query_digibyte_tor() {
+
+    # Check if tor is running, and if either DigiByte node is running on it
+    systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
+
+    # Check if primary DigiByte Node has an onion address (i.e. it is running on Tor)
+    DGB_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+    if [ "$DGB_TOR_QUERY" != "" ]; then
+        DGB_USING_TOR=$DGB_TOR_QUERY
+        DGB_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
+    fi
+
+    # If we failed to get a result from digibyte-cli for primary node, check digibyte.conf instead
+    if  [ "$DGB_TOR_QUERY" = "" ] || [ "$DGB_TOR_QUERY" = "null" ]; then
+
+        # Make sure we have already scraped digibyte.conf
+        if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+            scrape_digibyte_conf
+        fi
+
+        # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+        if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+            query_digibyte_chain
+        fi
+
+        # If we are running mainnet, get current Tor ports from [main] section of digibyte.conf, to check if Tor is enabled
+        if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+            DGB_TOR_MAIN_PROXY=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^proxy=127.0.0.1:9050)
+            DGB_TOR_MAIN_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^torcontrol=127.0.0.1:9151)
+            DGB_TOR_MAIN_BIND=$(echo "$DIGIBYTE_CONFIG_MAIN" | grep ^bind=127.0.0.1=onion)
+            if [ "$DGB_TOR_MAIN_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_MAIN_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_MAIN_BIND" = "bind=127.0.0.1=onion" ]; then
+                DGB_USING_TOR="YES"
+            else
+                DGB_USING_TOR="NO"
+            fi
+            DGB_USING_TOR_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # If we are running testnet, get current Tor ports from [test] section of digibyte.conf, to check if Tor is enabled
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            DGB_TOR_TEST_PROXY=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^proxy=127.0.0.1:9050)
+            DGB_TOR_TEST_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^torcontrol=127.0.0.1:9151)
+            DGB_TOR_TEST_BIND=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^bind=127.0.0.1=onion)
+            if [ "$DGB_TOR_TEST_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_TEST_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_TEST_BIND" = "bind=127.0.0.1=onion" ]; then
+                DGB_USING_TOR="YES"
+            else
+                DGB_USING_TOR="NO"
+            fi
+            DGB_USING_TOR_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # If we are running regtest, get current Tor ports from [regtest] section of digibyte.conf, to check if Tor is enabled
+        if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
+            DGB_TOR_REGTEST_PROXY=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^proxy=127.0.0.1:9050)
+            DGB_TOR_REGTEST_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^torcontrol=127.0.0.1:9151)
+            DGB_TOR_REGTEST_BIND=$(echo "$DIGIBYTE_CONFIG_REGTEST" | grep ^bind=127.0.0.1=onion)
+            if [ "$DGB_TOR_REGTEST_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_REGTEST_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_REGTEST_BIND" = "bind=127.0.0.1=onion" ]; then
+                DGB_USING_TOR="YES"
+            else
+                DGB_USING_TOR="NO"
+            fi
+            DGB_USING_TOR_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+
+        # If we are running signet, get current Tor ports from [signet] section of digibyte.conf, to check if Tor is enabled
+        if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
+            DGB_TOR_SIGNET_PROXY=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^proxy=127.0.0.1:9050)
+            DGB_TOR_SIGNET_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^torcontrol=127.0.0.1:9151)
+            DGB_TOR_SIGNET_BIND=$(echo "$DIGIBYTE_CONFIG_SIGNET" | grep ^bind=127.0.0.1=onion)
+            if [ "$DGB_TOR_SIGNET_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB_TOR_SIGNET_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB_TOR_SIGNET_BIND" = "bind=127.0.0.1=onion" ]; then
+                DGB_USING_TOR="YES"
+            else
+                DGB_USING_TOR="NO"
+            fi
+            DGB_USING_TOR_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+        fi
+    fi
+
+    # If we are running a Dual Node, or setting one up, we also need to check if Tor is enabled for the secondary testnet node
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+        # Check if secondary DigiByte Node has an onion address (i.e. it is running on Tor)
+        DGB2_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+        if [ "$DGB2_TOR_QUERY" != "" ]; then
+            DGB2_USING_TOR=$DGB2_TOR_QUERY
+            DGB2_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
+        fi
+
+        # If we failed to get a result from digibyte-cli for secondary node, check digibyte.conf instead
+        if  [ "$DGB2_TOR_QUERY" = "" ] || [ "$DGB2_TOR_QUERY" = "null" ]; then
+
+            # Make sure we have already scraped digibyte.conf
+            if [ "$DIGIBYTE_CONFIG_GLOBAL" = "" ]; then
+                scrape_digibyte_conf
+            fi
+
+            # Make sure we have already checked which network chain we are using - mainnet, testnet or regtest
+            if [ "$DGB_NETWORK_CURRENT" = "" ]; then
+                query_digibyte_chain
+            fi
+
+            # If we are running testnet, get current Tor ports from [test] section of digibyte.conf, to check if Tor is enabled
+            DGB2_TOR_TEST_PROXY=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^proxy=127.0.0.1:9050)
+            DGB2_TOR_TEST_TORCONTROL=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^torcontrol=127.0.0.1:9151)
+            DGB2_TOR_TEST_BIND=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^bind=127.0.0.1=onion)
+            if [ "$DGB2_TOR_TEST_PROXY" = "proxy=127.0.0.1:9050" ] && [ "$DGB2_TOR_TEST_TORCONTROL" = "torcontrol=127.0.0.1:9151" ] && [ "$DGB2_TOR_TEST_BIND" = "bind=127.0.0.1=onion" ]; then
+                DGB2_USING_TOR="YES"
+            else
+                DGB2_USING_TOR="NO"
+            fi
+            DGB2_USING_TOR_LIVE="NO" # Not a live value as retrieved from digibyte.conf
+
+        fi
+
+    fi
+
+}
+
 # Query DigiByte Core for the current listening port
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
-digibyte_port_query() {
+query_digibyte_port() {
 
     # Get primary DigiByte Node listening port
-    DGB_LISTEN_PORT_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
         DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
         DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -9572,7 +10998,7 @@ digibyte_port_query() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Get secondary DigiByte Node listening port
-        DGB2_LISTEN_PORT_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        DGB2_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
         if [ "$DGB2_LISTEN_PORT_QUERY" != "" ]; then
             DGB2_LISTEN_PORT=$DGB2_LISTEN_PORT_QUERY
             DGB2_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -9616,7 +11042,7 @@ digibyte_port_query() {
 
 # Get the maxconnections value from digibyte.conf
 
-digibyte_maxconnections_query() {
+query_digibyte_maxconnections() {
 
 if [ -f "$DGB_CONF_FILE" ]; then
 
@@ -9695,7 +11121,7 @@ fi
 
 # Get the rpc credentials - rpcuser, rpcuser and rpcpassword - from digibyte.conf
 
-digibyte_rpc_query() {
+query_digibyte_rpc() {
 
 if [ -f "$DGB_CONF_FILE" ]; then
 
@@ -10290,6 +11716,72 @@ check_digibyte_core() {
 
     fi
 
+    # Find out the current  DGB network chain
+    if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "notrunning" ] || [ "$DGB_STATUS" = "startingup" ]; then
+
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+            str="Checking primary DigiByte Node chain..."
+        else
+            str="Checking DigiByte Node chain..."
+        fi
+
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
+        query_digibyte_chain
+
+        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
+            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
+            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    fi
+
+    # Get Tor Status
+    query_digibyte_tor
+
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+        str="Is primary DigiByte $DGB_NETWORK_CURRENT Node using Tor?..."
+    else
+        str="Is DigiByte $DGB_NETWORK_CURRENT Node using Tor?..."
+    fi
+
+    # Display Tor status for primary Node
+    if [ "$DGB_USING_TOR" = "YES" ] && [ "$DGB_USING_TOR_LIVE" = "YES" ]; then 
+        printf "%b%b %s Yes (live)\\n" "${OVER}" "${TICK}" "${str}"
+    elif [ "$DGB_USING_TOR" = "NO" ] && [ "$DGB_USING_TOR_LIVE" = "YES" ]; then 
+        printf "%b%b %s No (live)\\n" "${OVER}" "${TICK}" "${str}"
+    elif [ "$DGB_USING_TOR" = "YES" ] && [ "$DGB_USING_TOR_LIVE" = "NO" ]; then 
+        printf "%b%b %s Yes (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+    elif [ "$DGB_USING_TOR" = "NO" ] && [ "$DGB_USING_TOR_LIVE" = "NO" ]; then 
+        printf "%b%b %s No (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
+        str="Is secondary DigiByte TESTNET Node using Tor?..."
+
+        # Display Tor status for primary Node
+        if [ "$DGB2_USING_TOR" = "YES" ] && [ "$DGB2_USING_TOR_LIVE" = "YES" ]; then 
+            printf "%b%b %s Yes (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB2_USING_TOR" = "NO" ] && [ "$DGB2_USING_TOR_LIVE" = "YES" ]; then 
+            printf "%b%b %s No (live)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB2_USING_TOR" = "YES" ] && [ "$DGB2_USING_TOR_LIVE" = "NO" ]; then 
+            printf "%b%b %s Yes (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        elif [ "$DGB2_USING_TOR" = "NO" ] && [ "$DGB2_USING_TOR_LIVE" = "NO" ]; then 
+            printf "%b%b %s No (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    fi
+
     # Get the version number of the current DigiByte Node and write it to to the settings file
     # Use whichever node is running to find this out (primary node, or the secondary testnet node, if we are running a Dual Node)
     if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
@@ -10331,36 +11823,6 @@ check_digibyte_core() {
             return     
         else
             printf "%b%b %s Found: v${DGB_VER_LOCAL}\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-    fi
-
-    # Find out the current  DGB network chain
-    if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "notrunning" ] || [ "$DGB_STATUS" = "startingup" ]; then
-
-        if [ "$DGB_DUAL_NODE" = "YES" ]; then
-            str="Checking primary DigiByte Node chain..."
-        else
-            str="Checking DigiByte Node chain..."
-        fi
-
-        printf "%b %s" "${INFO}" "${str}"
-
-        # Query if DigiByte Core is running the mainnet, testnet or regtest chain
-        query_digibyte_chain
-
-        if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s TESTNET (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s REGTEST (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "YES" ]; then 
-            printf "%b%b %s MAINNET (live)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s TESTNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s REGTEST (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
-        elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ] && [ "$DGB_NETWORK_CURRENT_LIVE" = "NO" ]; then 
-            printf "%b%b %s MAINNET (from digibyte.conf)\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
     fi
@@ -14607,7 +16069,7 @@ digiasset_node_create_settings() {
         # Import variables from global section of digibyte.conf
         str="Querying RPC credentials..."
         printf "%b %s" "${INFO}" "${str}"
-        digibyte_rpc_query
+        query_digibyte_rpc
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # Setting RPC variables
@@ -17056,7 +18518,410 @@ printf "\\n"
 
 }
 
+# Script to purge the old digiasset node
 
+purge_old_digiasset_node() {
+
+    printf " =============== PURGING LEGACY DIGIASSET NODE =========================\\n\\n"
+    # ==============================================================================
+
+    printf "%b If present, the legacy DigiAsset Node will be removed.\\n" "${INFO}"
+
+    # Display the uninstall DigiNode title if it needs to be uninstalled
+    if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
+
+        # If we are NOT running unattended, display the message that DigiAsset Node legacy will be removed
+ #       if [[ "${UnattendedUpgrade}" == false ]]; then
+
+            dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: The existing DigiAsset Node will now be uninstalled. \Z0\\n\\nThe legacy DigiAsset Node software has not been functioning correctly for some time and has therefore been retired - it will now be removed from your DigiNode. Support for the new DigiAsset Core, which is a complete rewrite of the DigiAsset software, will be added in an upcoming release." 13 ${c}
+
+ #       fi
+
+        printf "%b DigiAsset Node will be purged from the system since it has been retired.\\n" "${INFO}"
+        printf "%b DigiAsset Core will added in a future update.\\n" "${INFO}"
+        printf "\\n"
+
+        printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
+        # ==============================================================================
+
+        # Stop digiasset PM2 service
+        printf "Deleting DigiAsset Node PM2 service...\\n"
+        sudo -u $USER_ACCOUNT pm2 delete digiasset
+        printf "\\n"
+
+        # Delete existing 'digiasset_node' folder (if it exists)
+        str="Deleting ~/digiasset_node folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r -f $USER_HOME/digiasset_node
+        DGA_LOCAL_BRANCH=""
+        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
+        DGA_VER_LOCAL=""
+        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MJR_LOCAL=""
+        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_VER_MNR_LOCAL=""
+        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
+        DGA_INSTALL_DATE=""
+        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_UPGRADE_DATE=""
+        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+        DGA_FIRST_RUN=""
+        sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    fi
+
+    # Delete JS-IPFS settings
+    if [ -d "$USER_HOME/.jsipfs" ]; then
+        str="Deleting ~/.jsipfs settings folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -r $USER_HOME/.jsipfs
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If SYSTEMD service file already exists, stop it and delete it
+    if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
+
+        # Stop the service now
+        systemctl stop "pm2-$USER_ACCOUNT"
+
+        # Disable the service now
+        systemctl disable "pm2-$USER_ACCOUNT"
+
+        str="Deleting PM2 systemd service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $PM2_SYSTEMD_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # If UPSTART service file already exists, stop it and delete it
+    if [ -f "$PM2_UPSTART_SERVICE_FILE" ]; then
+
+        # Stop the service now
+        service "pm2-$USER_ACCOUNT" stop
+
+        # Disable the service now
+        service "pm2-$USER_ACCOUNT" disable
+
+        str="Deleting PM2 upstart service file..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -f $PM2_UPSTART_SERVICE_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Get the local version number of Node.js (this will also tell us if it is installed)
+    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
+
+    if [ "$NODEJS_VER_LOCAL" = "" ]; then
+        NODEJS_STATUS="not_detected"
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        NODEJS_STATUS="installed"
+        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
+
+    # Ask to uninstall Node.js if it exists
+    if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || [ "$NODEJS_STATUS" = "installed" ]; then
+
+        # Deleting deb repository
+        if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
+
+            printf " =============== Uninstall: Node.js ====================================\\n\\n"
+            # ==============================================================================
+
+            str="Deleting Nodesource deb repository..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/sources.list.d/nodesource.list
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Deleting gpg key
+        if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
+            str="Deleting Nodesource GPG key..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /etc/apt/keyrings/nodesource.gpg
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete Node.js packages
+        if [ "$NODEJS_STATUS" = "installed" ]; then
+            if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
+                printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                sudo apt-get purge nodejs -y -q
+            elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
+                printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
+                yum remove nodejs -y
+                str="Deleting Nodesource key for Enterprise Linux..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -rf /etc/yum.repos.d/nodesource*.repo
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                yum clean all -y
+            fi
+            NODEJS_STATUS="not_detected"
+            NODEJS_VER_LOCAL=""
+            delete_nodejs="yes"
+            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            NODEJS_INSTALL_DATE=""
+            sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+            NODEJS_UPGRADE_DATE=""
+            sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+        fi
+
+        # Reset Nodesource repo variable in diginode.settings so it will run again
+        sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
+
+        # Delete .npm settings
+        if [ -d "$USER_HOME/.npm" ]; then
+                str="Deleting ~/.npm settings folder..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -r $USER_HOME/.npm
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi 
+
+    printf "\\n"
+    fi
+
+    ################## UNINSTALL IPFS #################################################
+
+    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
+    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
+
+    if [ "$IPFS_VER_LOCAL" = "" ]; then
+        IPFS_STATUS="not_detected"
+        IPFS_VER_LOCAL=""
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+    else
+        IPFS_STATUS="installed"
+        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Next let's check if IPFS daemon is running
+    if [ "$IPFS_STATUS" = "installed" ]; then
+      if check_service_active "ipfs"; then
+          IPFS_STATUS="running"
+      else
+          IPFS_STATUS="stopped"
+      fi
+    fi
+
+   # Ask to uninstall GoIPFS
+    if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
+
+        printf " =============== Uninstall: IPFS Kubo ==================================\\n\\n"
+        # ==============================================================================
+
+        # Stop IPFS service if it is running, as we need to upgrade or reset it
+        if [ "$IPFS_STATUS" = "running" ]; then
+            printf "%b Preparing Uninstall: Stopping and disabling IPFS service ...\\n" "${INFO}"
+            stop_service ipfs
+            disable_service ipfs
+            IPFS_STATUS="stopped"
+        fi
+
+        # Delete the SYSTEMD service file if it exists
+        if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
+            str="Deleting IPFS systemd service file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $IPFS_SYSTEMD_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete the UPSTART service file if it exists
+        if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
+            str="Deleting IPFS upstart service file..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f $IPFS_UPSTART_SERVICE_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete IPFS Updater binary
+        if [ -f /usr/local/bin/ipfs-update ]; then
+            str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /usr/local/bin/ipfs-update
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete IPFS Updater installer
+        if [ -d $USER_HOME/ipfs-update ]; then
+            str="Deleting current IPFS Updater installer: ~/ipfs-update..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/ipfs-update
+            IPFSU_VER_LOCAL=""
+            sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            IPFSU_INSTALL_DATE=""
+            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+            IPFSU_UPGRADE_DATE=""
+            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete Kubo binary
+        if [ -f /usr/local/bin/ipfs ]; then
+            str="Deleting current IPFS Kubo binary: /usr/local/bin/ipfs..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -f /usr/local/bin/ipfs
+            IPFS_STATUS="not_detected"
+            IPFS_VER_LOCAL=""
+            delete_kubo="yes"
+            sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            IPFS_INSTALL_DATE=""
+            sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
+            IPFS_UPGRADE_DATE=""
+            sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        # Delete IPFS settings
+        if [ -d "$USER_HOME/.ipfs" ]; then
+            str="Deleting ~/.ipfs settings folder..."
+            printf "%b %s" "${INFO}" "${str}"
+            rm -r $USER_HOME/.ipfs
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+        printf "\\n"
+    fi
+
+}
+
+
+add_tor_repository() {
+
+    # This need to be updated if/when the Tor GPG public key changes
+    LATEST_TOR_GPG_KEY="A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
+
+    # Install the Tor Project gpg key, if it does not already exist OR if Tor is using a new Key
+    if [ ! -f "/usr/share/keyrings/torproject-archive-keyring.gpg" ] || [ "$INSTALLED_TOR_GPG_KEY" != "$LATEST_TOR_GPG_KEY" ]; then
+        
+        # Delete old GPG if it exists
+        if [ -f "/usr/share/keyrings/torproject-archive-keyring.gpg" ]; then
+            rm -f /usr/share/keyrings/torproject-archive-keyring.gpg
+            printf "%b Deleted existing Tor Project GPG key.\\n" "${INFO}"
+        fi
+
+        wget -qO- https://deb.torproject.org/torproject.org/$LATEST_TOR_GPG_KEY | gpg --dearmor | tee /usr/share/keyrings/torproject-archive-keyring.gpg >/dev/null
+
+        # Remember installed Tor GPG key
+        INSTALLED_TOR_GPG_KEY="A3C4F0F979CAA22CDBA8F512EE8CBC9E886DDD89.asc"
+        sed -i -e "/^INSTALLED_TOR_GPG_KEY=/s|.*|INSTALLED_TOR_GPG_KEY=\"$INSTALLED_TOR_GPG_KEY\"|" $DGNT_SETTINGS_FILE
+
+        printf "%b Installed Tor Project GPG public key.\\n" "${INFO}"
+    fi
+
+    # Determine the distribution codename
+    DIST_CODENAME=$(lsb_release -sc)
+
+    # Determine the architecture
+    TORARCH=$(dpkg --print-architecture)
+
+    # Define the repository entry based on architecture
+    if [ "$TORARCH" == "arm64" ]; then
+        REPO_ENTRY="deb [arch=arm64 signed-by=/usr/share/keyrings/torproject-archive-keyring.gpg] https://deb.torproject.org/torproject.org/ $DIST_CODENAME main"
+    elif [ "$TORARCH" == "amd64" ]; then
+        REPO_ENTRY="deb [arch=amd64 signed-by=/usr/share/keyrings/torproject-archive-keyring.gpg] https://deb.torproject.org/torproject.org/ $DIST_CODENAME main"
+    else
+        printf "%b Unsupported architecture: $TORARCH. Exiting.\\n" "${ERROR}"
+        exit 1
+    fi
+
+    # Define the file path
+    FILE_PATH="/etc/apt/sources.list.d/torproject.list"
+
+    # Check if the file exists and contains the repository entry
+    if ! grep -Fxq "$REPO_ENTRY" $FILE_PATH 2>/dev/null; then
+        # Add the repository entry if it does not exist
+        echo "$REPO_ENTRY" | sudo tee $FILE_PATH
+        printf "%b Tor Project repository added.\\n" "${INFO}"
+    else
+        printf "%b Tor Project repository is already added.\\n" "${INFO}"
+    fi
+
+    printf "\\n"
+
+}
+
+# Update the Tor config file to enable the Tor Control Port (if needed) and start the Tor service, if it is not running
+enable_tor_service() {
+
+    TOR_CONFIG_FILE=/etc/tor/torrc
+    TOR_CONFIG_UPDATED="NO"
+
+    # Check if tor is running, and if either DigiByte node is running on it
+    systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+
+    # Check for "ControlPort 9151" line in torrc, otherwise uncomment/append it
+    if ! grep -q -Fx "ControlPort 9151" $TOR_CONFIG_FILE; then
+        if grep -q ^"#ControlPort 9151" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: ControlPort 9151"
+            sed -i -e "/^#ControlPort 9151/s|.*|ControlPort 9151|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        elif grep -q ^"# ControlPort 9151" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: ControlPort 9151"
+            sed -i -e "/^# ControlPort 9151/s|.*|ControlPort 9151|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        else
+            echo "$INDENT   Appending to torrc: ControlPort 9151"
+            sed -i '$a ControlPort 9151' $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"              
+        fi
+    fi
+
+    # Check for "CookieAuthentication 1" line in torrc, otherwise uncomment/append it
+    if ! grep -q -Fx "CookieAuthentication 1" $TOR_CONFIG_FILE; then
+        if grep -q ^"#CookieAuthentication 1" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: CookieAuthentication 1"
+            sed -i -e "/^#CookieAuthentication 1/s|.*|CookieAuthentication 1|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        elif grep -q ^"# CookieAuthentication 1" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: CookieAuthentication 1"
+            sed -i -e "/^# CookieAuthentication 1/s|.*|CookieAuthentication 1|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        else
+            echo "$INDENT   Appending to torrc: CookieAuthentication 1"
+            sed -i '$a CookieAuthentication 1' $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"               
+        fi
+    fi
+
+    # Check for "CookieAuthFileGroupReadable 1" line in torrc, otherwise uncomment/append it
+    if ! grep -q -Fx "CookieAuthFileGroupReadable 1" $TOR_CONFIG_FILE; then
+        if grep -q ^"#CookieAuthFileGroupReadable 1" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: CookieAuthFileGroupReadable 1"
+            sed -i -e "/^#CookieAuthFileGroupReadable 1/s|.*|CookieAuthFileGroupReadable 1|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        elif grep -q ^"# CookieAuthFileGroupReadable 1" $TOR_CONFIG_FILE; then
+            echo "$INDENT   Updating torrc: CookieAuthFileGroupReadable 1"
+            sed -i -e "/^# CookieAuthFileGroupReadable 1/s|.*|CookieAuthFileGroupReadable 1|" $TOR_CONFIG_FILE
+            TOR_CONFIG_UPDATED="YES"
+        else
+            echo "$INDENT   Appending to torrc: CookieAuthFileGroupReadable 1"
+            sed -i '/CookieAuthentication 1/ i \
+CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE 
+            TOR_CONFIG_UPDATED="YES"               
+        fi
+    fi
+
+    # Stop the Tor service if it has been changed, and it is running
+    if [ "$TOR_STATUS" = "running" ] && [ "$TOR_CONFIG_UPDATED" = "YES" ]; then
+        str="Restarting Tor service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl restart tor
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    if [ "$TOR_STATUS" = "not_running" ]; then
+        str="Enabling and starting Tor service..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl enable --now -q tor
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # Check Tor service is running
+    systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+
+}
 
 
 #####################################################################################################
@@ -17194,6 +19059,9 @@ main() {
 
     # Check for Raspberry Pi hardware
     rpi_check
+
+    # Add Tor repository
+    add_tor_repository
 
     # Install packages used by this installation script
     printf "%b Checking for / installing required dependencies for DigiNode Setup...\\n" "${INFO}"
@@ -17490,12 +19358,18 @@ install_or_upgrade() {
     # If this is a new install, ask if you user wants to setup a testnet or mainnet DigiByte Node, or a Dual Node
     menu_ask_dgb_network
 
+    # If this is a new install, ask the user if they want to enable or disable tor
+    menu_ask_tor
+
     # If this is a new install, ask the user if they want to enable or disable UPnP for port forwarding
     menu_ask_upnp
 
     # If this is a new install, ask to install the DigiNode MOTD
     menu_ask_motd
 
+
+    # Check Tor service
+    enable_tor_service
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
@@ -17589,277 +19463,6 @@ install_or_upgrade() {
     exit
 
 }
-
-
-# Script to purge the old digiasset node
-
-purge_old_digiasset_node() {
-
-    printf " =============== PURGING LEGACY DIGIASSET NODE =========================\\n\\n"
-    # ==============================================================================
-
-    printf "%b If present, the legacy DigiAsset Node will be removed.\\n" "${INFO}"
-
-    # Display the uninstall DigiNode title if it needs to be uninstalled
-    if [ -f "$DGA_SETTINGS_FILE" ] || [ -d "$DGA_INSTALL_LOCATION" ]; then
-
-        # If we are NOT running unattended, display the message that DigiAsset Node legacy will be removed
- #       if [[ "${UnattendedUpgrade}" == false ]]; then
-
-            dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: The existing DigiAsset Node will now be uninstalled. \Z0\\n\\nThe legacy DigiAsset Node software has not been functioning correctly for some time and has therefore been retired - it will now be removed from your DigiNode. Support for the new DigiAsset Core, which is a complete rewrite of the DigiAsset software, will be added in an upcoming release." 13 ${c}
-
- #       fi
-
-        printf "%b DigiAsset Node will be purged from the system since it has been retired.\\n" "${INFO}"
-        printf "%b DigiAsset Core will added in a future update.\\n" "${INFO}"
-        printf "\\n"
-
-        printf " =============== Uninstall: DigiAsset Node =============================\\n\\n"
-        # ==============================================================================
-
-        # Stop digiasset PM2 service
-        printf "Deleting DigiAsset Node PM2 service...\\n"
-        sudo -u $USER_ACCOUNT pm2 delete digiasset
-        printf "\\n"
-
-        # Delete existing 'digiasset_node' folder (if it exists)
-        str="Deleting ~/digiasset_node folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -r -f $USER_HOME/digiasset_node
-        DGA_LOCAL_BRANCH=""
-        sed -i -e "/^DGA_LOCAL_BRANCH=/s|.*|DGA_LOCAL_BRANCH=|" $DGNT_SETTINGS_FILE
-        DGA_VER_LOCAL=""
-        sed -i -e "/^DGA_VER_LOCAL=/s|.*|DGA_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-        DGA_VER_MJR_LOCAL=""
-        sed -i -e "/^DGA_VER_MJR_LOCAL=/s|.*|DGA_VER_MJR_LOCAL=|" $DGNT_SETTINGS_FILE
-        DGA_VER_MNR_LOCAL=""
-        sed -i -e "/^DGA_VER_MNR_LOCAL=/s|.*|DGA_VER_MNR_LOCAL=|" $DGNT_SETTINGS_FILE
-        DGA_INSTALL_DATE=""
-        sed -i -e "/^DGA_INSTALL_DATE=/s|.*|DGA_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-        DGA_UPGRADE_DATE=""
-        sed -i -e "/^DGA_UPGRADE_DATE=/s|.*|DGA_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-        DGA_FIRST_RUN=""
-        sed -i -e "/^DGA_FIRST_RUN=/s|.*|DGA_FIRST_RUN=|" $DGNT_SETTINGS_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-
-    fi
-
-    # Delete JS-IPFS settings
-    if [ -d "$USER_HOME/.jsipfs" ]; then
-        str="Deleting ~/.jsipfs settings folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -r $USER_HOME/.jsipfs
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # If SYSTEMD service file already exists, stop it and delete it
-    if [ -f "$PM2_SYSTEMD_SERVICE_FILE" ]; then
-
-        # Stop the service now
-        systemctl stop "pm2-$USER_ACCOUNT"
-
-        # Disable the service now
-        systemctl disable "pm2-$USER_ACCOUNT"
-
-        str="Deleting PM2 systemd service file..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -f $PM2_SYSTEMD_SERVICE_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # If UPSTART service file already exists, stop it and delete it
-    if [ -f "$PM2_UPSTART_SERVICE_FILE" ]; then
-
-        # Stop the service now
-        service "pm2-$USER_ACCOUNT" stop
-
-        # Disable the service now
-        service "pm2-$USER_ACCOUNT" disable
-
-        str="Deleting PM2 upstart service file..."
-        printf "%b %s" "${INFO}" "${str}"
-        rm -f $PM2_UPSTART_SERVICE_FILE
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # Get the local version number of Node.js (this will also tell us if it is installed)
-    NODEJS_VER_LOCAL=$(nodejs --version 2>/dev/null | sed 's/v//g')
-
-    if [ "$NODEJS_VER_LOCAL" = "" ]; then
-        NODEJS_STATUS="not_detected"
-        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-    else
-        NODEJS_STATUS="installed"
-        sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=\"$NODEJS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-
-    # Ask to uninstall Node.js if it exists
-    if [ -f /etc/apt/keyrings/nodesource.gpg ] || [ -f /etc/apt/sources.list.d/nodesource.list ] || [ "$NODEJS_STATUS" = "installed" ]; then
-
-        # Deleting deb repository
-        if [ -f /etc/apt/sources.list.d/nodesource.list ]; then 
-
-            printf " =============== Uninstall: Node.js ====================================\\n\\n"
-            # ==============================================================================
-
-            str="Deleting Nodesource deb repository..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /etc/apt/sources.list.d/nodesource.list
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Deleting gpg key
-        if [ -f /etc/apt/keyrings/nodesource.gpg ]; then 
-            str="Deleting Nodesource GPG key..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /etc/apt/keyrings/nodesource.gpg
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete Node.js packages
-        if [ "$NODEJS_STATUS" = "installed" ]; then
-            if [ "$LINUX_ID" = "ubuntu" ] || [ "$LINUX_ID" = "debian" ]; then
-                printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
-                sudo apt-get purge nodejs -y -q
-            elif [ "$PKG_MANAGER" = "yum" ] || [ "$PKG_MANAGER" = "dnf" ]; then
-                printf "%b Uninstalling Node.js packages...\\n" "${INFO}"
-                yum remove nodejs -y
-                str="Deleting Nodesource key for Enterprise Linux..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -rf /etc/yum.repos.d/nodesource*.repo
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-                yum clean all -y
-            fi
-            NODEJS_STATUS="not_detected"
-            NODEJS_VER_LOCAL=""
-            delete_nodejs="yes"
-            sed -i -e "/^NODEJS_VER_LOCAL=/s|.*|NODEJS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            NODEJS_INSTALL_DATE=""
-            sed -i -e "/^NODEJS_INSTALL_DATE=/s|.*|NODEJS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-            NODEJS_UPGRADE_DATE=""
-            sed -i -e "/^NODEJS_UPGRADE_DATE=/s|.*|NODEJS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-        fi
-
-        # Reset Nodesource repo variable in diginode.settings so it will run again
-        sed -i -e "/^NODEJS_REPO_ADDED=/s|.*|NODEJS_REPO_ADDED=\"NO\"|" $DGNT_SETTINGS_FILE
-
-        # Delete .npm settings
-        if [ -d "$USER_HOME/.npm" ]; then
-                str="Deleting ~/.npm settings folder..."
-                printf "%b %s" "${INFO}" "${str}"
-                rm -r $USER_HOME/.npm
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi 
-
-    printf "\\n"
-    fi
-
-    ################## UNINSTALL IPFS #################################################
-
-    # Get the local version number of IPFS Kubo (this will also tell us if it is installed)
-    IPFS_VER_LOCAL=$(ipfs --version 2>/dev/null | cut -d' ' -f3)
-
-    if [ "$IPFS_VER_LOCAL" = "" ]; then
-        IPFS_STATUS="not_detected"
-        IPFS_VER_LOCAL=""
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-    else
-        IPFS_STATUS="installed"
-        sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=\"$IPFS_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # Next let's check if IPFS daemon is running
-    if [ "$IPFS_STATUS" = "installed" ]; then
-      if check_service_active "ipfs"; then
-          IPFS_STATUS="running"
-      else
-          IPFS_STATUS="stopped"
-      fi
-    fi
-
-   # Ask to uninstall GoIPFS
-    if [ -f /usr/local/bin/ipfs-update ] || [ -f /usr/local/bin/ipfs ]; then
-
-        printf " =============== Uninstall: IPFS Kubo ==================================\\n\\n"
-        # ==============================================================================
-
-        # Stop IPFS service if it is running, as we need to upgrade or reset it
-        if [ "$IPFS_STATUS" = "running" ]; then
-            printf "%b Preparing Uninstall: Stopping and disabling IPFS service ...\\n" "${INFO}"
-            stop_service ipfs
-            disable_service ipfs
-            IPFS_STATUS="stopped"
-        fi
-
-        # Delete the SYSTEMD service file if it exists
-        if [ -f "$IPFS_SYSTEMD_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "systemd" ]; then
-            str="Deleting IPFS systemd service file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $IPFS_SYSTEMD_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete the UPSTART service file if it exists
-        if [ -f "$IPFS_UPSTART_SERVICE_FILE" ] && [ "$INIT_SYSTEM" = "upstart" ]; then
-            str="Deleting IPFS upstart service file..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f $IPFS_UPSTART_SERVICE_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete IPFS Updater binary
-        if [ -f /usr/local/bin/ipfs-update ]; then
-            str="Deleting current IPFS Updater binary: /usr/local/bin/ipfs-update..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /usr/local/bin/ipfs-update
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete IPFS Updater installer
-        if [ -d $USER_HOME/ipfs-update ]; then
-            str="Deleting current IPFS Updater installer: ~/ipfs-update..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r $USER_HOME/ipfs-update
-            IPFSU_VER_LOCAL=""
-            sed -i -e "/^IPFSU_VER_LOCAL=/s|.*|IPFSU_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            IPFSU_INSTALL_DATE=""
-            sed -i -e "/^IPFSU_INSTALL_DATE=/s|.*|IPFSU_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-            IPFSU_UPGRADE_DATE=""
-            sed -i -e "/^IPFSU_UPGRADE_DATE=/s|.*|IPFSU_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete Kubo binary
-        if [ -f /usr/local/bin/ipfs ]; then
-            str="Deleting current IPFS Kubo binary: /usr/local/bin/ipfs..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -f /usr/local/bin/ipfs
-            IPFS_STATUS="not_detected"
-            IPFS_VER_LOCAL=""
-            delete_kubo="yes"
-            sed -i -e "/^IPFS_VER_LOCAL=/s|.*|IPFS_VER_LOCAL=|" $DGNT_SETTINGS_FILE
-            IPFS_INSTALL_DATE=""
-            sed -i -e "/^IPFS_INSTALL_DATE=/s|.*|IPFS_INSTALL_DATE=|" $DGNT_SETTINGS_FILE
-            IPFS_UPGRADE_DATE=""
-            sed -i -e "/^IPFS_UPGRADE_DATE=/s|.*|IPFS_UPGRADE_DATE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Delete IPFS settings
-        if [ -d "$USER_HOME/.ipfs" ]; then
-            str="Deleting ~/.ipfs settings folder..."
-            printf "%b %s" "${INFO}" "${str}"
-            rm -r $USER_HOME/.ipfs
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        printf "\\n"
-    fi
-
-
-}
-
 
 
 if [[ "$RUN_SETUP" != "NO" ]] ; then

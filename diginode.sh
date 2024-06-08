@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.9.13
+#           Name:  DigiNode Dashboard v0.10.0
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.9.13
-# Last Updated: 2024-04-10
+DGNT_VER_LOCAL=0.10.0
+# Last Updated: 2024-06-07
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -142,7 +142,7 @@ VERBOSE_MODE=false       # Set this to true to get more verbose feedback. Very u
 UNINSTALL=false
 LOCATE_DIGIBYTE=false
 DISPLAY_HELP=false
-EDIT_DGBCFG=false
+EDIT_DGBCONF=false
 EDIT_DGNTSET=false
 VIEW_DGBLOG=false
 VIEW_DGB2LOG=false
@@ -169,8 +169,8 @@ for var in "$@"; do
         "--locatedgb" ) LOCATE_DIGIBYTE=true;;
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
-        "--dgbcfg" ) EDIT_DGBCFG=true;;
-        "--dgntset" ) EDIT_DGNTSET=true;;
+        "--dgbconf" ) EDIT_DGBCONF=true;;
+        "--settings" ) EDIT_DGNTSET=true;;
         "--dgblog" ) VIEW_DGBLOG=true;;
         "--dgb2log" ) VIEW_DGB2LOG=true;;
         "--dgblogmn" ) VIEW_DGBLOGMN=true;;
@@ -199,7 +199,7 @@ done
 # Run a command via a launch flag
 flag_commands() {
 if [ $UNKNOWN_FLAG = true ] || \
-   [ $EDIT_DGBCFG = true ] || \
+   [ $EDIT_DGBCONF = true ] || \
    [ $EDIT_DGNTSET = true ] || \
    [ $VIEW_DGBLOG = true ] || \
    [ $VIEW_DGB2LOG = true ] || \
@@ -246,7 +246,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         fi
     fi
 
-    if [ $EDIT_DGBCFG = true ]; then # --dgbcfg
+    if [ $EDIT_DGBCONF = true ]; then # --dgbconf
         diginode_tools_import_settings silent
         set_text_editor
         if test -f $DGB_CONF_FILE; then
@@ -255,7 +255,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: digibyte.conf file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
-    elif [ $EDIT_DGNTSET = true ]; then # --dgntset
+    elif [ $EDIT_DGNTSET = true ]; then # --settings
         diginode_tools_import_settings silent
         set_text_editor  
         if test -f $DGNT_SETTINGS_FILE ; then
@@ -391,7 +391,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[' | sort)
+            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -406,6 +406,14 @@ if [ $UNKNOWN_FLAG = true ] || \
                 echo "$ip6peers"
             fi
             printf "\\n"
+            printf "Onion Peers:\\n"
+            onionpeers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            if [ -z "$onionpeers" ]; then
+                echo "none"
+            else
+                echo "$onionpeers"
+            fi
+            printf "\\n"
             exit
         else
             printf "%b %bERROR: DigiByte $DGB_NETWORK_CURRENT Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -416,7 +424,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep -v '^\[' | sort)
+            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -431,6 +439,14 @@ if [ $UNKNOWN_FLAG = true ] || \
                 echo "$ip6peers"
             fi
             printf "\\n"
+            printf "Onion Peers:\\n"
+            onionpeers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            if [ -z "$onionpeers" ]; then
+                echo "none"
+            else
+                echo "$onionpeers"
+            fi
+            printf "\\n"
             exit
         else
             printf "%b %bERROR: DigiByte TESTNET Node is not running.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -441,7 +457,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         diginode_tools_import_settings silent
         scrape_digibyte_conf
         query_digibyte_chain
-        digibyte_rpc_query
+        query_digibyte_rpc
         printf "DigiByte Core RPC Credentials:\\n\\n"
         printf "      RPC User: $RPC_USER\\n\\n"
         printf "  RPC Password: $RPC_PASSWORD\\n\\n"
@@ -543,8 +559,8 @@ display_help() {
             printf "%b%b--dgb2peers%b    - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "\\n"
-        printf "%b%b--dgbcfg%b       - Edit digibyte.config file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgntset%b      - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--dgbconf%b      - Edit digibyte.conf file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--settings%b     - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--rpc%b          - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--porttest%b     - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -918,7 +934,7 @@ is_dgbnode_installed() {
             printf "%b -testnet and -chain. You can use at most one. For this reason, the DigiByte daemon.\\n" "${INDENT}"
             printf "%b is unable to start. Please edit your digibyte.conf to fix this:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b   %bdiginode --dgbconf%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             printf "%b Restart DigiByte daemon when done:\\n" "${INDENT}"
             printf "\\n"
@@ -976,7 +992,7 @@ is_dgbnode_installed() {
 
 
     # Get current listening port
-    digibyte_port_query
+    query_digibyte_port
 
     # Show current listening port of primary DigiByte Node
     if [ "$DGB_LISTEN_PORT" != "" ] && [ "$DGB_LISTEN_PORT_LIVE" = "YES" ]; then
@@ -1004,7 +1020,7 @@ is_dgbnode_installed() {
 
 
     # Get maxconnections from digibyte.conf
-    digibyte_maxconnections_query
+    query_digibyte_maxconnections
     if [ "$DGB_MAXCONNECTIONS" != "" ]; then
       printf "%b DigiByte Core max connections: $DGB_MAXCONNECTIONS\\n" "${INFO}"
     fi
@@ -1375,7 +1391,7 @@ check_dgb_rpc_credentials() {
         fi
 
         # Get RPC credentials
-        digibyte_rpc_query
+        query_digibyte_rpc
 
       if [ "$RPC_USER" != "" ] && [ "$RPC_PASSWORD" != "" ] && [ "$RPC_PORT" != "" ] && [ "$RPC_BIND" != "error" ]; then
         RPC_CREDENTIALS_OK="yes"
@@ -1418,7 +1434,7 @@ check_dgb_rpc_credentials() {
             printf "\\n"
             printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
             printf "\\n"
-            printf "%b   %bdiginode --dgbcfg%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+            printf "%b   %bdiginode --dgbconf%b\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "\\n"
             printf "%b Check that the following is included in the [${DGB_NETWORK_CHAIN}] section:\\n" "${INDENT}"
             printf "\\n"
@@ -1836,7 +1852,7 @@ if [ "$auto_quit" = true ]; then
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
-    printf "%b To edit it: ${txtbld}diginode --dgntset${txtrst}\\n" "${INDENT}"
+    printf "%b To edit it: ${txtbld}diginode --settings${txtrst}\\n" "${INDENT}"
     echo ""
 fi
 
@@ -3006,9 +3022,9 @@ if [ $DGB_STATUS != "not_detected" ]; then
             # query for digibyte network
             query_digibyte_chain
             # query for digibyte listening port
-            digibyte_port_query
+            query_digibyte_port
             # update rpc credentials
-            digibyte_rpc_query
+            query_digibyte_rpc
             DGB_TROUBLESHOOTING_MSG="1sec: running>startingup"
           fi
         fi
@@ -3024,15 +3040,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
-    fi
+    DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3118,9 +3126,9 @@ if [ $DGB2_STATUS != "not_detected" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
             # query for digibyte network
             query_digibyte_chain
             # query for digibyte listening port
-            digibyte_port_query
+            query_digibyte_port
             # update rpc credentials
-            digibyte_rpc_query
+            query_digibyte_rpc
             DGB2_TROUBLESHOOTING_MSG="1sec: running>startingup"
           fi
         fi
@@ -3239,10 +3247,10 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             query_digibyte_chain
 
             # update max connections
-            digibyte_maxconnections_query
+            query_digibyte_maxconnections
 
             # update rpc credentials
-            digibyte_rpc_query
+            query_digibyte_rpc
 
         fi
 
@@ -3261,9 +3269,9 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             # query for digibyte network
             query_digibyte_chain
             # query for digibyte listening port
-            digibyte_port_query
+            query_digibyte_port
             # update rpc credentials
-            digibyte_rpc_query
+            query_digibyte_rpc
             DGB_TROUBLESHOOTING_MSG="10sec: running > startingup"
         else
             # Get the algo used for the current block (mainnet or testnet)
@@ -3358,10 +3366,10 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 query_digibyte_chain
 
                 # update max connections
-                digibyte_maxconnections_query
+                query_digibyte_maxconnections
 
                 # update rpc credentials
-                digibyte_rpc_query
+                query_digibyte_rpc
 
             fi
 
@@ -3380,9 +3388,9 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 # query for digibyte network
                 query_digibyte_chain
                 # query for digibyte listening port
-                digibyte_port_query
+                query_digibyte_port
                 # update rpc credentials
-                digibyte_rpc_query
+                query_digibyte_rpc
                 DGB2_TROUBLESHOOTING_MSG="10sec: running > startingup"
             else
                 # Get the algo used for the current block (mainnet or testnet)
@@ -3511,6 +3519,27 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     # Query the DigiAsset Node console
     update_dga_console
 
+    # Check if tor is running, and if either DigiByte node is running on it
+    if [ $DGB_STATUS = "running" ] || [ $DGB2_STATUS = "running" ]; then
+        systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
+    fi
+    if [ "$DGB_STATUS" = "running" ]; then
+        DGB_USING_TOR=$($DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
+    fi
+    if [ "$DGB2_STATUS" = "running" ]; then
+        DGB2_USING_TOR=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
+    fi
+    if [ "$TOR_STATUS" = "running" ] && [ "$DGB_USING_TOR" = "yes" ]; then
+        DGB_TOR="on"
+    else
+        DGB_TOR="off"
+    fi
+    if [ "$TOR_STATUS" = "running" ] && [ "$DGB2_USING_TOR" = "yes" ]; then
+        DGB2_TOR="on"
+    else
+        DGB2_TOR="off"
+    fi
+
     SAVED_TIME_10SEC="$(date +%s)"
     sed -i -e "/^SAVED_TIME_10SEC=/s|.*|SAVED_TIME_10SEC=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
 fi
@@ -3542,15 +3571,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
-            fi
+            DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4165,7 +4186,8 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
     col_width_dgb_uptime=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_uptime_long=$((term_width - 38 - 39 - 3 - 2)) 
     col_width_dgb_ports=$((term_width - 38 - 3 - 1)) 
-    col_width_dgb_ports_long=$((term_width - 38 - 17 - 3 - 3)) 
+    col_width_dgb_ports_long=$((term_width - 37 - 16 - 3 - 3)) 
+    col_width_dgb_ports_longer=$((term_width - 37 - 24 - 3 - 3)) 
     col_width_dgb_wallet_balance=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_status=$((term_width - 38 - 3 - 1 + 11)) 
     col_width_dgb_startingup=$((term_width - 38 - 14 - 3 - 2 + 11)) 
@@ -4525,18 +4547,22 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
         printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$dgb_uptime" " ║ "
     fi
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
-    if grep -q ^"upnp=1" $DGB_CONF_FILE; then
-        if [ $term_width -gt 99 ]; then 
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Enabled ]" " ║ "
-        else
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
-        fi
+
+    # Setup ports message
+    if grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB_TOR" = "on" ]; then
+        DGB_UPNPTOR="  [ UPnP: On | Tor: On ]"
+    elif grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB_TOR" = "off" ]; then
+        DGB_UPNPTOR=" [ UPnP: On | Tor: Off ]"
+    elif ! grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB_TOR" = "on" ]; then
+        DGB_UPNPTOR=" [ UPnP: Off | Tor: On ]"
     else
-        if [ $term_width -gt 100 ]; then 
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Disabled ]" " ║ "
-        else
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
-        fi
+        DGB_UPNPTOR="[ UPnP: Off | Tor: Off ]"
+    fi
+
+    if [ $term_width -gt 105 ]; then 
+        printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_longer}s %24s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "$DGB_UPNPTOR" " ║ "
+    else
+        printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
     fi
 
     # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
@@ -4573,15 +4599,16 @@ if [ "$DGB_STATUS" = "startingup" ]; then # Only display if secondary DigiByte N
     printf " ║ $dgb_chain_firstcol ║                ║  " && printf "%-14s %-${col_width_dgb_startingup}s %-3s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║ "
 
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
     if grep -q ^"upnp=1" $DGB_CONF_FILE; then
         if [ $term_width -gt 99 ]; then 
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %16s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " [ UPnP: On ]" " ║ "
         else
             printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
         fi
     else
         if [ $term_width -gt 100 ]; then 
-            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %16s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" "[ UPnP: Off ]" " ║ "
         else
             printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
         fi
@@ -4615,19 +4642,23 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime}s %-3s\n" "$dgb2_uptime" " ║ "
         fi
         echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
-        if grep -q ^"upnp=1" $DGB_CONF_FILE; then
-            if [ $term_width -gt 99 ]; then 
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Enabled ]" " ║ "
-            else
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
-            fi
+
+        # Setup ports message
+        if grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB2_TOR" = "on" ]; then
+            DGB2_UPNPTOR="  [ UPnP: On | Tor: On ]"
+        elif grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB2_TOR" = "off" ]; then
+            DGB2_UPNPTOR=" [ UPnP: On | Tor: Off ]"
+        elif ! grep -q ^"upnp=1" $DGB_CONF_FILE && [ "$DGB2_TOR" = "on" ]; then
+            DGB2_UPNPTOR=" [ UPnP: Off | Tor: On ]"
         else
-            if [ $term_width -gt 100 ]; then 
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Disabled ]" " ║ "
-            else
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
-            fi
+            DGB2_UPNPTOR="[ UPnP: Off | Tor: Off ]"
         fi
+
+        if [ $term_width -gt 105 ]; then 
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_longer}s %24s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "$DGB2_UPNPTOR" " ║ "
+        else
+            printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
+        fi 
 
         # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
         if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB2_BLOCKSYNC_PERC" = "100 " ] && [ "$DGB2_WALLET_BALANCE" != "" ]; then 
@@ -4652,13 +4683,13 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
         echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
         if grep -q ^"upnp=1" $DGB_CONF_FILE; then
             if [ $term_width -gt 99 ]; then 
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Enabled ]" " ║ "
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %16s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " [ UPnP: On ]" " ║ "
             else
                 printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
             fi
         else
             if [ $term_width -gt 100 ]; then 
-                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %17s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Disabled ]" " ║ "
+                printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports_long}s %16s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" "[ UPnP: Off ]" " ║ "
             else
                 printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB2_LISTEN_PORT}   RPC Port: $dgb2_rpcport_display" " ║ "
             fi
@@ -4980,6 +5011,10 @@ if [ "$cpu_cores" -le 12 ]; then
     cpu_one_line_width=${#cpu_one_line}
     cpu_one_line_l1="$cpu_usage_1"
     cpu_one_line_l2="$cpu_usage_2"
+    # Set to zero if there is no value to avoid launch error
+    if [ "$average_cpu_usage" = "" ]; then
+        average_cpu_usage="0"
+    fi
     if [ "$average_cpu_usage" -ge 80 ]; then
         cpu_total_perc="Total: ${dbcol_bred}${average_cpu_usage}%${dbcol_rst}"
     else
@@ -5104,8 +5139,6 @@ fi
 tput ed
 
 ) # END OF THE DASHBOARD BUFFER
-
-
 
 if [ "$STARTUP_LOOP" = true ]; then
 
@@ -5285,7 +5318,7 @@ scrape_digibyte_conf
 query_digibyte_chain
 
 # query for digibyte listening port
-digibyte_port_query
+query_digibyte_port
 
 echo -e "${txtbld}"
 echo -e "            ____   _         _   _   __            __     "             
