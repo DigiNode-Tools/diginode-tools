@@ -170,7 +170,7 @@ for var in "$@"; do
         "--help" ) DISPLAY_HELP=true;;
         "-h" ) DISPLAY_HELP=true;;
         "--dgbconf" ) EDIT_DGBCONF=true;;
-        "--dgntset" ) EDIT_DGNTSET=true;;
+        "--settings" ) EDIT_DGNTSET=true;;
         "--dgblog" ) VIEW_DGBLOG=true;;
         "--dgb2log" ) VIEW_DGB2LOG=true;;
         "--dgblogmn" ) VIEW_DGBLOGMN=true;;
@@ -255,7 +255,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: digibyte.conf file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
-    elif [ $EDIT_DGNTSET = true ]; then # --dgntset
+    elif [ $EDIT_DGNTSET = true ]; then # --settings
         diginode_tools_import_settings silent
         set_text_editor  
         if test -f $DGNT_SETTINGS_FILE ; then
@@ -560,7 +560,7 @@ display_help() {
         fi
         printf "\\n"
         printf "%b%b--dgbconf%b      - Edit digibyte.conf file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b%b--dgntset%b      - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--settings%b     - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--rpc%b          - View DigiByte Core RPC credentials.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--porttest%b     - Re-enable the port tests.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -1852,7 +1852,7 @@ if [ "$auto_quit" = true ]; then
     printf "%b for more than $SM_AUTO_QUIT minutes. You can increase the auto-quit duration\\n" "${INDENT}"
     printf "%b by changing the SM_AUTO_QUIT value in diginode.settings\\n" "${INDENT}"
     echo ""
-    printf "%b To edit it: ${txtbld}diginode --dgntset${txtrst}\\n" "${INDENT}"
+    printf "%b To edit it: ${txtbld}diginode --settings${txtrst}\\n" "${INDENT}"
     echo ""
 fi
 
@@ -3040,15 +3040,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
-    elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-        DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
-    fi
+    DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3532,10 +3524,10 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
     fi
     if [ "$DGB_STATUS" = "running" ]; then
-        DGB_USING_TOR=$($DGB_CLI getnetworkinfo | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
+        DGB_USING_TOR=$($DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
     fi
     if [ "$DGB2_STATUS" = "running" ]; then
-        DGB2_USING_TOR=$($DGB_CLI -testnet getnetworkinfo | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
+        DGB2_USING_TOR=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
     fi
     if [ "$TOR_STATUS" = "running" ] && [ "$DGB_USING_TOR" = "yes" ]; then
         DGB_TOR="on"
@@ -3579,15 +3571,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -regtest getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -signet getblockchaininfo | jq '.verificationprogress')
-            elif [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
-                DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo | jq '.verificationprogress')
-            fi
+            DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
