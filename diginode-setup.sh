@@ -2484,7 +2484,7 @@ chain=$chain \\
         # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - PROXY
 
         # If [main] proxy value is commented out: # proxy=
-        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2502,7 +2502,7 @@ chain=$chain \\
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [main] proxy value is commented out without a space: #proxy=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2520,7 +2520,7 @@ chain=$chain \\
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for proxy=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: # proxy=127.0.0.1:9050"
 
@@ -2538,7 +2538,7 @@ chain=$chain \\
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^proxy=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2574,13 +2574,14 @@ chain=$chain \\
         else
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Connect through Tor SOCKS5 proxy \\
 proxy=127.0.0.1:9050" $DGB_CONF_FILE 
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             else
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # proxy=127.0.0.1:9050"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Connect through Tor SOCKS5 proxy \\
 # proxy=127.0.0.1:9050" $DGB_CONF_FILE
@@ -2590,7 +2591,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
         # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - TORCONTROL
 
         # If [main] torcontrol value is commented out: # torcontrol=
-        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2608,7 +2609,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [main] torcontrol value is commented out without a space: #torcontrol=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2626,7 +2627,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for torcontrol=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: # torcontrol=127.0.0.1:9151"
 
@@ -2644,7 +2645,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2680,13 +2681,14 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
         else
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Set the Tor control port for mainnet. \\
 torcontrol=127.0.0.1:9151" $DGB_CONF_FILE 
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             else
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # torcontrol=127.0.0.1:9151"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Set the Tor control port for mainnet. \\
 # torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
@@ -2696,7 +2698,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
         # SET THE TOR SETTINGS FOR DIGBYTE MAINNET - BIND
 
         # If [main] bind value is commented out: # bind=
-        if [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
 
@@ -2714,7 +2716,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [main] bind value is commented out without a space: #bind=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
 
@@ -2732,7 +2734,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for bind=
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: # bind=127.0.0.1=onion"
 
@@ -2750,7 +2752,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
 
@@ -2786,13 +2788,14 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
         else
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
 bind=127.0.0.1=onion" $DGB_CONF_FILE 
+                DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             else
                 echo "$INDENT   Adding to digibyte.conf [main] section for Tor: # bind=127.0.0.1=onion"
-                sed -i "/\[main\]/a \\
+                sed -i "/^\[main\]/a \\
 \\
 # Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
 # bind=127.0.0.1=onion" $DGB_CONF_FILE
@@ -2803,7 +2806,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
         # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - PROXY
 
         # If [test] proxy value is commented out: # proxy=
-        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^# proxy=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2821,7 +2824,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [test] proxy value is commented out without a space: #proxy=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^#proxy=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2839,7 +2842,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for: proxy=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^proxy=127.0.0.1:9050/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: # proxy=127.0.0.1:9050"
 
@@ -2857,7 +2860,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2893,13 +2896,14 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
         else
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Connect through Tor SOCKS5 proxy \\
 proxy=127.0.0.1:9050" $DGB_CONF_FILE 
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             else
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # proxy=127.0.0.1:9050"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Connect through Tor SOCKS5 proxy \\
 # proxy=127.0.0.1:9050" $DGB_CONF_FILE
@@ -2909,7 +2913,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
         # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - TORCONTROL
 
         # If [test] torcontrol value is commented out: # torcontrol=
-        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^# torcontrol=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2927,7 +2931,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [test] torcontrol value is commented out without a space: #torcontrol=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^#torcontrol=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2945,7 +2949,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for torcontrol=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^torcontrol=127.0.0.1:9151/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: # torcontrol=127.0.0.1:9151"
 
@@ -2963,7 +2967,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2999,13 +3003,14 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
         else
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Set the Tor control port for testnet. \\
 torcontrol=127.0.0.1:9151" $DGB_CONF_FILE 
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES" 
             else
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # torcontrol=127.0.0.1:9151"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Set the Tor control port for testnet. \\
 # torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
@@ -3015,7 +3020,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
         # SET THE TOR SETTINGS FOR DIGBYTE TESTNET - BIND
 
         # If [test] bind value is commented out: # bind=
-        if [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
+        if [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^# bind=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
 
@@ -3033,7 +3038,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # If [test] bind value is commented out without a space: #bind=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^#bind=/' "$DGB_CONF_FILE")" ]; then 
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
 
@@ -3051,7 +3056,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi
         # Change Tor status from enabled to disabled for bind=
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^bind=127.0.0.1=onion/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "OFF" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: # bind=127.0.0.1=onion"
 
@@ -3069,7 +3074,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/^\[test\]/ {found_test=1} /^\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
 
@@ -3105,13 +3110,14 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
         else
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
 bind=127.0.0.1=onion" $DGB_CONF_FILE 
+                DGB_TESTNET_TOR_STATUS_UPDATED="YES" 
             else
                 echo "$INDENT   Adding to digibyte.conf [test] section for Tor: # bind=127.0.0.1=onion"
-                sed -i "/\[test\]/a \\
+                sed -i "/^\[test\]/a \\
 \\
 # Bind to localhost to use Tor. Append =onion to tag any incoming connections to that address and port as incoming Tor connections. \\
 # bind=127.0.0.1=onion" $DGB_CONF_FILE

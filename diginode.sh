@@ -1745,9 +1745,9 @@ quit_message() {
     kill $bg_cpu_stats_pid
     rm -f "$cpu1_file" "$cpu2_file" "$avg_file"
 
-    tput rmcup
-    stty echo
-    tput sgr0
+    tput rmcup   # Restore the previous screen
+    stty echo    # Ensure character echoing is turned on
+    tput sgr0    # Reset all terminal attributes
 
     # Enabling line wrapping.
     printf '\e[?7h'
@@ -1777,10 +1777,12 @@ quit_message() {
         echo
         printf "%b Installing updates...\\n" "${INFO}"
         echo ""
+
+       # Display cursor again
+        tput cnorm
+        
         exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
         
-        # Display cursor again
-        tput cnorm
         updates_installed="yes"
 
         # Enabling line wrapping.
@@ -1856,8 +1858,8 @@ if [ "$auto_quit" = true ]; then
     echo ""
 fi
 
-  # Display cursor again
-#  tput cnorm
+# Display cursor again
+tput cnorm
 
 # Showing the cursor.
 printf '\e[?25h'

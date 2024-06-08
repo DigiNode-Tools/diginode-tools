@@ -1,7 +1,9 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.10.1 - 2024-06-xx
-- Coming Soon
+DigiNode Tools v0.10.1 - 2024-06-09
+- Fix: Reenable terminal cursor after quitting dashboard
+- Fix: Nodes are now automatically restarted if the Tor settings are appended and Tor is enabled
+- Fix: Bug appending Tor settings to digibyte.conf
 
 DigiNode Tools v0.10.0 - 2024-06-08
 - New: Tor support! - Your DigiByte nodes can now run over the Tor network for better privacy. You can switch your DigiByte mainnet and/or testnet node to run on Tor via the main menu.
