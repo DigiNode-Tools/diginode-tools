@@ -5011,6 +5011,10 @@ if [ "$cpu_cores" -le 12 ]; then
     cpu_one_line_width=${#cpu_one_line}
     cpu_one_line_l1="$cpu_usage_1"
     cpu_one_line_l2="$cpu_usage_2"
+    # Set to zero if there is no value to avoid launch error
+    if [ "$average_cpu_usage" = "" ]; then
+        average_cpu_usage="0"
+    fi
     if [ "$average_cpu_usage" -ge 80 ]; then
         cpu_total_perc="Total: ${dbcol_bred}${average_cpu_usage}%${dbcol_rst}"
     else
@@ -5135,8 +5139,6 @@ fi
 tput ed
 
 ) # END OF THE DASHBOARD BUFFER
-
-
 
 if [ "$STARTUP_LOOP" = true ]; then
 

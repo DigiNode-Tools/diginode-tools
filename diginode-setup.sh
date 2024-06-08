@@ -2538,7 +2538,7 @@ chain=$chain \\
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
-        elif [ -n "$(awk '/^\[main\]/ {found_main=1} /^\[test\]/ {found_main=0} found_main && /^proxy=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^proxy=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2644,7 +2644,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -2750,7 +2750,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_MAINNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
-        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[main\]/ {found_main=1} /\[test\]/ {found_main=0} found_main && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_MAINNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [main] section for Tor: bind=127.0.0.1=onion"
 
@@ -2857,7 +2857,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if proxy= exists but is blank, or not set to proxy=127.0.0.1:9050
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^proxy=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: proxy=127.0.0.1:9050"
 
@@ -2963,7 +2963,7 @@ proxy=127.0.0.1:9050" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if torcontrol= exists but is blank, or not set to torcontrol=127.0.0.1:9151
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^torcontrol=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: torcontrol=127.0.0.1:9151"
 
@@ -3069,7 +3069,7 @@ torcontrol=127.0.0.1:9151" $DGB_CONF_FILE
                 DGB_TESTNET_TOR_STATUS_UPDATED="YES"
             fi    
         # Update Tor status if bind= exists but is blank, or not set to bind=127.0.0.1=onion
-        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=' "$DGB_CONF_FILE")" ]; then
+        elif [ -n "$(awk '/\[test\]/ {found_test=1} /\[regtest\]/ {found_test=0} found_test && /^bind=/' "$DGB_CONF_FILE")" ]; then
             if [ "$DGB_TOR_TESTNET" = "ON" ]; then
                 echo "$INDENT   Updating digibyte.conf [test] section for Tor: bind=127.0.0.1=onion"
 
@@ -4094,7 +4094,7 @@ if is_command apt-get ; then
     # Packages required to perfom the system check (stored as an array)
     SYS_CHECK_DEPS=(grep dnsutils jq apt-transport-https)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(sudo gawk git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
     # Packages required to run DigiNode (stored as an array)
     DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
 
@@ -4129,7 +4129,7 @@ elif is_command rpm ; then
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
     SYS_CHECK_DEPS=(grep bind-utils jq apt-transport-https)
-    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(git gawk dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
     DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
