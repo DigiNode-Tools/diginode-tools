@@ -18987,6 +18987,8 @@ CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE
         printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     fi
 
+    printf "\\n"
+
 }
 
 
@@ -19433,9 +19435,6 @@ install_or_upgrade() {
     # If this is a new install, ask to install the DigiNode MOTD
     menu_ask_motd
 
-
-    # Check Tor service
-    enable_tor_service
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
