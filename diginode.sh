@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.2
+#           Name:  DigiNode Dashboard v0.10.3
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,7 +60,7 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.2
+DGNT_VER_LOCAL=0.10.3
 # Last Updated: 2024-06-09
 
 # This is the command people will enter to run the install script.
@@ -3526,20 +3526,32 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
     fi
     if [ "$DGB_STATUS" = "running" ]; then
-        DGB_USING_TOR=$($DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
+
+        DGB_ONION_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+
+        if [[ $DGB_ONION_QUERY == yes* ]]; then
+            DGB_TOR="on"
+            DGB_ONION_ADDRESS=$(echo $DGB_ONION_QUERY | cut -c 4-)
+        else
+            DGB_TOR="off"
+            DGB_ONION_ADDRESS=""
+        fi
+    else
+        DGB_ONION_ADDRESS=""
     fi
     if [ "$DGB2_STATUS" = "running" ]; then
-        DGB2_USING_TOR=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes" else "no" end')
-    fi
-    if [ "$TOR_STATUS" = "running" ] && [ "$DGB_USING_TOR" = "yes" ]; then
-        DGB_TOR="on"
+        
+        DGB2_ONION_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+
+        if [[ $DGB2_ONION_QUERY == yes* ]]; then
+            DGB2_TOR="on"
+            DGB2_ONION_ADDRESS=$(echo $DGB2_ONION_QUERY | cut -c 4-)
+        else
+            DGB2_TOR="off"
+            DGB2_ONION_ADDRESS=""
+        fi
     else
-        DGB_TOR="off"
-    fi
-    if [ "$TOR_STATUS" = "running" ] && [ "$DGB2_USING_TOR" = "yes" ]; then
-        DGB2_TOR="on"
-    else
-        DGB2_TOR="off"
+        DGB2_ONION_ADDRESS=""
     fi
 
     SAVED_TIME_10SEC="$(date +%s)"
@@ -4307,15 +4319,27 @@ db_content_c1_c2_c3f_c4() {
 if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
     dgb_chain_firstcol="(MAINNET)     "
     dgb_chain_caps="MAINNET"
+    dgb_tor_address_label="DigiByte Mainnet:"
+    dgb_tor_address_label_short="Mainnet:"
+    dgb_tor_address_label_shortest="MN:"
 elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
     dgb_chain_firstcol="(TESTNET)     "
     dgb_chain_caps="TESTNET"
+    dgb_tor_address_label="DigiByte Testnet:"
+    dgb_tor_address_label_short="Testnet:"
+    dgb_tor_address_label_shortest="TN:"
 elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then
     dgb_chain_firstcol="(REGTEST)     "
     dgb_chain_caps="REGTEST"
+    dgb_tor_address_label="DigiByte Regtest:"
+    dgb_tor_address_label_short="Regtest:"
+    dgb_tor_address_label_shortest="RT:"
 elif [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then
     dgb_chain_firstcol="(SIGNET)      "
     dgb_chain_caps="SIGNET"
+    dgb_tor_address_label="DigiByte Signet:"
+    dgb_tor_address_label_short="Signet:"
+    dgb_tor_address_label_shortest="SN:"
 else
     dgb_chain_firstcol="              "
 fi
@@ -4923,6 +4947,64 @@ if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then
         db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
     fi
 
+fi
+
+# echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+
+
+# STATUS MONITOR DASHBOARD - NETWORK - ONION ADDRESS
+
+if [ "$DGB_ONION_ADDRESS" != "" ] || [ "$DGB2_ONION_ADDRESS" != "" ]; then 
+
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+    # Setup IP6 display array
+    onion_leftcol=" ║                ║  ONION ADDRESS ║  "
+    onion_leftcol2=" ║                ║                ║  "
+
+    onion_dgb1="$dgb_tor_address_label ${DGB_ONION_ADDRESS:-unavailable}"
+    onion_dgb1_width=${#onion_dgb1}
+    onion_dgb1_short="$dgb_tor_address_label_short ${DGB_ONION_ADDRESS:-unavailable}"
+    onion_dgb1_short_width=${#onion_dgb1_short}
+    onion_dgb1_shortest="$dgb_tor_address_label_shortest ${DGB_ONION_ADDRESS:-unavailable}"
+
+    onion_dgb2="DigiByte Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+    onion_dgb2_width=${#onion_dgb2}
+    onion_dgb2_short="Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+    onion_dgb2_short_width=${#onion_dgb2_short}
+    onion_dgb2_shortest="TN: ${DGB2_ONION_ADDRESS:-unavailable}"
+
+    # Display both mainnet and testnet
+    if [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" != "" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
+        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2"
+        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_short"
+        else
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_shortest"
+        fi
+    # Display primary node only
+    elif [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" = "" ] && [ "$DGB_STATUS" = "running" ]; then
+        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+        else
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+        fi
+    # Display secondary node only (testnet)
+    elif [ "$DGB_ONION_ADDRESS" = "" ] && [ "$DGB2_ONION_ADDRESS" != "" ]  && [ "$DGB2_STATUS" = "running" ]; then
+        if [ $term_width -gt $(( onion_dgb2_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2"
+        elif [ $term_width -gt $(( onion_dgb2_short_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_short"
+        else
+            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_shortest"
+        fi
+    fi
 fi
 
 echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
