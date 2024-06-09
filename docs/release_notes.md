@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.2 - 2024-06-09
+- Fix: Improve detecting if Tor service is configured and running
+- Fix: User account now gets added to the 'debian-tor' user group to so the Tor control port works correctly
+
 DigiNode Tools v0.10.1 - 2024-06-09
 - Fix: Reenable terminal cursor after quitting dashboard
 - Fix: Nodes are now automatically restarted if the Tor settings are appended and Tor is enabled

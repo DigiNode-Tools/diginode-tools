@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.1
+#           Name:  DigiNode Setup v0.10.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -10323,6 +10323,9 @@ fi
 # Don't ask if we are running unattended
 if [ ! "$UNATTENDED_MODE" == true ]; then
 
+     # Configure Tor service
+    enable_tor_service
+
     # Display Tor section break
     if [ "$show_dgb_tor_menu" = "yes" ] || [ "$show_ipfs_tor_menu" = "yes" ]; then
 
@@ -10330,9 +10333,6 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
             # ==============================================================================
 
     fi
-
-     # Configure Tor service
-    enable_tor_service
 
     # FOR A NEW INSTALL, DUAL NODE, SHOW THE DGB TOR MENU
     if [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
@@ -10651,6 +10651,9 @@ else
 
     # If we are running unattended, and the script wants to prompt the user with the Tor menu, then get the values from diginode.settings
 
+    # Configure Tor service
+    enable_tor_service
+
     # Display Tor section break
     if [ "$show_dgb_tor_menu" = "yes" ] || [ "$show_ipfs_tor_menu" = "yes" ]; then
 
@@ -10658,9 +10661,6 @@ else
             # ==============================================================================
 
     fi
-
-    # Configure Tor service
-    enable_tor_service
 
     if [ "$show_dgb_tor_menu" = "yes" ]; then
 
@@ -18851,11 +18851,26 @@ add_tor_repository() {
 # Update the Tor config file to enable the Tor Control Port (if needed) and start the Tor service, if it is not running
 enable_tor_service() {
 
+    printf " =============== Checking: Tor System Service ==========================\\n\\n"
+    # ==============================================================================
+
     TOR_CONFIG_FILE=/etc/tor/torrc
     TOR_CONFIG_UPDATED="NO"
+    local torrc_controlport_ok=""
+    local torrc_cookieauth_ok=""
+    local torrc_cookieauthgr_ok=""
+    local is_user_in_tor_group=""
 
     # Check if tor is running, and if either DigiByte node is running on it
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+
+    # Create Torrc config file if it does not exist
+    if [ ! -f "$TOR_CONFIG_FILE" ]; then
+        str="Creating $TOR_CONFIG_FILE config file..."
+        printf "%b %s" "${INFO}" "${str}"
+        touch $TOR_CONFIG_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
 
     # Check for "ControlPort 9151" line in torrc, otherwise uncomment/append it
     if ! grep -q -Fx "ControlPort 9151" $TOR_CONFIG_FILE; then
@@ -18872,6 +18887,8 @@ enable_tor_service() {
             sed -i '$a ControlPort 9151' $TOR_CONFIG_FILE
             TOR_CONFIG_UPDATED="YES"              
         fi
+    else
+        torrc_controlport_ok="yes"
     fi
 
     # Check for "CookieAuthentication 1" line in torrc, otherwise uncomment/append it
@@ -18889,6 +18906,8 @@ enable_tor_service() {
             sed -i '$a CookieAuthentication 1' $TOR_CONFIG_FILE
             TOR_CONFIG_UPDATED="YES"               
         fi
+    else
+        torrc_cookieauth_ok="yes"
     fi
 
     # Check for "CookieAuthFileGroupReadable 1" line in torrc, otherwise uncomment/append it
@@ -18907,7 +18926,41 @@ enable_tor_service() {
 CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE 
             TOR_CONFIG_UPDATED="YES"               
         fi
+    else
+        torrc_cookieauthgr_ok="yes"
     fi
+
+    # Is the Tor service already correctly configured?
+    if [ "$torrc_controlport_ok" = "yes" ] && [ "$torrc_cookieauth_ok" = "yes" ] && [ "$torrc_cookieauthgr_ok" = "yes" ]; then
+        printf "%b Torrc configuration is correct. Tor Control port is Enabled.\\n" "${TICK}"
+    fi
+
+    # Is the user account in the debian-tor group
+    str="Is the user account ($USER_ACCOUNT) already added to the debian-tor user group?..."
+    printf "%b %s" "${INFO}" "${str}"
+    is_user_in_tor_group=$(groups $USER_ACCOUNT | grep -Eo "debian-tor")
+    if [ "$is_user_in_tor_group" = "debian-tor" ]; then
+        is_user_in_tor_group="yes"
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        is_user_in_tor_group="no"
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi 
+
+    # Add user to debian-tor group, if needed
+    if [ "$is_user_in_tor_group" = "no" ]; then
+        str="Adding user account ($USER_ACCOUNT) to debian-tor user group ..."
+        printf "%b %s" "${INFO}" "${str}"
+        usermod -aG debian-tor $USER_ACCOUNT
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        if [ "$TOR_STATUS" = "running" ] && [ "$TOR_CONFIG_UPDATED" != "YES" ]; then
+            str="Restarting Tor service..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl restart tor
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
+
 
     # Stop the Tor service if it has been changed, and it is running
     if [ "$TOR_STATUS" = "running" ] && [ "$TOR_CONFIG_UPDATED" = "YES" ]; then
@@ -18925,7 +18978,16 @@ CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE
     fi
 
     # Check Tor service is running
+    str="Is the Tor service running?..."
+    printf "%b %s" "${INFO}" "${str}"
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+    if [ "$TOR_STATUS" = "running" ]; then
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+    fi
+
+    printf "\\n"
 
 }
 
@@ -19373,9 +19435,6 @@ install_or_upgrade() {
     # If this is a new install, ask to install the DigiNode MOTD
     menu_ask_motd
 
-
-    # Check Tor service
-    enable_tor_service
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
 
