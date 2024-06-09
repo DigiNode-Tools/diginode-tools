@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.3 - 2024-06-03
+- New: The onion address(es) for your DigiByte mainnet and/or testnet node(s) are now displayed in DigiNode Dashboad, when available.
+
 DigiNode Tools v0.10.2 - 2024-06-09
 - Fix: Improve detecting if Tor service is configured and running
 - Fix: User account now gets added to the 'debian-tor' user group to so the Tor control port works correctly
