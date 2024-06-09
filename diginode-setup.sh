@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.1
+#           Name:  DigiNode Setup v0.10.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -18853,6 +18853,9 @@ enable_tor_service() {
 
     TOR_CONFIG_FILE=/etc/tor/torrc
     TOR_CONFIG_UPDATED="NO"
+    local torrc_controlport_ok=""
+    local torrc_cookieauth_ok=""
+    local torrc_cookieauthgr_ok=""
 
     # Check if tor is running, and if either DigiByte node is running on it
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
@@ -18872,6 +18875,8 @@ enable_tor_service() {
             sed -i '$a ControlPort 9151' $TOR_CONFIG_FILE
             TOR_CONFIG_UPDATED="YES"              
         fi
+    else
+        torrc_controlport_ok="yes"
     fi
 
     # Check for "CookieAuthentication 1" line in torrc, otherwise uncomment/append it
@@ -18889,6 +18894,8 @@ enable_tor_service() {
             sed -i '$a CookieAuthentication 1' $TOR_CONFIG_FILE
             TOR_CONFIG_UPDATED="YES"               
         fi
+    else
+        torrc_cookieauth_ok="yes"
     fi
 
     # Check for "CookieAuthFileGroupReadable 1" line in torrc, otherwise uncomment/append it
@@ -18907,6 +18914,13 @@ enable_tor_service() {
 CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE 
             TOR_CONFIG_UPDATED="YES"               
         fi
+    else
+        torrc_cookieauthgr_ok="yes"
+    fi
+
+    # Is the Tor service already correctly configured?
+    if [ "$torrc_controlport_ok" = "yes" ] && [ "$torrc_cookieauth_ok" = "yes" ] && [ "$torrc_cookieauthgr_ok" = "yes" ]; then
+        printf "%b Torrc is correctly configured.\\n" "${TICK}"
     fi
 
     # Stop the Tor service if it has been changed, and it is running
@@ -18925,7 +18939,17 @@ CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE
     fi
 
     # Check Tor service is running
-    systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+    if [ "$TOR_STATUS" = "not_running" ]; then
+        str="Is the Tor service running?..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+        if [ "$TOR_STATUS" = "running" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+        else
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+        fi
+    fi
+
 
 }
 
