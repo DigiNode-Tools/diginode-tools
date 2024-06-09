@@ -18920,7 +18920,7 @@ CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE
 
     # Is the Tor service already correctly configured?
     if [ "$torrc_controlport_ok" = "yes" ] && [ "$torrc_cookieauth_ok" = "yes" ] && [ "$torrc_cookieauthgr_ok" = "yes" ]; then
-        printf "%b Torrc is correctly configured.\\n" "${TICK}"
+        printf "%b Torrc configuration is correct. Tor Control port is Enabled.\\n" "${TICK}"
     fi
 
     # Stop the Tor service if it has been changed, and it is running
@@ -18939,15 +18939,13 @@ CookieAuthFileGroupReadable 1' $TOR_CONFIG_FILE
     fi
 
     # Check Tor service is running
-    if [ "$TOR_STATUS" = "not_running" ]; then
-        str="Is the Tor service running?..."
-        printf "%b %s" "${INFO}" "${str}"
-        systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
-        if [ "$TOR_STATUS" = "running" ]; then
-            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-        fi
+    str="Is the Tor service running?..."
+    printf "%b %s" "${INFO}" "${str}"
+    systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running" 
+    if [ "$TOR_STATUS" = "running" ]; then
+        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
     fi
 
 
