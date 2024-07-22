@@ -478,7 +478,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     fi
 
-    # create .digibyte folder if it does not exist
+    # create ~/.digibyte folder if it does not exist
     if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
         str="Creating ~/.digibyte folder..."
         printf "\\n%b %s" "${INFO}" "${str}"
@@ -492,6 +492,13 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             IS_DIGIBYTE_SETTINGS_FOLDER_NEW="YES"
         fi
+    fi
+
+    # create ~/.digibyte/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/wallets" ]; then
+        str="Creating ~/.digibyte/wallets folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
     fi
 
     # Make sure the user owns this folder
