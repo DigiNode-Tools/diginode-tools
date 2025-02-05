@@ -12611,11 +12611,6 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    if [ -d "$USER_HOME/digibyte-664c6a372bd2" ]; then
-        echo "Folder digibyte-664c6a372bd2 found."
-        echo "DGB_VER_GITHUB: $DGB_VER_GITHUB"
-    fi 
-
     # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
     if [ -d "$USER_HOME/digibyte-664c6a372bd2" ] && [ "$DGB_VER_GITHUB" = "8.22.1" ]; then
         str="Renaming 8.22.1 download folder..."
