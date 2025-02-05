@@ -12613,6 +12613,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     if [ -d "$USER_HOME/digibyte-664c6a372bd2" ]; then
         echo "Folder digibyte-664c6a372bd2 found."
+        echo "DGB_VER_GITHUB: $DGB_VER_GITHUB"
     fi 
 
     # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
