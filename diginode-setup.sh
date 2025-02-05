@@ -494,13 +494,6 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
         fi
     fi
 
-    # create ~/.digibyte/wallets folder if it does not exist
-    if [ ! -d "$DGNT_SETTINGS_LOCATION/wallets" ]; then
-        str="Creating ~/.digibyte/wallets folder..."
-        printf "\\n%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
-    fi
-
     # Make sure the user owns this folder
     # chown $USER_ACCOUNT $DGNT_SETTINGS_LOCATION
 
@@ -12615,6 +12608,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         str="Renaming 8.22.0-rc4 download folder..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-527219d69dd9 $USER_HOME/digibyte-8.22.0-rc4
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
+    if [ -d "$USER_HOME/digibyte-664c6a372bd2" ] && [ "$DGB_VER_GITHUB" = "8.22.1" ]; then
+        str="Renaming 8.22.1 download folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-664c6a372bd2 $USER_HOME/digibyte-8.22.1
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 

@@ -1,7 +1,7 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.10.4 - 2024-07-xx
-- Coming Soon
+DigiNode Tools v0.10.4 - 2025-02-05
+- New: Added support for DigiByte Core v8.22.1
 
 DigiNode Tools v0.10.3 - 2024-06-03
 - New: The onion address(es) for your DigiByte mainnet and/or testnet node(s) are now displayed in DigiNode Dashboad, when available.
