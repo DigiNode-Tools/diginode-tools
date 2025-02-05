@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.3
+#           Name:  DigiNode Setup v0.10.4
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -478,7 +478,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     fi
 
-    # create .digibyte folder if it does not exist
+    # create ~/.digibyte folder if it does not exist
     if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
         str="Creating ~/.digibyte folder..."
         printf "\\n%b %s" "${INFO}" "${str}"
@@ -12608,6 +12608,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         str="Renaming 8.22.0-rc4 download folder..."
         printf "%b %s" "${INFO}" "${str}"
         sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-527219d69dd9 $USER_HOME/digibyte-8.22.0-rc4
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
+    if [ -d "$USER_HOME/digibyte-664c6a372bd2" ] && [ "$DGB_VER_GITHUB" = "8.22.1" ]; then
+        str="Renaming 8.22.1 download folder..."
+        printf "%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-664c6a372bd2 $USER_HOME/digibyte-8.22.1
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 

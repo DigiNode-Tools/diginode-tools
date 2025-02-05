@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.3
+#           Name:  DigiNode Dashboard v0.10.4
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -60,8 +60,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.3
-# Last Updated: 2024-06-09
+DGNT_VER_LOCAL=0.10.4
+# Last Updated: 2024-07-22
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -150,6 +150,9 @@ VIEW_DGBLOGMN=false
 VIEW_DGBLOGTN=false
 VIEW_DGBLOGRT=false
 VIEW_DGBLOGSN=false
+VIEW_WALLETS=false
+CREATE_WALLET=false
+CHANGE_WALLET=false
 DGBCORE_RESTART=false
 DGBCORE_STOP=false
 DGB2CORE_RESTART=false
@@ -177,6 +180,9 @@ for var in "$@"; do
         "--dgblogtn" ) VIEW_DGBLOGTN=true;;
         "--dgblogrt" ) VIEW_DGBLOGRT=true;;
         "--dgblogsn" ) VIEW_DGBLOGSN=true;;
+        "--wallets" ) VIEW_WALLETS=true;;
+        "--createwallet" ) CREATE_WALLET=true;;
+        "--changewallet" ) CHANGE_WALLET=true;;
         "--dgbrestart" ) DGBCORE_RESTART=true;;
         "--dgbstop" ) DGBCORE_STOP=true;;
         "--dgb2restart" ) DGB2CORE_RESTART=true;;
@@ -207,6 +213,9 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $VIEW_DGBLOGTN = true ] || \
    [ $VIEW_DGBLOGRT = true ] || \
    [ $VIEW_DGBLOGSN = true ] || \
+   [ $VIEW_WALLETS = true ] || \
+   [ $CHANGE_WALLET = true ] || \
+   [ $CREATE_WALLET = true ] || \
    [ $DGBCORE_RESTART = true ] || \
    [ $DGBCORE_STOP = true ] || \
    [ $DGB2CORE_RESTART = true ] || \
@@ -327,6 +336,125 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: DigiByte Core SIGNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
+    elif [ $VIEW_WALLETS = true ]; then # --wallets
+        diginode_tools_import_settings silent
+        query_digibyte_chain
+        if check_service_active "digibyted"; then
+            wallets=$($DGB_CLI listwallets | jq -r '.[]')
+
+            printf "DigiByte $DGB_NETWORK_CURRENT Wallets:\n\n"
+
+            if [ -z "$wallets" ]; then
+                echo "- No wallets loaded."
+            else
+                # Collect wallet information
+                wallet_info_list=()
+                while IFS= read -r wallet; do
+                    if [ "$wallet" == "" ]; then
+                        wallet_display_name="Default Wallet"
+                        wallet_info=$($DGB_CLI -rpcwallet="" getwalletinfo 2>/dev/null)
+                    else
+                        wallet_display_name="$wallet"
+                        wallet_info=$($DGB_CLI -rpcwallet="$wallet" getwalletinfo 2>/dev/null)
+                    fi
+
+                    if [ $? -ne 0 ]; then
+                        wallet_info_list+=("$wallet_display_name: Error retrieving wallet info")
+                        continue
+                    fi
+
+                    balance=$(echo $wallet_info | jq -r '.balance')
+
+                    if [ -z "$balance" ] || [ "$balance" = "0" ]; then
+                        balance="0.00000000"
+                    fi
+
+                    wallet_info_list+=("- \"$wallet_display_name\"   :   $balance DGB")
+                done <<< "$wallets"
+
+                # Find the maximum length of wallet names
+                max_length=0
+                for info in "${wallet_info_list[@]}"; do
+                    wallet_name=$(echo "$info" | cut -d':' -f1)
+                    if [ ${#wallet_name} -gt $max_length ]; then
+                        max_length=${#wallet_name}
+                    fi
+                done
+
+                # Print the wallet information with right-aligned balances
+                for info in "${wallet_info_list[@]}"; do
+                    wallet_name=$(echo "$info" | cut -d':' -f1)
+                    balance=$(echo "$info" | cut -d':' -f2)
+                    printf "%-${max_length}s: %s\n" "$wallet_name" "$balance"
+                done
+            fi
+            printf "\n"
+        else
+            printf "ERROR: DigiByte Node is not running.\n"
+            printf "\n"
+        fi
+
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+        
+            if check_service_active "digibyted-testnet"; then
+                wallets=$($DGB_CLI -testnet listwallets | jq -r '.[]')
+
+                printf "DigiByte TESTNET Wallets:\n\n"
+
+                if [ -z "$wallets" ]; then
+                    echo "- No wallets loaded."
+                else
+                    # Collect wallet information
+                    wallet_info_list=()
+                    while IFS= read -r wallet; do
+                        if [ "$wallet" == "" ]; then
+                            wallet_display_name="Default Wallet"
+                            wallet_info=$($DGB_CLI -testnet -rpcwallet="" getwalletinfo 2>/dev/null)
+                        else
+                            wallet_display_name="$wallet"
+                            wallet_info=$($DGB_CLI -testnet -rpcwallet="$wallet" getwalletinfo 2>/dev/null)
+                        fi
+
+                        if [ $? -ne 0 ]; then
+                            wallet_info_list+=("$wallet_display_name: Error retrieving wallet info")
+                            continue
+                        fi
+
+                        balance=$(echo $wallet_info | jq -r '.balance')
+
+                        if [ -z "$balance" ] || [ "$balance" = "0" ]; then
+                            balance="0.00000000"
+                        fi
+
+                        wallet_info_list+=("- \"$wallet_display_name\"   :   $balance DGB")
+                    done <<< "$wallets"
+
+                    # Find the maximum length of wallet names
+                    max_length=0
+                    for info in "${wallet_info_list[@]}"; do
+                        wallet_name=$(echo "$info" | cut -d':' -f1)
+                        if [ ${#wallet_name} -gt $max_length ]; then
+                            max_length=${#wallet_name}
+                        fi
+                    done
+
+                    # Print the wallet information with right-aligned balances
+                    for info in "${wallet_info_list[@]}"; do
+                        wallet_name=$(echo "$info" | cut -d':' -f1)
+                        balance=$(echo "$info" | cut -d':' -f2)
+                        printf "%-${max_length}s: %s\n" "$wallet_name" "$balance"
+                    done
+                fi
+                printf "\n"
+            else
+                printf "ERROR: DigiByte TESTNET Node is not running.\n"
+                printf "\n"
+            fi
+
+        fi
+
+        exit
+
     elif [ $DGBCORE_RESTART = true ]; then # --dgbrestart
         local str="Restarting digibyted service"
         printf "%b %s..." "${INFO}" "${str}"
@@ -391,7 +519,7 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
+            ip4peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -399,7 +527,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
+            ip6peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -407,7 +535,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "Onion Peers:\\n"
-            onionpeers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            onionpeers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
             if [ -z "$onionpeers" ]; then
                 echo "none"
             else
@@ -421,10 +549,11 @@ if [ $UNKNOWN_FLAG = true ] || \
             exit 1
         fi
     elif [ $DGB2PEERS = true ]; then # --dgb2peers
+        diginode_tools_import_settings silent
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$(digibyte-cli getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
+            ip4peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -432,7 +561,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
+            ip6peers=$($DGB_CLI -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -440,7 +569,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "Onion Peers:\\n"
-            onionpeers=$(digibyte-cli -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            onionpeers=$($DGB_CLI -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
             if [ -z "$onionpeers" ]; then
                 echo "none"
             else
@@ -558,6 +687,8 @@ display_help() {
             printf "%b%b--dgb2stop%b     - Stop secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
             printf "%b%b--dgb2peers%b    - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
+        printf "\\n"
+        printf "%b%b--wallets%b      - View the install DigiByte walls.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--dgbconf%b      - Edit digibyte.conf file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--settings%b     - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -3042,7 +3173,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
+    DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3146,7 +3277,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
+    DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3585,7 +3716,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            DGB_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli getblockchaininfo 2>/dev/null | jq '.verificationprogress')
+            DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -3639,7 +3770,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$(digibyte-cli -testnet getblockchaininfo | jq '.verificationprogress')
+            DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
