@@ -6,13 +6,13 @@
     },
     "diginodehelp2": {
         "title": "Need Help with DigiNode Tools?",
-        "content": "Please join the DigiNode Tools Telegram group here: $SOCIAL_TELEGRAM_URL. You can also contact $SOCIAL_TWITTER_HANDLE on Twitter or $SOCIAL_BLUESKY_HANDLE on Bluesky.",
+        "content": "Please join the DigiNode Tools Telegram group here: $SOCIAL_TELEGRAM_URL. You can also contact $SOCIAL_BLUESKY_HANDLE on Bluesky.",
         "url": "$SOCIAL_TELEGRAM_URL"
     },
    	"diginodehelp3": {
         "title": "DigiNode Tip!",
-        "content": "To view a global map of DigiByte Nodes, visit this website: https://nodes.digibyte.host/",
-        "url": "https://nodes.digibyte.host/"
+        "content": "To view a global map of DigiByte Nodes, visit this website: https://digibyte.io/nodes",
+        "url": "https://digibyte.io/nodes"
     },
    	"diginodehelp4": {
         "title": "DigiNode Tip!",
