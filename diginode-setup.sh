@@ -1,20 +1,18 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.4
+#           Name:  DigiNode Setup v0.10.5
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
-#  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
-#                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
+#  Compatibility:  Supports x86_86 or arm64 hardware with Raspberry Pi OS, Ubuntu or Debian 64-bit distros.
+#                  A Raspberry Pi 4 8Gb or better, running Raspberry Pi OS Lite 64-bit is recommended.
 #
-#         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
+#         Author:  Olly Stedall [ Bluesky: @olly.st ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky  - https://bsky.app/profile/diginode.tools
-#                  X        - https://twitter.com/diginodetools
 #
 #    Get Started:  curl -sSL setup.diginode.tools | bash 
 #  
@@ -29,6 +27,10 @@
 #                  ~/diginode-tools/diginode-setup.sh      
 #
 # -----------------------------------------------------------------------------------------------------
+
+DGNT_VER_LIVE="v0.10.5  "
+# This string must always have 9 characters. Append spaces if needed.
+# Last Updated: 2025-02-06
 
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
 # We do not want users to end up with a pagrtially working install, so we exit the script
@@ -129,8 +131,6 @@ DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     
 
 
 # DigiNode Tools Social Accounts
-SOCIAL_TWITTER_URL="https://x.com/diginodetools"
-SOCIAL_TWITTER_HANDLE="@diginodetools"
 SOCIAL_BLUESKY_URL="https://bsky.app/profile/diginode.tools"
 SOCIAL_BLUESKY_HANDLE="@diginode.tools"
 SOCIAL_NOSTR_NPUB=""
@@ -280,7 +280,7 @@ display_help() {
         echo ""
         echo "  ╔═════════════════════════════════════════════════════════╗"
         echo "  ║                                                         ║"
-        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE     ║"
         echo "  ║                                                         ║"
         echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
         echo "  ║                                                         ║"
@@ -3402,7 +3402,7 @@ setup_title_box() {
      clear -x
      echo "  ╔═════════════════════════════════════════════════════════╗"
      echo "  ║                                                         ║"
-     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}                 ║"
+     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE     ║"
      echo "  ║                                                         ║"
      echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
      echo "  ║                                                         ║"
@@ -3574,7 +3574,7 @@ sys_check() {
         printf "%b %bERROR: OS is unsupported%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b DigiNode Setup requires a Linux OS with a a 64-bit kernel (aarch64 or X86_64)\\n" "${INDENT}"
         printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-        printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter including\\n" "${INDENT}"
+        printf "%b should be supported please contact $SOCIAL_BLUESKY_HANDLE on Bluesky including\\n" "${INDENT}"
         printf "%b the OS type: $OSTYPE\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
@@ -3621,18 +3621,24 @@ sys_check() {
         if [[ "$is_64bit" == "no32" ]]; then
             printf "%b %bERROR: 32-bit OS detected - 64-bit required%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Setup requires a 64-bit Linux OS (aarch64 or X86_64)\\n" "${INDENT}"
-            printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter letting me\\n" "${INDENT}"
-            printf "%b know the reported system architecture above.\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64-bit is recommended.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b If you believe your hardware, should be supported, then please contact\\n" "${INDENT}"
+            printf "%b DigiNode Tools support on Telegram here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Alternatively, contact $SOCIAL_BLUESKY_HANDLE on Bluesky here: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
             printf "\\n"
             purge_dgnt_settings
             exit 1
         elif [[ "$is_64bit" == "no" ]]; then
             printf "%b %bERROR: Unrecognised system architecture%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b DigiNode Setup requires a 64-bit OS (aarch64 or X86_64)\\n" "${INDENT}"
-            printf "%b Ubuntu Server 64-bit is recommended. If you believe your hardware\\n" "${INDENT}"
-            printf "%b should be supported please contact $SOCIAL_TWITTER_HANDLE on Twitter letting me\\n" "${INDENT}"
-            printf "%b know the reported system architecture above.\\n" "${INDENT}"
+            printf "%b Ubuntu Server 64-bit is recommended.\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b If you believe your hardware, should be supported, then please contact\\n" "${INDENT}"
+            printf "%b DigiNode Tools support on Telegram here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "\\n"
+            printf "%b Alternatively, contact $SOCIAL_BLUESKY_HANDLE on Bluesky here: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
             printf "\\n"
             purge_dgnt_settings
             exit 1
@@ -3961,7 +3967,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         printf "%b Revision: %b$revision%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b You can find the DigiNode Tools Telegram Group here: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
-        printf "%b Alternatively, contact or $SOCIAL_BLUESKY_HANDLE on Bluesky or $SOCIAL_TWITTER_HANDLE on X.\\n" "${INDENT}"
+        printf "%b Alternatively, contact $SOCIAL_BLUESKY_HANDLE on Bluesky here: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -4340,8 +4346,8 @@ os_check() {
             printf "%b It is possible that the installation will still fail at this stage\\n" "${INDENT}" 
             printf "%b due to an unsupported configuration.\\n" "${INDENT}"
             printf "\\n"
-            printf "%b If you need help, contact $SOCIAL_BLUESKY_HANDLE on Bluesky or $SOCIAL_TWITTER_HANDLE on X.\\n" "${INDENT}"
-            printf "%b You can also ask in the 'DigiNode Tools' Telegram group: ${SOCIAL_TELEGRAM_URL}\\n" "${INDENT}" 
+            printf "%b For help, contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, ask in the 'DigiNode Tools' Telegram group: ${SOCIAL_TELEGRAM_URL}\\n" "${INDENT}" 
             printf "\\n"
             exit 1
 
@@ -4491,8 +4497,8 @@ elif [[ "$HOSTNAME" == "" ]]; then
     printf "\\n"
     printf "%b DigiNode Setup currently assumes it will always be able to discover the\\n" "${INDENT}"
     printf "%b current hostname. It is therefore assumed that noone will ever see this error message!\\n" "${INDENT}"
-    printf "%b If you have, please contact $SOCIAL_TWITTER_HANDLE on Twitter and let me know so I can work on\\n" "${INDENT}"
-    printf "%b a workaround for your linux system.\\n" "${INDENT}"
+    printf "%b If you have, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+    printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
     printf "\\n"
     exit 1
 
@@ -5574,6 +5580,180 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
     fi
 
 fi
+
+}
+
+# Check the DigiByte wallet folders exist, and default wallets are in the correct location, depending on the current DigiByte version
+check_digibyte_wallets() {
+
+    local restart_primary_node=""
+    local restart_secondary_node=""
+
+    # create ~/.digibyte/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/wallets" ]; then
+        str="Creating ~/.digibyte/wallets folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
+    fi
+
+    # create ~/.digibyte/testnet4/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/testnet4/wallets" ]; then
+        str="Creating ~/.digibyte/testnet4/wallets folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/testnet4/wallets
+    fi
+
+    # If the local DigiByte version is 7.17.3 make sure default wallet is in ~/.digibyte
+    if [ "$DGB_VER_LOCAL" = "7.17.3" ]; then
+
+        if [ ! -f ~/.digibyte/wallet.dat ] && [ -f ~/.digibyte/wallets/wallet.dat ]; then
+            echo "temp"
+        fi
+
+    # If the local DigiByte version is 8.22.0-rcx or better (anything other than 7.17.3) make sure default wallet is in ~/.digibyte/wallets
+    elif [ "$DGB_VER_LOCAL" != "7.17.3" ] && [ "$DGB_VER_LOCAL" != "" ]; then
+
+        if [ -f ~/.digibyte/wallet.dat ] && [ ! -f ~/.digibyte/wallets/wallet.dat ]; then
+
+            # If this is primary node running mainnet, unload the wallet
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+
+                # Check if the default mainnet wallet is loaded
+                query_wallets=$($DGB_CLI listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Mainnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                        stop_service digibyted
+                        restart_primary_node="yes"
+                    else
+                        printf "%b Default Mainnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Mainnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            else
+                printf "%b DigiByte MAINNET Node is not running. Skipping default wallet check.\\n" "${INFO}"
+            fi
+
+            # Move the legacy wallet.dat file to the /wallets subfolder
+            str="Moving ~/.digibyte/wallet.dat to ~/.digibyte/wallets/wallet.dat ..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv ~/.digibyte/wallet.dat ~/.digibyte/wallets/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Reload the wallet.dat in its new location, if the node is actually running
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+                printf "%b Reloading default mainnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default mainnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Mainnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            fi
+
+            # Restart the node if it was just stopped
+            if [ "$restart_primary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                restart_service digibyted
+            fi
+
+        fi
+
+        if [ -f ~/.digibyte/testnet4/wallet.dat ] && [ ! -f ~/.digibyte/testnet4/wallets/wallet.dat ]; then
+
+            # If this is primary node running testnet, unload the wallet
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+
+                # Check if the default testnet wallet is loaded
+                query_wallets=$($DGB_CLI listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Testnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                        stop_service digibyted
+                        restart_primary_node="yes"
+                    else
+                        printf "%b Default Testnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Testnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            # Or, if this is secondary node running testnet, unload the wallet
+            elif check_service_active "digibyted-testnet"; then
+
+                # Check if the default testnet wallet is loaded
+                query_wallets=$($DGB_CLI -testnet listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Testnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI -testnet unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte TESTNET node ...\\n" "${INFO}"
+                        stop_service digibyted-testnet
+                        restart_secondary_node="yes"
+                    else
+                        printf "%b Default Testnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Testnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            else
+                printf "%b DigiByte TESTNET Node is not running. Skipping default wallet check.\\n" "${INFO}"
+            fi
+
+            # Move the legacy wallet.dat file to the /wallets subfolder
+            str="Moving ~/.digibyte/wallet.dat to ~/.digibyte/wallets/wallet.dat ..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv ~/.digibyte/wallet.dat ~/.digibyte/wallets/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Reload the wallet.dat in its new location, if the node is still running
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                printf "%b Reloading default testnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default testnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Testnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            elif check_service_active "digibyted-testnet"; then
+                printf "%b Reloading default testnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI -testnet loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default Testnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Testnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            fi
+
+            # Restart the node if it was just stopped
+            if [ "$restart_primary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                restart_service digibyted
+            fi
+            if [ "$restart_secondary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte TESTNET node ...\\n" "${INFO}"
+                restart_service digibyted-testnet
+            fi
+
+        fi
+
+    fi
 
 }
 
@@ -8658,7 +8838,8 @@ EOF
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create a DigiByte daemon service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
+        printf "%b For help, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         exit 1
 
     fi
@@ -8869,7 +9050,8 @@ EOF
         if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
             printf "%b Unable to create a DigiByte testnet service for Dual Node on your system - systemd/upstart not found.\\n" "${CROSS}"
-            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
+            printf "%b For help, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
             exit 1
 
         fi
@@ -9003,7 +9185,7 @@ donation_qrcode() {
     echo "   requested to make a donation so that I can keep improving it."
     echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "          >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a and X \e]8;;http://twitter.com/saltedlolly\a@saltedlolly\e]8;;\a. <<"
+    echo -e "          >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -9233,7 +9415,8 @@ final_messages() {
         printf "%b %bWARNING: One or more software downloads had errors!%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b Your DigiNode may not be fully functional. Try running DigiNode Setup again.\\n" "${INDENT}"
-        printf "%b If the problem persists, please reach out to $SOCIAL_TWITTER_HANDLE on Twitter.\\n" "${INDENT}"
+        printf "%b If the problem persists, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -9241,10 +9424,8 @@ final_messages() {
         printf "%b %bWARNING: One or more DigiNode updates could not be downloaded.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
         printf "%b There were errors when downloading updates. Try running DigiNode Setup again.\\n" "${INDENT}"
-        printf "%b If the problem persists, please reach out to $SOCIAL_TWITTER_HANDLE on Twitter\\n" "${INDENT}"
-        printf "%b or $SOCIAL_BLUESKY_HANDLE on Bluesky.\\n" "${INDENT}"
-        printf "\\n"
-        printf "%b You can also get in touch via the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b If the problem persists, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -12401,7 +12582,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on X so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
             # Re-enable and re-start DigiByte digibyted.service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -12626,7 +12809,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
         # Delete DigiByte Core tar.gz file
         str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
@@ -13520,7 +13705,9 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
             printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
             printf "\\n"
             printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
             # Re-enable and re-start DigiByte digibyted.service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -13599,7 +13786,9 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
         # Delete DigiByte Core tar.gz file
         str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
@@ -14156,9 +14345,13 @@ if [ "$IPFS_DO_INSTALL" = "YES" ]; then
         printf "\\n"
         printf "%b IPFS Kubo could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
         if [ "$IPFS_STATUS" = "stopped" ]; then
-            printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. For now the existing version will be restarted.\\n\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
         else
-            printf "%b DigiAsset Node installation will be skipped for now. Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued. \\n\\n" "${INDENT}"
+            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            printf "%b DigiAsset Node installation will be skipped for now.\\n\\n" "${INDENT}"
         fi
 
         if [ "$INIT_SYSTEM" = "systemd" ] && [ "$IPFS_STATUS" = "stopped" ]; then
@@ -14918,7 +15111,8 @@ EOF
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
 
         printf "%b Unable to create an IPFS service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
+        printf "%b For help, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         exit 1
 
     fi
@@ -16548,8 +16742,9 @@ if [ "$PM2_SERVICE_DO_INSTALL" = "YES" ]; then
 
     # If using sysv-init or another unknown system, we don't yet support creating a PM2 service file
     if [ "$INIT_SYSTEM" = "sysv-init" ] || [ "$INIT_SYSTEM" = "unknown" ]; then
-        printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n" "${CROSS}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter for help.\\n" "${CROSS}"
+        printf "%b Unable to create a PM2 service for your system - systemd/upstart not found.\\n\\n" "${CROSS}"
+        printf "%b For help, please contact $SOCIAL_BLUESKY_HANDLE on Bluesky: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         exit 1
     fi
 
@@ -18438,7 +18633,8 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
         printf "%b%b ${txtred}ERROR: Argone One Daemon Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b Argon One Daemon could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE on Twitter so a fix can be issued.\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "\\n"
 
         exit
@@ -18462,7 +18658,8 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
         printf "%b%b ${txtred}ERROR: Argon One Daemon Upgrade Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
         printf "%b Argon One Daemon could not be upgraded. Perhaps the download URL has changed?\\n" "${INFO}"
-        printf "%b Please contact $SOCIAL_TWITTER_HANDLE so a fix can be issued.\\n" "${INDENT}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "\\n"
 
         exit

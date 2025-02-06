@@ -1,20 +1,18 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.4
+#           Name:  DigiNode Dashboard v0.10.5
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
-#  Compatibility:  Supports x86_86 or arm64 hardware with Ubuntu or Debian 64-bit distros.
-#                  Other distros may not work at present. Please help test so that support can be added.
-#                  A Raspberry Pi 4 8Gb running Raspberry Pi OS Lite 64-bit is recommended.
+#  Compatibility:  Supports x86_86 or arm64 hardware with Raspberry Pi OS, Ubuntu or Debian 64-bit distros.
+#                  A Raspberry Pi 4 8Gb or better, running Raspberry Pi OS Lite 64-bit is recommended.
 #
-#         Author:  Olly Stedall [ Bluesky: @olly.st / Twitter: @saltedlolly ]
+#         Author:  Olly Stedall [ Bluesky: @olly.st ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
-#                  Bluesky -  https://bsky.app/profile/digibyte.help
-#                  X -        https://twitter.com/diginodetools
+#                  Bluesky -  https://bsky.app/profile/diginode.tools
 #
 #    Get Started:  curl -sSL setup.diginode.tools | bash
 #  
@@ -60,8 +58,8 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.4
-# Last Updated: 2024-07-22
+DGNT_VER_LOCAL=0.10.5
+# Last Updated: 2025-02-06
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -152,6 +150,7 @@ VIEW_DGBLOGRT=false
 VIEW_DGBLOGSN=false
 VIEW_WALLETS=false
 CREATE_WALLET=false
+LOAD_WALLET=false
 CHANGE_WALLET=false
 DGBCORE_RESTART=false
 DGBCORE_STOP=false
@@ -180,8 +179,9 @@ for var in "$@"; do
         "--dgblogtn" ) VIEW_DGBLOGTN=true;;
         "--dgblogrt" ) VIEW_DGBLOGRT=true;;
         "--dgblogsn" ) VIEW_DGBLOGSN=true;;
-        "--wallets" ) VIEW_WALLETS=true;;
+        "--listwallets" ) VIEW_WALLETS=true;;
         "--createwallet" ) CREATE_WALLET=true;;
+#        "--loadwallet" ) LOAD_WALLET=true;;
         "--changewallet" ) CHANGE_WALLET=true;;
         "--dgbrestart" ) DGBCORE_RESTART=true;;
         "--dgbstop" ) DGBCORE_STOP=true;;
@@ -214,8 +214,9 @@ if [ $UNKNOWN_FLAG = true ] || \
    [ $VIEW_DGBLOGRT = true ] || \
    [ $VIEW_DGBLOGSN = true ] || \
    [ $VIEW_WALLETS = true ] || \
-   [ $CHANGE_WALLET = true ] || \
+   [ $LOAD_WALLET = true ] || \
    [ $CREATE_WALLET = true ] || \
+   [ $CHANGE_WALLET = true ] || \
    [ $DGBCORE_RESTART = true ] || \
    [ $DGBCORE_STOP = true ] || \
    [ $DGB2CORE_RESTART = true ] || \
@@ -336,9 +337,175 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%bError: DigiByte Core SIGNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
         fi
-    elif [ $VIEW_WALLETS = true ]; then # --wallets
+    elif [ $VIEW_WALLETS = true ]; then # --listwallets
         diginode_tools_import_settings silent
         query_digibyte_chain
+
+        printf "DigiByte $DGB_NETWORK_CURRENT Wallets:\n\n"
+
+        if check_service_active "digibyted"; then
+
+            query_wallets=$($DGB_CLI listwallets 2>/dev/null) 
+            wallets=$(echo $query_wallets | jq -r '.[]')
+
+            if [ "$query_wallets" = "" ]; then
+                echo "- ERROR: DigiByte $DGB_NETWORK_CURRENT node is currently starting up. Please try again in a minute."
+            elif [ -z "$wallets" ] && ! grep -q '""' <<< "$query_wallets"; then
+                echo "- No wallets loaded."
+            else
+                # Collect wallet information
+                wallet_info_list=()
+                while IFS= read -r wallet; do
+                    if [ "$wallet" == "" ]; then
+                        wallet_display_name="Default Wallet"
+                        wallet_info=$($DGB_CLI -rpcwallet="" getwalletinfo 2>/dev/null)
+                    else
+                        wallet_display_name="$wallet"
+                        wallet_info=$($DGB_CLI -rpcwallet="$wallet" getwalletinfo 2>/dev/null)
+                    fi
+
+                    if [ $? -ne 0 ]; then
+                        wallet_info_list+=("$wallet_display_name: Error retrieving wallet info")
+                        continue
+                    fi
+
+                    balance=$(echo $wallet_info | jq -r '.balance')
+
+                    if [ -z "$balance" ] || [ "$balance" = "0" ]; then
+                        balance="0.00000000"
+                    fi
+
+                    wallet_info_list+=("- \"$wallet_display_name\"   :   $balance DGB")
+                done <<< "$wallets"
+
+                # Find the maximum length of wallet names
+                max_length=0
+                for info in "${wallet_info_list[@]}"; do
+                    wallet_name=$(echo "$info" | cut -d':' -f1)
+                    if [ ${#wallet_name} -gt $max_length ]; then
+                        max_length=${#wallet_name}
+                    fi
+                done
+
+                # Print the wallet information with right-aligned balances
+                for info in "${wallet_info_list[@]}"; do
+                    wallet_name=$(echo "$info" | cut -d':' -f1)
+                    balance=$(echo "$info" | cut -d':' -f2)
+                    printf "%-${max_length}s: %s\n" "$wallet_name" "$balance"
+                done
+            fi
+            printf "\n"
+        else
+            printf "ERROR: DigiByte $DGB_NETWORK_CURRENT Node is not running.\n"
+            printf "\n"
+        fi
+
+        if [ "$DGB_DUAL_NODE" = "YES" ]; then
+
+            printf "DigiByte TESTNET Wallets:\n\n"
+        
+            if check_service_active "digibyted-testnet"; then
+
+                query_wallets=$($DGB_CLI -testnet listwallets 2>/dev/null) 
+                wallets=$(echo $query_wallets | jq -r '.[]')
+
+                if [ "$query_wallets" = "" ]; then
+                    echo "- ERROR: DigiByte TESTNET node is currently starting up. Please try again in a minute."
+                elif [ -z "$wallets" ] && ! grep -q '""' <<< "$query_wallets"; then
+                    echo "- No wallets loaded."
+                else
+                    # Collect wallet information
+                    wallet_info_list=()
+                    while IFS= read -r wallet; do
+                        if [ "$wallet" == "" ]; then
+                            wallet_display_name="Default Wallet"
+                            wallet_info=$($DGB_CLI -testnet -rpcwallet="" getwalletinfo 2>/dev/null)
+                        else
+                            wallet_display_name="$wallet"
+                            wallet_info=$($DGB_CLI -testnet -rpcwallet="$wallet" getwalletinfo 2>/dev/null)
+                        fi
+
+                        if [ $? -ne 0 ]; then
+                            wallet_info_list+=("$wallet_display_name: Error retrieving wallet info")
+                            continue
+                        fi
+
+                        balance=$(echo $wallet_info | jq -r '.balance')
+
+                        if [ -z "$balance" ] || [ "$balance" = "0" ]; then
+                            balance="0.00000000"
+                        fi
+
+                        wallet_info_list+=("- \"$wallet_display_name\"   :   $balance DGB")
+                    done <<< "$wallets"
+
+                    # Find the maximum length of wallet names
+                    max_length=0
+                    for info in "${wallet_info_list[@]}"; do
+                        wallet_name=$(echo "$info" | cut -d':' -f1)
+                        if [ ${#wallet_name} -gt $max_length ]; then
+                            max_length=${#wallet_name}
+                        fi
+                    done
+
+                    # Print the wallet information with right-aligned balances
+                    for info in "${wallet_info_list[@]}"; do
+                        wallet_name=$(echo "$info" | cut -d':' -f1)
+                        balance=$(echo "$info" | cut -d':' -f2)
+                        printf "%-${max_length}s: %s\n" "$wallet_name" "$balance"
+                    done
+                fi
+                printf "\n"
+            else
+                printf "ERROR: DigiByte TESTNET Node is not running.\n"
+                printf "\n"
+            fi
+
+        fi
+
+        exit
+
+    elif [ $CREATE_WALLET = true ]; then # --createwallet
+        diginode_tools_import_settings silent
+        query_digibyte_chain
+
+        # create ~/.digibyte folder if it does not exist
+        if [ ! -d "$DGNT_SETTINGS_LOCATION" ]; then
+            str="Creating ~/.digibyte folder..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION
+        fi
+
+        # create ~/.digibyte/wallets folder if it does not exist
+        if [ ! -d "$DGNT_SETTINGS_LOCATION/wallets" ]; then
+            str="Creating ~/.digibyte/wallets folder..."
+            printf "\\n%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
+        fi
+
+        # Are we running a dual node and is the secondary testnet node?
+        if [ "$DGB_DUAL_NODE" = "YES" ] && check_service_active "digibyted-testnet"; then
+            is_secondary_node_running="yes"
+            secondary_node="TESTNET"
+        else
+            is_secondary_node_running="no"
+            secondary_node="TESTNET"
+        fi
+
+        # Is the primary node running and what type is it?
+        if check_service_active "digibyted"; then
+            is_primary_node_running="yes"
+            primary_node=$DGB_NETWORK_CURRENT
+        else
+            is_primary_node_running="no"
+            secondary_node=$DGB_NETWORK_CURRENT
+        fi
+
+        # If two nodes are running ask the user which they want to create a wallet for
+        if [ "$is_secondary_node_running" = "yes" ] && [ "$is_secondary_node_running" = "yes" ]; then
+            echo "dual node"
+        fi
+
         if check_service_active "digibyted"; then
             wallets=$($DGB_CLI listwallets | jq -r '.[]')
 
@@ -455,6 +622,143 @@ if [ $UNKNOWN_FLAG = true ] || \
 
         exit
 
+# banana
+
+    elif [ $LOAD_WALLET = true ]; then # --loadwallet
+        diginode_tools_import_settings silent
+        query_digibyte_chain
+
+        if check_service_active "digibyted"; then
+            loaded_wallets=$($DGB_CLI listwallets | jq -r '.[]')
+
+            # Search for wallet.dat files
+            wallet_paths=()
+            wallet_names=()
+            already_loaded_names=()
+
+            # Add old default wallet if it exists
+            if [ -f ~/.digibyte/wallet.dat ]; then
+                if grep -q '^$' <<< "$loaded_wallets"; then
+                    already_loaded_names+=("Default Wallet")
+                else
+                    wallet_paths+=("~/.digibyte/wallet.dat")
+                    wallet_names+=("Default Wallet")
+                fi
+            fi
+
+            # Add default wallet 2 if it exists
+            if [ -f ~/.digibyte/wallets/wallet.dat ]; then
+                if grep -q '^$' <<< "$loaded_wallets"; then
+                    already_loaded_names+=("Default Wallet 2")
+                else
+                    wallet_paths+=("~/.digibyte/wallets/wallet.dat")
+                    wallet_names+=("Default Wallet 2")
+                fi
+            fi
+
+            # Search in ~/.digibyte/wallets subdirectories
+            for wallet in ~/.digibyte/wallets/*/wallet.dat; do
+                if [ -f "$wallet" ]; then
+                    wallet_name=$(basename "$(dirname "$wallet")")
+                    if grep -q "^$wallet_name$" <<< "$loaded_wallets"; then
+                        already_loaded_names+=("$wallet_name")
+                    else
+                        wallet_paths+=("$wallet")
+                        wallet_names+=("$wallet_name")
+                    fi
+                fi
+            done
+
+            # Check if all wallets are already loaded
+            if [ ${#wallet_paths[@]} -eq 0 ]; then
+                echo "All discovered wallets are already loaded:"
+                for loaded_wallet in "${already_loaded_names[@]}"; do
+                    echo "- $loaded_wallet"
+                done
+                exit 0
+            fi
+
+            # Add option to load all wallets if there are two or more unloaded wallets
+            if [ ${#wallet_paths[@]} -gt 1 ]; then
+                wallet_names+=("ALL WALLETS")
+                wallet_paths+=("")
+            fi
+
+            # Create menu options
+            menu_options=()
+            for i in "${!wallet_names[@]}"; do
+                menu_options+=($((i+1)) "${wallet_names[i]}")
+            done
+
+            # Create the message for already loaded wallets
+            loaded_wallets_msg="Please select a wallet to load:"
+            if [ ${#already_loaded_names[@]} -gt 0 ]; then
+                loaded_wallets_msg="These wallets are already loaded:\n"
+                for loaded_wallet in "${already_loaded_names[@]}"; do
+                    loaded_wallets_msg+="- $loaded_wallet\n"
+                done
+                loaded_wallets_msg+="\nPlease select a wallet to load:"
+            fi
+
+            # Determine dialog box height
+            dialog_height=$(( ${#wallet_names[@]} + ${#already_loaded_names[@]} + 10 ))
+
+            # Display dialog menu
+            choice=$(dialog --clear --backtitle "Wallet Selection" \
+                            --title "Choose a wallet to load" \
+                            --menu "$loaded_wallets_msg" $dialog_height 50 ${#menu_options[@]} \
+                            "${menu_options[@]}" 2>&1 >/dev/tty)
+
+            clear
+
+            # Exit if Cancel is chosen
+            if [ -z "$choice" ]; then
+                echo "No wallet selected. Exiting."
+                exit 0
+            fi
+
+            # Get the chosen wallet path
+            chosen_wallet_path="${wallet_paths[$((choice-1))]}"
+            chosen_wallet_name="${wallet_names[$((choice-1))]}"
+
+            if [ "$chosen_wallet_name" == "ALL WALLETS" ]; then
+                echo "Loading all wallets..."
+                for i in "${!wallet_paths[@]}"; do
+                    if [ "${wallet_paths[i]}" == "" ]; then
+                        continue
+                    fi
+                    wallet_to_load="${wallet_names[i]}"
+                    if [ "$wallet_to_load" == "Default Wallet" ]; then
+                        wallet_to_load=""
+                    fi
+                    load_result=$($DGB_CLI loadwallet "$wallet_to_load" 2>&1)
+                    if [[ $load_result == *"error code:"* ]]; then
+                        echo "Error loading wallet: ${wallet_names[i]} - $load_result"
+                    else
+                        echo "Wallet loaded successfully: ${wallet_names[i]}"
+                    fi
+                done
+                $DGB_CLI listwallets
+            else
+                echo "Loading wallet: $chosen_wallet_name"
+                if [ "$chosen_wallet_name" == "Default Wallet" ]; then
+                    load_result=$($DGB_CLI loadwallet "" 2>&1)
+                else
+                    load_result=$($DGB_CLI loadwallet "$chosen_wallet_name" 2>&1)
+                fi
+                if [[ $load_result == *"error code:"* ]]; then
+                    echo "Error loading wallet: $load_result"
+                else
+                    echo "Wallet loaded successfully."
+                    $DGB_CLI listwallets
+                fi
+            fi
+        else
+            echo "ERROR: DigiByte Node is not running."
+        fi
+
+
+        exit
     elif [ $DGBCORE_RESTART = true ]; then # --dgbrestart
         local str="Restarting digibyted service"
         printf "%b %s..." "${INFO}" "${str}"
@@ -688,7 +992,8 @@ display_help() {
             printf "%b%b--dgb2peers%b    - List peers for secondary DigiByte Node (TESTNET).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         fi
         printf "\\n"
-        printf "%b%b--wallets%b      - View the install DigiByte walls.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b%b--listwallets%b  - View currently loaded DigiByte wallets.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+ #       printf "%b%b--loadwallet%b   - Load DigiByte wallet.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
         printf "%b%b--dgbconf%b      - Edit digibyte.conf file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--settings%b     - Edit diginode.settings file.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
