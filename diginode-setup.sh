@@ -5583,6 +5583,180 @@ fi
 
 }
 
+# Check the DigiByte wallet folders exist, and default wallets are in the correct location, depending on the current DigiByte version
+check_digibyte_wallets() {
+
+    local restart_primary_node=""
+    local restart_secondary_node=""
+
+    # create ~/.digibyte/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/wallets" ]; then
+        str="Creating ~/.digibyte/wallets folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
+    fi
+
+    # create ~/.digibyte/testnet4/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/testnet4/wallets" ]; then
+        str="Creating ~/.digibyte/testnet4/wallets folder..."
+        printf "\\n%b %s" "${INFO}" "${str}"
+        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/testnet4/wallets
+    fi
+
+    # If the local DigiByte version is 7.17.3 make sure default wallet is in ~/.digibyte
+    if [ "$DGB_VER_LOCAL" = "7.17.3" ]; then
+
+        if [ ! -f ~/.digibyte/wallet.dat ] && [ -f ~/.digibyte/wallets/wallet.dat ]; then
+            echo "temp"
+        fi
+
+    # If the local DigiByte version is 8.22.0-rcx or better (anything other than 7.17.3) make sure default wallet is in ~/.digibyte/wallets
+    elif [ "$DGB_VER_LOCAL" != "7.17.3" ] && [ "$DGB_VER_LOCAL" != "" ]; then
+
+        if [ -f ~/.digibyte/wallet.dat ] && [ ! -f ~/.digibyte/wallets/wallet.dat ]; then
+
+            # If this is primary node running mainnet, unload the wallet
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+
+                # Check if the default mainnet wallet is loaded
+                query_wallets=$($DGB_CLI listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Mainnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                        stop_service digibyted
+                        restart_primary_node="yes"
+                    else
+                        printf "%b Default Mainnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Mainnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            else
+                printf "%b DigiByte MAINNET Node is not running. Skipping default wallet check.\\n" "${INFO}"
+            fi
+
+            # Move the legacy wallet.dat file to the /wallets subfolder
+            str="Moving ~/.digibyte/wallet.dat to ~/.digibyte/wallets/wallet.dat ..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv ~/.digibyte/wallet.dat ~/.digibyte/wallets/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Reload the wallet.dat in its new location, if the node is actually running
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
+                printf "%b Reloading default mainnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default mainnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Mainnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            fi
+
+            # Restart the node if it was just stopped
+            if [ "$restart_primary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                restart_service digibyted
+            fi
+
+        fi
+
+        if [ -f ~/.digibyte/testnet4/wallet.dat ] && [ ! -f ~/.digibyte/testnet4/wallets/wallet.dat ]; then
+
+            # If this is primary node running testnet, unload the wallet
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+
+                # Check if the default testnet wallet is loaded
+                query_wallets=$($DGB_CLI listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Testnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                        stop_service digibyted
+                        restart_primary_node="yes"
+                    else
+                        printf "%b Default Testnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Testnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            # Or, if this is secondary node running testnet, unload the wallet
+            elif check_service_active "digibyted-testnet"; then
+
+                # Check if the default testnet wallet is loaded
+                query_wallets=$($DGB_CLI -testnet listwallets 2>/dev/null)
+                if echo "$query_wallets" | jq -e '.[] | select(. == "")' > /dev/null; then
+
+                    printf "%b Default Testnet Wallet is loaded. Trying to unload it...\\n" "${INFO}"
+                    
+                    # Attempt to unload the default wallet
+                    unload_result=$($DGB_CLI -testnet unloadwallet "" 2>&1)
+                    if [[ $unload_result == *"error code:"* ]] || [[ $unload_result == *"error message:"* ]]; then
+                        printf "%b Error unloading default wallet: $unload_result\\n" "${INFO}"
+                        printf "%b Stopping DigiByte TESTNET node ...\\n" "${INFO}"
+                        stop_service digibyted-testnet
+                        restart_secondary_node="yes"
+                    else
+                        printf "%b Default Testnet Wallet unloaded successfully.\\n" "${TICK}"
+                    fi
+                else
+                    printf "%b Default Testnet Wallet is not loaded.\\n" "${TICK}"
+                fi
+            else
+                printf "%b DigiByte TESTNET Node is not running. Skipping default wallet check.\\n" "${INFO}"
+            fi
+
+            # Move the legacy wallet.dat file to the /wallets subfolder
+            str="Moving ~/.digibyte/wallet.dat to ~/.digibyte/wallets/wallet.dat ..."
+            printf "%b %s" "${INFO}" "${str}"
+            mv ~/.digibyte/wallet.dat ~/.digibyte/wallets/wallet.dat
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+            # Reload the wallet.dat in its new location, if the node is still running
+            if check_service_active "digibyted" && [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                printf "%b Reloading default testnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default testnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Testnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            elif check_service_active "digibyted-testnet"; then
+                printf "%b Reloading default testnet wallet from new location...\\n" "${INFO}"
+                load_result=$($DGB_CLI -testnet loadwallet "wallets/wallet.dat" 2>&1)
+                if [[ $load_result == *"error code:"* ]] || [[ $load_result == *"error message:"* ]]; then
+                    printf "%b Error loading default Testnet wallet: $load_result\\n" "${CROSS}"
+                else
+                    printf "%b Default Testnet Wallet loaded successfully from new location.\\n" "${TICK}"
+                fi
+            fi
+
+            # Restart the node if it was just stopped
+            if [ "$restart_primary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte $DGB_NETWORK_CURRENT node ...\\n" "${INFO}"
+                restart_service digibyted
+            fi
+            if [ "$restart_secondary_node" = "yes" ]; then
+                printf "%b Restarting DigiByte TESTNET node ...\\n" "${INFO}"
+                restart_service digibyted-testnet
+            fi
+
+        fi
+
+    fi
+
+}
+
 # If a swap file is needed, this function will create one or change the size of an existing one
 swap_do_change() {
 

@@ -1,5 +1,11 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.5 - 2025-02-06
+- New: DigiNode Setup now displays the version number at launch. This should make troubleshooting easier by making it much easier to tell which version you are currently running.
+- New: The --listwallets flag displays the currently installed wallets. This is part of a planned suite of wallets tools. (May not work yet.)
+- Change: Replace X support links for Bluesky as the account is no longer in use
+
+
 DigiNode Tools v0.10.4 - 2025-02-05
 - New: Added support for DigiByte Core v8.22.1
 
