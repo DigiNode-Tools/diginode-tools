@@ -3816,8 +3816,8 @@ rpi_microsd_check() {
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
                 printf "%b         The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
-                printf "%b   Tip: Booting via an SSD is stongly recommended. While booting via a cheap USB flash stick will work,\\n" "${INDENT}"
-                printf "%b        an SSD will perform better and is far less prone to data corruption.\\n" "${INDENT}"
+                printf "%b   Tip: Booting via an SSD is stongly recommended. While booting via a cheap USB flash drive\\n" "${INDENT}"
+                printf "%b        will work, a proper SSD will perform better and is far less prone to data corruption.\\n" "${INDENT}"
             fi
             
             printf "\\n"
