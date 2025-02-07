@@ -3673,198 +3673,59 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
-    # Get system RAM
-    RAMTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Mem/!d' | cut -d" " -f2)
-
-    # Store total system RAM in whole Gb. Append 'b' to it so it says Gb. (Used for future Pi models we don't know about yet)
-    MODELMEM="${RAMTOTAL_HR}b"
+    # Store model memory
+    MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo)
 
     ######### RPI MODEL DETECTION ###################################
 
     # Create local variables to store the pitype and pigen
     local pitype
     local pigen
+    local mem_code
+    local mem_category
 
     # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
     pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
     if [[ $pigen == "Raspberry Pi" ]]; then
         pitype="pi"
     fi
-    
-    # Look for any mention of 'Raspberry Pi 5' so we can narrow it to Pi 5
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 5" || echo "")
-    if [[ $pigen == "Raspberry Pi 5" ]]; then
-        pitype="pi5"
-    fi
 
-    # Look for any mention of 'Raspberry Pi 4' so we can narrow it to a Pi 4 
-    # even if it is a model we have not seen before
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4" || echo "")
-    if [[ $pigen = "Raspberry Pi 4" ]]; then
-        pitype="pi4"
-    fi
-
-    # Assuming it is likely a Pi, lookup the known models of Rasberry Pi hardware
-    # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes
+    # Assuming it is a Pi, work out if it has enough memory
+    # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use
     if [ "$pitype" != "" ]; then
-        if [ $revision = 'd04170' ]; then #Pi 5 8Gb
-            pitype="pi5"
-            MODELMEM="8Gb"
-        elif [ $revision = 'c04170' ]; then #Pi 5 4Gb
-            pitype="pi5"
-            MODELMEM="4Gb"
-        elif [ $revision = 'd03140' ]; then #Pi CM4 8Gb
-            pitype="picm4"
-            MODELMEM="8Gb"
-        elif [ $revision = 'c03140' ]; then #Pi CM4 4Gb
-            pitype="picm4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'b03140' ]; then #Pi CM4 2Gb
-            pitype="picm4_lowmem"
-            MODELMEM="2Gb"
-        elif [ $revision = 'a03140' ]; then #Pi CM4 1Gb
-            pitype="picm4_toolowmem"
-            MODELMEM="1Gb"
-        elif [ $revision = 'd03114' ] || [ $revision = 'd03115' ]; then #Pi 4 8Gb
-            pitype="pi4"
-            MODELMEM="8Gb"
-        elif [ $revision = '902120' ]; then #Pi Zero 2 W
-            pitype="piold"
-            MODELMEM="1Gb"
-        elif [ $revision = 'c03130' ]; then #Pi 400 4Gb
-            pitype="pi400"
-            MODELMEM="4Gb"
-        elif [ $revision = 'c03115' ] || [ $revision = 'c03114' ] || [ $revision = 'c03112' ] || [ $revision = 'c03111' ]; then #Pi 4 4Gb
-            pitype="pi4"
-            MODELMEM="4Gb"
-        elif [ $revision = 'b03114' ]; then #Pi 4 2Gb
-            pitype="pi4_lowmem"
-            MODELMEM="2Gb"
-        elif [ $revision = 'b03112' ]; then #Pi 4 2Gb
-            pitype="pi4_lowmem"
-            MODELMEM="2Gb"
-        elif [ $revision = 'b03111' ]; then #Pi 4 2Gb
-            pitype="pi4_lowmem"
-            MODELMEM="2Gb"
-        elif [ $revision = 'a03111' ]; then #Pi 4 1Gb
-            pitype="pi4_lowmem"
-            MODELMEM="1Gb"
-        elif [ $revision = 'a020d3' ]; then #Pi 3 Model B+ 1Gb
-            pitype="pi3"
-            MODELMEM="1Gb"
-        elif [ $revision = 'a22082' ]; then #Pi 3 Model B 1Gb
-            pitype="pi3"
-            MODELMEM="1Gb"
-        elif [ $revision = 'a02082' ]; then #Pi 3 Model B 1Gb
-            pitype="pi3"
-            MODELMEM="1Gb"
-        elif [ $revision = '9000C1' ]; then #Pi Zero W 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '900093' ]; then #Pi Zero v1.3 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '900092' ]; then #Pi Zero v1.2 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = 'a22042' ]; then #Pi 2 Model B v1.2 1Gb
-            pitype="piold"
-            MODELMEM="1Gb"
-        elif [ $revision = 'a21041' ]; then #Pi 2 Model B v1.1 1Gb
-            pitype="piold"
-            MODELMEM="1Gb"
-        elif [ $revision = 'a01041' ]; then #Pi 2 Model B v1.1 1Gb
-            pitype="piold"
-            MODELMEM="1Gb"
-        elif [ $revision = '0015' ]; then #Pi Model A+ 512Mb / 256Mb
-            pitype="piold"
-            # the same revision number was used for both the 512Mb and 256Mb models so lets check which is which
-            local pi0015ram
-            pi0015ram=$(cat /proc/meminfo | grep MemTotal: | tr -s ' ' | cut -d' ' -f2)
-            if [ "$pi0015ram" -gt "300000" ]; then
-                MODELMEM="512Mb"
+
+        # Convert the revision code from hexadecimal to decimal
+        code=$((16#$revision))
+
+        # Check if it's a new-style revision (bit 23 is set)
+        new_style=$(( (code >> 23) & 0x1 ))
+
+        if [[ $new_style -eq 1 ]]; then
+            # NEW-STYLE (Pi 2 and later) - Extract memory bits (20-22)
+            mem_code=$(( (code >> 20) & 0x7 ))
+
+            # Determine memory category
+            if [[ $mem_code -le 2 ]]; then # Less than 4GB
+                mem_category="lowmem"
+            elif [[ $mem_code -eq 4 ]]; then # 4gb RAM
+                mem_category="4gb"
             else
-                MODELMEM="256Mb"
+                mem_category="8gbandup"
             fi
-            MODELMEM="512Mb / 256Mb"
-        elif [ $revision = '0012' ]; then #Pi Model A+ 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0014' ]; then #Pi Computer Module 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '0011' ]; then #Pi Compute Module 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '900032' ]; then #Pi Module B+ 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '0013' ]; then #Pi Module B+ 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '0010' ]; then #Pi Module B+ 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '000d' ]; then #Pi Module B Rev 2 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '000e' ]; then #Pi Module B Rev 2 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '000f' ]; then #Pi Module B Rev 2 512Mb
-            pitype="piold"
-            MODELMEM="512Mb"
-        elif [ $revision = '0007' ]; then #Pi Module A 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0008' ]; then #Pi Module A 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0009' ]; then #Pi Module A 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0004' ]; then #Pi Module B Rev 2 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0005' ]; then #Pi Module B Rev 2 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0006' ]; then #Pi Module B Rev 2 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0003' ]; then #Pi Module B Rev 1 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
-        elif [ $revision = '0002' ]; then #Pi Module B Rev 1 256Mb
-            pitype="piold"
-            MODELMEM="256Mb"
         else
-            
-            # IF this is a Pi we have not seen before, then round up the reported system memory to an integer, provided it is measured in Gb.
-            # Check that MODELMEM ends in the letters Gb AND it contain a decimal
+            # OLD-STYLE (Pi 1, Model B, Pi Zero) - Fallback: Read memory from /proc/meminfo
+            mem_kb=$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)
 
-            if [ $VERBOSE_MODE = true ]; then
-                printf "%b Unrecognised Raspberry Pi model\\n" "${WARN}"
-            fi
-
-            if [[ $MODELMEM == *Gb ]] && [[ "$MODELMEM" == *.* ]]; then 
-                MODEL_MEM=${MODELMEM//Gb} # Remove letters Gb, to work with numbers
-                MODELMEM=$(echo $MODELMEM | cut -d'.' -f1) # remove everything after decimal
-                MODELMEM=$(expr $MODELMEM + 1) # add 1 to the integer
-                MODELMEM=${MODELMEM}Gb # append Gb again
-                if [ $VERBOSE_MODE = true ]; then
-                    printf "%b Rounding up system memory to integer\\n" "${INFO}"
-                fi
-            fi
-            if [ $VERBOSE_MODE = true ]; then
-                printf "\\n"
+            if [[ $mem_kb -lt 4096000 ]]; then
+                mem_category="lowmem"
             fi
         fi
+
     fi
 
     # Generate Pi hardware read out
-    if [ "$pitype" = "pi5" ]; then
-        printf "%b Raspberry Pi 5 Detected\\n" "${TICK}"
+    if [ "$pitype" = "pi" ] && [ "$mem_category" = "8gbandup" ]; then
+        printf "%b Raspberry Pi Detected\\n" "${TICK}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         if [[ "$RUN_SETUP" != "NO" ]] ; then
@@ -3872,91 +3733,34 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             rpi_microsd_check
         fi
         printf "\\n"
-    elif [ "$pitype" = "pi400" ]; then
-        printf "%b Raspberry Pi 400 Detected\\n" "${TICK}"
+    elif [ "$pitype" = "pi" ] && [ "$mem_category" = "4gb" ]; then
+        printf "%b Raspberry Pi Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
-        if [[ "$RUN_SETUP" != "NO" ]] ; then
-            printf "\\n"
-            rpi_microsd_check
-        fi
-        printf "\\n"
-    elif [ "$pitype" = "pi4" ]; then
-        printf "%b Raspberry Pi 4 Detected\\n" "${TICK}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        IS_RPI="YES"
-        if [[ "$RUN_SETUP" != "NO" ]] ; then
-            printf "\\n"
-            rpi_microsd_check
-        fi
-        printf "\\n"
-    elif [ "$pitype" = "pi4_lowmem" ]; then
-        printf "%b Raspberry Pi 4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        IS_RPI="YES"
-        # hide this part if running digimon
+        # hide this part if running DigiNode Dashboard
         if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
             printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
             printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
-            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+            printf "%b due to this model only having $MODELMEM RAM. A swap file is required.\\n" "${INDENT}"
+            printf "%b A Raspberry Pi 4 or better with at least 8Gb RAM is recommended.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check
         fi
         printf "\\n"
-    elif [ "$pitype" = "picm4_lowmem" ]; then
-        printf "%b Raspberry Pi CM4 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        IS_RPI="YES"
-        # hide this part if running digimon
-        if [[ "$RUN_SETUP" != "NO" ]] ; then
-            printf "\\n"
-            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
-            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            printf "\\n"
-            rpi_microsd_check
-        fi
-        printf "\\n"
-    elif [ "$pitype" = "picm4_toolowmem" ]; then
-        printf "%b %bERROR: Raspberry Pi CM4 Detected   [ LOW MEMORY DEVICE!! ]%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    elif [ "$pitype" = "pi" ] && [ "$mem_category" = "lowmem" ]; then
+        printf "%b %bERROR: Incompatible Raspberry Pi Detected   [ NOT ENOUGH MEMORY !! ]%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
         printf "\\n"
-        printf "%b %bThis Raspberry Pi Compute Module only has 1Gb RAM which is not enough to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-        printf "\\n"
-        purge_dgnt_settings
-        exit 1
-    elif [ "$pitype" = "pi3" ]; then
-        printf "%b Raspberry Pi 3 Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        # hide this part if running digimon
-        IS_RPI="YES"
-        if [[ "$RUN_SETUP" != "NO" ]] ; then
-            printf "\\n"
-            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You may be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
-            printf "%b due to this model only having $MODELMEM RAM. You will need a swap file.\\n" "${INDENT}"
-            printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
-            printf "\\n"
-            rpi_microsd_check     
-        fi
-        printf "\\n"
-    elif [ "$pitype" = "piold" ]; then
-        printf "%b %bERROR: Raspberry Pi 2 (or older) Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "\\n"
-        printf "%b %bThis Raspberry Pi is too old to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b A Raspberry Pi 4 or 5 with at least 4Gb is recommended. 8Gb or more is preferred.\\n" "${INDENT}"
+        printf "%b %bThis Raspberry Pi only has $MODELMEM RAM which is not enough to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b A Raspberry Pi 4 or better with at least 8Gb is recommended.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
     elif [ "$pitype" = "pi" ]; then
         printf "\\n"
         printf "%b %bERROR: Unknown Raspberry Pi Detected%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b This script is currently unable to recognise your Raspberry Pi.\\n" "${INDENT}"
+        printf "%b This script is currently unable to detect the memory in your Raspberry Pi.\\n" "${INDENT}"
         printf "%b Presumably this is because it is a new model that it has not seen before.\\n" "${INDENT}"
         printf "\\n"
         printf "%b Please share the information below in the DigiNode Tools Telegram group so that\\n" "${INDENT}"
@@ -3978,6 +3782,8 @@ else
         printf "\\n"
     fi
 fi
+
+exit
 
 }
 
