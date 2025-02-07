@@ -3673,6 +3673,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
+    revision="b04170"
+
     # Store model memory
     MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo)
 
