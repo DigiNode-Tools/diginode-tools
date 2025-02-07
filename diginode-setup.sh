@@ -1226,6 +1226,8 @@ set_sys_variables() {
 
     if [ "$VERBOSE_MODE" = true ]; then
         printf "%b Looking up system variables...\\n" "${INFO}"
+        echo ""
+        echo "     ---Verbose Mode-----------"
     else
         str="Looking up system variables..."
         printf "%b %s" "${INFO}" "${str}"
@@ -1273,11 +1275,11 @@ set_sys_variables() {
     SWAPTOTAL_HR=$(free -h --si | tr -s ' ' | sed '/^Swap/!d' | cut -d" " -f2)
 
     if [ "$VERBOSE_MODE" = true ]; then
-        printf "%b   Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
+        printf "%b Total RAM: ${RAMTOTAL_HR}b ( KB: ${RAMTOTAL_KB} )\\n" "${INDENT}"
         if [ "$SWAPTOTAL_HR" = "0B" ]; then
-            printf "%b   Total SWAP: none\\n" "${INDENT}"
+            printf "%b Total SWAP: none\\n" "${INDENT}"
         else
-            printf "%b   Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
+            printf "%b Total SWAP: ${SWAPTOTAL_HR}b ( KB: ${SWAPTOTAL_KB} )\\n" "${INDENT}"
         fi
     fi
 
@@ -1287,7 +1289,7 @@ set_sys_variables() {
     DGB_DATA_DISKTOTAL_KB=$(df $DGB_DATA_LOCATION --output=size | tail -n +2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 
     if [ "$VERBOSE_MODE" = true ]; then
-        printf "%b   Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
+        printf "%b Total Disk Space: ${BOOT_DISKTOTAL_HR}b ( KB: ${BOOT_DISKTOTAL_KB} )\\n" "${INDENT}"
     fi
 
  #   # No need to update the disk usage variables if running the DigiNode Dashboard, as it does it itself
@@ -1303,10 +1305,11 @@ set_sys_variables() {
         update_disk_usage
 
         if [[ $VERBOSE_MODE = true ]]; then
-            printf "%b   Used Boot Disk Space: ${BOOT_DISKUSED_HR}b ( ${BOOT_DISKUSED_PERC}% )\\n" "${INDENT}"
-            printf "%b   Free Boot Disk Space: ${BOOT_DISKFREE_HR}b ( KB: ${BOOT_DISKFREE_KB} )\\n" "${INDENT}"
-            printf "%b   Used Data Disk Space: ${DGB_DATA_DISKUSED_HR}b ( ${DGB_DATA_DISKUSED_PERC}% )\\n" "${INDENT}"
-            printf "%b   Free Data Disk Space: ${DGB_DATA_DISKFREE_HR}b ( KB: ${DGB_DATA_DISKFREE_KB} )\\n" "${INDENT}"
+            printf "%b Used Boot Disk Space: ${BOOT_DISKUSED_HR}b ( ${BOOT_DISKUSED_PERC}% )\\n" "${INDENT}"
+            printf "%b Free Boot Disk Space: ${BOOT_DISKFREE_HR}b ( KB: ${BOOT_DISKFREE_KB} )\\n" "${INDENT}"
+            printf "%b Used Data Disk Space: ${DGB_DATA_DISKUSED_HR}b ( ${DGB_DATA_DISKUSED_PERC}% )\\n" "${INDENT}"
+            printf "%b Free Data Disk Space: ${DGB_DATA_DISKFREE_HR}b ( KB: ${DGB_DATA_DISKFREE_KB} )\\n" "${INDENT}"
+            echo "     --------------------------"
         else
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
@@ -3673,8 +3676,6 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
-    # Store model memory
-    MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo)
 
     ######### RPI MODEL DETECTION ###################################
 
@@ -3694,8 +3695,10 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use
     if [ "$pitype" != "" ]; then
 
-        revision="b03114"
-        echo "revision: $revision"
+        if [ $VERBOSE_MODE = true ]; then
+            echo "     ---Verbose Mode-----------"
+            echo "      Revision Code: $revision" 
+        fi
 
         # Convert the revision code from hexadecimal to decimal
         code=$((16#$revision))
@@ -3707,16 +3710,47 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             # NEW-STYLE (Pi 2 and later) - Extract memory bits (20-22)
             mem_code=$(( (code >> 20) & 0x7 ))
 
-            echo "mem_code: $mem_code"
-
             # Determine memory category
-            if [[ $mem_code -le 2 ]]; then # Less than 4GB
+            if [[ $mem_code -le 3 ]]; then # Less than 4GB
                 mem_category="lowmem"
             elif [[ $mem_code -eq 4 ]]; then # 4gb RAM
                 mem_category="4gb"
             else
                 mem_category="8gbandup"
             fi
+
+            if [ $VERBOSE_MODE = true ]; then
+                echo "      Memory Code: $mem_code"  # Debugging line
+                echo "      Memory Category: $mem_category"  # Debugging line
+            fi
+
+            # Determine RAM size based on memory code
+            case $mem_code in
+                0) MODELMEM="256MB" ;;
+                1) MODELMEM="512MB" ;;
+                2) MODELMEM="1GB" ;;
+                3) MODELMEM="2GB" ;;
+                4) MODELMEM="4GB" ;;
+                5) MODELMEM="8GB" ;;
+                6) MODELMEM="16GB" ;;
+                7) MODELMEM="32GB" ;;  # Future-proofing
+                8) MODELMEM="64GB" ;;  # Future-proofing
+                *) MODELMEM="Unknown RAM Size" ;;  # Fallback for unexpected codes
+            esac
+
+            if [ $VERBOSE_MODE = true ]; then
+                echo "      Model Memory: $MODELMEM"  # Debugging line
+                
+            fi
+
+            # Detect model memory directly, if unknown
+            if [ $MODELMEM = "Unknown RAM Size" ]; then
+                MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo)
+                if [ $VERBOSE_MODE = true ]; then
+                    echo "      Detecting model memory directly... $MODELMEM"
+                fi
+            fi
+
         else
             # OLD-STYLE (Pi 1, Model B, Pi Zero) - Fallback: Read memory from /proc/meminfo
             mem_kb=$(awk '/^MemTotal:/ { print $2 }' /proc/meminfo)
@@ -3724,6 +3758,16 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
             if [[ $mem_kb -lt 4096000 ]]; then
                 mem_category="lowmem"
             fi
+
+            if [ $VERBOSE_MODE = true ]; then
+                echo "      Fallback method..."  # Debugging line
+                echo "      Memory Category: $mem_category"  # Debugging line
+            fi
+        fi
+
+        if [ $VERBOSE_MODE = true ]; then
+            echo "     --------------------------"
+            echo ""
         fi
 
     fi
@@ -3739,26 +3783,29 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         fi
         printf "\\n"
     elif [ "$pitype" = "pi" ] && [ "$mem_category" = "4gb" ]; then
-        printf "%b Raspberry Pi Detected   [ %bLOW MEMORY DEVICE!!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b Raspberry Pi Detected   [ %bLOW MEMORY !!%b ]\\n" "${TICK}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
         printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         IS_RPI="YES"
         # hide this part if running DigiNode Dashboard
         if [[ "$RUN_SETUP" != "NO" ]] ; then
             printf "\\n"
-            printf "%b %bWARNING: Low Memory Device%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
-            printf "%b You should be able to run a DigiNode on this Pi but performance may suffer\\n" "${INDENT}"   
-            printf "%b due to this model only having $MODELMEM RAM. A swap file is required.\\n" "${INDENT}"
+            printf "%b %bWARNING: This Raspberry Pi only has 4Gb RAM%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+            printf "%b You should be able to run a single DigiByte node on this Raspberry Pi but\\n" "${INDENT}"   
+            printf "%b performance will be sluggish. Do not attempt to run a dual node or it may crash.\\n" "${INDENT}"
             printf "%b A Raspberry Pi 4 or better with at least 8Gb RAM is recommended.\\n" "${INDENT}"
             printf "\\n"
             rpi_microsd_check
+            sleep 5
         fi
         printf "\\n"
     elif [ "$pitype" = "pi" ] && [ "$mem_category" = "lowmem" ]; then
-        printf "%b %bERROR: Incompatible Raspberry Pi Detected   [ NOT ENOUGH MEMORY !! ]%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b   Model: %b$MODEL $MODELMEM%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "%b %bERROR: Incompatible Raspberry Pi Detected%b   [ %bLOW MEMORY !!%b ]\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}" "${COL_LIGHT_RED}" "${COL_NC}"
+        printf "\\n"
+        printf "%b   Model: $MODEL $MODELMEM\\n" "${INDENT}"
         printf "\\n"
         printf "%b %bThis Raspberry Pi only has $MODELMEM RAM which is not enough to run a DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
-        printf "%b A Raspberry Pi 4 or better with at least 8Gb is recommended.\\n" "${INDENT}"
+        printf "%b A Raspberry Pi 4 or better with at least 4Gb RAM is required. 8Gb RAM is recommended.\\n" "${INDENT}"
         printf "\\n"
         purge_dgnt_settings
         exit 1
@@ -3787,9 +3834,6 @@ else
         printf "\\n"
     fi
 fi
-
-# banana
-exit
 
 }
 
