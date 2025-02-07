@@ -3673,8 +3673,6 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     local revision
     revision=$(cat /proc/cpuinfo | grep Revision | cut -d' ' -f2)
 
-    revision="b04170"
-
     # Store model memory
     MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo)
 
@@ -3696,6 +3694,9 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use
     if [ "$pitype" != "" ]; then
 
+        revision="b04170"
+        echo "revision: $revision"
+
         # Convert the revision code from hexadecimal to decimal
         code=$((16#$revision))
 
@@ -3705,6 +3706,8 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
         if [[ $new_style -eq 1 ]]; then
             # NEW-STYLE (Pi 2 and later) - Extract memory bits (20-22)
             mem_code=$(( (code >> 20) & 0x7 ))
+
+            echo "mem_code: $mem_code"
 
             # Determine memory category
             if [[ $mem_code -le 2 ]]; then # Less than 4GB
