@@ -3694,7 +3694,7 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
     # Reference: https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#new-style-revision-codes-in-use
     if [ "$pitype" != "" ]; then
 
-        revision="b04170"
+        revision="b03114"
         echo "revision: $revision"
 
         # Convert the revision code from hexadecimal to decimal
