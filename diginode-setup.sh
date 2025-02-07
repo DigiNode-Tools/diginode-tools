@@ -3793,18 +3793,26 @@ rpi_microsd_check() {
     if [[ "$RUN_SETUP" != "NO" ]] ; then
 
         local usb_drive=$(df | grep boot | grep -oa sda)
+        local nvme_drive=$(df | grep boot | grep -oa nvme)
         local microsd_drive=$(df | grep boot | grep -oa mmcblk0)
 
         str="Boot Check: "
         printf "%b %s" "${INFO}" "${str}"
 
-        # Check for hdd/ssd boot drive
+        # Check for usb boot drive
         if [[ "$usb_drive" == "sda" ]]; then
             printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
             printf "\\n"
             IS_MICROSD="NO"
         fi
+         # Check for nvme ssd boot drive
+        if [[ "$nvme_drive" == "nvme" ]]; then
+            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an NVME SSD Drive connected via PCIe\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   Note: Good job! PCIe offers the best performance possible!\\n" "${INDENT}"
+            printf "\\n"
+            IS_MICROSD="NO"
+        fi       
         # Check for micro sd boot drive
         if [[ "$microsd_drive" == "mmcblk0" ]]; then
             if [[ "$MODELMEM" = "1Gb" ]] || [[ "$MODELMEM" = "2Gb" ]]; then
