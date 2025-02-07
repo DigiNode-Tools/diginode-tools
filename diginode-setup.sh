@@ -3804,6 +3804,7 @@ rpi_microsd_check() {
         if [[ "$usb_drive" == "sda" ]]; then
 
             printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "\\n"
 
             # If this is a Pi5 or Pi6, suggest using a PCIe NVME SSD
             pi6_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 6" || echo "")
@@ -3811,10 +3812,10 @@ rpi_microsd_check() {
             pi4_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4" || echo "")
             if [[ "$pi6_check" == "Raspberry Pi 6" ]]; then
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
-                printf "%b         The Pi 6 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
+                printf "%b        The Pi 6 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi5_check" == "Raspberry Pi 5" ]]; then
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
-                printf "%b         The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
+                printf "%b        The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
                 printf "%b   Tip: Booting via an SSD is stongly recommended. While booting via a cheap USB flash drive\\n" "${INDENT}"
                 printf "%b        will work, a proper SSD will perform better and is far less prone to data corruption.\\n" "${INDENT}"
