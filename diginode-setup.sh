@@ -3826,8 +3826,7 @@ rpi_microsd_check() {
         fi
          # Check for nvme ssd boot drive
         if [[ "$nvme_drive" == "nvme" ]]; then
-            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an NVME SSD Drive connected via PCIe\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b   Note: Good job! PCIe offers the best performance possible!\\n" "${INDENT}"
+            printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from a PCIe NVME SSD. 🚀\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "\\n"
             IS_MICROSD="NO"
         fi       
