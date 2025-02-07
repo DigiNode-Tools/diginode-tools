@@ -3678,15 +3678,15 @@ if [[ "$sysarch" == "aarch"* ]] || [[ "$sysarch" == "arm"* ]]; then
 
     ######### RPI MODEL DETECTION ###################################
 
-    # Create local variables to store the pitype and pigen
+    # Create local variables
     local pitype
-    local pigen
+    local pitype_check
     local mem_code
     local mem_category
 
     # Look for any mention of 'Raspberry Pi' so we at least know it is a Pi 
-    pigen=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
-    if [[ $pigen == "Raspberry Pi" ]]; then
+    pitype_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi" || echo "")
+    if [[ $pitype_check == "Raspberry Pi" ]]; then
         pitype="pi"
     fi
 
@@ -3783,6 +3783,7 @@ else
     fi
 fi
 
+# banana
 exit
 
 }
@@ -3801,8 +3802,24 @@ rpi_microsd_check() {
 
         # Check for usb boot drive
         if [[ "$usb_drive" == "sda" ]]; then
+
             printf "%b%b %s %bPASSED%b   Raspberry Pi is booting from an external USB Drive\\n" "${OVER}" "${TICK}" "${str}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-            printf "%b   Note: While booting from an HDD will work, an SSD is stongly recommended.\\n" "${INDENT}"
+
+            # If this is a Pi5 or Pi6, suggest using a PCIe NVME SSD
+            pi6_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 6" || echo "")
+            pi5_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 5" || echo "")
+            pi4_check=$(tr -d '\0' < /proc/device-tree/model | grep -Eo "Raspberry Pi 4" || echo "")
+            if [[ "$pi6_check" == "Raspberry Pi 6" ]]; then
+                printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
+                printf "%b         The Pi 6 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
+            elif [[ "$pi5_check" == "Raspberry Pi 5" ]]; then
+                printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
+                printf "%b         The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
+            elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
+                printf "%b   Tip: While booting via a cheap USB flash stick will work, an SSD is stongly recommended.\\n" "${INDENT}"
+                printf "%b        An SSD will perform better and is far less prone to corruption than a flash drive.\\n" "${INDENT}"
+            fi
+            
             printf "\\n"
             IS_MICROSD="NO"
         fi
