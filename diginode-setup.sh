@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.6
+#           Name:  DigiNode Setup v0.10.7
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -28,9 +28,9 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE="v0.10.6  "
+DGNT_VER_LIVE="v0.10.7  "
 # This string must always have 9 characters. Append spaces if needed.
-# Last Updated: 2025-02-06
+# Last Updated: 2025-02-08
 
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
 # We do not want users to end up with a pagrtially working install, so we exit the script
