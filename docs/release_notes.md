@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.7 - 2025-02-08
+- Fix: ```diginode --dgbpeers``` and ```diginode --dgb2peers``` should now display the onion peers correctly.
+
 DigiNode Tools v0.10.6 - 2025-02-07
 - New: Rewritten Raspberry Pi hardware checker. It should now automatically identify all Raspberry Pi hardware - including all recent models of the Raspberry Pi 5 and any future models yet to be released.
 - New: Can now identify when a DigiNode is booting off a PCIe NVME SSD on the Raspberry Pi 5.
@@ -27,8 +30,8 @@ DigiNode Tools v0.10.1 - 2024-06-09
 
 DigiNode Tools v0.10.0 - 2024-06-08
 - New: Tor support! - Your DigiByte nodes can now run over the Tor network for better privacy. You can switch your DigiByte mainnet and/or testnet node to run on Tor via the main menu.
-- Change: --dgbpeers and --dgb2peers now also displays the onion peers, if available.
-- Change: The flag --dgbcfg is now --dgbconf. The flag --dgntset is now --settings. This should hopefully make them easier to remember.
+- Change: ```--dgbpeers``` and ```--dgb2peers``` now also displays the onion peers, if available.
+- Change: The flag ```--dgbcfg``` is now ```--dgbconf```. The flag ```--dgntset``` is now ```--settings```. This should hopefully make them easier to remember.
 - Fix: Bug that prevents the mainnet and testnet node from starting up if the user installs a Dual Node on a clean system.
 - Fix: Error in Dashboard when running only a Testnet node
 - Fix: Error loading CPU usage at Dashboard startup

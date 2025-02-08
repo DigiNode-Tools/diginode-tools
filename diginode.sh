@@ -823,7 +823,11 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
+
+            #store peers
+            mainnetpeers=$($DGB_CLI getpeerinfo)
+
+            ip4peers=$(echo $mainnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -831,7 +835,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
+            ip6peers=$(echo $mainnetpeers | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -839,7 +843,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "Onion Peers:\\n"
-            onionpeers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            onionpeers=$(echo $mainnetpeers | jq -r '.[].addr' | awk -F ':' '$1 ~ /\.onion$/ {print $0}' | sort)
             if [ -z "$onionpeers" ]; then
                 echo "none"
             else
@@ -857,7 +861,11 @@ if [ $UNKNOWN_FLAG = true ] || \
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
             printf "IP4 Peers:\\n"
-            ip4peers=$($DGB_CLI getpeerinfo | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
+
+            #store peers
+            testnetpeers=$($DGB_CLI -testnet getpeerinfo)
+
+            ip4peers=$(echo $testnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]+\\.") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
                 echo "none"
             else
@@ -865,7 +873,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "IP6 Peers:\\n"
-            ip6peers=$($DGB_CLI -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
+            ip6peers=$(echo $testnetpeers | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//'  | grep --color=never -E '^\[' | sort)
             if [ -z "$ip6peers" ]; then
                 echo "none"
             else
@@ -873,7 +881,7 @@ if [ $UNKNOWN_FLAG = true ] || \
             fi
             printf "\\n"
             printf "Onion Peers:\\n"
-            onionpeers=$($DGB_CLI -testnet getpeerinfo | jq -r '.[] | {ip: .addr, port: .port} | "\(.ip):\(.port)"' | sed 's/:null$//' | grep '\.onion$' | sort)
+            onionpeers=$(echo $testnetpeers | jq -r '.[].addr' | awk -F ':' '$1 ~ /\.onion$/ {print $0}' | sort)
             if [ -z "$onionpeers" ]; then
                 echo "none"
             else
