@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.8 - 2025-02-11
+- Change: Update the DigiFacts web service URL which has changed to: https://digifacts.diginode.tools. The DigiFacts Github repo has moved to: https://github.com/DigiNode-Tools/DigiByte-DigiFacts-JSON
+
 DigiNode Tools v0.10.7 - 2025-02-08
 - Fix: ```diginode --dgbpeers``` and ```diginode --dgb2peers``` should now display the onion peers correctly.
 

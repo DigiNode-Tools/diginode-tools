@@ -18060,7 +18060,7 @@ fi
 # Download the DigiFacts file from Github (at most once every 24 hours)
 download_digifacts() {
 
-    local digifacts_url="https://digifacts.digibyte.help/?lang=en&format=social"
+    local digifacts_url="https://digifacts.diginode.tools/?lang=en&format=social"
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
     local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"
