@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.7
+#           Name:  DigiNode Setup v0.10.8
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -28,7 +28,7 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE="v0.10.7  "
+DGNT_VER_LIVE="v0.10.8  "
 # This string must always have 9 characters. Append spaces if needed.
 # Last Updated: 2025-02-08
 
@@ -18060,7 +18060,7 @@ fi
 # Download the DigiFacts file from Github (at most once every 24 hours)
 download_digifacts() {
 
-    local digifacts_url="https://digifacts.digibyte.help/?lang=en&format=social"
+    local digifacts_url="https://digifacts.diginode.tools/?lang=en&format=social"
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
     local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"

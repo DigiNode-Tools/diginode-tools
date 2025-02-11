@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.7
+#           Name:  DigiNode Dashboard v0.10.8
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -58,7 +58,7 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.7
+DGNT_VER_LOCAL=0.10.8
 # Last Updated: 2025-02-08
 
 # This is the command people will enter to run the install script.
