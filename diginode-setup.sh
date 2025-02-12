@@ -28,9 +28,11 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE="v0.10.9  "
-# This string must always have 9 characters. Append spaces if needed.
+DGNT_VER_LIVE=0.10.9
 # Last Updated: 2025-02-12
+
+# Convert to a fixed width string of 9 characters to display in the script
+DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
 
 # -e option instructs bash to immediately exit if any command [1] has a non-zero exit status
 # We do not want users to end up with a pagrtially working install, so we exit the script
@@ -280,7 +282,7 @@ display_help() {
         echo ""
         echo "  ╔═════════════════════════════════════════════════════════╗"
         echo "  ║                                                         ║"
-        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE     ║"
+        echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE_FW     ║"
         echo "  ║                                                         ║"
         echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
         echo "  ║                                                         ║"
@@ -904,6 +906,14 @@ DGB_DATA_DISKUSED_TEST_HR="$DGB_DATA_DISKUSED_TEST_HR"
 DGB_DATA_DISKUSED_TEST_KB="$DGB_DATA_DISKUSED_TEST_KB"
 DGB_DATA_DISKUSED_TEST_PERC="$DGB_DATA_DISKUSED_TEST_PERC"
 
+DGB_DATA_DISKUSED_REGTEST_HR="$DGB_DATA_DISKUSED_REGTEST_HR"
+DGB_DATA_DISKUSED_REGTEST_KB="$DGB_DATA_DISKUSED_REGTEST_KB"
+DGB_DATA_DISKUSED_REGTEST_PERC="$DGB_DATA_DISKUSED_REGTEST_PERC"
+
+DGB_DATA_DISKUSED_SIGNET_HR="$DGB_DATA_DISKUSED_SIGNET_HR"
+DGB_DATA_DISKUSED_SIGNET_KB="$DGB_DATA_DISKUSED_SIGNET_KB"
+DGB_DATA_DISKUSED_SIGNET_PERC="$DGB_DATA_DISKUSED_SIGNET_PERC"
+
 IPFS_DATA_DISKUSED_HR="$IPFS_DATA_DISKUSED_HR"
 IPFS_DATA_DISKUSED_KB="$IPFS_DATA_DISKUSED_KB"
 IPFS_DATA_DISKUSED_PERC="$IPFS_DATA_DISKUSED_PERC"
@@ -1394,6 +1404,28 @@ update_disk_usage() {
             DGB_DATA_DISKUSED_TEST_PERC=""
         fi
 
+        # DigiByte regtest disk used
+        if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
+            DGB_DATA_DISKUSED_REGTEST_HR=$(du -sh $DGB_DATA_LOCATION/regtest | awk '{print $1}')
+            DGB_DATA_DISKUSED_REGTEST_KB=$(du -sk $DGB_DATA_LOCATION/regtest | awk '{print $1}')
+            DGB_DATA_DISKUSED_REGTEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_REGTEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        else
+            DGB_DATA_DISKUSED_REGTEST_HR=""
+            DGB_DATA_DISKUSED_REGTEST_KB=""
+            DGB_DATA_DISKUSED_REGTEST_PERC=""
+        fi
+
+        # DigiByte signet disk used
+        if [ -d "$DGB_DATA_LOCATION/signet" ]; then
+            DGB_DATA_DISKUSED_SIGNET_HR=$(du -sh $DGB_DATA_LOCATION/signet | awk '{print $1}')
+            DGB_DATA_DISKUSED_SIGNET_KB=$(du -sk $DGB_DATA_LOCATION/signet | awk '{print $1}')
+            DGB_DATA_DISKUSED_SIGNET_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_SIGNET_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
+        else
+            DGB_DATA_DISKUSED_SIGNET_HR=""
+            DGB_DATA_DISKUSED_SIGNET_KB=""
+            DGB_DATA_DISKUSED_SIGNET_PERC=""
+        fi
+
         # IPFS disk used
         if [ -d "$IPFS_SETTINGS_LOCATION" ]; then
             IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
@@ -1440,6 +1472,12 @@ update_disk_usage() {
             sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_HR=/s|.*|DGB_DATA_DISKUSED_REGTEST_HR=\"$DGB_DATA_DISKUSED_REGTEST_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_KB=/s|.*|DGB_DATA_DISKUSED_REGTEST_KB=\"$DGB_DATA_DISKUSED_REGTEST_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_PERC=/s|.*|DGB_DATA_DISKUSED_REGTEST_PERC=\"$DGB_DATA_DISKUSED_REGTEST_PERC\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_HR=/s|.*|DGB_DATA_DISKUSED_SIGNET_HR=\"$DGB_DATA_DISKUSED_SIGNET_HR\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_KB=/s|.*|DGB_DATA_DISKUSED_SIGNET_KB=\"$DGB_DATA_DISKUSED_SIGNET_KB\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_PERC=/s|.*|DGB_DATA_DISKUSED_SIGNET_PERC=\"$DGB_DATA_DISKUSED_SIGNET_PERC\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^IPFS_DATA_DISKUSED_HR=/s|.*|IPFS_DATA_DISKUSED_HR=\"$IPFS_DATA_DISKUSED_HR\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^IPFS_DATA_DISKUSED_KB=/s|.*|IPFS_DATA_DISKUSED_KB=\"$IPFS_DATA_DISKUSED_KB\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^IPFS_DATA_DISKUSED_PERC=/s|.*|IPFS_DATA_DISKUSED_PERC=\"$IPFS_DATA_DISKUSED_PERC\"|" $DGNT_SETTINGS_FILE
@@ -3405,7 +3443,7 @@ setup_title_box() {
      clear -x
      echo "  ╔═════════════════════════════════════════════════════════╗"
      echo "  ║                                                         ║"
-     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE     ║"
+     echo "  ║             ${txtbld}D I G I N O D E   S E T U P${txtrst}   $DGNT_VER_LIVE_FW     ║"
      echo "  ║                                                         ║"
      echo "  ║     Setup and manage your DigiByte & DigiAsset Node     ║"
      echo "  ║                                                         ║"
@@ -3866,8 +3904,8 @@ rpi_microsd_check() {
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
                 printf "%b        The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
-                printf "%b   Tip: Booting via an SSD is stongly recommended. While booting via a cheap USB flash drive\\n" "${INDENT}"
-                printf "%b        will work, a proper SSD will perform better and is far less prone to data corruption.\\n" "${INDENT}"
+                printf "%b   Tip: Booting from an SSD is stongly recommended. While a USB flash drive will\\n" "${INDENT}"
+                printf "%b        work, an SSD will perform better and is less prone to data corruption.\\n" "${INDENT}"
             fi
             
             printf "\\n"
@@ -8306,6 +8344,7 @@ change_dgb_network() {
     printf "\\n"
 
 
+#banana
 
 
     if [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
@@ -8320,7 +8359,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/indexes" ] || [ -d "$DGB_DATA_LOCATION/chainstate" ] || [ -d "$DGB_DATA_LOCATION/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if dialog --no-shadow --keep-tite --colors --backtitle "Delete mainnet blockchain data?" --title "Delete mainnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte mainnet blockchain data, since you are now running on testnet?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain from scratch.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Delete mainnet blockchain data?" --title "Delete mainnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte MAINNET blockchain data, since you are now running on TESTNET?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on mainnet, you will need to re-sync the entire mainnet blockchain from scratch.\\n\\nNote: Your mainnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
@@ -8328,6 +8367,20 @@ change_dgb_network() {
                     rm -rf $DGB_DATA_LOCATION/indexes
                     rm -rf $DGB_DATA_LOCATION/chainstate
                     rm -rf $DGB_DATA_LOCATION/blocks
+                    rm -f $DGB_DATA_LOCATION/banlist.dat
+                    rm -f $DGB_DATA_LOCATION/banlist.json
+                    rm -f $DGB_DATA_LOCATION/digibyted.pid
+                    rm -f $DGB_DATA_LOCATION/fee_estimates.dat
+                    rm -f $DGB_DATA_LOCATION/.lock
+                    rm -f $DGB_DATA_LOCATION/mempool.dat
+                    rm -f $DGB_DATA_LOCATION/peers.dat
+                    rm -f $DGB_DATA_LOCATION/settings.json
+                    DGB_DATA_DISKUSED_MAIN_HR=""
+                    DGB_DATA_DISKUSED_MAIN_KB=""
+                    DGB_DATA_DISKUSED_MAIN_PERC=""
+                    sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -8345,7 +8398,7 @@ change_dgb_network() {
         if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
 
             # Delete DigiByte blockchain data
-            if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte testnet blockchain data, since you are now running on mainnet?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte TESTNET blockchain data, since you are now running on MAINNET?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
                 if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
@@ -8353,6 +8406,20 @@ change_dgb_network() {
                     rm -rf $DGB_DATA_LOCATION/testnet4/indexes
                     rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
                     rm -rf $DGB_DATA_LOCATION/testnet4/blocks
+                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
+                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
+                    rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
+                    rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
+                    rm -f $DGB_DATA_LOCATION/testnet4/.lock
+                    rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
+                    rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
+                    rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                    DGB_DATA_DISKUSED_TEST_HR=""
+                    DGB_DATA_DISKUSED_TEST_KB=""
+                    DGB_DATA_DISKUSED_TEST_PERC=""
+                    sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
+                    sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -17677,8 +17744,8 @@ uninstall_do_now() {
             if [ "$DGB_DUAL_NODE" = "YES" ]; then
 
                 printf "%b Stopping DigiByte Core testnet daemon for Dual Node...\\n" "${INFO}"
-                stop_service digibyted
-                disable_service digibyted
+                stop_service digibyted-testnet
+                disable_service digibyted-testnet
                 DGB2_STATUS="stopped"
 
                 # Delete systemd service file
@@ -17778,6 +17845,12 @@ uninstall_do_now() {
                         rm -f $DGB_DATA_LOCATION/mempool.dat
                         rm -f $DGB_DATA_LOCATION/peers.dat
                         rm -f $DGB_DATA_LOCATION/settings.json
+                        DGB_DATA_DISKUSED_MAIN_HR=""
+                        DGB_DATA_DISKUSED_MAIN_KB=""
+                        DGB_DATA_DISKUSED_MAIN_PERC=""
+                        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -17809,6 +17882,12 @@ uninstall_do_now() {
                         rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
                         rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
                         rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                        DGB_DATA_DISKUSED_TEST_HR=""
+                        DGB_DATA_DISKUSED_TEST_KB=""
+                        DGB_DATA_DISKUSED_TEST_PERC=""
+                        sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -17839,11 +17918,53 @@ uninstall_do_now() {
                         rm -f $DGB_DATA_LOCATION/regtest/mempool.dat
                         rm -f $DGB_DATA_LOCATION/regtest/peers.dat
                         rm -f $DGB_DATA_LOCATION/regtest/settings.json
+                        DGB_DATA_DISKUSED_REGTEST_HR=""
+                        DGB_DATA_DISKUSED_REGTEST_KB=""
+                        DGB_DATA_DISKUSED_REGTEST_PERC=""
+                        sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_HR=/s|.*|DGB_DATA_DISKUSED_REGTEST_HR=\"$DGB_DATA_DISKUSED_REGTEST_HR\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_KB=/s|.*|DGB_DATA_DISKUSED_REGTEST_KB=\"$DGB_DATA_DISKUSED_REGTEST_KB\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_REGTEST_PERC=/s|.*|DGB_DATA_DISKUSED_REGTEST_PERC=\"$DGB_DATA_DISKUSED_REGTEST_PERC\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
                 else
                     printf "%b You chose to keep the existing DigiByte REGTEST blockchain data.\\n" "${INFO}"
+                fi
+
+            fi
+
+            # Only prompt to delete the signet blockchain data if it already exists
+            if [ -d "$DGB_DATA_LOCATION/signet/indexes" ] || [ -d "$DGB_DATA_LOCATION/signet/chainstate" ] || [ -d "$DGB_DATA_LOCATION/signet/blocks" ]; then
+
+                # Delete DigiByte blockchain data
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte SIGNET blockchain" --title "DigiNode Uninstall: Delete DigiByte SIGNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte SIGNET blockchain data?\Z0\\n\\nNote: Your regtest wallet will be kept." 10 "${c}"; then
+
+                    # Delete systemd service file
+                    if [ -d "$DGB_DATA_LOCATION/signet" ]; then
+                        str="Deleting DigiByte Core SIGNET blockchain data..."
+                        printf "%b %s" "${INFO}" "${str}"
+                        rm -rf $DGB_DATA_LOCATION/signet/indexes
+                        rm -rf $DGB_DATA_LOCATION/signet/chainstate
+                        rm -rf $DGB_DATA_LOCATION/signet/blocks
+                        rm -f $DGB_DATA_LOCATION/signet/banlist.dat
+                        rm -f $DGB_DATA_LOCATION/signet/banlist.json
+                        rm -f $DGB_DATA_LOCATION/signet/digibyted.pid
+                        rm -f $DGB_DATA_LOCATION/signet/fee_estimates.dat
+                        rm -f $DGB_DATA_LOCATION/signet/.lock
+                        rm -f $DGB_DATA_LOCATION/signet/mempool.dat
+                        rm -f $DGB_DATA_LOCATION/signet/peers.dat
+                        rm -f $DGB_DATA_LOCATION/signet/settings.json
+                        DGB_DATA_DISKUSED_SIGNET_HR=""
+                        DGB_DATA_DISKUSED_SIGNET_KB=""
+                        DGB_DATA_DISKUSED_SIGNET_PERC=""
+                        sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_HR=/s|.*|DGB_DATA_DISKUSED_SIGNET_HR=\"$DGB_DATA_DISKUSED_SIGNET_HR\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_KB=/s|.*|DGB_DATA_DISKUSED_SIGNET_KB=\"$DGB_DATA_DISKUSED_SIGNET_KB\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_DATA_DISKUSED_SIGNET_PERC=/s|.*|DGB_DATA_DISKUSED_SIGNET_PERC=\"$DGB_DATA_DISKUSED_SIGNET_PERC\"|" $DGNT_SETTINGS_FILE
+                        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+                    fi
+
+                else
+                    printf "%b You chose to keep the existing DigiByte SIGNET blockchain data.\\n" "${INFO}"
                 fi
 
             fi
