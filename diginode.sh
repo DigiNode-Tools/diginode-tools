@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.8
+#           Name:  DigiNode Dashboard v0.10.9
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -58,8 +58,12 @@
 # Whenever there is a new release, this number gets updated to match the release number on GitHub.
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
-DGNT_VER_LOCAL=0.10.8
-# Last Updated: 2025-02-08
+
+DGNT_VER_LOCAL=0.10.9
+# Last Updated: 2025-02-12
+
+# Convert to a fixed width string of 9 characters to display in the script
+DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
@@ -976,12 +980,12 @@ display_help() {
         echo ""
         echo "  ╔════════════════════════════════════════════════════════╗"
         echo "  ║                                                        ║"
-        echo "  ║                  ${txtbld}D I G I N O D E   C L I${txtrst}               ║ "
+        echo "  ║            ${txtbld}D I G I N O D E   C L I${txtrst}   $DGNT_VER_LOCAL_FW         ║"
         echo "  ║                                                        ║"
         echo "  ║       Manage your DigiNode from the Command Line       ║"
         echo "  ║                                                        ║"
         echo "  ╚════════════════════════════════════════════════════════╝" 
-        echo ""
+        echo ""     
         printf "%b%b--help%b or %b-h%b   - Display this help screen.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b%b--verbose%b      - Enable verbose mode in DigiNode Dashboard.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -1088,14 +1092,14 @@ import_setup_functions() {
 }
 
 # A simple function that clears the sreen and displays the Dashboard title in a box
-digimon_title_box() {
+dashboard_title_box() {
     clear -x
     tput civis
     tput smcup
     echo ""
     echo "  ╔════════════════════════════════════════════════════════╗"
     echo "  ║                                                        ║"
-    echo "  ║          ${txtbld}D I G I N O D E   D A S H B O A R D${txtrst}           ║ "
+    echo "  ║       ${txtbld}D I G I N O D E   D A S H B O A R D${txtrst}   $DGNT_VER_LOCAL_FW  ║"
     echo "  ║                                                        ║"
     echo "  ║         Monitor your DigiByte & DigiAsset Node         ║"
     echo "  ║                                                        ║"
@@ -4640,6 +4644,7 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
     # Calculate the column widths based on terminal width
     col_width_dgb_connections_low=$((term_width - 38 - 29 - 3 - 2)) 
     col_width_dgb_connections_max=$((term_width - 38 - 29 - 3 - 2))
+    col_width_dgb_blockheight_long=$((term_width - 39 - 32 - 3 - 2)) 
     col_width_dgb_blockheight=$((term_width - 38 - 19 - 3 - 2)) 
     col_width_dgb_uptime=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_uptime_long=$((term_width - 38 - 39 - 3 - 2)) 
@@ -5009,7 +5014,21 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
         display_dgb_lowcon_msg
     fi
 
-    printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC% ]" " ║ "
+    # Store the disk space used by the currently running blockchain
+    case "$DGB_NETWORK_CURRENT" in
+        "MAINNET" ) DGB_BLOCKCHAIN_SIZE=$DGB_DATA_DISKUSED_MAIN_HR;;
+        "TESTNET" ) DGB_BLOCKCHAIN_SIZE=$DGB_DATA_DISKUSED_TEST_HR;;
+        "REGTEST" ) DGB_BLOCKCHAIN_SIZE=$DGB_DATA_DISKUSED_REGTEST_HR;;
+        "SIGNET" ) DGB_BLOCKCHAIN_SIZE=$DGB_DATA_DISKUSED_SIGNET_HR;;
+        # If an unknown flag is used...
+        *) DGB_BLOCKCHAIN_SIZE="0Gb";;
+    esac
+
+    if [ $term_width -gt 90 ]; then 
+        printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight_long}s %33s %-3s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC% | Size: ${DGB_BLOCKCHAIN_SIZE}b ]" " ║ "
+    else
+        printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC% ]" " ║ "
+    fi
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
     if [ $term_width -gt 121 ]; then 
         printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime_long}s %19s %-3s\n" "$dgb_uptime" "[ Online Since: $dgb_online_since ]" " ║ "
@@ -5104,7 +5123,15 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
             display_dgb2_lowcon_msg
         fi
 
-        printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% ]" " ║ "
+        # Store testnet blockchain size
+        DGB2_BLOCKCHAIN_SIZE=$DGB_DATA_DISKUSED_TEST_HR
+
+        if [ $term_width -gt 90 ]; then 
+            printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight_long}s %33s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% | Size: ${DGB2_BLOCKCHAIN_SIZE}b ]" " ║ "
+        else
+            printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% ]" " ║ "
+        fi
+
         echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
         if [ $term_width -gt 121 ]; then 
             printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime_long}s %19s %-3s\n" "$dgb2_uptime" "[ Online Since: $dgb2_online_since ]" " ║ "
@@ -6533,7 +6560,7 @@ startup_checks() {
 
   display_help                     # Display the help screen if the --help or -h flags have been used 
   flag_commands                    # Run a command via a launch flag
-  digimon_title_box                # Clear screen and display title box
+  dashboard_title_box              # Clear screen and display title box
 # digimon_disclaimer               # Display disclaimer warning during development. Pause for confirmation.
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_setup_functions           # Import diginode-setup.sh file because it contains functions we need

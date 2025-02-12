@@ -1,5 +1,12 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.9 - 2025-02-12
+- New: Dashboard now displays the disk space used by the running blockchain
+- New: DigiNode CLI and Dashboard now display the version number at launch
+- Fix: When running a Dual Node, the secondary Testnet node now gets shutdown correctly before performing an uninstall
+- Fix: Blockchain data is now uninstalled fully, when switching between running mainnet and testnet nodes (and vice versa)
+- New: Uninstaller now prompts to uninstall Regtest and Signet blockchain data if present
+
 DigiNode Tools v0.10.8 - 2025-02-11
 - Change: Update the DigiFacts web service URL which has changed to: https://digifacts.diginode.tools. The DigiFacts Github repo has moved to: https://github.com/DigiNode-Tools/DigiByte-DigiFacts-JSON
 
