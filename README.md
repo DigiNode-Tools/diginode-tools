@@ -45,11 +45,11 @@ Includes DigiNode Dashboard, a powerful tools for monitoring the status of your 
 
 ## Support
 
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also contact [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky or [@diginodetools](https://twitter.com/diginodetools) on X.
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also contact [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
 
 ## Please DONATE to Support DigiNode Tools!
 
-I created DigiNode Tools to make it easy for everybody to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. PLEASE DONATE to help me cover server costs and support future development. You can find me on Twitter [@saltedlolly](https://twitter.com/saltedlolly) and Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly  
+I created DigiNode Tools to make it easy for everybody to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. PLEASE DONATE to help me cover server costs and support future development. You can find me on Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly  
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
