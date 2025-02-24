@@ -12031,9 +12031,9 @@ check_digibyte_core() {
         # If there is no pre-release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
             sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
             # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
             if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
+                printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
                 if [ "$DGB_STATUS" = "not_detected" ]; then
                     dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
                 else
@@ -12042,6 +12042,8 @@ check_digibyte_core() {
                     printf "\\n"
                     return
                 fi
+            else
+                printf "%b%b %s NOT AVAILABLE\\n" "${OVER}" "${INFO}" "${str}"
             fi
             # Since there is no available pre-release, we will switch to the latest release
             INSTALL_DGB_RELEASE_TYPE="release"
