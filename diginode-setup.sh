@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.9
+#           Name:  DigiNode Setup v0.10.10
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -28,7 +28,7 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.10.9
+DGNT_VER_LIVE=0.10.10
 # Last Updated: 2025-02-12
 
 # Convert to a fixed width string of 9 characters to display in the script
@@ -9132,7 +9132,7 @@ donation_qrcode() {
     echo "   requested to make a donation so that I can keep improving it."
     echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "          >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
+    echo -e "                    >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -12017,7 +12017,9 @@ check_digibyte_core() {
         str="Checking for latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(echo "$DGB_RELEASE_JSON") | sed 's/v//g')
+        # if the most recent release is a pre-release then store the pre-release version number. if the newest release is a regular release then just return 'null'
+        DGB_VER_PRERELEASE=$(echo "$DGB_RELEASE_JSON" | jq -r '.[0] | if .prerelease then .tag_name else "null" end' | sed 's/v//g')
+
 
         #########################################################
         ########### TESTING: LATEST PRE-RELEASE #################
@@ -12029,9 +12031,9 @@ check_digibyte_core() {
         # If there is no pre-release version
         if [ "$DGB_VER_PRERELEASE" = "null" ]; then
             sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-            printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
             # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
             if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
+                printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
                 if [ "$DGB_STATUS" = "not_detected" ]; then
                     dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
                 else
@@ -12040,6 +12042,8 @@ check_digibyte_core() {
                     printf "\\n"
                     return
                 fi
+            else
+                printf "%b%b %s None!\\n" "${OVER}" "${INFO}" "${str}"
             fi
             # Since there is no available pre-release, we will switch to the latest release
             INSTALL_DGB_RELEASE_TYPE="release"

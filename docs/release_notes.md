@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.10.10 - 2025-02-24
+- Fix: The time online for the Testnet node in the Dashboard now displays in UTC instead of local time
+- Fix: Fixed a showstopping bug that prevented DigiByte Core from being successfully upgraded from a pre-release to the latest release. Somehow I missed this till now. Apologies!
+
 DigiNode Tools v0.10.9 - 2025-02-12
 - New: Dashboard now displays the disk space used by the running blockchain
 - New: DigiNode CLI and Dashboard now display the version number at launch
