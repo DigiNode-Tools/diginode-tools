@@ -12043,7 +12043,7 @@ check_digibyte_core() {
                     return
                 fi
             else
-                printf "%b%b %s NOT AVAILABLE\\n" "${OVER}" "${INFO}" "${str}"
+                printf "%b%b %s None!\\n" "${OVER}" "${INFO}" "${str}"
             fi
             # Since there is no available pre-release, we will switch to the latest release
             INSTALL_DGB_RELEASE_TYPE="release"
