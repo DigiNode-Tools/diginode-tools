@@ -12017,7 +12017,8 @@ check_digibyte_core() {
         str="Checking for latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
-       DGB_VER_PRERELEASE=$(echo "$DGB_RELEASE_JSON" | jq -r '.[0] | if .prerelease then .tag_name else "null" end' | sed 's/v//g')
+        # check it the most recent release is a pre-release, is it a regular release return 'null'
+        DGB_VER_PRERELEASE=$(echo "$DGB_RELEASE_JSON" | jq -r '.[0] | if .prerelease then .tag_name else "null" end' | sed 's/v//g')
 
 
         #########################################################
