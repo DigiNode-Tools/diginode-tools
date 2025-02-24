@@ -9132,7 +9132,7 @@ donation_qrcode() {
     echo "   requested to make a donation so that I can keep improving it."
     echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "          >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
+    echo -e "                    >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -12017,7 +12017,8 @@ check_digibyte_core() {
         str="Checking for latest DigiByte Core pre-release..."
         printf "%b %s" "${INFO}" "${str}"
 
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(echo "$DGB_RELEASE_JSON") | sed 's/v//g')
+       DGB_VER_PRERELEASE=$(echo "$DGB_RELEASE_JSON" | jq -r '.[0] | if .prerelease then .tag_name else "null" end' | sed 's/v//g')
+
 
         #########################################################
         ########### TESTING: LATEST PRE-RELEASE #################
