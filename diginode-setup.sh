@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.10
+#           Name:  DigiNode Setup v0.10.11
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -28,8 +28,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.10.10
-# Last Updated: 2025-02-12
+DGNT_VER_LIVE=0.10.11
+# Last Updated: 2025-02-24
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -8147,6 +8147,13 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Mainnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted
+            if [ -f "$DGB_DATA_LOCATION/peers.dat" ]; then
+                str="Deleting Mainnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted
         fi
 
@@ -8158,6 +8165,13 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+                str="Deleting Testnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted
         fi
 
@@ -8169,6 +8183,13 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted-testnet
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+                str="Deleting Testnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted-testnet
         fi
 
