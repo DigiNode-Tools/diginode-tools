@@ -1,7 +1,15 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.10.11 - 2025-02-xx
-- Change: peers.dat is new deleted each time you switch between running a Tor node and a clearnet node. This ensures the node starts with a fresh list of peers to connect to.
+DigiNode Tools v0.11.0 - 2025-04-xx
+- New: DigiNode Dashboard now optionally displays the mempool data for each node. By default, Mempool data is displayed whenever transactions enter the mempool and is hidden if there are no transactions seen for 30 seconds. This way mempool data is only shown when there are transactions occurring, which helps keep the testnet mempool data hidden when the network is not being used. You can enable/disable displaying the mempool data by editing the variables SM_DISPLAY_MAINNET_MEMPOOL and SM_DISPLAY_TESTNET_MEMPOOL in diginode.settings. (Enter ```diginode --settings```). SM_MEMPOOL_DISPLAY_TIMEOUT can be used to set the timeout duration.
+- New: DigiNode Dashboard now displays the incoming and outgoing connections for your DigiByte node.
+- Change: peers.dat is now deleted each time you switch between running a Tor node and a clearnet node. This ensures the node starts with a fresh list of peers to connect to.
+- Change: Add message to Dashboard about DigiAsset Core support. Adding support for DigiAsset Core is not possible at this time due to a bug in DigiByte Core v8.22.x.
+- Change: DigiNode Dashboard autoquit timer is now much more accurate.
+- Fix: Blockchain sync progress is now reset when the blockchain data is deleted or the network is changed.
+- Fix: Fahrenheit temperature is now displayed correctly.
+- Fix: If DigiFacts web service is down, errors are now handled more gracefully.
+- Fix: Spelling error in DigiFact Tip
 
 DigiNode Tools v0.10.10 - 2025-02-24
 - Fix: The time online for the Testnet node in the Dashboard now displays in UTC instead of local time

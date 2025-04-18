@@ -1,35 +1,23 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.11
+#           Name:  DigiNode Setup v0.11.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Raspberry Pi OS, Ubuntu or Debian 64-bit distros.
-#                  A Raspberry Pi 4 8Gb or better, running Raspberry Pi OS Lite 64-bit is recommended.
+#                  A Raspberry Pi with at least 8Gb RAM running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall [ Bluesky: @olly.st ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
-#                  Bluesky  - https://bsky.app/profile/diginode.tools
-#
-#    Get Started:  curl -sSL setup.diginode.tools | bash 
-#  
-#                  Alternatively clone the repo to your home folder:
-#
-#                  cd ~
-#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
-#                  chmod +x ~/diginode-tools/diginode-setup.sh
-#
-#                  To run DigiNode Setup:
-#
-#                  ~/diginode-tools/diginode-setup.sh      
+#                  Bluesky  - https://bsky.app/profile/diginode.tools   
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.10.11
-# Last Updated: 2025-02-24
+DGNT_VER_LIVE=0.11.0
+# Last Updated: 2025-04-15
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -512,6 +500,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_MAX_CONNECTIONS=150
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
+    SM_DISPLAY_MAINNET_MEMPOOL=YES
+    SM_DISPLAY_TESTNET_MEMPOOL=YES
+    SM_MEMPOOL_DISPLAY_TIMEOUT=30
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
@@ -620,6 +611,16 @@ if [[ ! "$UPDATE_GROUP" =~ [1234] ]]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
+# If display mempool values are not assigned, assign them to YES
+if [ "$SM_DISPLAY_MAINNET_MEMPOOL" != "YES" ] || [ "$SM_DISPLAY_MAINNET_MEMPOOL" != "NO" ]; then
+    SM_DISPLAY_MAINNET_MEMPOOL=YES
+fi
+if [ "$SM_DISPLAY_TESTNET_MEMPOOL" != "YES" ] || [ "$SM_DISPLAY_TESTNET_MEMPOOL" != "NO" ]; then
+    SM_DISPLAY_TESTNET_MEMPOOL=YES
+fi
+if [ "$SM_MEMPOOL_DISPLAY_TIMEOUT" = "" ]; then
+    SM_MEMPOOL_DISPLAY_TIMEOUT=30
+fi
 
 # create diginode.settings file
 if [ "$recreate_diginode_settings" = "yes" ]; then
@@ -681,6 +682,15 @@ SM_AUTO_QUIT=$SM_AUTO_QUIT
 # Note: The current wallet balance will only be displayed when (a) this variable is set to YES, and (b) the blockchain 
 # has completed syncing, and (c) there are actually funds in the wallet (i.e. the balance is > 0).
 SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
+
+# Choose whether to display DigiByte mempool data in the DigiNode Dashboard. (Specify either YES or NO.)
+# SM_MEMPOOL_DISPLAY_TIMOUT specifies the number of seconds of there being zero transactions before the
+# mempool data is hidden. This ensures that mempool data is only displayed when there is data to be displayed.
+# Default value is SM_MEMPOOL_DISPLAY_TIMOUT=30
+SM_DISPLAY_MAINNET_MEMPOOL=$SM_DISPLAY_MAINNET_MEMPOOL
+SM_DISPLAY_TESTNET_MEMPOOL=$SM_DISPLAY_TESTNET_MEMPOOL
+SM_MEMPOOL_DISPLAY_TIMEOUT=$SM_MEMPOOL_DISPLAY_TIMEOUT
+
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If NO, it will install the latest release version
@@ -990,22 +1000,19 @@ INSTALLED_TOR_GPG_KEY=$INSTALLED_TOR_GPG_KEY
 
 
 ###############################################
-####### STATE VARIABLES ########£££############
+####### STATE VARIABLES #######################
 ###############################################
 
 # These variables are periodically updated when there is a new release of DigiNode Tools
 # These are used to display the current state of the DigiByte blockchain
 # There is no need to change these values yourself. They will be updated automatically.
 
-# Current DigiByte Block height in Millions. Used in the DigiFacts.
-DGB_BLOCK_HEIGHT_MIL="18"
-
 # These variables stores the approximate amount of space required to download the entire DigiByte blockchain
 # This is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
 # (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
-DGB_DATA_REQUIRED_DATE="August 2023" 
-DGB_DATA_REQUIRED_HR="52Gb"
-DGB_DATA_REQUIRED_KB="52000000"
+DGB_DATA_REQUIRED_DATE="April 2025" 
+DGB_DATA_REQUIRED_HR="55Gb"
+DGB_DATA_REQUIRED_KB="55000000"
 
 EOF
 
@@ -8402,6 +8409,8 @@ change_dgb_network() {
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
+                    DGB_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -8441,6 +8450,10 @@ change_dgb_network() {
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+                    DGB2_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+                    DGB_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -17873,9 +17886,11 @@ uninstall_do_now() {
                         DGB_DATA_DISKUSED_MAIN_HR=""
                         DGB_DATA_DISKUSED_MAIN_KB=""
                         DGB_DATA_DISKUSED_MAIN_PERC=""
+                        DGB_BLOCKSYNC_VALUE=""
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -17913,6 +17928,10 @@ uninstall_do_now() {
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+                        DGB2_BLOCKSYNC_VALUE=""
+                        sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+                        DGB_BLOCKSYNC_VALUE=""
+                        sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -18267,12 +18286,26 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if test ! -s "$digifacts_file"; then
-            rm "$digifacts_file"
+            if [ -f "$digifacts_file" ]; then
+                rm "$digifacts_file"
+            fi
             if [ -f "$digifacts_backup_file" ]; then
                 mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! File empty! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts web server may be down!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             return 1
+
+        # New: Check for HTML response from Cloudflare
+        elif grep -q -i "<!DOCTYPE html>" "$digifacts_file" || grep -q -i "<html" "$digifacts_file"; then
+            rm "$digifacts_file"
+            if [ -f "$digifacts_backup_file" ]; then
+                mv "$digifacts_backup_file" "$digifacts_file"
+            fi
+            printf "%b%b %s No! Received HTML instead of JSON. Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts service may be unreachable or returning a Cloudflare error.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            return 1
+
         else
             # If the JSON is valid, delete the backup file (if it exists)
             if [ -f "$digifacts_backup_file" ]; then
@@ -18292,6 +18325,7 @@ download_digifacts() {
                 mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts.json was bad json. Is service down?%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)

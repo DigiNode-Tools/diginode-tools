@@ -1,7 +1,7 @@
 {
     "diginodehelp1": {
         "title": "DigiFact Tip!",
-        "content": "Some of these DigiFacts include a website URL which can be dificult to open from the terminal. To open a link, try holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows as you click on it. Try it now: $DGNT_WEBSITE_URL",
+        "content": "Some of these DigiFacts include a website URL which can be difficult to open from the terminal. To open a link, try holding the \"Cmd\" key on Mac or the \"Ctrl\" key on Windows as you click on it. Try it now: $DGNT_WEBSITE_URL",
         "url": "$DGNT_WEBSITE_URL"
     },
     "diginodehelp2": {
