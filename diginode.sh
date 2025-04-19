@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.0
+#           Name:  DigiNode Dashboard v0.11.1
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.0
-# Last Updated: 2025-04-15
+DGNT_VER_LOCAL=0.11.1
+# Last Updated: 2025-04-19
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")

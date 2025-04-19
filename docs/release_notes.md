@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.11.1 - 2025-04-xx
+- Coming Soon
+
 DigiNode Tools v0.11.0 - 2025-04-19
 - New: DigiNode Dashboard now has a brand new port tester built for DigiNode Tools. It can test nodes at IPv4, IPv6 and onion addresses. The port tester is also available for anyone to use at: https://diginode.tools/digibyte-port-tester/
 - New: DigiNode Dashboard now optionally displays the mempool data for each node. By default, Mempool data is displayed whenever transactions enter the mempool and is hidden if there are no transactions seen for 30 seconds. This way mempool data is only shown when there are transactions occurring, which helps keep the testnet mempool data hidden when the network is not being used. You can enable/disable displaying the mempool data by editing the variables SM_DISPLAY_MAINNET_MEMPOOL and SM_DISPLAY_TESTNET_MEMPOOL in diginode.settings. (Enter ```diginode --settings```). SM_MEMPOOL_DISPLAY_TIMEOUT can be used to set the timeout duration.
