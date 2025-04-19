@@ -11310,7 +11310,7 @@ query_digibyte_port() {
             # Get current listening port from [test] section of digibyte.conf, if available
             DGB2_LISTEN_PORT_TEST=$(echo "$DIGIBYTE_CONFIG_TEST" | grep ^port= | cut -d'=' -f 2)
             if [ "$DGB2_LISTEN_PORT_TEST" != "" ]; then
-                DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_TEST"
+                DGB2_LISTEN_PORT="$DGB2_LISTEN_PORT_TEST"
             fi
 
         fi
