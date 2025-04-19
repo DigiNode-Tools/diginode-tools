@@ -5956,7 +5956,7 @@ DGB_PORT_TEST_QUERY_CMD_5="&port="
 
 DGB_PORT_TEST_QUERY_CMD_7="&network="
 
-DGB_PORT_TEST_QUERY_CMD_9="\" 2>/dev/null"
+DGB_PORT_TEST_QUERY_CMD_9="&node_uid=$NODE_UID\" 2>/dev/null"
 
 # Calculate DigiByte MAINNET query
 if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]  && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_LISTEN_PORT" != "" ]; then
@@ -6682,6 +6682,7 @@ startup_checks() {
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
+  generate_node_uid                # Generate a NODE_UID if it does not exist
   diginode_logo_v3                 # Display DigiNode logo    
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor

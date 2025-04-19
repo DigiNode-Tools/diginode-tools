@@ -78,6 +78,17 @@ if [[ "$RUN_SETUP" != "NO" ]] ; then
     VERBOSE_MODE=false
 fi
 
+
+######## NEW GENERIC BLOCKCHAIN IDENTIFIER VARIABLES #########
+
+# DIGIBYTE VARIABLES
+
+CRYPTO_NAME="DigiByte"
+CRYPTO_SYMBOL="DGB"
+SETTINGS_LOCATION=$USER_HOME/.digibyte
+SETTINGS_FILE=$SETTINGS_LOCATION/diginode.settings
+
+
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Setup and DigiNode Dashboard scripts make use of a setting file
 # located at ~/.digibyte/diginode.settings
@@ -537,6 +548,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     # SET UPDATE GROUP - RANDOM NUMBER BETWEEN 1 and 4
     UPDATE_GROUP=$(( 1 + $RANDOM % 4 ))
 
+    # generate unique system ID
+    generate_node_uid
+
     # create diginode.settings file
     diginode_settings_create_update
 
@@ -620,6 +634,9 @@ if [ "$SM_DISPLAY_TESTNET_MEMPOOL" != "YES" ] || [ "$SM_DISPLAY_TESTNET_MEMPOOL"
 fi
 if [ "$SM_MEMPOOL_DISPLAY_TIMEOUT" = "" ]; then
     SM_MEMPOOL_DISPLAY_TIMEOUT=30
+fi
+if [ "$NODE_UID" = "" ]; then
+    generate_node_uid
 fi
 
 # create diginode.settings file
@@ -780,6 +797,10 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 #
 # THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and DigiNode Dashboard.
 # Changing them yourself may break your DigiNode.
+
+# This is a unique identifier generated at first install to anonymously identify each DigiNode.
+# Do not edit this value or your node may break
+NODE_UID=$NODE_UID
 
 # DIGIBYTE NODE LOCATION: (Do not change this value)
 # This references a symbolic link that points at the actual install folder. 
@@ -1367,6 +1388,56 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_N
 fi
 
 }
+
+generate_node_uid() {
+    local crypto_symbol node_uid_timestamp random_id machine_id
+    local node_uid_combined fallback_machine_id
+
+    crypto_symbol="$CRYPTO_SYMBOL"
+    fallback_machine_id=$(cat /proc/sys/kernel/random/uuid)
+
+    # Get current machine-id or fallback
+    if [[ -r /etc/machine-id ]]; then
+        machine_id=$(cat /etc/machine-id)
+    else
+        printf "%b WARNING: /etc/machine-id not found. Using fallback machine ID.\n" "${WARN}"
+        machine_id="$fallback_machine_id"
+    fi
+
+    # Check existing NODE_UID
+    if [[ -n "$NODE_UID" ]]; then
+        # Decode Base64 URL
+        decoded_uid=$(echo "$NODE_UID" | tr '_-' '/+' | base64 --decode 2>/dev/null)
+
+        if [[ "$decoded_uid" =~ ^([A-Z]+)_([0-9]+)_([a-f0-9]{6})_([a-f0-9-]+)$ ]]; then
+            stored_machine_id="${BASH_REMATCH[4]}"
+            if [[ "$stored_machine_id" == "$machine_id" ]]; then
+                printf "%b NODE_UID is valid and matches current machine-id.\n" "${TICK}"
+                return 0
+            else
+                printf "%b NODE_UID machine-id mismatch — regenerating...\n" "${WARN}"
+            fi
+        else
+            printf "%b NODE_UID format is invalid — regenerating...\n" "${WARN}"
+        fi
+    fi
+
+    # Generate new NODE_UID
+    node_uid_timestamp=$(date +%s)
+    random_id=$(openssl rand -hex 3)  # 6-character random hex
+    node_uid_combined="${crypto_symbol}_${node_uid_timestamp}_${random_id}_${machine_id}"
+
+    # Base64 URL encode
+    NODE_UID=$(echo -n "$node_uid_combined" | base64 | tr '+/' '-_' | tr -d '=')
+
+    # Save to diginode.settings
+    if [[ -f "$DGNT_SETTINGS_FILE" ]]; then
+        sed -i -e "/^NODE_UID=/s|.*|NODE_UID=$NODE_UID|" "$DGNT_SETTINGS_FILE"
+    fi
+
+    printf "%b Generated new NODE_UID: %s\n" "${INFO}" "$NODE_UID"
+}
+
 
 
 # OLD VERSION_CODENAME
