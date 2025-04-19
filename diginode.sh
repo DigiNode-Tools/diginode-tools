@@ -6157,7 +6157,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
             printf "\\n" 
             printf "%b ${txtbgrn}$DGB_MAINNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
             printf "\\n" 
-            printf "%b DigiByte $DGB_MAINNET_PORT_TEST_NETWORK Node found at address $DGB_MAINNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
+            printf "%b DigiByte $DGB_MAINNET_PORT_TEST_NETWORK Node found at $DGB_MAINNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
             printf "\\n"
 
             sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
@@ -6301,6 +6301,9 @@ elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ]; then
 
 fi
 
+# Sleep between port tests to prevent spamming server
+sleep 2
+
 # Perform a DigiByte TESTNET port test
 if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
 
@@ -6400,7 +6403,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
             printf "\\n" 
             printf "%b ${txtbgrn}$DGB_TESTNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
             printf "\\n" 
-            printf "%b DigiByte $DGB_TESTNET_PORT_TEST_NETWORK Node found at address $DGB_TESTNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
+            printf "%b DigiByte $DGB_TESTNET_PORT_TEST_NETWORK Node found at $DGB_TESTNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
             printf "\\n"
 
             sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          

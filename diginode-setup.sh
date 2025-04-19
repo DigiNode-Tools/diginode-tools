@@ -8256,8 +8256,11 @@ change_tor_status() {
         fi
 
         # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core MAINNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
         DGB_MAINNET_PORT_TEST_ENABLED="YES"
         sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -8278,8 +8281,11 @@ change_tor_status() {
         fi
 
         # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core TESTNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
         DGB_TESTNET_PORT_TEST_ENABLED="YES"
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -8300,8 +8306,11 @@ change_tor_status() {
         fi
 
         # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core TESTNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
         DGB_TESTNET_PORT_TEST_ENABLED="YES"
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE     
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE  
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
 
     fi
 
