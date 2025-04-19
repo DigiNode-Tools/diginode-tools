@@ -1391,17 +1391,36 @@ fi
 
 generate_node_uid() {
     local crypto_symbol node_uid_timestamp random_id machine_id
-    local node_uid_combined fallback_machine_id
+    local node_uid_combined fallback_id fallback_file
+    local decoded_uid stored_machine_id
 
     crypto_symbol="$CRYPTO_SYMBOL"
-    fallback_machine_id=$(cat /proc/sys/kernel/random/uuid)
+    fallback_file="$USER_HOME/.fallback_machine_id"
 
-    # Get current machine-id or fallback
+    # Determine machine_id
     if [[ -r /etc/machine-id ]]; then
         machine_id=$(cat /etc/machine-id)
     else
-        printf "%b WARNING: /etc/machine-id not found. Using fallback machine ID.\n" "${WARN}"
-        machine_id="$fallback_machine_id"
+        # Check if fallback file exists and is valid (32 hex characters)
+        if [[ -r "$fallback_file" ]]; then
+            fallback_id=$(<"$fallback_file")
+            if [[ "$fallback_id" =~ ^[a-f0-9]{32}$ ]]; then
+                machine_id="$fallback_id"
+            else
+                printf "%b Invalid fallback machine ID detected. Regenerating...\n" "${WARN}"
+                fallback_id=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+                echo "$fallback_id" > "$fallback_file"
+                chmod 600 "$fallback_file"
+                machine_id="$fallback_id"
+            fi
+        else
+            # Generate and store a new fallback ID
+            printf "%b No machine-id detected. Generating fallback machine ID...\n" "${WARN}"
+            fallback_id=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+            echo "$fallback_id" > "$fallback_file"
+            chmod 600 "$fallback_file"
+            machine_id="$fallback_id"
+        fi
     fi
 
     # Check existing NODE_UID
@@ -1409,10 +1428,12 @@ generate_node_uid() {
         # Decode Base64 URL
         decoded_uid=$(echo "$NODE_UID" | tr '_-' '/+' | base64 --decode 2>/dev/null)
 
-        if [[ "$decoded_uid" =~ ^([A-Z]+)_([0-9]+)_([a-f0-9]{6})_([a-f0-9-]+)$ ]]; then
+        if [[ "$decoded_uid" =~ ^([A-Z]+)_([0-9]+)_([a-f0-9]{6})_([a-f0-9]+)$ ]]; then
             stored_machine_id="${BASH_REMATCH[4]}"
             if [[ "$stored_machine_id" == "$machine_id" ]]; then
-                printf "%b NODE_UID is valid and matches current machine-id.\n" "${TICK}"
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b NODE_UID is valid and matches current machine-id.\n" "${TICK}"
+                fi
                 return 0
             else
                 printf "%b NODE_UID machine-id mismatch — regenerating...\n" "${WARN}"
@@ -1437,7 +1458,6 @@ generate_node_uid() {
 
     printf "%b Generated new NODE_UID: %s\n" "${INFO}" "$NODE_UID"
 }
-
 
 
 # OLD VERSION_CODENAME
