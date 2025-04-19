@@ -5939,7 +5939,7 @@ DGB_TESTNET_PORT_TEST_MESSAGE=""
 display_port_test_credentials=""
 display_port_forward_instructions=""
 
-# Example Port Test URL: porttest.diginode.tools?network=mainnet&ip=123.123.123.123&port=12024
+# Example Port Test URL: porttest.diginode.tools?network=mainnet&ip=123.123.123.123&port=12024&node_uid=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # Example Query: curl --max-time 4 -sfL GET "https://porttest.diginode.tools?network=mainnet&ip=123.123.123.123&port=12024" 2>/dev/null
 
 # Old Example Port Test URL: https://digibyteseed.com/api/node/?ip=123.123.123.123&port=12024&portscan=yes
