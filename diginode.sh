@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.10.10
+#           Name:  DigiNode Dashboard v0.11.0
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Raspberry Pi OS, Ubuntu or Debian 64-bit distros.
-#                  A Raspberry Pi 4 8Gb or better, running Raspberry Pi OS Lite 64-bit is recommended.
+#                  A Raspberry Pi with at least 8Gb RAM running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall [ Bluesky: @olly.st ]
 #
@@ -13,19 +13,7 @@
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
 #                  Bluesky -  https://bsky.app/profile/diginode.tools
-#
-#    Get Started:  curl -sSL setup.diginode.tools | bash
-#  
-#                  Alternatively clone the repo to your home folder:
-#
-#                  cd ~
-#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
-#                  chmod +x ~/diginode-tools/diginode.sh
-#
-#                  To run DigiNode Dashboard:
-#
-#                  ~/diginode-tools/diginode.sh      
-#
+#      
 # -----------------------------------------------------------------------------------------------------
 
 #####################################################
@@ -59,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.10.10
-# Last Updated: 2025-02-12
+DGNT_VER_LOCAL=0.11.0
+# Last Updated: 2025-04-15
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -2343,154 +2331,6 @@ fi
 
 }
 
-get_country_name() {
-    local code="$1"
-    case "$code" in
-        "ae") echo "United Arab Emirates" ;;
-        "af") echo "Afghanistan" ;;
-        "am") echo "Armenia" ;;
-        "ao") echo "Angola" ;;
-        "ar") echo "Argentina" ;;
-        "at") echo "Austria" ;;
-        "au") echo "Australia" ;;
-        "az") echo "Azerbaijan" ;;
-        "bd") echo "Bangladesh" ;;
-        "be") echo "Belgium" ;;
-        "bf") echo "Burkina Faso" ;;
-        "bg") echo "Bulgaria" ;;
-        "bh") echo "Bahrain" ;;
-        "bi") echo "Burundi" ;;
-        "br") echo "Brazil" ;;
-        "bt") echo "Bhutan" ;;
-        "bw") echo "Botswana" ;;
-        "by") echo "Belarus" ;;
-        "ca") echo "Canada" ;;
-        "cd") echo "Democratic Republic of the Congo" ;;
-        "cf") echo "Central African Republic" ;;
-        "cg") echo "Congo" ;;
-        "ch") echo "Switzerland" ;;
-        "ci") echo "Côte d'Ivoire" ;;
-        "cm") echo "Cameroon" ;;
-        "cn") echo "China" ;;
-        "cz") echo "Czech Republic" ;;
-        "de") echo "Germany" ;;
-        "dj") echo "Djibouti" ;;
-        "dk") echo "Denmark" ;;
-        "dz") echo "Algeria" ;;
-        "eg") echo "Egypt" ;;
-        "eh") echo "Western Sahara" ;;
-        "er") echo "Eritrea" ;;
-        "es") echo "Spain" ;;
-        "et") echo "Ethiopia" ;;
-        "fi") echo "Finland" ;;
-        "fj") echo "Fiji" ;;
-        "fm") echo "Micronesia" ;;
-        "fr") echo "France" ;;
-        "ga") echo "Gabon" ;;
-        "gb") echo "Great Britain" ;;
-        "ge") echo "Georgia" ;;
-        "gh") echo "Ghana" ;;
-        "gm") echo "Gambia" ;;
-        "gn") echo "Guinea" ;;
-        "gq") echo "Equatorial Guinea" ;;
-        "gr") echo "Greece" ;;
-        "gw") echo "Guinea-Bissau" ;;
-        "hu") echo "Hungary" ;;
-        "id") echo "Indonesia" ;;
-        "ie") echo "Ireland" ;;
-        "il") echo "Israel" ;;
-        "in") echo "India" ;;
-        "iq") echo "Iraq" ;;
-        "ir") echo "Iran" ;;
-        "it") echo "Italy" ;;
-        "jo") echo "Jordan" ;;
-        "jp") echo "Japan" ;;
-        "ke") echo "Kenya" ;;
-        "kg") echo "Kyrgyzstan" ;;
-        "kh") echo "Cambodia" ;;
-        "ki") echo "Kiribati" ;;
-        "km") echo "Comoros" ;;
-        "kp") echo "North Korea" ;;
-        "kr") echo "South Korea" ;;
-        "kw") echo "Kuwait" ;;
-        "kz") echo "Kazakhstan" ;;
-        "la") echo "Laos" ;;
-        "lb") echo "Lebanon" ;;
-        "lk") echo "Sri Lanka" ;;
-        "lr") echo "Liberia" ;;
-        "ls") echo "Lesotho" ;;
-        "ly") echo "Libya" ;;
-        "ma") echo "Morocco" ;;
-        "mg") echo "Madagascar" ;;
-        "mh") echo "Marshall Islands" ;;
-        "mm") echo "Myanmar" ;;
-        "mn") echo "Mongolia" ;;
-        "mr") echo "Mauritania" ;;
-        "mu") echo "Mauritius" ;;
-        "mv") echo "Maldives" ;;
-        "mw") echo "Malawi" ;;
-        "mx") echo "Mexico" ;;
-        "my") echo "Malaysia" ;;
-        "mz") echo "Mozambique" ;;
-        "na") echo "Namibia" ;;
-        "ne") echo "Niger" ;;
-        "ng") echo "Nigeria" ;;
-        "nl") echo "Netherlands" ;;
-        "no") echo "Norway" ;;
-        "np") echo "Nepal" ;;
-        "nr") echo "Nauru" ;;
-        "nz") echo "New Zealand" ;;
-        "om") echo "Oman" ;;
-        "pg") echo "Papua New Guinea" ;;
-        "ph") echo "Philippines" ;;
-        "pk") echo "Pakistan" ;;
-        "pl") echo "Poland" ;;
-        "ps") echo "Palestine" ;;
-        "pt") echo "Portugal" ;;
-        "pw") echo "Palau" ;;
-        "qa") echo "Qatar" ;;
-        "ro") echo "Romania" ;;
-        "ru") echo "Russia" ;;
-        "rw") echo "Rwanda" ;;
-        "sa") echo "Saudi Arabia" ;;
-        "sb") echo "Solomon Islands" ;;
-        "sc") echo "Seychelles" ;;
-        "sd") echo "Sudan" ;;
-        "se") echo "Sweden" ;;
-        "sg") echo "Singapore" ;;
-        "sl") echo "Sierra Leone" ;;
-        "sn") echo "Senegal" ;;
-        "so") echo "Somalia" ;;
-        "ss") echo "South Sudan" ;;
-        "sy") echo "Syria" ;;
-        "sz") echo "Eswatini" ;;
-        "td") echo "Chad" ;;
-        "th") echo "Thailand" ;;
-        "tj") echo "Tajikistan" ;;
-        "tl") echo "Timor-Leste" ;;
-        "tm") echo "Turkmenistan" ;;
-        "tn") echo "Tunisia" ;;
-        "to") echo "Tonga" ;;
-        "tr") echo "Turkey" ;;
-        "tv") echo "Tuvalu" ;;
-        "tz") echo "Tanzania" ;;
-        "ua") echo "Ukraine" ;;
-        "ug") echo "Uganda" ;;
-        "uk") echo "United Kingdom" ;;
-        "us") echo "United States" ;;
-        "uz") echo "Uzbekistan" ;;
-        "vn") echo "Vietnam" ;;
-        "vu") echo "Vanuatu" ;;
-        "ws") echo "Samoa" ;;
-        "ye") echo "Yemen" ;;
-        "za") echo "South Africa" ;;
-        "zm") echo "Zambia" ;;
-        "zw") echo "Zimbabwe" ;;
-        # Add more cases for other country codes and names here
-        *) echo "$code" | tr '[:lower:]' '[:upper:]' ;;
-    esac
-}
-
 firstrun_monitor_configs() {
 
 # If this is the first time running the Dashboard, set the variables that update periodically
@@ -2740,6 +2580,7 @@ pre_loop() {
 
     # Setup loopcounter - used for debugging
     loopcounter=0
+    auto_quit_counter=$(date +%s)
 
     # Set timenow variable with the current UTC time
     TIME_NOW=$(date -u +"%A, %d %B %Y %H:%M:%S %Z")
@@ -3373,8 +3214,9 @@ do
 
 if [ $SM_AUTO_QUIT -gt 0 ]; then
   auto_quit_seconds=$(( $SM_AUTO_QUIT*60 ))
-  auto_quit_half_seconds=$(( $auto_quit_seconds*2 ))
-  if [ $loopcounter -gt $auto_quit_half_seconds ]; then
+  auto_quit_current_elapsed=$(( $TIME_NOW_UNIX - $auto_quit_counter ))
+
+  if [ $auto_quit_current_elapsed -gt $auto_quit_seconds ]; then
       auto_quit=true
       exit
   fi
@@ -3412,7 +3254,7 @@ if [ "$temperature" != "" ]; then
   TEMP_C=$((temperature/1000))
 
   # Convert temperature to Degrees F
-  TEMP_F=$(((9/5) * $TEMP_C + 32))
+  TEMP_F=$(echo "scale=1; (($temperature / 1000) * 9 / 5) + 32" | bc | awk '{printf("%d\n", $1 + 0.5)}') 
 
 fi
 
@@ -3491,6 +3333,8 @@ if [ "$DGB_STATUS" = "running" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
     DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
+
+    # banana
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3522,6 +3366,35 @@ if [ "$DGB_STATUS" = "running" ]; then
     
   fi
 
+  # query mempool data if the blockchain is synced and mempool feature is enabled
+  if [[ ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_MAINNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "MAINNET" ) || ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "TESTNET" ) ]]; then
+    DGB_MEMPOOL_QUERY=$($DGB_CLI getmempoolinfo 2>/dev/null)
+
+    DGB_MEMPOOL_LOADED=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
+ 
+    if [ "$DGB_MEMPOOL_LOADED" = true ]; then
+        DGB_MEMPOOL_TXES=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.size' 2>/dev/null)
+        DGB_MEMPOOL_BYTES=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.bytes' 2>/dev/null)
+        DGB_MEMPOOL_TOTALFEE=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.total_fee' 2>/dev/null)
+
+        # The display counter will hide the mempool data if there are no transactions present at launch or after there 
+        # have not been any for x seconds (where x is set by the SM_MEMPOOL_DISPLAY_TIMEOUT variable in diginode.settings).
+        # Increment display counter, if it exists
+        if [ "$DGB_MEMPOOL_DISPLAY_COUNTER" != "" ]; then
+            DGB_MEMPOOL_DISPLAY_COUNTER=$((TIME_NOW_UNIX - DGB_MEMPOOL_DISPLAY_COUNTER_START))
+        # If display counter does not exist (this is the first run) AND there are no transactions, set counter start to 60 seconds ago so it is hidden immediately
+        elif [ "$DGB_MEMPOOL_DISPLAY_COUNTER" = "" ] && [ "$DGB_MEMPOOL_TXES" = 0 ]; then
+            DGB_MEMPOOL_DISPLAY_COUNTER_START=$((TIME_NOW_UNIX - SM_MEMPOOL_DISPLAY_TIMEOUT))
+            DGB_MEMPOOL_DISPLAY_COUNTER=$SM_MEMPOOL_DISPLAY_TIMEOUT
+        fi
+        # Initialize the display counter, or restart it if there is at least one transaction present
+        if [ "$DGB_MEMPOOL_TXES" -gt 0 ] || [ "$DGB_MEMPOOL_DISPLAY_COUNTER" = "" ]; then
+            DGB_MEMPOOL_DISPLAY_COUNTER_START=$TIME_NOW_UNIX
+            DGB_MEMPOOL_DISPLAY_COUNTER=0
+        fi
+    fi
+  fi
+
   # Get primary DigiByted Node Uptime
   dgb_uptime_seconds=$($DGB_CLI uptime 2>/dev/null)
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
@@ -3537,7 +3410,17 @@ if [ "$DGB_STATUS" = "running" ]; then
     DGB_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
   if [ $DGB_CONNECTIONS -ge 9 ]; then
-    DGB_CONNECTIONS_MSG="Maximum: $DGB_MAXCONNECTIONS"
+    DGB_CONNECTIONS_MSG="Max: $DGB_MAXCONNECTIONS"
+  fi
+
+  # Lookup incoming and outgoing connections
+  if [ $DGB_CONNECTIONS != "" ]; then
+    DGB_PEERS=$(digibyte-cli getpeerinfo)
+
+    # Count inbound and outbound using the saved JSON
+    DGB_PEERS_IN=$(echo "$DGB_PEERS" | jq '[.[] | select(.inbound == true)] | length')
+    DGB_PEERS_OUT=$(echo "$DGB_PEERS" | jq '[.[] | select(.inbound == false)] | length')
+
   fi
 
 fi
@@ -3624,8 +3507,38 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
       DGB2_BLOCKSYNC_PROGRESS="synced"
     fi
     
-
   fi
+
+    # query mempool data if the testnet blockchain is synced and mempool feature is enabled
+      if [[ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" ]]; then
+        DGB2_MEMPOOL_QUERY=$($DGB_CLI -testnet getmempoolinfo 2>/dev/null)
+
+        DGB2_MEMPOOL_LOADED=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
+     
+        if [ "$DGB2_MEMPOOL_LOADED" = true ]; then
+            DGB2_MEMPOOL_TXES=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.size' 2>/dev/null)
+            DGB2_MEMPOOL_BYTES=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.bytes' 2>/dev/null)
+            DGB2_MEMPOOL_TOTALFEE=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.total_fee' 2>/dev/null)
+
+            # The display counter will hide the mempool data if there are no transactions present at launch or after there 
+            # have not been any for x seconds (where x is set by the SM_MEMPOOL_DISPLAY_TIMEOUT variable in diginode.settings).
+            
+            # Update display counter, if it exists
+            if [ "$DGB2_MEMPOOL_DISPLAY_COUNTER" != "" ]; then
+                DGB2_MEMPOOL_DISPLAY_COUNTER=$((TIME_NOW_UNIX - DGB2_MEMPOOL_DISPLAY_COUNTER_START))
+            # If display counter does not exist (this is the first run) AND there are no transactions, set display counter to 60 so it is hidden
+            elif [ "$DGB2_MEMPOOL_DISPLAY_COUNTER" = "" ] && [ "$DGB2_MEMPOOL_TXES" = 0 ]; then
+                DGB2_MEMPOOL_DISPLAY_COUNTER_START=$((TIME_NOW_UNIX - SM_MEMPOOL_DISPLAY_TIMEOUT))
+                DGB2_MEMPOOL_DISPLAY_COUNTER=$SM_MEMPOOL_DISPLAY_TIMEOUT
+            fi
+            # Initialize the display counter, or restart it if there is at least one transaction present
+            if [ "$DGB2_MEMPOOL_TXES" -gt 0 ] || [ "$DGB2_MEMPOOL_DISPLAY_COUNTER" = "" ]; then
+                DGB2_MEMPOOL_DISPLAY_COUNTER_START=$TIME_NOW_UNIX
+                DGB2_MEMPOOL_DISPLAY_COUNTER=0
+            fi
+
+        fi
+      fi
 
   # Get secondary DigiByted Node Uptime
   dgb2_uptime_seconds=$($DGB_CLI -testnet uptime 2>/dev/null)
@@ -3643,6 +3556,16 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   fi
   if [ $DGB2_CONNECTIONS -ge 9 ]; then
     DGB2_CONNECTIONS_MSG="Maximum: $DGB2_MAXCONNECTIONS"
+  fi
+
+  # Lookup incoming and outgoing connections
+  if [ $DGB2_CONNECTIONS != "" ]; then
+    DGB2_PEERS=$(digibyte-cli -testnet getpeerinfo)
+
+    # Count inbound and outbound using the saved JSON
+    DGB2_PEERS_IN=$(echo "$DGB2_PEERS" | jq '[.[] | select(.inbound == true)] | length')
+    DGB2_PEERS_OUT=$(echo "$DGB2_PEERS" | jq '[.[] | select(.inbound == false)] | length')
+
   fi
 
 fi
@@ -4522,8 +4445,8 @@ fi
 if [ "$terminal_resized" = "yes" ] && [ "$STARTUP_LOOP" = false ]; then
 
     # Define the strings with line breaks
-    string1="           Tip: To launch a website URL from the terminal,\n                use Cmd-click (Mac) or Ctrl-click (Windows)."
-    string2="         Tip: To make the dashboard text bigger or smaller, press\n              Ctrl-+ or Ctrl-- (Windows) and Cmd-+ or Cmd-- (MacOS)."
+    string1="               Tip: To open a website URL, hold\n                    Ctrl (Win) or Cmd (Mac) when clicking it."
+    string2="                  Tip: To resize the dashboard, press\n                       Ctrl +/- (Win) or Cmd +/- (Mac)."
 
     # Create an array from the individual strings
     strings=("$string1" "$string2")
@@ -4646,6 +4569,7 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
     col_width_dgb_connections_max=$((term_width - 38 - 29 - 3 - 2))
     col_width_dgb_blockheight_long=$((term_width - 39 - 32 - 3 - 2)) 
     col_width_dgb_blockheight=$((term_width - 38 - 19 - 3 - 2)) 
+    col_width_dgb_mempool=$((term_width - 38 - 30 - 3 - 2)) 
     col_width_dgb_uptime=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_uptime_long=$((term_width - 38 - 39 - 3 - 2)) 
     col_width_dgb_ports=$((term_width - 38 - 3 - 1)) 
@@ -4653,6 +4577,7 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
     col_width_dgb_ports_longer=$((term_width - 37 - 24 - 3 - 3)) 
     col_width_dgb_wallet_balance=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_status=$((term_width - 38 - 3 - 1 + 11)) 
+    col_width_dgb_status_nocolor=$((term_width - 38 - 3 - 1)) 
     col_width_dgb_startingup=$((term_width - 38 - 14 - 3 - 2 + 11)) 
     col_width_dga_status=$((term_width - 38 - 3 - 1 + 8)) 
 
@@ -4994,9 +4919,9 @@ echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
 if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node is running
     if [ $DGB_CONNECTIONS -le 8 ]; then
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
     else
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
     fi
     # Choose the correct network chain border
     if [ "$dgb_chain_caps" = "MAINNET" ]; then
@@ -5029,6 +4954,21 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
     else
         printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB_BLOCKSYNC_PERC% ]" " ║ "
     fi
+
+    if [[ ( "$SM_DISPLAY_MAINNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "MAINNET" ) || ( "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "TESTNET" ) ]]; then
+
+        if [ "$DGB_MEMPOOL_LOADED" = true ] && [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ] && [ "$DGB_MEMPOOL_DISPLAY_COUNTER" -lt "$SM_MEMPOOL_DISPLAY_TIMEOUT" ]; then
+            echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+            if [ "$DGB_MEMPOOL_TXES" = "0" ]; then
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            elif [ "$DGB_MEMPOOL_TXES" = "1" ]; then
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            else
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            fi
+        fi
+    fi
+
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
     if [ $term_width -gt 121 ]; then 
         printf " ║                ║    NODE UPTIME ║  " && printf "%-${col_width_dgb_uptime_long}s %19s %-3s\n" "$dgb_uptime" "[ Online Since: $dgb_online_since ]" " ║ "
@@ -5053,6 +4993,7 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
     else
         printf " ║                ║          PORTS ║  " && printf "%-${col_width_dgb_ports}s %-3s\n" "Listening Port: ${DGB_LISTEN_PORT}   RPC Port: $dgb_rpcport_display" " ║ "
     fi
+
 
     # Only display the DigiByte wallet balance if the user (a) wants it displayed AND (b) the blockchain has finished syncing AND (c) the wallet actually contains any DGB
     if [ "$SM_DISPLAY_BALANCE" = "YES" ] && [ "$DGB_BLOCKSYNC_PERC" = "100 " ] && [ "$DGB_WALLET_BALANCE" != "" ]; then 
@@ -5111,9 +5052,9 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     if [ "$DGB2_STATUS" = "running" ]; then # Only display if secondary DigiByte Node is running
         if [ $DGB2_CONNECTIONS -le 8 ]; then
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
@@ -5130,6 +5071,18 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
             printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight_long}s %33s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% | Size: ${DGB2_BLOCKCHAIN_SIZE}b ]" " ║ "
         else
             printf " ║                ║   BLOCK HEIGHT ║  " && printf "%-${col_width_dgb_blockheight}s %19s %-3s\n" "$DGB2_BLOCKCOUNT_FORMATTED Blocks" "[ Synced: $DGB2_BLOCKSYNC_PERC% ]" " ║ "
+        fi
+
+
+        if [ "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" ] && [ "$DGB2_MEMPOOL_LOADED" = true ] && [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ] && [ "$DGB2_MEMPOOL_DISPLAY_COUNTER" -lt "$SM_MEMPOOL_DISPLAY_TIMEOUT" ]; then
+            echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+            if [ "$DGB2_MEMPOOL_TXES" = "0" ]; then
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            elif [ "$DGB2_MEMPOOL_TXES" = "1" ]; then
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            else
+                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            fi
         fi
 
         echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
@@ -5204,7 +5157,9 @@ if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
-    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
+#    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiAsset Core support is not yet possible due to a bug in DigiByte v8.22.x${txtrst}" " ║ "
+     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "More info here: https://github.com/DigiByte-Core/digibyte/issues/263" " ║ "
 fi
 
 echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
@@ -5662,6 +5617,9 @@ if [ "$VERBOSE_MODE" = true ]; then
     printf "          ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} ========="  && tput el && printf "\\n" 
     printf "%${term_width}s\n"
     printf "                Terminal Width: $term_width" && tput el && printf "\\n" 
+    printf "                  Loop Counter: $loopcounter" && tput el && printf "\\n" 
+    printf "                      Autoquit: $auto_quit_current_elapsed seconds of $auto_quit_seconds" && tput el && printf "\\n" 
+    printf "%${term_width}s\n"
     printf "                    DGB_STATUS: $DGB_STATUS ($DGB_NETWORK_CURRENT)" && tput el && printf "\\n" 
     printf "%${term_width}s\n"
     printf "                   DGB2_STATUS: $DGB2_STATUS" && tput el && printf "\\n" 
@@ -5683,6 +5641,28 @@ if [ "$VERBOSE_MODE" = true ]; then
 #    printf "                 TIME_DIF_1DAY: $TIME_DIF_1DAY_COUNTDOWN\\n"
 #    printf "\\n"
 #    printf "                 DGB_ERROR_MSG: $DGB_ERROR_MSG\\n"
+    printf "%${term_width}s\n"
+#    printf "             DGB_MEMPOOL_QUERY: $DGB_MEMPOOL_QUERY\\n"
+   printf "    SM_DISPLAY_MAINNET_MEMPOOL: $SM_DISPLAY_MAINNET_MEMPOOL" && tput el && printf "\\n"
+   printf "    SM_DISPLAY_TESTNET_MEMPOOL: $SM_DISPLAY_TESTNET_MEMPOOL" && tput el && printf "\\n"
+   printf "   DGB_MEMPOOL_DISPLAY_COUNTER: $DGB_MEMPOOL_DISPLAY_COUNTER" && tput el && printf "\\n"
+   printf "  DGB2_MEMPOOL_DISPLAY_COUNTER: $DGB2_MEMPOOL_DISPLAY_COUNTER" && tput el && printf "\\n"
+   printf "  DGB_MEMPOOL_DISPLAY_COUNTER_START: $DGB_MEMPOOL_DISPLAY_COUNTER_START" && tput el && printf "\\n"
+   printf " DGB2_MEMPOOL_DISPLAY_COUNTER_START: $DGB2_MEMPOOL_DISPLAY_COUNTER_START" && tput el && printf "\\n"
+
+   printf "    SM_MEMPOOL_DISPLAY_TIMEOUT: $SM_MEMPOOL_DISPLAY_TIMEOUT" && tput el && printf "\\n"
+    printf "%${term_width}s\n"
+   printf "            DGB_MEMPOOL_LOADED: $DGB_MEMPOOL_LOADED" && tput el && printf "\\n"
+   printf "              DGB_MEMPOOL_TXES: $DGB_MEMPOOL_TXES" && tput el && printf "\\n"
+   printf "             DGB_MEMPOOL_BYTES: $DGB_MEMPOOL_BYTES" && tput el && printf "\\n"
+   printf "          DGB_MEMPOOL_TOTALFEE: $DGB_MEMPOOL_TOTALFEE" && tput el && printf "\\n"
+    printf "%${term_width}s\n"
+#    printf "             DGB2_MEMPOOL_QUERY: $DGB2_MEMPOOL_QUERY\\n"
+   printf "            DGB2_MEMPOOL_LOADED: $DGB2_MEMPOOL_LOADED" && tput el && printf "\\n"
+   printf "              DGB2_MEMPOOL_TXES: $DGB2_MEMPOOL_TXES" && tput el && printf "\\n"
+   printf "             DGB2_MEMPOOL_BYTES: $DGB2_MEMPOOL_BYTES" && tput el && printf "\\n"
+   printf "          DGB2_MEMPOOL_TOTALFEE: $DGB2_MEMPOOL_TOTALFEE" && tput el && printf "\\n"
+   printf "%${term_width}s\n"
     printf "       DGB_TROUBLESHOOTING_MSG: $DGB_TROUBLESHOOTING_MSG" && tput el && printf "\\n" 
     printf "%${term_width}s\n"
     printf "        DGB_BLOCKSYNC_PROGRESS: $DGB_BLOCKSYNC_PROGRESS" && tput el && printf "\\n" 
@@ -5742,7 +5722,7 @@ fi
 trap quit_message EXIT
 
 # sleep 1
-read -t 0.5 -s -n 1 input
+read -t 0.1 -s -n 1 input
 
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
@@ -5750,11 +5730,13 @@ read -t 0.5 -s -n 1 input
             "P")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "Q")
@@ -5773,11 +5755,13 @@ read -t 0.5 -s -n 1 input
             "P")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "Q")
@@ -5796,11 +5780,13 @@ read -t 0.5 -s -n 1 input
             "P")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "Q")
@@ -5819,11 +5805,13 @@ read -t 0.5 -s -n 1 input
             "P")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "p")
                 echo "Running Port test..."
                 loopcounter=0
+                auto_quit_counter=$(date +%s)
                 port_test
                 ;;
             "Q")
@@ -5851,9 +5839,10 @@ read -t 0.5 -s -n 1 input
 
     fi
 
-# Any key press resets the loopcounter
+# Any key press resets the auto_quit_counter
 if [ "${#input}" != 0 ]; then
     loopcounter=0
+    auto_quit_counter=$(date +%s)
 fi
 
 done
@@ -5919,49 +5908,103 @@ PORT_TEST_DATE=$(date)
 # Reset DigiByte mainnet node port test variables
 DGB_MAINNET_PORT_TEST_QUERY_CMD=""
 DGB_MAINNET_PORT_FWD_STATUS=""
+DGB_MAINNET_PORT_TEST_ID=""
+DGB_MAINNET_PORT_TEST_TIME=""
+DGB_MAINNET_PORT_TEST_NETWORK=""
+DGB_MAINNET_PORT_TEST_PORTSTATUS=""
 DGB_MAINNET_PORT_TEST_USERAGENT=""
+DGB_MAINNET_PORT_TEST_PROTOCOL_VER=""
 DGB_MAINNET_PORT_TEST_BLOCKCOUNT=""
 DGB_MAINNET_PORT_TEST_ISP=""
-DGB_MAINNET_PORT_TEST_COUNTRY=""
-DGB_MAINNET_PORT_TEST_FIRSTONLINE=""
+DGB_MAINNET_PORT_TEST_LOCATION=""
+DGB_MAINNET_PORT_TEST_CACHED=""
+DGB_MAINNET_PORT_TEST_MESSAGE=""
 
 # Reset DigiByte testnet node port test variables
 DGB_TESTNET_PORT_TEST_QUERY_CMD=""
+DGB_TESTNET_PORT_FWD_STATUS=""
+DGB_TESTNET_PORT_TEST_ID=""
+DGB_TESTNET_PORT_TEST_TIME=""
+DGB_TESTNET_PORT_TEST_NETWORK=""
+DGB_TESTNET_PORT_TEST_PORTSTATUS=""
+DGB_TESTNET_PORT_TEST_USERAGENT=""
+DGB_TESTNET_PORT_TEST_PROTOCOL_VER=""
+DGB_TESTNET_PORT_TEST_BLOCKCOUNT=""
+DGB_TESTNET_PORT_TEST_ISP=""
+DGB_TESTNET_PORT_TEST_LOCATION=""
+DGB_TESTNET_PORT_TEST_CACHED=""
+DGB_TESTNET_PORT_TEST_MESSAGE=""
 
 # Reset other port test variables
 display_port_test_credentials=""
 display_port_forward_instructions=""
 
-# Example Port Test URL: https://digibyteseed.com/api/node/?ip=123.123.123.123&port=12024&portscan=yes
-# Example Query: curl --max-time 4 -sfL GET "https://digibyteseed.com/api/node/?ip=172.105.162.72&port=12024&portscan=yes" 2>/dev/null
+# Example Port Test URL: porttest.diginode.tools?network=mainnet&ip=123.123.123.123&port=12024&node_uid=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Example Query: curl --max-time 4 -sfL GET "https://porttest.diginode.tools?network=mainnet&ip=123.123.123.123&port=12024" 2>/dev/null
 
-DGB_PORT_TEST_URL="https://digibyteseed.com/api/node/"
+# Old Example Port Test URL: https://digibyteseed.com/api/node/?ip=123.123.123.123&port=12024&portscan=yes
+# Old Example Query: curl --max-time 4 -sfL GET "https://digibyteseed.com/api/node/?ip=172.105.162.72&port=12024&portscan=yes" 2>/dev/null
+
+DGB_PORT_TEST_URL="https://porttest.diginode.tools"
 
 # Setup DigiByte Port Test Query
-DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 4 -sfL GET \""
+DGB_PORT_TEST_QUERY_CMD_1="curl --max-time 20 -sfL GET \""
 DGB_PORT_TEST_QUERY_CMD_2=$DGB_PORT_TEST_URL
 DGB_PORT_TEST_QUERY_CMD_3="?ip="
-DGB_PORT_TEST_QUERY_CMD_4=$IP4_EXTERNAL
+
 DGB_PORT_TEST_QUERY_CMD_5="&port="
 
-DGB_PORT_TEST_QUERY_CMD_7="&portscan=yes\" 2>/dev/null"
+DGB_PORT_TEST_QUERY_CMD_7="&network="
+
+DGB_PORT_TEST_QUERY_CMD_9="&node_uid=$NODE_UID\" 2>/dev/null"
 
 # Calculate DigiByte MAINNET query
 if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]  && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_LISTEN_PORT" != "" ]; then
+    # Calulate which address is in use
+    if [ "$DGB_TOR" = "on" ]; then
+        DGB_MAINNET_PORT_TEST_ADDRESS=$DGB_ONION_ADDRESS
+    elif [ "$IP4_EXTERNAL" != "" ]; then
+        DGB_MAINNET_PORT_TEST_ADDRESS=$IP4_EXTERNAL
+    else
+        DGB_MAINNET_PORT_TEST_ADDRESS=$IP6_EXTERNAL
+    fi
     DGB_PORT_TEST_QUERY_CMD_6_MAINNET=$DGB_LISTEN_PORT
-    DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_PORT_TEST_QUERY_CMD_4}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}"
+    DGB_PORT_TEST_QUERY_CMD_8_MAINNET="mainnet"
+
+    if [ "$DGB_MAINNET_PORT_TEST_ADDRESS" != "" ]; then
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_MAINNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    else
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    fi
+
     DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
     DGB_MAINNET_CONNECTIONS=$DGB_CONNECTIONS
     DGB_MAINNET_STATUS=$DGB_STATUS
     if [ "$DGB_STATUS" = "running" ]; then
         DO_MAINNET_PORT_TEST="YES"
     fi
+
 fi
 
 # Calculate DigiByte TESTNET query (primary node)
 if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB_LISTEN_PORT" != "" ]; then
+    # Calulate which address is in use
+    if [ "$DGB_TOR" = "on" ]; then
+        DGB_TESTNET_PORT_TEST_ADDRESS=$DGB_ONION_ADDRESS
+    elif [ "$IP4_EXTERNAL" != "" ]; then
+        DGB_TESTNET_PORT_TEST_ADDRESS=$IP4_EXTERNAL
+    else
+        DGB_TESTNET_PORT_TEST_ADDRESS=$IP6_EXTERNAL
+    fi
     DGB_PORT_TEST_QUERY_CMD_6_TESTNET=$DGB_LISTEN_PORT
-    DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_PORT_TEST_QUERY_CMD_4}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}"
+    DGB_PORT_TEST_QUERY_CMD_8_TESTNET="testnet"
+
+    if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    else
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    fi
+
     DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
     DGB_TESTNET_CONNECTIONS=$DGB_CONNECTIONS
     DGB_TESTNET_STATUS=$DGB_STATUS
@@ -5972,8 +6015,23 @@ fi
 
 # Calculate DigiByte TESTNET query (secondary node)
 if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] && [ "$DGB2_LISTEN_PORT" != "" ]; then
+    # Calulate which address is in use
+    if [ "$DGB2_TOR" = "on" ]; then
+        DGB_TESTNET_PORT_TEST_ADDRESS=$DGB2_ONION_ADDRESS
+    elif [ "$IP4_EXTERNAL" != "" ]; then
+        DGB_TESTNET_PORT_TEST_ADDRESS=$IP4_EXTERNAL
+    else
+        DGB_TESTNET_PORT_TEST_ADDRESS=$IP6_EXTERNAL
+    fi
     DGB_PORT_TEST_QUERY_CMD_6_TESTNET=$DGB2_LISTEN_PORT
-    DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_PORT_TEST_QUERY_CMD_4}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}"
+    DGB_PORT_TEST_QUERY_CMD_8_TESTNET="testnet"
+
+    if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    else
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+    fi
+
     DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
     DGB_TESTNET_CONNECTIONS=$DGB2_CONNECTIONS
     DGB_TESTNET_STATUS=$DGB2_STATUS
@@ -5983,6 +6041,20 @@ if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] 
 fi
 
 
+if [ $VERBOSE_MODE = true ]; then
+    printf "    ========= ${txtbylw}Troubleshooting (Verbose Mode)${txtrst} ========="  && tput el && printf "\\n" 
+
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CMD" != "" ]; then
+      echo "     DigiByte Mainnet Port Test Query:"
+      echo "     $DGB_MAINNET_PORT_TEST_QUERY_CMD"
+    fi
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CMD" != "" ]; then
+      echo "     DigiByte Testnet Port Test Query:"
+      echo "     $DGB_TESTNET_PORT_TEST_QUERY_CMD"
+    fi
+
+    printf "           ==================================================" && tput el && printf "\\n\\n"
+fi
 
 # Perform a DigiByte MAINNET port test
 if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
@@ -5990,7 +6062,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    # Query DigiByte Port tester - http://digibyteseed.com
+    # Query DigiByte Port tester - https://porttest.diginode.tools
     DGB_MAINNET_PORT_TEST_QUERY=$(eval $DGB_MAINNET_PORT_TEST_QUERY_CMD) 
 
     # Check for port test error
@@ -6000,36 +6072,57 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     fi
 
     DGB_MAINNET_PORT_TEST_QUERY_ID=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .id | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_TIME=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .time | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_NETWORK=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .network | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .port_status | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_HANDSHAKE=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .handshake | sed 's/"//g')                   ## new
     DGB_MAINNET_PORT_TEST_QUERY_USERAGENT=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .user_agent | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_PROTOCOL_VER=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .protocol_version | sed 's/"//g')                   ## new
     DGB_MAINNET_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .blocks | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_LOCATION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .location | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_ISP=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_CITY=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .city | sed 's/"//g')                   ## new
+    DGB_MAINNET_PORT_TEST_QUERY_REGION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .region | sed 's/"//g')                   ## new
     DGB_MAINNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
-    DGB_MAINNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
-    DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_MESSAGE=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .message | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_CACHED=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .cached_data | sed 's/"//g')
+
+    # Get port test query ID
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ID" != "" ]; then
+        DGB_MAINNET_PORT_TEST_ID=$DGB_MAINNET_PORT_TEST_QUERY_ID
+    fi
+
+    # Port test - Get time
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_TIME" != "" ]; then
+        DGB_MAINNET_PORT_TEST_TIME="$DGB_MAINNET_PORT_TEST_QUERY_TIME"
+    fi
 
     # Check network and capitalize
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
         DGB_MAINNET_PORT_TEST_NETWORK=$(echo $DGB_MAINNET_PORT_TEST_QUERY_NETWORK | tr '[:lower:]' '[:upper:]')
     fi
 
-    # Port test - IS port open?
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "open" ]; then
+    # Port test - IS port being forwarded correctly?
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "open" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_HANDSHAKE" = "successful" ]; then
         DGB_MAINNET_PORT_FWD_STATUS="OPEN"
-    elif [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "close" ] || [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "closed" ]; then
+    elif [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "closed" ] || [ "$DGB_MAINNET_PORT_TEST_QUERY_HANDSHAKE" = "failed" ]; then
         DGB_MAINNET_PORT_FWD_STATUS="CLOSED" 
-    elif [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "unavailable" ]; then
-        DGB_MAINNET_PORT_FWD_STATUS="TEST_ERROR"
     elif [ "$DGB_MAINNET_PORT_TEST_QUERY_PORTSTATUS" = "" ]; then
         DGB_MAINNET_PORT_FWD_STATUS="TEST_ERROR"
     fi
 
     # Port test - get user agent
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_USERAGENT" != "" ]; then
-        DGB_MAINNET_PORT_TEST_USERAGENT=$DGB_MAINNET_PORT_TEST_QUERY_USERAGENT
+        # Remove leading/trailing slashes and replace colon with " Core v"
+        DGB_MAINNET_PORT_TEST_USERAGENT=$(echo "$DGB_MAINNET_PORT_TEST_QUERY_USERAGENT" | sed -E 's#^/##; s#/$##; s#:# Core v#')
     fi
 
+    # Port test - Get protocol version
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_PROTOCOL_VER" != "" ]; then
+        DGB_MAINNET_PORT_TEST_PROTOCOL_VER=$DGB_MAINNET_PORT_TEST_QUERY_PROTOCOL_VER
+    fi
+
+    # Port test - Get Block Height
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_BLOCKCOUNT" != "" ]; then
         DGB_MAINNET_PORT_TEST_BLOCKCOUNT=$(printf "%'d" $DGB_MAINNET_PORT_TEST_QUERY_BLOCKCOUNT)
     fi
@@ -6039,91 +6132,99 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
         DGB_MAINNET_PORT_TEST_ISP=$DGB_MAINNET_PORT_TEST_QUERY_ISP
     fi
 
-    # Port test - Get Country
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
-        DGB_MAINNET_PORT_TEST_COUNTRY=$(get_country_name "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY")
+    # Port test - Get Location - onion
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+        DGB_MAINNET_PORT_TEST_LOCATION=$DGB_MAINNET_PORT_TEST_QUERY_LOCATION
     fi
 
-    # Port test - Get first online
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_FIRSTONLINE" != "" ]; then
-        DGB_MAINNET_PORT_TEST_FIRSTONLINE="$DGB_MAINNET_PORT_TEST_QUERY_FIRSTONLINE UTC"
-        first_online_local_time=$(date -d "$DGB_MAINNET_PORT_TEST_FIRSTONLINE")
-        if [ "$first_online_local_time" != "" ]; then
-            DGB_MAINNET_PORT_TEST_FIRSTONLINE=$first_online_local_time
+    # Port test - Get Location
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+        DGB_MAINNET_PORT_TEST_LOCATION="$DGB_MAINNET_PORT_TEST_QUERY_CITY, $DGB_MAINNET_PORT_TEST_QUERY_REGION, $DGB_MAINNET_PORT_TEST_QUERY_COUNTRY"
+    fi
+
+    # Port test - Get Message
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_MESSAGE" != "" ]; then
+        DGB_MAINNET_PORT_TEST_MESSAGE=$DGB_MAINNET_PORT_TEST_QUERY_MESSAGE
+    fi
+
+    # Port test - Get Cached
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CACHED" != "" ]; then
+        DGB_MAINNET_PORT_TEST_CACHED=$DGB_MAINNET_PORT_TEST_QUERY_CACHED
+    fi
+
+
+
+
+    if [ "$DGB_MAINNET_PORT_FWD_STATUS" = "OPEN" ] || [ "$DGB_MAINNET_PORT_FWD_STATUS" = "CLOSED" ]; then
+
+        if [ "$DGB_MAINNET_PORT_FWD_STATUS" = "OPEN" ]; then
+
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbgrn}$DGB_MAINNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
+            printf "%b DigiByte $DGB_MAINNET_PORT_TEST_NETWORK found at $DGB_MAINNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
+            printf "\\n"
+
+            sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
+            DGB_MAINNET_PORT_TEST_ENABLED="NO"
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+            DGB_MAINNET_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=\"$DGB_MAINNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            DGB_MAINNET_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            DGB_MAINNET_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
+            sed -i -e "/^DGB_MAINNET_PORT_NUMBER_SAVED=/s|.*|DGB_MAINNET_PORT_NUMBER_SAVED=\"$DGB_MAINNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+            display_port_test_credentials="yes"
+
+        elif [ "$DGB_MAINNET_PORT_FWD_STATUS" = "CLOSED" ]; then
+
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbred}$DGB_MAINNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
+            printf "\\n"   
+
+            DGB_MAINNET_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            DGB_MAINNET_PORT_FWD_STATUS="CLOSED"
+            sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_MAINNET_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+            DGB_MAINNET_PORT_MAINNET_TEST_EXTERNAL_IP=""
+            sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+            display_port_test_credentials="yes"
+            display_port_forward_instructions="yes"
+
         fi
-    fi
 
-    # Port test - Get server time
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
-        DGB_MAINNET_PORT_TEST_SERVERTIME="$DGB_MAINNET_PORT_TEST_QUERY_SERVERTIME UTC"
-        server_local_time=$(date -d "$DGB_MAINNET_PORT_TEST_SERVERTIME")
-        if [ "$server_local_time" != "" ]; then
-            DGB_MAINNET_PORT_TEST_SERVERTIME=$server_local_time
+        if [ "$DGB_MAINNET_PORT_TEST_ID" != "" ]; then
+            printf "%b               ID:  ${DGB_MAINNET_PORT_TEST_ID}\\n" "${INDENT}"
         fi
-    fi
-
-
-    if [ "$DGB_MAINNET_PORT_FWD_STATUS" = "OPEN" ]; then
-
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
-        printf "\\n" 
-        printf "%b ${txtbgrn}Success! Port $DGB_MAINNET_LISTEN_PORT is OPEN.${txtrst}\\n" "${INDENT}"
-        printf "\\n" 
-        printf "%b DigiByte $DGB_MAINNET_PORT_TEST_NETWORK Node found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
-        printf "\\n" 
+        if [ "$DGB_MAINNET_PORT_TEST_TIME" != "" ]; then
+            printf "%b             Time:  ${DGB_MAINNET_PORT_TEST_TIME}\\n" "${INDENT}"
+        fi
         if [ "$DGB_MAINNET_PORT_TEST_USERAGENT" != "" ]; then
-            printf "%b        Version:  DigiByte Core v${DGB_MAINNET_PORT_TEST_USERAGENT}\\n" "${INDENT}"
-        fi
+            printf "%b       User Agent:  ${DGB_MAINNET_PORT_TEST_USERAGENT}\\n" "${INDENT}"
+        fi   
+        if [ "$DGB_MAINNET_PORT_TEST_PROTOCOL_VER" != "" ]; then
+            printf "%b Protocol Version:  ${DGB_MAINNET_PORT_TEST_PROTOCOL_VER}\\n" "${INDENT}"
+        fi       
         if [ "$DGB_MAINNET_PORT_TEST_BLOCKCOUNT" != "" ]; then
-            printf "%b   Block Height:  $DGB_MAINNET_PORT_TEST_BLOCKCOUNT\\n" "${INDENT}"
+            printf "%b     Block Height:  $DGB_MAINNET_PORT_TEST_BLOCKCOUNT\\n" "${INDENT}"
         fi
         if [ "$DGB_MAINNET_PORT_TEST_ISP" != "" ]; then
-            printf "%b            ISP:  $DGB_MAINNET_PORT_TEST_ISP\\n" "${INDENT}"
+            printf "%b              ISP:  $DGB_MAINNET_PORT_TEST_ISP\\n" "${INDENT}"
         fi
-        if [ "$DGB_MAINNET_PORT_TEST_COUNTRY" != "" ]; then
-            printf "%b        Country:  $DGB_MAINNET_PORT_TEST_COUNTRY\\n" "${INDENT}"
+        if [ "$DGB_MAINNET_PORT_TEST_LOCATION" != "" ]; then
+            printf "%b         Location:  $DGB_MAINNET_PORT_TEST_LOCATION\\n" "${INDENT}"
         fi
-        if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" != "" ]; then
-            printf "%b   First Online:  $DGB_MAINNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
-        fi
-        if [ "$DGB_MAINNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_MAINNET_PORT_TEST_SERVERTIME" != "" ]; then
-            printf "%b   Server Time:  $DGB_MAINNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
+        if [ "$DGB_MAINNET_PORT_TEST_CACHED" != "" ]; then
+            printf "%b     Cached Data?:  $DGB_MAINNET_PORT_TEST_CACHED\\n" "${INDENT}"
         fi
         printf "\\n"
-
-
-
-        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
-        DGB_MAINNET_PORT_TEST_ENABLED="NO"
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
-        DGB_MAINNET_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=\"$DGB_MAINNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
-        DGB_MAINNET_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-        DGB_MAINNET_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
-        sed -i -e "/^DGB_MAINNET_PORT_NUMBER_SAVED=/s|.*|DGB_MAINNET_PORT_NUMBER_SAVED=\"$DGB_MAINNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
         printf "\\n"  
-
-        display_port_test_credentials="yes"
-
-    elif [ "$DGB_MAINNET_PORT_FWD_STATUS" = "CLOSED" ]; then
-
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
-        printf "\\n" 
-        printf "%b ${txtbred}Fail! Port $DGB_MAINNET_LISTEN_PORT is CLOSED.${txtrst}\\n" "${INDENT}"
-        printf "\\n"   
-
-        DGB_MAINNET_PORT_TEST_ENABLED="YES"
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
-        DGB_MAINNET_PORT_FWD_STATUS="CLOSED"
-        sed -i -e "/^DGB_MAINNET_PORT_FWD_STATUS=/s|.*|DGB_MAINNET_PORT_FWD_STATUS=\"$DGB_MAINNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
-        DGB_MAINNET_PORT_TEST_PASS_DATE=""
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
-        DGB_MAINNET_PORT_MAINNET_TEST_EXTERNAL_IP=""
-        sed -i -e "/^DGB_MAINNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_MAINNET_PORT_TEST_EXTERNAL_IP=\"$DGB_MAINNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-
-        display_port_test_credentials="yes"
-        display_port_forward_instructions="yes"
 
     elif [ "$DGB_MAINNET_PORT_FWD_STATUS" = "TEST_ERROR" ]; then
 
@@ -6206,13 +6307,16 @@ elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ]; then
 
 fi
 
+# Sleep between port tests to prevent spamming server
+sleep 2
+
 # Perform a DigiByte TESTNET port test
 if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
 
     str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
     printf "%b %s" "${INFO}" "${str}" 
 
-    # Query DigiByte Port tester - http://digibyteseed.com
+    # Query DigiByte Port tester - https://porttest.diginode.tools
     DGB_TESTNET_PORT_TEST_QUERY=$(eval $DGB_TESTNET_PORT_TEST_QUERY_CMD) 
 
     # Check for port test error
@@ -6222,14 +6326,30 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     fi
 
     DGB_TESTNET_PORT_TEST_QUERY_ID=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .id | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_TIME=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .time | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_NETWORK=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .network | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .port_status | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_HANDSHAKE=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .handshake | sed 's/"//g')                   ## new
     DGB_TESTNET_PORT_TEST_QUERY_USERAGENT=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .user_agent | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_PROTOCOL_VER=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .protocol_version | sed 's/"//g')                   ## new
     DGB_TESTNET_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .blocks | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_LOCATION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .location | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_ISP=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_CITY=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .city | sed 's/"//g')                   ## new
+    DGB_TESTNET_PORT_TEST_QUERY_REGION=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .region | sed 's/"//g')                   ## new
     DGB_TESTNET_PORT_TEST_QUERY_COUNTRY=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .country | sed 's/"//g')
-    DGB_TESTNET_PORT_TEST_QUERY_FIRSTONLINE=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .first_online | sed 's/"//g')
-    DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .server_time | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_MESSAGE=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .message | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_CACHED=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .cached_data | sed 's/"//g')
+
+    # Get port test query ID
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ID" != "" ]; then
+        DGB_TESTNET_PORT_TEST_ID=$DGB_TESTNET_PORT_TEST_QUERY_ID
+    fi
+
+    # Port test - Get time
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_TIME" != "" ]; then
+        DGB_TESTNET_PORT_TEST_TIME="$DGB_TESTNET_PORT_TEST_QUERY_TIME"
+    fi
 
     # Check network and capitalize
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_NETWORK" != "" ]; then
@@ -6237,21 +6357,26 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - IS port open?
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "open" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "open" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_HANDSHAKE" = "successful" ]; then
         DGB_TESTNET_PORT_FWD_STATUS="OPEN"
-    elif [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "close" ] || [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "closed" ]; then
+    elif [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "closed" ] || [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "failed" ]; then
         DGB_TESTNET_PORT_FWD_STATUS="CLOSED" 
-    elif [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "unavailable" ]; then
-        DGB_TESTNET_PORT_FWD_STATUS="TEST_ERROR"
     elif [ "$DGB_TESTNET_PORT_TEST_QUERY_PORTSTATUS" = "" ]; then
         DGB_TESTNET_PORT_FWD_STATUS="TEST_ERROR"
     fi
 
     # Port test - get user agent
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_USERAGENT" != "" ]; then
-        DGB_TESTNET_PORT_TEST_USERAGENT=$DGB_TESTNET_PORT_TEST_QUERY_USERAGENT
+        # Remove leading/trailing slashes and replace colon with " Core v"
+        DGB_TESTNET_PORT_TEST_USERAGENT=$(echo "$DGB_TESTNET_PORT_TEST_QUERY_USERAGENT" | sed -E 's#^/##; s#/$##; s#:# Core v#')
     fi
 
+    # Port test - Get protocol version
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_PROTOCOL_VER" != "" ]; then
+        DGB_TESTNET_PORT_TEST_PROTOCOL_VER=$DGB_TESTNET_PORT_TEST_QUERY_PROTOCOL_VER
+    fi
+
+    # Port test - Get Block Height
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_BLOCKCOUNT" != "" ]; then
         DGB_TESTNET_PORT_TEST_BLOCKCOUNT=$(printf "%'d" $DGB_TESTNET_PORT_TEST_QUERY_BLOCKCOUNT)
     fi
@@ -6261,91 +6386,97 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
         DGB_TESTNET_PORT_TEST_ISP=$DGB_TESTNET_PORT_TEST_QUERY_ISP
     fi
 
-    # Port test - Get Country
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
-        DGB_TESTNET_PORT_TEST_COUNTRY=$(get_country_name "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY")
+    # Port test - Get Location - onion
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+        DGB_TESTNET_PORT_TEST_LOCATION=$DGB_TESTNET_PORT_TEST_QUERY_LOCATION
     fi
 
-    # Port test - Get first online
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_FIRSTONLINE" != "" ]; then
-        DGB_TESTNET_PORT_TEST_FIRSTONLINE="$DGB_TESTNET_PORT_TEST_QUERY_FIRSTONLINE UTC"
-        first_online_local_time=$(date -d "$DGB_TESTNET_PORT_TEST_FIRSTONLINE")
-        if [ "$first_online_local_time" != "" ]; then
-            DGB_TESTNET_PORT_TEST_FIRSTONLINE=$first_online_local_time
+    # Port test - Get Location
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+        DGB_TESTNET_PORT_TEST_LOCATION="$DGB_TESTNET_PORT_TEST_QUERY_CITY, $DGB_TESTNET_PORT_TEST_QUERY_REGION, $DGB_TESTNET_PORT_TEST_QUERY_COUNTRY"
+    fi
+
+    # Port test - Get Message
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_MESSAGE" != "" ]; then
+        DGB_TESTNET_PORT_TEST_MESSAGE=$DGB_TESTNET_PORT_TEST_QUERY_MESSAGE
+    fi
+
+    # Port test - Get Cached
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CACHED" != "" ]; then
+        DGB_TESTNET_PORT_TEST_CACHED=$DGB_TESTNET_PORT_TEST_QUERY_CACHED
+    fi
+
+
+    if [ "$DGB_TESTNET_PORT_FWD_STATUS" = "OPEN" ] || [ "$DGB_TESTNET_PORT_FWD_STATUS" = "CLOSED" ]; then
+
+        if [ "$DGB_TESTNET_PORT_FWD_STATUS" = "OPEN" ]; then
+
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbgrn}$DGB_TESTNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
+            printf "\\n" 
+            printf "%b DigiByte $DGB_TESTNET_PORT_TEST_NETWORK found at $DGB_TESTNET_PORT_TEST_ADDRESS:\\n" "${INDENT}"
+            printf "\\n"
+
+            sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
+            DGB_TESTNET_PORT_TEST_ENABLED="NO"
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+            DGB_TESTNET_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=\"$DGB_TESTNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+            DGB_TESTNET_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+            DGB_TESTNET_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
+            sed -i -e "/^DGB_TESTNET_PORT_NUMBER_SAVED=/s|.*|DGB_TESTNET_PORT_NUMBER_SAVED=\"$DGB_TESTNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
+
+            display_port_test_credentials="yes"
+
+        elif [ "$DGB_TESTNET_PORT_FWD_STATUS" = "CLOSED" ]; then
+
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
+            printf "\\n" 
+            printf "%b ${txtbred}$DGB_TESTNET_PORT_TEST_MESSAGE${txtrst}\\n" "${INDENT}"
+            printf "\\n"   
+
+            DGB_TESTNET_PORT_TEST_ENABLED="YES"
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+            DGB_TESTNET_PORT_FWD_STATUS="CLOSED"
+            sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
+            DGB_TESTNET_PORT_TEST_PASS_DATE=""
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
+            DGB_TESTNET_PORT_TESTNET_TEST_EXTERNAL_IP=""
+            sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
+
+            display_port_test_credentials="yes"
+            display_port_forward_instructions="yes"
+
         fi
-    fi
 
-    # Port test - Get server time
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME" != "" ]; then
-        DGB_TESTNET_PORT_TEST_SERVERTIME="$DGB_TESTNET_PORT_TEST_QUERY_SERVERTIME UTC"
-        server_local_time=$(date -d "$DGB_TESTNET_PORT_TEST_SERVERTIME")
-        if [ "$server_local_time" != "" ]; then
-            DGB_TESTNET_PORT_TEST_SERVERTIME=$server_local_time
+        if [ "$DGB_TESTNET_PORT_TEST_ID" != "" ]; then
+            printf "%b               ID:  ${DGB_TESTNET_PORT_TEST_ID}\\n" "${INDENT}"
         fi
-    fi
-
-
-    if [ "$DGB_TESTNET_PORT_FWD_STATUS" = "OPEN" ]; then
-
-        printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}" 
-        printf "\\n" 
-        printf "%b ${txtbgrn}Success! Port $DGB_TESTNET_LISTEN_PORT is OPEN.${txtrst}\\n" "${INDENT}"
-        printf "\\n" 
-        printf "%b DigiByte $DGB_TESTNET_PORT_TEST_NETWORK Node found at IP address $IP4_EXTERNAL:\\n" "${INDENT}"
-        printf "\\n" 
+        if [ "$DGB_TESTNET_PORT_TEST_TIME" != "" ]; then
+            printf "%b             Time:  ${DGB_TESTNET_PORT_TEST_TIME}\\n" "${INDENT}"
+        fi
         if [ "$DGB_TESTNET_PORT_TEST_USERAGENT" != "" ]; then
-            printf "%b        Version:  DigiByte Core v${DGB_TESTNET_PORT_TEST_USERAGENT}\\n" "${INDENT}"
-        fi
+            printf "%b       User Agent:  ${DGB_TESTNET_PORT_TEST_USERAGENT}\\n" "${INDENT}"
+        fi   
+        if [ "$DGB_TESTNET_PORT_TEST_PROTOCOL_VER" != "" ]; then
+            printf "%b Protocol Version:  ${DGB_TESTNET_PORT_TEST_PROTOCOL_VER}\\n" "${INDENT}"
+        fi       
         if [ "$DGB_TESTNET_PORT_TEST_BLOCKCOUNT" != "" ]; then
-            printf "%b   Block Height:  $DGB_TESTNET_PORT_TEST_BLOCKCOUNT\\n" "${INDENT}"
+            printf "%b     Block Height:  $DGB_TESTNET_PORT_TEST_BLOCKCOUNT\\n" "${INDENT}"
         fi
         if [ "$DGB_TESTNET_PORT_TEST_ISP" != "" ]; then
-            printf "%b            ISP:  $DGB_TESTNET_PORT_TEST_ISP\\n" "${INDENT}"
+            printf "%b              ISP:  $DGB_TESTNET_PORT_TEST_ISP\\n" "${INDENT}"
         fi
-        if [ "$DGB_TESTNET_PORT_TEST_COUNTRY" != "" ]; then
-            printf "%b        Country:  $DGB_TESTNET_PORT_TEST_COUNTRY\\n" "${INDENT}"
+        if [ "$DGB_TESTNET_PORT_TEST_LOCATION" != "" ]; then
+            printf "%b         Location:  $DGB_TESTNET_PORT_TEST_LOCATION\\n" "${INDENT}"
         fi
-        if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" != "" ]; then
-            printf "%b   First Online:  $DGB_TESTNET_PORT_TEST_FIRSTONLINE\\n" "${INDENT}"
-        fi
-        if [ "$DGB_TESTNET_PORT_TEST_FIRSTONLINE" = "" ] && [ "$DGB_TESTNET_PORT_TEST_SERVERTIME" != "" ]; then
-            printf "%b   Server Time:  $DGB_TESTNET_PORT_TEST_SERVERTIME\\n" "${INDENT}"
+        if [ "$DGB_TESTNET_PORT_TEST_CACHED" != "" ]; then
+            printf "%b     Cached Data?:  $DGB_TESTNET_PORT_TEST_CACHED\\n" "${INDENT}"
         fi
         printf "\\n"
-
-
-
-        sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE          
-        DGB_TESTNET_PORT_TEST_ENABLED="NO"
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
-        DGB_TESTNET_PORT_TEST_PASS_DATE=$PORT_TEST_DATE
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=\"$DGB_TESTNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
-        DGB_TESTNET_PORT_TEST_EXTERNAL_IP=$IP4_EXTERNAL
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-        DGB_TESTNET_PORT_NUMBER_SAVED=$DGB_LISTEN_PORT
-        sed -i -e "/^DGB_TESTNET_PORT_NUMBER_SAVED=/s|.*|DGB_TESTNET_PORT_NUMBER_SAVED=\"$DGB_TESTNET_PORT_NUMBER_SAVED\"|" $DGNT_SETTINGS_FILE
-        printf "\\n"  
-
-        display_port_test_credentials="yes"
-
-    elif [ "$DGB_TESTNET_PORT_FWD_STATUS" = "CLOSED" ]; then
-
-        printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}" 
         printf "\\n" 
-        printf "%b ${txtbred}Fail! Port $DGB_TESTNET_LISTEN_PORT is CLOSED.${txtrst}\\n" "${INDENT}"
-        printf "\\n"   
-
-        DGB_TESTNET_PORT_TEST_ENABLED="YES"
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
-        DGB_TESTNET_PORT_FWD_STATUS="CLOSED"
-        sed -i -e "/^DGB_TESTNET_PORT_FWD_STATUS=/s|.*|DGB_TESTNET_PORT_FWD_STATUS=\"$DGB_TESTNET_PORT_FWD_STATUS\"|" $DGNT_SETTINGS_FILE
-        DGB_TESTNET_PORT_TEST_PASS_DATE=""
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=|" $DGNT_SETTINGS_FILE
-        DGB_TESTNET_PORT_TESTNET_TEST_EXTERNAL_IP=""
-        sed -i -e "/^DGB_TESTNET_PORT_TEST_EXTERNAL_IP=/s|.*|DGB_TESTNET_PORT_TEST_EXTERNAL_IP=\"$DGB_TESTNET_PORT_TEST_EXTERNAL_IP\"|" $DGNT_SETTINGS_FILE
-
-        display_port_test_credentials="yes"
-        display_port_forward_instructions="yes"
 
     elif [ "$DGB_TESTNET_PORT_FWD_STATUS" = "TEST_ERROR" ]; then
 
@@ -6431,7 +6562,7 @@ fi
 
 # Display Port Test Credits
 if [ "$display_port_test_credentials" = "yes" ]; then
-       printf "%b DigiByte Port Test provided by: https://digibyteseed.com\\n" "${INFO}"
+       printf "%b DigiByte Port Tester: https://porttest.diginode.tools\\n" "${INFO}"
        printf "\\n"
 fi
 
@@ -6544,6 +6675,7 @@ read -t 60 -n 1 -s -r -p "            < Press any key to return to the dashboard
 clear -x
 
 loopcounter=0
+auto_quit_counter=$(date +%s)
 
 status_loop
 
@@ -6565,6 +6697,7 @@ startup_checks() {
   get_script_location              # Find which folder this script is running in (in case this is an unnoficial DigiNode)
   import_setup_functions           # Import diginode-setup.sh file because it contains functions we need
   diginode_tools_import_settings   # Import diginode.settings file
+  generate_node_uid                # Generate a NODE_UID if it does not exist
   diginode_logo_v3                 # Display DigiNode logo    
   is_verbose_mode                  # Display a message if Verbose Mode is enabled
   set_text_editor                  # Set the system text editor

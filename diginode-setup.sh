@@ -1,35 +1,23 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.10.10
+#           Name:  DigiNode Setup v0.11.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
 #  Compatibility:  Supports x86_86 or arm64 hardware with Raspberry Pi OS, Ubuntu or Debian 64-bit distros.
-#                  A Raspberry Pi 4 8Gb or better, running Raspberry Pi OS Lite 64-bit is recommended.
+#                  A Raspberry Pi with at least 8Gb RAM running Raspberry Pi OS Lite 64-bit is recommended.
 #
 #         Author:  Olly Stedall [ Bluesky: @olly.st ]
 #
 #        Website:  https://diginode.tools
 #
 #        Support:  Telegram - https://t.me/DigiNodeTools
-#                  Bluesky  - https://bsky.app/profile/diginode.tools
-#
-#    Get Started:  curl -sSL setup.diginode.tools | bash 
-#  
-#                  Alternatively clone the repo to your home folder:
-#
-#                  cd ~
-#                  git clone https://github.com/DigiNode-Tools/diginode-tools/
-#                  chmod +x ~/diginode-tools/diginode-setup.sh
-#
-#                  To run DigiNode Setup:
-#
-#                  ~/diginode-tools/diginode-setup.sh      
+#                  Bluesky  - https://bsky.app/profile/diginode.tools   
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.10.10
-# Last Updated: 2025-02-12
+DGNT_VER_LIVE=0.11.0
+# Last Updated: 2025-04-15
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -89,6 +77,17 @@ fi
 if [[ "$RUN_SETUP" != "NO" ]] ; then
     VERBOSE_MODE=false
 fi
+
+
+######## NEW GENERIC BLOCKCHAIN IDENTIFIER VARIABLES #########
+
+# DIGIBYTE VARIABLES
+
+CRYPTO_NAME="DigiByte"
+CRYPTO_SYMBOL="DGB"
+SETTINGS_LOCATION=$USER_HOME/.digibyte
+SETTINGS_FILE=$SETTINGS_LOCATION/diginode.settings
+
 
 ######### IMPORTANT NOTE ###########
 # Both the DigiNode Setup and DigiNode Dashboard scripts make use of a setting file
@@ -512,6 +511,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     DGB_MAX_CONNECTIONS=150
     SM_AUTO_QUIT=20
     SM_DISPLAY_BALANCE=YES
+    SM_DISPLAY_MAINNET_MEMPOOL=YES
+    SM_DISPLAY_TESTNET_MEMPOOL=YES
+    SM_MEMPOOL_DISPLAY_TIMEOUT=30
     DGNT_DEV_BRANCH=YES
     INSTALL_SYS_UPGRADES=NO
 
@@ -545,6 +547,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # SET UPDATE GROUP - RANDOM NUMBER BETWEEN 1 and 4
     UPDATE_GROUP=$(( 1 + $RANDOM % 4 ))
+
+    # generate unique system ID
+    generate_node_uid
 
     # create diginode.settings file
     diginode_settings_create_update
@@ -620,6 +625,19 @@ if [[ ! "$UPDATE_GROUP" =~ [1234] ]]; then
     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 fi
 
+# If display mempool values are not assigned, assign them to YES
+if [ "$SM_DISPLAY_MAINNET_MEMPOOL" != "YES" ] || [ "$SM_DISPLAY_MAINNET_MEMPOOL" != "NO" ]; then
+    SM_DISPLAY_MAINNET_MEMPOOL=YES
+fi
+if [ "$SM_DISPLAY_TESTNET_MEMPOOL" != "YES" ] || [ "$SM_DISPLAY_TESTNET_MEMPOOL" != "NO" ]; then
+    SM_DISPLAY_TESTNET_MEMPOOL=YES
+fi
+if [ "$SM_MEMPOOL_DISPLAY_TIMEOUT" = "" ]; then
+    SM_MEMPOOL_DISPLAY_TIMEOUT=30
+fi
+if [ "$NODE_UID" = "" ]; then
+    generate_node_uid
+fi
 
 # create diginode.settings file
 if [ "$recreate_diginode_settings" = "yes" ]; then
@@ -681,6 +699,15 @@ SM_AUTO_QUIT=$SM_AUTO_QUIT
 # Note: The current wallet balance will only be displayed when (a) this variable is set to YES, and (b) the blockchain 
 # has completed syncing, and (c) there are actually funds in the wallet (i.e. the balance is > 0).
 SM_DISPLAY_BALANCE=$SM_DISPLAY_BALANCE
+
+# Choose whether to display DigiByte mempool data in the DigiNode Dashboard. (Specify either YES or NO.)
+# SM_MEMPOOL_DISPLAY_TIMOUT specifies the number of seconds of there being zero transactions before the
+# mempool data is hidden. This ensures that mempool data is only displayed when there is data to be displayed.
+# Default value is SM_MEMPOOL_DISPLAY_TIMOUT=30
+SM_DISPLAY_MAINNET_MEMPOOL=$SM_DISPLAY_MAINNET_MEMPOOL
+SM_DISPLAY_TESTNET_MEMPOOL=$SM_DISPLAY_TESTNET_MEMPOOL
+SM_MEMPOOL_DISPLAY_TIMEOUT=$SM_MEMPOOL_DISPLAY_TIMEOUT
+
 
 # Install the develop branch of DigiNode Tools (Specify either YES or NO)
 # If NO, it will install the latest release version
@@ -770,6 +797,10 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 #
 # THEY ARE CREATED AND SET AUTOMATICALLY BY DigiNode Setup and DigiNode Dashboard.
 # Changing them yourself may break your DigiNode.
+
+# This is a unique identifier generated at first install to anonymously identify each DigiNode.
+# Do not edit this value or your node may break
+NODE_UID=$NODE_UID
 
 # DIGIBYTE NODE LOCATION: (Do not change this value)
 # This references a symbolic link that points at the actual install folder. 
@@ -990,22 +1021,19 @@ INSTALLED_TOR_GPG_KEY=$INSTALLED_TOR_GPG_KEY
 
 
 ###############################################
-####### STATE VARIABLES ########£££############
+####### STATE VARIABLES #######################
 ###############################################
 
 # These variables are periodically updated when there is a new release of DigiNode Tools
 # These are used to display the current state of the DigiByte blockchain
 # There is no need to change these values yourself. They will be updated automatically.
 
-# Current DigiByte Block height in Millions. Used in the DigiFacts.
-DGB_BLOCK_HEIGHT_MIL="18"
-
 # These variables stores the approximate amount of space required to download the entire DigiByte blockchain
 # This is used during the disk space check to ensure there is enough space on the drive to download the DigiByte blockchain.
 # (Format date like so - e.g. "January 2023"). This is the approximate date when these values were updated.
-DGB_DATA_REQUIRED_DATE="August 2023" 
-DGB_DATA_REQUIRED_HR="52Gb"
-DGB_DATA_REQUIRED_KB="52000000"
+DGB_DATA_REQUIRED_DATE="April 2025" 
+DGB_DATA_REQUIRED_HR="55Gb"
+DGB_DATA_REQUIRED_KB="55000000"
 
 EOF
 
@@ -1359,6 +1387,76 @@ if [ "$IS_DGNT_SETTINGS_FILE_NEW" = "YES" ] || [ "$IS_DIGIBYTE_SETTINGS_FOLDER_N
     printf "\\n"
 fi
 
+}
+
+generate_node_uid() {
+    local crypto_symbol node_uid_timestamp random_id machine_id
+    local node_uid_combined fallback_id fallback_file
+    local decoded_uid stored_machine_id
+
+    crypto_symbol="$CRYPTO_SYMBOL"
+    fallback_file="$USER_HOME/.fallback_machine_id"
+
+    # Determine machine_id
+    if [[ -r /etc/machine-id ]]; then
+        machine_id=$(cat /etc/machine-id)
+    else
+        # Check if fallback file exists and is valid (32 hex characters)
+        if [[ -r "$fallback_file" ]]; then
+            fallback_id=$(<"$fallback_file")
+            if [[ "$fallback_id" =~ ^[a-f0-9]{32}$ ]]; then
+                machine_id="$fallback_id"
+            else
+                printf "%b Invalid fallback machine ID detected. Regenerating...\n" "${WARN}"
+                fallback_id=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+                echo "$fallback_id" > "$fallback_file"
+                chmod 600 "$fallback_file"
+                machine_id="$fallback_id"
+            fi
+        else
+            # Generate and store a new fallback ID
+            printf "%b No machine-id detected. Generating fallback machine ID...\n" "${WARN}"
+            fallback_id=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+            echo "$fallback_id" > "$fallback_file"
+            chmod 600 "$fallback_file"
+            machine_id="$fallback_id"
+        fi
+    fi
+
+    # Check existing NODE_UID
+    if [[ -n "$NODE_UID" ]]; then
+        # Decode Base64 URL
+        decoded_uid=$(echo "$NODE_UID" | tr '_-' '/+' | base64 --decode 2>/dev/null)
+
+        if [[ "$decoded_uid" =~ ^([A-Z]+)_([0-9]+)_([a-f0-9]{6})_([a-f0-9]+)$ ]]; then
+            stored_machine_id="${BASH_REMATCH[4]}"
+            if [[ "$stored_machine_id" == "$machine_id" ]]; then
+                if [ $VERBOSE_MODE = true ]; then
+                    printf "%b NODE_UID is valid and matches current machine-id.\n" "${TICK}"
+                fi
+                return 0
+            else
+                printf "%b NODE_UID machine-id mismatch — regenerating...\n" "${WARN}"
+            fi
+        else
+            printf "%b NODE_UID format is invalid — regenerating...\n" "${WARN}"
+        fi
+    fi
+
+    # Generate new NODE_UID
+    node_uid_timestamp=$(date +%s)
+    random_id=$(openssl rand -hex 3)  # 6-character random hex
+    node_uid_combined="${crypto_symbol}_${node_uid_timestamp}_${random_id}_${machine_id}"
+
+    # Base64 URL encode
+    NODE_UID=$(echo -n "$node_uid_combined" | base64 | tr '+/' '-_' | tr -d '=')
+
+    # Save to diginode.settings
+    if [[ -f "$DGNT_SETTINGS_FILE" ]]; then
+        sed -i -e "/^NODE_UID=/s|.*|NODE_UID=$NODE_UID|" "$DGNT_SETTINGS_FILE"
+    fi
+
+    printf "%b Generated new NODE_UID: %s\n" "${INFO}" "$NODE_UID"
 }
 
 
@@ -8147,8 +8245,22 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Mainnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted
+            if [ -f "$DGB_DATA_LOCATION/peers.dat" ]; then
+                str="Deleting Mainnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted
         fi
+
+        # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core MAINNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_MAINNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -8158,8 +8270,22 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+                str="Deleting Testnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted
         fi
+
+        # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core TESTNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     fi
 
@@ -8169,8 +8295,22 @@ change_tor_status() {
         # Restart Digibyted if the Tor status has just been changed
         if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
+            stop_service digibyted-testnet
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+                str="Deleting Testnet peers.dat as Tor status has changed ..."
+                printf "%b %s" "${INFO}" "${str}"
+                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             restart_service digibyted-testnet
         fi
+
+        # Reenable port tester as Tor status has changed
+        str="Re-enabling DigiByte Core TESTNET Port Test ..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE  
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"   
 
     fi
 
@@ -8381,6 +8521,8 @@ change_dgb_network() {
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
+                    DGB_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -8420,6 +8562,10 @@ change_dgb_network() {
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
                     sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+                    DGB2_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+                    DGB_BLOCKSYNC_VALUE=""
+                    sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                     printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                 fi
                 printf "\\n"
@@ -17852,9 +17998,11 @@ uninstall_do_now() {
                         DGB_DATA_DISKUSED_MAIN_HR=""
                         DGB_DATA_DISKUSED_MAIN_KB=""
                         DGB_DATA_DISKUSED_MAIN_PERC=""
+                        DGB_BLOCKSYNC_VALUE=""
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_HR=/s|.*|DGB_DATA_DISKUSED_MAIN_HR=\"$DGB_DATA_DISKUSED_MAIN_HR\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_KB=/s|.*|DGB_DATA_DISKUSED_MAIN_KB=\"$DGB_DATA_DISKUSED_MAIN_KB\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_MAIN_PERC=/s|.*|DGB_DATA_DISKUSED_MAIN_PERC=\"$DGB_DATA_DISKUSED_MAIN_PERC\"|" $DGNT_SETTINGS_FILE
+                        sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -17892,6 +18040,10 @@ uninstall_do_now() {
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_HR=/s|.*|DGB_DATA_DISKUSED_TEST_HR=\"$DGB_DATA_DISKUSED_TEST_HR\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_KB=/s|.*|DGB_DATA_DISKUSED_TEST_KB=\"$DGB_DATA_DISKUSED_TEST_KB\"|" $DGNT_SETTINGS_FILE
                         sed -i -e "/^DGB_DATA_DISKUSED_TEST_PERC=/s|.*|DGB_DATA_DISKUSED_TEST_PERC=\"$DGB_DATA_DISKUSED_TEST_PERC\"|" $DGNT_SETTINGS_FILE
+                        DGB2_BLOCKSYNC_VALUE=""
+                        sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+                        DGB_BLOCKSYNC_VALUE=""
+                        sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -18246,12 +18398,26 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if test ! -s "$digifacts_file"; then
-            rm "$digifacts_file"
+            if [ -f "$digifacts_file" ]; then
+                rm "$digifacts_file"
+            fi
             if [ -f "$digifacts_backup_file" ]; then
                 mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! File empty! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts web server may be down!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             return 1
+
+        # New: Check for HTML response from Cloudflare
+        elif grep -q -i "<!DOCTYPE html>" "$digifacts_file" || grep -q -i "<html" "$digifacts_file"; then
+            rm "$digifacts_file"
+            if [ -f "$digifacts_backup_file" ]; then
+                mv "$digifacts_backup_file" "$digifacts_file"
+            fi
+            printf "%b%b %s No! Received HTML instead of JSON. Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts service may be unreachable or returning a Cloudflare error.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            return 1
+
         else
             # If the JSON is valid, delete the backup file (if it exists)
             if [ -f "$digifacts_backup_file" ]; then
@@ -18271,6 +18437,7 @@ download_digifacts() {
                 mv "$digifacts_backup_file" "$digifacts_file"
             fi
             printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %bERROR: DigiFacts.json was bad json. Is service down?%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)
