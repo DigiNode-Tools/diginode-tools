@@ -8255,6 +8255,10 @@ change_tor_status() {
             restart_service digibyted
         fi
 
+        # Reenable port tester as Tor status has changed
+        DGB_MAINNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+
     fi
 
     # Restart DigiByte testnet daemon if Tor status has changed (single node)
@@ -8273,6 +8277,10 @@ change_tor_status() {
             restart_service digibyted
         fi
 
+        # Reenable port tester as Tor status has changed
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE 
+
     fi
 
     # Restart DigiByte testnet daemon if Tor status has changed (dual node)
@@ -8290,6 +8298,10 @@ change_tor_status() {
             fi
             restart_service digibyted-testnet
         fi
+
+        # Reenable port tester as Tor status has changed
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE     
 
     fi
 
