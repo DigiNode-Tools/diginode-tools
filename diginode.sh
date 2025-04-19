@@ -6079,6 +6079,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     DGB_MAINNET_PORT_TEST_QUERY_USERAGENT=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .user_agent | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_PROTOCOL_VER=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .protocol_version | sed 's/"//g')                   ## new
     DGB_MAINNET_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .blocks | sed 's/"//g')
+    DGB_MAINNET_PORT_TEST_QUERY_LOCATION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .location | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_ISP=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_MAINNET_PORT_TEST_QUERY_CITY=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .city | sed 's/"//g')                   ## new
     DGB_MAINNET_PORT_TEST_QUERY_REGION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .region | sed 's/"//g')                   ## new
@@ -6134,6 +6135,11 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     # Port test - Get Location
     if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION="$DGB_MAINNET_PORT_TEST_QUERY_CITY, $DGB_MAINNET_PORT_TEST_QUERY_REGION, $DGB_MAINNET_PORT_TEST_QUERY_COUNTRY"
+    fi
+
+    # Port test - Get Location - onion
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+        DGB_MAINNET_PORT_TEST_LOCATION=$DGB_MAINNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Message
@@ -6327,6 +6333,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     DGB_TESTNET_PORT_TEST_QUERY_USERAGENT=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .user_agent | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_PROTOCOL_VER=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .protocol_version | sed 's/"//g')                   ## new
     DGB_TESTNET_PORT_TEST_QUERY_BLOCKCOUNT=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .blocks | sed 's/"//g')
+    DGB_TESTNET_PORT_TEST_QUERY_LOCATION=$(echo $DGB_MAINNET_PORT_TEST_QUERY | jq .location | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_ISP=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .isp | sed 's/"//g')
     DGB_TESTNET_PORT_TEST_QUERY_CITY=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .city | sed 's/"//g')                   ## new
     DGB_TESTNET_PORT_TEST_QUERY_REGION=$(echo $DGB_TESTNET_PORT_TEST_QUERY | jq .region | sed 's/"//g')                   ## new
@@ -6382,6 +6389,11 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     # Port test - Get Location
     if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION="$DGB_TESTNET_PORT_TEST_QUERY_CITY, $DGB_TESTNET_PORT_TEST_QUERY_REGION, $DGB_TESTNET_PORT_TEST_QUERY_COUNTRY"
+    fi
+
+    # Port test - Get Location - onion
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+        DGB_TESTNET_PORT_TEST_LOCATION=$DGB_TESTNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Message
