@@ -3555,7 +3555,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
     DGB2_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
   if [ $DGB2_CONNECTIONS -ge 9 ]; then
-    DGB2_CONNECTIONS_MSG="Maximum: $DGB2_MAXCONNECTIONS"
+    DGB2_CONNECTIONS_MSG="Max: $DGB2_MAXCONNECTIONS"
   fi
 
   # Lookup incoming and outgoing connections
@@ -4566,7 +4566,7 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
 
     # Calculate the column widths based on terminal width
     col_width_dgb_connections_low=$((term_width - 38 - 29 - 3 - 2)) 
-    col_width_dgb_connections_max=$((term_width - 38 - 29 - 3 - 2))
+    col_width_dgb_connections_max=$((term_width - 38 - 13 - 3 - 2))
     col_width_dgb_blockheight_long=$((term_width - 39 - 32 - 3 - 2)) 
     col_width_dgb_blockheight=$((term_width - 38 - 19 - 3 - 2)) 
     col_width_dgb_mempool=$((term_width - 38 - 30 - 3 - 2)) 
@@ -4921,7 +4921,7 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
     if [ $DGB_CONNECTIONS -le 8 ]; then
         printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
     else
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
     fi
     # Choose the correct network chain border
     if [ "$dgb_chain_caps" = "MAINNET" ]; then
@@ -5054,7 +5054,7 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
         if [ $DGB2_CONNECTIONS -le 8 ]; then
             printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"

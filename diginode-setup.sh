@@ -509,7 +509,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
 
     # OTHER SETTINGS
     DGB_MAX_CONNECTIONS=150
-    SM_AUTO_QUIT=20
+    SM_AUTO_QUIT=1440
     SM_DISPLAY_BALANCE=YES
     SM_DISPLAY_MAINNET_MEMPOOL=YES
     SM_DISPLAY_TESTNET_MEMPOOL=YES
@@ -689,10 +689,12 @@ DGB_DATA_LOCATION=$DGB_DATA_LOCATION
 # (Note: If a digibyte.conf file already exists that sets the maxconnections already, the value here will be ignored)
 DGB_MAX_CONNECTIONS=$DGB_MAX_CONNECTIONS
 
-# Stop the DigiNode Dashboard automatically if it is left running. The default is 20 minutes.
+# Stop the DigiNode Dashboard automatically if it is left running. The default is 1440 minutes.
 # To avoid putting unnecessary strain on your device, it is inadvisable to run DigiNode Dashboard for
 # long periods. Enter the number of minutes before it exits automatically, or set to 0 to run indefinitely.
-# e.g. To stop after 1 hour enter: 60 
+# Note: Running indefinitely is nor reccomended if you frequently lose connection to your node since the
+# old dashboards will be left running in the background. It is always reccomnded to set a fixed limit.
+# e.g. To stop after 24 hours enter: 1440 
 SM_AUTO_QUIT=$SM_AUTO_QUIT
 
 # Choose whether to display the current wallet balance in the DigiNode Dashboard. (Specify either YES or NO.)
