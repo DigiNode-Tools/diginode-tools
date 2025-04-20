@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.0
+#           Name:  DigiNode Dashboard v0.11.1
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.0
-# Last Updated: 2025-04-15
+DGNT_VER_LOCAL=0.11.1
+# Last Updated: 2025-04-19
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -3555,7 +3555,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
     DGB2_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
   if [ $DGB2_CONNECTIONS -ge 9 ]; then
-    DGB2_CONNECTIONS_MSG="Maximum: $DGB2_MAXCONNECTIONS"
+    DGB2_CONNECTIONS_MSG="Max: $DGB2_MAXCONNECTIONS"
   fi
 
   # Lookup incoming and outgoing connections
@@ -4566,7 +4566,7 @@ if [ "$terminal_resized" = "yes" ] || [ "$STARTUP_LOOP" = true ]; then
 
     # Calculate the column widths based on terminal width
     col_width_dgb_connections_low=$((term_width - 38 - 29 - 3 - 2)) 
-    col_width_dgb_connections_max=$((term_width - 38 - 29 - 3 - 2))
+    col_width_dgb_connections_max=$((term_width - 38 - 13 - 3 - 2))
     col_width_dgb_blockheight_long=$((term_width - 39 - 32 - 3 - 2)) 
     col_width_dgb_blockheight=$((term_width - 38 - 19 - 3 - 2)) 
     col_width_dgb_mempool=$((term_width - 38 - 30 - 3 - 2)) 
@@ -4921,7 +4921,7 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
     if [ $DGB_CONNECTIONS -le 8 ]; then
         printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ ${txtbred}$DGB_CONNECTIONS_MSG${txtrst} ]" " ║ "
     else
-        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
+        printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB_CONNECTIONS Peers  ( In: $DGB_PEERS_IN | Out: $DGB_PEERS_OUT )" "[ $DGB_CONNECTIONS_MSG ]" " ║ "
     fi
     # Choose the correct network chain border
     if [ "$dgb_chain_caps" = "MAINNET" ]; then
@@ -4962,9 +4962,17 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
             if [ "$DGB_MEMPOOL_TXES" = "0" ]; then
                 printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
             elif [ "$DGB_MEMPOOL_TXES" = "1" ]; then
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 101 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             else
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 105 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             fi
         fi
     fi
@@ -5054,7 +5062,7 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
         if [ $DGB2_CONNECTIONS -le 8 ]; then
             printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
@@ -5078,10 +5086,18 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
             echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
             if [ "$DGB2_MEMPOOL_TXES" = "0" ]; then
                 printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
-            elif [ "$DGB2_MEMPOOL_TXES" = "1" ]; then
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            elif [ "$DGB_MEMPOOL_TXES" = "1" ]; then
+                if [ $term_width -gt 101 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             else
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 105 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             fi
         fi
 
