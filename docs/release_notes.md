@@ -1,7 +1,8 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.11.1 - 2025-04-xx
+DigiNode Tools v0.11.1 - 2025-04-20
 - Change: Default auto quit duration for the DigiNode Dashboard has been changed to 24 hours (1440 minutes).
+- Change: Mempool bytes are hidden on narrower terminal windows to make the display cleaner.
 - Fix: When running a Dual Node, the Testnet listening port now displays correctly in the Dashboard while the node is starting up. (It was blank before)
 - Fix: Right border for Connections row in dashboard now fits better.
 

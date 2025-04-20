@@ -4962,9 +4962,17 @@ if [ "$DGB_STATUS" = "running" ]; then # Only display if primary DigiByte Node i
             if [ "$DGB_MEMPOOL_TXES" = "0" ]; then
                 printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
             elif [ "$DGB_MEMPOOL_TXES" = "1" ]; then
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 101 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transaction" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             else
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 105 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions  ( $DGB_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             fi
         fi
     fi
@@ -5078,10 +5086,18 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
             echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
             if [ "$DGB2_MEMPOOL_TXES" = "0" ]; then
                 printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
-            elif [ "$DGB2_MEMPOOL_TXES" = "1" ]; then
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+            elif [ "$DGB_MEMPOOL_TXES" = "1" ]; then
+                if [ $term_width -gt 101 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transaction" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             else
-                printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                if [ $term_width -gt 105 ]; then
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions  ( $DGB2_MEMPOOL_BYTES bytes )" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                else
+                    printf " ║                ║        MEMPOOL ║  " && printf "%-${col_width_dgb_mempool}s %30s %-3s\n" "$DGB2_MEMPOOL_TXES Transactions" "[ Total Fee: $DGB2_MEMPOOL_TOTALFEE DGB ]" " ║ "
+                fi
             fi
         fi
 
