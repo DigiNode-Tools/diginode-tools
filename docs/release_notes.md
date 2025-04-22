@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.11.3 - 2025-04-xx
+- Coming soon...
+
 DigiNode Tools v0.11.2 - 2025-04-22
 - Change: The Port Tester now gets re-enabled automatically 24 hours after the test was last successfully passed.
 - Fix: Hopefully the startup error that is occasionally been seen is now fixed.
