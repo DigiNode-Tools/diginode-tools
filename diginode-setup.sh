@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.11.1
+#           Name:  DigiNode Setup v0.11.2
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.11.1
-# Last Updated: 2025-04-19
+DGNT_VER_LIVE=0.11.2
+# Last Updated: 2025-04-21
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -87,6 +87,8 @@ CRYPTO_NAME="DigiByte"
 CRYPTO_SYMBOL="DGB"
 SETTINGS_LOCATION=$USER_HOME/.digibyte
 SETTINGS_FILE=$SETTINGS_LOCATION/diginode.settings
+HOSTNAME_MAINNET="diginode"
+HOSTNAME_TESTNET="diginode-testnet"
 
 
 ######### IMPORTANT NOTE ###########
@@ -667,7 +669,7 @@ DGNT_SETTINGS_FILE_VER_BRANCH=$DGNT_SETTINGS_FILE_VER_BRANCH_NEW
 # DGNT_SETTINGS_FILE=       [This value is set in the header of the setup script. Do not set it here.]
 
 # DIGIBYTE CORE BLOCKCHAIN DATA LOCATION:
-# You can change this to optionally store the DigiByte blockchain data in a diferent location
+# You can change this to optionally store the DigiByte blockchain data in a different location
 # The value set below will be used by the normal install and the unattended install
 # Note - changing this after the DigiByte Node has already been running will cause
 # the blockchain to be be re-downloaded in the new location. The old data will need to be deleted manually
@@ -1012,7 +1014,7 @@ SYSTEM_REGULAR_UPDATES="$SYSTEM_REGULAR_UPDATES"
 SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 
 # This number assigns this DigiNode to a random group for installing updates. Do not change it. 
-# Using diferent groups allows the rollout of major updates to be staggered.
+# Using different groups allows the rollout of major updates to be staggered.
 UPDATE_GROUP="$UPDATE_GROUP"
 
 # This keeps track of wther the user has agreed to the disclaimer.
@@ -4471,14 +4473,14 @@ elif [[ "$HOSTNAME" == "diginode" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "YES" ]] 
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode-testnet'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
-        printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
+        printf "%b Important: It is recommended that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
         printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
         printf "%b to running a DigiByte testnet node it is advisable to change the hostname\\n"  "${INDENT}"
         printf "%b to 'diginode-testnet'. This is optional but recommended, since it will ensure\\n"  "${INDENT}"
         printf "%b the current hostname does not conflict with another DigiByte mainnet node on\\n"  "${INDENT}"
         printf "%b your network. If you are planning to run two DigiNodes on your network,\\n"  "${INDENT}"
         printf "%b one on DigiByte MAINNET and the other on TESTNET, it is advisable to give\\n"  "${INDENT}"
-        printf "%b them diferent hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
+        printf "%b them different hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
         printf "\\n"
     else
         printf "%b Asking to change hostname from 'diginode' to 'diginode-testnet'...\\n"  "${INFO}"
@@ -4493,13 +4495,13 @@ elif [[ "$HOSTNAME" == "diginode-testnet" ]] && [[ "$DGB_NETWORK_IS_CHANGED" = "
     printf "%b Hostname Check: %bFAILED%b   Recommend changing Hostname to 'diginode'\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
     printf "\\n"
     if [ "$UNATTENDED_MODE" == true ]; then
-        printf "%b Important: It is recommend that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
+        printf "%b Important: It is recommended that you change your hostname to 'diginode-testnet'\\n"  "${INFO}"
         printf "%b Your hostname is currently '$HOSTNAME'. Since you have just switched to\\n"  "${INDENT}"
         printf "%b running a DigiByte mainnet node, it is advisable to change the hostname\\n"  "${INDENT}"
         printf "%b to 'diginode' . This is optional but recommended, since it will ensure\\n"  "${INDENT}"
         printf "%b the current hostname does not conflict with another DigiByte testnet node on\\n"  "${INDENT}"
         printf "%b your network. If you are planning to run two DigiNodes on your network, one on\\n"  "${INDENT}"
-        printf "%b DigiByte MAINNET and the other on TESTNET, it is advisable to give them diferent\\n"  "${INDENT}"
+        printf "%b DigiByte MAINNET and the other on TESTNET, it is advisable to give them different\\n"  "${INDENT}"
         printf "%b hostnames on your network so they are easier to identify.\\n"  "${INDENT}"
         printf "\\n"
     else
@@ -8744,7 +8746,7 @@ fi
 # Create service so that DigiByte daemon will run at boot
 create_digibyte_service() {
 
-# If you want to make changes to how DigiByte daemon services are created/managed for diferent systems, refer to this website:
+# If you want to make changes to how DigiByte daemon services are created/managed for different systems, refer to this website:
 #
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
@@ -14970,7 +14972,7 @@ ipfs_update_port() {
 # Create service so that IPFS will run at boot
 ipfs_create_service() {
 
-# If you want to make changes to how IPFS services are created/managed for diferent systems, refer to this website:
+# If you want to make changes to how IPFS services are created/managed for different systems, refer to this website:
 # https://github.com/ipfs/kobo/tree/master/misc 
 
 

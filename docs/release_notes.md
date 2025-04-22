@@ -1,5 +1,9 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.11.2 - 2025-04-22
+- Change: The Port Tester now gets re-enabled automatically 24 hours after the test was last successfully passed.
+- Fix: Hopefully the startup error that is occasionally been seen is now fixed.
+
 DigiNode Tools v0.11.1 - 2025-04-20
 - Change: Default auto quit duration for the DigiNode Dashboard has been changed to 24 hours (1440 minutes).
 - Change: Mempool bytes are hidden on narrower terminal windows to make the display cleaner.
