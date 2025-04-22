@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.1
+#           Name:  DigiNode Dashboard v0.11.2
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.1
-# Last Updated: 2025-04-19
+DGNT_VER_LOCAL=0.11.2
+# Last Updated: 2025-04-21
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -2977,6 +2977,68 @@ pre_loop() {
         sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
     fi
 
+
+
+    # Set time since last pass that port tests are reenabled
+    PORT_TEST_RESET_DELAY=86400
+
+    # make sure the port test pass dates are stored as unix time - banana
+
+    # check if digibyte mainnet pass test date is stored as an integer (in prior versions of diginode dashboard, it wasn't)
+    if [[ ! "$DGB_MAINNET_PORT_TEST_PASS_DATE" =~ ^-?[0-9]+$ ]]; then
+        printf "%b Changing DigiByte Core MAINNET Port Test date to unix time...\n" "${INFO}"
+        DGB_MAINNET_PORT_TEST_PASS_DATE=$(( TIME_NOW_UNIX - PORT_TEST_RESET_DELAY ))
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_PASS_DATE=/s|.*|DGB_MAINNET_PORT_TEST_PASS_DATE=\"$DGB_MAINNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+    fi
+    # check if digibyte mainnet pass test date is stored as an integer (in prior versions of diginode dashboard, it wasn't)
+    if [[ ! "$DGB_TESTNET_PORT_TEST_PASS_DATE" =~ ^-?[0-9]+$ ]]; then
+        printf "%b Changing DigiByte Core TESTNET Port Test date to unix time...\n" "${INFO}"
+        DGB_TESTNET_PORT_TEST_PASS_DATE=$(( TIME_NOW_UNIX - PORT_TEST_RESET_DELAY ))
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_PASS_DATE=/s|.*|DGB_TESTNET_PORT_TEST_PASS_DATE=\"$DGB_TESTNET_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+    fi
+    # check if ipfs pass test date is stored as an integer (in prior versions of diginode dashboard, it wasn't)
+    if [[ ! "$IPFS_PORT_TEST_PASS_DATE" =~ ^-?[0-9]+$ ]]; then
+        printf "%b Changing IPFS Port Test date to unix time...\n" "${INFO}"
+        IPFS_PORT_TEST_PASS_DATE=$(( TIME_NOW_UNIX - PORT_TEST_RESET_DELAY ))
+        sed -i -e "/^IPFS_PORT_TEST_PASS_DATE=/s|.*|IPFS_PORT_TEST_PASS_DATE=\"$IPFS_PORT_TEST_PASS_DATE\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # calculate time since last port tests
+    DGB_MAINNET_PORT_TEST_TIME_SINCE_PASS=$(( TIME_NOW_UNIX - DGB_MAINNET_PORT_TEST_PASS_DATE ))
+    DGB_TESTNET_PORT_TEST_TIME_SINCE_PASS=$(( TIME_NOW_UNIX - DGB_TESTNET_PORT_TEST_PASS_DATE ))
+    IPFS_PORT_TEST_TIME_SINCE_PASS=$(( TIME_NOW_UNIX - IPFS_PORT_TEST_PASS_DATE ))
+
+
+    # Enable the DigiByte Core mainnet port test if it last passed more than 24 hours ago
+    if [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ] && [ "$DGB_MAINNET_PORT_TEST_TIME_SINCE_PASS" -ge "$PORT_TEST_RESET_DELAY" ]; then
+
+        printf "%b Re-enabling DigiByte Core MAINNET Port Test...\n" "${INFO}"
+
+        DGB_MAINNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_MAINNET_PORT_TEST_ENABLED=/s|.*|DGB_MAINNET_PORT_TEST_ENABLED=\"$DGB_MAINNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Enable the DigiByte Core testnet port test if it last passed more than 24 hours ago
+    if [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "NO" ] && [ "$DGB_TESTNET_PORT_TEST_TIME_SINCE_PASS" -ge "$PORT_TEST_RESET_DELAY" ]; then
+
+        printf "%b Re-enabling DigiByte Core TESTNET Port Test...\n" "${INFO}"
+
+        DGB_TESTNET_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^DGB_TESTNET_PORT_TEST_ENABLED=/s|.*|DGB_TESTNET_PORT_TEST_ENABLED=\"$DGB_TESTNET_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Enable the IPFS port test if it seems if it last passed more than 24 hours ago
+    if [ "$IPFS_PORT_TEST_ENABLED" != "YES" ] && [ "$IPFS_PORT_TEST_ENABLED" != "NO" ]; then
+
+        printf "%b Re-enabling IPFS Port Test...\n" "${INFO}"
+
+        IPFS_PORT_TEST_ENABLED="YES"
+        sed -i -e "/^IPFS_PORT_TEST_ENABLED=/s|.*|IPFS_PORT_TEST_ENABLED=\"$IPFS_PORT_TEST_ENABLED\"|" $DGNT_SETTINGS_FILE
+    fi
+
+
+
+
     # If the DigiByte Core MAINNET port test (primary node) is disabled, check if the external IP address has changed
     if [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ] && [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then
 
@@ -4355,8 +4417,10 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiAsset Node
-    DGA_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')
-    if [ $DGA_VER_RELEASE_QUERY != "" ]; then
+    DGA_VER_RELEASE_QUERY=""
+    # DGA_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://versions.digiassetx.com/digiasset_node/versions.json 2>/dev/null | jq last | sed 's/"//g')     // disable release query as it is offline. value set to null in the line above - banana
+
+    if [ "$DGA_VER_RELEASE_QUERY" != "" ]; then
       DGA_VER_RELEASE=$DGA_VER_RELEASE_QUERY
       DGA_VER_MJR_RELEASE=$(echo $DGA_VER_RELEASE | cut -d'.' -f1)
       sed -i -e "/^DGA_VER_RELEASE=/s|.*|DGA_VER_RELEASE=\"$DGA_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -5175,7 +5239,7 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
      printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiAsset Core support is not yet possible due to a bug in DigiByte v8.22.x${txtrst}" " ║ "
-     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "More info here: https://github.com/DigiByte-Core/digibyte/issues/263" " ║ "
+     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "More info: https://github.com/DigiByte-Core/digibyte/issues/263" " ║ "
 fi
 
 echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
@@ -5915,7 +5979,7 @@ echo ""
 echo "                         Running Port Tests..."
 echo ""
 
-PORT_TEST_DATE=$(date)
+PORT_TEST_DATE=$(date +%s)
 
 
 # Setup DigiByte port test cammands
