@@ -11,8 +11,8 @@
     },
    	"diginodehelp3": {
         "title": "DigiNode Tip!",
-        "content": "To view a global map of DigiByte Nodes, visit this website: https://digibyte.io/nodes",
-        "url": "https://digibyte.io/nodes"
+        "content": "To view a global map of DigiByte Nodes, visit this website: https://opennodes.digibyte.link/",
+        "url": "https://opennodes.digibyte.link/"
     },
    	"diginodehelp4": {
         "title": "DigiNode Tip!",
@@ -23,5 +23,25 @@
         "title": "Need DigiAsset Support?",
         "content": "For help with creating DigiAssets, a good place to start is the DigiAssetX Telegram group here: https://t.me/digiassetX",
         "url": "https://t.me/digiassetX"
+    },
+    "diginodehelp6": {
+        "title": "DigiNode Tip!",
+        "content": "Are you having issues with DigiNode Dashboard? No colors? Flickering display? Misalligned borders? This is likely caused by the Terminal software you are using. For best results, use Windows Terminal (https://aka.ms/terminal) or iTerm 2 on macOS (https://iterm2.com).",
+        "url": "https://iterm2.com"
+    },
+    "diginodehelp7": {
+        "title": "DigiNode Tip!",
+        "content": "Are you interested to know what new features have been added to DigiNode Tools recently? You can view the release notes here: https://diginode.tools/release-notes/",
+        "url": "https://diginode.tools/release-notes/"
+    },
+    "diginodehelp8": {
+        "title": "DigiNode Tip!",
+        "content": "Do you also run a DigiByte node on your Mac or Windows PC? If so, you can test it using the same DigiByte port tester built into the DigiNode Dashboard. Find it here: https://diginode.tools/digibyte-port-tester/",
+        "url": "https://diginode.tools/digibyte-port-tester/"
+    },
+    "diginodehelp8": {
+        "title": "DigiNode Tip!",
+        "content": "DigiNode tolls is very adaptable. You can use it to setup and monitor a DigiNode on a Raspberry Pi in your home, as well as on a server on the other side of the world.",
+        "url": "https://diginode.tools/digibyte-port-tester/"
     }
 }
