@@ -41,7 +41,7 @@
     },
     "diginodehelp8": {
         "title": "DigiNode Tip!",
-        "content": "DigiNode Tools can be used almost anywhere - install it on a Raspberry Pi on your local network, or on a VPS on the the other side of the world. DigiNode Tools makes it easy to install, monitor and manage a DigiByte Node wherever you need one.",
+        "content": "DigiNode Tools can be used almost anywhere - install it on a Raspberry Pi on your local network, or on a VPS on the the other side of the world. DigiNode Tools makes it easy to install, monitor and manage a DigiByte Node wherever you need one. Learn more: https://diginode.tools",
         "url": "https://diginode.tools"
     }
 }

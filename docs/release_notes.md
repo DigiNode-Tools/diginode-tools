@@ -1,7 +1,8 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.11.3 - 2025-04-xx
-- Coming soon...
+- New: Add a few more DigiNode tips.
+- Fix: Argon fan software should now install correctly.
 
 DigiNode Tools v0.11.2 - 2025-04-22
 - Change: The Port Tester now gets re-enabled automatically 24 hours after the test was last successfully passed.

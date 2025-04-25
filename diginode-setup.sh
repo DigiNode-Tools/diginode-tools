@@ -18799,7 +18799,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
     # Cloning from GitHub
     str="Cloning Argon One Daemon from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/iandark/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
+    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/kowalski7cc/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
 
     # If the command completed without error, then assume IPFS downloaded correctly
     if [ $? -eq 0 ]; then
