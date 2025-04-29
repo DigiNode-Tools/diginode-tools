@@ -3672,14 +3672,14 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             TROUBLESHOOTING_MSG="10sec: startingup > running"
             DGB_STATUS="running"
 
-            # Get current listening port
-            DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-
             # scrape digibyte.conf
             scrape_digibyte_conf
 
             # query for digibyte network
             query_digibyte_chain
+
+            # query for digibyte listening port
+            query_digibyte_port
 
             # update max connections
             query_digibyte_maxconnections
@@ -3791,20 +3791,25 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB2_TROUBLESHOOTING_MSG="10sec: startingup > running"
                 DGB2_STATUS="running"
 
-                # Get current listening port
-                DGB2_LISTEN_PORT=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+                # if the primary node is running, we have just run all these checks so we don't need to do it again in the same loop
+                if [ "$DGB_STATUS" != "running" ]; then
 
-                # scrape digibyte.conf
-                scrape_digibyte_conf
+                    # scrape digibyte.conf
+                    scrape_digibyte_conf
 
-                # query for digibyte network
-                query_digibyte_chain
+                    # query for digibyte network
+                    query_digibyte_chain
 
-                # update max connections
-                query_digibyte_maxconnections
+                    # query for digibyte listening port
+                    query_digibyte_port
 
-                # update rpc credentials
-                query_digibyte_rpc
+                    # update max connections
+                    query_digibyte_maxconnections
+
+                    # update rpc credentials
+                    query_digibyte_rpc
+
+                fi
 
             fi
 
