@@ -3,7 +3,7 @@
 DigiNode Tools v0.11.3 - 2025-04-xx
 - New: Add a few more DigiNode tips.
 - Fix: Argon fan software should now install correctly.
-- Fix: Listening port should no longer display as null, when the digibyte node itself does not include its local addresses
+- Fix: Listening port should no longer display as "null", when the digibyte node itself does not include its local addresses
 
 DigiNode Tools v0.11.2 - 2025-04-22
 - Change: The Port Tester now gets re-enabled automatically 24 hours after the test was last successfully passed.
