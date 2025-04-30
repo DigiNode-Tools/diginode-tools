@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.11.2
+#           Name:  DigiNode Setup v0.11.3
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.11.2
-# Last Updated: 2025-04-21
+DGNT_VER_LIVE=0.11.3
+# Last Updated: 2025-04-22
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -18799,7 +18799,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
     # Cloning from GitHub
     str="Cloning Argon One Daemon from Github repository..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/iandark/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
+    sudo -u $USER_ACCOUNT git clone --depth 1 --quiet https://github.com/kowalski7cc/argon-one-daemon $USER_HOME/argon-one-daemon 2>/dev/null
 
     # If the command completed without error, then assume IPFS downloaded correctly
     if [ $? -eq 0 ]; then

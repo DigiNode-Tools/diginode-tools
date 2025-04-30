@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.2
+#           Name:  DigiNode Dashboard v0.11.3
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.2
-# Last Updated: 2025-04-21
+DGNT_VER_LOCAL=0.11.3
+# Last Updated: 2025-04-22
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -3672,14 +3672,14 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             TROUBLESHOOTING_MSG="10sec: startingup > running"
             DGB_STATUS="running"
 
-            # Get current listening port
-            DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
-
             # scrape digibyte.conf
             scrape_digibyte_conf
 
             # query for digibyte network
             query_digibyte_chain
+
+            # query for digibyte listening port
+            query_digibyte_port
 
             # update max connections
             query_digibyte_maxconnections
@@ -3791,20 +3791,25 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB2_TROUBLESHOOTING_MSG="10sec: startingup > running"
                 DGB2_STATUS="running"
 
-                # Get current listening port
-                DGB2_LISTEN_PORT=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+                # if the primary node is running, we have just run all these checks so we don't need to do it again in the same loop
+                if [ "$DGB_STATUS" != "running" ] && [ "$DGB_STATUS" != "startingup" ]; then
 
-                # scrape digibyte.conf
-                scrape_digibyte_conf
+                    # scrape digibyte.conf
+                    scrape_digibyte_conf
 
-                # query for digibyte network
-                query_digibyte_chain
+                    # query for digibyte network
+                    query_digibyte_chain
 
-                # update max connections
-                query_digibyte_maxconnections
+                    # query for digibyte listening port
+                    query_digibyte_port
 
-                # update rpc credentials
-                query_digibyte_rpc
+                    # update max connections
+                    query_digibyte_maxconnections
+
+                    # update rpc credentials
+                    query_digibyte_rpc
+
+                fi
 
             fi
 
@@ -4011,8 +4016,8 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     # Update primary DigiByte Node sync progress every minute, if it is running
     if [ "$DGB_STATUS" = "running" ]; then
 
-        # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        # query for digibyte listening port
+        query_digibyte_port
 
         # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
@@ -4065,8 +4070,11 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     # Update secondary DigiByte Node sync progress every minute, if it is running
     if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
-        # Get current listening port
-        DGB2_LISTEN_PORT=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        # if the primary node is running, we have just run all this checks so we don't need to do it again in the same loop
+        if [ "$DGB_STATUS" != "running" ]; then
+            # query for digibyte listening port
+            query_digibyte_port
+        fi
 
         # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
