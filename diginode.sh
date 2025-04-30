@@ -3792,7 +3792,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB2_STATUS="running"
 
                 # if the primary node is running, we have just run all these checks so we don't need to do it again in the same loop
-                if [ "$DGB_STATUS" != "running" ]; then
+                if [ "$DGB_STATUS" != "running" ] && [ "$DGB_STATUS" != "startingup" ]; then
 
                     # scrape digibyte.conf
                     scrape_digibyte_conf
@@ -4016,8 +4016,8 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     # Update primary DigiByte Node sync progress every minute, if it is running
     if [ "$DGB_STATUS" = "running" ]; then
 
-        # Get current listening port
-        DGB_LISTEN_PORT=$($DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        # query for digibyte listening port
+        query_digibyte_port
 
         # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
@@ -4070,8 +4070,11 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
     # Update secondary DigiByte Node sync progress every minute, if it is running
     if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
-        # Get current listening port
-        DGB2_LISTEN_PORT=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        # if the primary node is running, we have just run all this checks so we don't need to do it again in the same loop
+        if [ "$DGB_STATUS" != "running" ]; then
+            # query for digibyte listening port
+            query_digibyte_port
+        fi
 
         # Lookup sync progress value from debug.log. Use previous saved value if no value is found.
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
