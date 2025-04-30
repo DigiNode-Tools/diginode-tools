@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.11.3 - 2025-04-xx
+DigiNode Tools v0.11.3 - 2025-04-30
 - New: Add a few more DigiNode tips.
 - Fix: Argon fan software should now install correctly.
 - Fix: Listening port should no longer display as "null" when the digibyte node itself is not self-reporting its local addresses and port. (It now reverts to getting this from digibyte.conf)
