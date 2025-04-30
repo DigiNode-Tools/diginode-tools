@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v0.11.4 - 2025-05-xx
+- Coming soon...
+
 DigiNode Tools v0.11.3 - 2025-04-30
 - New: Add a few more DigiNode tips.
 - Fix: Argon fan software should now install correctly.
