@@ -834,10 +834,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         query_digibyte_chain
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
-            printf "IP4 Peers:\\n"
 
             #store peers
-            mainnetpeers=$($DGB_CLI getpeerinfo)
+            mainnetpeers=$($DGB_CLI getpeerinfo 2>/dev/null)
+            if [ "$mainnetpeers" = "" ]; then
+                echo "- ERROR: DigiByte $DGB_NETWORK_CURRENT node is currently starting up. Please try again in a minute."
+                printf "\\n"
+                exit 1
+            fi
+
+            printf "IP4 Peers:\\n"
 
             ip4peers=$(echo $mainnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
@@ -872,10 +878,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         diginode_tools_import_settings silent
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
-            printf "IP4 Peers:\\n"
 
             #store peers
-            testnetpeers=$($DGB_CLI -testnet getpeerinfo)
+            testnetpeers=$($DGB_CLI -testnet getpeerinfo 2>/dev/null)
+            if [ "$testnetpeers" = "" ]; then
+                echo "- ERROR: DigiByte TESTNET node is currently starting up. Please try again in a minute."
+                printf "\\n"
+                exit 1
+            fi
+
+            printf "IP4 Peers:\\n"
 
             ip4peers=$(echo $testnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]+\\.") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
