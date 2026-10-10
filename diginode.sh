@@ -5337,8 +5337,8 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiAsset Core support is not yet possible due to a bug in DigiByte v8.22.x${txtrst}" " ║ "
-     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "More info: https://github.com/DigiByte-Core/digibyte/issues/263" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
+     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "Sponsor: $DGNT_SPONSORS_URL" " ║ "
 fi
 
 echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"

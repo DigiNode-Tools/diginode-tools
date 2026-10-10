@@ -132,8 +132,12 @@ DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 # Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
 
+# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools.
+DGNT_SPONSORS_URL="https://diginode.tools/sponsors/"
+DGNT_GITHUB_SPONSORS_URL="https://github.com/sponsors/DigiNode-Tools"
+
 # Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
-DGNT_SPONSORS_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
+DGNT_SPONSORS_DATA_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
 
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
@@ -9114,7 +9118,7 @@ donationDialog() {
 dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
 \Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please sponsor or donate to support future development:
 
-             \Z4https://github.com/sponsors/DigiNode-Tools\Z0
+             \Z4${DGNT_GITHUB_SPONSORS_URL}\Z0
 
 Alternatively, donate DigiByte (DGB):
 
@@ -9748,7 +9752,7 @@ display_featured_sponsors() {
 
     local featured_json
 
-    featured_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_URL/featured.json" 2>/dev/null) || return
+    featured_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_DATA_URL/featured.json" 2>/dev/null) || return
     if ! echo "$featured_json" | jq -e '((.checked | fromdate) > (now - 7 * 86400)) and (.featured | length > 0)' > /dev/null 2>&1; then
         return
     fi
@@ -9775,7 +9779,7 @@ donation_qrcode() {
     echo "   or donate so that I can keep improving it."
     echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;https://github.com/sponsors/DigiNode-Tools\ahttps://github.com/sponsors/DigiNode-Tools\e]8;;\a${txtrst} <<"
+    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_GITHUB_SPONSORS_URL}\a${DGNT_GITHUB_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
