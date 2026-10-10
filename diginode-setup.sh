@@ -1133,6 +1133,93 @@ set_dgb_testnet_params() {
     DGB_TESTNET_DIRS="testnet4 testnet26"
 }
 
+# DigiByte Core v9 has a brand new testnet, which is a separate blockchain from the old testnet used by v8 and earlier,
+# with its own data folder (testnet26 vs testnet4). After installing, upgrading or downgrading DigiByte Core across v9,
+# the blockchain data for the other testnet is no longer used. Offer to delete it to free up space. Testnet wallets are
+# always kept. If the user chooses to keep it, a marker file is left so they are not asked again.
+
+check_unused_testnet_data() {
+
+    local unused_dir
+    local unused_size
+    local wallet_msg=""
+    local testnet_msg
+    local dialog_height
+
+    # Only if DigiByte Core is installed
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] || [ "$DGB_VER_LOCAL" = "" ]; then
+        return
+    fi
+
+    set_dgb_testnet_params
+
+    if [ "$DGB_TESTNET_DIR" = "testnet26" ]; then
+        unused_dir="testnet4"
+        testnet_msg="Starting with DigiByte Core v9, DigiByte has a brand new testnet. This is a separate blockchain from the old testnet used by DigiByte Core v8 and earlier."
+    else
+        unused_dir="testnet26"
+        testnet_msg="DigiByte Core v$DGB_VER_LOCAL uses the old DigiByte testnet. This is a separate blockchain from the new testnet used by DigiByte Core v9 onwards."
+    fi
+
+    # The testnet in use may have been kept when it was unused before. Ask again if it becomes unused in future.
+    rm -f $DGB_DATA_LOCATION/$DGB_TESTNET_DIR/.diginode-keep
+
+    # Is there any blockchain data for the other testnet?
+    if [ ! -d "$DGB_DATA_LOCATION/$unused_dir/blocks" ] && [ ! -d "$DGB_DATA_LOCATION/$unused_dir/chainstate" ]; then
+        return
+    fi
+
+    # Has the user already chosen to keep it?
+    if [ -f "$DGB_DATA_LOCATION/$unused_dir/.diginode-keep" ]; then
+        return
+    fi
+
+    unused_size=$(du -sh --exclude=wallets $DGB_DATA_LOCATION/$unused_dir 2>/dev/null | awk '{print $1}')
+
+    if [ -n "$(ls -A $DGB_DATA_LOCATION/$unused_dir/wallets 2>/dev/null)" ]; then
+        wallet_msg="\n\nYou have testnet wallets in ~/.digibyte/$unused_dir/wallets. They will be kept, but they belong to the other testnet, so DigiByte Core v$DGB_VER_LOCAL cannot open them. Any testnet DGB they hold only exists on the other testnet."
+        dialog_height=19
+    else
+        dialog_height=15
+    fi
+
+    printf " =============== Checking: Unused testnet data =========================\\n\\n"
+    # ==============================================================================
+
+    printf "%b The blockchain data in ~/.digibyte/$unused_dir is for a different DigiByte testnet, and is no longer used. ($unused_size)\\n" "${INFO}"
+
+    # Don't delete anything in unattended mode
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b To delete it, run DigiNode Setup without the --unattended flag.\\n" "${INDENT}"
+        printf "\\n"
+        return
+    fi
+
+    if dialog --no-shadow --keep-tite --colors --backtitle "Unused testnet blockchain data" --title "Unused testnet blockchain data" --yesno "\n$testnet_msg\n\nThe blockchain data for the other testnet is no longer used, and is taking up ${unused_size}b of space on your drive (~/.digibyte/$unused_dir).$wallet_msg\n\n\Z4Would you like to delete it?\Z0 Your testnet wallets will be kept." $dialog_height "${c}"; then
+
+        str="Deleting unused testnet blockchain data in ~/.digibyte/$unused_dir..."
+        printf "%b %s" "${INFO}" "${str}"
+        rm -rf $DGB_DATA_LOCATION/$unused_dir/indexes
+        rm -rf $DGB_DATA_LOCATION/$unused_dir/chainstate
+        rm -rf $DGB_DATA_LOCATION/$unused_dir/blocks
+        rm -f $DGB_DATA_LOCATION/$unused_dir/banlist.dat
+        rm -f $DGB_DATA_LOCATION/$unused_dir/banlist.json
+        rm -f $DGB_DATA_LOCATION/$unused_dir/digibyted.pid
+        rm -f $DGB_DATA_LOCATION/$unused_dir/fee_estimates.dat
+        rm -f $DGB_DATA_LOCATION/$unused_dir/.lock
+        rm -f $DGB_DATA_LOCATION/$unused_dir/mempool.dat
+        rm -f $DGB_DATA_LOCATION/$unused_dir/peers.dat
+        rm -f $DGB_DATA_LOCATION/$unused_dir/settings.json
+        rm -f $DGB_DATA_LOCATION/$unused_dir/anchors.dat
+        rm -f $DGB_DATA_LOCATION/$unused_dir/debug.log
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b You chose to keep the unused testnet blockchain data. You won't be asked again.\\n" "${INFO}"
+        sudo -u $USER_ACCOUNT touch $DGB_DATA_LOCATION/$unused_dir/.diginode-keep
+    fi
+    printf "\\n"
+}
+
 # THis function will update the existing diginode.settings file with the new version, if there is one (this occurs whenever there is a new release of DigiNode Tools, or if the branch the user is running changes)
 diginode_tools_update_settings() {
 
@@ -12004,12 +12091,19 @@ menu_choose_dgb_version() {
 
         warning_msg="\n\Z1WARNING: DigiByte Core v$DGB_VERSION_REQUESTED is not the latest version.\Z0\n\nOlder versions of DigiByte Core may not follow the current rules of the DigiByte network (for example, after a network upgrade) and are no longer supported. Only install an older version if you know you need it, such as for testing."
 
+        # Moving between v8 and v9 switches the testnet node to a different testnet
+        if [ "$DGB_DUAL_NODE" = "YES" ] || [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            if { [ "${DGB_VERSION_REQUESTED%%.*}" -lt 9 ] && [ "${DGB_VER_LOCAL%%.*}" -ge 9 ]; } 2>/dev/null; then
+                warning_msg="$warning_msg\n\nYour testnet node will switch to the old DigiByte testnet used by v8 and earlier. This is a separate blockchain from the new v9 testnet, so your v9 testnet wallets and coins will not be available."
+            fi
+        fi
+
         # Going back a major version can break the blockchain data and wallet
         if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_STATUS" != "not_detected" ] && [ "${DGB_VERSION_REQUESTED%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
             warning_msg="$warning_msg\n\n\Z1You are downgrading from v$DGB_VER_LOCAL to v$DGB_VERSION_REQUESTED.\Z0 Older versions may not be able to read the blockchain data or wallet created by a newer version, so DigiByte Core may need to resync the blockchain before it will start. Back up your wallet first (Main Menu > Backup)."
         fi
 
-        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 21 ${c}; then
+        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 27 ${c}; then
             DGB_VERSION_REQUESTED=""
             return 1
         fi
@@ -13135,6 +13229,10 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     printf "\\n"
 
 fi
+
+
+# If DigiByte Core has moved between the old and new testnet (v9), offer to delete the unused testnet data
+check_unused_testnet_data
 
 }
 
