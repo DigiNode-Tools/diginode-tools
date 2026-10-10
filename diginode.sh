@@ -4961,14 +4961,14 @@ center_quit_message() {
 
 # generate quit message
 if [ "$generate_quit_message" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit."
+    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_message=$(center_quit_message "$quit_message_text")
     generate_quit_message="no"
 fi
 
 # generate quit message with port test
 if [ "$generate_quit_message_with_porttest" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}P${dbcol_rst} to test open ports."
+    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}P${dbcol_rst} to test open ports. Press ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_messsage_with_port_test=$(center_quit_message "$quit_message_text")
     generate_quit_message_with_porttest="no"
 fi
@@ -5449,133 +5449,142 @@ echo "$sm_row_08" # "╚" "═" "╩" "═" "═" "═" "╝"
 
 echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
-ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
-ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
-ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
-ip4_ext_only="External: $IP4_EXTERNAL"
+# The network section shows your IP and onion addresses. Press N to hide it, e.g. before sharing a screenshot.
+if [ "$SM_HIDE_NETWORK" = "YES" ]; then
 
-# Display IP4 addresses
-if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_off"
-elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
-elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
-elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
+    db_content_c1_c2_c3f " ║ NETWORK        ║                ║  " "Hidden - press N to show your IP addresses"
+
 else
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
-fi
 
+    ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
+    ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+    ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+    ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
+    ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
+    ip4_ext_only="External: $IP4_EXTERNAL"
 
-# STATUS MONITOR DASHBOARD - NETWORK - IP6 ADDRESS
-
-if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then 
-
-    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
-
-    # Setup IP6 display array
-    ip6_leftcol=" ║                ║    IP6 ADDRESS ║  "
-    ip6_leftcol2=" ║                ║                ║  "
-    ip6_1st_part="Link-Local: ${IP6_LINKLOCAL:-unavailable}   GUA: ${IP6_GUA:-unavailable}"
-    ip6_1st_part_width=${#ip6_1st_part}
-    ip6_1st_part_l1="Link-Local: ${IP6_LINKLOCAL:-unavailable}"
-    ip6_1st_part_l2="GUA: ${IP6_GUA:-unavailable}"
-
-    # Display first IP6 part
-    if [ $term_width -gt $(( ip6_1st_part_width + combined_col1_2_width + right_border_width )) ]; then
-        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part"
+    # Display IP4 addresses
+    if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_off"
+    elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
+    elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
+    elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
     else
-        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part_l1"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_1st_part_l2"
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
     fi
 
-    # If public IP6 is the same as GUA then remove it
-    if [ "$IP6_GUA" = "$IP6_EXTERNAL" ]; then
-        IP6_EXTERNAL=""
-    fi
 
-    # Setup ip6 second part if needed
-    if [ "$IP6_EXTERNAL" != "" ] && [ "$IP6_ULA" != "" ]; then
-        ip6_2nd_part="ULA: ${IP6_ULA}  External: ${IP6_EXTERNAL}"
-        ip6_2nd_part_width=${#ip6_2nd_part}
-        ip6_2nd_part_l1="External: ${IP6_EXTERNAL}"
-        ip6_2nd_part_l2="ULA: $IP6_ULA"
-        # Display second IP6 part
-        if [ $term_width -gt $(( ip6_2nd_part_width + combined_col1_2_width + right_border_width )) ]; then
+    # STATUS MONITOR DASHBOARD - NETWORK - IP6 ADDRESS
+
+    if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then 
+
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+        # Setup IP6 display array
+        ip6_leftcol=" ║                ║    IP6 ADDRESS ║  "
+        ip6_leftcol2=" ║                ║                ║  "
+        ip6_1st_part="Link-Local: ${IP6_LINKLOCAL:-unavailable}   GUA: ${IP6_GUA:-unavailable}"
+        ip6_1st_part_width=${#ip6_1st_part}
+        ip6_1st_part_l1="Link-Local: ${IP6_LINKLOCAL:-unavailable}"
+        ip6_1st_part_l2="GUA: ${IP6_GUA:-unavailable}"
+
+        # Display first IP6 part
+        if [ $term_width -gt $(( ip6_1st_part_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part"
+        else
+            db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part_l1"
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_1st_part_l2"
+        fi
+
+        # If public IP6 is the same as GUA then remove it
+        if [ "$IP6_GUA" = "$IP6_EXTERNAL" ]; then
+            IP6_EXTERNAL=""
+        fi
+
+        # Setup ip6 second part if needed
+        if [ "$IP6_EXTERNAL" != "" ] && [ "$IP6_ULA" != "" ]; then
+            ip6_2nd_part="ULA: ${IP6_ULA}  External: ${IP6_EXTERNAL}"
+            ip6_2nd_part_width=${#ip6_2nd_part}
+            ip6_2nd_part_l1="External: ${IP6_EXTERNAL}"
+            ip6_2nd_part_l2="ULA: $IP6_ULA"
+            # Display second IP6 part
+            if [ $term_width -gt $(( ip6_2nd_part_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+            else
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l1"
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l2"
+            fi
+        elif [ "$IP6_EXTERNAL" != "" ]; then
+            ip6_2nd_part="External: ${IP6_EXTERNAL}"
             db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
-        else
-            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l1"
-            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l2"
+        elif [ "$IP6_ULA" != "" ]; then
+            ip6_2nd_part="ULA: $IP6_ULA"
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
         fi
-    elif [ "$IP6_EXTERNAL" != "" ]; then
-        ip6_2nd_part="External: ${IP6_EXTERNAL}"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
-    elif [ "$IP6_ULA" != "" ]; then
-        ip6_2nd_part="ULA: $IP6_ULA"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+
     fi
 
-fi
-
-# echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+    # echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 
 
-# STATUS MONITOR DASHBOARD - NETWORK - ONION ADDRESS
+    # STATUS MONITOR DASHBOARD - NETWORK - ONION ADDRESS
 
-if [ "$DGB_ONION_ADDRESS" != "" ] || [ "$DGB2_ONION_ADDRESS" != "" ]; then 
+    if [ "$DGB_ONION_ADDRESS" != "" ] || [ "$DGB2_ONION_ADDRESS" != "" ]; then 
 
-    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 
-    # Setup IP6 display array
-    onion_leftcol=" ║                ║  ONION ADDRESS ║  "
-    onion_leftcol2=" ║                ║                ║  "
+        # Setup IP6 display array
+        onion_leftcol=" ║                ║  ONION ADDRESS ║  "
+        onion_leftcol2=" ║                ║                ║  "
 
-    onion_dgb1="$dgb_tor_address_label ${DGB_ONION_ADDRESS:-unavailable}"
-    onion_dgb1_width=${#onion_dgb1}
-    onion_dgb1_short="$dgb_tor_address_label_short ${DGB_ONION_ADDRESS:-unavailable}"
-    onion_dgb1_short_width=${#onion_dgb1_short}
-    onion_dgb1_shortest="$dgb_tor_address_label_shortest ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1="$dgb_tor_address_label ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1_width=${#onion_dgb1}
+        onion_dgb1_short="$dgb_tor_address_label_short ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1_short_width=${#onion_dgb1_short}
+        onion_dgb1_shortest="$dgb_tor_address_label_shortest ${DGB_ONION_ADDRESS:-unavailable}"
 
-    onion_dgb2="DigiByte Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
-    onion_dgb2_width=${#onion_dgb2}
-    onion_dgb2_short="Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
-    onion_dgb2_short_width=${#onion_dgb2_short}
-    onion_dgb2_shortest="TN: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2="DigiByte Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2_width=${#onion_dgb2}
+        onion_dgb2_short="Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2_short_width=${#onion_dgb2_short}
+        onion_dgb2_shortest="TN: ${DGB2_ONION_ADDRESS:-unavailable}"
 
-    # Display both mainnet and testnet
-    if [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" != "" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2"
-        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_shortest"
-        fi
-    # Display primary node only
-    elif [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" = "" ] && [ "$DGB_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
-        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
-        fi
-    # Display secondary node only (testnet)
-    elif [ "$DGB_ONION_ADDRESS" = "" ] && [ "$DGB2_ONION_ADDRESS" != "" ]  && [ "$DGB2_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb2_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2"
-        elif [ $term_width -gt $(( onion_dgb2_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_shortest"
+        # Display both mainnet and testnet
+        if [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" != "" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2"
+            elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_shortest"
+            fi
+        # Display primary node only
+        elif [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" = "" ] && [ "$DGB_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+            elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+            fi
+        # Display secondary node only (testnet)
+        elif [ "$DGB_ONION_ADDRESS" = "" ] && [ "$DGB2_ONION_ADDRESS" != "" ]  && [ "$DGB2_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb2_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2"
+            elif [ $term_width -gt $(( onion_dgb2_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_shortest"
+            fi
         fi
     fi
+
 fi
 
 echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
@@ -5868,6 +5877,19 @@ trap quit_message EXIT
 
 # sleep 1
 read -t 0.1 -s -n 1 input
+
+    # N: show or hide the network section (IP and onion addresses), e.g. before taking a screenshot to share
+    if [ "$input" = "n" ] || [ "$input" = "N" ]; then
+        if [ "$SM_HIDE_NETWORK" = "YES" ]; then
+            SM_HIDE_NETWORK="NO"
+        else
+            SM_HIDE_NETWORK="YES"
+        fi
+        # Update the footer to say "show" or "hide"
+        generate_quit_message="yes"
+        generate_quit_message_with_porttest="yes"
+        input=""
+    fi
 
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
