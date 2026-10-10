@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.11.4
+#           Name:  DigiNode Setup v0.12.0
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.11.4
-# Last Updated: 2025-04-30
+DGNT_VER_LIVE=0.12.0
+# Last Updated: 2026-10-10
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
