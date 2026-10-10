@@ -2,6 +2,10 @@
 
 # DigiNode Tools
 
+[![Sponsor DigiNode Tools](https://img.shields.io/badge/Sponsor-DigiNode%20Tools-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/DigiNode-Tools)
+
+**Find this useful?** Please consider [sponsoring me on GitHub](https://github.com/sponsors/DigiNode-Tools), so I can devote more time to DigiNode Tools and projects like this one.
+
 ### What's a DigiNode?
 A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
 
@@ -50,6 +54,8 @@ If you need help, please join the [DigiNode Tools Telegram group](https://t.me/D
 ## Please DONATE to Support DigiNode Tools!
 
 I created DigiNode Tools to make it easy for everybody to run their own DigiByte and DigiAsset Node. I have devoted thousands of unpaid hours on this goal, all for the benefit of the DigiByte community. PLEASE DONATE to help me cover server costs and support future development. You can find me on Bluesky [@olly.st](https://bsky.app/profile/olly.st). Many thanks, Olly  
+
+**[Sponsor DigiNode Tools on GitHub](https://github.com/sponsors/DigiNode-Tools)**, or donate DigiByte (DGB):
 
 **dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup**
 
