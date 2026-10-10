@@ -1,7 +1,11 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools v0.12.0 - 2026-10-x
-- Coming Soon...
+- New: You can now install any version of DigiByte Core that has been verified for your DigiNode, going back to v7.17.2. Choose Version from the DigiNode Setup main menu to upgrade or downgrade. During a new install, you can choose to install the latest version (recommended) or an earlier one. Pre-releases are included if you use the --dgbpre flag. You are warned before installing an older version, and before downgrading to an older major version, which may require the blockchain to be resynced.
+- New: Install a specific version of DigiByte Core from the command line with the --dgbver flag (e.g. --dgbver=8.26.2). For an unattended install, set UI_DGB_VERSION in diginode.settings.
+- Change: DigiNode Setup now downloads DigiByte Core using the exact download link and file name recorded when each release was verified, and no longer has to guess them. This fixes installing releases with unusual file or folder names, such as v8.22.0-final and v8.22.0-rc5, which could not be installed before.
+- Fix: DigiNode Dashboard no longer shows an out of date sync percentage when a node has only just started syncing.
+- Fix: Removed a "Permission denied" message shown when installing a DigiByte Core pre-release.
 
 DigiNode Tools v0.11.4 - 2026-10-10
 - New: The SHA256 hashes used to verify each DigiByte Core download are now published automatically at https://github.com/DigiNode-Tools/digibyte-hashes instead of on the diginode.tools website. Each new DigiByte Core release is checked every day, and its hash is only published once it matches the hash GitHub recorded when the file was uploaded, and the SHA256SUMS file included with the release (where available).
