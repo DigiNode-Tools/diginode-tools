@@ -15,6 +15,7 @@ DigiNode Tools v0.12.0 - 2026-10-x
 - Change: The donation message now includes a link to sponsor DigiNode Tools on GitHub: https://github.com/sponsors/DigiNode-Tools - and thanks the Featured Sponsors of DigiNode Tools.
 - Fix: Broken links to the static IP and port forwarding guide, and to the Argon One fan software.
 - Fix: Security: Your digibyte.conf file, which contains your RPC password, can now only be read by your DigiNode user account. Previously, DigiNode Setup could leave it readable by every user on the system. This is fixed automatically the next time you run DigiNode Setup.
+- Fix: DigiNode Dashboard no longer appears to freeze when a DigiByte node is too busy to respond, e.g. while it is syncing the blockchain. It now shows that the node is busy, with a spinner so you can see it is still working, and carries on as soon as the node responds again. Previously it could wait up to 15 minutes with no indication of what was happening.
 - Fix: DigiNode Dashboard no longer shows an out of date sync percentage when a node has only just started syncing.
 - Fix: Removed a "Permission denied" message shown when installing a DigiByte Core pre-release.
 

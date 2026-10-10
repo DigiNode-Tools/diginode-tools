@@ -11530,7 +11530,7 @@ fi
 query_digibyte_chain() {
     DGB_NETWORK_CHAIN=""
     local dgb_network_chain_query
-    dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
     if [ "$dgb_network_chain_query" != "" ]; then
         DGB_NETWORK_CHAIN=$dgb_network_chain_query
     fi
@@ -11586,7 +11586,7 @@ query_digibyte_tor() {
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
 
     # Check if primary DigiByte Node has an onion address (i.e. it is running on Tor)
-    DGB_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+    DGB_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
     if [ "$DGB_TOR_QUERY" != "" ]; then
         DGB_USING_TOR=$DGB_TOR_QUERY
         DGB_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11662,7 +11662,7 @@ query_digibyte_tor() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Check if secondary DigiByte Node has an onion address (i.e. it is running on Tor)
-        DGB2_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+        DGB2_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
         if [ "$DGB2_TOR_QUERY" != "" ]; then
             DGB2_USING_TOR=$DGB2_TOR_QUERY
             DGB2_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11704,7 +11704,7 @@ query_digibyte_tor() {
 query_digibyte_port() {
 
     # Get primary DigiByte Node listening port
-    DGB_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
         DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
         DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11780,7 +11780,7 @@ query_digibyte_port() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Get secondary DigiByte Node listening port
-        DGB2_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        DGB2_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
         if [ "$DGB2_LISTEN_PORT_QUERY" != "" ]; then
             DGB2_LISTEN_PORT=$DGB2_LISTEN_PORT_QUERY
             DGB2_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
