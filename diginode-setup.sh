@@ -12421,6 +12421,7 @@ menu_choose_dgb_version() {
     local ver
     local desc
     local newest_release
+    local newest_release_date
     local warning_msg
 
     DGB_VERSION_REQUESTED=""
@@ -12437,6 +12438,7 @@ menu_choose_dgb_version() {
 
     # The newest full release that is available for this DigiNode
     newest_release=$(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" 'first(.releases[] | select(.assets[$arch] != null and (.prerelease | not)) | .version) // ""')
+    newest_release_date=$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$newest_release" 'first(.releases[] | select(.version == $v) | .published_at) // ""')
 
     # Build the menu: one row per version, newest first
     while IFS='|' read -r ver desc; do
@@ -12444,9 +12446,10 @@ menu_choose_dgb_version() {
             desc="$desc  << Installed"
         fi
         menu_items+=("$ver" "$desc")
-    done < <(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg pre "$include_prereleases" --arg newest "$newest_release" '
+    # Older pre-releases are always listed. A pre-release newer than the latest release is only listed with --dgbpre.
+    done < <(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg pre "$include_prereleases" --arg newest "$newest_release" --arg newest_date "$newest_release_date" '
         .releases[]
-        | select(.assets[$arch] != null and ($pre == "true" or (.prerelease | not)))
+        | select(.assets[$arch] != null and ($pre == "true" or (.prerelease | not) or .published_at <= $newest_date))
         | "\(.version)|Released \(.published_at[0:10])\(if .prerelease then "  (pre-release)" elif .version == $newest then "  (latest)" else "" end)"')
 
     if [ ${#menu_items[@]} -eq 0 ]; then
@@ -13058,6 +13061,19 @@ check_digibyte_core() {
         if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
             if [ "$DGB_STATUS" = "not_detected" ]; then
                 dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
+            elif [ "$DGB_VER_LOCAL" != "" ] && [ "$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_INSTALLABLE_VER")" = "update_available" ]; then
+                # They are on an older version, so offer the latest release instead
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --yesno "\n\Z1No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag, but there is no pre-release version currently available.\n\nWould you like to upgrade to the latest release instead?\n\n      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_INSTALLABLE_VER" 15 ${c}; then
+                    printf "%b Pre-release version of DigiByte Core is not available. You chose to upgrade to the latest release instead.\\n" "${INFO}"
+                    dgb_upgrade_confirmed=true
+                else
+                    printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
+                    printf "\\n"
+                    DGB_DO_INSTALL=NO
+                    DGB_INSTALL_TYPE="none"
+                    DGB_UPDATE_AVAILABLE=NO
+                    return
+                fi
             else
                 dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. Upgrade will be skipped." 11 ${c}
                 printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
@@ -17477,6 +17493,14 @@ is_diginode_software_update="no"
 # A version of DigiByte Core the user chose themselves is confirmed on its own
 if [ ! "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$DGB_VERSION_REQUESTED" != "" ]; then
     menu_confirm_chosen_dgb_version
+fi
+
+# They already agreed to upgrade DigiByte Core (--dgbpre with no pre-release available), so don't ask again
+if [ "$dgb_upgrade_confirmed" = true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+    printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+    DGB_DO_INSTALL=YES
+    DGB_REQ_INSTALL=YES
+    DGB_ASK_UPGRADE=NO
 fi
 
 
