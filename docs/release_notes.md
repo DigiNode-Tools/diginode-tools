@@ -1,7 +1,14 @@
 ## DigiNode Tools Release Notes
 
-DigiNode Tools v0.11.4 - 2025-05-xx
-- Coming soon...
+DigiNode Tools v0.11.4 - 2026-10-xx
+- New: The SHA256 hashes used to verify each DigiByte Core download are now published automatically at https://github.com/DigiNode-Tools/digibyte-hashes instead of on the diginode.tools website. Each new DigiByte Core release is checked every day, and its hash is only published once it matches the hash GitHub recorded when the file was uploaded, and the SHA256SUMS file included with the release (where available).
+- Change: New DigiByte Core releases are now rolled out to DigiNodes gradually, between 3 and 15 days after they are released. This gives time for any problems with a new release to be discovered before everyone upgrades.
+- Fix: DigiNode Dashboard no longer tells you that a DigiByte Core update is available until it has been verified for your DigiNode. Previously it could show an update straight away that DigiNode Setup would then refuse to install.
+- Fix: If the newest DigiByte Core release has not reached your DigiNode yet, DigiNode Setup will now upgrade you to the newest version that has. Previously, the upgrade was skipped altogether.
+- Fix: DigiNode Dashboard now checks for a newer DigiByte Core release every day, even when an update is already waiting to be installed.
+- Fix: Upgrading between DigiByte Core pre-releases now works with the new version format (e.g. v9.26.6rc1 to v9.26.6rc2, and v9.26.6rc2 to v9.26.6). Previously, these upgrades were not offered.
+- Fix: DigiByte Core releases that have no download for your type of device (e.g. v8.26.0 and v8.26.1 on a Raspberry Pi) are no longer offered.
+- Fix: Reset Mode now shows the correct DigiByte Core version when running a pre-release.
 
 DigiNode Tools v0.11.3 - 2025-04-30
 - New: Add a few more DigiNode tips.

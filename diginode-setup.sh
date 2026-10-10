@@ -119,6 +119,9 @@ DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 
+# Verified SHA256 hashes of DigiByte Core releases. hash0.json is staging (--updatetest), hash1-4.json are the update groups.
+DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
+
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
 
@@ -11633,8 +11636,8 @@ is_dgb_newer_version() {
     local local_version="$1"
     local remote_version="$2"
 
-    # Extract major, minor, patch, rc, and suffix
-    local regex="([0-9]+)\.([0-9]+)\.([0-9]+)(-rc([0-9]+))?(-([a-zA-Z0-9]+))?"
+    # Extract major, minor, patch, rc, and suffix (rc can be "-rc2" or "rc2")
+    local regex="([0-9]+)\.([0-9]+)\.([0-9]+)(-?rc([0-9]+))?(-([a-zA-Z0-9]+))?"
     if [[ $local_version =~ $regex ]]; then
         local_major=${BASH_REMATCH[1]}
         local_minor=${BASH_REMATCH[2]}
@@ -11669,8 +11672,8 @@ is_dgb_newer_version() {
         return
     fi
 
-    # Handle the case where RC versions are involved
-    if (( remote_major == local_major && remote_minor == local_minor && remote_patch == local_patch && remote_rc > local_rc )); then
+    # Handle the case where RC versions are involved (a newer RC of the same version, but never a release to an RC)
+    if (( remote_major == local_major && remote_minor == local_minor && remote_patch == local_patch && local_rc > 0 && remote_rc > local_rc )); then
         echo "update_available"
         return
     fi
@@ -11690,18 +11693,23 @@ is_dgb_newer_version() {
     echo "update_not_available"
 }
 
-# If it is not already known, get the contents of the relevant hash file from diginode.tools and store it in variable HASH_FILE
+# If it is not already known, get the contents of the relevant hash file from GitHub and store it in variable HASH_FILE
+# Use 'get_hash_file refresh' to download it again (e.g. the Dashboard, which can run for weeks)
 
 get_hash_file() {
 
-    if [ "$HASH_FILE" = "" ]; then 
+    if [ "$1" = "refresh" ]; then
+        HASH_FILE=""
+    fi
+
+    if [ "$HASH_FILE" = "" ]; then
 
         if [ "$SKIP_HASH" = false ] || [ "$SKIP_HASH" = "" ]; then 
             if [ "$UPDATE_TEST" = true ]; then 
-                HASH_FILE_URL="https://diginode.tools/hash0.json"
+                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash0.json"
                 printf "%b ${txtbylw}Update Test requested using --updatetest flag. Using staging hash file.${txtrst}\\n" "${INFO}"
             else
-                HASH_FILE_URL="https://diginode.tools/hash${UPDATE_GROUP}.json"
+                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash${UPDATE_GROUP}.json"
                 if [ $VERBOSE_MODE = true ]; then
                     printf "%b DigiNode Tools Update Group: ${UPDATE_GROUP}\\n" "${INFO}"
                 fi
@@ -11710,7 +11718,84 @@ get_hash_file() {
             printf "%b ${txtbylw}Skipping sha256 hash verification - requested using --skiphash flag.${txtrst}\\n" "${INFO}"
         fi
 
-        HASH_FILE=$(curl -sL $HASH_FILE_URL 2>/dev/null)
+        HASH_FILE=$(curl -sfL --max-time 10 $HASH_FILE_URL 2>/dev/null)
+    fi
+}
+
+# Find the newest version of DigiByte Core that this DigiNode can actually install: the newest release
+# on GitHub that has a verified SHA256 hash for this update group and CPU architecture.
+# A new release only becomes available once it has been verified and rolled out to the user's update group.
+#
+# Usage: get_dgb_installable_version <release|prerelease> [refresh]
+#   release     - full releases only
+#   prerelease  - pre-releases and full releases, whichever is newest
+#   refresh     - download the hash file again, even if we already have it
+#
+# Sets:
+#   DGB_INSTALLABLE_STATUS          - ok, github_error, hash_error or none_available
+#   DGB_INSTALLABLE_VER             - the version to install (e.g. 9.26.7)
+#   DGB_INSTALLABLE_IS_PRERELEASE   - true if that version is a pre-release
+#   DGB_LATEST_VER                  - the newest version on GitHub, which may still be waiting for verification
+
+get_dgb_installable_version() {
+
+    local release_type="$1"
+    local dgb_releases_json
+    local hashes="{}"
+    local result
+
+    DGB_INSTALLABLE_STATUS=""
+    DGB_INSTALLABLE_VER=""
+    DGB_INSTALLABLE_IS_PRERELEASE=""
+    DGB_LATEST_VER=""
+
+    dgb_releases_json=$(curl -sfL --max-time 10 "https://api.github.com/repos/DigiByte-Core/digibyte/releases?per_page=100" 2>/dev/null)
+    if ! echo "$dgb_releases_json" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
+        DGB_INSTALLABLE_STATUS="github_error"
+        return
+    fi
+
+    if [ "$SKIP_HASH" != true ]; then
+        get_hash_file $2
+        if ! echo "$HASH_FILE" | jq -e 'type == "object"' > /dev/null 2>&1; then
+            DGB_INSTALLABLE_STATUS="hash_error"
+            return
+        fi
+        hashes="$HASH_FILE"
+    fi
+
+    # Newest first, by the date each release was published. Output: latest|installable|installable_is_prerelease
+    result=$(echo "$dgb_releases_json" | jq -r --argjson hashes "$hashes" --arg arch "$ARCH" --arg type "$release_type" --arg skip "$SKIP_HASH" '
+        map(select((.draft | not) and ($type == "prerelease" or (.prerelease | not))))
+        | sort_by(.published_at) | reverse
+        | map({ver: (.tag_name | sub("^v"; "")), prerelease})
+        | (map(select($skip == "true" or $hashes["digibyte-" + .ver][$arch]? != null)) | first) as $installable
+        | "\(first.ver // "")|\($installable.ver // "")|\($installable.prerelease // false)"' 2>/dev/null)
+
+    DGB_LATEST_VER=$(echo "$result" | cut -d '|' -f1)
+    DGB_INSTALLABLE_VER=$(echo "$result" | cut -d '|' -f2)
+    DGB_INSTALLABLE_IS_PRERELEASE=$(echo "$result" | cut -d '|' -f3)
+
+    if [ "$DGB_INSTALLABLE_VER" = "" ]; then
+        DGB_INSTALLABLE_STATUS="none_available"
+    else
+        DGB_INSTALLABLE_STATUS="ok"
+    fi
+}
+
+# Save the version found by get_dgb_installable_version to diginode.settings, so the Dashboard only ever
+# compares against a version the user can actually install
+save_dgb_installable_version() {
+
+    if [ "$DGB_INSTALLABLE_IS_PRERELEASE" = "true" ]; then
+        DGB_VER_PRERELEASE=$DGB_INSTALLABLE_VER
+        sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
+    else
+        DGB_VER_RELEASE=$DGB_INSTALLABLE_VER
+        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        # The newest installable version is a full release, so there is no pre-release to offer
+        DGB_VER_PRERELEASE=""
+        sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
     fi
 }
 
@@ -12129,396 +12214,101 @@ check_digibyte_core() {
         INSTALL_DGB_RELEASE_TYPE="release"
     fi
 
-    # Set the verification hash file to use
-    get_hash_file
-
-    # Check for latest pre-release version if it is currently being used or has been requested
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
-
-        # Check Github repo for DigiByte Core release JSON
-        str="Getting DigiByte Core release info from Github..."
-        printf "%b %s" "${INFO}" "${str}"
-
-        DGB_RELEASE_JSON_QUERY=$(curl --silent https://api.github.com/repos/digibyte-core/digibyte/releases 2>/dev/null)
-
-        local dgb_json_error_msg=$(echo "$DGB_RELEASE_JSON_QUERY" | jq -r '.message // "No message field"' 2>/dev/null)
-
-        # If we don't get a response from Github, or the repo is not found, cancel
-        if [ "$DGB_RELEASE_JSON_QUERY" = "" ] || [ "$dgb_json_error_msg" = "Not Found" ]; then
-            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b Unable to check for pre-release version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
-            printf "\\n"
-            if [ "$DGB_STATUS" = "not_detected" ]; then
-                printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-            else
-                printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-            fi
-            printf "\\n"
-            DGB_DO_INSTALL=NO
-            DGB_INSTALL_TYPE="none"
-            DGB_UPDATE_AVAILABLE=NO
-            return
-        else
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            DGB_RELEASE_JSON=$DGB_RELEASE_JSON_QUERY
+    # Work out whether to look for the latest release or the latest pre-release
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ]; then
+        dgb_search_type="prerelease"
+    elif [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then
+        dgb_search_type="release"
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+            printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
+            dgb_downgrade_requested=true
         fi
-
-        # Check the variable containing the JSON from Github to find the version number of the latest DigiByte Core pre-release
-        str="Checking for latest DigiByte Core pre-release..."
-        printf "%b %s" "${INFO}" "${str}"
-
-        # if the most recent release is a pre-release then store the pre-release version number. if the newest release is a regular release then just return 'null'
-        DGB_VER_PRERELEASE=$(echo "$DGB_RELEASE_JSON" | jq -r '.[0] | if .prerelease then .tag_name else "null" end' | sed 's/v//g')
-
-
-        #########################################################
-        ########### TESTING: LATEST PRE-RELEASE #################
-        #########################################################
-        # DGB_VER_PRERELEASE="null"
-        #########################################################
-        #########################################################
-
-        # If there is no pre-release version
-        if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-            # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
-            if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
-                printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
-                if [ "$DGB_STATUS" = "not_detected" ]; then
-                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
-                else
-                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. Upgrade will be skipped." 11 ${c}
-                    printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
-                    printf "\\n"
-                    return
-                fi
-            else
-                printf "%b%b %s None!\\n" "${OVER}" "${INFO}" "${str}"
-            fi
-            # Since there is no available pre-release, we will switch to the latest release
-            INSTALL_DGB_RELEASE_TYPE="release"
-            printf "%b Pre-release version of DigiByte Core is not available. Switching to latest release...\\n" "${INFO}"
-        else
-            printf "%b%b %s Found: v${DGB_VER_PRERELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-            sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-
-            if [ "$SKIP_HASH" = false ]; then
-                # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-                str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
-                printf "%b %s" "${INFO}" "${str}"
-                # Check if a hash for this pre-release exists in chosen diginode.tools hash file
-                DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
-            fi
-
-            # If we don't get a result from diginode.tools (perhaps website is down?)
-            if [ "$DGB_VER_PRERELEASE_HASH" = "" ] && [ "$SKIP_HASH" = false ]; then
-                printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}. Is the Internet down?.\\n" "${CROSS}"
-                printf "\\n"
-                if [ "$DGB_STATUS" = "not_detected" ]; then
-                    printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                else
-                    printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-                fi
-                printf "\\n"
-                DGB_DO_INSTALL=NO
-                DGB_INSTALL_TYPE="none"
-                DGB_UPDATE_AVAILABLE=NO
-                return 
-            # If there is NO hash for this DigiByte pre-release
-            elif [ "$DGB_VER_PRERELEASE_HASH" = "null" ] && [ "$SKIP_HASH" = false ]; then
-                printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "%b SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE} is not available.\\n" "${INFO}"
-
-                ############################################################################
-
-                # If this there is no hash for the current pre-release, we will instead try and install
-                # the previous pre-release which presumably does have a hash
-
-                # Check Github repo to find the version number of the previous DigiByte Core pre-release
-                str="Checking for previous DigiByte Core pre-release..."
-                printf "%b %s" "${INFO}" "${str}"
-
-                DGB_VER_PRERELEASE=$(echo $DGB_RELEASE_JSON | jq -r '[.[] | select(.prerelease == true) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[1] as $prev_pr | [.[] | select(.prerelease == false) | {tag_name, published_at}] | sort_by(.published_at) | reverse | .[0] as $latest_r | if ($prev_pr.published_at > $latest_r.published_at) then $prev_pr.tag_name else empty end' | sed 's/v//g')
-
-                #########################################################
-                ########### TESTING: PREVIOUS PRE-RELEASE ###############
-                #########################################################
-                # DGB_VER_PRERELEASE="8.22.0-rc2"
-                #########################################################
-                #########################################################
-
-                # If there is no previous pre-release version
-                if [ "$DGB_VER_PRERELEASE" = "" ]; then
-                    sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-                    printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${INFO}" "${str}"
-
-                    if [ "$DGB_STATUS" = "not_detected" ]; then
-                        printf "%b Previous pre-release version of DigiByte Core is not available. Install release version instead..\\n" "${INFO}"
-                        INSTALL_DGB_RELEASE_TYPE="release"
-                        # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
-                        if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
-                            dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install the pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release currently available. The latest release will be installed instead." 11 ${c}
-                        fi
-                    else
-                        printf "%b Previous pre-release version of DigiByte Core is not available either. Skipping...\\n" "${INFO}"
-                        if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
-                            dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to the pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release currently available. Upgrade will be skipped." 11 ${c}
-                        fi
-                        printf "\\n"
-                        DGB_DO_INSTALL=NO
-                        DGB_INSTALL_TYPE="none"
-                        DGB_UPDATE_AVAILABLE=NO
-                        return 
-                    fi
-
-                else
-
-                    printf "%b%b %s Found: v${DGB_VER_PRERELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-                    sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-
-                    # Check diginode.tools website for SHA256 hash of the previous DigiByte Core pre-release
-                    str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}..."
-                    printf "%b %s" "${INFO}" "${str}"
-
-                    # Check if a hash for the previous pre-release exists in the diginode.tools hash file
-                    DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
-
-                    # If we don't get a result from diginode.tools (perhaps website is down?)
-                    if [ "$DGB_VER_PRERELEASE_HASH" = "" ]; then
-                        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                        printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE}. Is the Internet down?.\\n" "${CROSS}"
-                        printf "\\n"
-                        if [ "$DGB_STATUS" = "not_detected" ]; then
-                            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                        else
-                            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-                        fi
-                        printf "\\n"
-                        DGB_DO_INSTALL=NO
-                        DGB_INSTALL_TYPE="none"
-                        DGB_UPDATE_AVAILABLE=NO
-                        return 
-                    # If there is NO hash for the previous DigiByte pre-release either, then forget it
-                    elif [ "$DGB_VER_PRERELEASE_HASH" = "null" ]; then
-                        printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                        printf "%b SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE} is not available.\\n" "${INFO}"
-                        printf "\\n"
-                        if [ "$DGB_STATUS" = "not_detected" ]; then
-                            printf "%b DigiByte Core previous pre-release cannot be installed either. Skipping...\\n" "${INFO}"
-                            # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
-                            if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
-                                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release cannot be verified!" --title "DigiByte Core pre-release cannot be verified!" --msgbox "\n\Z1Warning: DigiByte Core v$DGB_VER_PRERELEASE cannot be installed.\Z0\n\nYou requested to upgrade to the latest pre-release version of DigiByte Core using the --dgbpre flag but v$DGB_VER_PRERELEASE has not yet been verified for use.\n\nFor help, ask in the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL" 14 ${c}
-                            fi
-                        else
-                            printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-                            if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
-                                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release cannot be verified!" --title "DigiByte Core pre-release cannot be verified!" --msgbox "\n\Z1Warning: DigiByte Core v$DGB_VER_PRERELEASE cannot be installed.\Z0\n\nYou requested to upgrade to the latest pre-release version of DigiByte Core using the --dgbpre flag but v$DGB_VER_PRERELEASE has not yet been verified for use.\n\nFor help, ask in the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL" 14 ${c}
-                            fi
-                        fi
-                        printf "\\n"
-                        DGB_DO_INSTALL=NO
-                        DGB_INSTALL_TYPE="none"
-                        DGB_UPDATE_AVAILABLE=NO
-                        return 
-                    # If there is a hash for the previous DigiByte pre-release
-                    else
-                        printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-
-                        if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
-                            INSTALL_DGB_RELEASE_TYPE="prerelease"
-                        fi
-                    fi
-
-                fi
-
-                ######################################################
-
-            # If there is a hash for this DigiByte pre-release
-            else
-                if [ "$SKIP_HASH" = false ]; then
-                    printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-                fi
-
-                if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
-                    INSTALL_DGB_RELEASE_TYPE="prerelease"
-                elif [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ];then
-                    printf "%b ${txtbylw}Downgrade to previous release version requested using --dgbnopre flag...${txtrst}\\n" "${INFO}"
-                    INSTALL_DGB_RELEASE_TYPE="release"
-                    dgb_downgrade_requested=true
-                fi
-            fi
-        fi
-
+    elif [ "$DGB_PRERELEASE" = "YES" ]; then
+        dgb_search_type="prerelease"
+    else
+        dgb_search_type="release"
     fi
 
-    # Check for latest release version if it is currently being used or has been requested
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
+    # Find the newest version of DigiByte Core that has been verified for this DigiNode (i.e. its SHA256 hash has
+    # been published for this update group and CPU architecture). Newer versions are not offered until then.
+    if [ "$dgb_search_type" = "prerelease" ]; then
+        str="Checking for latest verified DigiByte Core pre-release..."
+    else
+        str="Checking for latest verified DigiByte Core release..."
+    fi
+    printf "%b %s" "${INFO}" "${str}"
 
-        # Check Github repo to find the version number of the latest DigiByte Core release
-        str="Checking GitHub repo for latest DigiByte Core release..."
-        printf "%b %s" "${INFO}" "${str}"
-        DGB_VER_RELEASE=$(curl -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+    get_dgb_installable_version "$dgb_search_type"
 
-        #########################################################
-        ########### TESTING: LATEST RELEASE #####################
-        #########################################################
-        # DGB_VER_RELEASE="8.22.0"
-        #########################################################
-        #########################################################
+    #########################################################
+    ########### TESTING: LATEST VERIFIED VERSION ############
+    #########################################################
+    # DGB_INSTALLABLE_STATUS="ok"
+    # DGB_INSTALLABLE_VER="8.22.0"
+    # DGB_INSTALLABLE_IS_PRERELEASE="false"
+    # DGB_LATEST_VER="8.22.1"
+    #########################################################
+    #########################################################
 
-        # If can't get Github version number
-        if [ "$DGB_VER_RELEASE" = "" ]; then
-            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b Unable to check for new version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
-            printf "\\n"
+    # If we can't find a verified version, skip installing/upgrading DigiByte Core
+    if [ "$DGB_INSTALLABLE_STATUS" != "ok" ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        if [ "$DGB_INSTALLABLE_STATUS" = "github_error" ]; then
+            printf "%b Unable to get DigiByte Core release info from GitHub. Is the Internet down?\\n" "${CROSS}"
+        elif [ "$DGB_INSTALLABLE_STATUS" = "hash_error" ]; then
+            printf "%b Unable to get the SHA256 hashes used to verify DigiByte Core. Is the Internet down?\\n" "${CROSS}"
+            printf "%b Hash file: $HASH_FILE_URL\\n" "${INDENT}"
+        else
+            printf "%b No verified version of DigiByte Core is available for your DigiNode yet.\\n" "${CROSS}"
+        fi
+        printf "\\n"
+        if [ "$DGB_STATUS" = "not_detected" ]; then
+            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
+        else
             printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-            printf "\\n"
-            DGB_DO_INSTALL=NO
-            DGB_INSTALL_TYPE="none"
-            DGB_UPDATE_AVAILABLE=NO
-            return     
-        else
+        fi
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return
+    fi
 
-            printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-            sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+    printf "%b%b %s Found: v${DGB_INSTALLABLE_VER}\\n" "${OVER}" "${TICK}" "${str}"
 
-            if [ "$SKIP_HASH" = false ]; then 
-                # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-                str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
-                printf "%b %s" "${INFO}" "${str}"
+    # Let the user know if there is a newer version that has not been verified for their DigiNode yet
+    if [ "$DGB_LATEST_VER" != "$DGB_INSTALLABLE_VER" ]; then
+        printf "%b DigiByte Core v${DGB_LATEST_VER} has been released, but is not yet available for your DigiNode.\\n" "${INFO}"
+        printf "%b New releases are verified and then rolled out gradually over about two weeks.\\n" "${INDENT}"
+    fi
 
-                # Check if a hash for this pre-release exists in chosen diginode.tools hash file
-                DGB_VER_RELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_RELEASE" '.[$v]' 2>/dev/null)
-            fi
+    save_dgb_installable_version
 
-            # If we don't get a result from diginode.tools (perhaps website is down?)
-            if [ "$DGB_VER_RELEASE_HASH" = "" ] && [ "$SKIP_HASH" = false ]; then
-                printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}. Is the Internet down?.\\n" "${CROSS}"
-                printf "\\n"
-                if [ "$DGB_STATUS" = "not_detected" ]; then
-                    printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                else
-                    printf "%b DNSU cannot be upgraded. Skipping...\\n" "${INFO}"
-                fi
+    # If a pre-release was wanted, but the newest verified version is a full release
+    if [ "$dgb_search_type" = "prerelease" ] && [ "$DGB_INSTALLABLE_IS_PRERELEASE" != "true" ]; then
+        # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
+        if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
+            if [ "$DGB_STATUS" = "not_detected" ]; then
+                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
+            else
+                dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. Upgrade will be skipped." 11 ${c}
+                printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
                 printf "\\n"
                 DGB_DO_INSTALL=NO
                 DGB_INSTALL_TYPE="none"
                 DGB_UPDATE_AVAILABLE=NO
-                return 
-            # If there is NO hash for CURRRENT DigiByte release, we will try and get the PREVIOUS release
-            elif [ "$DGB_VER_RELEASE_HASH" = "null" ] && [ "$SKIP_HASH" = false ]; then
-
-                ###################################################
-
-                printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                printf "%b SHA256 hash of DigiByte Core v${DGB_VER_RELEASE} is not available.\\n" "${INFO}"
-
-                # If this is a new install and there is no hash for the current release, 
-                # we will try and install the previous release which presumably does have a hash
-                if [ "$DGB_STATUS" = "not_detected" ]; then
-
-                    # Check Github repo to find the version number of the previous DigiByte Core release
-                    str="Checking GitHub repo for previous DigiByte Core release..."
-                    printf "%b %s" "${INFO}" "${str}"
-                    DGB_VER_RELEASE=$(curl --silent "https://api.github.com/repos/digibyte-core/digibyte/releases" | jq -r '[.[] | select(.prerelease == false)][1].tag_name' | sed 's/v//g')
-
-                    #########################################################
-                    ########### TESTING: PREVIOUS RELEASE ###################
-                    #########################################################
-                    # DGB_VER_RELEASE="7.17.2"
-                    #########################################################
-                    #########################################################
-                    
-                    # If we can't get Github version number for previous release
-                    if [ "$DGB_VER_RELEASE" = "" ]; then
-                        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                        printf "%b Unable to check for previous version of DigiByte Core. Is the Internet down?.\\n" "${CROSS}"
-                        printf "\\n"
-                        printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                        printf "\\n"
-                        DGB_DO_INSTALL=NO
-                        DGB_INSTALL_TYPE="none"
-                        DGB_UPDATE_AVAILABLE=NO
-                        return     
-                    else
-
-                        printf "%b%b %s Found: v${DGB_VER_RELEASE}\\n" "${OVER}" "${TICK}" "${str}"
-                        sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-
-                        # Check diginode.tools website for SHA256 hash of the previous DigiByte Core release
-                        str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}..."
-                        printf "%b %s" "${INFO}" "${str}"
-
-                        # Check if a hash for the previous release exists in the diginode.tools hash file
-                        DGB_VER_RELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_RELEASE" '.[$v]' 2>/dev/null)
-
-                        # If we don't get a result from diginode.tools (perhaps website is down?)
-                        if [ "$DGB_VER_RELEASE_HASH" = "" ]; then
-                            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                            printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_RELEASE}. Is the Internet down?.\\n" "${CROSS}"
-                            printf "\\n"
-                            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                            printf "\\n"
-                            DGB_DO_INSTALL=NO
-                            DGB_INSTALL_TYPE="none"
-                            DGB_UPDATE_AVAILABLE=NO
-                            return 
-                        # If there is NO hash for the previous DigiByte release either, then forget it
-                        elif [ "$DGB_VER_RELEASE_HASH" = "null" ]; then
-                            printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-                            printf "%b SHA256 hash of DigiByte Core v${DGB_VER_RELEASE} is not available.\\n" "${INFO}"
-                            printf "\\n"
-                            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
-                            printf "\\n"
-                            DGB_DO_INSTALL=NO
-                            DGB_INSTALL_TYPE="none"
-                            DGB_UPDATE_AVAILABLE=NO
-                            return 
-                        # If there is a hash for the previous DigiByte release
-                        else
-                            printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-
-                            if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
-                                INSTALL_DGB_RELEASE_TYPE="release"
-                            fi
-                        fi
-
-                    fi
-
-                else
-                    printf "%b DigiByte Core cannot be upgraded. Skipping...\\n" "${INFO}"
-                    printf "\\n"
-                    DGB_DO_INSTALL=NO
-                    DGB_INSTALL_TYPE="none"
-                    DGB_UPDATE_AVAILABLE=NO
-                    return 
-                fi
-
-                ######################################################
-
-            # If there is a hash for this DigiByte release
-            else
-                if [ "$SKIP_HASH" = false ]; then 
-                    printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-                fi
-
-                if [ "$REQUEST_DGB_RELEASE_TYPE" = "" ]; then
-                    INSTALL_DGB_RELEASE_TYPE="release"
-                fi
+                return
             fi
-
         fi
-
+        printf "%b Pre-release version of DigiByte Core is not available. Switching to latest release...\\n" "${INFO}"
     fi
-
 
     # Set DGB_VER_GITHUB to the version we are comparing against
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
-        DGB_VER_GITHUB=$DGB_VER_RELEASE
-    elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-        DGB_VER_GITHUB=$DGB_VER_PRERELEASE
+    DGB_VER_GITHUB=$DGB_INSTALLABLE_VER
+    if [ "$DGB_INSTALLABLE_IS_PRERELEASE" = "true" ]; then
+        INSTALL_DGB_RELEASE_TYPE="prerelease"
+    else
+        INSTALL_DGB_RELEASE_TYPE="release"
     fi
 
     # If a local version already exists.... (i.e. we have a local version number)
@@ -12536,30 +12326,22 @@ check_digibyte_core() {
 
         dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
 
-        if [ "$dgb_update_status" = "update_not_available" ] || [ "$dgb_downgrade_requested" = true ]; then
-            if [ "$RESET_MODE" = true ]; then
-                printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
-                DGB_INSTALL_TYPE="askreset"
-            else
-                printf "%b Upgrade not required.\\n" "${INFO}"
-                DGB_DO_INSTALL=NO
-                DGB_INSTALL_TYPE="none"
-                DGB_UPDATE_AVAILABLE=NO
- #              printf "\\n"
- #              return
-            fi
-
-            if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] && [ "$REQUEST_DGB_RELEASE_TYPE" = "release" ]; then # --dgbnopre
-                printf "%b %bDigiByte Core can be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-                DGB_INSTALL_TYPE="upgrade"
-                DGB_ASK_UPGRADE=YES
-            fi
-
-
-        else
+        if [ "$dgb_update_status" = "update_available" ]; then
             printf "%b %bDigiByte Core can be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGB_INSTALL_TYPE="upgrade"
             DGB_ASK_UPGRADE=YES
+        elif [ "$dgb_downgrade_requested" = true ] && [ "$DGB_VER_LOCAL" != "$DGB_VER_GITHUB" ]; then # --dgbnopre
+            printf "%b %bDigiByte Core can be downgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGB_INSTALL_TYPE="upgrade"
+            DGB_ASK_UPGRADE=YES
+        elif [ "$RESET_MODE" = true ]; then
+            printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
+            DGB_INSTALL_TYPE="askreset"
+        else
+            printf "%b Upgrade not required.\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
         fi
 
     fi 
@@ -12595,7 +12377,7 @@ fi
 # If we are in reset mode, ask the user if they want to reinstall DigiByte Core
 if [ "$DGB_INSTALL_TYPE" = "askreset" ]; then
 
-    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiByte Core v${DGB_VER_RELEASE}?\Z0\n\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." 11 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Reset Mode" --title "Reset Mode" --yesno "\n\Z4Do you want to re-install DigiByte Core v${DGB_VER_GITHUB}?\Z0\n\nNote: This will delete your current DigiByte Core folder at $DGB_INSTALL_LOCATION and re-install it. Your DigiByte settings and wallet will not be affected." 11 "${c}"; then
     
         DGB_DO_INSTALL=YES
         DGB_INSTALL_TYPE="reset"
@@ -12722,14 +12504,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Perform hash verficiation of download, unless the user chose to skip it with the --skiphash flag
     if [ "$SKIP_HASH" = false ]; then 
 
-        # Check diginode.tools website for SHA256 hash of the latest DigiByte Core release
-        str="Checking diginode.tools for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
+        # Get the verified SHA256 hash of this DigiByte Core release
+        str="Checking for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
         printf "%b %s" "${INFO}" "${str}"
 
-        # Check if a hash for this pre-release exists in diginode.tools hash file
+        # Check if a hash for this version and CPU architecture exists in the hash file
         DGB_VER_GITHUB_HASH=$(echo "$HASH_FILE" | jq -r --arg v "digibyte-$DGB_VER_GITHUB" --arg a "$ARCH" '.[$v]|.[$a]' 2>/dev/null)
 
-        # If we don't get a result from diginode.tools (perhaps website is down?)
+        # If we don't get a result (perhaps the hash file could not be downloaded?)
         if [ "$DGB_VER_GITHUB_HASH" = "" ]; then
             printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
             printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}. Is the Internet down?.\\n" "${CROSS}"
@@ -12738,7 +12520,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         # If there is NO hash for this DigiByte pre-release
         elif [ "$DGB_VER_GITHUB_HASH" = "null" ]; then
             printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b SHA256 hash of DigiByte Core v${DGB_VER_PRERELEASE} is not available.\\n" "${INFO}"
+            printf "%b SHA256 hash of DigiByte Core v${DGB_VER_GITHUB} is not available.\\n" "${INFO}"
             printf "\\n"
             hash_verification_failed="yes"
         # If there is a hash for this DigiByte pre-release
@@ -12760,7 +12542,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             str="Checking SHA256 hashes are a match for DigiByte Core $DGB_VER_GITHUB ..."
             printf "%b %s" "${INFO}" "${str}"
 
-            # Check if the hash on diginode.tools matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
+            # Check if the verified hash matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
             if [ "$DGB_VER_LOCAL_HASH" = "$DGB_VER_GITHUB_HASH" ]; then
                 printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
                 hash_verification_failed=""

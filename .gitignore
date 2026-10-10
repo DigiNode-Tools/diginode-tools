@@ -7,3 +7,9 @@ docs/.DS_Store
 motd/.DS_Store
 .DS_Store
 .vscode/sftp.json
+
+# Old scripts kept locally, not used by DigiNode Tools
+detect-pi.sh
+getdgbhash.sh
+sha256sum.json
+testpairing.sh
