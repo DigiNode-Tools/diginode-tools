@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.3
+#           Name:  DigiNode Dashboard v0.11.4
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.3
-# Last Updated: 2025-04-22
+DGNT_VER_LOCAL=0.11.4
+# Last Updated: 2025-04-30
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -2449,58 +2449,25 @@ fi
 }
 
 
-# check for a digibyte update
+# Check for a DigiByte Core update. Only versions that have been verified for this DigiNode (i.e. their SHA256
+# hash has been published for this update group and CPU architecture) are offered, so the user is never told
+# about an update they can't install yet.
 check_digibyte_update() {
 
-    # Set the verification hash file to use
-    get_hash_file
-
-    # Check for latest pre-release version of DigiByte Core if it is currently being used
+    # Look for the latest pre-release if one is currently being used, otherwise the latest release
     if [ "$DGB_PRERELEASE" = "YES" ]; then
-
-        DGB_VER_PRERELEASE=$(jq -r 'map(select(.prerelease)) | first | .tag_name' <<< $(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases) | sed 's/v//g')
-
-        # If there is no pre-release version, then we will lookup the release version
-        if [ "$DGB_VER_PRERELEASE" = "null" ]; then
-            # sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
-            INSTALL_DGB_RELEASE_TYPE="release"
-        else
-
-            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
-            DGB_VER_PRERELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_PRERELEASE" '.[$v]' 2>/dev/null)
-
-            if [ "$DGB_VER_PRERELEASE_HASH" != "null" ] && [ "$DGB_VER_PRERELEASE_HASH" != "" ]; then
-                sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=\"$DGB_VER_PRERELEASE\"|" $DGNT_SETTINGS_FILE
-                INSTALL_DGB_RELEASE_TYPE="prerelease"
-            fi
-        fi
+        get_dgb_installable_version prerelease refresh
+    else
+        get_dgb_installable_version release refresh
     fi
 
-
-    # Check for latest release version of DigiByte Core on Github
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ] || [ "$DGB_PRERELEASE" = "NO" ]; then
-        DGB_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/digibyte-core/digibyte/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-        if [ "$DGB_VER_RELEASE_QUERY" != "" ]; then
-
-            # Check if a hash for this pre-release exists in chosen diginode.tools hash file
-            DGB_VER_RELEASE_HASH=$(echo "$HASH_FILE" | jq --arg v "digibyte-$DGB_VER_RELEASE" '.[$v]' 2>/dev/null)
-
-            if [ "$DGB_VER_RELEASE_HASH" != "null" ] && [ "$DGB_VER_RELEASE_HASH" != "" ]; then
-                DGB_VER_RELEASE=$DGB_VER_RELEASE_QUERY
-                sed -i -e "/^DGB_VER_RELEASE=/s|.*|DGB_VER_RELEASE=\"$DGB_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-            fi
-        fi
+    # If we couldn't check (e.g. the Internet is down), keep the version we already know about
+    if [ "$DGB_INSTALLABLE_STATUS" = "ok" ]; then
+        save_dgb_installable_version
+        DGB_VER_GITHUB=$DGB_INSTALLABLE_VER
     fi
 
-
-    # Set DGB_VER_GITHUB to the version we are comparing against
-    if [ "$INSTALL_DGB_RELEASE_TYPE" = "release" ]; then
-        DGB_VER_GITHUB=$DGB_VER_RELEASE
-    elif [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
-        DGB_VER_GITHUB=$DGB_VER_PRERELEASE
-    fi
-
-    # Compare current DigiByte Core version with Github version to know if there is a new version available
+    # Compare current DigiByte Core version with the verified version to know if there is a new version available
     dgb_update_status=$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_VER_GITHUB")
     if [ "$dgb_update_status" = "update_available" ]; then
         DGB_VER_LOCAL_CHECK_FREQ="10secs"
@@ -2509,17 +2476,6 @@ check_digibyte_update() {
     else
         DGB_UPDATE_AVAILABLE="no"
     fi
-
-
-    
-#    if [ "$DGB_VER_LOCAL" = "$DGB_VER_GITHUB" ]; then
-#      DGB_UPDATE_AVAILABLE="no"
-#    else
-#      DGB_VER_LOCAL_CHECK_FREQ="10secs"
-#      sed -i -e "/^DGB_VER_LOCAL_CHECK_FREQ=/s|.*|DGB_VER_LOCAL_CHECK_FREQ=\"$DGB_VER_LOCAL_CHECK_FREQ\"|" $DGNT_SETTINGS_FILE
-#      DGB_UPDATE_AVAILABLE="yes"
-#    fi
-
 
 }
 
@@ -2855,8 +2811,9 @@ pre_loop() {
 
       # Check remotely for release versions if there is not already one stored
       # This can happen when the script if running for the first time, or the diginode.settings file has been deleted
+      # Also check if an update is available, to be sure it has been verified for this DigiNode before telling the user about it
 
-      if [ "$DGB_VER_GITHUB" = "" ]; then
+      if [ "$DGB_VER_GITHUB" = "" ] || [ "$DGB_UPDATE_AVAILABLE" = "yes" ]; then
 
             check_digibyte_update
 
@@ -4361,25 +4318,23 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     printf "%b Checking for DigiByte Core update...\\n" "${INFO}"
     fi
 
-    # If there is a new DigiByte Core release available, check every 15 seconds until it has been installed
-    if [ "$DGB_VER_LOCAL_CHECK_FREQ" = "daily" ]; then
-        if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
+    # Check for a new DigiByte Core release. This also runs when an update is already available, in case a newer
+    # version has since been verified for this DigiNode.
+    if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
 
-
-            # Get current software version, and write to diginode.settings (unless pre-release)
-            if [ "$DGB_PRERELEASE" = "NO" ]; then
-                if [ "$DGB_STATUS" = "running" ]; then
-                    DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
-                else
-                    DGB_VER_LOCAL=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)   
-                fi
-                sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        # Get current software version, and write to diginode.settings (unless pre-release)
+        if [ "$DGB_PRERELEASE" = "NO" ]; then
+            if [ "$DGB_STATUS" = "running" ]; then
+                DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            else
+                DGB_VER_LOCAL=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             fi
-
-            # Check for an update to DigiBye Core
-            check_digibyte_update
-
+            sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
+
+        # Check for an update to DigiBye Core
+        check_digibyte_update
+
     fi
 
     if [ "$STARTUP_LOOP" = true ]; then
