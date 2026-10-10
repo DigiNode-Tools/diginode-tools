@@ -119,7 +119,7 @@ DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 
-# Verified SHA256 hashes of DigiByte Core releases. hash0.json is staging (--updatetest), hash1-4.json are the update groups.
+# Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
 
 # DigiNode Tools Website URL
@@ -11693,94 +11693,157 @@ is_dgb_newer_version() {
     echo "update_not_available"
 }
 
-# If it is not already known, get the contents of the relevant hash file from GitHub and store it in variable HASH_FILE
-# Use 'get_hash_file refresh' to download it again (e.g. the Dashboard, which can run for weeks)
+# If it is not already known, get the list of DigiByte Core releases that have been verified for this DigiNode's
+# update group, and store it in DGB_RELEASES_JSON. It lists the releases newest first, with the download URL, file name
+# and SHA256 hash for each CPU architecture. See: https://github.com/DigiNode-Tools/digibyte-hashes
+# Use 'get_dgb_releases_file refresh' to download it again (e.g. the Dashboard, which can run for weeks)
 
-get_hash_file() {
+get_dgb_releases_file() {
 
     if [ "$1" = "refresh" ]; then
-        HASH_FILE=""
+        DGB_RELEASES_JSON=""
     fi
 
-    if [ "$HASH_FILE" = "" ]; then
+    if [ "$DGB_RELEASES_JSON" = "" ]; then
 
-        if [ "$SKIP_HASH" = false ] || [ "$SKIP_HASH" = "" ]; then 
-            if [ "$UPDATE_TEST" = true ]; then 
-                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash0.json"
-                printf "%b ${txtbylw}Update Test requested using --updatetest flag. Using staging hash file.${txtrst}\\n" "${INFO}"
-            else
-                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash${UPDATE_GROUP}.json"
-                if [ $VERBOSE_MODE = true ]; then
-                    printf "%b DigiNode Tools Update Group: ${UPDATE_GROUP}\\n" "${INFO}"
-                fi
-            fi
+        if [ "$UPDATE_TEST" = true ]; then
+            DGB_RELEASES_URL="$DGB_HASH_FILES_URL/releases0.json"
+            printf "%b ${txtbylw}Update Test requested using --updatetest flag. Using staging releases file.${txtrst}\\n" "${INFO}"
         else
-            printf "%b ${txtbylw}Skipping sha256 hash verification - requested using --skiphash flag.${txtrst}\\n" "${INFO}"
+            DGB_RELEASES_URL="$DGB_HASH_FILES_URL/releases${UPDATE_GROUP}.json"
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b DigiNode Tools Update Group: ${UPDATE_GROUP}\\n" "${INFO}"
+            fi
         fi
 
-        HASH_FILE=$(curl -sfL --max-time 10 $HASH_FILE_URL 2>/dev/null)
+        DGB_RELEASES_JSON=$(curl -sfL --max-time 10 $DGB_RELEASES_URL 2>/dev/null)
     fi
 }
 
-# Find the newest version of DigiByte Core that this DigiNode can actually install: the newest release
-# on GitHub that has a verified SHA256 hash for this update group and CPU architecture.
+# Find the newest version of DigiByte Core that this DigiNode can actually install: the newest release that has been
+# verified for this update group and has a download for this CPU architecture.
 # A new release only becomes available once it has been verified and rolled out to the user's update group.
 #
 # Usage: get_dgb_installable_version <release|prerelease> [refresh]
 #   release     - full releases only
 #   prerelease  - pre-releases and full releases, whichever is newest
-#   refresh     - download the hash file again, even if we already have it
+#   refresh     - download the releases file again, even if we already have it
 #
 # Sets:
 #   DGB_INSTALLABLE_STATUS          - ok, github_error, hash_error or none_available
 #   DGB_INSTALLABLE_VER             - the version to install (e.g. 9.26.7)
 #   DGB_INSTALLABLE_IS_PRERELEASE   - true if that version is a pre-release
-#   DGB_LATEST_VER                  - the newest version on GitHub, which may still be waiting for verification
+#   DGB_LATEST_VER                  - the newest version on GitHub, which may not have reached this update group yet
+#   DGB_INSTALL_URL, DGB_INSTALL_FILE, DGB_INSTALL_SHA256 - where to download it from and its verified hash
 
 get_dgb_installable_version() {
 
     local release_type="$1"
-    local dgb_releases_json
-    local hashes="{}"
     local result
 
     DGB_INSTALLABLE_STATUS=""
     DGB_INSTALLABLE_VER=""
     DGB_INSTALLABLE_IS_PRERELEASE=""
     DGB_LATEST_VER=""
+    DGB_INSTALL_URL=""
+    DGB_INSTALL_FILE=""
+    DGB_INSTALL_SHA256=""
 
-    dgb_releases_json=$(curl -sfL --max-time 10 "https://api.github.com/repos/DigiByte-Core/digibyte/releases?per_page=100" 2>/dev/null)
-    if ! echo "$dgb_releases_json" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
-        DGB_INSTALLABLE_STATUS="github_error"
+    # --skiphash (emergency use only): get the newest release straight from GitHub, without verifying it
+    if [ "$SKIP_HASH" = true ]; then
+        get_dgb_github_release "$release_type"
         return
     fi
 
-    if [ "$SKIP_HASH" != true ]; then
-        get_hash_file $2
-        if ! echo "$HASH_FILE" | jq -e 'type == "object"' > /dev/null 2>&1; then
-            DGB_INSTALLABLE_STATUS="hash_error"
-            return
-        fi
-        hashes="$HASH_FILE"
+    get_dgb_releases_file $2
+    if ! echo "$DGB_RELEASES_JSON" | jq -e '.releases | type == "array"' > /dev/null 2>&1; then
+        DGB_INSTALLABLE_STATUS="hash_error"
+        return
     fi
 
-    # Newest first, by the date each release was published. Output: latest|installable|installable_is_prerelease
-    result=$(echo "$dgb_releases_json" | jq -r --argjson hashes "$hashes" --arg arch "$ARCH" --arg type "$release_type" --arg skip "$SKIP_HASH" '
-        map(select((.draft | not) and ($type == "prerelease" or (.prerelease | not))))
-        | sort_by(.published_at) | reverse
-        | map({ver: (.tag_name | sub("^v"; "")), prerelease})
-        | (map(select($skip == "true" or $hashes["digibyte-" + .ver][$arch]? != null)) | first) as $installable
-        | "\(first.ver // "")|\($installable.ver // "")|\($installable.prerelease // false)"' 2>/dev/null)
+    # The releases file is already newest first. Output: latest|installable|installable_is_prerelease
+    result=$(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg type "$release_type" '
+        (if $type == "prerelease" then .latest else .latest_release end) as $latest
+        | ([.releases[] | select(($type == "prerelease" or (.prerelease | not)) and .assets[$arch] != null)] | first) as $installable
+        | "\($latest // "")|\($installable.version // "")|\($installable.prerelease // false)"' 2>/dev/null)
 
     DGB_LATEST_VER=$(echo "$result" | cut -d '|' -f1)
     DGB_INSTALLABLE_VER=$(echo "$result" | cut -d '|' -f2)
     DGB_INSTALLABLE_IS_PRERELEASE=$(echo "$result" | cut -d '|' -f3)
 
-    if [ "$DGB_INSTALLABLE_VER" = "" ]; then
+    if [ "$DGB_INSTALLABLE_VER" = "" ] || ! get_dgb_release_details "$DGB_INSTALLABLE_VER"; then
         DGB_INSTALLABLE_STATUS="none_available"
-    else
-        DGB_INSTALLABLE_STATUS="ok"
+        return
     fi
+
+    if [ "$DGB_LATEST_VER" = "" ]; then
+        DGB_LATEST_VER=$DGB_INSTALLABLE_VER
+    fi
+
+    DGB_INSTALLABLE_STATUS="ok"
+}
+
+# Get the download URL, file name and verified SHA256 hash of a DigiByte Core version for this CPU architecture,
+# from the releases file. Returns 1 if that version is not available for this DigiNode.
+#
+# Usage: get_dgb_release_details <version>
+# Sets: DGB_INSTALL_URL, DGB_INSTALL_FILE, DGB_INSTALL_SHA256
+
+get_dgb_release_details() {
+
+    local details
+
+    details=$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$1" --arg arch "$ARCH" '
+        first(.releases[] | select(.version == $v) | .assets[$arch] // empty) | "\(.url)|\(.file)|\(.sha256)"' 2>/dev/null)
+
+    if [ "$details" = "" ]; then
+        return 1
+    fi
+
+    DGB_INSTALL_URL=$(echo "$details" | cut -d '|' -f1)
+    DGB_INSTALL_FILE=$(echo "$details" | cut -d '|' -f2)
+    DGB_INSTALL_SHA256=$(echo "$details" | cut -d '|' -f3)
+}
+
+# Used with --skiphash: find the newest DigiByte Core release on GitHub that has a download for this CPU architecture.
+# The download is not verified, since there may not be a verified hash for it yet.
+#
+# Usage: get_dgb_github_release <release|prerelease>
+# Sets the same variables as get_dgb_installable_version (DGB_INSTALL_SHA256 is left empty)
+
+get_dgb_github_release() {
+
+    local release_type="$1"
+    local github_json
+    local result
+
+    github_json=$(curl -sfL --max-time 10 "https://api.github.com/repos/DigiByte-Core/digibyte/releases?per_page=100" 2>/dev/null)
+    if ! echo "$github_json" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
+        DGB_INSTALLABLE_STATUS="github_error"
+        return
+    fi
+
+    # Newest first, by the date each release was published. Pick the first one with exactly one
+    # Linux download for this architecture. Output: version|prerelease|url|file
+    result=$(echo "$github_json" | jq -r --arg arch "$ARCH" --arg type "$release_type" '
+        [.[] | select((.draft | not) and ($type == "prerelease" or (.prerelease | not)))]
+        | sort_by(.published_at) | reverse
+        | first(.[] | . as $r
+            | [.assets[] | select(.name | ascii_downcase | test("-" + $arch + "-linux-gnu\\.tar\\.gz$") and (test("debug") | not))]
+            | select(length == 1)
+            | "\($r.tag_name | sub("^v"; ""))|\($r.prerelease)|\(.[0].browser_download_url)|\(.[0].name)")' 2>/dev/null)
+
+    if [ "$result" = "" ]; then
+        DGB_INSTALLABLE_STATUS="none_available"
+        return
+    fi
+
+    DGB_INSTALLABLE_VER=$(echo "$result" | cut -d '|' -f1)
+    DGB_INSTALLABLE_IS_PRERELEASE=$(echo "$result" | cut -d '|' -f2)
+    DGB_INSTALL_URL=$(echo "$result" | cut -d '|' -f3)
+    DGB_INSTALL_FILE=$(echo "$result" | cut -d '|' -f4)
+    DGB_LATEST_VER=$DGB_INSTALLABLE_VER
+    DGB_INSTALLABLE_STATUS="ok"
 }
 
 # Save the version found by get_dgb_installable_version to diginode.settings, so the Dashboard only ever
@@ -12257,7 +12320,7 @@ check_digibyte_core() {
             printf "%b Unable to get DigiByte Core release info from GitHub. Is the Internet down?\\n" "${CROSS}"
         elif [ "$DGB_INSTALLABLE_STATUS" = "hash_error" ]; then
             printf "%b Unable to get the SHA256 hashes used to verify DigiByte Core. Is the Internet down?\\n" "${CROSS}"
-            printf "%b Hash file: $HASH_FILE_URL\\n" "${INDENT}"
+            printf "%b Releases file: $DGB_RELEASES_URL\\n" "${INDENT}"
         else
             printf "%b No verified version of DigiByte Core is available for your DigiNode yet.\\n" "${CROSS}"
         fi
@@ -12431,7 +12494,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
        DGB2_STATUS="stopped"
     fi
     
-   # Delete old DigiByte Core tar files, if present
+    # Download into a folder of its own, so we never need to know what an earlier download was called
+    DGB_DOWNLOAD_DIR="$USER_HOME/.digibyte-download"
+    if [ -d "$DGB_DOWNLOAD_DIR" ]; then
+        rm -rf "$DGB_DOWNLOAD_DIR"
+    fi
+    sudo -u $USER_ACCOUNT mkdir -p "$DGB_DOWNLOAD_DIR"
+
+    # Delete old DigiByte Core tar files left in the home folder by earlier versions of DigiNode Setup, if present
     if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
         str="Deleting old DigiByte Core tar.gz files from home folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -12441,116 +12511,76 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # display the download URL
     if [ $VERBOSE_MODE = true ]; then
-        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
+        printf "%b DigiByte binary URL: $DGB_INSTALL_URL\\n" "${INFO}"
     fi
 
-    # Downloading latest DigiByte Core binary from GitHub
+    # Download DigiByte Core from GitHub. The URL comes from the verified releases file, so it is never guessed.
     str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repo..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
-    # If the command completed without error, then assume IPFS downloaded correctly
-    if [ $? -eq 0 ]; then
+    if [ "$DGB_INSTALL_URL" != "" ] && sudo -u $USER_ACCOUNT wget -q "$DGB_INSTALL_URL" -O "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE"; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        use_dgb_alt_download=false
     else
-        # Try alternative download
-        sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-v${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+        printf "\\n"
+        printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b DigiByte Core v${DGB_VER_GITHUB} could not be downloaded from: $DGB_INSTALL_URL\\n" "${INFO}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
-        if [ $? -eq 0 ]; then
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            use_dgb_alt_download=true
-        else
-            printf "\\n"
-            printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
-            printf "\\n"
-            printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
-            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
-            printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        rm -rf "$DGB_DOWNLOAD_DIR"
 
-            # Re-enable and re-start DigiByte digibyted.service as the download failed
-            if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
-                enable_service digibyted
-                restart_service digibyted
-                DGB_STATUS="running"
-            elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-                printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
-                enable_service digibyted
-                restart_service digibyted
-                DGB_STATUS="running"
-            fi
-
-            # Re-enable and re-start DigiByte digibyted-testnet.service as the download failed
-            if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
-                enable_service digibyted-testnet
-                restart_service digibyted-testnet
-                DGB2_STATUS="running"
-            elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-                printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
-                enable_service digibyted-testnet
-                restart_service digibyted-testnet
-                DGB2_STATUS="running"
-            fi
-
-            printf "\\n"
-            INSTALL_ERROR="YES"
-            return 1
+        # Re-enable and re-start DigiByte digibyted.service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
         fi
+
+        # Re-enable and re-start DigiByte digibyted-testnet.service as the download failed
+        if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
+        elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
     fi
 
     # Perform hash verficiation of download, unless the user chose to skip it with the --skiphash flag
-    if [ "$SKIP_HASH" = false ]; then 
+    if [ "$SKIP_HASH" = false ]; then
 
-        # Get the verified SHA256 hash of this DigiByte Core release
-        str="Checking for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
+        # Hashing downloaded DigiByte Core tar.gz file
+        str="Hashing downloaded DigiByte Core v$DGB_VER_GITHUB binary..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_LOCAL_HASH=$(sha256sum "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE" | awk '{print $1}')
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        str="Checking SHA256 hashes are a match for DigiByte Core $DGB_VER_GITHUB ..."
         printf "%b %s" "${INFO}" "${str}"
 
-        # Check if a hash for this version and CPU architecture exists in the hash file
-        DGB_VER_GITHUB_HASH=$(echo "$HASH_FILE" | jq -r --arg v "digibyte-$DGB_VER_GITHUB" --arg a "$ARCH" '.[$v]|.[$a]' 2>/dev/null)
-
-        # If we don't get a result (perhaps the hash file could not be downloaded?)
-        if [ "$DGB_VER_GITHUB_HASH" = "" ]; then
-            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}. Is the Internet down?.\\n" "${CROSS}"
-            printf "\\n"
-            hash_verification_failed="yes"
-        # If there is NO hash for this DigiByte pre-release
-        elif [ "$DGB_VER_GITHUB_HASH" = "null" ]; then
-            printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b SHA256 hash of DigiByte Core v${DGB_VER_GITHUB} is not available.\\n" "${INFO}"
-            printf "\\n"
-            hash_verification_failed="yes"
-        # If there is a hash for this DigiByte pre-release
+        # Check if the verified hash matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
+        if [ "$DGB_INSTALL_SHA256" != "" ] && [ "$DGB_VER_LOCAL_HASH" = "$DGB_INSTALL_SHA256" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+            hash_verification_failed=""
         else
-            printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Hashing downloaded DigiByte Core tar.gz file
-            str="Hashing downloaded DigiByte Core v$DGB_VER_GITHUB binary..."
-            printf "%b %s" "${INFO}" "${str}"
-            # If this is the alt url download, we need to add a v in the URL
-            if [ "$use_dgb_alt_download" == true ]; then
-                DGB_VER_LOCAL_HASH=$(sha256sum $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz | awk '{print $1}')
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                DGB_VER_LOCAL_HASH=$(sha256sum $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz | awk '{print $1}')
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-            str="Checking SHA256 hashes are a match for DigiByte Core $DGB_VER_GITHUB ..."
-            printf "%b %s" "${INFO}" "${str}"
-
-            # Check if the verified hash matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
-            if [ "$DGB_VER_LOCAL_HASH" = "$DGB_VER_GITHUB_HASH" ]; then
-                printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-                hash_verification_failed=""
-            else
-                printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-                hash_verification_failed="yes"
-            fi
-
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            hash_verification_failed="yes"
         fi
 
         # If hash verification failed
@@ -12567,23 +12597,17 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             # Display dialog if DigiByte verificantion failed
             if [ ! "$UNATTENDED_MODE" == true ]; then
                 if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification has does no match." 9 ${c}
+                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification hash does not match." 9 ${c}
                 else
                     dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification hash does not match. DigiByte Core v$DGB_VER_LOCAL will be restored." 10 ${c}
                 fi
             fi
 
             # Delete DigiByte Core tar.gz file
-            str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+            str="Deleting install file: $DGB_INSTALL_FILE ..."
             printf "%b %s" "${INFO}" "${str}"
-            # If this is the alt url download, we need to add a v in the URL
-            if [ "$use_dgb_alt_download" == true ]; then
-                rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
+            rm -rf "$DGB_DOWNLOAD_DIR"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Re-enable and re-start DigiByte digibyted.service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -12639,74 +12663,34 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Extracting DigiByte Core binary
-    # If this is the alt url download, we need to add a v in the URL
-    if [ "$use_dgb_alt_download" == true ]; then
-        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # Extract DigiByte Core into ~/digibyte-<version>. The folder inside the tarball is named differently in some
+    # releases (e.g. digibyte-664c6a372bd2 in v8.22.1), so it is dropped with --strip-components=1.
+    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Remove any leftover folder for this version from an earlier install (the current version has already been backed up)
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
+        rm -rf "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
     fi
+    sudo -u $USER_ACCOUNT mkdir "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
+    sudo -u $USER_ACCOUNT tar -xf "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE" -C "$USER_HOME/digibyte-${DGB_VER_GITHUB}" --strip-components=1
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # WORKAROUND: If this is 8.22.0-rc2, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc2" ]; then
-        str="Renaming 8.22.0-rc2 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.0-rc3, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af6d4e3cdef0" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc3" ]; then
-        str="Renaming 8.22.0-rc3 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af6d4e3cdef0 $USER_HOME/digibyte-8.22.0-rc3
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.0-rc4, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-527219d69dd9" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc4" ]; then
-        str="Renaming 8.22.0-rc4 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-527219d69dd9 $USER_HOME/digibyte-8.22.0-rc4
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-664c6a372bd2" ] && [ "$DGB_VER_GITHUB" = "8.22.1" ]; then
-        str="Renaming 8.22.1 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-664c6a372bd2 $USER_HOME/digibyte-8.22.1
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # If we can't find the extracted folder because it is not using the standard folder name,
-    # then we need to cancel the install and restore the previous version from backup
-    if [ ! -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
+    # If the DigiByte binaries are not where we expect them, cancel the install and restore the previous version from backup
+    if [ ! -f "$USER_HOME/digibyte-${DGB_VER_GITHUB}/bin/digibyted" ]; then
         printf "\\n"
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
+        printf "%b The DigiByte Core binaries could not be found after extracting $DGB_INSTALL_FILE.\\n" "${INFO}"
         printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
         printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
-        # Delete DigiByte Core tar.gz file
-        str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+        # Delete the DigiByte Core tar.gz file and anything that was extracted
+        str="Deleting DigiByte Core install file: $DGB_INSTALL_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
-        # If this is the alt url download, we need to add a v in the URL
-        if [ "$use_dgb_alt_download" == true ]; then
-            rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+        rm -rf "$DGB_DOWNLOAD_DIR"
+        rm -rf "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # If an there is an existing DigiByte Core backup folder, resture it
         if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
@@ -12771,16 +12755,10 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting install file: $DGB_INSTALL_FILE ..."
     printf "%b %s" "${INFO}" "${str}"
-    # If this is the alt url download, we need to add a v in the URL
-    if [ "$use_dgb_alt_download" == true ]; then
-        rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    rm -rf "$DGB_DOWNLOAD_DIR"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
@@ -13344,7 +13322,7 @@ check_dnsu() {
     fi
 
     # Get the hash file contents, if not already known
-    get_hash_file
+    get_dgb_releases_file
 
     # Check Github repo to find the version number of the latest DigiByte Core release
     str="Checking GitHub repository for the latest DNSU release..."

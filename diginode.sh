@@ -6750,7 +6750,7 @@ startup_checks() {
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
   disclaimerDialog                 # Display Disclaimer
-  get_hash_file                    # Get the hash file related to the current update group.
+  get_dgb_releases_file            # Get the verified DigiByte Core releases for the current update group.
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
