@@ -11527,10 +11527,59 @@ fi
 # This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
+# Run digibyte-cli (with DigiNode Dashboard's time limit, if set). While DigiNode Dashboard is running its startup checks
+# (DGB_CLI_SPINNER=YES), a spinner is shown at the end of the current line if the node takes more than a second to answer,
+# so you can see it is waiting rather than frozen. The output is returned exactly as digibyte-cli gives it.
+#
+# Usage: dgb_cli [-testnet] <command> [args]   (e.g. dgb_cli -testnet getblockcount)
+
+dgb_cli() {
+
+    local cli=($DGB_CLI $DGB_CLI_TIMEOUT)
+    if [ "$(id -u)" -eq 0 ] && [ "$USER_ACCOUNT" != "" ] && [ "$USER_ACCOUNT" != "root" ]; then
+        cli=(sudo -u "$USER_ACCOUNT" "${cli[@]}")
+    fi
+
+    if [ "$DGB_CLI_SPINNER" != "YES" ] || ! { true > /dev/tty; } 2>/dev/null; then
+        "${cli[@]}" "$@"
+        return
+    fi
+
+    local out_file err_file pid rc
+    local i=0
+    local frames=("◜ " " ◝" " ◞" "◟ ")
+    out_file=$(mktemp)
+    err_file=$(mktemp)
+
+    "${cli[@]}" "$@" > "$out_file" 2> "$err_file" &
+    pid=$!
+
+    while kill -0 $pid 2>/dev/null; do
+        if [ $i -ge 4 ]; then
+            # Save the cursor, draw the spinner after the current text, then put the cursor back
+            printf "\033[s [%s] Waiting for the DigiByte node to respond...\033[u" "${frames[$((i % 4))]}" > /dev/tty
+        fi
+        sleep 0.25
+        i=$((i + 1))
+    done
+    wait $pid
+    rc=$?
+
+    # Remove the spinner
+    if [ $i -ge 4 ]; then
+        printf "\033[s\033[K\033[u" > /dev/tty
+    fi
+
+    cat "$out_file"
+    cat "$err_file" >&2
+    rm -f "$out_file" "$err_file"
+    return $rc
+}
+
 query_digibyte_chain() {
     DGB_NETWORK_CHAIN=""
     local dgb_network_chain_query
-    dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    dgb_network_chain_query=$(dgb_cli getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
     if [ "$dgb_network_chain_query" != "" ]; then
         DGB_NETWORK_CHAIN=$dgb_network_chain_query
     fi
@@ -11586,7 +11635,7 @@ query_digibyte_tor() {
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
 
     # Check if primary DigiByte Node has an onion address (i.e. it is running on Tor)
-    DGB_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+    DGB_TOR_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
     if [ "$DGB_TOR_QUERY" != "" ]; then
         DGB_USING_TOR=$DGB_TOR_QUERY
         DGB_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11662,7 +11711,7 @@ query_digibyte_tor() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Check if secondary DigiByte Node has an onion address (i.e. it is running on Tor)
-        DGB2_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+        DGB2_TOR_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
         if [ "$DGB2_TOR_QUERY" != "" ]; then
             DGB2_USING_TOR=$DGB2_TOR_QUERY
             DGB2_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11704,7 +11753,7 @@ query_digibyte_tor() {
 query_digibyte_port() {
 
     # Get primary DigiByte Node listening port
-    DGB_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
         DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
         DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11780,7 +11829,7 @@ query_digibyte_port() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Get secondary DigiByte Node listening port
-        DGB2_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        DGB2_LISTEN_PORT_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
         if [ "$DGB2_LISTEN_PORT_QUERY" != "" ]; then
             DGB2_LISTEN_PORT=$DGB2_LISTEN_PORT_QUERY
             DGB2_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli

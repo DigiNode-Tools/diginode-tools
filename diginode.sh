@@ -1535,7 +1535,7 @@ is_dgbnode_installed() {
 
     # Tell user to reboot if the RPC username or password in digibyte.conf have recently been changed
     if [ "$DGB_STATUS" = "running" ]; then
-        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT dgb_cli getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
             printf "%b %bERROR: Incorrect rpcuser or rpcpassword.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1548,7 +1548,7 @@ is_dgbnode_installed() {
             printf "\\n"
             exit
         fi
-        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI $DGB_CLI_TIMEOUT getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT dgb_cli getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
             printf "%b %bERROR: Could not connect to the digibyed server.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -2754,7 +2754,7 @@ pre_loop() {
 
       # Is primary DigiByte Node starting up?
       if [ "$DGB_STATUS" = "running" ]; then
-        DGB_BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getblockcount 2>/dev/null)
+        DGB_BLOCKCOUNT_LOCAL_QUERY=$(dgb_cli getblockcount 2>/dev/null)
         if [ "$DGB_BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
           DGB_STATUS="startingup"
         else
@@ -2762,7 +2762,7 @@ pre_loop() {
           DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
 
           # Query current version number of DigiByte Core
-          DGB_VER_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+          DGB_VER_LOCAL_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
           if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -2787,7 +2787,7 @@ pre_loop() {
 
       # Is secondary DigiByte Node starting up?
       if [ "$DGB2_STATUS" = "running" ]; then
-        DGB2_BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getblockcount 2>/dev/null)
+        DGB2_BLOCKCOUNT_LOCAL_QUERY=$(dgb_cli -testnet getblockcount 2>/dev/null)
         if [ "$DGB2_BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
           DGB2_STATUS="startingup"
         else
@@ -2796,7 +2796,7 @@ pre_loop() {
 
             # Query current version number of DigiByte Core, if the primary Node is not running
             if [ "$DGB_STATUS" != "running" ]; then
-              DGB_VER_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+              DGB_VER_LOCAL_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
               if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
                 DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
                 sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -3374,7 +3374,7 @@ if [ $DGB_STATUS != "not_detected" ]; then
         # If the blockchain is not yet synced, get blockcount
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ]; then
           dgb_query_start=$SECONDS
-          DGB_BLOCKCOUNT_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT getblockcount 2>/dev/null)
+          DGB_BLOCKCOUNT_LOCAL=$(dgb_cli getblockcount 2>/dev/null)
           DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
 
           # If we don't get a response, assume it is starting up
@@ -3409,7 +3409,7 @@ if [ "$DGB_STATUS" = "running" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
     # (printf turns very small values like 1.8e-07, seen at the start of a sync, into a plain decimal)
-    DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+    DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3443,7 +3443,7 @@ if [ "$DGB_STATUS" = "running" ]; then
 
   # query mempool data if the blockchain is synced and mempool feature is enabled
   if [[ ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_MAINNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "MAINNET" ) || ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "TESTNET" ) ]]; then
-    DGB_MEMPOOL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getmempoolinfo 2>/dev/null)
+    DGB_MEMPOOL_QUERY=$(dgb_cli getmempoolinfo 2>/dev/null)
 
     DGB_MEMPOOL_LOADED=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
  
@@ -3471,7 +3471,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   fi
 
   # Get primary DigiByted Node Uptime
-  dgb_uptime_seconds=$($DGB_CLI $DGB_CLI_TIMEOUT uptime 2>/dev/null)
+  dgb_uptime_seconds=$(dgb_cli uptime 2>/dev/null)
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
@@ -3480,7 +3480,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   dgb_online_since=$(date -ud "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
 
   # Show port warning if connections are less than or equal to 7
-  DGB_CONNECTIONS=$($DGB_CLI $DGB_CLI_TIMEOUT getconnectioncount 2>/dev/null)
+  DGB_CONNECTIONS=$(dgb_cli getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
     DGB_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
@@ -3537,7 +3537,7 @@ if [ $DGB2_STATUS != "not_detected" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
         # If the blockchain is not yet synced, get blockcount
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ]; then
           dgb_query_start=$SECONDS
-          DGB2_BLOCKCOUNT_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getblockcount 2>/dev/null)
+          DGB2_BLOCKCOUNT_LOCAL=$(dgb_cli -testnet getblockcount 2>/dev/null)
           DGB2_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB2_BLOCKCOUNT_LOCAL)
 
           # If we don't get a response, assume it is starting up
@@ -3571,7 +3571,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+    DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3605,7 +3605,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     # query mempool data if the testnet blockchain is synced and mempool feature is enabled
       if [[ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" ]]; then
-        DGB2_MEMPOOL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getmempoolinfo 2>/dev/null)
+        DGB2_MEMPOOL_QUERY=$(dgb_cli -testnet getmempoolinfo 2>/dev/null)
 
         DGB2_MEMPOOL_LOADED=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
      
@@ -3635,7 +3635,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
       fi
 
   # Get secondary DigiByted Node Uptime
-  dgb2_uptime_seconds=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet uptime 2>/dev/null)
+  dgb2_uptime_seconds=$(dgb_cli -testnet uptime 2>/dev/null)
   dgb2_uptime=$(eval "echo $(date -ud "@$dgb2_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
@@ -3644,7 +3644,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   dgb2_online_since=$(date -ud "@$dgb2_start_time" +"%H:%M %d %b %Y %Z")
 
 # Show port warning if connections are less than or equal to 7
-  DGB2_CONNECTIONS=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getconnectioncount 2>/dev/null)
+  DGB2_CONNECTIONS=$(dgb_cli -testnet getconnectioncount 2>/dev/null)
   if [ $DGB2_CONNECTIONS -le 8 ]; then
     DGB2_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
@@ -3727,7 +3727,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     # Is digibyted in the process of starting up, and not ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
         dgb_query_start=$SECONDS
-        DGB_BLOCKCOUNT_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT getblockcount 2>/dev/null)
+        DGB_BLOCKCOUNT_LOCAL=$(dgb_cli getblockcount 2>/dev/null)
         DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
         if [ "$DGB_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
             # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
@@ -3768,7 +3768,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
 
         # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
         if [ "$DGB_PRERELEASE" = "NO" ]; then
-            DGB_VER_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            DGB_VER_LOCAL_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
               DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
               sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -3857,7 +3857,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         # Is digibyted in the process of starting up, and not ready to respond to requests?
         if [ "$DGB2_STATUS" = "running" ] && [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
             dgb_query_start=$SECONDS
-            DGB2_BLOCKCOUNT_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getblockcount 2>/dev/null)
+            DGB2_BLOCKCOUNT_LOCAL=$(dgb_cli -testnet getblockcount 2>/dev/null)
             DGB2_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB2_BLOCKCOUNT_LOCAL)
             if [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
                 # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
@@ -3895,7 +3895,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
 
             # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
             if [ "$DGB_PRERELEASE" = "NO" ]; then
-                DGB_VER_LOCAL_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
                 if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
                   DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
                   sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -4009,7 +4009,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     fi
     if [ "$DGB_STATUS" = "running" ]; then
 
-        DGB_ONION_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+        DGB_ONION_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
 
         if [[ $DGB_ONION_QUERY == yes* ]]; then
             DGB_TOR="on"
@@ -4023,7 +4023,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     fi
     if [ "$DGB2_STATUS" = "running" ]; then
         
-        DGB2_ONION_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+        DGB2_ONION_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
 
         if [[ $DGB2_ONION_QUERY == yes* ]]; then
             DGB2_TOR="on"
@@ -4067,7 +4067,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+            DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4124,7 +4124,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+            DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4412,9 +4412,9 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         # Get current software version, and write to diginode.settings (unless pre-release)
         if [ "$DGB_PRERELEASE" = "NO" ]; then
             if [ "$DGB_STATUS" = "running" ]; then
-                DGB_VER_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             else
-                DGB_VER_LOCAL=$($DGB_CLI $DGB_CLI_TIMEOUT -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             fi
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
@@ -6863,8 +6863,10 @@ startup_checks() {
 ######### RUN SCRIPT FROM HERE #######################
 ######################################################
 
+DGB_CLI_SPINNER=YES         # Show a spinner if a DigiByte node is slow to answer during the startup checks
 startup_checks              # Performs all necessary startup checks
 pre_loop                    # Run this just before starting the loop
+DGB_CLI_SPINNER=NO          # The Dashboard shows its own status (and spinner) from here
 status_loop                 # Run the status monitor loop
 
 
