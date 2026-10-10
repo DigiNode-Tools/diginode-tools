@@ -12463,21 +12463,24 @@ menu_choose_dgb_version() {
     # Warn before installing a version older than the latest release
     if [ "$newest_release" != "" ] && [ "$(is_dgb_newer_version "$DGB_VERSION_REQUESTED" "$newest_release")" = "update_available" ]; then
 
+        local warning_height=15
         warning_msg="\n\Z1WARNING: DigiByte Core v$DGB_VERSION_REQUESTED is not the latest version.\Z0\n\nOlder versions of DigiByte Core may not follow the current rules of the DigiByte network (for example, after a network upgrade) and are no longer supported. Only install an older version if you know you need it, such as for testing."
 
         # Moving between v8 and v9 switches the testnet node to a different testnet
         if [ "$DGB_DUAL_NODE" = "YES" ] || [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
             if { [ "${DGB_VERSION_REQUESTED%%.*}" -lt 9 ] && [ "${DGB_VER_LOCAL%%.*}" -ge 9 ]; } 2>/dev/null; then
+                warning_height=$((warning_height + 5))
                 warning_msg="$warning_msg\n\nYour testnet node will switch to the old DigiByte testnet used by v8 and earlier. This is a separate blockchain from the new v9 testnet, so your v9 testnet wallets and coins will not be available."
             fi
         fi
 
         # Going back a major version can break the blockchain data and wallet
         if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_STATUS" != "not_detected" ] && [ "${DGB_VERSION_REQUESTED%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
+            warning_height=$((warning_height + 6))
             warning_msg="$warning_msg\n\n\Z1You are downgrading from v$DGB_VER_LOCAL to v$DGB_VERSION_REQUESTED.\Z0 Older versions may not be able to read the blockchain data or wallet created by a newer version, so DigiByte Core may need to resync the blockchain before it will start. Back up your wallet first (Main Menu > Backup)."
         fi
 
-        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 0 ${c}; then
+        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" "$warning_height" ${c}; then
             DGB_VERSION_REQUESTED=""
             return 1
         fi
