@@ -1934,8 +1934,8 @@ update_disk_usage() {
 
         # DigiByte mainnet disk used
         if [ -d "$DGB_DATA_LOCATION" ]; then
-            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
-            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION 2>/dev/null | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION 2>/dev/null | awk '{print $1}')
             DGB_DATA_DISKUSED_MAIN_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_MAIN_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_MAIN_HR=""
@@ -1945,8 +1945,8 @@ update_disk_usage() {
 
         # DigiByte testnet disk used
         if [ -d "$DGB_DATA_LOCATION/$DGB_TESTNET_DIR" ]; then
-            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
-            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/$DGB_TESTNET_DIR 2>/dev/null | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/$DGB_TESTNET_DIR 2>/dev/null | awk '{print $1}')
             DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_TEST_HR=""
@@ -1956,8 +1956,8 @@ update_disk_usage() {
 
         # DigiByte regtest disk used
         if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
-            DGB_DATA_DISKUSED_REGTEST_HR=$(du -sh $DGB_DATA_LOCATION/regtest | awk '{print $1}')
-            DGB_DATA_DISKUSED_REGTEST_KB=$(du -sk $DGB_DATA_LOCATION/regtest | awk '{print $1}')
+            DGB_DATA_DISKUSED_REGTEST_HR=$(du -sh $DGB_DATA_LOCATION/regtest 2>/dev/null | awk '{print $1}')
+            DGB_DATA_DISKUSED_REGTEST_KB=$(du -sk $DGB_DATA_LOCATION/regtest 2>/dev/null | awk '{print $1}')
             DGB_DATA_DISKUSED_REGTEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_REGTEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_REGTEST_HR=""
@@ -1967,8 +1967,8 @@ update_disk_usage() {
 
         # DigiByte signet disk used
         if [ -d "$DGB_DATA_LOCATION/signet" ]; then
-            DGB_DATA_DISKUSED_SIGNET_HR=$(du -sh $DGB_DATA_LOCATION/signet | awk '{print $1}')
-            DGB_DATA_DISKUSED_SIGNET_KB=$(du -sk $DGB_DATA_LOCATION/signet | awk '{print $1}')
+            DGB_DATA_DISKUSED_SIGNET_HR=$(du -sh $DGB_DATA_LOCATION/signet 2>/dev/null | awk '{print $1}')
+            DGB_DATA_DISKUSED_SIGNET_KB=$(du -sk $DGB_DATA_LOCATION/signet 2>/dev/null | awk '{print $1}')
             DGB_DATA_DISKUSED_SIGNET_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_SIGNET_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_SIGNET_HR=""
@@ -1978,8 +1978,8 @@ update_disk_usage() {
 
         # IPFS disk used
         if [ -d "$IPFS_SETTINGS_LOCATION" ]; then
-            IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs | awk '{print $1}')
-            IPFS_DATA_DISKUSED_KB=$(du -sk $USER_HOME/.ipfs | awk '{print $1}')
+            IPFS_DATA_DISKUSED_HR=$(du -sh $USER_HOME/.ipfs 2>/dev/null | awk '{print $1}')
+            IPFS_DATA_DISKUSED_KB=$(du -sk $USER_HOME/.ipfs 2>/dev/null | awk '{print $1}')
             IPFS_DATA_DISKUSED_PERC=$(echo "scale=2; ($IPFS_DATA_DISKUSED_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             IPFS_DATA_DISKUSED_HR=""
