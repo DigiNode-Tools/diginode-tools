@@ -62,7 +62,7 @@ DGB_RPC_TIMEOUT=15
 DGB_CLI_TIMEOUT="-rpcclienttimeout=$DGB_RPC_TIMEOUT"
 # While a node is starting up or busy, the check for whether it is ready yet uses a shorter time limit, so the
 # Dashboard keeps refreshing (with a spinner) instead of pausing for the full time limit each time.
-DGB_CLI_PROBE_TIMEOUT="-rpcclienttimeout=3"
+DGB_CLI_PROBE_TIMEOUT="-rpcclienttimeout=1"
 
 ########################################################
 #### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
@@ -3360,9 +3360,11 @@ if [ $DGB_STATUS != "not_detected" ]; then
 
     # Quick check that the node is answering. If it is running but too busy to answer in time (e.g. while syncing),
     # show that it is busy and don't ask it anything else this time round, so the Dashboard doesn't appear frozen.
+    dgb_busy_now="NO"
     if [ "$DGB_STATUS" = "running" ]; then
         dgb_probe=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1)
         if [[ "$dgb_probe" == *"timeout reached"* ]]; then
+            dgb_busy_now="YES"
             DGB_STATUS="startingup"
             DGB_ERROR_MSG="Busy - waiting for it to respond..."
         fi
@@ -3523,9 +3525,11 @@ if [ $DGB2_STATUS != "not_detected" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     # Quick check that the node is answering. If it is running but too busy to answer in time (e.g. while syncing),
     # show that it is busy and don't ask it anything else this time round, so the Dashboard doesn't appear frozen.
+    dgb2_busy_now="NO"
     if [ "$DGB2_STATUS" = "running" ]; then
         dgb2_probe=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1)
         if [[ "$dgb2_probe" == *"timeout reached"* ]]; then
+            dgb2_busy_now="YES"
             DGB2_STATUS="startingup"
             DGB2_ERROR_MSG="Busy - waiting for it to respond..."
         fi
@@ -3696,7 +3700,12 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         fi
       
         # Query if digibyte has finished starting up. Display error. Send success to null.
-        is_dgb_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1 1>/dev/null)
+        # If the quick check above just timed out, we already know the node is busy - don't ask it again
+        if [ "$dgb_busy_now" = "YES" ]; then
+            is_dgb_live_query="$dgb_probe"
+        else
+            is_dgb_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1 1>/dev/null)
+        fi
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
             clean_dgb_error_msg
@@ -3821,7 +3830,12 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             fi
           
             # Query if digibyte has finished starting up. Display error. Send success to null.
-            is_dgb2_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1 1>/dev/null)
+            # If the quick check above just timed out, we already know the node is busy - don't ask it again
+            if [ "$dgb2_busy_now" = "YES" ]; then
+                is_dgb2_live_query="$dgb2_probe"
+            else
+                is_dgb2_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1 1>/dev/null)
+            fi
             if [ "$is_dgb2_live_query" != "" ]; then
                 DGB2_ERROR_MSG=$(echo $is_dgb2_live_query | cut -d ':' -f3)
                 clean_dgb_error_msg
