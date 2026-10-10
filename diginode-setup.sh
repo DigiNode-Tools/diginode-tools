@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v0.11.4
+#           Name:  DigiNode Setup v26.10.01
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=0.11.4
-# Last Updated: 2025-04-30
+DGNT_VER_LIVE=26.10.01
+# Last Updated: 2026-10-10
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -29,13 +29,23 @@ DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
 
 # Play an error beep if it exits with an error, but not if this is sourced from the DigiNode Dashboard script
 if [[ "$RUN_SETUP" != "NO" ]] ; then
-    trap error_beep exit 1
+    trap 'fix_dgb_conf_permissions; error_beep' exit 1
 fi
 
 # Function to beep on an exit 1
 error_beep() {
-    echo -en "\007"  
-    tput cnorm 
+    echo -en "\007"
+    tput cnorm
+}
+
+# digibyte.conf contains the RPC password, so only the DigiNode user should be able to read it. DigiNode Setup runs as
+# root and edits it with 'sed -i', which leaves it owned by root and readable by everyone. This puts that right
+# whenever DigiNode Setup exits, which also fixes DigiNodes set up with older versions.
+fix_dgb_conf_permissions() {
+    if [ -f "$DGB_CONF_FILE" ] && [ "$(id -u)" -eq 0 ] && [ "$USER_ACCOUNT" != "" ] && [ "$USER_ACCOUNT" != "root" ]; then
+        chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$DGB_CONF_FILE"
+        chmod 600 "$DGB_CONF_FILE"
+    fi
 }
 
 # Append common folders to the PATH to ensure that all basic commands are available.
@@ -119,8 +129,15 @@ DGNT_SETUP_OFFICIAL_CMD="curl $DGNT_SETUP_OFFICIAL_URL | bash"
 # We clone (or update) the DigiNode git repository during the install. This helps to make sure that we always have the latest version of the relevant files.
 DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 
-# Verified SHA256 hashes of DigiByte Core releases. hash0.json is staging (--updatetest), hash1-4.json are the update groups.
+# Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
+
+# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools.
+DGNT_SPONSORS_URL="https://diginode.tools/sponsors/"
+DGNT_GITHUB_SPONSORS_URL="https://github.com/sponsors/DigiNode-Tools"
+
+# Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
+DGNT_SPONSORS_DATA_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
 
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
@@ -131,8 +148,8 @@ DGBH_URL_CUSTOM=https://diginode.tools/faq                                      
 DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup-guide-step-7/       # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup-guide-step-7/        # Advice on how to forward ports with your router
+DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/       # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/        # Advice on how to forward ports with your router
 DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
 
 
@@ -188,6 +205,7 @@ for var in "$@"; do
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
         "--dgbpre" ) REQUEST_DGB_RELEASE_TYPE="prerelease";;
         "--dgbnopre" ) REQUEST_DGB_RELEASE_TYPE="release";;
+        "--dgbver="* ) DGB_VERSION_REQUESTED="${var#--dgbver=}"; DGB_VERSION_REQUESTED="${DGB_VERSION_REQUESTED#v}";;
         "--updatetest" ) UPDATE_TEST=true;;
         "--skiphash" ) SKIP_HASH=true;;
         "--help" ) DISPLAY_HELP=true;;
@@ -311,6 +329,8 @@ display_help() {
         printf "%b %b--skiphash%b      - Skip SHA256 hash verification of install binaries. (Not recommended. Emergency use only.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbpre%b        - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgbver=x.x.x%b  - Install a specific version of DigiByte Core (e.g. --dgbver=8.26.2). Use to upgrade or downgrade.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                   Only versions that have been verified for your DigiNode can be installed.\\n" "${INDENT}"
         printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
  #!!       printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
@@ -538,6 +558,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_IPFS_ENABLE_UPNP=NO
     UI_IPFS_SERVER_PROFILE=NO
     UI_DGB_CHAIN=MAINNET
+    UI_DGB_VERSION=
     UI_SETUP_DIGINODE_MOTD=YES
 
     # SYSTEM VARIABLES
@@ -791,6 +812,10 @@ UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 # Alternatively, set to DUALNODE to setup DigiByte Core to run on both mainnet and testnet.
 UI_DGB_CHAIN=$UI_DGB_CHAIN
 
+# Choose which version of DigiByte Core to install (e.g. 8.26.2). Leave blank to install the latest version. (Default is blank.)
+# This is only used for a new install. To change the version later, use the Version option in the DigiNode Setup main menu.
+UI_DGB_VERSION=$UI_DGB_VERSION
+
 # Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
 # If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
 UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
@@ -1021,7 +1046,7 @@ SYSTEM_SECURITY_UPDATES="$SYSTEM_SECURITY_UPDATES"
 UPDATE_GROUP="$UPDATE_GROUP"
 
 # This keeps track of wther the user has agreed to the disclaimer.
-DIGINODE_DISCLAIMER="ASK"
+DIGINODE_DISCLAIMER="${DIGINODE_DISCLAIMER:-ASK}"
 
 # Tor Config
 INSTALLED_TOR_GPG_KEY=$INSTALLED_TOR_GPG_KEY
@@ -1080,6 +1105,426 @@ else
     fi
 fi
 
+# Set the DigiByte testnet folder and ports to match the installed version of DigiByte Core
+set_dgb_testnet_params
+
+}
+
+# DigiByte Core v9 uses a new testnet, with its own data folder and default ports. Set these to match the installed
+# version of DigiByte Core (or the version about to be installed, if it is not installed yet).
+#
+#                         v8 and earlier   v9 onwards
+#   DGB_TESTNET_DIR       testnet4         testnet26
+#   DGB_TESTNET_PORT      12026            12033
+#   DGB_TESTNET_RPCPORT   14023            14026
+#
+# DGB_TESTNET_DIRS lists both testnet folders, for when old testnet data needs dealing with too (e.g. deleting it).
+
+set_dgb_testnet_params() {
+
+    local dgb_ver="$DGB_VER_LOCAL"
+    if [ "$dgb_ver" = "" ]; then
+        dgb_ver="$DGB_VER_GITHUB"
+    fi
+
+    if [ "$dgb_ver" != "" ] && [ "${dgb_ver%%.*}" -lt 9 ] 2>/dev/null; then
+        DGB_TESTNET_DIR="testnet4"
+        DGB_TESTNET_PORT="12026"
+        DGB_TESTNET_RPCPORT="14023"
+    else
+        DGB_TESTNET_DIR="testnet26"
+        DGB_TESTNET_PORT="12033"
+        DGB_TESTNET_RPCPORT="14026"
+    fi
+
+    DGB_TESTNET_DIRS="testnet4 testnet26"
+}
+
+# Delete the blockchain data for one DigiByte chain, so it can be resynced or to free up space. Everything else is kept:
+# wallets, settings.json (which lists the wallets to load at startup), digibyte.conf and the Tor onion key.
+# The node using this data must be stopped first.
+#
+# Usage: delete_dgb_chain_data <main|testnet4|testnet26|regtest|signet>
+
+delete_dgb_chain_data() {
+
+    local chain_path="$DGB_DATA_LOCATION"
+    if [ "$1" != "main" ]; then
+        chain_path="$DGB_DATA_LOCATION/$1"
+    fi
+
+    if [ ! -d "$chain_path" ]; then
+        return
+    fi
+
+    rm -rf "$chain_path/blocks" "$chain_path/chainstate" "$chain_path/indexes"
+    rm -f "$chain_path/banlist.dat" "$chain_path/banlist.json" "$chain_path/fee_estimates.dat" "$chain_path/mempool.dat"
+    rm -f "$chain_path/peers.dat" "$chain_path/anchors.dat" "$chain_path/digibyted.pid" "$chain_path/.lock"
+}
+
+# Main Menu > Blockchain: delete the blockchain data for one or more chains, so that DigiByte Core resyncs it from scratch
+# (e.g. if it has become corrupted) or to free up disk space. Wallets are never deleted. Any node using the data is
+# stopped first, and restarted afterwards if it was running. If it wasn't running, the user is asked whether to start it.
+
+menu_delete_blockchain() {
+
+    local chain
+    local chain_path
+    local chain_name
+    local chain_desc
+    local chain_size
+    local chain_service
+    local chain_items=()
+    local chosen
+    local services=""
+    local service
+    local running_services=""
+    local wallet_msg=""
+
+    printf " =============== Delete Blockchain Data ================================\\n\\n"
+    # ==============================================================================
+
+    # Which chain is the primary node running, and which testnet folder does this version of DigiByte Core use?
+    query_digibyte_chain
+    set_dgb_testnet_params
+
+    # List every chain that has blockchain data on disk, with its size and which node uses it
+    for chain in main testnet26 testnet4 regtest signet; do
+
+        if [ "$chain" = "main" ]; then
+            chain_path="$DGB_DATA_LOCATION"
+        else
+            chain_path="$DGB_DATA_LOCATION/$chain"
+        fi
+
+        if [ ! -d "$chain_path/blocks" ] && [ ! -d "$chain_path/chainstate" ]; then
+            continue
+        fi
+
+        case "$chain" in
+            main      ) chain_name="Mainnet";;
+            testnet26 ) chain_name="Testnet (v9)";;
+            testnet4  ) chain_name="Testnet (v8 and older)";;
+            regtest   ) chain_name="Regtest";;
+            signet    ) chain_name="Signet";;
+        esac
+
+        if [ "$chain" = "main" ]; then
+            chain_size=$(du -sh --exclude=wallets --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $chain_path 2>/dev/null | awk '{print $1}')
+        else
+            chain_size=$(du -sh --exclude=wallets $chain_path 2>/dev/null | awk '{print $1}')
+        fi
+
+        chain_service=$(dgb_chain_service "$chain")
+        if [ "$chain_service" != "" ]; then
+            chain_desc="$(printf '%-24s %6s  (in use)' "$chain_name" "$chain_size")"
+        else
+            chain_desc="$(printf '%-24s %6s  (not in use)' "$chain_name" "$chain_size")"
+        fi
+
+        chain_items+=("$chain" "$chain_desc" "off")
+    done
+
+    if [ ${#chain_items[@]} -eq 0 ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --msgbox "\nThere is no DigiByte blockchain data to delete." 7 ${c}
+        printf "%b There is no DigiByte blockchain data to delete.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    chosen=$(dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --cancel-label "Back" --no-tags --checklist "\nChoose which DigiByte blockchain data to delete. Press Space to select.\n\nDeleting the blockchain data for a node in use makes it resync the blockchain from scratch. This can fix a node that has stopped syncing or has corrupted data, but it can take many hours (or days for mainnet). Your wallets will NOT be deleted.\n\n" 21 72 5 \
+        "${chain_items[@]}" 3>&2 2>&1 1>&3) || { printf "%b Back was selected. Returning to main menu.\\n\\n" "${INFO}"; menu_existing_install; return; }
+
+    chosen=$(echo $chosen | tr -d '"')
+    if [ "$chosen" = "" ]; then
+        printf "%b Nothing was selected. Returning to main menu.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    # Work out which nodes need stopping
+    for chain in $chosen; do
+        chain_service=$(dgb_chain_service "$chain")
+        if [ "$chain_service" != "" ] && [[ " $services " != *" $chain_service "* ]]; then
+            services="$services $chain_service"
+        fi
+        if [ -n "$(ls -A $DGB_DATA_LOCATION/$( [ "$chain" = "main" ] || echo "$chain/" )wallets 2>/dev/null)" ]; then
+            wallet_msg="\n\nYou have a wallet for this chain. It will not be deleted, but it is always a good idea to have a backup (Main Menu > Backup)."
+        fi
+    done
+
+    # Size the box to fit: one line per chain, plus the wallet note if there is one
+    local confirm_height=$((11 + $(echo $chosen | wc -w)))
+    if [ "$wallet_msg" != "" ]; then
+        confirm_height=$((confirm_height + 4))
+    fi
+    if ! dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\n\Z1Are you sure you want to delete this blockchain data?\Z0\n\n$(for chain in $chosen; do printf '  - %s\\n' "$(dgb_chain_label $chain)"; done)\nAny node using it will be stopped while it is deleted, and will then resync the blockchain from scratch.$wallet_msg" "$confirm_height" ${c}; then
+        printf "%b You chose not to delete the blockchain data. Returning to main menu.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    # Stop the nodes using this data, remembering which were running
+    for service in $services; do
+        if check_service_active "$service"; then
+            running_services="$running_services $service"
+            stop_service "$service"
+        fi
+    done
+
+    # Delete the data
+    for chain in $chosen; do
+        str="Deleting DigiByte $(dgb_chain_label $chain) blockchain data..."
+        printf "%b %s" "${INFO}" "${str}"
+        delete_dgb_chain_data "$chain"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        if [ "$chain" = "main" ]; then
+            DGB_BLOCKSYNC_VALUE=""
+            sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+        elif [ "$chain" = "$DGB_TESTNET_DIR" ]; then
+            DGB2_BLOCKSYNC_VALUE=""
+            sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+        fi
+    done
+
+    # Restart the nodes that were running, and ask about any that weren't
+    for service in $services; do
+        if [[ " $running_services " == *" $service "* ]]; then
+            restart_service "$service"
+        elif dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\nThe $(dgb_service_label $service) was not running.\n\nWould you like to start it now? It will begin resyncing the blockchain." 10 ${c}; then
+            restart_service "$service"
+        else
+            printf "%b The $(dgb_service_label $service) was not started.\\n" "${INFO}"
+            # Remember this, so DigiNode Setup doesn't start it automatically (see ensure_dgb_nodes_running)
+            sudo -u $USER_ACCOUNT touch $DGB_SETTINGS_LOCATION/.$service-stopped-by-user
+        fi
+    done
+
+    printf "\\n"
+    dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --msgbox "\nThe blockchain data has been deleted.\n\nAny node that is running will now resync the blockchain from scratch. You can follow its progress in DigiNode Dashboard." 10 ${c}
+    menu_existing_install
+}
+
+# Which DigiByte node service uses the data for a chain (empty if none)
+dgb_chain_service() {
+    case "$1" in
+        main )
+            if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then echo "digibyted"; fi;;
+        testnet4|testnet26 )
+            if [ "$1" = "$DGB_TESTNET_DIR" ]; then
+                if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                    echo "digibyted"
+                elif [ "$DGB_DUAL_NODE" = "YES" ]; then
+                    echo "digibyted-testnet"
+                fi
+            fi;;
+        regtest )
+            if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then echo "digibyted"; fi;;
+        signet )
+            if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then echo "digibyted"; fi;;
+    esac
+}
+
+dgb_chain_label() {
+    case "$1" in
+        main      ) echo "MAINNET";;
+        testnet26 ) echo "TESTNET (v9)";;
+        testnet4  ) echo "TESTNET (v8 and older)";;
+        regtest   ) echo "REGTEST";;
+        signet    ) echo "SIGNET";;
+    esac
+}
+
+dgb_service_label() {
+    if [ "$1" = "digibyted-testnet" ]; then
+        echo "DigiByte testnet node"
+    else
+        echo "DigiByte $DGB_NETWORK_CURRENT node"
+    fi
+}
+
+# A DigiByte node should be running, unless the user stopped it themselves with 'diginode --dgbstop' or 'diginode --dgb2stop'
+# (which leave a marker file in ~/.digibyte). At the end of DigiNode Setup, start any node that should be running but isn't,
+# then check it is still running a few seconds later. If it isn't, show why from its debug.log.
+
+ensure_dgb_nodes_running() {
+
+    local service
+    local marker
+    local restart_cmd
+    local log_file
+    local started=""
+    local restarts_before
+    local restarts_now
+
+    # Only if DigiByte Core is installed and we are using systemd
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] || ! is_command systemctl; then
+        return
+    fi
+
+    printf " =============== Checking: DigiByte nodes are running ==================\\n\\n"
+    # ==============================================================================
+
+    query_digibyte_chain
+    set_dgb_testnet_params
+
+    for service in digibyted digibyted-testnet; do
+
+        if [ ! -f "/etc/systemd/system/$service.service" ]; then
+            continue
+        fi
+
+        marker="$DGB_SETTINGS_LOCATION/.$service-stopped-by-user"
+        if [ "$service" = "digibyted" ]; then
+            restart_cmd="diginode --dgbrestart"
+        else
+            restart_cmd="diginode --dgb2restart"
+        fi
+
+        # A new install always starts the nodes
+        if [ "$NewInstall" = true ]; then
+            rm -f "$marker"
+        fi
+
+        if check_service_active "$service" && readlink /proc/$(systemctl show -p MainPID --value $service)/exe 2>/dev/null | grep -q "(deleted)"; then
+            # It is still running a version of DigiByte Core that has since been replaced, so restart it
+            rm -f "$marker"
+            printf "%b %s is still running the previous version of DigiByte Core. Restarting it...\\n" "${INFO}" "$(dgb_service_label $service)"
+            restart_service "$service"
+            started="$started $service"
+        elif check_service_active "$service"; then
+            # It may have been started again since the user stopped it (e.g. by a reboot)
+            rm -f "$marker"
+            printf "%b %s is running.\\n" "${TICK}" "$(dgb_service_label $service)"
+        elif [ -f "$marker" ]; then
+            printf "%b %s is not running, because you stopped it. To start it, enter: %s\\n" "${INFO}" "$(dgb_service_label $service)" "$restart_cmd"
+        else
+            printf "%b %s is not running. Starting it...\\n" "${INFO}" "$(dgb_service_label $service)"
+            systemctl reset-failed "$service" &> /dev/null
+            restart_service "$service"
+            started="$started $service"
+        fi
+    done
+
+    # Check any node just started is still running. If it is crashing, systemd keeps restarting it, so check that too.
+    if [ "$started" != "" ]; then
+
+        for service in $started; do
+            eval "restarts_before_$(echo $service | tr '-' '_')=$(systemctl show -p NRestarts --value $service 2>/dev/null)"
+        done
+
+        str="Waiting to check the DigiByte node has started..."
+        printf "%b %s" "${INFO}" "${str}"
+        sleep 15
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        for service in $started; do
+
+            eval "restarts_before=\$restarts_before_$(echo $service | tr '-' '_')"
+            restarts_now=$(systemctl show -p NRestarts --value $service 2>/dev/null)
+
+            if check_service_active "$service" && [ "${restarts_now:-0}" = "${restarts_before:-0}" ]; then
+                printf "%b %s has started.\\n" "${TICK}" "$(dgb_service_label $service)"
+            else
+                if [ "$service" = "digibyted-testnet" ]; then
+                    restart_cmd="diginode --dgb2restart"
+                    log_file="$DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log"
+                else
+                    restart_cmd="diginode --dgbrestart"
+                    case "$DGB_NETWORK_CURRENT" in
+                        TESTNET ) log_file="$DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log";;
+                        REGTEST ) log_file="$DGB_SETTINGS_LOCATION/regtest/debug.log";;
+                        SIGNET  ) log_file="$DGB_SETTINGS_LOCATION/signet/debug.log";;
+                        *       ) log_file="$DGB_SETTINGS_LOCATION/debug.log";;
+                    esac
+                fi
+                printf "%b %b%s failed to start.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "$(dgb_service_label $service)" "${COL_NC}"
+                if [ -f "$log_file" ]; then
+                    printf "%b The last errors in its log file ($log_file) were:\\n" "${INDENT}"
+                    grep -iE "error|unable|failed|corrupt" "$log_file" | tail -n 5 | sed "s/^/$INDENT   /"
+                fi
+                printf "%b To try again, enter: %s   To see the full log, enter: %s\\n" "${INDENT}" "$restart_cmd" "$( [ "$service" = "digibyted-testnet" ] && echo "diginode --dgb2log" || echo "diginode --dgblog" )"
+                printf "%b For help, ask in the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            fi
+        done
+    fi
+    printf "\\n"
+}
+
+# DigiByte Core v9 has a brand new testnet, which is a separate blockchain from the old testnet used by v8 and earlier,
+# with its own data folder (testnet26 vs testnet4). After installing, upgrading or downgrading DigiByte Core across v9,
+# the blockchain data for the other testnet is no longer used. Offer to delete it to free up space. Testnet wallets are
+# always kept. If the user chooses to keep it, a marker file is left so they are not asked again.
+
+check_unused_testnet_data() {
+
+    local unused_dir
+    local unused_size
+    local wallet_msg=""
+    local testnet_msg
+    local dialog_height
+
+    # Only if DigiByte Core is installed
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] || [ "$DGB_VER_LOCAL" = "" ]; then
+        return
+    fi
+
+    set_dgb_testnet_params
+
+    if [ "$DGB_TESTNET_DIR" = "testnet26" ]; then
+        unused_dir="testnet4"
+        testnet_msg="Starting with DigiByte Core v9, DigiByte has a brand new testnet. This is a separate blockchain from the old testnet used by DigiByte Core v8 and earlier."
+    else
+        unused_dir="testnet26"
+        testnet_msg="DigiByte Core v$DGB_VER_LOCAL uses the old DigiByte testnet. This is a separate blockchain from the new testnet used by DigiByte Core v9 onwards."
+    fi
+
+    # The testnet in use may have been kept when it was unused before. Ask again if it becomes unused in future.
+    rm -f $DGB_DATA_LOCATION/$DGB_TESTNET_DIR/.diginode-keep
+
+    # Is there any blockchain data for the other testnet?
+    if [ ! -d "$DGB_DATA_LOCATION/$unused_dir/blocks" ] && [ ! -d "$DGB_DATA_LOCATION/$unused_dir/chainstate" ]; then
+        return
+    fi
+
+    # Has the user already chosen to keep it?
+    if [ -f "$DGB_DATA_LOCATION/$unused_dir/.diginode-keep" ]; then
+        return
+    fi
+
+    unused_size=$(du -sh --exclude=wallets $DGB_DATA_LOCATION/$unused_dir 2>/dev/null | awk '{print $1}')
+
+    if [ -n "$(ls -A $DGB_DATA_LOCATION/$unused_dir/wallets 2>/dev/null)" ]; then
+        wallet_msg="\n\nYou have testnet wallets in ~/.digibyte/$unused_dir/wallets. They will be kept, but they belong to the other testnet, so DigiByte Core v$DGB_VER_LOCAL cannot open them. Any testnet DGB they hold only exists on the other testnet."
+        dialog_height=19
+    else
+        dialog_height=15
+    fi
+
+    printf " =============== Checking: Unused testnet data =========================\\n\\n"
+    # ==============================================================================
+
+    printf "%b The blockchain data in ~/.digibyte/$unused_dir is for a different DigiByte testnet, and is no longer used. ($unused_size)\\n" "${INFO}"
+
+    # Don't delete anything in unattended mode
+    if [ "$UNATTENDED_MODE" == true ]; then
+        printf "%b To delete it, run DigiNode Setup without the --unattended flag.\\n" "${INDENT}"
+        printf "\\n"
+        return
+    fi
+
+    if dialog --no-shadow --keep-tite --colors --backtitle "Unused testnet blockchain data" --title "Unused testnet blockchain data" --yesno "\n$testnet_msg\n\nThe blockchain data for the other testnet is no longer used, and is taking up ${unused_size}b of space on your drive (~/.digibyte/$unused_dir).$wallet_msg\n\n\Z4Would you like to delete it?\Z0 Your testnet wallets will be kept." $dialog_height "${c}"; then
+
+        str="Deleting unused testnet blockchain data in ~/.digibyte/$unused_dir..."
+        printf "%b %s" "${INFO}" "${str}"
+        delete_dgb_chain_data $unused_dir
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    else
+        printf "%b You chose to keep the unused testnet blockchain data. You won't be asked again.\\n" "${INFO}"
+        sudo -u $USER_ACCOUNT touch $DGB_DATA_LOCATION/$unused_dir/.diginode-keep
+    fi
+    printf "\\n"
 }
 
 # THis function will update the existing diginode.settings file with the new version, if there is one (this occurs whenever there is a new release of DigiNode Tools, or if the branch the user is running changes)
@@ -1489,8 +1934,8 @@ update_disk_usage() {
 
         # DigiByte mainnet disk used
         if [ -d "$DGB_DATA_LOCATION" ]; then
-            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
-            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
             DGB_DATA_DISKUSED_MAIN_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_MAIN_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_MAIN_HR=""
@@ -1499,9 +1944,9 @@ update_disk_usage() {
         fi
 
         # DigiByte testnet disk used
-        if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
-            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
-            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+        if [ -d "$DGB_DATA_LOCATION/$DGB_TESTNET_DIR" ]; then
+            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
             DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_TEST_HR=""
@@ -2124,7 +2569,7 @@ rpcbind=127.0.0.1
 # Options only for testnet
 [test]
 
-# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Listen for incoming connections on non-default testnet port. Testnet default is 12033 (12026 before DigiByte v9).
 # Changing the port number here will override the default testnet port numbers.
 # port=12026
 
@@ -2133,7 +2578,7 @@ rpcbind=127.0.0.1
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 # rpcbind=127.0.0.1
 
-# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14026 (14023 before DigiByte v9).
 # rpcport=14023
 
 # Connect through Tor SOCKS5 proxy
@@ -3458,7 +3903,7 @@ $DGB_TOR_MAINNET_SETTINGS
 # Options only for testnet
 [test]
 
-# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Listen for incoming connections on non-default testnet port. Testnet default is 12033 (12026 before DigiByte v9).
 # Changing the port number here will override the default testnet port numbers.
 # port=12026
 
@@ -3467,7 +3912,7 @@ $DGB_TOR_MAINNET_SETTINGS
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 rpcbind=127.0.0.1
 
-# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14026 (14023 before DigiByte v9).
 # rpcport=14023
 
 $DGB_TOR_TESTNET_SETTINGS
@@ -4127,11 +4572,11 @@ if is_command apt-get ; then
     update_package_cache || exit 1
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(grep dnsutils jq apt-transport-https)
+    SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(sudo git iproute2 dialog bc ca-certificates curl wget tor)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
+    DIGINODE_DEPS=(curl psmisc sysstat)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -4163,9 +4608,9 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    SYS_CHECK_DEPS=(grep bind-utils jq apt-transport-https)
-    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
+    SYS_CHECK_DEPS=(grep bind-utils jq)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig ca-certificates curl wget tor)
+    DIGINODE_DEPS=(curl findutils sudo psmisc sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
 else
@@ -5619,11 +6064,11 @@ check_digibyte_wallets() {
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
     fi
 
-    # create ~/.digibyte/testnet4/wallets folder if it does not exist
-    if [ ! -d "$DGNT_SETTINGS_LOCATION/testnet4/wallets" ]; then
-        str="Creating ~/.digibyte/testnet4/wallets folder..."
+    # create ~/.digibyte/<testnet folder>/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/$DGB_TESTNET_DIR/wallets" ]; then
+        str="Creating ~/.digibyte/$DGB_TESTNET_DIR/wallets folder..."
         printf "\\n%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/testnet4/wallets
+        sudo -u $USER_ACCOUNT mkdir -p $DGNT_SETTINGS_LOCATION/$DGB_TESTNET_DIR/wallets
     fi
 
     # If the local DigiByte version is 7.17.3 make sure default wallet is in ~/.digibyte
@@ -7787,6 +8232,12 @@ menu_existing_install() {
     opt1a="1 Update"
     opt1b="Check for updates to your DigiNode software."
 
+    optVa="V Version"
+    optVb="Install a different version of DigiByte Core."
+
+    optBa="B Blockchain"
+    optBb="Delete blockchain data to resync or free up space."
+
     opt2a="2 Backup"
     opt2b="Backup your wallet & settings to a USB stick."
 
@@ -7817,8 +8268,10 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 20 73 10 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 74 12 \
     "${opt1a}"  "${opt1b}" \
+    "${optVa}"  "${optVb}" \
+    "${optBa}"  "${optBb}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
@@ -7843,6 +8296,29 @@ menu_existing_install() {
                 DO_FULL_INSTALL=YES
             fi
             install_or_upgrade
+            ;;
+        # Change DigiByte Core version
+        ${optVa})
+            printf "%b You selected the VERSION option.\\n" "${INFO}"
+            printf "\\n"
+            if menu_choose_dgb_version; then
+                printf "%b You chose to install DigiByte Core v${DGB_VERSION_REQUESTED}.\\n" "${INFO}"
+                printf "\\n"
+
+                # If DigiAssets Node is installed, we already know this is a full install
+                if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+                    DO_FULL_INSTALL=YES
+                fi
+                install_or_upgrade
+            else
+                menu_existing_install
+            fi
+            ;;
+        # Delete blockchain data (resync)
+        ${optBa})
+            printf "%b You selected the BLOCKCHAIN option.\\n" "${INFO}"
+            printf "\\n"
+            menu_delete_blockchain
             ;;
         # USB Stick Backup
         ${opt2a})
@@ -8278,10 +8754,12 @@ change_tor_status() {
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
             stop_service digibyted
-            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ] || [ -f "$DGB_DATA_LOCATION/testnet26/peers.dat" ]; then
                 str="Deleting Testnet peers.dat as Tor status has changed ..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                for testnet_dir in $DGB_TESTNET_DIRS; do
+                    rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                done
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             restart_service digibyted
@@ -8303,10 +8781,12 @@ change_tor_status() {
         if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
             stop_service digibyted-testnet
-            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ] || [ -f "$DGB_DATA_LOCATION/testnet26/peers.dat" ]; then
                 str="Deleting Testnet peers.dat as Tor status has changed ..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                for testnet_dir in $DGB_TESTNET_DIRS; do
+                    rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                done
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             restart_service digibyted-testnet
@@ -8511,17 +8991,7 @@ change_dgb_network() {
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
                     printf "%b %s" "${INFO}" "${str}"
-                    rm -rf $DGB_DATA_LOCATION/indexes
-                    rm -rf $DGB_DATA_LOCATION/chainstate
-                    rm -rf $DGB_DATA_LOCATION/blocks
-                    rm -f $DGB_DATA_LOCATION/banlist.dat
-                    rm -f $DGB_DATA_LOCATION/banlist.json
-                    rm -f $DGB_DATA_LOCATION/digibyted.pid
-                    rm -f $DGB_DATA_LOCATION/fee_estimates.dat
-                    rm -f $DGB_DATA_LOCATION/.lock
-                    rm -f $DGB_DATA_LOCATION/mempool.dat
-                    rm -f $DGB_DATA_LOCATION/peers.dat
-                    rm -f $DGB_DATA_LOCATION/settings.json
+                    delete_dgb_chain_data main
                     DGB_DATA_DISKUSED_MAIN_HR=""
                     DGB_DATA_DISKUSED_MAIN_KB=""
                     DGB_DATA_DISKUSED_MAIN_PERC=""
@@ -8541,28 +9011,21 @@ change_dgb_network() {
         fi
 
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        dialog --no-shadow --keep-tite --colors --backtitle "You are now running on the DigiByte mainnet!" --title "You are now running on the DigiByte mainnet!" --msgbox "\nYour DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 14 ${c}
+        dialog --no-shadow --keep-tite --colors --backtitle "You are now running on the DigiByte mainnet!" --title "You are now running on the DigiByte mainnet!" --msgbox "\nYour DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default testnet port $DGB_TESTNET_RPCPORT." 14 ${c}
 
         # Prompt to delete the testnet blockchain data if it already exists
-        if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+        if [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet26/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet26/chainstate" ]; then
 
             # Delete DigiByte blockchain data
             if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte TESTNET blockchain data, since you are now running on MAINNET?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
-                if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                if [ -d "$DGB_DATA_LOCATION/testnet4" ] || [ -d "$DGB_DATA_LOCATION/testnet26" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
                     printf "%b %s" "${INFO}" "${str}"
-                    rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                    rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                    rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
-                    rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
-                    rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/.lock
-                    rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                    # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
+                    for testnet_dir in $DGB_TESTNET_DIRS; do
+                        delete_dgb_chain_data $testnet_dir
+                    done
                     DGB_DATA_DISKUSED_TEST_HR=""
                     DGB_DATA_DISKUSED_TEST_KB=""
                     DGB_DATA_DISKUSED_TEST_PERC=""
@@ -8658,7 +9121,11 @@ welcomeDialogs() {
 donationDialog() {
 
 dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
-\Z4DigiNode Tools is DONATIONWARE.\Z0 Please donate to support future development:
+\Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please sponsor or donate to support future development:
+
+             \Z4${DGNT_GITHUB_SPONSORS_URL}\Z0
+
+Alternatively, donate DigiByte (DGB):
 
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
@@ -8676,7 +9143,7 @@ dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support Di
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 26 70
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 30 70
 }
 
 # Request that users donate if they find DigiNode Setup useful
@@ -8953,6 +9420,16 @@ fi
 # Create the secondary DigiByte service file for the testnet daemon, when runnning a DigiByte Dual Node
 create_digibyte_service_dualnode() {
 
+# The testnet folder is different in DigiByte v9 (testnet26), so the testnet PID file now lives in ~/.digibyte
+# instead. Update service files created by older versions of DigiNode Setup.
+if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] && grep -q "/testnet4/digibyted.pid" "$DGB2_SYSTEMD_SERVICE_FILE"; then
+    str="Updating location of PID file in digibyted-testnet.service..."
+    printf "%b %s" "${INFO}" "${str}"
+    sed -i -e "s|/testnet4/digibyted.pid|/digibyted-testnet.pid|g" $DGB2_SYSTEMD_SERVICE_FILE
+    systemctl daemon-reload
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
 # Only run if we are setting up a Dual Node
 if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
@@ -9064,8 +9541,8 @@ User=$USER_ACCOUNT
 Group=$USER_ACCOUNT
 
 Type=forking
-PIDFile=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid
-ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid \\
+PIDFile=${DGB_SETTINGS_LOCATION}/digibyted-testnet.pid
+ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/digibyted-testnet.pid \\
 -conf=${DGB_CONF_FILE} -datadir=${DGB_DATA_LOCATION}
 
 Restart=always
@@ -9273,19 +9750,43 @@ closing_banner_message() {
 }
 
 
+# Thank the Featured Sponsors of DigiNode Tools (the $300/month GitHub Sponsors tier, approved by Olly). The list is kept
+# up to date by https://github.com/DigiNode-Tools/diginode-sponsors. Nothing is shown if there are none, if the list
+# can't be fetched quickly, or if it hasn't been checked for 7 days (so nobody is shown after they stop sponsoring).
+display_featured_sponsors() {
+
+    local featured_json
+
+    featured_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_DATA_URL/featured.json" 2>/dev/null) || return
+    if ! echo "$featured_json" | jq -e '((.checked | fromdate) > (now - 7 * 86400)) and (.featured | length > 0)' > /dev/null 2>&1; then
+        return
+    fi
+
+    echo "   Thank you to the Featured Sponsors of DigiNode Tools:"
+    echo ""
+    # Strip any control characters, so nothing in the list can mess with the terminal
+    echo "$featured_json" | jq -r '.featured[] | [(.name | gsub("[[:cntrl:]]"; "")), (.url | gsub("[[:cntrl:]]"; ""))] | @tsv' 2>/dev/null | \
+    while IFS=$'\t' read -r sponsor_name sponsor_url; do
+        printf "      %s%s%s  \e]8;;%s\a%s\e]8;;\a\n" "${txtbld}" "${sponsor_name}" "${txtrst}" "${sponsor_url}" "${sponsor_url}"
+    done
+    echo ""
+}
+
 donation_qrcode() {  
 
-    printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
+    printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
 
-    echo "   I created DigiNode Tools to make it easy for everybody to run a"
-    echo "   DigiByte Node and DigiAsset Node. I have devoted thousands of hours"
-    echo "   working on this goal, all for the benefit of the DigiByte community."
-    echo "   This software is DONATIONWARE. If you find it useful, you are kindly"
-    echo "   requested to make a donation so that I can keep improving it."
-    echo "   Thank you very much for your support, Olly"
+    echo "   I created DigiNode Tools to make it easy for everybody to run their"
+    echo "   own DigiByte Node. It's free and open source, and I build and"
+    echo "   maintain it in my spare time, for the benefit of the DigiByte"
+    echo "   community. If you find it useful, please consider sponsoring me,"
+    echo "   so I can devote more time to it. Thank you for your support, Olly"
     echo ""
-    echo -e "                    >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
+    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_GITHUB_SPONSORS_URL}\a${DGNT_GITHUB_SPONSORS_URL}\e]8;;\a${txtrst} <<"
+    echo ""
+    display_featured_sponsors
+    echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -9304,6 +9805,8 @@ donation_qrcode() {
     echo "                      █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
     echo ""  
     echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    echo ""
+    echo -e "                    >> Find me on Bluesky \e]8;;https://bsky.app/profile/olly.st\a@olly.st\e]8;;\a <<"
     echo ""
 }
 
@@ -10144,12 +10647,12 @@ fi
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
         elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
         elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="12024"
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
+        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && { [ "$port" = "12026" ] || [ "$port" = "12033" ]; }; then
             DGB_LISTEN_PORT="12024"
         elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="18444"
@@ -10199,7 +10702,7 @@ fi
     if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-            DGB2_LISTEN_PORT="12026"
+            DGB2_LISTEN_PORT="$DGB_TESTNET_PORT"
             DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         else
             DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
@@ -11032,10 +11535,59 @@ fi
 # This functions looks up the current network chain being used for DigiByte Core - mainnet, testnet or regtest
 # If DigiByte Core is not available it gets the value from digibyte.conf
 
+# Run digibyte-cli (with DigiNode Dashboard's time limit, if set). While DigiNode Dashboard is running its startup checks
+# (DGB_CLI_SPINNER=YES), a spinner is shown at the end of the current line if the node takes more than a second to answer,
+# so you can see it is waiting rather than frozen. The output is returned exactly as digibyte-cli gives it.
+#
+# Usage: dgb_cli [-testnet] <command> [args]   (e.g. dgb_cli -testnet getblockcount)
+
+dgb_cli() {
+
+    local cli=($DGB_CLI $DGB_CLI_TIMEOUT)
+    if [ "$(id -u)" -eq 0 ] && [ "$USER_ACCOUNT" != "" ] && [ "$USER_ACCOUNT" != "root" ]; then
+        cli=(sudo -u "$USER_ACCOUNT" "${cli[@]}")
+    fi
+
+    if [ "$DGB_CLI_SPINNER" != "YES" ] || ! { true > /dev/tty; } 2>/dev/null; then
+        "${cli[@]}" "$@"
+        return
+    fi
+
+    local out_file err_file pid rc
+    local i=0
+    local frames=("◜ " " ◝" " ◞" "◟ ")
+    out_file=$(mktemp)
+    err_file=$(mktemp)
+
+    "${cli[@]}" "$@" > "$out_file" 2> "$err_file" &
+    pid=$!
+
+    while kill -0 $pid 2>/dev/null; do
+        if [ $i -ge 4 ]; then
+            # Save the cursor, draw the spinner after the current text, then put the cursor back
+            printf "\033[s [%s] Waiting for the DigiByte node to respond...\033[u" "${frames[$((i % 4))]}" > /dev/tty
+        fi
+        sleep 0.25
+        i=$((i + 1))
+    done
+    wait $pid
+    rc=$?
+
+    # Remove the spinner
+    if [ $i -ge 4 ]; then
+        printf "\033[s\033[K\033[u" > /dev/tty
+    fi
+
+    cat "$out_file"
+    cat "$err_file" >&2
+    rm -f "$out_file" "$err_file"
+    return $rc
+}
+
 query_digibyte_chain() {
     DGB_NETWORK_CHAIN=""
     local dgb_network_chain_query
-    dgb_network_chain_query=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
+    dgb_network_chain_query=$(dgb_cli getblockchaininfo 2>/dev/null | grep -m1 chain | cut -d '"' -f4)
     if [ "$dgb_network_chain_query" != "" ]; then
         DGB_NETWORK_CHAIN=$dgb_network_chain_query
     fi
@@ -11091,7 +11643,7 @@ query_digibyte_tor() {
     systemctl is-active --quiet tor && TOR_STATUS="running" || TOR_STATUS="not_running"
 
     # Check if primary DigiByte Node has an onion address (i.e. it is running on Tor)
-    DGB_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+    DGB_TOR_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
     if [ "$DGB_TOR_QUERY" != "" ]; then
         DGB_USING_TOR=$DGB_TOR_QUERY
         DGB_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11167,7 +11719,7 @@ query_digibyte_tor() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Check if secondary DigiByte Node has an onion address (i.e. it is running on Tor)
-        DGB2_TOR_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
+        DGB2_TOR_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "YES" else "NO" end')
         if [ "$DGB2_TOR_QUERY" != "" ]; then
             DGB2_USING_TOR=$DGB2_TOR_QUERY
             DGB2_USING_TOR_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11209,7 +11761,7 @@ query_digibyte_tor() {
 query_digibyte_port() {
 
     # Get primary DigiByte Node listening port
-    DGB_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+    DGB_LISTEN_PORT_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
     if [ "$DGB_LISTEN_PORT_QUERY" != "" ]; then
         DGB_LISTEN_PORT=$DGB_LISTEN_PORT_QUERY
         DGB_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11234,7 +11786,7 @@ query_digibyte_port() {
             DGB_LISTEN_PORT="12024"
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
             DGB_LISTEN_PORT="18444"
@@ -11285,7 +11837,7 @@ query_digibyte_port() {
     if [ "$SETUP_DUAL_NODE" = "YES" ] || [ "$DGB_DUAL_NODE" = "YES" ]; then
 
         # Get secondary DigiByte Node listening port
-        DGB2_LISTEN_PORT_QUERY=$(sudo -u $USER_ACCOUNT $DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
+        DGB2_LISTEN_PORT_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq .localaddresses[0].port)
         if [ "$DGB2_LISTEN_PORT_QUERY" != "" ]; then
             DGB2_LISTEN_PORT=$DGB2_LISTEN_PORT_QUERY
             DGB2_LISTEN_PORT_LIVE="YES" # We have a live value direct from digibyte-cli
@@ -11307,7 +11859,7 @@ query_digibyte_port() {
             DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
 
             if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-                DGB2_LISTEN_PORT="12026"
+                DGB2_LISTEN_PORT="$DGB_TESTNET_PORT"
                 DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
             else
                 DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
@@ -11483,7 +12035,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         else
             # If testnet rpcport was not set anywhere else, then set the testnet default
             if [ "$RPC_PORT" = "" ]; then 
-                RPC_PORT="14023"
+                RPC_PORT="$DGB_TESTNET_RPCPORT"
             else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
                 RPC_PORT=""
             fi
@@ -11582,7 +12134,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         else
             # If testnet rpcport was not set anywhere else, then set the testnet default
             if [ "$RPC2_PORT" = "" ]; then 
-                RPC2_PORT="14023"
+                RPC2_PORT="$DGB_TESTNET_RPCPORT"
             else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
                 RPC2_PORT=""
             fi
@@ -11693,94 +12245,157 @@ is_dgb_newer_version() {
     echo "update_not_available"
 }
 
-# If it is not already known, get the contents of the relevant hash file from GitHub and store it in variable HASH_FILE
-# Use 'get_hash_file refresh' to download it again (e.g. the Dashboard, which can run for weeks)
+# If it is not already known, get the list of DigiByte Core releases that have been verified for this DigiNode's
+# update group, and store it in DGB_RELEASES_JSON. It lists the releases newest first, with the download URL, file name
+# and SHA256 hash for each CPU architecture. See: https://github.com/DigiNode-Tools/digibyte-hashes
+# Use 'get_dgb_releases_file refresh' to download it again (e.g. the Dashboard, which can run for weeks)
 
-get_hash_file() {
+get_dgb_releases_file() {
 
     if [ "$1" = "refresh" ]; then
-        HASH_FILE=""
+        DGB_RELEASES_JSON=""
     fi
 
-    if [ "$HASH_FILE" = "" ]; then
+    if [ "$DGB_RELEASES_JSON" = "" ]; then
 
-        if [ "$SKIP_HASH" = false ] || [ "$SKIP_HASH" = "" ]; then 
-            if [ "$UPDATE_TEST" = true ]; then 
-                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash0.json"
-                printf "%b ${txtbylw}Update Test requested using --updatetest flag. Using staging hash file.${txtrst}\\n" "${INFO}"
-            else
-                HASH_FILE_URL="$DGB_HASH_FILES_URL/hash${UPDATE_GROUP}.json"
-                if [ $VERBOSE_MODE = true ]; then
-                    printf "%b DigiNode Tools Update Group: ${UPDATE_GROUP}\\n" "${INFO}"
-                fi
-            fi
+        if [ "$UPDATE_TEST" = true ]; then
+            DGB_RELEASES_URL="$DGB_HASH_FILES_URL/releases0.json"
+            printf "%b ${txtbylw}Update Test requested using --updatetest flag. Using staging releases file.${txtrst}\\n" "${INFO}"
         else
-            printf "%b ${txtbylw}Skipping sha256 hash verification - requested using --skiphash flag.${txtrst}\\n" "${INFO}"
+            DGB_RELEASES_URL="$DGB_HASH_FILES_URL/releases${UPDATE_GROUP}.json"
+            if [ $VERBOSE_MODE = true ]; then
+                printf "%b DigiNode Tools Update Group: ${UPDATE_GROUP}\\n" "${INFO}"
+            fi
         fi
 
-        HASH_FILE=$(curl -sfL --max-time 10 $HASH_FILE_URL 2>/dev/null)
+        DGB_RELEASES_JSON=$(curl -sfL --max-time 10 $DGB_RELEASES_URL 2>/dev/null)
     fi
 }
 
-# Find the newest version of DigiByte Core that this DigiNode can actually install: the newest release
-# on GitHub that has a verified SHA256 hash for this update group and CPU architecture.
+# Find the newest version of DigiByte Core that this DigiNode can actually install: the newest release that has been
+# verified for this update group and has a download for this CPU architecture.
 # A new release only becomes available once it has been verified and rolled out to the user's update group.
 #
 # Usage: get_dgb_installable_version <release|prerelease> [refresh]
 #   release     - full releases only
 #   prerelease  - pre-releases and full releases, whichever is newest
-#   refresh     - download the hash file again, even if we already have it
+#   refresh     - download the releases file again, even if we already have it
 #
 # Sets:
 #   DGB_INSTALLABLE_STATUS          - ok, github_error, hash_error or none_available
 #   DGB_INSTALLABLE_VER             - the version to install (e.g. 9.26.7)
 #   DGB_INSTALLABLE_IS_PRERELEASE   - true if that version is a pre-release
-#   DGB_LATEST_VER                  - the newest version on GitHub, which may still be waiting for verification
+#   DGB_LATEST_VER                  - the newest version on GitHub, which may not have reached this update group yet
+#   DGB_INSTALL_URL, DGB_INSTALL_FILE, DGB_INSTALL_SHA256 - where to download it from and its verified hash
 
 get_dgb_installable_version() {
 
     local release_type="$1"
-    local dgb_releases_json
-    local hashes="{}"
     local result
 
     DGB_INSTALLABLE_STATUS=""
     DGB_INSTALLABLE_VER=""
     DGB_INSTALLABLE_IS_PRERELEASE=""
     DGB_LATEST_VER=""
+    DGB_INSTALL_URL=""
+    DGB_INSTALL_FILE=""
+    DGB_INSTALL_SHA256=""
 
-    dgb_releases_json=$(curl -sfL --max-time 10 "https://api.github.com/repos/DigiByte-Core/digibyte/releases?per_page=100" 2>/dev/null)
-    if ! echo "$dgb_releases_json" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
-        DGB_INSTALLABLE_STATUS="github_error"
+    # --skiphash (emergency use only): get the newest release straight from GitHub, without verifying it
+    if [ "$SKIP_HASH" = true ]; then
+        get_dgb_github_release "$release_type"
         return
     fi
 
-    if [ "$SKIP_HASH" != true ]; then
-        get_hash_file $2
-        if ! echo "$HASH_FILE" | jq -e 'type == "object"' > /dev/null 2>&1; then
-            DGB_INSTALLABLE_STATUS="hash_error"
-            return
-        fi
-        hashes="$HASH_FILE"
+    get_dgb_releases_file $2
+    if ! echo "$DGB_RELEASES_JSON" | jq -e '.releases | type == "array"' > /dev/null 2>&1; then
+        DGB_INSTALLABLE_STATUS="hash_error"
+        return
     fi
 
-    # Newest first, by the date each release was published. Output: latest|installable|installable_is_prerelease
-    result=$(echo "$dgb_releases_json" | jq -r --argjson hashes "$hashes" --arg arch "$ARCH" --arg type "$release_type" --arg skip "$SKIP_HASH" '
-        map(select((.draft | not) and ($type == "prerelease" or (.prerelease | not))))
-        | sort_by(.published_at) | reverse
-        | map({ver: (.tag_name | sub("^v"; "")), prerelease})
-        | (map(select($skip == "true" or $hashes["digibyte-" + .ver][$arch]? != null)) | first) as $installable
-        | "\(first.ver // "")|\($installable.ver // "")|\($installable.prerelease // false)"' 2>/dev/null)
+    # The releases file is already newest first. Output: latest|installable|installable_is_prerelease
+    result=$(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg type "$release_type" '
+        (if $type == "prerelease" then .latest else .latest_release end) as $latest
+        | ([.releases[] | select(($type == "prerelease" or (.prerelease | not)) and .assets[$arch] != null)] | first) as $installable
+        | "\($latest // "")|\($installable.version // "")|\($installable.prerelease // false)"' 2>/dev/null)
 
     DGB_LATEST_VER=$(echo "$result" | cut -d '|' -f1)
     DGB_INSTALLABLE_VER=$(echo "$result" | cut -d '|' -f2)
     DGB_INSTALLABLE_IS_PRERELEASE=$(echo "$result" | cut -d '|' -f3)
 
-    if [ "$DGB_INSTALLABLE_VER" = "" ]; then
+    if [ "$DGB_INSTALLABLE_VER" = "" ] || ! get_dgb_release_details "$DGB_INSTALLABLE_VER"; then
         DGB_INSTALLABLE_STATUS="none_available"
-    else
-        DGB_INSTALLABLE_STATUS="ok"
+        return
     fi
+
+    if [ "$DGB_LATEST_VER" = "" ]; then
+        DGB_LATEST_VER=$DGB_INSTALLABLE_VER
+    fi
+
+    DGB_INSTALLABLE_STATUS="ok"
+}
+
+# Get the download URL, file name and verified SHA256 hash of a DigiByte Core version for this CPU architecture,
+# from the releases file. Returns 1 if that version is not available for this DigiNode.
+#
+# Usage: get_dgb_release_details <version>
+# Sets: DGB_INSTALL_URL, DGB_INSTALL_FILE, DGB_INSTALL_SHA256
+
+get_dgb_release_details() {
+
+    local details
+
+    details=$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$1" --arg arch "$ARCH" '
+        first(.releases[] | select(.version == $v) | .assets[$arch] // empty) | "\(.url)|\(.file)|\(.sha256)"' 2>/dev/null)
+
+    if [ "$details" = "" ]; then
+        return 1
+    fi
+
+    DGB_INSTALL_URL=$(echo "$details" | cut -d '|' -f1)
+    DGB_INSTALL_FILE=$(echo "$details" | cut -d '|' -f2)
+    DGB_INSTALL_SHA256=$(echo "$details" | cut -d '|' -f3)
+}
+
+# Used with --skiphash: find the newest DigiByte Core release on GitHub that has a download for this CPU architecture.
+# The download is not verified, since there may not be a verified hash for it yet.
+#
+# Usage: get_dgb_github_release <release|prerelease>
+# Sets the same variables as get_dgb_installable_version (DGB_INSTALL_SHA256 is left empty)
+
+get_dgb_github_release() {
+
+    local release_type="$1"
+    local github_json
+    local result
+
+    github_json=$(curl -sfL --max-time 10 "https://api.github.com/repos/DigiByte-Core/digibyte/releases?per_page=100" 2>/dev/null)
+    if ! echo "$github_json" | jq -e 'type == "array" and length > 0' > /dev/null 2>&1; then
+        DGB_INSTALLABLE_STATUS="github_error"
+        return
+    fi
+
+    # Newest first, by the date each release was published. Pick the first one with exactly one
+    # Linux download for this architecture. Output: version|prerelease|url|file
+    result=$(echo "$github_json" | jq -r --arg arch "$ARCH" --arg type "$release_type" '
+        [.[] | select((.draft | not) and ($type == "prerelease" or (.prerelease | not)))]
+        | sort_by(.published_at) | reverse
+        | first(.[] | . as $r
+            | [.assets[] | select(.name | ascii_downcase | test("-" + $arch + "-linux-gnu\\.tar\\.gz$") and (test("debug") | not))]
+            | select(length == 1)
+            | "\($r.tag_name | sub("^v"; ""))|\($r.prerelease)|\(.[0].browser_download_url)|\(.[0].name)")' 2>/dev/null)
+
+    if [ "$result" = "" ]; then
+        DGB_INSTALLABLE_STATUS="none_available"
+        return
+    fi
+
+    DGB_INSTALLABLE_VER=$(echo "$result" | cut -d '|' -f1)
+    DGB_INSTALLABLE_IS_PRERELEASE=$(echo "$result" | cut -d '|' -f2)
+    DGB_INSTALL_URL=$(echo "$result" | cut -d '|' -f3)
+    DGB_INSTALL_FILE=$(echo "$result" | cut -d '|' -f4)
+    DGB_LATEST_VER=$DGB_INSTALLABLE_VER
+    DGB_INSTALLABLE_STATUS="ok"
 }
 
 # Save the version found by get_dgb_installable_version to diginode.settings, so the Dashboard only ever
@@ -11796,6 +12411,169 @@ save_dgb_installable_version() {
         # The newest installable version is a full release, so there is no pre-release to offer
         DGB_VER_PRERELEASE=""
         sed -i -e "/^DGB_VER_PRERELEASE=/s|.*|DGB_VER_PRERELEASE=|" $DGNT_SETTINGS_FILE
+    fi
+}
+
+# Let the user choose which version of DigiByte Core to install, from every version that has been verified for this
+# DigiNode (i.e. for its update group and CPU architecture), newest first. Pre-releases are only listed if the
+# --dgbpre flag was used, or a pre-release is currently installed. Warns before installing an older version.
+# Sets DGB_VERSION_REQUESTED. Returns 1 if the user goes back without choosing.
+
+menu_choose_dgb_version() {
+
+    local include_prereleases="false"
+    local menu_items=()
+    local ver
+    local desc
+    local newest_release
+    local newest_release_date
+    local warning_msg
+
+    DGB_VERSION_REQUESTED=""
+
+    get_dgb_releases_file
+    if ! echo "$DGB_RELEASES_JSON" | jq -e '.releases | type == "array"' > /dev/null 2>&1; then
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --msgbox "\n\Z1ERROR: Unable to get the list of DigiByte Core versions.\Z0\n\nPlease check your Internet connection and try again." 10 ${c}
+        return 1
+    fi
+
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
+        include_prereleases="true"
+    fi
+
+    # The newest full release that is available for this DigiNode
+    newest_release=$(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" 'first(.releases[] | select(.assets[$arch] != null and (.prerelease | not)) | .version) // ""')
+    newest_release_date=$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$newest_release" 'first(.releases[] | select(.version == $v) | .published_at) // ""')
+
+    # Build the menu: one row per version, newest first
+    while IFS='|' read -r ver desc; do
+        if [ "$ver" = "$DGB_VER_LOCAL" ] && [ "$DGB_STATUS" != "not_detected" ]; then
+            desc="$desc  << Installed"
+        fi
+        menu_items+=("$ver" "$desc")
+    # Older pre-releases are always listed. A pre-release newer than the latest release is only listed with --dgbpre.
+    done < <(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg pre "$include_prereleases" --arg newest "$newest_release" --arg newest_date "$newest_release_date" '
+        .releases[]
+        | select(.assets[$arch] != null and ($pre == "true" or (.prerelease | not) or .published_at <= $newest_date))
+        | "\(.version)|Released \(.published_at[0:10])\(if .prerelease then "  (pre-release)" elif .version == $newest then "  (latest)" else "" end)"')
+
+    if [ ${#menu_items[@]} -eq 0 ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --msgbox "\n\Z1No versions of DigiByte Core are available for your DigiNode.\Z0" 8 ${c}
+        return 1
+    fi
+
+    DGB_VERSION_REQUESTED=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --cancel-label "Back" --menu "\nChoose which version of DigiByte Core to install.\n\nOnly versions that have been verified for your DigiNode are listed, newest first.\n\n" 23 70 12 \
+        "${menu_items[@]}" 3>&2 2>&1 1>&3) || { DGB_VERSION_REQUESTED=""; return 1; }
+
+    # Warn before installing a version older than the latest release
+    if [ "$newest_release" != "" ] && [ "$(is_dgb_newer_version "$DGB_VERSION_REQUESTED" "$newest_release")" = "update_available" ]; then
+
+        local warning_height=15
+        warning_msg="\n\Z1WARNING: DigiByte Core v$DGB_VERSION_REQUESTED is not the latest version.\Z0\n\nOlder versions of DigiByte Core may not follow the current rules of the DigiByte network (for example, after a network upgrade) and are no longer supported. Only install an older version if you know you need it, such as for testing."
+
+        # Moving between v8 and v9 switches the testnet node to a different testnet
+        if [ "$DGB_DUAL_NODE" = "YES" ] || [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+            if { [ "${DGB_VERSION_REQUESTED%%.*}" -lt 9 ] && [ "${DGB_VER_LOCAL%%.*}" -ge 9 ]; } 2>/dev/null; then
+                warning_height=$((warning_height + 5))
+                warning_msg="$warning_msg\n\nYour testnet node will switch to the old DigiByte testnet used by v8 and earlier. This is a separate blockchain from the new v9 testnet, so your v9 testnet wallets and coins will not be available."
+            fi
+        fi
+
+        # Going back a major version can break the blockchain data and wallet
+        if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_STATUS" != "not_detected" ] && [ "${DGB_VERSION_REQUESTED%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
+            warning_height=$((warning_height + 6))
+            warning_msg="$warning_msg\n\n\Z1You are downgrading from v$DGB_VER_LOCAL to v$DGB_VERSION_REQUESTED.\Z0 Older versions may not be able to read the blockchain data or wallet created by a newer version, so DigiByte Core may need to resync the blockchain before it will start. Back up your wallet first (Main Menu > Backup)."
+        fi
+
+        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" "$warning_height" ${c}; then
+            DGB_VERSION_REQUESTED=""
+            return 1
+        fi
+    fi
+}
+
+# During a new install, ask whether to install the latest version of DigiByte Core or choose an earlier one.
+# Sets DGB_VERSION_REQUESTED if the user chooses an earlier version.
+
+menu_ask_dgb_version_new_install() {
+
+    local opt1a="1 Latest"
+    local opt1b="Install DigiByte Core v$DGB_VER_GITHUB. (Recommended)"
+    local opt2a="2 Earlier"
+    local opt2b="Choose an earlier version of DigiByte Core."
+    local choice
+
+    while true; do
+
+        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --no-cancel --menu "\nWhich version of DigiByte Core would you like to install?\n\nThe latest version is recommended.\n\n" 14 70 2 \
+            "${opt1a}" "${opt1b}" \
+            "${opt2a}" "${opt2b}" 3>&2 2>&1 1>&3)
+
+        if [ "$choice" = "$opt2a" ]; then
+            # If the user goes back from the list of versions, ask again
+            if menu_choose_dgb_version; then
+                return
+            fi
+        else
+            printf "%b You chose to install the latest version of DigiByte Core.\\n" "${INFO}"
+            return
+        fi
+
+    done
+}
+
+# Install the version of DigiByte Core in DGB_VERSION_REQUESTED, instead of the latest one. It comes from the --dgbver
+# flag, the Version option in the main menu, the UI_DGB_VERSION setting or the new install menu.
+# Returns 1 if that version can't be installed on this DigiNode.
+
+use_requested_dgb_version() {
+
+    str="Checking DigiByte Core v${DGB_VERSION_REQUESTED} is available for your DigiNode..."
+    printf "%b %s" "${INFO}" "${str}"
+
+    # Only verified versions can be chosen, so this needs the releases file
+    if [ "$SKIP_HASH" = true ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b A specific version of DigiByte Core can't be installed with the --skiphash flag.\\n" "${INFO}"
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return 1
+    fi
+
+    if ! get_dgb_release_details "$DGB_VERSION_REQUESTED"; then
+        printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b DigiByte Core v${DGB_VERSION_REQUESTED} has not been verified for your DigiNode, or there is no download for your device ($ARCH).\\n" "${INFO}"
+        printf "%b To see which versions are available, run DigiNode Setup and choose Version from the main menu.\\n" "${INDENT}"
+        printf "\\n"
+        if [ "$DGB_STATUS" = "not_detected" ]; then
+            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
+        else
+            printf "%b DigiByte Core will not be changed. Skipping...\\n" "${INFO}"
+        fi
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return 1
+    fi
+
+    printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+
+    DGB_VER_GITHUB=$DGB_VERSION_REQUESTED
+    if [ "$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$DGB_VER_GITHUB" 'first(.releases[] | select(.version == $v) | .prerelease)')" = "true" ]; then
+        INSTALL_DGB_RELEASE_TYPE="prerelease"
+    else
+        INSTALL_DGB_RELEASE_TYPE="release"
+    fi
+
+    # Is this a downgrade?
+    if [ "$DGB_VER_LOCAL" != "" ] && [ "$(is_dgb_newer_version "$DGB_VER_GITHUB" "$DGB_VER_LOCAL")" = "update_available" ]; then
+        dgb_downgrade_requested=true
+        if [ "${DGB_VER_GITHUB%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
+            printf "%b %bWARNING: Downgrading from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}. DigiByte Core may need to resync the blockchain before it will start.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        fi
     fi
 }
 
@@ -12257,7 +13035,7 @@ check_digibyte_core() {
             printf "%b Unable to get DigiByte Core release info from GitHub. Is the Internet down?\\n" "${CROSS}"
         elif [ "$DGB_INSTALLABLE_STATUS" = "hash_error" ]; then
             printf "%b Unable to get the SHA256 hashes used to verify DigiByte Core. Is the Internet down?\\n" "${CROSS}"
-            printf "%b Hash file: $HASH_FILE_URL\\n" "${INDENT}"
+            printf "%b Releases file: $DGB_RELEASES_URL\\n" "${INDENT}"
         else
             printf "%b No verified version of DigiByte Core is available for your DigiNode yet.\\n" "${CROSS}"
         fi
@@ -12285,11 +13063,25 @@ check_digibyte_core() {
     save_dgb_installable_version
 
     # If a pre-release was wanted, but the newest verified version is a full release
-    if [ "$dgb_search_type" = "prerelease" ] && [ "$DGB_INSTALLABLE_IS_PRERELEASE" != "true" ]; then
+    # (unless a specific version has been chosen, which is used instead - see below)
+    if [ "$dgb_search_type" = "prerelease" ] && [ "$DGB_INSTALLABLE_IS_PRERELEASE" != "true" ] && [ "$DGB_VERSION_REQUESTED" = "" ]; then
         # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
         if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
             if [ "$DGB_STATUS" = "not_detected" ]; then
                 dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to install a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. The current release will be installed instead." 11 ${c}
+            elif [ "$DGB_VER_LOCAL" != "" ] && [ "$(is_dgb_newer_version "$DGB_VER_LOCAL" "$DGB_INSTALLABLE_VER")" = "update_available" ]; then
+                # They are on an older version, so offer the latest release instead
+                if dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --yesno "\n\Z1No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag, but there is no pre-release version currently available.\n\nWould you like to upgrade to the latest release instead?\n\n      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_INSTALLABLE_VER" 15 ${c}; then
+                    printf "%b Pre-release version of DigiByte Core is not available. You chose to upgrade to the latest release instead.\\n" "${INFO}"
+                    dgb_upgrade_confirmed=true
+                else
+                    printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
+                    printf "\\n"
+                    DGB_DO_INSTALL=NO
+                    DGB_INSTALL_TYPE="none"
+                    DGB_UPDATE_AVAILABLE=NO
+                    return
+                fi
             else
                 dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core pre-release is unavailable!" --title "DigiByte Core pre-release is unavailable!" --msgbox "\n\Z1Warning: No DigiByte Core pre-release is currently available.\Z0\n\nYou requested to upgrade to a pre-release version of DigiByte Core using the --dgbpre flag but there is no pre-release version currently available. Upgrade will be skipped." 11 ${c}
                 printf "%b Pre-release version of DigiByte Core is not available. Upgrade skipped.\\n" "${INFO}"
@@ -12311,6 +13103,27 @@ check_digibyte_core() {
         INSTALL_DGB_RELEASE_TYPE="release"
     fi
 
+    # For a new install, ask whether to install the latest version of DigiByte Core or choose an earlier one
+    if [ "$DGB_STATUS" = "not_detected" ] && [ "$DGB_VERSION_REQUESTED" = "" ]; then
+        if [ "$UNATTENDED_MODE" == true ]; then
+            DGB_VERSION_REQUESTED="${UI_DGB_VERSION#v}"
+        elif [ "$SKIP_HASH" != true ]; then
+            menu_ask_dgb_version_new_install
+        fi
+    fi
+
+    # Install a specific version of DigiByte Core, if one was chosen
+    if [ "$DGB_VERSION_REQUESTED" != "" ]; then
+        if ! use_requested_dgb_version; then
+            return
+        fi
+    fi
+
+    # For a new install, the testnet folder and ports depend on the version about to be installed
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        set_dgb_testnet_params
+    fi
+
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
 
@@ -12328,6 +13141,7 @@ check_digibyte_core() {
 
         if [ "$dgb_update_status" = "update_available" ]; then
             printf "%b %bDigiByte Core can be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgb_downgrade_requested=false
             DGB_INSTALL_TYPE="upgrade"
             DGB_ASK_UPGRADE=YES
         elif [ "$dgb_downgrade_requested" = true ] && [ "$DGB_VER_LOCAL" != "$DGB_VER_GITHUB" ]; then # --dgbnopre
@@ -12337,6 +13151,11 @@ check_digibyte_core() {
         elif [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
+        elif [ "$DGB_VERSION_REQUESTED" != "" ]; then
+            printf "%b DigiByte Core v${DGB_VER_LOCAL} is already installed.\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
         else
             printf "%b Upgrade not required.\\n" "${INFO}"
             DGB_DO_INSTALL=NO
@@ -12413,7 +13232,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Stop primary DigiByte Node if it is running, as we need to upgrade or reset it
+    # Stop primary DigiByte Node if it is running, as we need to upgrade or reset it. This includes a node that is
+    # still starting up - otherwise it would carry on running the old version, and not be restarted afterwards.
+    if [ "$DGB_INSTALL_TYPE" = "upgrade" ] || [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        if [ "$DGB_STATUS" = "startingup" ] || check_service_active "digibyted"; then
+            DGB_STATUS="running"
+        fi
+    fi
     if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
        DGB_STATUS="stopped"
@@ -12422,7 +13247,12 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
        DGB_STATUS="stopped"
     fi
 
-    # Stop secondary DigiByte Node (Dual Node) if it is running, as we need to upgrade or reset it
+    # Stop secondary DigiByte Node (Dual Node) if it is running (or starting up), as we need to upgrade or reset it
+    if [ "$DGB_INSTALL_TYPE" = "upgrade" ] || [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        if [ "$DGB2_STATUS" = "startingup" ] || check_service_active "digibyted-testnet"; then
+            DGB2_STATUS="running"
+        fi
+    fi
     if [ "$DGB2_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted-testnet
        DGB2_STATUS="stopped"
@@ -12431,7 +13261,14 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
        DGB2_STATUS="stopped"
     fi
     
-   # Delete old DigiByte Core tar files, if present
+    # Download into a folder of its own, so we never need to know what an earlier download was called
+    DGB_DOWNLOAD_DIR="$USER_HOME/.digibyte-download"
+    if [ -d "$DGB_DOWNLOAD_DIR" ]; then
+        rm -rf "$DGB_DOWNLOAD_DIR"
+    fi
+    sudo -u $USER_ACCOUNT mkdir -p "$DGB_DOWNLOAD_DIR"
+
+    # Delete old DigiByte Core tar files left in the home folder by earlier versions of DigiNode Setup, if present
     if compgen -G "$USER_HOME/digibyte-*-${ARCH}-linux-gnu.tar.gz" > /dev/null; then
         str="Deleting old DigiByte Core tar.gz files from home folder..."
         printf "%b %s" "${INFO}" "${str}"
@@ -12441,116 +13278,76 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
 
     # display the download URL
     if [ $VERBOSE_MODE = true ]; then
-        printf "DigiByte binary URL: https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz" "${INFO}"
+        printf "%b DigiByte binary URL: $DGB_INSTALL_URL\\n" "${INFO}"
     fi
 
-    # Downloading latest DigiByte Core binary from GitHub
+    # Download DigiByte Core from GitHub. The URL comes from the verified releases file, so it is never guessed.
     str="Downloading DigiByte Core v${DGB_VER_GITHUB} from Github repo..."
     printf "%b %s" "${INFO}" "${str}"
-    sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
 
-    # If the command completed without error, then assume IPFS downloaded correctly
-    if [ $? -eq 0 ]; then
+    if [ "$DGB_INSTALL_URL" != "" ] && sudo -u $USER_ACCOUNT wget -q "$DGB_INSTALL_URL" -O "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE"; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        use_dgb_alt_download=false
     else
-        # Try alternative download
-        sudo -u $USER_ACCOUNT wget -q https://github.com/DigiByte-Core/digibyte/releases/download/v${DGB_VER_GITHUB}/digibyte-v${DGB_VER_GITHUB}-${ARCH}-linux-gnu.tar.gz -P $USER_HOME
+        printf "\\n"
+        printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
+        printf "\\n"
+        printf "%b DigiByte Core v${DGB_VER_GITHUB} could not be downloaded from: $DGB_INSTALL_URL\\n" "${INFO}"
+        printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
+        printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+        printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
-        if [ $? -eq 0 ]; then
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            use_dgb_alt_download=true
-        else
-            printf "\\n"
-            printf "%b%b ${txtbred}ERROR: DigiByte Core Download Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
-            printf "\\n"
-            printf "%b The new version of DigiByte Core could not be downloaded. Perhaps the download URL has changed?\\n" "${INFO}"
-            printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
-            printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
-            printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
+        rm -rf "$DGB_DOWNLOAD_DIR"
 
-            # Re-enable and re-start DigiByte digibyted.service as the download failed
-            if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
-                enable_service digibyted
-                restart_service digibyted
-                DGB_STATUS="running"
-            elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-                printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
-                enable_service digibyted
-                restart_service digibyted
-                DGB_STATUS="running"
-            fi
-
-            # Re-enable and re-start DigiByte digibyted-testnet.service as the download failed
-            if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
-                printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
-                enable_service digibyted-testnet
-                restart_service digibyted-testnet
-                DGB2_STATUS="running"
-            elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
-                printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
-                enable_service digibyted-testnet
-                restart_service digibyted-testnet
-                DGB2_STATUS="running"
-            fi
-
-            printf "\\n"
-            INSTALL_ERROR="YES"
-            return 1
+        # Re-enable and re-start DigiByte digibyted.service as the download failed
+        if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted.service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
+        elif [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Re-enabling and restarting digibyted.service ...\\n" "${INFO}"
+            enable_service digibyted
+            restart_service digibyted
+            DGB_STATUS="running"
         fi
+
+        # Re-enable and re-start DigiByte digibyted-testnet.service as the download failed
+        if [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
+            printf "%b Upgrade Failed: Re-enabling and re-starting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
+        elif [ "$DGB2_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+            printf "%b Reset Failed: Re-enabling and restarting digibyted-testnet.service ...\\n" "${INFO}"
+            enable_service digibyted-testnet
+            restart_service digibyted-testnet
+            DGB2_STATUS="running"
+        fi
+
+        printf "\\n"
+        INSTALL_ERROR="YES"
+        return 1
     fi
 
     # Perform hash verficiation of download, unless the user chose to skip it with the --skiphash flag
-    if [ "$SKIP_HASH" = false ]; then 
+    if [ "$SKIP_HASH" = false ]; then
 
-        # Get the verified SHA256 hash of this DigiByte Core release
-        str="Checking for SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}..."
+        # Hashing downloaded DigiByte Core tar.gz file
+        str="Hashing downloaded DigiByte Core v$DGB_VER_GITHUB binary..."
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_LOCAL_HASH=$(sha256sum "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE" | awk '{print $1}')
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        str="Checking SHA256 hashes are a match for DigiByte Core $DGB_VER_GITHUB ..."
         printf "%b %s" "${INFO}" "${str}"
 
-        # Check if a hash for this version and CPU architecture exists in the hash file
-        DGB_VER_GITHUB_HASH=$(echo "$HASH_FILE" | jq -r --arg v "digibyte-$DGB_VER_GITHUB" --arg a "$ARCH" '.[$v]|.[$a]' 2>/dev/null)
-
-        # If we don't get a result (perhaps the hash file could not be downloaded?)
-        if [ "$DGB_VER_GITHUB_HASH" = "" ]; then
-            printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b Unable to get SHA256 hash of DigiByte Core v${DGB_VER_GITHUB}. Is the Internet down?.\\n" "${CROSS}"
-            printf "\\n"
-            hash_verification_failed="yes"
-        # If there is NO hash for this DigiByte pre-release
-        elif [ "$DGB_VER_GITHUB_HASH" = "null" ]; then
-            printf "%b%b %s ${txtred}HASH NOT FOUND${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b SHA256 hash of DigiByte Core v${DGB_VER_GITHUB} is not available.\\n" "${INFO}"
-            printf "\\n"
-            hash_verification_failed="yes"
-        # If there is a hash for this DigiByte pre-release
+        # Check if the verified hash matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
+        if [ "$DGB_INSTALL_SHA256" != "" ] && [ "$DGB_VER_LOCAL_HASH" = "$DGB_INSTALL_SHA256" ]; then
+            printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
+            hash_verification_failed=""
         else
-            printf "%b%b %s Found!\\n" "${OVER}" "${TICK}" "${str}"
-
-            # Hashing downloaded DigiByte Core tar.gz file
-            str="Hashing downloaded DigiByte Core v$DGB_VER_GITHUB binary..."
-            printf "%b %s" "${INFO}" "${str}"
-            # If this is the alt url download, we need to add a v in the URL
-            if [ "$use_dgb_alt_download" == true ]; then
-                DGB_VER_LOCAL_HASH=$(sha256sum $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz | awk '{print $1}')
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                DGB_VER_LOCAL_HASH=$(sha256sum $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz | awk '{print $1}')
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
-
-            str="Checking SHA256 hashes are a match for DigiByte Core $DGB_VER_GITHUB ..."
-            printf "%b %s" "${INFO}" "${str}"
-
-            # Check if the verified hash matches the hash of the downloaded DigiByte Core release (i.e. it has not been tampered with)
-            if [ "$DGB_VER_LOCAL_HASH" = "$DGB_VER_GITHUB_HASH" ]; then
-                printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
-                hash_verification_failed=""
-            else
-                printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
-                hash_verification_failed="yes"
-            fi
-
+            printf "%b%b %s NO!\\n" "${OVER}" "${CROSS}" "${str}"
+            hash_verification_failed="yes"
         fi
 
         # If hash verification failed
@@ -12567,23 +13364,17 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
             # Display dialog if DigiByte verificantion failed
             if [ ! "$UNATTENDED_MODE" == true ]; then
                 if [ "$DGB_INSTALL_TYPE" = "new" ]; then
-                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification has does no match." 9 ${c}
+                    dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification hash does not match." 9 ${c}
                 else
                     dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core download cannot be verified." --title "DigiByte Core download cannot be verified." --msgbox "\n\Z1ERROR: DigiByte Core v$DGB_VER_GITHUB download could not be verified.\Z0\n\nThe verification hash does not match. DigiByte Core v$DGB_VER_LOCAL will be restored." 10 ${c}
                 fi
             fi
 
             # Delete DigiByte Core tar.gz file
-            str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+            str="Deleting install file: $DGB_INSTALL_FILE ..."
             printf "%b %s" "${INFO}" "${str}"
-            # If this is the alt url download, we need to add a v in the URL
-            if [ "$use_dgb_alt_download" == true ]; then
-                rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            else
-                rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-            fi
+            rm -rf "$DGB_DOWNLOAD_DIR"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
             # Re-enable and re-start DigiByte digibyted.service as the download failed
             if [ "$DGB_STATUS" = "stopped" ] && [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -12639,74 +13430,34 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Extracting DigiByte Core binary
-    # If this is the alt url download, we need to add a v in the URL
-    if [ "$use_dgb_alt_download" == true ]; then
-        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT tar -xf $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz -C $USER_HOME
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    # Extract DigiByte Core into ~/digibyte-<version>. The folder inside the tarball is named differently in some
+    # releases (e.g. digibyte-664c6a372bd2 in v8.22.1), so it is dropped with --strip-components=1.
+    str="Extracting DigiByte Core v${DGB_VER_GITHUB} ..."
+    printf "%b %s" "${INFO}" "${str}"
+    # Remove any leftover folder for this version from an earlier install (the current version has already been backed up)
+    if [ -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
+        rm -rf "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
     fi
+    sudo -u $USER_ACCOUNT mkdir "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
+    sudo -u $USER_ACCOUNT tar -xf "$DGB_DOWNLOAD_DIR/$DGB_INSTALL_FILE" -C "$USER_HOME/digibyte-${DGB_VER_GITHUB}" --strip-components=1
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-    # WORKAROUND: If this is 8.22.0-rc2, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af42429717ac" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc2" ]; then
-        str="Renaming 8.22.0-rc2 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af42429717ac $USER_HOME/digibyte-8.22.0-rc2
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.0-rc3, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-af6d4e3cdef0" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc3" ]; then
-        str="Renaming 8.22.0-rc3 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-af6d4e3cdef0 $USER_HOME/digibyte-8.22.0-rc3
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.0-rc4, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-527219d69dd9" ] && [ "$DGB_VER_GITHUB" = "8.22.0-rc4" ]; then
-        str="Renaming 8.22.0-rc4 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-527219d69dd9 $USER_HOME/digibyte-8.22.0-rc4
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # WORKAROUND: If this is 8.22.1, we need to manually rename the extracted directory name, since it is incorrect
-    if [ -d "$USER_HOME/digibyte-664c6a372bd2" ] && [ "$DGB_VER_GITHUB" = "8.22.1" ]; then
-        str="Renaming 8.22.1 download folder..."
-        printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mv $USER_HOME/digibyte-664c6a372bd2 $USER_HOME/digibyte-8.22.1
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
-
-    # If we can't find the extracted folder because it is not using the standard folder name,
-    # then we need to cancel the install and restore the previous version from backup
-    if [ ! -d "$USER_HOME/digibyte-${DGB_VER_GITHUB}" ]; then
+    # If the DigiByte binaries are not where we expect them, cancel the install and restore the previous version from backup
+    if [ ! -f "$USER_HOME/digibyte-${DGB_VER_GITHUB}/bin/digibyted" ]; then
         printf "\\n"
         printf "%b%b ${txtbred}ERROR: DigiByte Core v$DGB_VER_GITHUB Install Failed!${txtrst}\\n" "${OVER}" "${CROSS}"
         printf "\\n"
-        printf "%b The extracted folder could not be located at ~/digibyte-$DGB_VER_GITHUB. This release may be using a non-standard name.\\n" "${INFO}"
+        printf "%b The DigiByte Core binaries could not be found after extracting $DGB_INSTALL_FILE.\\n" "${INFO}"
         printf "%b Please contact $SOCIAL_BLUESKY_HANDLE on Bluesky so that a fix can be issued: $SOCIAL_BLUESKY_URL\\n" "${INDENT}"
         printf "%b Alternatively, contact DigiNode Tools support on Telegram: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
         printf "%b For now the existing version will be restarted.\\n\\n" "${INDENT}"
 
-        # Delete DigiByte Core tar.gz file
-        str="Deleting DigiByte Core install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+        # Delete the DigiByte Core tar.gz file and anything that was extracted
+        str="Deleting DigiByte Core install file: $DGB_INSTALL_FILE ..."
         printf "%b %s" "${INFO}" "${str}"
-        # If this is the alt url download, we need to add a v in the URL
-        if [ "$use_dgb_alt_download" == true ]; then
-            rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+        rm -rf "$DGB_DOWNLOAD_DIR"
+        rm -rf "$USER_HOME/digibyte-${DGB_VER_GITHUB}"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
         # If an there is an existing DigiByte Core backup folder, resture it
         if [ -d "$USER_HOME/digibyte-${DGB_VER_LOCAL}-backup" ]; then
@@ -12771,20 +13522,15 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
     
     # Delete DigiByte Core tar.gz file
-    str="Deleting install file: digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz ..."
+    str="Deleting install file: $DGB_INSTALL_FILE ..."
     printf "%b %s" "${INFO}" "${str}"
-    # If this is the alt url download, we need to add a v in the URL
-    if [ "$use_dgb_alt_download" == true ]; then
-        rm -f $USER_HOME/digibyte-v$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        rm -f $USER_HOME/digibyte-$DGB_VER_GITHUB-$ARCH-linux-gnu.tar.gz
-        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    rm -rf "$DGB_DOWNLOAD_DIR"
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    set_dgb_testnet_params
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -12810,10 +13556,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.prerelease
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-       # Create a new digibyte.conf file
+        # Log the pre-release version number in the .prerelease file
         str="Logging pre-release version number in .prerelease file..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_INSTALL_LOCATION/.prerelease
 # This file is used to store the local version number of a pre-release version of DigiByte Core.
 # Given that DigiByte Core pre-releases typically do not know their precise version number,
@@ -12895,6 +13640,10 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     printf "\\n"
 
 fi
+
+
+# If DigiByte Core has moved between the old and new testnet (v9), offer to delete the unused testnet data
+check_unused_testnet_data
 
 }
 
@@ -13344,7 +14093,7 @@ check_dnsu() {
     fi
 
     # Get the hash file contents, if not already known
-    get_hash_file
+    get_dgb_releases_file
 
     # Check Github repo to find the version number of the latest DigiByte Core release
     str="Checking GitHub repository for the latest DNSU release..."
@@ -14755,7 +15504,7 @@ ipfs_update_port() {
 ipfs_create_service() {
 
 # If you want to make changes to how IPFS services are created/managed for different systems, refer to this website:
-# https://github.com/ipfs/kobo/tree/master/misc 
+# https://github.com/ipfs/kubo/tree/master/misc 
 
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
@@ -16660,6 +17409,73 @@ install_diginode_tools_update_first() {
 
 
 # This function will ask the user if they want to install the system upgrades that have been found
+# When the user has chosen a specific version of DigiByte Core (from the Version menu or with --dgbver), confirm it on
+# its own, rather than as an "update". They can install it, go back to the list of versions, or not install it.
+# Any other updates are then offered separately by menu_ask_install_updates.
+
+menu_confirm_chosen_dgb_version() {
+
+    local action dgb_msg choice
+
+    while [ "$DGB_ASK_UPGRADE" = "YES" ]; do
+
+        if [ "$dgb_downgrade_requested" = true ]; then
+            action="downgrade"
+            dgb_msg="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB (Downgrade)"
+        else
+            action="upgrade"
+            dgb_msg="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB"
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+                dgb_msg="$dgb_msg (Pre-Release)"
+            fi
+        fi
+
+        printf " =============== DIGIBYTE CORE VERSION =================================\\n\\n"
+        # ==============================================================================
+
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" \
+            --yes-label "Yes" --extra-button --extra-label "Change Release" --no-label "No" \
+            --yesno "\nYou have chosen to $action DigiByte Core:\n\n$dgb_msg\n\nAre you sure you wish to do this?" 12 "${c}"
+        choice=$?
+
+        case $choice in
+            0)  # Yes - install it
+                printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+                DGB_DO_INSTALL=YES
+                DGB_REQ_INSTALL=YES
+                DGB_ASK_UPGRADE=NO
+                ;;
+            3)  # Change Release - back to the list of versions, then check the new choice
+                if menu_choose_dgb_version; then
+                    printf "%b You chose to install DigiByte Core v${DGB_VERSION_REQUESTED} instead.\\n" "${INFO}"
+                    printf "\\n"
+                    DGB_ASK_UPGRADE=""
+                    DGB_DO_INSTALL=""
+                    DGB_INSTALL_TYPE=""
+                    dgb_downgrade_requested=false
+                    check_digibyte_core
+                fi
+                ;;
+            *)  # No - don't install it
+                printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+                DGB_DO_INSTALL=NO
+                DGB_REQ_INSTALL=NO
+                DGB_ASK_UPGRADE=NO
+                ;;
+        esac
+
+    done
+
+    printf "\\n"
+
+    # If they chose not to install it and there is nothing else to update, there is nothing more to do
+    if [ "$DGB_REQ_INSTALL" != "YES" ] && [ "$DGA_ASK_UPGRADE" != "YES" ] && [ "$IPFS_ASK_UPGRADE" != "YES" ] && [ "$NODEJS_ASK_UPGRADE" != "YES" ] && [ "$DGNT_ASK_UPGRADE" != "YES" ]; then
+        ensure_dgb_nodes_running
+        display_system_updates_reminder
+        exit
+    fi
+}
+
 menu_ask_install_updates() {
 
 # TESTING UPGRADES (TROUBLESHOOTING)
@@ -16682,12 +17498,25 @@ menu_ask_install_updates() {
 local diginode_software_update
 is_diginode_software_update="no"
 
+# A version of DigiByte Core the user chose themselves is confirmed on its own
+if [ ! "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$DGB_VERSION_REQUESTED" != "" ]; then
+    menu_confirm_chosen_dgb_version
+fi
+
+# They already agreed to upgrade DigiByte Core (--dgbpre with no pre-release available), so don't ask again
+if [ "$dgb_upgrade_confirmed" = true ] && [ "$DGB_ASK_UPGRADE" = "YES" ]; then
+    printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+    DGB_DO_INSTALL=YES
+    DGB_REQ_INSTALL=YES
+    DGB_ASK_UPGRADE=NO
+fi
+
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they want to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Are there are updates for anything other than DigiNode Tools itself?
-    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
+    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGB_REQ_INSTALL" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
         is_diginode_software_update="yes"
     fi
 
@@ -16866,8 +17695,12 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
             fi
             printf "\\n"
-            display_system_updates_reminder
-            exit
+            # Carry on if they already chose to install a version of DigiByte Core
+            if [ "$DGB_REQ_INSTALL" != "YES" ]; then
+                ensure_dgb_nodes_running
+                display_system_updates_reminder
+                exit
+            fi
         fi
 
         # Troubleshooting
@@ -16883,6 +17716,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
+          ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
         fi
@@ -17770,17 +18604,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION" ]; then
                         str="Deleting DigiByte Core MAINNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/indexes
-                        rm -rf $DGB_DATA_LOCATION/chainstate
-                        rm -rf $DGB_DATA_LOCATION/blocks
-                        rm -f $DGB_DATA_LOCATION/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/banlist.json
-                        rm -f $DGB_DATA_LOCATION/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/.lock
-                        rm -f $DGB_DATA_LOCATION/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/peers.dat
-                        rm -f $DGB_DATA_LOCATION/settings.json
+                        delete_dgb_chain_data main
                         DGB_DATA_DISKUSED_MAIN_HR=""
                         DGB_DATA_DISKUSED_MAIN_KB=""
                         DGB_DATA_DISKUSED_MAIN_PERC=""
@@ -17800,26 +18624,19 @@ uninstall_do_now() {
             fi
 
             # Only prompt to delete the testnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+            if [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet26/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet26/chainstate" ]; then
 
                 # Delete DigiByte blockchain TESTNET data
                 if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte TESTNET blockchain data?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
 
                     # Delete testnet blockchain data
-                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                    if [ -d "$DGB_DATA_LOCATION/testnet4" ] || [ -d "$DGB_DATA_LOCATION/testnet26" ]; then
                         str="Deleting DigiByte Core TESTNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
-                        rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/.lock
-                        rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                        # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
+                        for testnet_dir in $DGB_TESTNET_DIRS; do
+                            delete_dgb_chain_data $testnet_dir
+                        done
                         DGB_DATA_DISKUSED_TEST_HR=""
                         DGB_DATA_DISKUSED_TEST_KB=""
                         DGB_DATA_DISKUSED_TEST_PERC=""
@@ -17849,17 +18666,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
                         str="Deleting DigiByte Core REGTEST blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/regtest/indexes
-                        rm -rf $DGB_DATA_LOCATION/regtest/chainstate
-                        rm -rf $DGB_DATA_LOCATION/regtest/blocks
-                        rm -f $DGB_DATA_LOCATION/regtest/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/banlist.json
-                        rm -f $DGB_DATA_LOCATION/regtest/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/regtest/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/.lock
-                        rm -f $DGB_DATA_LOCATION/regtest/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/peers.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/settings.json
+                        delete_dgb_chain_data regtest
                         DGB_DATA_DISKUSED_REGTEST_HR=""
                         DGB_DATA_DISKUSED_REGTEST_KB=""
                         DGB_DATA_DISKUSED_REGTEST_PERC=""
@@ -17885,17 +18692,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION/signet" ]; then
                         str="Deleting DigiByte Core SIGNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/signet/indexes
-                        rm -rf $DGB_DATA_LOCATION/signet/chainstate
-                        rm -rf $DGB_DATA_LOCATION/signet/blocks
-                        rm -f $DGB_DATA_LOCATION/signet/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/signet/banlist.json
-                        rm -f $DGB_DATA_LOCATION/signet/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/signet/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/signet/.lock
-                        rm -f $DGB_DATA_LOCATION/signet/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/signet/peers.dat
-                        rm -f $DGB_DATA_LOCATION/signet/settings.json
+                        delete_dgb_chain_data signet
                         DGB_DATA_DISKUSED_SIGNET_HR=""
                         DGB_DATA_DISKUSED_SIGNET_KB=""
                         DGB_DATA_DISKUSED_SIGNET_PERC=""
@@ -18522,7 +19319,7 @@ fi
 # This function will install or upgrade the fan Argon One Daemon, a replacement daemon
 # for controlling the fan in the Argon One cases for the Raspberry Pi 4.
 #
-# More info here: https://github.com/iandark/argon-one-daemon
+# More info here: https://github.com/kowalski7cc/argon-one-daemon
 
 install_argon_one_fan_software() {
 
@@ -18548,7 +19345,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/iandark/argon-one-daemon" 13 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -18561,7 +19358,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/iandark/argon-one-daemon" 12 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -19667,6 +20464,9 @@ install_or_upgrade() {
     ### WRAP UP ###
 
     # Display closing message
+    # Make sure the DigiByte nodes are running (unless the user stopped them)
+    ensure_dgb_nodes_running
+
     closing_banner_message
 
     if [[ "${NewInstall}" == false ]]; then

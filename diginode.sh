@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v0.11.4
+#           Name:  DigiNode Dashboard v26.10.01
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,14 +47,22 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=0.11.4
-# Last Updated: 2025-04-30
+DGNT_VER_LOCAL=26.10.01
+# Last Updated: 2026-10-10
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
 
 # This is the command people will enter to run the install script.
 DGNT_SETUP_OFFICIAL_CMD="curl -sSL setup.diginode.tools | bash"
+
+# How long DigiNode Dashboard waits for a DigiByte node to answer, in seconds. A node that is busy (e.g. while syncing)
+# can take a while to respond. Rather than appearing frozen, the Dashboard shows that the node is busy and tries again.
+DGB_RPC_TIMEOUT=15
+DGB_CLI_TIMEOUT="-rpcclienttimeout=$DGB_RPC_TIMEOUT"
+# While a node is starting up or busy, the check for whether it is ready yet uses a shorter time limit, so the
+# Dashboard keeps refreshing (with a spinner) instead of pausing for the full time limit each time.
+DGB_CLI_PROBE_TIMEOUT="-rpcclienttimeout=1"
 
 ########################################################
 #### UPDATE THESE VALUES FROM DIGINODE SETUP FIRST #####
@@ -285,14 +293,14 @@ if [ $UNKNOWN_FLAG = true ] || \
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
             diginode_tools_import_settings silent
         fi
-        if test -f $DGB_SETTINGS_LOCATION/testnet4/debug.log ; then
+        if test -f $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log ; then
             echo "      ====================================="
             echo "         DigiByte Core TESTNET debug.log"
             echo "      ====================================="
             echo ""
             echo "    Displaying the last 50 lines from testnet log file. Press Ctrl-C to Stop."
             echo ""
-            exec tail -n50 -f $DGB_SETTINGS_LOCATION/testnet4/debug.log
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log
         else
             printf "%bError: DigiByte Core TESTNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
@@ -756,11 +764,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         printf "%b %s..." "${INFO}" "${str}"
         # If systemctl exists,
         if $(command -v systemctl >/dev/null 2>&1); then
+            # Clear any failed state first, or systemd refuses to start a node that crashed several times in a row
+            sudo systemctl reset-failed digibyted &> /dev/null
             sudo systemctl restart digibyted &> /dev/null
         else
             # Otherwise, fall back to the service command
             sudo service digibyted restart &> /dev/null
         fi
+        # DigiNode Setup will start this node again if it isn't running (see ensure_dgb_nodes_running)
+        diginode_tools_import_settings silent
+        rm -f $DGB_SETTINGS_LOCATION/.digibyted-stopped-by-user
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
      elif [ $DGBCORE_STOP = true ]; then # --stopdgb
@@ -773,6 +786,9 @@ if [ $UNKNOWN_FLAG = true ] || \
             # Otherwise, fall back to the service command
             sudo service digibyted stop &> /dev/null
         fi
+        # Remember the user stopped it, so DigiNode Setup doesn't start it again (see ensure_dgb_nodes_running)
+        diginode_tools_import_settings silent
+        touch $DGB_SETTINGS_LOCATION/.digibyted-stopped-by-user
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
     elif [ $DGB2CORE_RESTART = true ]; then # --dgbrestart
@@ -782,11 +798,14 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%b %s..." "${INFO}" "${str}"
             # If systemctl exists,
             if $(command -v systemctl >/dev/null 2>&1); then
+                # Clear any failed state first, or systemd refuses to start a node that crashed several times in a row
+                sudo systemctl reset-failed digibyted-testnet &> /dev/null
                 sudo systemctl restart digibyted-testnet &> /dev/null
             else
                 # Otherwise, fall back to the service command
                 sudo service digibyted-testnet restart &> /dev/null
             fi
+            rm -f $DGB_SETTINGS_LOCATION/.digibyted-testnet-stopped-by-user
             printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%bError: DigiByte Dual Node not installed.\\n\\n" "${INDENT}"
@@ -804,6 +823,7 @@ if [ $UNKNOWN_FLAG = true ] || \
                 # Otherwise, fall back to the service command
                 sudo service digibyted-testnet stop &> /dev/null
             fi
+            touch $DGB_SETTINGS_LOCATION/.digibyted-testnet-stopped-by-user
             printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%bError: DigiByte Dual Node not installed.\\n\\n" "${INDENT}"
@@ -814,10 +834,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         query_digibyte_chain
         if check_service_active "digibyted"; then
             printf "DigiByte $DGB_NETWORK_CURRENT Peers:\\n\\n"
-            printf "IP4 Peers:\\n"
 
             #store peers
-            mainnetpeers=$($DGB_CLI getpeerinfo)
+            mainnetpeers=$($DGB_CLI getpeerinfo 2>/dev/null)
+            if [ "$mainnetpeers" = "" ]; then
+                echo "- ERROR: DigiByte $DGB_NETWORK_CURRENT node is currently starting up. Please try again in a minute."
+                printf "\\n"
+                exit 1
+            fi
+
+            printf "IP4 Peers:\\n"
 
             ip4peers=$(echo $mainnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
@@ -852,10 +878,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         diginode_tools_import_settings silent
         if check_service_active "digibyted-testnet"; then
             printf "DigiByte TESTNET Node Peers:\\n\\n"
-            printf "IP4 Peers:\\n"
 
             #store peers
-            testnetpeers=$($DGB_CLI -testnet getpeerinfo)
+            testnetpeers=$($DGB_CLI -testnet getpeerinfo 2>/dev/null)
+            if [ "$testnetpeers" = "" ]; then
+                echo "- ERROR: DigiByte TESTNET node is currently starting up. Please try again in a minute."
+                printf "\\n"
+                exit 1
+            fi
+
+            printf "IP4 Peers:\\n"
 
             ip4peers=$(echo $testnetpeers | jq -r '.[] | {ip: .addr} | select(.ip | test("^[0-9]+\\.") and (test("\\.onion$") | not)) | .ip' | sort)
             if [ -z "$ip4peers" ]; then
@@ -1515,7 +1547,7 @@ is_dgbnode_installed() {
 
     # Tell user to reboot if the RPC username or password in digibyte.conf have recently been changed
     if [ "$DGB_STATUS" = "running" ]; then
-        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
+        IS_RPC_CREDENTIALS_CHANGED=$(sudo -u $USER_ACCOUNT dgb_cli getblockcount 2>&1 | grep -Eo "Incorrect rpcuser or rpcpassword")
         if [ "$IS_RPC_CREDENTIALS_CHANGED" = "Incorrect rpcuser or rpcpassword" ]; then
             printf "\\n"
             printf "%b %bERROR: Incorrect rpcuser or rpcpassword.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1528,7 +1560,7 @@ is_dgbnode_installed() {
             printf "\\n"
             exit
         fi
-        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT $DGB_CLI getblockcount 2>&1 | grep -Eo "Could not connect to the server")
+        IS_RPC_PORT_CHANGED=$(sudo -u $USER_ACCOUNT dgb_cli getblockcount 2>&1 | grep -Eo "Could not connect to the server")
         if [ "$IS_RPC_PORT_CHANGED" = "Could not connect to the server" ]; then
             printf "\\n"
             printf "%b %bERROR: Could not connect to the digibyed server.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
@@ -1884,7 +1916,7 @@ check_dgb_rpc_credentials() {
                 printf "%b   rpcport=14022# best to leave this as is\\n" "${INDENT}"
             fi
             if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "test" ]; then
-                printf "%b   rpcport=14023\\n" "${INDENT}"
+                printf "%b   rpcport=$DGB_TESTNET_RPCPORT\\n" "${INDENT}"
             fi
             if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then
                 printf "%b   rpcport=18443\\n" "${INDENT}"
@@ -2420,7 +2452,25 @@ firstrun_dganode_configs() {
 }
 
 # Cleans the DigiByte Core startup messages of strange characters (e.g. ellipsis) that mess up the position of the right side border
+# One frame of the spinner shown while a DigiByte node is starting up or busy. Usage: dgb_spinner_frame <0-3>
+dgb_spinner_frame() {
+    case "$1" in
+        0) printf "[%s◜ %s]" "${txtbwht}" "${txtrst}";;
+        1) printf "[%s ◝%s]" "${txtbwht}" "${txtrst}";;
+        2) printf "[%s ◞%s]" "${txtbwht}" "${txtrst}";;
+        *) printf "[%s◟ %s]" "${txtbwht}" "${txtrst}";;
+    esac
+}
+
 clean_dgb_error_msg() {
+
+    # If the node didn't answer in time, it is running but busy (digibyte-cli reports "timeout reached")
+    if [[ "$is_dgb_live_query" == *"timeout reached"* ]]; then
+        DGB_ERROR_MSG="Busy - waiting for it to respond..."
+    fi
+    if [[ "$is_dgb2_live_query" == *"timeout reached"* ]]; then
+        DGB2_ERROR_MSG="Busy - waiting for it to respond..."
+    fi
 
     # Replace single elipsis charcter with three dots
     DGB_ERROR_MSG="${DGB_ERROR_MSG/…/...}"
@@ -2716,7 +2766,7 @@ pre_loop() {
 
       # Is primary DigiByte Node starting up?
       if [ "$DGB_STATUS" = "running" ]; then
-        DGB_BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI getblockcount 2>/dev/null)
+        DGB_BLOCKCOUNT_LOCAL_QUERY=$(dgb_cli getblockcount 2>/dev/null)
         if [ "$DGB_BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
           DGB_STATUS="startingup"
         else
@@ -2724,7 +2774,7 @@ pre_loop() {
           DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
 
           # Query current version number of DigiByte Core
-          DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+          DGB_VER_LOCAL_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
           if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
             DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -2737,7 +2787,7 @@ pre_loop() {
       if [ "$DGB_STATUS" = "startingup" ]; then
           
           # Query if digibyte has finished starting up. Display error. Send success to null.
-          is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+          is_dgb_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1 1>/dev/null)
           if [ "$is_dgb_live_query" != "" ]; then
               DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
               clean_dgb_error_msg
@@ -2749,7 +2799,7 @@ pre_loop() {
 
       # Is secondary DigiByte Node starting up?
       if [ "$DGB2_STATUS" = "running" ]; then
-        DGB2_BLOCKCOUNT_LOCAL_QUERY=$($DGB_CLI -testnet getblockcount 2>/dev/null)
+        DGB2_BLOCKCOUNT_LOCAL_QUERY=$(dgb_cli -testnet getblockcount 2>/dev/null)
         if [ "$DGB2_BLOCKCOUNT_LOCAL_QUERY" = "" ]; then
           DGB2_STATUS="startingup"
         else
@@ -2758,7 +2808,7 @@ pre_loop() {
 
             # Query current version number of DigiByte Core, if the primary Node is not running
             if [ "$DGB_STATUS" != "running" ]; then
-              DGB_VER_LOCAL_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+              DGB_VER_LOCAL_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
               if [ "$DGB_VER_LOCAL_QUERY" != "" ] && [ "$DGB_PRERELEASE" = "NO" ]; then
                 DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
                 sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -2772,7 +2822,7 @@ pre_loop() {
       if [ "$DGB2_STATUS" = "startingup" ]; then
           
           # Query if digibyte has finished starting up. Display error. Send success to null.
-          is_dgb2_live_query=$($DGB_CLI -testnet uptime 2>&1 1>/dev/null)
+          is_dgb2_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1 1>/dev/null)
           if [ "$is_dgb2_live_query" != "" ]; then
               DGB2_ERROR_MSG=$(echo $is_dgb2_live_query | cut -d ':' -f3)
               clean_dgb_error_msg
@@ -3317,16 +3367,37 @@ if [ $DGB_STATUS != "not_detected" ]; then
             RPC_PORT=""
     fi
 
+    # Move the spinner on, shown while the node is starting up or busy
+    DGB_SPINNER_I=$(( (${DGB_SPINNER_I:-0} + 1) % 4 ))
+
+    # Quick check that the node is answering. If it is running but too busy to answer in time (e.g. while syncing),
+    # show that it is busy and don't ask it anything else this time round, so the Dashboard doesn't appear frozen.
+    dgb_busy_now="NO"
+    if [ "$DGB_STATUS" = "running" ]; then
+        dgb_probe=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1)
+        if [[ "$dgb_probe" == *"timeout reached"* ]]; then
+            dgb_busy_now="YES"
+            DGB_STATUS="startingup"
+            DGB_ERROR_MSG="Busy - waiting for it to respond..."
+        fi
+    fi
+
     # If we think the blockchain is running, check the blockcount
     if [ "$DGB_STATUS" = "running" ]; then
 
         # If the blockchain is not yet synced, get blockcount
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ]; then
-          DGB_BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+          dgb_query_start=$SECONDS
+          DGB_BLOCKCOUNT_LOCAL=$(dgb_cli getblockcount 2>/dev/null)
           DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
 
           # If we don't get a response, assume it is starting up
-          if [ "$DGB_BLOCKCOUNT_LOCAL" = "" ]; then
+          if [ "$DGB_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
+            # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
+            # check again next time, rather than waiting on more requests that would be slow too.
+            DGB_STATUS="startingup"
+            DGB_ERROR_MSG="Busy - waiting for it to respond..."
+          elif [ "$DGB_BLOCKCOUNT_LOCAL" = "" ]; then
             DGB_STATUS="startingup"
             # scrape digibyte.conf
             scrape_digibyte_conf
@@ -3351,9 +3422,8 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
-
-    # banana
+    # (printf turns very small values like 1.8e-07, seen at the start of a sync, into a plain decimal)
+    DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3387,7 +3457,7 @@ if [ "$DGB_STATUS" = "running" ]; then
 
   # query mempool data if the blockchain is synced and mempool feature is enabled
   if [[ ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_MAINNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "MAINNET" ) || ( "$DGB_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" && "$DGB_NETWORK_CURRENT" = "TESTNET" ) ]]; then
-    DGB_MEMPOOL_QUERY=$($DGB_CLI getmempoolinfo 2>/dev/null)
+    DGB_MEMPOOL_QUERY=$(dgb_cli getmempoolinfo 2>/dev/null)
 
     DGB_MEMPOOL_LOADED=$(echo $DGB_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
  
@@ -3415,7 +3485,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   fi
 
   # Get primary DigiByted Node Uptime
-  dgb_uptime_seconds=$($DGB_CLI uptime 2>/dev/null)
+  dgb_uptime_seconds=$(dgb_cli uptime 2>/dev/null)
   dgb_uptime=$(eval "echo $(date -ud "@$dgb_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
@@ -3424,7 +3494,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   dgb_online_since=$(date -ud "@$dgb_start_time" +"%H:%M %d %b %Y %Z")
 
   # Show port warning if connections are less than or equal to 7
-  DGB_CONNECTIONS=$($DGB_CLI getconnectioncount 2>/dev/null)
+  DGB_CONNECTIONS=$(dgb_cli getconnectioncount 2>/dev/null)
   if [ $DGB_CONNECTIONS -le 8 ]; then
     DGB_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
@@ -3462,16 +3532,37 @@ if [ $DGB2_STATUS != "not_detected" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
         RPC2_PORT=""
     fi
 
+    # Move the spinner on, shown while the node is starting up or busy
+    DGB2_SPINNER_I=$(( (${DGB2_SPINNER_I:-0} + 1) % 4 ))
+
+    # Quick check that the node is answering. If it is running but too busy to answer in time (e.g. while syncing),
+    # show that it is busy and don't ask it anything else this time round, so the Dashboard doesn't appear frozen.
+    dgb2_busy_now="NO"
+    if [ "$DGB2_STATUS" = "running" ]; then
+        dgb2_probe=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1)
+        if [[ "$dgb2_probe" == *"timeout reached"* ]]; then
+            dgb2_busy_now="YES"
+            DGB2_STATUS="startingup"
+            DGB2_ERROR_MSG="Busy - waiting for it to respond..."
+        fi
+    fi
+
     # If we think the secondary blockchain is running, check the blockcount
     if [ "$DGB2_STATUS" = "running" ]; then
 
         # If the blockchain is not yet synced, get blockcount
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ]; then
-          DGB2_BLOCKCOUNT_LOCAL=$($DGB_CLI -testnet getblockcount 2>/dev/null)
+          dgb_query_start=$SECONDS
+          DGB2_BLOCKCOUNT_LOCAL=$(dgb_cli -testnet getblockcount 2>/dev/null)
           DGB2_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB2_BLOCKCOUNT_LOCAL)
 
           # If we don't get a response, assume it is starting up
-          if [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ]; then
+          if [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
+            # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
+            # check again next time, rather than waiting on more requests that would be slow too.
+            DGB2_STATUS="startingup"
+            DGB2_ERROR_MSG="Busy - waiting for it to respond..."
+          elif [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ]; then
             DGB2_STATUS="startingup"
             # scrape digibyte.conf
             scrape_digibyte_conf
@@ -3496,7 +3587,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
+    DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3530,7 +3621,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     # query mempool data if the testnet blockchain is synced and mempool feature is enabled
       if [[ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" && "$SM_DISPLAY_TESTNET_MEMPOOL" = "YES" ]]; then
-        DGB2_MEMPOOL_QUERY=$($DGB_CLI -testnet getmempoolinfo 2>/dev/null)
+        DGB2_MEMPOOL_QUERY=$(dgb_cli -testnet getmempoolinfo 2>/dev/null)
 
         DGB2_MEMPOOL_LOADED=$(echo $DGB2_MEMPOOL_QUERY 2>/dev/null | jq '.loaded' 2>/dev/null)
      
@@ -3560,7 +3651,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
       fi
 
   # Get secondary DigiByted Node Uptime
-  dgb2_uptime_seconds=$($DGB_CLI -testnet uptime 2>/dev/null)
+  dgb2_uptime_seconds=$(dgb_cli -testnet uptime 2>/dev/null)
   dgb2_uptime=$(eval "echo $(date -ud "@$dgb2_uptime_seconds" +'$((%s/3600/24)) days %H hours %M minutes %S seconds')")
 
   # Calculate when it was first online
@@ -3569,7 +3660,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   dgb2_online_since=$(date -ud "@$dgb2_start_time" +"%H:%M %d %b %Y %Z")
 
 # Show port warning if connections are less than or equal to 7
-  DGB2_CONNECTIONS=$($DGB_CLI -testnet getconnectioncount 2>/dev/null)
+  DGB2_CONNECTIONS=$(dgb_cli -testnet getconnectioncount 2>/dev/null)
   if [ $DGB2_CONNECTIONS -le 8 ]; then
     DGB2_CONNECTIONS_MSG="Warning: Low Connections!"
   fi
@@ -3621,7 +3712,12 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         fi
       
         # Query if digibyte has finished starting up. Display error. Send success to null.
-        is_dgb_live_query=$($DGB_CLI uptime 2>&1 1>/dev/null)
+        # If the quick check above just timed out, we already know the node is busy - don't ask it again
+        if [ "$dgb_busy_now" = "YES" ]; then
+            is_dgb_live_query="$dgb_probe"
+        else
+            is_dgb_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT getblockcount 2>&1 1>/dev/null)
+        fi
         if [ "$is_dgb_live_query" != "" ]; then
             DGB_ERROR_MSG=$(echo $is_dgb_live_query | cut -d ':' -f3)
             clean_dgb_error_msg
@@ -3651,9 +3747,15 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     # Update local block count every 10 seconds (approx once per block)
     # Is digibyted in the process of starting up, and not ready to respond to requests?
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
-        DGB_BLOCKCOUNT_LOCAL=$($DGB_CLI getblockcount 2>/dev/null)
+        dgb_query_start=$SECONDS
+        DGB_BLOCKCOUNT_LOCAL=$(dgb_cli getblockcount 2>/dev/null)
         DGB_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB_BLOCKCOUNT_LOCAL)
-        if [ "$DGB_BLOCKCOUNT_LOCAL" = "" ]; then
+        if [ "$DGB_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
+            # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
+            # check again next time, rather than waiting on more requests that would be slow too.
+            DGB_STATUS="startingup"
+            DGB_ERROR_MSG="Busy - waiting for it to respond..."
+        elif [ "$DGB_BLOCKCOUNT_LOCAL" = "" ]; then
             DGB_STATUS="startingup"
             DGB_LISTEN_PORT=""
             # scrape digibyte.conf
@@ -3668,7 +3770,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         else
             # Get the algo used for the current block (mainnet or testnet)
             if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+                DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             else
                 DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             fi
@@ -3687,7 +3789,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
 
         # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
         if [ "$DGB_PRERELEASE" = "NO" ]; then
-            DGB_VER_LOCAL_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+            DGB_VER_LOCAL_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
               DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
               sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -3740,7 +3842,12 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
             fi
           
             # Query if digibyte has finished starting up. Display error. Send success to null.
-            is_dgb2_live_query=$($DGB_CLI -testnet uptime 2>&1 1>/dev/null)
+            # If the quick check above just timed out, we already know the node is busy - don't ask it again
+            if [ "$dgb2_busy_now" = "YES" ]; then
+                is_dgb2_live_query="$dgb2_probe"
+            else
+                is_dgb2_live_query=$($DGB_CLI $DGB_CLI_PROBE_TIMEOUT -testnet getblockcount 2>&1 1>/dev/null)
+            fi
             if [ "$is_dgb2_live_query" != "" ]; then
                 DGB2_ERROR_MSG=$(echo $is_dgb2_live_query | cut -d ':' -f3)
                 clean_dgb_error_msg
@@ -3775,9 +3882,15 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         # Update local block count every 10 seconds (approx once per block)
         # Is digibyted in the process of starting up, and not ready to respond to requests?
         if [ "$DGB2_STATUS" = "running" ] && [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
-            DGB2_BLOCKCOUNT_LOCAL=$($DGB_CLI -testnet getblockcount 2>/dev/null)
+            dgb_query_start=$SECONDS
+            DGB2_BLOCKCOUNT_LOCAL=$(dgb_cli -testnet getblockcount 2>/dev/null)
             DGB2_BLOCKCOUNT_FORMATTED=$(printf "%'d" $DGB2_BLOCKCOUNT_LOCAL)
-            if [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ]; then
+            if [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ] && [ $((SECONDS - dgb_query_start)) -ge $DGB_RPC_TIMEOUT ]; then
+                # The node is running, but too busy to answer in time (e.g. while syncing). Show that it is busy, and
+                # check again next time, rather than waiting on more requests that would be slow too.
+                DGB2_STATUS="startingup"
+                DGB2_ERROR_MSG="Busy - waiting for it to respond..."
+            elif [ "$DGB2_BLOCKCOUNT_LOCAL" = "" ]; then
                 DGB2_STATUS="startingup"
                 DGB2_LISTEN_PORT=""
                 # scrape digibyte.conf
@@ -3791,7 +3904,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB2_TROUBLESHOOTING_MSG="10sec: running > startingup"
             else
                 # Get the algo used for the current block (mainnet or testnet)
-                DGB2_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $DGB2_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+                DGB2_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log 2>/dev/null | grep $DGB2_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             fi
         fi
 
@@ -3808,7 +3921,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
 
             # Query current version number of DigiByte Core, and write to diginode.settings (unless running pre-release version)
             if [ "$DGB_PRERELEASE" = "NO" ]; then
-                DGB_VER_LOCAL_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
                 if [ "$DGB_VER_LOCAL_QUERY" != "" ]; then
                   DGB_VER_LOCAL=$DGB_VER_LOCAL_QUERY
                   sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
@@ -3922,7 +4035,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     fi
     if [ "$DGB_STATUS" = "running" ]; then
 
-        DGB_ONION_QUERY=$($DGB_CLI getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+        DGB_ONION_QUERY=$(dgb_cli getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
 
         if [[ $DGB_ONION_QUERY == yes* ]]; then
             DGB_TOR="on"
@@ -3936,7 +4049,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
     fi
     if [ "$DGB2_STATUS" = "running" ]; then
         
-        DGB2_ONION_QUERY=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
+        DGB2_ONION_QUERY=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | jq -r 'if any(.localaddresses[]; .address | endswith(".onion")) then "yes\(.localaddresses[] | select(.address | endswith(".onion")) | .address)" else "no" end')
 
         if [[ $DGB2_ONION_QUERY == yes* ]]; then
             DGB2_TOR="on"
@@ -3980,7 +4093,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
+            DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4037,7 +4150,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
+            DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4325,9 +4438,9 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         # Get current software version, and write to diginode.settings (unless pre-release)
         if [ "$DGB_PRERELEASE" = "NO" ]; then
             if [ "$DGB_STATUS" = "running" ]; then
-                DGB_VER_LOCAL=$($DGB_CLI getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL=$(dgb_cli getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             else
-                DGB_VER_LOCAL=$($DGB_CLI -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
+                DGB_VER_LOCAL=$(dgb_cli -testnet getnetworkinfo 2>/dev/null | grep subversion | cut -d ':' -f3 | cut -d '/' -f1)
             fi
             sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
         fi
@@ -4841,18 +4954,52 @@ display_dgb2_lowcon_msg() {
 # Function to center quit message
 center_quit_message() {
     local quit_msg_text="$1"
+    local sentences=()
+    local sentence
+    local line=""
+    local line_len=0
+    local sentence_len
+    local stripped
+    local output=""
 
-    # Strip ANSI color codes for calculation purposes
-    local stripped_quit_msg=$(echo -e "$quit_msg_text" | sed 's/\x1b\[[0-9;]*m//g')
-    local quit_msg_length=${#stripped_quit_msg}
+    # Split the message into its separate instructions (each ends with ". "), so on a narrow terminal it wraps between
+    # them rather than being cut off. As many instructions as will fit go on each line, and each line is centred.
+    while [[ "$quit_msg_text" =~ ^(.*\.)\ (.+)$ ]]; do
+        sentences=("${BASH_REMATCH[2]}" "${sentences[@]}")
+        quit_msg_text="${BASH_REMATCH[1]}"
+    done
+    sentences=("$quit_msg_text" "${sentences[@]}")
 
-    # Calculate padding required to center text
-    local left_padding=$(( (term_width - quit_msg_length) / 2 ))
-    local right_padding=$(( term_width - left_padding - quit_msg_length ))
+    for sentence in "${sentences[@]}"; do
+        # Strip ANSI color codes for calculation purposes
+        stripped=$(echo -e "$sentence" | sed 's/\x1b\[[0-9;]*m//g')
+        sentence_len=${#stripped}
+        if [ -n "$line" ] && [ $((line_len + 1 + sentence_len)) -gt "$term_width" ]; then
+            output+="$(center_quit_line "$line" "$line_len")"$'\n'
+            line=""
+            line_len=0
+        fi
+        if [ -n "$line" ]; then
+            line+=" $sentence"
+            line_len=$((line_len + 1 + sentence_len))
+        else
+            line="$sentence"
+            line_len=$sentence_len
+        fi
+    done
+    output+="$(center_quit_line "$line" "$line_len")"
 
-    # Construct the padded title string using # as the spacer and return it
+    printf "%s" "$output"
+}
+
+# Centre one line of the quit message. Usage: center_quit_line <text> <visible length>
+center_quit_line() {
+    local left_padding=$(( ($term_width - $2) / 2 ))
+    local right_padding=$(( term_width - left_padding - $2 ))
+    if [ $left_padding -lt 0 ]; then left_padding=0; fi
+    if [ $right_padding -lt 0 ]; then right_padding=0; fi
     printf "%${left_padding}s"
-    printf "%b" "$quit_msg_text"
+    printf "%b" "$1"
     printf "%${right_padding}s"
 }
 
@@ -4860,14 +5007,14 @@ center_quit_message() {
 
 # generate quit message
 if [ "$generate_quit_message" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit."
+    quit_message_text="${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to quit. ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_message=$(center_quit_message "$quit_message_text")
     generate_quit_message="no"
 fi
 
 # generate quit message with port test
 if [ "$generate_quit_message_with_porttest" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}P${dbcol_rst} to test open ports."
+    quit_message_text="${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to quit. ${dbcol_bld}P${dbcol_rst} to test open ports. ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_messsage_with_port_test=$(center_quit_message "$quit_message_text")
     generate_quit_message_with_porttest="no"
 fi
@@ -5060,8 +5207,9 @@ if [ "$DGB_STATUS" = "not_detected" ]; then # Only display if primary DigiByte N
 fi
 
 if [ "$DGB_STATUS" = "startingup" ]; then # Only display if secondary DigiByte Node is starting
-    printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte $dgb_chain_caps Node is currently starting up.${txtrst}" " ║ "
-    printf " ║ $dgb_chain_firstcol ║                ║  " && printf "%-14s %-${col_width_dgb_startingup}s %-3s\n" "Please wait..." "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║ "
+    printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte $dgb_chain_caps Node $( [[ "$DGB_ERROR_MSG" == Busy* ]] && echo "is busy and not responding." || echo "is currently starting up." )${txtrst}" " ║ "
+    # Spinner, so you can see the Dashboard is still working while the node starts up or is busy
+    printf " ║ $dgb_chain_firstcol ║                ║  " && printf "%-14s %s %-$((col_width_dgb_startingup - 5))s %-3s\n" "Please wait..." "$(dgb_spinner_frame $DGB_SPINNER_I)" "${txtbwht}$DGB_ERROR_MSG${txtrst}" " ║ "
 
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 
@@ -5170,8 +5318,8 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
     fi
 
     if [ "$DGB2_STATUS" = "startingup" ]; then # Only display if secondary DigiByte Node (TESTNET) is starting up
-        printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte TESTNET Node is currently starting up.${txtrst}" " ║ "
-        printf " ║ (TESTNET)      ║                ║  " && printf "%-14s %-${col_width_dgb_startingup}s %-3s\n" "Please wait..." "${txtbwht}$DGB2_ERROR_MSG${txtrst}" " ║ "
+        printf " ║ DIGIBYTE NODE  ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiByte TESTNET Node $( [[ "$DGB2_ERROR_MSG" == Busy* ]] && echo "is busy and not responding." || echo "is currently starting up." )${txtrst}" " ║ "
+        printf " ║ (TESTNET)      ║                ║  " && printf "%-14s %s %-$((col_width_dgb_startingup - 5))s %-3s\n" "Please wait..." "$(dgb_spinner_frame $DGB2_SPINNER_I)" "${txtbwht}$DGB2_ERROR_MSG${txtrst}" " ║ "
 
         echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
         if grep -q ^"upnp=1" $DGB_CONF_FILE; then
@@ -5201,8 +5349,10 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}DigiAsset Core support is not yet possible due to a bug in DigiByte v8.22.x${txtrst}" " ║ "
-     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "More info: https://github.com/DigiByte-Core/digibyte/issues/263" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
+     # Clickable link. The link codes take up no space on screen, so widen the column by their length to keep the border aligned.
+     dga_sponsor_link=$(printf '\e]8;;%s\a%s\e]8;;\a' "$DGNT_SPONSORS_URL" "$DGNT_SPONSORS_URL")
+     printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
 fi
 
 echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
@@ -5347,133 +5497,142 @@ echo "$sm_row_08" # "╚" "═" "╩" "═" "═" "═" "╝"
 
 echo "$sm_row_01" # "╔" "═" "╦" "═" "╦" "═" "╗"
 
-ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
-ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
-ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
-ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
-ip4_ext_only="External: $IP4_EXTERNAL"
+# The network section shows your IP and onion addresses. Press N to hide it, e.g. before sharing a screenshot.
+if [ "$SM_HIDE_NETWORK" = "YES" ]; then
 
-# Display IP4 addresses
-if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_off"
-elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
-elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
-elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
+    db_content_c1_c2_c3f " ║ NETWORK        ║                ║  " "Hidden - press N to show your IP addresses"
+
 else
-    db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
-fi
 
+    ip4_leftcol=" ║ NETWORK        ║    IP4 ADDRESS ║  "
+    ip4_int_off_ext_off="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+    ip4_int_on_ext_off="Internal: $IP4_INTERNAL   External: ${dbcol_bred}$IP4_EXTERNAL${dbcol_rst}"
+    ip4_int_off_ext_on="Internal: ${dbcol_bred}$IP4_INTERNAL${dbcol_rst}   External: $IP4_EXTERNAL"
+    ip4_int_on_ext_on="Internal: $IP4_INTERNAL   External: $IP4_EXTERNAL"
+    ip4_ext_only="External: $IP4_EXTERNAL"
 
-# STATUS MONITOR DASHBOARD - NETWORK - IP6 ADDRESS
-
-if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then 
-
-    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
-
-    # Setup IP6 display array
-    ip6_leftcol=" ║                ║    IP6 ADDRESS ║  "
-    ip6_leftcol2=" ║                ║                ║  "
-    ip6_1st_part="Link-Local: ${IP6_LINKLOCAL:-unavailable}   GUA: ${IP6_GUA:-unavailable}"
-    ip6_1st_part_width=${#ip6_1st_part}
-    ip6_1st_part_l1="Link-Local: ${IP6_LINKLOCAL:-unavailable}"
-    ip6_1st_part_l2="GUA: ${IP6_GUA:-unavailable}"
-
-    # Display first IP6 part
-    if [ $term_width -gt $(( ip6_1st_part_width + combined_col1_2_width + right_border_width )) ]; then
-        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part"
+    # Display IP4 addresses
+    if [ "$IP4_EXTERNAL" = "OFFLINE" ] && [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_off"
+    elif [ "$IP4_EXTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_off"
+    elif [ "$IP4_INTERNAL" = "OFFLINE" ]; then # Only display if there is no external IP i.e. we are offline
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_off_ext_on"
+    elif [ "$IP4_EXTERNAL" = "$IP4_INTERNAL" ]; then # Only display external IP if the internal & external are both the same (i.e. we are on a server with a public IP)
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_ext_only"
     else
-        db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part_l1"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_1st_part_l2"
+        db_content_c1_c2_c3f "$ip4_leftcol" "$ip4_int_on_ext_on"
     fi
 
-    # If public IP6 is the same as GUA then remove it
-    if [ "$IP6_GUA" = "$IP6_EXTERNAL" ]; then
-        IP6_EXTERNAL=""
-    fi
 
-    # Setup ip6 second part if needed
-    if [ "$IP6_EXTERNAL" != "" ] && [ "$IP6_ULA" != "" ]; then
-        ip6_2nd_part="ULA: ${IP6_ULA}  External: ${IP6_EXTERNAL}"
-        ip6_2nd_part_width=${#ip6_2nd_part}
-        ip6_2nd_part_l1="External: ${IP6_EXTERNAL}"
-        ip6_2nd_part_l2="ULA: $IP6_ULA"
-        # Display second IP6 part
-        if [ $term_width -gt $(( ip6_2nd_part_width + combined_col1_2_width + right_border_width )) ]; then
+    # STATUS MONITOR DASHBOARD - NETWORK - IP6 ADDRESS
+
+    if [ "$IP6_LINKLOCAL" != "" ] && [ "$IP6_GUA" != "" ]; then 
+
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+
+        # Setup IP6 display array
+        ip6_leftcol=" ║                ║    IP6 ADDRESS ║  "
+        ip6_leftcol2=" ║                ║                ║  "
+        ip6_1st_part="Link-Local: ${IP6_LINKLOCAL:-unavailable}   GUA: ${IP6_GUA:-unavailable}"
+        ip6_1st_part_width=${#ip6_1st_part}
+        ip6_1st_part_l1="Link-Local: ${IP6_LINKLOCAL:-unavailable}"
+        ip6_1st_part_l2="GUA: ${IP6_GUA:-unavailable}"
+
+        # Display first IP6 part
+        if [ $term_width -gt $(( ip6_1st_part_width + combined_col1_2_width + right_border_width )) ]; then
+            db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part"
+        else
+            db_content_c1_c2_c3f "$ip6_leftcol" "$ip6_1st_part_l1"
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_1st_part_l2"
+        fi
+
+        # If public IP6 is the same as GUA then remove it
+        if [ "$IP6_GUA" = "$IP6_EXTERNAL" ]; then
+            IP6_EXTERNAL=""
+        fi
+
+        # Setup ip6 second part if needed
+        if [ "$IP6_EXTERNAL" != "" ] && [ "$IP6_ULA" != "" ]; then
+            ip6_2nd_part="ULA: ${IP6_ULA}  External: ${IP6_EXTERNAL}"
+            ip6_2nd_part_width=${#ip6_2nd_part}
+            ip6_2nd_part_l1="External: ${IP6_EXTERNAL}"
+            ip6_2nd_part_l2="ULA: $IP6_ULA"
+            # Display second IP6 part
+            if [ $term_width -gt $(( ip6_2nd_part_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+            else
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l1"
+                db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l2"
+            fi
+        elif [ "$IP6_EXTERNAL" != "" ]; then
+            ip6_2nd_part="External: ${IP6_EXTERNAL}"
             db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
-        else
-            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l1"
-            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part_l2"
+        elif [ "$IP6_ULA" != "" ]; then
+            ip6_2nd_part="ULA: $IP6_ULA"
+            db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
         fi
-    elif [ "$IP6_EXTERNAL" != "" ]; then
-        ip6_2nd_part="External: ${IP6_EXTERNAL}"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
-    elif [ "$IP6_ULA" != "" ]; then
-        ip6_2nd_part="ULA: $IP6_ULA"
-        db_content_c1_c2_c3f "$ip6_leftcol2" "$ip6_2nd_part"
+
     fi
 
-fi
-
-# echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
+    # echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 
 
-# STATUS MONITOR DASHBOARD - NETWORK - ONION ADDRESS
+    # STATUS MONITOR DASHBOARD - NETWORK - ONION ADDRESS
 
-if [ "$DGB_ONION_ADDRESS" != "" ] || [ "$DGB2_ONION_ADDRESS" != "" ]; then 
+    if [ "$DGB_ONION_ADDRESS" != "" ] || [ "$DGB2_ONION_ADDRESS" != "" ]; then 
 
-    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+        echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 
-    # Setup IP6 display array
-    onion_leftcol=" ║                ║  ONION ADDRESS ║  "
-    onion_leftcol2=" ║                ║                ║  "
+        # Setup IP6 display array
+        onion_leftcol=" ║                ║  ONION ADDRESS ║  "
+        onion_leftcol2=" ║                ║                ║  "
 
-    onion_dgb1="$dgb_tor_address_label ${DGB_ONION_ADDRESS:-unavailable}"
-    onion_dgb1_width=${#onion_dgb1}
-    onion_dgb1_short="$dgb_tor_address_label_short ${DGB_ONION_ADDRESS:-unavailable}"
-    onion_dgb1_short_width=${#onion_dgb1_short}
-    onion_dgb1_shortest="$dgb_tor_address_label_shortest ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1="$dgb_tor_address_label ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1_width=${#onion_dgb1}
+        onion_dgb1_short="$dgb_tor_address_label_short ${DGB_ONION_ADDRESS:-unavailable}"
+        onion_dgb1_short_width=${#onion_dgb1_short}
+        onion_dgb1_shortest="$dgb_tor_address_label_shortest ${DGB_ONION_ADDRESS:-unavailable}"
 
-    onion_dgb2="DigiByte Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
-    onion_dgb2_width=${#onion_dgb2}
-    onion_dgb2_short="Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
-    onion_dgb2_short_width=${#onion_dgb2_short}
-    onion_dgb2_shortest="TN: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2="DigiByte Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2_width=${#onion_dgb2}
+        onion_dgb2_short="Testnet: ${DGB2_ONION_ADDRESS:-unavailable}"
+        onion_dgb2_short_width=${#onion_dgb2_short}
+        onion_dgb2_shortest="TN: ${DGB2_ONION_ADDRESS:-unavailable}"
 
-    # Display both mainnet and testnet
-    if [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" != "" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2"
-        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
-            db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_shortest"
-        fi
-    # Display primary node only
-    elif [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" = "" ] && [ "$DGB_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
-        elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
-        fi
-    # Display secondary node only (testnet)
-    elif [ "$DGB_ONION_ADDRESS" = "" ] && [ "$DGB2_ONION_ADDRESS" != "" ]  && [ "$DGB2_STATUS" = "running" ]; then
-        if [ $term_width -gt $(( onion_dgb2_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2"
-        elif [ $term_width -gt $(( onion_dgb2_short_width + combined_col1_2_width + right_border_width )) ]; then
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_short"
-        else
-            db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_shortest"
+        # Display both mainnet and testnet
+        if [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" != "" ] && [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2"
+            elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+                db_content_c1_c2_c3f "$onion_leftcol2" "$onion_dgb2_shortest"
+            fi
+        # Display primary node only
+        elif [ "$DGB_ONION_ADDRESS" != "" ] && [ "$DGB2_ONION_ADDRESS" = "" ] && [ "$DGB_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb1_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1"
+            elif [ $term_width -gt $(( onion_dgb1_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb1_shortest"
+            fi
+        # Display secondary node only (testnet)
+        elif [ "$DGB_ONION_ADDRESS" = "" ] && [ "$DGB2_ONION_ADDRESS" != "" ]  && [ "$DGB2_STATUS" = "running" ]; then
+            if [ $term_width -gt $(( onion_dgb2_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2"
+            elif [ $term_width -gt $(( onion_dgb2_short_width + combined_col1_2_width + right_border_width )) ]; then
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_short"
+            else
+                db_content_c1_c2_c3f "$onion_leftcol" "$onion_dgb2_shortest"
+            fi
         fi
     fi
+
 fi
 
 echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
@@ -5766,6 +5925,19 @@ trap quit_message EXIT
 
 # sleep 1
 read -t 0.1 -s -n 1 input
+
+    # N: show or hide the network section (IP and onion addresses), e.g. before taking a screenshot to share
+    if [ "$input" = "n" ] || [ "$input" = "N" ]; then
+        if [ "$SM_HIDE_NETWORK" = "YES" ]; then
+            SM_HIDE_NETWORK="NO"
+        else
+            SM_HIDE_NETWORK="YES"
+        fi
+        # Update the footer to say "show" or "hide"
+        generate_quit_message="yes"
+        generate_quit_message_with_porttest="yes"
+        input=""
+    fi
 
     if [ "$IPFS_PORT_TEST_ENABLED" = "YES" ] && [ "$DGA_CONSOLE_QUERY" != "" ] && [ "$IPFS_PORT_NUMBER" != "" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ] && [ "$IP4_EXTERNAL" != "" ]; then
 
@@ -6750,7 +6922,7 @@ startup_checks() {
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
   disclaimerDialog                 # Display Disclaimer
-  get_hash_file                    # Get the hash file related to the current update group.
+  get_dgb_releases_file            # Get the verified DigiByte Core releases for the current update group.
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive
   digibyte_check_official          # check if this is an official install of DigiByte Core
   is_dgbnode_installed             # Run checks to see if DigiByte Node is present. Exit if it isn't. Import digibyte.conf.
@@ -6775,8 +6947,10 @@ startup_checks() {
 ######### RUN SCRIPT FROM HERE #######################
 ######################################################
 
+DGB_CLI_SPINNER=YES         # Show a spinner if a DigiByte node is slow to answer during the startup checks
 startup_checks              # Performs all necessary startup checks
 pre_loop                    # Run this just before starting the loop
+DGB_CLI_SPINNER=NO          # The Dashboard shows its own status (and spinner) from here
 status_loop                 # Run the status monitor loop
 
 
