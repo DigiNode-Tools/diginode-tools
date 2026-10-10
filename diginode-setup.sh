@@ -8263,7 +8263,7 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 73 12 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 74 12 \
     "${opt1a}"  "${opt1b}" \
     "${optVa}"  "${optVb}" \
     "${optBa}"  "${optBb}" \
@@ -9769,15 +9769,14 @@ display_featured_sponsors() {
 
 donation_qrcode() {  
 
-    printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
+    printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
 
-    echo "   I created DigiNode Tools to make it easy for everybody to run a"
-    echo "   DigiByte Node and DigiAsset Node. I have devoted thousands of hours"
-    echo "   working on this goal, all for the benefit of the DigiByte community."
-    echo "   This software is DONATIONWARE. If you find it useful, please sponsor"
-    echo "   or donate so that I can keep improving it."
-    echo "   Thank you very much for your support, Olly"
+    echo "   I created DigiNode Tools to make it easy for everybody to run their"
+    echo "   own DigiByte Node. It's free and open source, and I build and"
+    echo "   maintain it in my spare time, for the benefit of the DigiByte"
+    echo "   community. If you find it useful, please consider sponsoring me,"
+    echo "   so I can devote more time to it. Thank you for your support, Olly"
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_GITHUB_SPONSORS_URL}\a${DGNT_GITHUB_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
@@ -13128,6 +13127,11 @@ check_digibyte_core() {
         elif [ "$RESET_MODE" = true ]; then
             printf "%b Reset Mode is Enabled. You will be asked if you want to re-install DigiByte Core v${DGB_VER_GITHUB}.\\n" "${INFO}"
             DGB_INSTALL_TYPE="askreset"
+        elif [ "$DGB_VERSION_REQUESTED" != "" ]; then
+            printf "%b DigiByte Core v${DGB_VER_LOCAL} is already installed.\\n" "${INFO}"
+            DGB_DO_INSTALL=NO
+            DGB_INSTALL_TYPE="none"
+            DGB_UPDATE_AVAILABLE=NO
         else
             printf "%b Upgrade not required.\\n" "${INFO}"
             DGB_DO_INSTALL=NO
@@ -17381,6 +17385,73 @@ install_diginode_tools_update_first() {
 
 
 # This function will ask the user if they want to install the system upgrades that have been found
+# When the user has chosen a specific version of DigiByte Core (from the Version menu or with --dgbver), confirm it on
+# its own, rather than as an "update". They can install it, go back to the list of versions, or not install it.
+# Any other updates are then offered separately by menu_ask_install_updates.
+
+menu_confirm_chosen_dgb_version() {
+
+    local action dgb_msg choice
+
+    while [ "$DGB_ASK_UPGRADE" = "YES" ]; do
+
+        if [ "$dgb_downgrade_requested" = true ]; then
+            action="downgrade"
+            dgb_msg="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB (Downgrade)"
+        else
+            action="upgrade"
+            dgb_msg="      DigiByte Core v$DGB_VER_LOCAL  >>  v$DGB_VER_GITHUB"
+            if [ "$INSTALL_DGB_RELEASE_TYPE" = "prerelease" ]; then
+                dgb_msg="$dgb_msg (Pre-Release)"
+            fi
+        fi
+
+        printf " =============== DIGIBYTE CORE VERSION =================================\\n\\n"
+        # ==============================================================================
+
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" \
+            --yes-label "Yes" --extra-button --extra-label "Change Release" --no-label "No" \
+            --yesno "\nYou have chosen to $action DigiByte Core:\n\n$dgb_msg\n\nAre you sure you wish to do this?" 12 "${c}"
+        choice=$?
+
+        case $choice in
+            0)  # Yes - install it
+                printf "%b You chose to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+                DGB_DO_INSTALL=YES
+                DGB_REQ_INSTALL=YES
+                DGB_ASK_UPGRADE=NO
+                ;;
+            3)  # Change Release - back to the list of versions, then check the new choice
+                if menu_choose_dgb_version; then
+                    printf "%b You chose to install DigiByte Core v${DGB_VERSION_REQUESTED} instead.\\n" "${INFO}"
+                    printf "\\n"
+                    DGB_ASK_UPGRADE=""
+                    DGB_DO_INSTALL=""
+                    DGB_INSTALL_TYPE=""
+                    dgb_downgrade_requested=false
+                    check_digibyte_core
+                fi
+                ;;
+            *)  # No - don't install it
+                printf "%b You chose NOT to install DigiByte Core v$DGB_VER_GITHUB\\n" "${INFO}"
+                DGB_DO_INSTALL=NO
+                DGB_REQ_INSTALL=NO
+                DGB_ASK_UPGRADE=NO
+                ;;
+        esac
+
+    done
+
+    printf "\\n"
+
+    # If they chose not to install it and there is nothing else to update, there is nothing more to do
+    if [ "$DGB_REQ_INSTALL" != "YES" ] && [ "$DGA_ASK_UPGRADE" != "YES" ] && [ "$IPFS_ASK_UPGRADE" != "YES" ] && [ "$NODEJS_ASK_UPGRADE" != "YES" ] && [ "$DGNT_ASK_UPGRADE" != "YES" ]; then
+        ensure_dgb_nodes_running
+        display_system_updates_reminder
+        exit
+    fi
+}
+
 menu_ask_install_updates() {
 
 # TESTING UPGRADES (TROUBLESHOOTING)
@@ -17403,12 +17474,17 @@ menu_ask_install_updates() {
 local diginode_software_update
 is_diginode_software_update="no"
 
+# A version of DigiByte Core the user chose themselves is confirmed on its own
+if [ ! "$UNATTENDED_MODE" == true ] && [ "$DGB_ASK_UPGRADE" = "YES" ] && [ "$DGB_VERSION_REQUESTED" != "" ]; then
+    menu_confirm_chosen_dgb_version
+fi
+
 
 # If there is an upgrade available for DigiByte Core, IPFS, Node.js, DigiAsset Node or DigiNode Tools, ask the user if they want to install them
 if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]] || [[ "$DGNT_ASK_UPGRADE" = "YES" ]]; then
 
     # Are there are updates for anything other than DigiNode Tools itself?
-    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
+    if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGB_REQ_INSTALL" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$IPFS_ASK_UPGRADE" = "YES" ]] || [[ "$NODEJS_ASK_UPGRADE" = "YES" ]]; then
         is_diginode_software_update="yes"
     fi
 
@@ -17587,9 +17663,12 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
             fi
             printf "\\n"
-            ensure_dgb_nodes_running
-            display_system_updates_reminder
-            exit
+            # Carry on if they already chose to install a version of DigiByte Core
+            if [ "$DGB_REQ_INSTALL" != "YES" ]; then
+                ensure_dgb_nodes_running
+                display_system_updates_reminder
+                exit
+            fi
         fi
 
         # Troubleshooting
