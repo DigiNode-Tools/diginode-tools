@@ -1,0 +1,111 @@
+name: Release DigiNode Tools
+
+# Releases whatever is on develop: gives it this month's next version number (e.g. v26.10.01), updates the version and
+# date everywhere, merges develop into main, tags it, and publishes the GitHub release with its release notes. Then
+# develop gets a placeholder version for the next release.
+#
+# A dry run does all of this without pushing, tagging or publishing anything, and shows what would happen.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run - show what would happen, without releasing anything"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Check the scripts
+        run: |
+          bash -n diginode-setup.sh
+          bash -n diginode.sh
+          bash -n .github/release.sh
+          echo "Syntax OK"
+
+      - name: Work out the version and prepare the release
+        id: prep
+        env:
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          version=$(.github/release.sh version)
+          if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
+            echo "::error::Tag v$version already exists"; exit 1
+          fi
+          .github/release.sh prepare "$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Commit, and merge develop into main
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -qam "Release v$VERSION"
+          git checkout -q main
+          git merge --no-ff -q develop -m "Release v$VERSION (merge develop into main)"
+          git tag -a "v$VERSION" -m "DigiNode Tools v$VERSION"
+          echo "Merged into main and tagged v$VERSION (locally)"
+
+      - name: Summary
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          {
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "## Dry run: DigiNode Tools v$VERSION"
+              echo "Nothing has been pushed, tagged or published. Run it again with **Dry run** unticked to release."
+            else
+              echo "## Releasing DigiNode Tools v$VERSION"
+            fi
+            echo
+            echo "### What changes on develop"
+            echo '```diff'
+            git diff origin/develop develop -- diginode-setup.sh diginode.sh docs/release_notes.md
+            echo '```'
+            echo "### Commits going into main"
+            echo '```'
+            git log --oneline origin/main..main
+            echo '```'
+            echo "### GitHub release notes"
+            cat "$NOTES_FILE"
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish the release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          # Push develop and main together, so they can't end up out of step
+          git push --atomic origin develop main "v$VERSION"
+          gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest
+
+      - name: Get develop ready for the next release
+        if: ${{ !inputs.dry_run }}
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          git checkout -q develop
+          .github/release.sh bump "$VERSION"
+          git commit -qam "Develop: placeholder version for the next release"
+          git push origin develop
