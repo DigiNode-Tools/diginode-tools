@@ -285,14 +285,14 @@ if [ $UNKNOWN_FLAG = true ] || \
         if [ "$DGB_SETTINGS_LOCATION" = "" ]; then
             diginode_tools_import_settings silent
         fi
-        if test -f $DGB_SETTINGS_LOCATION/testnet4/debug.log ; then
+        if test -f $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log ; then
             echo "      ====================================="
             echo "         DigiByte Core TESTNET debug.log"
             echo "      ====================================="
             echo ""
             echo "    Displaying the last 50 lines from testnet log file. Press Ctrl-C to Stop."
             echo ""
-            exec tail -n50 -f $DGB_SETTINGS_LOCATION/testnet4/debug.log
+            exec tail -n50 -f $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log
         else
             printf "%bError: DigiByte Core TESTNET log file does not exist\\n\\n" "${INDENT}"
             exit 1
@@ -1884,7 +1884,7 @@ check_dgb_rpc_credentials() {
                 printf "%b   rpcport=14022# best to leave this as is\\n" "${INDENT}"
             fi
             if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "test" ]; then
-                printf "%b   rpcport=14023\\n" "${INDENT}"
+                printf "%b   rpcport=$DGB_TESTNET_RPCPORT\\n" "${INDENT}"
             fi
             if [ "$RPC_PORT" = "" ] && [ "$DGB_NETWORK_CHAIN" = "regtest" ]; then
                 printf "%b   rpcport=18443\\n" "${INDENT}"
@@ -3667,7 +3667,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
         else
             # Get the algo used for the current block (mainnet or testnet)
             if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
-                DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+                DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             else
                 DGB_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/debug.log 2>/dev/null | grep $DGB_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             fi
@@ -3790,7 +3790,7 @@ if [ $TIME_DIF_10SEC -ge 10 ]; then
                 DGB2_TROUBLESHOOTING_MSG="10sec: running > startingup"
             else
                 # Get the algo used for the current block (mainnet or testnet)
-                DGB2_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/testnet4/debug.log 2>/dev/null | grep $DGB2_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
+                DGB2_BLOCK_CURRENT_ALGO=$(tail $DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log 2>/dev/null | grep $DGB2_BLOCKCOUNT_LOCAL | cut -d'(' -f 2 | cut -d')' -f 1)
             fi
         fi
 

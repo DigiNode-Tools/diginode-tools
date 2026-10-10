@@ -1088,6 +1088,39 @@ else
     fi
 fi
 
+# Set the DigiByte testnet folder and ports to match the installed version of DigiByte Core
+set_dgb_testnet_params
+
+}
+
+# DigiByte Core v9 uses a new testnet, with its own data folder and default ports. Set these to match the installed
+# version of DigiByte Core (or the version about to be installed, if it is not installed yet).
+#
+#                         v8 and earlier   v9 onwards
+#   DGB_TESTNET_DIR       testnet4         testnet26
+#   DGB_TESTNET_PORT      12026            12033
+#   DGB_TESTNET_RPCPORT   14023            14026
+#
+# DGB_TESTNET_DIRS lists both testnet folders, for when old testnet data needs dealing with too (e.g. deleting it).
+
+set_dgb_testnet_params() {
+
+    local dgb_ver="$DGB_VER_LOCAL"
+    if [ "$dgb_ver" = "" ]; then
+        dgb_ver="$DGB_VER_GITHUB"
+    fi
+
+    if [ "$dgb_ver" != "" ] && [ "${dgb_ver%%.*}" -lt 9 ] 2>/dev/null; then
+        DGB_TESTNET_DIR="testnet4"
+        DGB_TESTNET_PORT="12026"
+        DGB_TESTNET_RPCPORT="14023"
+    else
+        DGB_TESTNET_DIR="testnet26"
+        DGB_TESTNET_PORT="12033"
+        DGB_TESTNET_RPCPORT="14026"
+    fi
+
+    DGB_TESTNET_DIRS="testnet4 testnet26"
 }
 
 # THis function will update the existing diginode.settings file with the new version, if there is one (this occurs whenever there is a new release of DigiNode Tools, or if the branch the user is running changes)
@@ -1497,8 +1530,8 @@ update_disk_usage() {
 
         # DigiByte mainnet disk used
         if [ -d "$DGB_DATA_LOCATION" ]; then
-            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
-            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_HR=$(du -sh --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
+            DGB_DATA_DISKUSED_MAIN_KB=$(du -sk --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $DGB_DATA_LOCATION | awk '{print $1}')
             DGB_DATA_DISKUSED_MAIN_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_MAIN_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_MAIN_HR=""
@@ -1507,9 +1540,9 @@ update_disk_usage() {
         fi
 
         # DigiByte testnet disk used
-        if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
-            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
-            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/testnet4 | awk '{print $1}')
+        if [ -d "$DGB_DATA_LOCATION/$DGB_TESTNET_DIR" ]; then
+            DGB_DATA_DISKUSED_TEST_HR=$(du -sh $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
+            DGB_DATA_DISKUSED_TEST_KB=$(du -sk $DGB_DATA_LOCATION/$DGB_TESTNET_DIR | awk '{print $1}')
             DGB_DATA_DISKUSED_TEST_PERC=$(echo "scale=2; ($DGB_DATA_DISKUSED_TEST_KB*100/$DGB_DATA_TOTALDISK_KB)" | bc)
         else
             DGB_DATA_DISKUSED_TEST_HR=""
@@ -2132,7 +2165,7 @@ rpcbind=127.0.0.1
 # Options only for testnet
 [test]
 
-# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Listen for incoming connections on non-default testnet port. Testnet default is 12033 (12026 before DigiByte v9).
 # Changing the port number here will override the default testnet port numbers.
 # port=12026
 
@@ -2141,7 +2174,7 @@ rpcbind=127.0.0.1
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 # rpcbind=127.0.0.1
 
-# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14026 (14023 before DigiByte v9).
 # rpcport=14023
 
 # Connect through Tor SOCKS5 proxy
@@ -3466,7 +3499,7 @@ $DGB_TOR_MAINNET_SETTINGS
 # Options only for testnet
 [test]
 
-# Listen for incoming connections on non-default testnet port. Testnet default is 12026.
+# Listen for incoming connections on non-default testnet port. Testnet default is 12033 (12026 before DigiByte v9).
 # Changing the port number here will override the default testnet port numbers.
 # port=12026
 
@@ -3475,7 +3508,7 @@ $DGB_TOR_MAINNET_SETTINGS
 # for IPv6. This option can be specified multiple times. (default: 127.0.0.1 and ::1 i.e., localhost)
 rpcbind=127.0.0.1
 
-# Listen for JSON-RPC testnet connections on this port. Testnet default is 14023.
+# Listen for JSON-RPC testnet connections on this port. Testnet default is 14026 (14023 before DigiByte v9).
 # rpcport=14023
 
 $DGB_TOR_TESTNET_SETTINGS
@@ -5627,11 +5660,11 @@ check_digibyte_wallets() {
         sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/wallets
     fi
 
-    # create ~/.digibyte/testnet4/wallets folder if it does not exist
-    if [ ! -d "$DGNT_SETTINGS_LOCATION/testnet4/wallets" ]; then
-        str="Creating ~/.digibyte/testnet4/wallets folder..."
+    # create ~/.digibyte/<testnet folder>/wallets folder if it does not exist
+    if [ ! -d "$DGNT_SETTINGS_LOCATION/$DGB_TESTNET_DIR/wallets" ]; then
+        str="Creating ~/.digibyte/$DGB_TESTNET_DIR/wallets folder..."
         printf "\\n%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT mkdir $DGNT_SETTINGS_LOCATION/testnet4/wallets
+        sudo -u $USER_ACCOUNT mkdir -p $DGNT_SETTINGS_LOCATION/$DGB_TESTNET_DIR/wallets
     fi
 
     # If the local DigiByte version is 7.17.3 make sure default wallet is in ~/.digibyte
@@ -8307,10 +8340,12 @@ change_tor_status() {
         if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
             stop_service digibyted
-            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ] || [ -f "$DGB_DATA_LOCATION/testnet26/peers.dat" ]; then
                 str="Deleting Testnet peers.dat as Tor status has changed ..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                for testnet_dir in $DGB_TESTNET_DIRS; do
+                    rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                done
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             restart_service digibyted
@@ -8332,10 +8367,12 @@ change_tor_status() {
         if [ "$DGB2_STATUS" = "running" ] || [ "$DGB2_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "stopped" ]; then
             printf "%b DigiByte Core Tor status has been changed. DigiByte Testnet daemon will be restarted...\\n" "${INFO}"
             stop_service digibyted-testnet
-            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ]; then
+            if [ -f "$DGB_DATA_LOCATION/testnet4/peers.dat" ] || [ -f "$DGB_DATA_LOCATION/testnet26/peers.dat" ]; then
                 str="Deleting Testnet peers.dat as Tor status has changed ..."
                 printf "%b %s" "${INFO}" "${str}"
-                rm -f $DGB_DATA_LOCATION/testnet4/peers.dat 
+                for testnet_dir in $DGB_TESTNET_DIRS; do
+                    rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                done
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
             restart_service digibyted-testnet
@@ -8570,28 +8607,31 @@ change_dgb_network() {
         fi
 
     elif [ "$DGB_NETWORK_IS_CHANGED" = "YES" ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ]; then
-        dialog --no-shadow --keep-tite --colors --backtitle "You are now running on the DigiByte mainnet!" --title "You are now running on the DigiByte mainnet!" --msgbox "\nYour DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default port 14023 on testnet." 14 ${c}
+        dialog --no-shadow --keep-tite --colors --backtitle "You are now running on the DigiByte mainnet!" --title "You are now running on the DigiByte mainnet!" --msgbox "\nYour DigiByte Node has been changed to run on MAINNET.\\n\\nIt is currently taking up ${DGB_DATA_DISKUSED_MAIN_HR}b of space on your drive. Your DigiByte mainnet listening port is $DGB_LISTEN_PORT. If you have not already done so, please open this port on your router.\\n\\nYour DigiByte RPC port is now $RPC_PORT. This will have been changed if you were previously using the default testnet port $DGB_TESTNET_RPCPORT." 14 ${c}
 
         # Prompt to delete the testnet blockchain data if it already exists
-        if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+        if [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet26/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet26/chainstate" ]; then
 
             # Delete DigiByte blockchain data
             if dialog --no-shadow --keep-tite --colors --backtitle "Delete testnet blockchain data?" --title "Delete testnet blockchain data?" --yesno "\n\Z4Would you like to delete the DigiByte TESTNET blockchain data, since you are now running on MAINNET?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. Deleting it will free up disk space on your device, but if you later decide to switch back to running on testnet, you will need to re-sync the entire testnet blockchain which can take several hours.\n\nNote: Your testnet wallet will be kept." 15 "${c}"; then
 
-                if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                if [ -d "$DGB_DATA_LOCATION/testnet4" ] || [ -d "$DGB_DATA_LOCATION/testnet26" ]; then
                     str="Deleting DigiByte Core TESTNET blockchain data..."
                     printf "%b %s" "${INFO}" "${str}"
-                    rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                    rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                    rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
-                    rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
-                    rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/.lock
-                    rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
-                    rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                    # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
+                    for testnet_dir in $DGB_TESTNET_DIRS; do
+                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/indexes
+                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/chainstate
+                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/blocks
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.dat
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.json
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/digibyted.pid
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/fee_estimates.dat
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/.lock
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/mempool.dat
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                        rm -f $DGB_DATA_LOCATION/$testnet_dir/settings.json
+                    done
                     DGB_DATA_DISKUSED_TEST_HR=""
                     DGB_DATA_DISKUSED_TEST_KB=""
                     DGB_DATA_DISKUSED_TEST_PERC=""
@@ -8982,6 +9022,16 @@ fi
 # Create the secondary DigiByte service file for the testnet daemon, when runnning a DigiByte Dual Node
 create_digibyte_service_dualnode() {
 
+# The testnet folder is different in DigiByte v9 (testnet26), so the testnet PID file now lives in ~/.digibyte
+# instead. Update service files created by older versions of DigiNode Setup.
+if [ -f "$DGB2_SYSTEMD_SERVICE_FILE" ] && grep -q "/testnet4/digibyted.pid" "$DGB2_SYSTEMD_SERVICE_FILE"; then
+    str="Updating location of PID file in digibyted-testnet.service..."
+    printf "%b %s" "${INFO}" "${str}"
+    sed -i -e "s|/testnet4/digibyted.pid|/digibyted-testnet.pid|g" $DGB2_SYSTEMD_SERVICE_FILE
+    systemctl daemon-reload
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+fi
+
 # Only run if we are setting up a Dual Node
 if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
@@ -9093,8 +9143,8 @@ User=$USER_ACCOUNT
 Group=$USER_ACCOUNT
 
 Type=forking
-PIDFile=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid
-ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/testnet4/digibyted.pid \\
+PIDFile=${DGB_SETTINGS_LOCATION}/digibyted-testnet.pid
+ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/digibyted-testnet.pid \\
 -conf=${DGB_CONF_FILE} -datadir=${DGB_DATA_LOCATION}
 
 Restart=always
@@ -10173,12 +10223,12 @@ fi
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         fi
         if [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
         elif [ "$DGB_NETWORK_FINAL" = "TESTNET" ] && [ "$port" = "12024" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
         elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="12024"
-        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$port" = "12026" ]; then
+        elif [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && { [ "$port" = "12026" ] || [ "$port" = "12033" ]; }; then
             DGB_LISTEN_PORT="12024"
         elif [ "$DGB_NETWORK_FINAL" = "REGTEST" ] && [ "$port" = "" ]; then
             DGB_LISTEN_PORT="18444"
@@ -10228,7 +10278,7 @@ fi
     if [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-            DGB2_LISTEN_PORT="12026"
+            DGB2_LISTEN_PORT="$DGB_TESTNET_PORT"
             DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         else
             DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
@@ -11263,7 +11313,7 @@ query_digibyte_port() {
             DGB_LISTEN_PORT="12024"
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         elif [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-            DGB_LISTEN_PORT="12026"
+            DGB_LISTEN_PORT="$DGB_TESTNET_PORT"
             DGB_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
         elif [ "$DGB_NETWORK_CURRENT" = "REGTEST" ] && [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
             DGB_LISTEN_PORT="18444"
@@ -11336,7 +11386,7 @@ query_digibyte_port() {
             DGB_LISTEN_PORT_GLOBAL=$(echo "$DIGIBYTE_CONFIG_GLOBAL" | grep ^port= | cut -d'=' -f 2)
 
             if [ "$DGB_LISTEN_PORT_GLOBAL" = "" ]; then
-                DGB2_LISTEN_PORT="12026"
+                DGB2_LISTEN_PORT="$DGB_TESTNET_PORT"
                 DGB2_LISTEN_PORT_LIVE="NO" # Not a live value as retrieved from digibyte.conf
             else
                 DGB2_LISTEN_PORT="$DGB_LISTEN_PORT_GLOBAL"   
@@ -11512,7 +11562,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         else
             # If testnet rpcport was not set anywhere else, then set the testnet default
             if [ "$RPC_PORT" = "" ]; then 
-                RPC_PORT="14023"
+                RPC_PORT="$DGB_TESTNET_RPCPORT"
             else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
                 RPC_PORT=""
             fi
@@ -11611,7 +11661,7 @@ if [ -f "$DGB_CONF_FILE" ]; then
         else
             # If testnet rpcport was not set anywhere else, then set the testnet default
             if [ "$RPC2_PORT" = "" ]; then 
-                RPC2_PORT="14023"
+                RPC2_PORT="$DGB_TESTNET_RPCPORT"
             else # If it was already set in the global section, but not in the testnet section, then remove it as it won't work
                 RPC2_PORT=""
             fi
@@ -12570,6 +12620,11 @@ check_digibyte_core() {
         fi
     fi
 
+    # For a new install, the testnet folder and ports depend on the version about to be installed
+    if [ "$DGB_STATUS" = "not_detected" ]; then
+        set_dgb_testnet_params
+    fi
+
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
 
@@ -12960,6 +13015,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    set_dgb_testnet_params
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -17974,26 +18030,29 @@ uninstall_do_now() {
             fi
 
             # Only prompt to delete the testnet blockchain data if it already exists
-            if [ -d "$DGB_DATA_LOCATION/testnet4/indexes" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ]; then
+            if [ -d "$DGB_DATA_LOCATION/testnet4/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet4/chainstate" ] || [ -d "$DGB_DATA_LOCATION/testnet26/blocks" ] || [ -d "$DGB_DATA_LOCATION/testnet26/chainstate" ]; then
 
                 # Delete DigiByte blockchain TESTNET data
                 if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --title "DigiNode Uninstall: Delete DigiByte TESTNET blockchain" --yesno "\n\Z4Would you like to also delete the DigiByte TESTNET blockchain data?\Z0\n\nIt is currently taking up ${DGB_DATA_DISKUSED_TEST_HR}b of space on your drive. If you delete it, and later re-install DigiByte Core, it will need to re-download the entire blockchain which can take many hours.\n\nNote: Your testnet wallet will be kept." 14 "${c}"; then
 
                     # Delete testnet blockchain data
-                    if [ -d "$DGB_DATA_LOCATION/testnet4" ]; then
+                    if [ -d "$DGB_DATA_LOCATION/testnet4" ] || [ -d "$DGB_DATA_LOCATION/testnet26" ]; then
                         str="Deleting DigiByte Core TESTNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/testnet4/indexes
-                        rm -rf $DGB_DATA_LOCATION/testnet4/chainstate
-                        rm -rf $DGB_DATA_LOCATION/testnet4/blocks
-                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/banlist.json
-                        rm -f $DGB_DATA_LOCATION/testnet4/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/testnet4/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/.lock
-                        rm -f $DGB_DATA_LOCATION/testnet4/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/peers.dat
-                        rm -f $DGB_DATA_LOCATION/testnet4/settings.json
+                        # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
+                        for testnet_dir in $DGB_TESTNET_DIRS; do
+                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/indexes
+                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/chainstate
+                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/blocks
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.dat
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.json
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/digibyted.pid
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/fee_estimates.dat
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/.lock
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/mempool.dat
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
+                            rm -f $DGB_DATA_LOCATION/$testnet_dir/settings.json
+                        done
                         DGB_DATA_DISKUSED_TEST_HR=""
                         DGB_DATA_DISKUSED_TEST_KB=""
                         DGB_DATA_DISKUSED_TEST_PERC=""
