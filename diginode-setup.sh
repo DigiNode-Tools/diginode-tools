@@ -1253,7 +1253,12 @@ menu_delete_blockchain() {
         fi
     done
 
-    if ! dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\n\Z1Are you sure you want to delete this blockchain data?\Z0\n\n$(for chain in $chosen; do printf '  - %s\\n' "$(dgb_chain_label $chain)"; done)\nAny node using it will be stopped while it is deleted, and will then resync the blockchain from scratch.$wallet_msg" 17 ${c}; then
+    # Size the box to fit: one line per chain, plus the wallet note if there is one
+    local confirm_height=$((11 + $(echo $chosen | wc -w)))
+    if [ "$wallet_msg" != "" ]; then
+        confirm_height=$((confirm_height + 4))
+    fi
+    if ! dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\n\Z1Are you sure you want to delete this blockchain data?\Z0\n\n$(for chain in $chosen; do printf '  - %s\\n' "$(dgb_chain_label $chain)"; done)\nAny node using it will be stopped while it is deleted, and will then resync the blockchain from scratch.$wallet_msg" "$confirm_height" ${c}; then
         printf "%b You chose not to delete the blockchain data. Returning to main menu.\\n\\n" "${INFO}"
         menu_existing_install
         return
