@@ -1,5 +1,7 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools - Unreleased
+
 DigiNode Tools v26.10.01 - 2026-10-10
 - New: You can now install any version of DigiByte Core that has been verified for your DigiNode, going back to v7.17.2. Choose Version from the DigiNode Setup main menu to upgrade or downgrade. During a new install, you can choose to install the latest version (recommended) or an earlier one. Older pre-releases are always listed; a pre-release that is newer than the latest release is only listed if you use the --dgbpre flag. You are warned before installing an older version, and before downgrading to an older major version, which may require the blockchain to be resynced. You then confirm the version you chose, or go back and choose a different one.
 - New: Install a specific version of DigiByte Core from the command line with the --dgbver flag (e.g. --dgbver=8.26.2). For an unattended install, set UI_DGB_VERSION in diginode.settings.
