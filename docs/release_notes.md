@@ -12,7 +12,7 @@ DigiNode Tools v0.12.0 - 2026-10-x
 - Fix: Deleting the blockchain (e.g. when uninstalling) no longer deletes settings.json, which DigiByte Core uses to remember which wallets to load at startup.
 - Fix: 'diginode --dgbrestart' and 'diginode --dgb2restart' now work for a node that crashed several times in a row. Previously they appeared to work, but the node was not started.
 - Change: DigiNode Setup no longer installs software it doesn't use: gcc, make, gnupg, tmux, iputils-ping, cron and apt-transport-https. (Already installed packages are not removed.)
-- Change: The donation message now includes a link to sponsor DigiNode Tools on GitHub: https://github.com/sponsors/DigiNode-Tools
+- Change: The donation message now includes a link to sponsor DigiNode Tools on GitHub: https://github.com/sponsors/DigiNode-Tools - and thanks the Featured Sponsors of DigiNode Tools.
 - Fix: Broken links to the static IP and port forwarding guide, and to the Argon One fan software.
 - Fix: Security: Your digibyte.conf file, which contains your RPC password, can now only be read by your DigiNode user account. Previously, DigiNode Setup could leave it readable by every user on the system. This is fixed automatically the next time you run DigiNode Setup.
 - Fix: DigiNode Dashboard no longer shows an out of date sync percentage when a node has only just started syncing.

@@ -132,6 +132,9 @@ DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 # Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
 
+# Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
+DGNT_SPONSORS_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
+
 # DigiNode Tools Website URL
 DGNT_WEBSITE_URL=https://diginode.tools
 
@@ -9738,6 +9741,28 @@ closing_banner_message() {
 }
 
 
+# Thank the Featured Sponsors of DigiNode Tools (the $300/month GitHub Sponsors tier, approved by Olly). The list is kept
+# up to date by https://github.com/DigiNode-Tools/diginode-sponsors. Nothing is shown if there are none, if the list
+# can't be fetched quickly, or if it hasn't been checked for 7 days (so nobody is shown after they stop sponsoring).
+display_featured_sponsors() {
+
+    local featured_json
+
+    featured_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_URL/featured.json" 2>/dev/null) || return
+    if ! echo "$featured_json" | jq -e '((.checked | fromdate) > (now - 7 * 86400)) and (.featured | length > 0)' > /dev/null 2>&1; then
+        return
+    fi
+
+    echo "   Thank you to the Featured Sponsors of DigiNode Tools:"
+    echo ""
+    # Strip any control characters, so nothing in the list can mess with the terminal
+    echo "$featured_json" | jq -r '.featured[] | [(.name | gsub("[[:cntrl:]]"; "")), (.url | gsub("[[:cntrl:]]"; ""))] | @tsv' 2>/dev/null | \
+    while IFS=$'\t' read -r sponsor_name sponsor_url; do
+        printf "      %s%s%s  \e]8;;%s\a%s\e]8;;\a\n" "${txtbld}" "${sponsor_name}" "${txtrst}" "${sponsor_url}" "${sponsor_url}"
+    done
+    echo ""
+}
+
 donation_qrcode() {  
 
     printf " ============== ${txtbylw}PLEASE DONATE TO SUPPORT DIGINODE TOOLS${txtrst} ================\\n\\n"
@@ -9752,6 +9777,7 @@ donation_qrcode() {
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;https://github.com/sponsors/DigiNode-Tools\ahttps://github.com/sponsors/DigiNode-Tools\e]8;;\a${txtrst} <<"
     echo ""
+    display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
