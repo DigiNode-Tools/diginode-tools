@@ -4560,11 +4560,11 @@ if is_command apt-get ; then
     update_package_cache || exit 1
  
     # Packages required to perfom the system check (stored as an array)
-    SYS_CHECK_DEPS=(grep dnsutils jq apt-transport-https)
+    SYS_CHECK_DEPS=(grep dnsutils jq)
     # Packages required to run this setup script (stored as an array)
-    SETUP_DEPS=(sudo git iproute2 dialog bc gcc make ca-certificates curl gnupg wget tor)
+    SETUP_DEPS=(sudo git iproute2 dialog bc ca-certificates curl wget tor)
     # Packages required to run DigiNode (stored as an array)
-    DIGINODE_DEPS=(cron curl iputils-ping psmisc tmux sysstat)
+    DIGINODE_DEPS=(curl psmisc sysstat)
 
  # bak - DIGINODE_DEPS=(cron curl iputils-ping lsof netcat psmisc sudo unzip idn2 sqlite3 libcap2-bin dns-root-data libcap2 "${avahi_package}")
 
@@ -4596,9 +4596,9 @@ elif is_command rpm ; then
     # These variable names match the ones in the Debian family. See above for an explanation of what they are for.
     PKG_INSTALL=("${PKG_MANAGER}" install -y)
     PKG_COUNT="${PKG_MANAGER} check-update | egrep '(.i686|.x86|.noarch|.arm|.src)' | wc -l"
-    SYS_CHECK_DEPS=(grep bind-utils jq apt-transport-https)
-    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig gcc make ca-certificates curl gnupg wget tor)
-    DIGINODE_DEPS=(cronie curl findutils sudo psmisc tmux sysstat)
+    SYS_CHECK_DEPS=(grep bind-utils jq)
+    SETUP_DEPS=(git dialog iproute procps-ng which chkconfig ca-certificates curl wget tor)
+    DIGINODE_DEPS=(curl findutils sudo psmisc sysstat)
 
 # If neither apt-get or yum/dnf package managers were found
 else
