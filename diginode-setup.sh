@@ -12474,7 +12474,7 @@ menu_choose_dgb_version() {
             warning_msg="$warning_msg\n\n\Z1You are downgrading from v$DGB_VER_LOCAL to v$DGB_VERSION_REQUESTED.\Z0 Older versions may not be able to read the blockchain data or wallet created by a newer version, so DigiByte Core may need to resync the blockchain before it will start. Back up your wallet first (Main Menu > Backup)."
         fi
 
-        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 27 ${c}; then
+        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 0 ${c}; then
             DGB_VERSION_REQUESTED=""
             return 1
         fi
