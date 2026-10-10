@@ -1228,7 +1228,7 @@ menu_delete_blockchain() {
         return
     fi
 
-    chosen=$(dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --cancel-label "Back" --checklist "\nChoose which DigiByte blockchain data to delete. Press Space to select.\n\nDeleting the blockchain data for a node in use makes it resync the blockchain from scratch. This can fix a node that has stopped syncing or has corrupted data, but it can take many hours (or days for mainnet). Your wallets will NOT be deleted.\n\n" 21 72 5 \
+    chosen=$(dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --cancel-label "Back" --no-tags --checklist "\nChoose which DigiByte blockchain data to delete. Press Space to select.\n\nDeleting the blockchain data for a node in use makes it resync the blockchain from scratch. This can fix a node that has stopped syncing or has corrupted data, but it can take many hours (or days for mainnet). Your wallets will NOT be deleted.\n\n" 21 72 5 \
         "${chain_items[@]}" 3>&2 2>&1 1>&3) || { printf "%b Back was selected. Returning to main menu.\\n\\n" "${INFO}"; menu_existing_install; return; }
 
     chosen=$(echo $chosen | tr -d '"')
