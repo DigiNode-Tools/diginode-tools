@@ -136,7 +136,7 @@ DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-ha
 DGNT_SPONSORS_URL="https://diginode.tools/sponsors/"
 DGNT_GITHUB_SPONSORS_URL="https://github.com/sponsors/DigiNode-Tools"
 
-# Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
+# Premium Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
 DGNT_SPONSORS_DATA_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
 
 # DigiNode Tools Website URL
@@ -9745,7 +9745,7 @@ closing_banner_message() {
 }
 
 
-# Thank the Featured Sponsors of DigiNode Tools (the $300/month GitHub Sponsors tier, approved by Olly). The list is kept
+# Thank the Premium Sponsors of DigiNode Tools (the $300/month GitHub Sponsors tier, approved by Olly). The list is kept
 # up to date by https://github.com/DigiNode-Tools/diginode-sponsors. Nothing is shown if there are none, if the list
 # can't be fetched quickly, or if it hasn't been checked for 7 days (so nobody is shown after they stop sponsoring).
 display_featured_sponsors() {
@@ -9757,7 +9757,7 @@ display_featured_sponsors() {
         return
     fi
 
-    echo "   Thank you to the Featured Sponsors of DigiNode Tools:"
+    echo "   Thank you to the Premium Sponsors of DigiNode Tools:"
     echo ""
     # Strip any control characters, so nothing in the list can mess with the terminal
     echo "$featured_json" | jq -r '.featured[] | [(.name | gsub("[[:cntrl:]]"; "")), (.url | gsub("[[:cntrl:]]"; ""))] | @tsv' 2>/dev/null | \
