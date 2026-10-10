@@ -5338,7 +5338,9 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
      printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
-     printf " ║                ║                ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "Sponsor: $DGNT_SPONSORS_URL" " ║ "
+     # Clickable link. The link codes take up no space on screen, so widen the column by their length to keep the border aligned.
+     dga_sponsor_link=$(printf '\e]8;;%s\a%s\e]8;;\a' "$DGNT_SPONSORS_URL" "$DGNT_SPONSORS_URL")
+     printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
 fi
 
 echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
