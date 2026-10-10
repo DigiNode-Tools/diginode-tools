@@ -3351,9 +3351,8 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
-
-    # banana
+    # (printf turns very small values like 1.8e-07, seen at the start of a sync, into a plain decimal)
+    DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3496,7 +3495,7 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
+    DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3980,7 +3979,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress')
+            DGB_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4037,7 +4036,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo | jq '.verificationprogress')
+            DGB2_BLOCKSYNC_VALUE_QUERY=$($DGB_CLI -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'

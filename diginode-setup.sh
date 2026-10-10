@@ -188,6 +188,7 @@ for var in "$@"; do
         "--skipcustommsg" ) SKIP_CUSTOM_MSG=true;;
         "--dgbpre" ) REQUEST_DGB_RELEASE_TYPE="prerelease";;
         "--dgbnopre" ) REQUEST_DGB_RELEASE_TYPE="release";;
+        "--dgbver="* ) DGB_VERSION_REQUESTED="${var#--dgbver=}"; DGB_VERSION_REQUESTED="${DGB_VERSION_REQUESTED#v}";;
         "--updatetest" ) UPDATE_TEST=true;;
         "--skiphash" ) SKIP_HASH=true;;
         "--help" ) DISPLAY_HELP=true;;
@@ -311,6 +312,8 @@ display_help() {
         printf "%b %b--skiphash%b      - Skip SHA256 hash verification of install binaries. (Not recommended. Emergency use only.)\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbpre%b        - Install the pre-release version of DigiByte Core, if available.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgbver=x.x.x%b  - Install a specific version of DigiByte Core (e.g. --dgbver=8.26.2). Use to upgrade or downgrade.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b                   Only versions that have been verified for your DigiNode can be installed.\\n" "${INDENT}"
         printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
  #!!       printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
@@ -538,6 +541,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_IPFS_ENABLE_UPNP=NO
     UI_IPFS_SERVER_PROFILE=NO
     UI_DGB_CHAIN=MAINNET
+    UI_DGB_VERSION=
     UI_SETUP_DIGINODE_MOTD=YES
 
     # SYSTEM VARIABLES
@@ -790,6 +794,10 @@ UI_IPFS_SERVER_PROFILE=$UI_IPFS_SERVER_PROFILE
 # Choose which DigiByte Core chain to use. (Set to MAINNET or TESTNET. Default is MAINNET.)
 # Alternatively, set to DUALNODE to setup DigiByte Core to run on both mainnet and testnet.
 UI_DGB_CHAIN=$UI_DGB_CHAIN
+
+# Choose which version of DigiByte Core to install (e.g. 8.26.2). Leave blank to install the latest version. (Default is blank.)
+# This is only used for a new install. To change the version later, use the Version option in the DigiNode Setup main menu.
+UI_DGB_VERSION=$UI_DGB_VERSION
 
 # Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
 # If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
@@ -7787,6 +7795,9 @@ menu_existing_install() {
     opt1a="1 Update"
     opt1b="Check for updates to your DigiNode software."
 
+    optVa="V Version"
+    optVb="Install a different version of DigiByte Core."
+
     opt2a="2 Backup"
     opt2b="Backup your wallet & settings to a USB stick."
 
@@ -7817,8 +7828,9 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 20 73 10 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 21 73 11 \
     "${opt1a}"  "${opt1b}" \
+    "${optVa}"  "${optVb}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
@@ -7843,6 +7855,23 @@ menu_existing_install() {
                 DO_FULL_INSTALL=YES
             fi
             install_or_upgrade
+            ;;
+        # Change DigiByte Core version
+        ${optVa})
+            printf "%b You selected the VERSION option.\\n" "${INFO}"
+            printf "\\n"
+            if menu_choose_dgb_version; then
+                printf "%b You chose to install DigiByte Core v${DGB_VERSION_REQUESTED}.\\n" "${INFO}"
+                printf "\\n"
+
+                # If DigiAssets Node is installed, we already know this is a full install
+                if [ -f "$DGA_INSTALL_LOCATION/.officialdiginode" ]; then
+                    DO_FULL_INSTALL=YES
+                fi
+                install_or_upgrade
+            else
+                menu_existing_install
+            fi
             ;;
         # USB Stick Backup
         ${opt2a})
@@ -11862,6 +11891,156 @@ save_dgb_installable_version() {
     fi
 }
 
+# Let the user choose which version of DigiByte Core to install, from every version that has been verified for this
+# DigiNode (i.e. for its update group and CPU architecture), newest first. Pre-releases are only listed if the
+# --dgbpre flag was used, or a pre-release is currently installed. Warns before installing an older version.
+# Sets DGB_VERSION_REQUESTED. Returns 1 if the user goes back without choosing.
+
+menu_choose_dgb_version() {
+
+    local include_prereleases="false"
+    local menu_items=()
+    local ver
+    local desc
+    local newest_release
+    local warning_msg
+
+    DGB_VERSION_REQUESTED=""
+
+    get_dgb_releases_file
+    if ! echo "$DGB_RELEASES_JSON" | jq -e '.releases | type == "array"' > /dev/null 2>&1; then
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --msgbox "\n\Z1ERROR: Unable to get the list of DigiByte Core versions.\Z0\n\nPlease check your Internet connection and try again." 10 ${c}
+        return 1
+    fi
+
+    if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] || [ "$DGB_PRERELEASE" = "YES" ]; then
+        include_prereleases="true"
+    fi
+
+    # The newest full release that is available for this DigiNode
+    newest_release=$(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" 'first(.releases[] | select(.assets[$arch] != null and (.prerelease | not)) | .version) // ""')
+
+    # Build the menu: one row per version, newest first
+    while IFS='|' read -r ver desc; do
+        if [ "$ver" = "$DGB_VER_LOCAL" ] && [ "$DGB_STATUS" != "not_detected" ]; then
+            desc="$desc  << Installed"
+        fi
+        menu_items+=("$ver" "$desc")
+    done < <(echo "$DGB_RELEASES_JSON" | jq -r --arg arch "$ARCH" --arg pre "$include_prereleases" --arg newest "$newest_release" '
+        .releases[]
+        | select(.assets[$arch] != null and ($pre == "true" or (.prerelease | not)))
+        | "\(.version)|Released \(.published_at[0:10])\(if .prerelease then "  (pre-release)" elif .version == $newest then "  (latest)" else "" end)"')
+
+    if [ ${#menu_items[@]} -eq 0 ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --msgbox "\n\Z1No versions of DigiByte Core are available for your DigiNode.\Z0" 8 ${c}
+        return 1
+    fi
+
+    DGB_VERSION_REQUESTED=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --cancel-label "Back" --menu "\nChoose which version of DigiByte Core to install.\n\nOnly versions that have been verified for your DigiNode are listed, newest first.\n\n" 23 70 12 \
+        "${menu_items[@]}" 3>&2 2>&1 1>&3) || { DGB_VERSION_REQUESTED=""; return 1; }
+
+    # Warn before installing a version older than the latest release
+    if [ "$newest_release" != "" ] && [ "$(is_dgb_newer_version "$DGB_VERSION_REQUESTED" "$newest_release")" = "update_available" ]; then
+
+        warning_msg="\n\Z1WARNING: DigiByte Core v$DGB_VERSION_REQUESTED is not the latest version.\Z0\n\nOlder versions of DigiByte Core may not follow the current rules of the DigiByte network (for example, after a network upgrade) and are no longer supported. Only install an older version if you know you need it, such as for testing."
+
+        # Going back a major version can break the blockchain data and wallet
+        if [ "$DGB_VER_LOCAL" != "" ] && [ "$DGB_STATUS" != "not_detected" ] && [ "${DGB_VERSION_REQUESTED%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
+            warning_msg="$warning_msg\n\n\Z1You are downgrading from v$DGB_VER_LOCAL to v$DGB_VERSION_REQUESTED.\Z0 Older versions may not be able to read the blockchain data or wallet created by a newer version, so DigiByte Core may need to resync the blockchain before it will start. Back up your wallet first (Main Menu > Backup)."
+        fi
+
+        if ! dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --yes-label "Continue" --no-label "Back" --yesno "$warning_msg\n\nDo you want to continue?" 21 ${c}; then
+            DGB_VERSION_REQUESTED=""
+            return 1
+        fi
+    fi
+}
+
+# During a new install, ask whether to install the latest version of DigiByte Core or choose an earlier one.
+# Sets DGB_VERSION_REQUESTED if the user chooses an earlier version.
+
+menu_ask_dgb_version_new_install() {
+
+    local opt1a="1 Latest"
+    local opt1b="Install DigiByte Core v$DGB_VER_GITHUB. (Recommended)"
+    local opt2a="2 Earlier"
+    local opt2b="Choose an earlier version of DigiByte Core."
+    local choice
+
+    while true; do
+
+        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Core Version" --title "DigiByte Core Version" --no-cancel --menu "\nWhich version of DigiByte Core would you like to install?\n\nThe latest version is recommended.\n\n" 14 70 2 \
+            "${opt1a}" "${opt1b}" \
+            "${opt2a}" "${opt2b}" 3>&2 2>&1 1>&3)
+
+        if [ "$choice" = "$opt2a" ]; then
+            # If the user goes back from the list of versions, ask again
+            if menu_choose_dgb_version; then
+                return
+            fi
+        else
+            printf "%b You chose to install the latest version of DigiByte Core.\\n" "${INFO}"
+            return
+        fi
+
+    done
+}
+
+# Install the version of DigiByte Core in DGB_VERSION_REQUESTED, instead of the latest one. It comes from the --dgbver
+# flag, the Version option in the main menu, the UI_DGB_VERSION setting or the new install menu.
+# Returns 1 if that version can't be installed on this DigiNode.
+
+use_requested_dgb_version() {
+
+    str="Checking DigiByte Core v${DGB_VERSION_REQUESTED} is available for your DigiNode..."
+    printf "%b %s" "${INFO}" "${str}"
+
+    # Only verified versions can be chosen, so this needs the releases file
+    if [ "$SKIP_HASH" = true ]; then
+        printf "%b%b %s ${txtred}ERROR${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b A specific version of DigiByte Core can't be installed with the --skiphash flag.\\n" "${INFO}"
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return 1
+    fi
+
+    if ! get_dgb_release_details "$DGB_VERSION_REQUESTED"; then
+        printf "%b%b %s ${txtred}NOT AVAILABLE${txtrst}\\n" "${OVER}" "${CROSS}" "${str}"
+        printf "%b DigiByte Core v${DGB_VERSION_REQUESTED} has not been verified for your DigiNode, or there is no download for your device ($ARCH).\\n" "${INFO}"
+        printf "%b To see which versions are available, run DigiNode Setup and choose Version from the main menu.\\n" "${INDENT}"
+        printf "\\n"
+        if [ "$DGB_STATUS" = "not_detected" ]; then
+            printf "%b DigiByte Core cannot be installed. Skipping...\\n" "${INFO}"
+        else
+            printf "%b DigiByte Core will not be changed. Skipping...\\n" "${INFO}"
+        fi
+        printf "\\n"
+        DGB_DO_INSTALL=NO
+        DGB_INSTALL_TYPE="none"
+        DGB_UPDATE_AVAILABLE=NO
+        return 1
+    fi
+
+    printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
+
+    DGB_VER_GITHUB=$DGB_VERSION_REQUESTED
+    if [ "$(echo "$DGB_RELEASES_JSON" | jq -r --arg v "$DGB_VER_GITHUB" 'first(.releases[] | select(.version == $v) | .prerelease)')" = "true" ]; then
+        INSTALL_DGB_RELEASE_TYPE="prerelease"
+    else
+        INSTALL_DGB_RELEASE_TYPE="release"
+    fi
+
+    # Is this a downgrade?
+    if [ "$DGB_VER_LOCAL" != "" ] && [ "$(is_dgb_newer_version "$DGB_VER_GITHUB" "$DGB_VER_LOCAL")" = "update_available" ]; then
+        dgb_downgrade_requested=true
+        if [ "${DGB_VER_GITHUB%%.*}" -lt "${DGB_VER_LOCAL%%.*}" ] 2>/dev/null; then
+            printf "%b %bWARNING: Downgrading from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}. DigiByte Core may need to resync the blockchain before it will start.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        fi
+    fi
+}
+
 
 # This function will check if DigiByte Node is installed, and if it is, check if there is an update available
 
@@ -12348,7 +12527,8 @@ check_digibyte_core() {
     save_dgb_installable_version
 
     # If a pre-release was wanted, but the newest verified version is a full release
-    if [ "$dgb_search_type" = "prerelease" ] && [ "$DGB_INSTALLABLE_IS_PRERELEASE" != "true" ]; then
+    # (unless a specific version has been chosen, which is used instead - see below)
+    if [ "$dgb_search_type" = "prerelease" ] && [ "$DGB_INSTALLABLE_IS_PRERELEASE" != "true" ] && [ "$DGB_VERSION_REQUESTED" = "" ]; then
         # Display dialog if DigiByte pre-release was requested but it is unavalable (and if we not running unattended)
         if [ "$REQUEST_DGB_RELEASE_TYPE" = "prerelease" ] && [ ! "$UNATTENDED_MODE" == true ]; then
             if [ "$DGB_STATUS" = "not_detected" ]; then
@@ -12374,6 +12554,22 @@ check_digibyte_core() {
         INSTALL_DGB_RELEASE_TYPE="release"
     fi
 
+    # For a new install, ask whether to install the latest version of DigiByte Core or choose an earlier one
+    if [ "$DGB_STATUS" = "not_detected" ] && [ "$DGB_VERSION_REQUESTED" = "" ]; then
+        if [ "$UNATTENDED_MODE" == true ]; then
+            DGB_VERSION_REQUESTED="${UI_DGB_VERSION#v}"
+        elif [ "$SKIP_HASH" != true ]; then
+            menu_ask_dgb_version_new_install
+        fi
+    fi
+
+    # Install a specific version of DigiByte Core, if one was chosen
+    if [ "$DGB_VERSION_REQUESTED" != "" ]; then
+        if ! use_requested_dgb_version; then
+            return
+        fi
+    fi
+
     # If a local version already exists.... (i.e. we have a local version number)
     if [ ! $DGB_VER_LOCAL = "" ]; then
 
@@ -12391,6 +12587,7 @@ check_digibyte_core() {
 
         if [ "$dgb_update_status" = "update_available" ]; then
             printf "%b %bDigiByte Core can be upgraded from v${DGB_VER_LOCAL} to v${DGB_VER_GITHUB}.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            dgb_downgrade_requested=false
             DGB_INSTALL_TYPE="upgrade"
             DGB_ASK_UPGRADE=YES
         elif [ "$dgb_downgrade_requested" = true ] && [ "$DGB_VER_LOCAL" != "$DGB_VER_GITHUB" ]; then # --dgbnopre
@@ -12788,10 +12985,9 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
         sudo -u $USER_ACCOUNT touch $DGB_INSTALL_LOCATION/.prerelease
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-       # Create a new digibyte.conf file
+        # Log the pre-release version number in the .prerelease file
         str="Logging pre-release version number in .prerelease file..."
         printf "%b %s" "${INFO}" "${str}"
-        sudo -u $USER_ACCOUNT touch $DGB_CONF_FILE
         cat <<EOF > $DGB_INSTALL_LOCATION/.prerelease
 # This file is used to store the local version number of a pre-release version of DigiByte Core.
 # Given that DigiByte Core pre-releases typically do not know their precise version number,
