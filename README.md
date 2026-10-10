@@ -18,17 +18,17 @@ Learn more: [https://diginode.tools](https://diginode.tools)
 - DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [System Requirements](https://diginode.tools/system-requirements/) on the official website.
 - DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer. (Note: These may be needed during setup on some Linux systems, but are not needed at all for the Raspberry Pi 4.)
 
-<!-- sponsors:premium -->
-## Premium Sponsors
+<!-- sponsors:featured -->
+## Featured Sponsors
 
 <p align="center">
-<a href="https://diginode.tools/premium-sponsor/1"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/premium-1.png" alt="Premium Sponsor" width="250"></a>
-<a href="https://diginode.tools/premium-sponsor/2"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/premium-2.png" alt="Premium Sponsor" width="250"></a>
-<a href="https://diginode.tools/premium-sponsor/3"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/premium-3.png" alt="Premium Sponsor" width="250"></a>
+<a href="https://diginode.tools/featured-sponsor/1"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/featured-1.png" alt="Featured Sponsor" width="250"></a>
+<a href="https://diginode.tools/featured-sponsor/2"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/featured-2.png" alt="Featured Sponsor" width="250"></a>
+<a href="https://diginode.tools/featured-sponsor/3"><img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/slots/featured-3.png" alt="Featured Sponsor" width="250"></a>
 </p>
 
 <p align="center"><a href="https://github.com/sponsors/DigiNode-Tools"><img src="https://img.shields.io/badge/Sponsor%20DigiNode%20Tools-Click%20to%20support%20me-0066CC?style=for-the-badge&labelColor=002352&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI0ZGNEZBMyIgZD0iTTEyIDIxLjM1bC0xLjQ1LTEuMzJDNS40IDE1LjM2IDIgMTIuMjggMiA4LjUgMiA1LjQyIDQuNDIgMyA3LjUgM2MxLjc0IDAgMy40MS44MSA0LjUgMi4wOUMxMy4wOSAzLjgxIDE0Ljc2IDMgMTYuNSAzIDE5LjU4IDMgMjIgNS40MiAyMiA4LjVjMCAzLjc4LTMuNCA2Ljg2LTguNTUgMTEuNTRMMTIgMjEuMzV6Ii8%2BPC9zdmc%2B" alt="Sponsor DigiNode Tools - click to support me"></a></p>
-<!-- /sponsors:premium -->
+<!-- /sponsors:featured -->
 
 ## About DigiNode Tools
 
@@ -69,7 +69,7 @@ I created DigiNode Tools to make it easy for everybody to run their own DigiByte
 **[Sponsor DigiNode Tools on GitHub](https://github.com/sponsors/DigiNode-Tools)**. You can sponsor monthly or make a one-time donation, from as little as you like.
 
 - **Patron** ($100 a month): your name on the [sponsors page](https://diginode.tools/sponsors/), linked to your GitHub profile if you like.
-- **Premium Sponsor** ($300 a month, only 3 places): for businesses and projects. Your logo and link on the [diginode.tools](https://diginode.tools) home page and sponsors page, and on the [DigiNode Tools GitHub page](https://github.com/DigiNode-Tools/diginode-tools), plus your name and link shown to everyone using DigiNode Setup and DigiNode Dashboard. Premium Sponsors are approved by me. After sponsoring, [add your logo using this form](https://github.com/DigiNode-Tools/diginode-sponsors/issues/new?template=featured-sponsor.yml).
+- **Featured Sponsor** ($300 a month, only 3 places): for businesses and projects. Your logo and link on the [diginode.tools](https://diginode.tools) home page and sponsors page, and on the [DigiNode Tools GitHub page](https://github.com/DigiNode-Tools/diginode-tools), plus your name and link shown to everyone using DigiNode Setup and DigiNode Dashboard. Featured Sponsors are approved by me. After sponsoring, [add your logo using this form](https://github.com/DigiNode-Tools/diginode-sponsors/issues/new?template=featured-sponsor.yml).
 
 To see what your support helps with, and what I hope to work on next, visit [diginode.tools/sponsors](https://diginode.tools/sponsors/).
 
