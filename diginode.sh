@@ -4942,18 +4942,52 @@ display_dgb2_lowcon_msg() {
 # Function to center quit message
 center_quit_message() {
     local quit_msg_text="$1"
+    local sentences=()
+    local sentence
+    local line=""
+    local line_len=0
+    local sentence_len
+    local stripped
+    local output=""
 
-    # Strip ANSI color codes for calculation purposes
-    local stripped_quit_msg=$(echo -e "$quit_msg_text" | sed 's/\x1b\[[0-9;]*m//g')
-    local quit_msg_length=${#stripped_quit_msg}
+    # Split the message into its separate instructions (each ends with ". "), so on a narrow terminal it wraps between
+    # them rather than being cut off. As many instructions as will fit go on each line, and each line is centred.
+    while [[ "$quit_msg_text" =~ ^(.*\.)\ (.+)$ ]]; do
+        sentences=("${BASH_REMATCH[2]}" "${sentences[@]}")
+        quit_msg_text="${BASH_REMATCH[1]}"
+    done
+    sentences=("$quit_msg_text" "${sentences[@]}")
 
-    # Calculate padding required to center text
-    local left_padding=$(( (term_width - quit_msg_length) / 2 ))
-    local right_padding=$(( term_width - left_padding - quit_msg_length ))
+    for sentence in "${sentences[@]}"; do
+        # Strip ANSI color codes for calculation purposes
+        stripped=$(echo -e "$sentence" | sed 's/\x1b\[[0-9;]*m//g')
+        sentence_len=${#stripped}
+        if [ -n "$line" ] && [ $((line_len + 1 + sentence_len)) -gt "$term_width" ]; then
+            output+="$(center_quit_line "$line" "$line_len")"$'\n'
+            line=""
+            line_len=0
+        fi
+        if [ -n "$line" ]; then
+            line+=" $sentence"
+            line_len=$((line_len + 1 + sentence_len))
+        else
+            line="$sentence"
+            line_len=$sentence_len
+        fi
+    done
+    output+="$(center_quit_line "$line" "$line_len")"
 
-    # Construct the padded title string using # as the spacer and return it
+    printf "%s" "$output"
+}
+
+# Centre one line of the quit message. Usage: center_quit_line <text> <visible length>
+center_quit_line() {
+    local left_padding=$(( ($term_width - $2) / 2 ))
+    local right_padding=$(( term_width - left_padding - $2 ))
+    if [ $left_padding -lt 0 ]; then left_padding=0; fi
+    if [ $right_padding -lt 0 ]; then right_padding=0; fi
     printf "%${left_padding}s"
-    printf "%b" "$quit_msg_text"
+    printf "%b" "$1"
     printf "%${right_padding}s"
 }
 
@@ -4961,14 +4995,14 @@ center_quit_message() {
 
 # generate quit message
 if [ "$generate_quit_message" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
+    quit_message_text="${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to quit. ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_message=$(center_quit_message "$quit_message_text")
     generate_quit_message="no"
 fi
 
 # generate quit message with port test
 if [ "$generate_quit_message_with_porttest" = "yes" ]; then
-    quit_message_text="Press ${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to Quit. Press ${dbcol_bld}P${dbcol_rst} to test open ports. Press ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
+    quit_message_text="${dbcol_bld}Ctrl-C${dbcol_rst} or ${dbcol_bld}Q${dbcol_rst} to quit. ${dbcol_bld}P${dbcol_rst} to test open ports. ${dbcol_bld}N${dbcol_rst} to $( [ "$SM_HIDE_NETWORK" = "YES" ] && echo "show" || echo "hide" ) IPs."
     quit_messsage_with_port_test=$(center_quit_message "$quit_message_text")
     generate_quit_message_with_porttest="no"
 fi
