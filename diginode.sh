@@ -756,11 +756,16 @@ if [ $UNKNOWN_FLAG = true ] || \
         printf "%b %s..." "${INFO}" "${str}"
         # If systemctl exists,
         if $(command -v systemctl >/dev/null 2>&1); then
+            # Clear any failed state first, or systemd refuses to start a node that crashed several times in a row
+            sudo systemctl reset-failed digibyted &> /dev/null
             sudo systemctl restart digibyted &> /dev/null
         else
             # Otherwise, fall back to the service command
             sudo service digibyted restart &> /dev/null
         fi
+        # DigiNode Setup will start this node again if it isn't running (see ensure_dgb_nodes_running)
+        diginode_tools_import_settings silent
+        rm -f $DGB_SETTINGS_LOCATION/.digibyted-stopped-by-user
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
      elif [ $DGBCORE_STOP = true ]; then # --stopdgb
@@ -773,6 +778,9 @@ if [ $UNKNOWN_FLAG = true ] || \
             # Otherwise, fall back to the service command
             sudo service digibyted stop &> /dev/null
         fi
+        # Remember the user stopped it, so DigiNode Setup doesn't start it again (see ensure_dgb_nodes_running)
+        diginode_tools_import_settings silent
+        touch $DGB_SETTINGS_LOCATION/.digibyted-stopped-by-user
         printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         exit
     elif [ $DGB2CORE_RESTART = true ]; then # --dgbrestart
@@ -782,11 +790,14 @@ if [ $UNKNOWN_FLAG = true ] || \
             printf "%b %s..." "${INFO}" "${str}"
             # If systemctl exists,
             if $(command -v systemctl >/dev/null 2>&1); then
+                # Clear any failed state first, or systemd refuses to start a node that crashed several times in a row
+                sudo systemctl reset-failed digibyted-testnet &> /dev/null
                 sudo systemctl restart digibyted-testnet &> /dev/null
             else
                 # Otherwise, fall back to the service command
                 sudo service digibyted-testnet restart &> /dev/null
             fi
+            rm -f $DGB_SETTINGS_LOCATION/.digibyted-testnet-stopped-by-user
             printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%bError: DigiByte Dual Node not installed.\\n\\n" "${INDENT}"
@@ -804,6 +815,7 @@ if [ $UNKNOWN_FLAG = true ] || \
                 # Otherwise, fall back to the service command
                 sudo service digibyted-testnet stop &> /dev/null
             fi
+            touch $DGB_SETTINGS_LOCATION/.digibyted-testnet-stopped-by-user
             printf "%b%b %s...\\n\\n" "${OVER}" "${TICK}" "${str}"
         else
             printf "%bError: DigiByte Dual Node not installed.\\n\\n" "${INDENT}"

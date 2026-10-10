@@ -141,8 +141,8 @@ DGBH_URL_CUSTOM=https://diginode.tools/faq                                      
 DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  # Advice on what hardware to get
 DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
-DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup-guide-step-7/       # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup-guide-step-7/        # Advice on how to forward ports with your router
+DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/       # Advice on how to set a static IP
+DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/        # Advice on how to forward ports with your router
 DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
 
 
@@ -1133,6 +1133,313 @@ set_dgb_testnet_params() {
     DGB_TESTNET_DIRS="testnet4 testnet26"
 }
 
+# Delete the blockchain data for one DigiByte chain, so it can be resynced or to free up space. Everything else is kept:
+# wallets, settings.json (which lists the wallets to load at startup), digibyte.conf and the Tor onion key.
+# The node using this data must be stopped first.
+#
+# Usage: delete_dgb_chain_data <main|testnet4|testnet26|regtest|signet>
+
+delete_dgb_chain_data() {
+
+    local chain_path="$DGB_DATA_LOCATION"
+    if [ "$1" != "main" ]; then
+        chain_path="$DGB_DATA_LOCATION/$1"
+    fi
+
+    if [ ! -d "$chain_path" ]; then
+        return
+    fi
+
+    rm -rf "$chain_path/blocks" "$chain_path/chainstate" "$chain_path/indexes"
+    rm -f "$chain_path/banlist.dat" "$chain_path/banlist.json" "$chain_path/fee_estimates.dat" "$chain_path/mempool.dat"
+    rm -f "$chain_path/peers.dat" "$chain_path/anchors.dat" "$chain_path/digibyted.pid" "$chain_path/.lock"
+}
+
+# Main Menu > Blockchain: delete the blockchain data for one or more chains, so that DigiByte Core resyncs it from scratch
+# (e.g. if it has become corrupted) or to free up disk space. Wallets are never deleted. Any node using the data is
+# stopped first, and restarted afterwards if it was running. If it wasn't running, the user is asked whether to start it.
+
+menu_delete_blockchain() {
+
+    local chain
+    local chain_path
+    local chain_name
+    local chain_desc
+    local chain_size
+    local chain_service
+    local chain_items=()
+    local chosen
+    local services=""
+    local service
+    local running_services=""
+    local wallet_msg=""
+
+    printf " =============== Delete Blockchain Data ================================\\n\\n"
+    # ==============================================================================
+
+    # Which chain is the primary node running, and which testnet folder does this version of DigiByte Core use?
+    query_digibyte_chain
+    set_dgb_testnet_params
+
+    # List every chain that has blockchain data on disk, with its size and which node uses it
+    for chain in main testnet26 testnet4 regtest signet; do
+
+        if [ "$chain" = "main" ]; then
+            chain_path="$DGB_DATA_LOCATION"
+        else
+            chain_path="$DGB_DATA_LOCATION/$chain"
+        fi
+
+        if [ ! -d "$chain_path/blocks" ] && [ ! -d "$chain_path/chainstate" ]; then
+            continue
+        fi
+
+        case "$chain" in
+            main      ) chain_name="Mainnet";;
+            testnet26 ) chain_name="Testnet (v9)";;
+            testnet4  ) chain_name="Testnet (v8 and older)";;
+            regtest   ) chain_name="Regtest";;
+            signet    ) chain_name="Signet";;
+        esac
+
+        if [ "$chain" = "main" ]; then
+            chain_size=$(du -sh --exclude=wallets --exclude=testnet4 --exclude=testnet26 --exclude=regtest --exclude=signet $chain_path 2>/dev/null | awk '{print $1}')
+        else
+            chain_size=$(du -sh --exclude=wallets $chain_path 2>/dev/null | awk '{print $1}')
+        fi
+
+        chain_service=$(dgb_chain_service "$chain")
+        if [ "$chain_service" != "" ]; then
+            chain_desc="$(printf '%-24s %6s  (in use)' "$chain_name" "$chain_size")"
+        else
+            chain_desc="$(printf '%-24s %6s  (not in use)' "$chain_name" "$chain_size")"
+        fi
+
+        chain_items+=("$chain" "$chain_desc" "off")
+    done
+
+    if [ ${#chain_items[@]} -eq 0 ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --msgbox "\nThere is no DigiByte blockchain data to delete." 7 ${c}
+        printf "%b There is no DigiByte blockchain data to delete.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    chosen=$(dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --cancel-label "Back" --checklist "\nChoose which DigiByte blockchain data to delete. Press Space to select.\n\nDeleting the blockchain data for a node in use makes it resync the blockchain from scratch. This can fix a node that has stopped syncing or has corrupted data, but it can take many hours (or days for mainnet). Your wallets will NOT be deleted.\n\n" 21 72 5 \
+        "${chain_items[@]}" 3>&2 2>&1 1>&3) || { printf "%b Back was selected. Returning to main menu.\\n\\n" "${INFO}"; menu_existing_install; return; }
+
+    chosen=$(echo $chosen | tr -d '"')
+    if [ "$chosen" = "" ]; then
+        printf "%b Nothing was selected. Returning to main menu.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    # Work out which nodes need stopping
+    for chain in $chosen; do
+        chain_service=$(dgb_chain_service "$chain")
+        if [ "$chain_service" != "" ] && [[ " $services " != *" $chain_service "* ]]; then
+            services="$services $chain_service"
+        fi
+        if [ -n "$(ls -A $DGB_DATA_LOCATION/$( [ "$chain" = "main" ] || echo "$chain/" )wallets 2>/dev/null)" ]; then
+            wallet_msg="\n\nYou have a wallet for this chain. It will not be deleted, but it is always a good idea to have a backup (Main Menu > Backup)."
+        fi
+    done
+
+    if ! dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\n\Z1Are you sure you want to delete this blockchain data?\Z0\n\n$(for chain in $chosen; do printf '  - %s\\n' "$(dgb_chain_label $chain)"; done)\nAny node using it will be stopped while it is deleted, and will then resync the blockchain from scratch.$wallet_msg" 17 ${c}; then
+        printf "%b You chose not to delete the blockchain data. Returning to main menu.\\n\\n" "${INFO}"
+        menu_existing_install
+        return
+    fi
+
+    # Stop the nodes using this data, remembering which were running
+    for service in $services; do
+        if check_service_active "$service"; then
+            running_services="$running_services $service"
+            stop_service "$service"
+        fi
+    done
+
+    # Delete the data
+    for chain in $chosen; do
+        str="Deleting DigiByte $(dgb_chain_label $chain) blockchain data..."
+        printf "%b %s" "${INFO}" "${str}"
+        delete_dgb_chain_data "$chain"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        if [ "$chain" = "main" ]; then
+            DGB_BLOCKSYNC_VALUE=""
+            sed -i -e "/^DGB_BLOCKSYNC_VALUE=/s|.*|DGB_BLOCKSYNC_VALUE=\"$DGB_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+        elif [ "$chain" = "$DGB_TESTNET_DIR" ]; then
+            DGB2_BLOCKSYNC_VALUE=""
+            sed -i -e "/^DGB2_BLOCKSYNC_VALUE=/s|.*|DGB2_BLOCKSYNC_VALUE=\"$DGB2_BLOCKSYNC_VALUE\"|" $DGNT_SETTINGS_FILE
+        fi
+    done
+
+    # Restart the nodes that were running, and ask about any that weren't
+    for service in $services; do
+        if [[ " $running_services " == *" $service "* ]]; then
+            restart_service "$service"
+        elif dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --yesno "\nThe $(dgb_service_label $service) was not running.\n\nWould you like to start it now? It will begin resyncing the blockchain." 10 ${c}; then
+            restart_service "$service"
+        else
+            printf "%b The $(dgb_service_label $service) was not started.\\n" "${INFO}"
+            # Remember this, so DigiNode Setup doesn't start it automatically (see ensure_dgb_nodes_running)
+            sudo -u $USER_ACCOUNT touch $DGB_SETTINGS_LOCATION/.$service-stopped-by-user
+        fi
+    done
+
+    printf "\\n"
+    dialog --no-shadow --keep-tite --colors --backtitle "Delete Blockchain Data" --title "Delete Blockchain Data" --msgbox "\nThe blockchain data has been deleted.\n\nAny node that is running will now resync the blockchain from scratch. You can follow its progress in DigiNode Dashboard." 10 ${c}
+    menu_existing_install
+}
+
+# Which DigiByte node service uses the data for a chain (empty if none)
+dgb_chain_service() {
+    case "$1" in
+        main )
+            if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]; then echo "digibyted"; fi;;
+        testnet4|testnet26 )
+            if [ "$1" = "$DGB_TESTNET_DIR" ]; then
+                if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+                    echo "digibyted"
+                elif [ "$DGB_DUAL_NODE" = "YES" ]; then
+                    echo "digibyted-testnet"
+                fi
+            fi;;
+        regtest )
+            if [ "$DGB_NETWORK_CURRENT" = "REGTEST" ]; then echo "digibyted"; fi;;
+        signet )
+            if [ "$DGB_NETWORK_CURRENT" = "SIGNET" ]; then echo "digibyted"; fi;;
+    esac
+}
+
+dgb_chain_label() {
+    case "$1" in
+        main      ) echo "MAINNET";;
+        testnet26 ) echo "TESTNET (v9)";;
+        testnet4  ) echo "TESTNET (v8 and older)";;
+        regtest   ) echo "REGTEST";;
+        signet    ) echo "SIGNET";;
+    esac
+}
+
+dgb_service_label() {
+    if [ "$1" = "digibyted-testnet" ]; then
+        echo "DigiByte testnet node"
+    else
+        echo "DigiByte $DGB_NETWORK_CURRENT node"
+    fi
+}
+
+# A DigiByte node should be running, unless the user stopped it themselves with 'diginode --dgbstop' or 'diginode --dgb2stop'
+# (which leave a marker file in ~/.digibyte). At the end of DigiNode Setup, start any node that should be running but isn't,
+# then check it is still running a few seconds later. If it isn't, show why from its debug.log.
+
+ensure_dgb_nodes_running() {
+
+    local service
+    local marker
+    local restart_cmd
+    local log_file
+    local started=""
+    local restarts_before
+    local restarts_now
+
+    # Only if DigiByte Core is installed and we are using systemd
+    if [ ! -f "$DGB_INSTALL_LOCATION/.officialdiginode" ] || ! is_command systemctl; then
+        return
+    fi
+
+    printf " =============== Checking: DigiByte nodes are running ==================\\n\\n"
+    # ==============================================================================
+
+    query_digibyte_chain
+    set_dgb_testnet_params
+
+    for service in digibyted digibyted-testnet; do
+
+        if [ ! -f "/etc/systemd/system/$service.service" ]; then
+            continue
+        fi
+
+        marker="$DGB_SETTINGS_LOCATION/.$service-stopped-by-user"
+        if [ "$service" = "digibyted" ]; then
+            restart_cmd="diginode --dgbrestart"
+        else
+            restart_cmd="diginode --dgb2restart"
+        fi
+
+        # A new install always starts the nodes
+        if [ "$NewInstall" = true ]; then
+            rm -f "$marker"
+        fi
+
+        if check_service_active "$service" && readlink /proc/$(systemctl show -p MainPID --value $service)/exe 2>/dev/null | grep -q "(deleted)"; then
+            # It is still running a version of DigiByte Core that has since been replaced, so restart it
+            rm -f "$marker"
+            printf "%b %s is still running the previous version of DigiByte Core. Restarting it...\\n" "${INFO}" "$(dgb_service_label $service)"
+            restart_service "$service"
+            started="$started $service"
+        elif check_service_active "$service"; then
+            # It may have been started again since the user stopped it (e.g. by a reboot)
+            rm -f "$marker"
+            printf "%b %s is running.\\n" "${TICK}" "$(dgb_service_label $service)"
+        elif [ -f "$marker" ]; then
+            printf "%b %s is not running, because you stopped it. To start it, enter: %s\\n" "${INFO}" "$(dgb_service_label $service)" "$restart_cmd"
+        else
+            printf "%b %s is not running. Starting it...\\n" "${INFO}" "$(dgb_service_label $service)"
+            systemctl reset-failed "$service" &> /dev/null
+            restart_service "$service"
+            started="$started $service"
+        fi
+    done
+
+    # Check any node just started is still running. If it is crashing, systemd keeps restarting it, so check that too.
+    if [ "$started" != "" ]; then
+
+        for service in $started; do
+            eval "restarts_before_$(echo $service | tr '-' '_')=$(systemctl show -p NRestarts --value $service 2>/dev/null)"
+        done
+
+        str="Waiting to check the DigiByte node has started..."
+        printf "%b %s" "${INFO}" "${str}"
+        sleep 15
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+        for service in $started; do
+
+            eval "restarts_before=\$restarts_before_$(echo $service | tr '-' '_')"
+            restarts_now=$(systemctl show -p NRestarts --value $service 2>/dev/null)
+
+            if check_service_active "$service" && [ "${restarts_now:-0}" = "${restarts_before:-0}" ]; then
+                printf "%b %s has started.\\n" "${TICK}" "$(dgb_service_label $service)"
+            else
+                if [ "$service" = "digibyted-testnet" ]; then
+                    restart_cmd="diginode --dgb2restart"
+                    log_file="$DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log"
+                else
+                    restart_cmd="diginode --dgbrestart"
+                    case "$DGB_NETWORK_CURRENT" in
+                        TESTNET ) log_file="$DGB_SETTINGS_LOCATION/$DGB_TESTNET_DIR/debug.log";;
+                        REGTEST ) log_file="$DGB_SETTINGS_LOCATION/regtest/debug.log";;
+                        SIGNET  ) log_file="$DGB_SETTINGS_LOCATION/signet/debug.log";;
+                        *       ) log_file="$DGB_SETTINGS_LOCATION/debug.log";;
+                    esac
+                fi
+                printf "%b %b%s failed to start.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "$(dgb_service_label $service)" "${COL_NC}"
+                if [ -f "$log_file" ]; then
+                    printf "%b The last errors in its log file ($log_file) were:\\n" "${INDENT}"
+                    grep -iE "error|unable|failed|corrupt" "$log_file" | tail -n 5 | sed "s/^/$INDENT   /"
+                fi
+                printf "%b To try again, enter: %s   To see the full log, enter: %s\\n" "${INDENT}" "$restart_cmd" "$( [ "$service" = "digibyted-testnet" ] && echo "diginode --dgb2log" || echo "diginode --dgblog" )"
+                printf "%b For help, ask in the 'DigiNode Tools' Telegram group: $SOCIAL_TELEGRAM_URL\\n" "${INDENT}"
+            fi
+        done
+    fi
+    printf "\\n"
+}
+
 # DigiByte Core v9 has a brand new testnet, which is a separate blockchain from the old testnet used by v8 and earlier,
 # with its own data folder (testnet26 vs testnet4). After installing, upgrading or downgrading DigiByte Core across v9,
 # the blockchain data for the other testnet is no longer used. Offer to delete it to free up space. Testnet wallets are
@@ -1199,19 +1506,7 @@ check_unused_testnet_data() {
 
         str="Deleting unused testnet blockchain data in ~/.digibyte/$unused_dir..."
         printf "%b %s" "${INFO}" "${str}"
-        rm -rf $DGB_DATA_LOCATION/$unused_dir/indexes
-        rm -rf $DGB_DATA_LOCATION/$unused_dir/chainstate
-        rm -rf $DGB_DATA_LOCATION/$unused_dir/blocks
-        rm -f $DGB_DATA_LOCATION/$unused_dir/banlist.dat
-        rm -f $DGB_DATA_LOCATION/$unused_dir/banlist.json
-        rm -f $DGB_DATA_LOCATION/$unused_dir/digibyted.pid
-        rm -f $DGB_DATA_LOCATION/$unused_dir/fee_estimates.dat
-        rm -f $DGB_DATA_LOCATION/$unused_dir/.lock
-        rm -f $DGB_DATA_LOCATION/$unused_dir/mempool.dat
-        rm -f $DGB_DATA_LOCATION/$unused_dir/peers.dat
-        rm -f $DGB_DATA_LOCATION/$unused_dir/settings.json
-        rm -f $DGB_DATA_LOCATION/$unused_dir/anchors.dat
-        rm -f $DGB_DATA_LOCATION/$unused_dir/debug.log
+        delete_dgb_chain_data $unused_dir
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     else
         printf "%b You chose to keep the unused testnet blockchain data. You won't be asked again.\\n" "${INFO}"
@@ -7928,6 +8223,9 @@ menu_existing_install() {
     optVa="V Version"
     optVb="Install a different version of DigiByte Core."
 
+    optBa="B Blockchain"
+    optBb="Delete blockchain data to resync or free up space."
+
     opt2a="2 Backup"
     opt2b="Backup your wallet & settings to a USB stick."
 
@@ -7958,9 +8256,10 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 21 73 11 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 73 12 \
     "${opt1a}"  "${opt1b}" \
     "${optVa}"  "${optVb}" \
+    "${optBa}"  "${optBb}" \
     "${opt2a}"  "${opt2b}" \
     "${opt3a}"  "${opt3b}" \
     "${opt4a}"  "${opt4b}" \
@@ -8002,6 +8301,12 @@ menu_existing_install() {
             else
                 menu_existing_install
             fi
+            ;;
+        # Delete blockchain data (resync)
+        ${optBa})
+            printf "%b You selected the BLOCKCHAIN option.\\n" "${INFO}"
+            printf "\\n"
+            menu_delete_blockchain
             ;;
         # USB Stick Backup
         ${opt2a})
@@ -8674,17 +8979,7 @@ change_dgb_network() {
                 if [ -d "$DGB_DATA_LOCATION" ]; then
                     str="Deleting DigiByte Core MAINNET blockchain data..."
                     printf "%b %s" "${INFO}" "${str}"
-                    rm -rf $DGB_DATA_LOCATION/indexes
-                    rm -rf $DGB_DATA_LOCATION/chainstate
-                    rm -rf $DGB_DATA_LOCATION/blocks
-                    rm -f $DGB_DATA_LOCATION/banlist.dat
-                    rm -f $DGB_DATA_LOCATION/banlist.json
-                    rm -f $DGB_DATA_LOCATION/digibyted.pid
-                    rm -f $DGB_DATA_LOCATION/fee_estimates.dat
-                    rm -f $DGB_DATA_LOCATION/.lock
-                    rm -f $DGB_DATA_LOCATION/mempool.dat
-                    rm -f $DGB_DATA_LOCATION/peers.dat
-                    rm -f $DGB_DATA_LOCATION/settings.json
+                    delete_dgb_chain_data main
                     DGB_DATA_DISKUSED_MAIN_HR=""
                     DGB_DATA_DISKUSED_MAIN_KB=""
                     DGB_DATA_DISKUSED_MAIN_PERC=""
@@ -8717,17 +9012,7 @@ change_dgb_network() {
                     printf "%b %s" "${INFO}" "${str}"
                     # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
                     for testnet_dir in $DGB_TESTNET_DIRS; do
-                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/indexes
-                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/chainstate
-                        rm -rf $DGB_DATA_LOCATION/$testnet_dir/blocks
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.json
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/.lock
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
-                        rm -f $DGB_DATA_LOCATION/$testnet_dir/settings.json
+                        delete_dgb_chain_data $testnet_dir
                     done
                     DGB_DATA_DISKUSED_TEST_HR=""
                     DGB_DATA_DISKUSED_TEST_KB=""
@@ -8824,7 +9109,11 @@ welcomeDialogs() {
 donationDialog() {
 
 dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
-\Z4DigiNode Tools is DONATIONWARE.\Z0 Please donate to support future development:
+\Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please sponsor or donate to support future development:
+
+             \Z4https://github.com/sponsors/DigiNode-Tools\Z0
+
+Alternatively, donate DigiByte (DGB):
 
                   ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄  
                   █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █  
@@ -8842,7 +9131,7 @@ dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support Di
                   █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀  
                   █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀   
 
-           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 26 70
+           dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup" 30 70
 }
 
 # Request that users donate if they find DigiNode Setup useful
@@ -9457,11 +9746,13 @@ donation_qrcode() {
     echo "   I created DigiNode Tools to make it easy for everybody to run a"
     echo "   DigiByte Node and DigiAsset Node. I have devoted thousands of hours"
     echo "   working on this goal, all for the benefit of the DigiByte community."
-    echo "   This software is DONATIONWARE. If you find it useful, you are kindly"
-    echo "   requested to make a donation so that I can keep improving it."
+    echo "   This software is DONATIONWARE. If you find it useful, please sponsor"
+    echo "   or donate so that I can keep improving it."
     echo "   Thank you very much for your support, Olly"
     echo ""
-    echo -e "                    >> Find me on Bluesky \e]8;;http://bsky.app.com/profile/olly.st\a@olly.st\e]8;;\a. <<"
+    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;https://github.com/sponsors/DigiNode-Tools\ahttps://github.com/sponsors/DigiNode-Tools\e]8;;\a${txtrst} <<"
+    echo ""
+    echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
     echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
     echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
@@ -9480,6 +9771,8 @@ donation_qrcode() {
     echo "                      █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
     echo ""  
     echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    echo ""
+    echo -e "                    >> Find me on Bluesky \e]8;;https://bsky.app/profile/olly.st\a@olly.st\e]8;;\a <<"
     echo ""
 }
 
@@ -12832,7 +13125,13 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     fi
 
 
-    # Stop primary DigiByte Node if it is running, as we need to upgrade or reset it
+    # Stop primary DigiByte Node if it is running, as we need to upgrade or reset it. This includes a node that is
+    # still starting up - otherwise it would carry on running the old version, and not be restarted afterwards.
+    if [ "$DGB_INSTALL_TYPE" = "upgrade" ] || [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        if [ "$DGB_STATUS" = "startingup" ] || check_service_active "digibyted"; then
+            DGB_STATUS="running"
+        fi
+    fi
     if [ "$DGB_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted
        DGB_STATUS="stopped"
@@ -12841,7 +13140,12 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
        DGB_STATUS="stopped"
     fi
 
-    # Stop secondary DigiByte Node (Dual Node) if it is running, as we need to upgrade or reset it
+    # Stop secondary DigiByte Node (Dual Node) if it is running (or starting up), as we need to upgrade or reset it
+    if [ "$DGB_INSTALL_TYPE" = "upgrade" ] || [ "$DGB_INSTALL_TYPE" = "reset" ]; then
+        if [ "$DGB2_STATUS" = "startingup" ] || check_service_active "digibyted-testnet"; then
+            DGB2_STATUS="running"
+        fi
+    fi
     if [ "$DGB2_STATUS" = "running" ] && [ $DGB_INSTALL_TYPE = "upgrade" ]; then
        stop_service digibyted-testnet
        DGB2_STATUS="stopped"
@@ -15093,7 +15397,7 @@ ipfs_update_port() {
 ipfs_create_service() {
 
 # If you want to make changes to how IPFS services are created/managed for different systems, refer to this website:
-# https://github.com/ipfs/kobo/tree/master/misc 
+# https://github.com/ipfs/kubo/tree/master/misc 
 
 
 # If we are in reset mode, ask the user if they want to re-create the DigiNode Service...
@@ -17204,6 +17508,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 printf "%b You chose NOT to install the available updates:\\n$upgrade_msg_dgb$upgrade_msg_ipfs$upgrade_msg_nodejs$upgrade_msg_dga$upgrade_msg_dgnt" "${INFO}"
             fi
             printf "\\n"
+            ensure_dgb_nodes_running
             display_system_updates_reminder
             exit
         fi
@@ -17221,6 +17526,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
+          ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
         fi
@@ -18108,17 +18414,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION" ]; then
                         str="Deleting DigiByte Core MAINNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/indexes
-                        rm -rf $DGB_DATA_LOCATION/chainstate
-                        rm -rf $DGB_DATA_LOCATION/blocks
-                        rm -f $DGB_DATA_LOCATION/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/banlist.json
-                        rm -f $DGB_DATA_LOCATION/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/.lock
-                        rm -f $DGB_DATA_LOCATION/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/peers.dat
-                        rm -f $DGB_DATA_LOCATION/settings.json
+                        delete_dgb_chain_data main
                         DGB_DATA_DISKUSED_MAIN_HR=""
                         DGB_DATA_DISKUSED_MAIN_KB=""
                         DGB_DATA_DISKUSED_MAIN_PERC=""
@@ -18149,17 +18445,7 @@ uninstall_do_now() {
                         printf "%b %s" "${INFO}" "${str}"
                         # DigiByte v9 keeps testnet data in a different folder, so delete both (the wallets are kept)
                         for testnet_dir in $DGB_TESTNET_DIRS; do
-                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/indexes
-                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/chainstate
-                            rm -rf $DGB_DATA_LOCATION/$testnet_dir/blocks
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.dat
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/banlist.json
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/digibyted.pid
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/fee_estimates.dat
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/.lock
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/mempool.dat
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/peers.dat
-                            rm -f $DGB_DATA_LOCATION/$testnet_dir/settings.json
+                            delete_dgb_chain_data $testnet_dir
                         done
                         DGB_DATA_DISKUSED_TEST_HR=""
                         DGB_DATA_DISKUSED_TEST_KB=""
@@ -18190,17 +18476,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION/regtest" ]; then
                         str="Deleting DigiByte Core REGTEST blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/regtest/indexes
-                        rm -rf $DGB_DATA_LOCATION/regtest/chainstate
-                        rm -rf $DGB_DATA_LOCATION/regtest/blocks
-                        rm -f $DGB_DATA_LOCATION/regtest/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/banlist.json
-                        rm -f $DGB_DATA_LOCATION/regtest/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/regtest/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/.lock
-                        rm -f $DGB_DATA_LOCATION/regtest/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/peers.dat
-                        rm -f $DGB_DATA_LOCATION/regtest/settings.json
+                        delete_dgb_chain_data regtest
                         DGB_DATA_DISKUSED_REGTEST_HR=""
                         DGB_DATA_DISKUSED_REGTEST_KB=""
                         DGB_DATA_DISKUSED_REGTEST_PERC=""
@@ -18226,17 +18502,7 @@ uninstall_do_now() {
                     if [ -d "$DGB_DATA_LOCATION/signet" ]; then
                         str="Deleting DigiByte Core SIGNET blockchain data..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -rf $DGB_DATA_LOCATION/signet/indexes
-                        rm -rf $DGB_DATA_LOCATION/signet/chainstate
-                        rm -rf $DGB_DATA_LOCATION/signet/blocks
-                        rm -f $DGB_DATA_LOCATION/signet/banlist.dat
-                        rm -f $DGB_DATA_LOCATION/signet/banlist.json
-                        rm -f $DGB_DATA_LOCATION/signet/digibyted.pid
-                        rm -f $DGB_DATA_LOCATION/signet/fee_estimates.dat
-                        rm -f $DGB_DATA_LOCATION/signet/.lock
-                        rm -f $DGB_DATA_LOCATION/signet/mempool.dat
-                        rm -f $DGB_DATA_LOCATION/signet/peers.dat
-                        rm -f $DGB_DATA_LOCATION/signet/settings.json
+                        delete_dgb_chain_data signet
                         DGB_DATA_DISKUSED_SIGNET_HR=""
                         DGB_DATA_DISKUSED_SIGNET_KB=""
                         DGB_DATA_DISKUSED_SIGNET_PERC=""
@@ -18863,7 +19129,7 @@ fi
 # This function will install or upgrade the fan Argon One Daemon, a replacement daemon
 # for controlling the fan in the Argon One cases for the Raspberry Pi 4.
 #
-# More info here: https://github.com/iandark/argon-one-daemon
+# More info here: https://github.com/kowalski7cc/argon-one-daemon
 
 install_argon_one_fan_software() {
 
@@ -18889,7 +19155,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/iandark/argon-one-daemon" 13 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -18902,7 +19168,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/iandark/argon-one-daemon" 12 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -20008,6 +20274,9 @@ install_or_upgrade() {
     ### WRAP UP ###
 
     # Display closing message
+    # Make sure the DigiByte nodes are running (unless the user stopped them)
+    ensure_dgb_nodes_running
+
     closing_banner_message
 
     if [[ "${NewInstall}" == false ]]; then
