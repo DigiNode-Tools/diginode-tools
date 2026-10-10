@@ -29,13 +29,23 @@ DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
 
 # Play an error beep if it exits with an error, but not if this is sourced from the DigiNode Dashboard script
 if [[ "$RUN_SETUP" != "NO" ]] ; then
-    trap error_beep exit 1
+    trap 'fix_dgb_conf_permissions; error_beep' exit 1
 fi
 
 # Function to beep on an exit 1
 error_beep() {
-    echo -en "\007"  
-    tput cnorm 
+    echo -en "\007"
+    tput cnorm
+}
+
+# digibyte.conf contains the RPC password, so only the DigiNode user should be able to read it. DigiNode Setup runs as
+# root and edits it with 'sed -i', which leaves it owned by root and readable by everyone. This puts that right
+# whenever DigiNode Setup exits, which also fixes DigiNodes set up with older versions.
+fix_dgb_conf_permissions() {
+    if [ -f "$DGB_CONF_FILE" ] && [ "$(id -u)" -eq 0 ] && [ "$USER_ACCOUNT" != "" ] && [ "$USER_ACCOUNT" != "root" ]; then
+        chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$DGB_CONF_FILE"
+        chmod 600 "$DGB_CONF_FILE"
+    fi
 }
 
 # Append common folders to the PATH to ensure that all basic commands are available.
