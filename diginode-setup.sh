@@ -18700,16 +18700,13 @@ WantedBy=timers.target"; then
     printf "\\n"
 }
 
-# Remove DigiNode's automatic restarts and settings during an uninstall. The system's own automatic security
-# updates are left as they are (they keep the system secure, whether or not DigiNode is installed).
+# Remove DigiNode's automatic restarts and reboot helper when DigiNode Tools is uninstalled. The system's own
+# automatic security updates are left as they are (they keep the system secure, whether or not DigiNode is installed).
 uninstall_system_updates() {
 
     local str
 
     if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
-
-        printf " =============== Uninstall: Automatic Restarts =========================\\n\\n"
-        # ==============================================================================
 
         str="Removing DigiNode automatic restarts and reboot helper..."
         printf "%b %s" "${INFO}" "${str}"
@@ -18721,7 +18718,6 @@ uninstall_system_updates() {
         rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b The system's own automatic security updates (if on) have been left as they are.\\n" "${INFO}"
-        printf "\\n"
     fi
 }
 
@@ -19372,8 +19368,6 @@ uninstall_do_now() {
 
     uninstall_motd
 
-    uninstall_system_updates
-
     uninstall_diginode_tools_now
 
     printf " =======================================================================\\n"
@@ -19453,6 +19447,9 @@ uninstall_diginode_tools_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
+
+            # Remove DigiNode's automatic restarts and reboot helper (they are part of DigiNode Tools)
+            uninstall_system_updates
 
 
             # Ask to delete diginode.settings if it exists
