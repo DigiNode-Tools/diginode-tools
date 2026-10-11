@@ -1,7 +1,7 @@
 name: Telegram - test announcement (temporary)
 
 # Temporary: sends the next release's announcement to the private chat with the bot (NOT the group), so it can be
-# checked before the first real release. Remove this workflow afterwards. (Test 4: blue heart)
+# checked before the first real release. Remove this workflow afterwards. (Test 5: star)
 
 on:
   push:

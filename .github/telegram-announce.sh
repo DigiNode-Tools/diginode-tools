@@ -28,9 +28,9 @@ html() {
     sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'
 }
 
-# One line per release note: 🎉 New, 🛠️ Improvement, 🐛 Fix
+# One line per release note: ⭐ New, 🛠️ Improvement, 🐛 Fix
 notes=$(grep '^- ' "$NOTES_FILE" | sed 's/^- //' | html | sed -E \
-    -e 's/^New: /🎉 <b>New:<\/b> /' \
+    -e 's/^New: /⭐ <b>New:<\/b> /' \
     -e 's/^Improvement: /🛠️ <b>Improvement:<\/b> /' \
     -e 's/^Fix: /🐛 <b>Fix:<\/b> /')
 [ -n "$notes" ] || { echo "ERROR: no release notes found in $NOTES_FILE" >&2; exit 1; }
