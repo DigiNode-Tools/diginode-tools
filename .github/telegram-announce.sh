@@ -35,31 +35,17 @@ notes=$(grep '^- ' "$NOTES_FILE" | sed 's/^- //' | html | sed -E \
     -e 's/^Fix: /🐛 <b>Fix:<\/b> /')
 [ -n "$notes" ] || { echo "ERROR: no release notes found in $NOTES_FILE" >&2; exit 1; }
 
-# The header and the sponsor line rotate, one per release, so regular readers don't see the same ones every week.
-# The release number (how many v* tags there are) picks them. There are 5 headers and 6 sponsor lines - numbers with
-# no common factor - so the same pair only comes round again every 30 releases. Add or change lines freely, but keep
-# the two counts free of common factors (e.g. 5 and 6, or 5 and 7) for the most variety.
+# The header and the sponsor line rotate, one per release (the wording is in .github/announcements.json, shared
+# with the Bluesky announcement). The release number (how many v* tags there are) picks them.
+TEXT_FILE="$(dirname "$0")/announcements.json"
 release_count=$(git -C "$(dirname "$0")" tag -l 'v*' 2>/dev/null | wc -l | tr -d ' ')
 release_count=${release_count:-0}
 
-headers=(
-    "🚀 <b>DigiNode Tools v$VERSION is out!</b>"
-    "📦 <b>DigiNode Tools v$VERSION has been released</b>"
-    "🆙 <b>Time to update: DigiNode Tools v$VERSION</b>"
-    "🔔 <b>New release: DigiNode Tools v$VERSION</b>"
-    "📣 <b>DigiNode Tools v$VERSION is here</b>"
-)
-header="${headers[$(( release_count % ${#headers[@]} ))]}"
-
-sponsor_lines=(
-    "💙 DigiNode Tools is free and always will be. Sponsorship gives me more time to build it, so releases like this keep coming. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
-    "💙 Enjoying DigiNode Tools? Sponsors make it possible for me to spend more time on it, including the bigger features on the roadmap. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
-    "💙 Find DigiNode Tools useful? Please support its development: <a href=\"$SPONSOR_URL\">become a sponsor</a>"
-    "💙 I build DigiNode Tools in my spare time. Sponsorship lets me spend more of it on new features and fixes. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
-    "💙 Every sponsor, big or small, helps keep DigiNode Tools moving forward. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
-    "💙 Every DigiByte node helps keep the network decentralised. Sponsoring DigiNode Tools helps more people run one. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
-)
-sponsor_line="${sponsor_lines[$(( release_count % ${#sponsor_lines[@]} ))]}"
+header=$(jq -r --argjson n "$release_count" --arg v "$VERSION" \
+    '.headers[$n % (.headers | length)] | "\(.emoji) <b>\(.text | gsub("{version}"; $v))</b>"' "$TEXT_FILE")
+sponsor_text=$(jq -r --argjson n "$release_count" '.sponsor_lines[$n % (.sponsor_lines | length)].text' "$TEXT_FILE" | html)
+sponsor_link=$(jq -r --argjson n "$release_count" '.sponsor_lines[$n % (.sponsor_lines | length)].link_text' "$TEXT_FILE" | html)
+sponsor_line="$sponsor_text <a href=\"$SPONSOR_URL\">$sponsor_link</a>"
 
 footer="To update, run <code>diginode-setup</code> and choose <b>Update</b>.
 <a href=\"$RELEASE_URL\">Release notes on GitHub</a>
