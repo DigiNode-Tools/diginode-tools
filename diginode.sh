@@ -4468,6 +4468,44 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
 fi
 
 # ------------------------------------------------------------------------------
+#    Run once every hour (and when the Dashboard starts)
+#    Check for new version of DigiNode Tools
+# ------------------------------------------------------------------------------
+
+# The time of the last check is saved in diginode.settings, so reopening the Dashboard doesn't check more than once an hour.
+# This uses the GitHub releases page rather than the API, so it isn't affected by the API's hourly limit.
+# Skipped while offline (each attempt can take up to 20 seconds to time out), then runs once the 15 minute loop finds the Internet again.
+TIME_DIF_DGNT_CHECK=$(( TIME_NOW_UNIX - ${SAVED_TIME_DGNT_CHECK:-0} ))
+
+if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
+    fi
+
+    # Check for new release of DigiNode Tools on Github
+    dgnt_ver_release_query=$(get_dgnt_release_version)
+    if [ "$dgnt_ver_release_query" != "" ]; then
+        DGNT_VER_RELEASE=$dgnt_ver_release_query
+        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        # Check if there is an update for DigiNode Tools
+        if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
+          DGNT_UPDATE_AVAILABLE="no"
+        else
+          DGNT_UPDATE_AVAILABLE="yes"
+        fi
+    fi
+
+    # reset 1 hour timer (also if the check failed, e.g. no Internet, so it isn't retried every second)
+    SAVED_TIME_DGNT_CHECK=$TIME_NOW_UNIX
+    if grep -q "^SAVED_TIME_DGNT_CHECK=" $DGNT_SETTINGS_FILE; then
+        sed -i -e "/^SAVED_TIME_DGNT_CHECK=/s|.*|SAVED_TIME_DGNT_CHECK=\"$SAVED_TIME_DGNT_CHECK\"|" $DGNT_SETTINGS_FILE
+    else
+        echo "SAVED_TIME_DGNT_CHECK=\"$SAVED_TIME_DGNT_CHECK\"" >> $DGNT_SETTINGS_FILE
+    fi
+fi
+
+# ------------------------------------------------------------------------------
 #    Run once every 24 hours
 #    Check for new version of DigiByte Core
 # ------------------------------------------------------------------------------
@@ -4509,23 +4547,6 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
         # Check for an update to DigiBye Core
         check_digibyte_update
 
-    fi
-
-    if [ "$STARTUP_LOOP" = true ]; then
-    printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
-    fi
-
-    # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(get_dgnt_release_version)
-      if [ "$dgnt_ver_release_query" != "" ]; then
-        DGNT_VER_RELEASE=$dgnt_ver_release_query
-        sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
-        # Check if there is an update for DigiNode Tools
-        if [ $(version $DGNT_VER_LOCAL) -ge $(version $DGNT_VER_RELEASE) ]; then
-          DGNT_UPDATE_AVAILABLE="no"
-        else
-          DGNT_UPDATE_AVAILABLE="yes"
-        fi
     fi
 
     if [ "$STARTUP_LOOP" = true ]; then
@@ -4588,25 +4609,24 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
       fi
     fi
 
-    if [ "$STARTUP_LOOP" = true ]; then
-    printf "%b Checking for Kubo update...\\n" "${INFO}"
-    fi
+    # Check for new release of Kubo (only if it is installed - this uses the GitHub API, which allows 60 requests an hour per IP address)
+    if [ "$IPFS_VER_LOCAL" != "" ]; then
 
-    # Check for new release of Kubo
-    IPFS_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
-    if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
-        IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
-        sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
+        if [ "$STARTUP_LOOP" = true ]; then
+        printf "%b Checking for Kubo update...\\n" "${INFO}"
+        fi
 
-        # If there actually a local version, then check for an update
-        if [ "$IPFS_VER_LOCAL" != "" ]; then
+        IPFS_VER_RELEASE_QUERY=$(curl --max-time 4 -sfL https://api.github.com/repos/ipfs/kubo/releases/latest | jq -r ".tag_name" | sed 's/v//g')
+        if [ "$IPFS_VER_RELEASE_QUERY" != "" ]; then
+            IPFS_VER_RELEASE=$IPFS_VER_RELEASE_QUERY
+            sed -i -e "/^IPFS_VER_RELEASE=/s|.*|IPFS_VER_RELEASE=\"$IPFS_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
 
-          # Check if there is an update for Go-IPFS
-          if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
-            IPFS_UPDATE_AVAILABLE="no"
-          else
-            IPFS_UPDATE_AVAILABLE="yes"
-          fi
+            # Check if there is an update for Go-IPFS
+            if [ $(version $IPFS_VER_LOCAL) -ge $(version $IPFS_VER_RELEASE) ]; then
+              IPFS_UPDATE_AVAILABLE="no"
+            else
+              IPFS_UPDATE_AVAILABLE="yes"
+            fi
         fi
     fi
 
