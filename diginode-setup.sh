@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v26.10.03
+#           Name:  DigiNode Setup v26.10.04
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,7 +16,7 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=26.10.03
+DGNT_VER_LIVE=26.10.04
 # Last Updated: 2026-10-11
 
 # Convert to a fixed width string of 9 characters to display in the script
@@ -192,7 +192,8 @@ for var in "$@"; do
         "--reset" ) RESET_MODE=true;;
         "--unattended" ) UNATTENDED_MODE=true;;
         "--dgntdev" ) DGNT_BRANCH_REMOTE="develop";; 
-        "--dgntmain" ) DGNT_BRANCH_REMOTE="main";; 
+        "--dgntmain" ) DGNT_BRANCH_REMOTE="main";;
+        "--dgntbranch="* ) DGNT_BRANCH_REMOTE="${var#--dgntbranch=}";;
 #!!        "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
@@ -332,6 +333,7 @@ display_help() {
         printf "%b %b--dgbver=x.x.x%b  - Install a specific version of DigiByte Core (e.g. --dgbver=8.26.2). Use to upgrade or downgrade.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   Only versions that have been verified for your DigiNode can be installed.\\n" "${INDENT}"
         printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+        printf "%b %b--dgntbranch=x%b  - Developer Mode: Install a feature branch of DigiNode Tools (e.g. --dgntbranch=feature/plugins).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
  #!!       printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
         printf "%b %b--uninstall%b     - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
@@ -962,6 +964,7 @@ SAVED_TIME_10SEC="$SAVED_TIME_10SEC"
 SAVED_TIME_1MIN="$SAVED_TIME_1MIN"
 SAVED_TIME_15MIN="$SAVED_TIME_15MIN"
 SAVED_TIME_1DAY="$SAVED_TIME_1DAY"
+SAVED_TIME_DGNT_CHECK="$SAVED_TIME_DGNT_CHECK"
 SAVED_TIME_1WEEK="$SAVED_TIME_1WEEK"
 SAVED_TIME_DIGIFACTS="$SAVED_TIME_DIGIFACTS"
 
@@ -1573,8 +1576,8 @@ diginode_tools_update_settings() {
             fi
 
             # If we are running the develop or main branch do an update regardless
-            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
-                printf "%b We are using the develop branch - diginode.settings will be updated.\\n" "${INFO}"
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && { [ "$DGNT_BRANCH_REMOTE" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; }; then
+                printf "%b We are using the %s branch - diginode.settings will be updated.\\n" "${INFO}" "$DGNT_BRANCH_REMOTE"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
@@ -1637,8 +1640,8 @@ diginode_tools_update_settings() {
             fi
 
             # If we are running the develop or main branch do an update regardless
-            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
-                printf "%b We are using the develop branch - diginode.settings will be updated.\\n" "${INFO}"
+            if [ "$DGNT_SETTINGS_DO_UPGRADE" != "YES" ] && { [ "$DGNT_BRANCH_LOCAL" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; }; then
+                printf "%b We are using the %s branch - diginode.settings will be updated.\\n" "${INFO}" "$DGNT_BRANCH_LOCAL"
                 DGNT_SETTINGS_DO_UPGRADE="YES"
                 DGNT_SETTINGS_BRANCH_HAS_CHANGED="YES"
                 DGNT_SETTINGS_FILE_VER_BRANCH_NEW=$DGNT_BRANCH_REMOTE
@@ -1693,11 +1696,43 @@ diginode_tools_update_settings() {
 
 }
 
+# Returns true if the given DigiNode Tools branch is a feature branch (i.e. not release, main or develop)
+# Feature branches are used for development and testing (--dgntbranch=), and are treated like the develop branch
+is_dgnt_feature_branch() {
+    case "$1" in
+        ""|"release"|"main"|"develop"|"HEAD" ) return 1;;
+        * ) return 0;;
+    esac
+}
+
 # Function to set the DigiNode Tools Dev branch to use
 set_dgnt_branch() {
 
+    # If a feature branch was requested with --dgntbranch=, check it is a valid branch name and exists on GitHub.
+    # This is done before anything else, because installing DigiNode Tools deletes the current version first.
+    if is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        if ! [[ "$DGNT_BRANCH_REMOTE" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]] || [[ "$DGNT_BRANCH_REMOTE" == *".."* ]]; then
+            printf "%b %bERROR: \"%s\" is not a valid branch name.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "$DGNT_BRANCH_REMOTE" "${COL_NC}"
+            printf "%b Branch names can only contain letters, numbers, dots, dashes, underscores and slashes.\\n\\n" "${INDENT}"
+            exit 1
+        fi
+        DGNT_SETUP_GITHUB_BRANCH_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/${DGNT_BRANCH_REMOTE}/diginode-setup.sh"
+        if ! curl -sfI --max-time 10 "$DGNT_SETUP_GITHUB_BRANCH_URL" > /dev/null 2>&1; then
+            printf "%b %bERROR: The DigiNode Tools branch \"%s\" could not be found on GitHub.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "$DGNT_BRANCH_REMOTE" "${COL_NC}"
+            printf "%b Check the branch name, and that it has been pushed to GitHub. Nothing has been changed.\\n\\n" "${INDENT}"
+            exit 1
+        fi
+    fi
+
     # Set relevant Github branch for DigiNode Tools
-    if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
+    if is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        if [[ "${EUID}" -eq 0 ]]; then
+            printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            printf "%b   The %s feature branch will be used.\\n" "${INDENT}" "$DGNT_BRANCH_REMOTE"
+            printf "\\n"
+        fi
+        DGNT_SETUP_URL=$DGNT_SETUP_GITHUB_BRANCH_URL
+    elif [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         if [[ "${EUID}" -eq 0 ]]; then
             printf "%b DigiNode Tools Developer Mode: %bEnabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             printf "%b   The develop branch will be used.\\n" "${INDENT}"
@@ -13800,6 +13835,8 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b%b %s YES!  DigiNode Tools develop branch\\n" "${OVER}" "${TICK}" "${str}"
         elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
             printf "%b%b %s YES!  DigiNode Tools main branch\\n" "${OVER}" "${TICK}" "${str}"
+        elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+            printf "%b%b %s YES!  DigiNode Tools %s branch\\n" "${OVER}" "${TICK}" "${str}" "$DGNT_BRANCH_LOCAL"
         else
             printf "%b%b %s YES!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -13817,6 +13854,8 @@ printf " =============== Checking: DigiNode Tools ==============================
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
     elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
+    elif is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        printf "%b DigiNode Tools %s branch requested.\\n" "${INFO}" "$DGNT_BRANCH_REMOTE"
     fi
 
     # If the latest release can't be found (e.g. GitHub can't be reached), don't install anything else instead -
@@ -13865,8 +13904,8 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
-            printf "%b %bDigiNode Tools will be upgraded from the develop branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+            printf "%b %bDigiNode Tools will be upgraded from the ${DGNT_BRANCH_LOCAL} branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else 
@@ -13889,6 +13928,10 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools develop version will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
+        elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+            printf "%b %bDigiNode Tools ${DGNT_BRANCH_LOCAL} branch will be replaced with the develop branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_DO_INSTALL=YES
         else
             printf "%b %bDigiNode Tools develop branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
@@ -13905,8 +13948,8 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools main branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
-        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
-            printf "%b %bDigiNode Tools develop branch will be replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        elif [ "$DGNT_BRANCH_LOCAL" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+            printf "%b %bDigiNode Tools ${DGNT_BRANCH_LOCAL} branch will be replaced with the main branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
         else
@@ -13914,6 +13957,23 @@ printf " =============== Checking: DigiNode Tools ==============================
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
         fi
+
+    # Upgrade to a feature branch (--dgntbranch=)
+    elif is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+            printf "%b %bDigiNode Tools v${DGNT_VER_LOCAL} will be replaced with the ${DGNT_BRANCH_REMOTE} branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+        elif [ "$DGNT_BRANCH_LOCAL" = "$DGNT_BRANCH_REMOTE" ]; then
+            printf "%b %bDigiNode Tools ${DGNT_BRANCH_REMOTE} branch will be upgraded to the latest version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+        elif [ "$DGNT_BRANCH_LOCAL" != "" ]; then
+            printf "%b %bDigiNode Tools ${DGNT_BRANCH_LOCAL} branch will be replaced with the ${DGNT_BRANCH_REMOTE} branch.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+        else
+            printf "%b %bDigiNode Tools ${DGNT_BRANCH_REMOTE} branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="new"
+        fi
+        DGNT_DO_INSTALL=YES
     fi
 
     printf "\\n"
@@ -13986,7 +14046,16 @@ fi
             sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"develop\"|" $DGNT_SETTINGS_FILE
             sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        # Clone the develop version if develop flag is set
+        # Clone a feature branch if the --dgntbranch= flag is set (the branch was checked at startup by set_dgnt_branch)
+        elif is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+            str="Installing DigiNode Tools ${DGNT_BRANCH_REMOTE} branch..."
+            printf "%b %s" "${INFO}" "${str}"
+            sudo -u $USER_ACCOUNT git clone --depth 1 --quiet --branch "$DGNT_BRANCH_REMOTE" https://github.com/DigiNode-Tools/diginode-tools/
+            DGNT_BRANCH_LOCAL="$DGNT_BRANCH_REMOTE"
+            sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
+            sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=|" $DGNT_SETTINGS_FILE
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        # Clone the main version if main flag is set
         elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
             str="Installing DigiNode Tools main branch..."
             printf "%b %s" "${INFO}" "${str}"
@@ -14049,6 +14118,11 @@ fi
             DGNT_VER_LOCAL_DISPLAY="main-branch"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
+        elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+            DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY branch\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
         fi
 
