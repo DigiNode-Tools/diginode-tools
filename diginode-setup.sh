@@ -19217,6 +19217,7 @@ uninstall_do_now() {
 
             # Delete .bashrc path to DigiByte binary folder
             if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting path to DigiByte binary folder in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing path for DigiByte binaries
@@ -19378,10 +19379,13 @@ uninstall_do_now() {
     printf "\\n"
     donation_qrcode
     printf "\\n"
-    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
-    printf "\\n"
+    # The 'diginode' commands (or the DigiByte Core path) were removed from .bashrc, but this terminal session still
+    # remembers them until you log out. (A restart isn't needed.)
+    if [ "$UNINSTALL_SHELL_CHANGED" = "YES" ]; then
+        printf "%b %bLog out and back in (or open a new terminal) to finish removing the DigiNode commands.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Until then, this terminal still remembers the old 'diginode' commands, which no longer work.\\n" "${INDENT}"
+        printf "\\n"
+    fi
     exit
 
 }
@@ -19430,6 +19434,7 @@ uninstall_diginode_tools_now() {
 
             # Delete 'diginode-setup' alias
             if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode-setup' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
@@ -19440,6 +19445,7 @@ uninstall_diginode_tools_now() {
 
             # Delete 'diginode' alias
             if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
