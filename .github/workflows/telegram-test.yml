@@ -1,7 +1,7 @@
 name: Telegram - test announcement (temporary)
 
 # Temporary: sends the next release's announcement to the private chat with the bot (NOT the group), so it can be
-# checked before the first real release. Remove this workflow afterwards. (Test: screenshots album)
+# checked before the first real release. Remove this workflow afterwards. (Test: messages with screenshots)
 
 on:
   push:
@@ -31,4 +31,4 @@ jobs:
           # The notes the next release will have
           awk '/^DigiNode Tools - Unreleased/{print "DigiNode Tools v26.10.05"; print ""; on=1; next} on && /^DigiNode Tools v/{exit} on && NF' \
             docs/release_notes.md > "$RUNNER_TEMP/notes.md"
-          TELEGRAM_CHAT_ID="$private" .github/telegram-announce.sh send 26.10.05 "$RUNNER_TEMP/notes.md"
+          TELEGRAM_CHAT_ID="$private" .github/telegram-announce.py send 26.10.05 "$RUNNER_TEMP/notes.md"

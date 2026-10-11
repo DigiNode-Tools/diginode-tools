@@ -116,11 +116,11 @@ jobs:
             echo '```'
             echo "### GitHub release notes"
             cat "$NOTES_FILE"
-            if [ -x .github/telegram-announce.sh ]; then
+            if [ -x .github/telegram-announce.py ]; then
               echo
               echo "### Telegram announcement"
               echo '```html'
-              .github/telegram-announce.sh preview "$VERSION" "$NOTES_FILE"
+              .github/telegram-announce.py preview "$VERSION" "$NOTES_FILE"
               echo '```'
             fi
             if [ -x .github/bluesky-announce.py ]; then
@@ -156,8 +156,8 @@ jobs:
           VERSION: ${{ steps.prep.outputs.version }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
         run: |
-          if [ -x .github/telegram-announce.sh ]; then
-            .github/telegram-announce.sh send "$VERSION" "$NOTES_FILE"
+          if [ -x .github/telegram-announce.py ]; then
+            .github/telegram-announce.py send "$VERSION" "$NOTES_FILE"
           fi
 
       # Post the release notes on Bluesky as a thread (from the DigiNode Tools account). Skipped until the app password
