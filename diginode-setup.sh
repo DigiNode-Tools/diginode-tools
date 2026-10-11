@@ -10056,9 +10056,6 @@ final_messages() {
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Note: If this is your first time installing DigiNode Tools,\\n" "${INDENT}"
-        printf "%b       these aliases will not work until you log out or reboot.\\n" "${INDENT}"
-        printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
         printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
@@ -10100,19 +10097,6 @@ final_messages() {
         printf "\\n"
     elif [ "$REBOOT_NEEDED" = "YES" ]; then
         printf "%b %bYou need to reboot now for your swap file change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
-        printf "\\n"       
-    elif [ $NewInstall = true ]; then
-        printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -13793,18 +13777,8 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Add DigiByte binary folder to the path permanently (so it works after reboot)
-    str="Is DigiByte binary folder path already in .bashrc?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
-        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        # Append export path to .bashrc file
-        echo "" >> $USER_HOME/.bashrc
-        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
-        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
-        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    # Add the DigiByte Core commands (digibyte-cli etc.) to /usr/local/bin, so they work from any folder
+    install_command_links
 
 
     printf "\\n"
@@ -14186,47 +14160,8 @@ fi
         chmod +x $DGNT_MONITOR_SCRIPT
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Add alias so entering 'diginode' works from any folder
-        if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Adding 'diginode' alias to .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Add alias so entering 'diginode-setup' works from any folder
-        if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode-setup' alias in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-setup=/s|.*|alias diginode-setup='$DGNT_SETUP_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Adding 'diginode-setup' alias to .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode-setup='$DGNT_SETUP_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Load new aliases
-        if [ "$NewInstall" = true ]; then
-            str="Loading new aliases now..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+        # Add the 'diginode' and 'diginode-setup' commands to /usr/local/bin, so they work from any folder straight away
+        install_command_links
 
         # Update the DigiNode custom MOTD, if it is already installed
         if [ -f "/etc/update-motd.d/50-diginode" ]; then
@@ -14824,18 +14759,8 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Add DigiByte binary folder to the path permanently (so it works after reboot)
-    str="Is DigiByte binary folder path already in .bashrc?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
-        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        # Append export path to .bashrc file
-        echo "" >> $USER_HOME/.bashrc
-        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
-        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
-        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    # Add the DigiByte Core commands (digibyte-cli etc.) to /usr/local/bin, so they work from any folder
+    install_command_links
 
 
     printf "\\n"
@@ -17695,6 +17620,7 @@ menu_confirm_chosen_dgb_version() {
         # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
         menu_ask_system_updates
         system_updates_apply
+        install_command_links
         ensure_dgb_nodes_running
         display_system_updates_reminder
         exit
@@ -17925,6 +17851,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
                 # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
                 menu_ask_system_updates
                 system_updates_apply
+                install_command_links
                 ensure_dgb_nodes_running
                 display_system_updates_reminder
                 exit
@@ -17947,6 +17874,7 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
           # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
           menu_ask_system_updates
           system_updates_apply
+          install_command_links
           ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
@@ -18305,6 +18233,116 @@ fi
 
 
 
+
+#####################################################################################################
+### FUNCTIONS - COMMANDS (diginode, diginode-setup, digibyte-cli...)
+#####################################################################################################
+
+# The DigiNode commands are links in /usr/local/bin, which is in everyone's PATH. They work as soon as they are
+# installed, and stop working as soon as they are removed - no need to log out or restart. (They used to be
+# aliases and a PATH line in ~/.bashrc, which only worked in new terminals and stayed after an uninstall.)
+
+DGNT_COMMANDS_DIR=/usr/local/bin
+
+# Create or update a command link, e.g. /usr/local/bin/diginode -> ~/diginode-tools/diginode.sh
+# A file or link that isn't DigiNode's (i.e. doesn't point inside <ours>) is left alone.
+# Usage: make_command_link <command> <target> <ours>
+make_command_link() {
+    local link="$DGNT_COMMANDS_DIR/$1"
+    local target="$2"
+    local ours="$3"
+    local current
+
+    if [ -L "$link" ]; then
+        current=$(readlink "$link")
+        if [ "$current" = "$target" ]; then
+            return 0
+        fi
+        case "$current" in
+            "$ours"* ) ;;
+            * )
+                printf "%b %bThe '%s' command was not created: %s already exists and isn't part of DigiNode.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "$1" "$link" "${COL_NC}"
+                return 1
+                ;;
+        esac
+    elif [ -e "$link" ]; then
+        printf "%b %bThe '%s' command was not created: %s already exists and isn't part of DigiNode.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "$1" "$link" "${COL_NC}"
+        return 1
+    fi
+
+    mkdir -p "$DGNT_COMMANDS_DIR"
+    ln -sfn "$target" "$link"
+    printf "%b%b Added command: %s\\n" "${OVER}" "${TICK}" "$1"
+}
+
+# Remove DigiNode's command links that point inside <ours> (only links, never other files)
+# Usage: remove_command_links <ours> [only-if-target-missing]
+remove_command_links() {
+    local ours="$1"
+    local only_missing="$2"
+    local link current
+    for link in "$DGNT_COMMANDS_DIR"/*; do
+        [ -L "$link" ] || continue
+        current=$(readlink "$link")
+        case "$current" in
+            "$ours"* )
+                if [ "$only_missing" = "only-if-target-missing" ] && [ -e "$current" ]; then
+                    continue
+                fi
+                rm -f "$link"
+                printf "%b%b Removed command: %s\\n" "${OVER}" "${TICK}" "$(basename "$link")"
+                ;;
+        esac
+    done
+}
+
+# Remove the old 'diginode' aliases and DigiByte PATH line from ~/.bashrc (replaced by the command links).
+# Returns 0 if anything was removed.
+remove_old_bashrc_commands() {
+    if [ ! -f "$USER_HOME/.bashrc" ]; then
+        return 1
+    fi
+    if grep -q -e "^alias diginode=" -e "^alias diginode-setup=" -e "^export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
+        sed -i \
+            -e "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" \
+            -e "/^alias diginode=/d" \
+            -e "/# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder/d" \
+            -e "/^alias diginode-setup=/d" \
+            -e "/# Add DigiByte binary folder to path/d" \
+            -e "\|^export PATH+=:$DGB_INSTALL_LOCATION/bin\$|d" \
+            "$USER_HOME/.bashrc"
+        printf "%b%b Removed the old DigiNode aliases and DigiByte path from .bashrc (no longer needed)\\n" "${OVER}" "${TICK}"
+        return 0
+    fi
+    return 1
+}
+
+# Create the commands for DigiNode Tools and DigiByte Core (whichever are installed). Safe to run every time.
+install_command_links() {
+
+    # DigiNode Tools
+    if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
+        make_command_link diginode "$DGNT_MONITOR_SCRIPT" "$DGNT_LOCATION/"
+    fi
+    if [ -f "$DGNT_SETUP_SCRIPT" ]; then
+        make_command_link diginode-setup "$DGNT_SETUP_SCRIPT" "$DGNT_LOCATION/"
+    fi
+
+    # DigiByte Core - every program in its bin folder (digibyte-cli, digibyted...). The links go via ~/digibyte,
+    # which always points to the installed version, so they keep working after an upgrade.
+    if [ -d "$DGB_INSTALL_LOCATION/bin" ]; then
+        local f
+        for f in "$DGB_INSTALL_LOCATION"/bin/*; do
+            if [ -f "$f" ] && [ -x "$f" ]; then
+                make_command_link "$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/"
+            fi
+        done
+        # Remove links to programs that the installed version doesn't have
+        remove_command_links "$DGB_INSTALL_LOCATION/bin/" only-if-target-missing
+    fi
+
+    remove_old_bashrc_commands
+}
 
 #####################################################################################################
 ### FUNCTIONS - AUTOMATIC SYSTEM UPDATES AND RESTARTS
@@ -19215,7 +19253,10 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete .bashrc path to DigiByte binary folder
+            # Remove the DigiByte Core commands (digibyte-cli etc.) from /usr/local/bin
+            remove_command_links "$DGB_INSTALL_LOCATION/bin/"
+
+            # Delete .bashrc path to DigiByte binary folder (used by older versions of DigiNode Tools)
             if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
                 UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting path to DigiByte binary folder in .bashrc file..."
@@ -19379,8 +19420,9 @@ uninstall_do_now() {
     printf "\\n"
     donation_qrcode
     printf "\\n"
-    # The 'diginode' commands (or the DigiByte Core path) were removed from .bashrc, but this terminal session still
-    # remembers them until you log out. (A restart isn't needed.)
+    # Older versions of DigiNode Tools used aliases (and a DigiByte Core path) in .bashrc. If they were removed, this
+    # terminal session still remembers them until you log out. (A restart isn't needed. The command links in
+    # /usr/local/bin used now are removed straight away.)
     if [ "$UNINSTALL_SHELL_CHANGED" = "YES" ]; then
         printf "%b %bLog out and back in (or open a new terminal) to finish removing the DigiNode commands.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Until then, this terminal still remembers the old 'diginode' commands, which no longer work.\\n" "${INDENT}"
@@ -19432,7 +19474,10 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete 'diginode-setup' alias
+            # Remove the 'diginode' and 'diginode-setup' commands from /usr/local/bin (this takes effect straight away)
+            remove_command_links "$DGNT_LOCATION/"
+
+            # Delete 'diginode-setup' alias (used by older versions of DigiNode Tools)
             if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
                 UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode-setup' alias in .bashrc file..."
@@ -19443,7 +19488,7 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete 'diginode' alias
+            # Delete 'diginode' alias (used by older versions of DigiNode Tools)
             if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
                 UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode' alias in .bashrc file..."
@@ -21117,6 +21162,9 @@ install_or_upgrade() {
 
     # Turn automatic system updates and restarts on or off, to match diginode.settings (and install the reboot helper)
     system_updates_apply
+
+    # Make sure the DigiNode commands are installed (older versions used aliases in .bashrc instead)
+    install_command_links
 
 
     ### CHANGE THE HOSTNAME TO DIGINODE ###
