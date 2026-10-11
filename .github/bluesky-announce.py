@@ -27,7 +27,8 @@ RELEASE_URL = "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v{v
 SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
 MAX_CHARS = 290          # Bluesky allows 300 graphemes per post; counting code points (never fewer) keeps us safely under
 PDS = "https://bsky.social/xrpc"
-LABELS = {"New": "✨ New:", "Improvement": "🛠️ Improvement:", "Fix": "🐛 Fix:"}
+LABELS = {"New": "New", "Improvement": "Improvement", "Fix": "Fix"}
+EMOJI = {"New": "✨", "Improvement": "🛠️", "Fix": "🐛"}
 HASHTAGS_LINE = "#DigiByte #DGB #DigiNode"   # Added to the first post
 INLINE_TAGS = ["DigiNode", "DigiByte"]      # The first mention of each in a post becomes a hashtag
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -42,19 +43,28 @@ def release_count():
 
 
 def read_notes(path):
-    """Return [(type, text, images)] for each '- Type: text' line in the release notes. images is [(url, alt)] from
-    any '![alt](url)' lines under the note."""
+    """Return [(type, title, text, images)] for each '- Type: text' line in the release notes. A note can start with a
+    short bold title ('- New: **Title** - text'), used in the TL;DR; images is [(url, alt)] from '![alt](url)' lines
+    under the note."""
     notes = []
     with open(path, encoding="utf-8") as f:
         for line in f:
             m = re.match(r"^- (New|Improvement|Fix): (.+)$", line.strip())
             if m:
-                notes.append((m.group(1), m.group(2), []))
+                t = re.match(r"^\*\*(.+?)\*\*\s*[-–—]\s*(.+)$", m.group(2))
+                title, text = (t.group(1), t.group(2)) if t else (short_title(m.group(2)), m.group(2))
+                notes.append((m.group(1), title, text, []))
                 continue
             img = re.match(r"^!\[(.*)\]\((https://\S+)\)$", line.strip())
             if img and notes:
-                notes[-1][2].append((img.group(2), img.group(1)))
+                notes[-1][3].append((img.group(2), img.group(1)))
     return notes
+
+
+def short_title(text):
+    """For a note without a title: its first sentence, cut to about 60 characters."""
+    first = re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].rstrip(".")
+    return first if len(first) <= 60 else first[:57].rsplit(" ", 1)[0] + "…"
 
 
 def plural(n, one, many):
@@ -97,7 +107,7 @@ def build_thread(version, notes_file):
     if not notes:
         sys.exit(f"ERROR: no release notes found in {notes_file}")
 
-    counts = {t: sum(1 for nt, _, _ in notes if nt == t) for t in LABELS}
+    counts = {t: sum(1 for nt, _, _, _ in notes if nt == t) for t in LABELS}
     parts = []
     if counts["New"]:
         parts.append(plural(counts["New"], "new feature", "new features"))
@@ -108,13 +118,28 @@ def build_thread(version, notes_file):
     summary = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
 
     release_url = RELEASE_URL.format(version=version)
-    posts = [(f"{header['emoji']} {header['text'].replace('{version}', version)}\n\n"
-              f"{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}", [("Release notes", release_url)], [])]
+    # The first post: a TL;DR of the release (one line per note) if it fits, otherwise a count of the changes
+    title_line = f"{header['emoji']} {header['text'].replace('{version}', version)}"
+    tldr = "\n".join(f"{EMOJI[t]} {nt_title}" for t, nt_title, _, _ in notes)
+    first = f"{title_line}\n\n{tldr}\n\nDetails 🧵 Release notes\n\n{HASHTAGS_LINE}"
+    if len(first) <= MAX_CHARS:
+        posts = [(first, [("Release notes", release_url)], [])]
+    else:
+        # Too long for one post: the counts first, then the TL;DR as the second post (if that fits)
+        first = f"{title_line}\n\n{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}"
+        posts = [(first, [("Release notes", release_url)], [])]
+        tldr_post = f"In this release:\n\n{tldr}"
+        if len(tldr_post) <= MAX_CHARS:
+            posts.append((tldr_post, [], []))
 
-    for note_type, text, images in notes:
-        label = LABELS[note_type]
-        chunks = split_text(text, MAX_CHARS - len(label) - 1 - len(INLINE_TAGS))   # Room for the # signs
-        posts.append((add_inline_tags(f"{label} {chunks[0]}"), [], images[:4]))   # Screenshots go on the note's first post
+    for note_type, note_title, text, images in notes:
+        label = f"{EMOJI[note_type]} {LABELS[note_type]}: {note_title}\n\n"
+        first_limit = MAX_CHARS - len(label) - len(INLINE_TAGS)   # Room for the # signs
+        chunks = split_text(text, first_limit)
+        if len(chunks) > 1:   # Re-split the rest with the full length available
+            rest = text[len(chunks[0]):].strip()
+            chunks = [chunks[0]] + split_text(rest, MAX_CHARS - len(INLINE_TAGS))
+        posts.append((add_inline_tags(f"{label}{chunks[0]}"), [], images[:4]))   # Screenshots go on the note's first post
         for chunk in chunks[1:]:
             posts.append((add_inline_tags(chunk), [], []))
 

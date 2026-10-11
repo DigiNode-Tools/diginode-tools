@@ -30,7 +30,8 @@ import urllib.request
 
 RELEASE_URL = "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v{version}"
 SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
-LABELS = {"New": "✨ <b>New:</b>", "Improvement": "🛠️ <b>Improvement:</b>", "Fix": "🐛 <b>Fix:</b>"}
+LABELS = {"New": "New", "Improvement": "Improvement", "Fix": "Fix"}
+EMOJI = {"New": "✨", "Improvement": "🛠️", "Fix": "🐛"}
 MAX_TEXT = 4000      # Telegram allows 4096 characters per message
 MAX_CAPTION = 1000   # ...and 1024 per photo caption
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -45,18 +46,28 @@ def release_count():
 
 
 def read_notes(path):
-    """Return [(type, text, images)] for each '- Type: text' line; images is [(url, alt)] from '![alt](url)' lines."""
+    """Return [(type, title, text, images)] for each '- Type: text' line in the release notes. A note can start with a
+    short bold title ('- New: **Title** - text'), used in the TL;DR; images is [(url, alt)] from '![alt](url)' lines
+    under the note."""
     notes = []
     with open(path, encoding="utf-8") as f:
         for line in f:
             m = re.match(r"^- (New|Improvement|Fix): (.+)$", line.strip())
             if m:
-                notes.append((m.group(1), m.group(2), []))
+                t = re.match(r"^\*\*(.+?)\*\*\s*[-–—]\s*(.+)$", m.group(2))
+                title, text = (t.group(1), t.group(2)) if t else (short_title(m.group(2)), m.group(2))
+                notes.append((m.group(1), title, text, []))
                 continue
             img = re.match(r"^!\[(.*)\]\((https://\S+)\)$", line.strip())
             if img and notes:
-                notes[-1][2].append((img.group(2), img.group(1)))
+                notes[-1][3].append((img.group(2), img.group(1)))
     return notes
+
+
+def short_title(text):
+    """For a note without a title: its first sentence, cut to about 60 characters."""
+    first = re.split(r"(?<=[.!?])\s", text, maxsplit=1)[0].rstrip(".")
+    return first if len(first) <= 60 else first[:57].rsplit(" ", 1)[0] + "…"
 
 
 def plural(n, one, many):
@@ -74,7 +85,7 @@ def build_messages(version, notes_file):
     if not notes:
         sys.exit(f"ERROR: no release notes found in {notes_file}")
 
-    counts = {t: sum(1 for nt, _, _ in notes if nt == t) for t in LABELS}
+    counts = {t: sum(1 for nt, _, _, _ in notes if nt == t) for t in LABELS}
     parts = []
     if counts["New"]:
         parts.append(plural(counts["New"], "new feature", "new features"))
@@ -86,7 +97,9 @@ def build_messages(version, notes_file):
     summary = summary[0].upper() + summary[1:]
 
     title = header["text"].replace("{version}", version)
-    messages = [("text", f"{header['emoji']} <b>{html.escape(title, quote=False)}</b>\n\n{summary} 👇")]
+    # The pinned message: a TL;DR of the release - one line per note (its title)
+    tldr = "\n".join(f"{EMOJI[t]} {html.escape(nt_title, quote=False)}" for t, nt_title, _, _ in notes)
+    messages = [("text", f"{header['emoji']} <b>{html.escape(title, quote=False)}</b>\n\n{tldr}\n\n{summary} - details below 👇")]
 
     footer = (f"To update, run <code>diginode-setup</code> and choose <b>Update</b>.\n"
               f"<a href=\"{RELEASE_URL.format(version=version)}\">Release notes on GitHub</a>\n\n"
@@ -103,8 +116,9 @@ def build_messages(version, notes_file):
                 text = pending.pop(0)[:MAX_TEXT - len(footer) - 10] + "…"
             messages.append(("text", text))
 
-    for note_type, text, images in notes:
-        note = f"{LABELS[note_type]} {html.escape(text, quote=False)}"
+    for note_type, note_title, text, images in notes:
+        note = (f"{EMOJI[note_type]} <b>{LABELS[note_type]}: {html.escape(note_title, quote=False)}</b>\n"
+                f"{html.escape(text, quote=False)}")
         if images:
             flush()
             caption = note if len(note) <= MAX_CAPTION else note[:MAX_CAPTION - 1] + "…"
