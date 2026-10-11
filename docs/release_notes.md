@@ -1,5 +1,7 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools - Unreleased
+
 DigiNode Tools v26.10.03 - 2026-10-11
 - Fix: DigiNode Setup could install the main branch of DigiNode Tools (used for final testing) instead of the latest release. This happened when GitHub limited how often your DigiNode could check for updates. DigiNode Setup now finds the latest release in a way that isn't limited, and if it still can't find it, it keeps your current version rather than installing anything else.
 
