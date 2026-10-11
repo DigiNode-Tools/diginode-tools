@@ -1,5 +1,8 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v26.10.03 - 2026-10-11
+- Fix: DigiNode Setup could install the main branch of DigiNode Tools (used for final testing) instead of the latest release. This happened when GitHub limited how often your DigiNode could check for updates. DigiNode Setup now finds the latest release in a way that isn't limited, and if it still can't find it, it keeps your current version rather than installing anything else.
+
 DigiNode Tools v26.10.02 - 2026-10-11
 - New: When you quit DigiNode Dashboard and a DigiByte Core update is available, you can now choose "Don't ask me again". DigiNode Dashboard will then stop asking you to upgrade from the version of DigiByte Core you have installed, until you next upgrade or downgrade it. It still shows that an update is available, and you can upgrade at any time by running 'diginode-setup' and choosing Update. Updates to DigiNode Tools are still offered.
 - Improvement: DigiNode Setup no longer waits for DigiByte Core to finish starting up before checking for updates, which could take 10 minutes or more. It now reads the installed version from the DigiByte Core install folder, which also gives the exact version of pre-releases.

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v26.10.02
+#           Name:  DigiNode Dashboard v26.10.03
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,7 +47,7 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=26.10.02
+DGNT_VER_LOCAL=26.10.03
 # Last Updated: 2026-10-11
 
 # Convert to a fixed width string of 9 characters to display in the script
@@ -4516,7 +4516,7 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
     # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(curl --max-time 4 -sfL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    dgnt_ver_release_query=$(get_dgnt_release_version)
       if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
