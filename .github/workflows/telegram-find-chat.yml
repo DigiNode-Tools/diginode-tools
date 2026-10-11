@@ -1,0 +1,24 @@
+name: Telegram - find group ID (temporary)
+
+# Temporary: lists the chats the DigiNode Tools bot has been added to, so we can find the group's ID.
+# Prints chat names and IDs only, never the bot token. Remove this workflow once the ID is saved.
+
+on:
+  push:
+    branches: [feature/telegram-announce]
+    paths: [.github/workflows/telegram-find-chat.yml]
+
+permissions: {}
+
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: List chats
+        env:
+          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -sf "https://api.telegram.org/bot${TOKEN}/getMe" | jq -r '"Bot: @" + .result.username'
+          curl -sf "https://api.telegram.org/bot${TOKEN}/getUpdates?allowed_updates=%5B%22my_chat_member%22%2C%22message%22%5D" \
+            | jq -r '[.result[] | (.my_chat_member.chat // .message.chat) | select(. != null)] | unique_by(.id)[] | "Chat: \(.title // .username // "private")  type=\(.type)  id=\(.id)"'
