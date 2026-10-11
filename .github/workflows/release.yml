@@ -24,7 +24,7 @@ on:
 
 permissions:
   contents: write
-  issues: write   # To report a failed Telegram announcement
+  issues: write   # To report a failed Telegram or Bluesky announcement
 
 concurrency:
   group: release
@@ -116,11 +116,18 @@ jobs:
             echo '```'
             echo "### GitHub release notes"
             cat "$NOTES_FILE"
-            if [ -x .github/telegram-announce.sh ]; then
+            if [ -x .github/telegram-announce.py ]; then
               echo
               echo "### Telegram announcement"
               echo '```html'
-              .github/telegram-announce.sh preview "$VERSION" "$NOTES_FILE"
+              .github/telegram-announce.py preview "$VERSION" "$NOTES_FILE"
+              echo '```'
+            fi
+            if [ -x .github/bluesky-announce.py ]; then
+              echo
+              echo "### Bluesky thread"
+              echo '```'
+              .github/bluesky-announce.py preview "$VERSION" "$NOTES_FILE"
               echo '```'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
@@ -149,9 +156,36 @@ jobs:
           VERSION: ${{ steps.prep.outputs.version }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
         run: |
-          if [ -x .github/telegram-announce.sh ]; then
-            .github/telegram-announce.sh send "$VERSION" "$NOTES_FILE"
+          if [ -x .github/telegram-announce.py ]; then
+            .github/telegram-announce.py send "$VERSION" "$NOTES_FILE"
           fi
+
+      # Post the release notes on Bluesky as a thread (from the DigiNode Tools account). Skipped until the app password
+      # secret is set. If this fails, the release has still been published - an issue is opened instead.
+      - name: Announce on Bluesky
+        id: bluesky
+        if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
+        continue-on-error: true
+        env:
+          BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          if [ -z "$BLUESKY_APP_PASSWORD" ] || [ -z "$BLUESKY_HANDLE" ]; then
+            echo "Bluesky isn't set up yet (BLUESKY_HANDLE variable / BLUESKY_APP_PASSWORD secret) - skipping"
+          elif [ -x .github/bluesky-announce.py ]; then
+            .github/bluesky-announce.py send "$VERSION" "$NOTES_FILE"
+          fi
+
+      - name: Report a failed Bluesky announcement
+        if: ${{ steps.bluesky.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          gh issue create --title "Bluesky announcement failed for v$VERSION" \
+            --body "DigiNode Tools v$VERSION was released, but the Bluesky thread couldn't be posted (or was only partly posted). See the workflow run for the error: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Report a failed Telegram announcement
         if: ${{ steps.announce.outcome == 'failure' }}
