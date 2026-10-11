@@ -5289,6 +5289,11 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hostname 2>/dev/null
         fi
 
+        # The new hostname takes effect straight away. Restart avahi so the new .local address works too.
+        if systemctl is-active --quiet avahi-daemon 2>/dev/null; then
+            systemctl restart avahi-daemon 2>/dev/null
+        fi
+
     fi
 fi
 
@@ -6495,7 +6500,10 @@ swap_do_change() {
                 dialog --no-shadow --keep-tite --backtitle "Swap file created on USB stick" --title "Swap file created on USB stick" --msgbox "\nThe swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 8 ${c}
             fi
 
-            REBOOT_NEEDED="YES"
+            # The new swap file is turned on straight away. Only suggest a restart if it isn't active.
+            if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
+                REBOOT_NEEDED="YES"
+            fi
 
 
 
@@ -6585,7 +6593,10 @@ swap_do_change() {
 
             fi
 
-            REBOOT_NEEDED="YES"
+            # The new swap file is turned on straight away. Only suggest a restart if it isn't active.
+            if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
+                REBOOT_NEEDED="YES"
+            fi
 
         else
 
@@ -10057,10 +10068,6 @@ final_messages() {
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
-        printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
@@ -10083,20 +10090,22 @@ final_messages() {
 
     # Display restart messages, if needed
     if [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b %bYour hostname has been changed. You need to reboot now for the change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bYour hostname has been changed to '%s'.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${HOSTNAME_AFTER_REBOOT}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
+        printf "%b This terminal still shows the old name until you reconnect.\\n" "${INDENT}"
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "%b To reconnect over SSH: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
             printf "\\n"
             printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+            printf "%b To reconnect over SSH: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         fi
         printf "\\n"
-    elif [ "$REBOOT_NEEDED" = "YES" ]; then
-        printf "%b %bYou need to reboot now for your swap file change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
+
+    if [ "$REBOOT_NEEDED" = "YES" ]; then
+        printf "%b %bYour new swap file isn't active yet. Restart your DigiNode to turn it on.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -21185,7 +21194,7 @@ install_or_upgrade() {
     hostname_ask_change
 
 
-    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+    ### CHANGE HOSTNAME LAST (THE SSH CONNECTION MAY NEED TO RECONNECT USING THE NEW NAME) ###
 
     # Change the hostname
     hostname_do_change
