@@ -2223,8 +2223,14 @@ quit_message() {
     #Set this so the backup reminder works
     NewInstall=False
 
+    # Ask about a DigiByte Core update, unless the user chose "Don't ask me again" for the version they have installed
+    local ask_dgb_update="no"
+    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] && [ "$DGB_VER_LOCAL" != "$DGB_UPGRADE_PROMPT_SKIP_VER" ]; then
+        ask_dgb_update="yes"
+    fi
+
     # On quit, if there are updates available, ask the user if they want to install them
-    if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ] && [ "$auto_quit" != true ]; then
+    if [ "$ask_dgb_update" = "yes" ] || [ "$DGA_UPDATE_AVAILABLE" = "yes" ] || [ "$DGNT_UPDATE_AVAILABLE" = "yes" ] || [ "$IPFS_UPDATE_AVAILABLE" = "yes" ] && [ "$auto_quit" != true ]; then
 
       # Install updates now
 
@@ -2236,9 +2242,29 @@ quit_message() {
       # Display a random DigiFact
       display_digifact_fixedwidth
 
-      printf "  %b %bThere are software updates available for your DigiNode.%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      printf "  %b %bThere are software updates available for your DigiNode:%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
       printf "\\n"
-      read -n 1 -r -s -p "         Would you like to install them now? (Y/N)"
+      if [ "$ask_dgb_update" = "yes" ]; then
+          printf "         DigiByte Core v%s  >>  v%s\\n" "$DGB_VER_LOCAL" "$DGB_VER_GITHUB"
+      fi
+      if [ "$DGNT_UPDATE_AVAILABLE" = "yes" ]; then
+          printf "         DigiNode Tools v%s  >>  v%s\\n" "$DGNT_VER_LOCAL" "$DGNT_VER_RELEASE"
+      fi
+      if [ "$IPFS_UPDATE_AVAILABLE" = "yes" ]; then
+          printf "         IPFS Kubo v%s  >>  v%s\\n" "$IPFS_VER_LOCAL" "$IPFS_VER_RELEASE"
+      fi
+      if [ "$DGA_UPDATE_AVAILABLE" = "yes" ]; then
+          printf "         DigiAsset Node v%s  >>  v%s\\n" "$DGA_VER_LOCAL" "$DGA_VER_RELEASE"
+      fi
+      printf "\\n"
+
+      if [ "$ask_dgb_update" = "yes" ]; then
+          printf "         Would you like to install them now?\\n"
+          printf "         Y = Yes   N = No   D = Don't ask me again to upgrade from DigiByte Core v%s\\n" "$DGB_VER_LOCAL"
+          read -n 1 -r -s -p "         Please choose Y, N or D: "
+      else
+          read -n 1 -r -s -p "         Would you like to install them now? (Y/N)"
+      fi
       printf "\\n"
 
       if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -2249,14 +2275,30 @@ quit_message() {
        # Display cursor again
         tput cnorm
 
-        exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
-        
+        # If the user chose not to be asked about upgrading DigiByte Core, leave it at the version they have
+        if [ "$DGB_UPDATE_AVAILABLE" = "yes" ] && [ "$ask_dgb_update" = "no" ] && [ "$DGB_VER_LOCAL" != "" ]; then
+            exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor --dgbver="$DGB_VER_LOCAL"
+        else
+            exec curl -sSL setup.diginode.tools | bash -s -- --unattended --statusmonitor
+        fi
+
         updates_installed="yes"
 
         # Enabling line wrapping.
         printf '\e[?7h'
 
         exit
+      elif [[ $REPLY =~ ^[Dd]$ ]] && [ "$ask_dgb_update" = "yes" ]; then
+        DGB_UPGRADE_PROMPT_SKIP_VER="$DGB_VER_LOCAL"
+        if grep -q "^DGB_UPGRADE_PROMPT_SKIP_VER=" $DGNT_SETTINGS_FILE; then
+            sed -i -e "/^DGB_UPGRADE_PROMPT_SKIP_VER=/s|.*|DGB_UPGRADE_PROMPT_SKIP_VER=\"$DGB_UPGRADE_PROMPT_SKIP_VER\"|" $DGNT_SETTINGS_FILE
+        else
+            echo "DGB_UPGRADE_PROMPT_SKIP_VER=\"$DGB_UPGRADE_PROMPT_SKIP_VER\"" >> $DGNT_SETTINGS_FILE
+        fi
+        printf "\\n"
+        printf "  %b DigiNode Dashboard won't ask you again to upgrade from DigiByte Core v%s.\\n" "${INFO}" "$DGB_VER_LOCAL"
+        printf "      To upgrade DigiByte Core, run 'diginode-setup' and choose Update.\\n"
+        updates_installed="no"
       else
         updates_installed="no"
       fi
@@ -3267,6 +3309,46 @@ TEST_CONDITION=0
 ######################################################################################
 ############## THE LOOP STARTS HERE - ENTIRE LOOP RUNS ONCE A SECOND #################
 ######################################################################################
+
+# Lookup the version and branch of the installed DigiNode Tools, and update the version shown in the Dashboard.
+# Runs at startup as well as every 15 minutes, so the Dashboard never shows the version stored in diginode.settings
+# (which can be out of date, e.g. straight after an upgrade).
+get_dgnt_local_version() {
+
+    # Lookup DigiNode Tools local version and branch, if any
+    if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
+        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
+        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
+    fi
+
+    # If we get a valid version number, update the stored local version
+    if [ "$dgnt_ver_local_query" != "" ]; then
+        DGNT_VER_LOCAL=$dgnt_ver_local_query
+        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # If we get a valid local branch, update the stored local branch
+    if [ "$dgnt_branch_local_query" != "" ]; then
+        # If it returns head, set it to release
+        if [ "$dgnt_branch_local_query" = "HEAD" ]; then
+            dgnt_branch_local_query="release"
+        fi
+        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
+        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
+    fi
+
+    # Update DigiNode Tools display variable
+    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
+        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
+        DGNT_VER_LOCAL_DISPLAY="dev-branch"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
+        DGNT_VER_LOCAL_DISPLAY="main-branch"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    fi
+}
 
 status_loop() {
 
@@ -4364,39 +4446,8 @@ if [ $TIME_DIF_15MIN -ge 900 ]; then
     fi
 
 
-    # Lookup DigiNode Tools local version and branch, if any
-    if [[ -f "$DGNT_MONITOR_SCRIPT" ]]; then
-        dgnt_ver_local_query=$(cat $DGNT_MONITOR_SCRIPT | grep -m1 DGNT_VER_LOCAL  | cut -d'=' -f2)
-        dgnt_branch_local_query=$(git -C $DGNT_LOCATION rev-parse --abbrev-ref HEAD 2>/dev/null)
-    fi
-
-    # If we get a valid version number, update the stored local version
-    if [ "$dgnt_ver_local_query" != "" ]; then
-        DGNT_VER_LOCAL=$dgnt_ver_local_query
-        sed -i -e "/^DGNT_VER_LOCAL=/s|.*|DGNT_VER_LOCAL=\"$DGNT_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # If we get a valid local branch, update the stored local branch
-    if [ "$dgnt_branch_local_query" != "" ]; then
-        # If it returns head, set it to release
-        if [ "$dgnt_branch_local_query" = "HEAD" ]; then
-            dgnt_branch_local_query="release"
-        fi
-        DGNT_BRANCH_LOCAL=$dgnt_branch_local_query
-        sed -i -e "/^DGNT_BRANCH_LOCAL=/s|.*|DGNT_BRANCH_LOCAL=\"$DGNT_BRANCH_LOCAL\"|" $DGNT_SETTINGS_FILE
-    fi
-
-    # Update DigiNode Tools display variable
-    if [ "$DGNT_BRANCH_LOCAL" = "release" ]; then
-        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL}"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_BRANCH_LOCAL" = "develop" ]; then
-        DGNT_VER_LOCAL_DISPLAY="dev-branch"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-    elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
-        DGNT_VER_LOCAL_DISPLAY="main-branch"
-        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
-    fi
+    # Lookup DigiNode Tools local version and branch
+    get_dgnt_local_version
 
     # When the user quits, enable showing a donation plea (this ensures it is not shown more than once every 15 mins)
     DONATION_PLEA=YES
@@ -6921,6 +6972,7 @@ startup_checks() {
   set_sys_variables                # Set various system variables once we know we are on linux
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version
+  get_dgnt_local_version           # Get the version of DigiNode Tools that is installed (rather than the stored one)
   disclaimerDialog                 # Display Disclaimer
   get_dgb_releases_file            # Get the verified DigiByte Core releases for the current update group.
   swap_check                       # if this system has 4Gb or less RAM, check there is a swap drive

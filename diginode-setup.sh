@@ -1048,6 +1048,10 @@ UPDATE_GROUP="$UPDATE_GROUP"
 # This keeps track of wther the user has agreed to the disclaimer.
 DIGINODE_DISCLAIMER="${DIGINODE_DISCLAIMER:-ASK}"
 
+# When you quit DigiNode Dashboard, it won't ask you to upgrade DigiByte Core while this version is installed. This is
+# set when you choose "Don't ask me again". It stops applying as soon as you upgrade or downgrade DigiByte Core.
+DGB_UPGRADE_PROMPT_SKIP_VER="$DGB_UPGRADE_PROMPT_SKIP_VER"
+
 # Tor Config
 INSTALLED_TOR_GPG_KEY=$INSTALLED_TOR_GPG_KEY
 
@@ -12578,7 +12582,22 @@ use_requested_dgb_version() {
 }
 
 
-# This function will check if DigiByte Node is installed, and if it is, check if there is an update available
+# Print the installed version of DigiByte Core, from the name of the folder that ~/digibyte links to (e.g. digibyte-9.26.7).
+# DigiNode Setup names that folder from the verified release, so it is always the exact release version - unlike
+# 'digibyted --version' or the running node, which report e.g. 8.22.0-rc5 and 8.22.0-final both as 8.22.0. It also works
+# while DigiByte Core is stopped or still starting up. Prints nothing if this isn't a DigiNode install of DigiByte Core.
+get_dgb_installed_version() {
+    local folder
+    [ -L "$DGB_INSTALL_LOCATION" ] || return 0
+    folder=$(basename "$(readlink -f "$DGB_INSTALL_LOCATION")")
+    if [[ "$folder" =~ ^digibyte-([0-9]+\.[0-9]+(\.[0-9]+)*(-?rc[0-9]+|-final)?)$ ]] && [ -x "$DGB_INSTALL_LOCATION/bin/digibyted" ]; then
+        echo "${BASH_REMATCH[1]}"
+    fi
+}
+
+# This function will check if DigiByte Node is installed, and if it is, check if there is an update available.
+# By default it waits for DigiByte Core to finish starting up (e.g. a backup needs the wallet). Set DGB_WAIT_FOR_STARTUP=NO
+# to skip the wait when only the installed version is needed - it is then read from the install folder instead.
 
 check_digibyte_core() {
 
@@ -12748,6 +12767,19 @@ check_digibyte_core() {
         fi
     fi
 
+    # The installed version, if it can be read from the install folder (no need to ask the node)
+    local dgb_folder_ver
+    dgb_folder_ver=$(get_dgb_installed_version)
+
+    # Updates only need the installed version, so don't wait for a node that is still starting up
+    local skip_startup_wait="no"
+    if [ "$DGB_WAIT_FOR_STARTUP" = "NO" ] && [ "$dgb_folder_ver" != "" ]; then
+        if [ "$DGB_STATUS" = "startingup" ] || [ "$DGB2_STATUS" = "startingup" ]; then
+            printf "%b DigiByte Core is still starting up. No need to wait - the installed version is known.\\n" "${INFO}"
+        fi
+        skip_startup_wait="yes"
+    fi
+
     # Check if any at least one chain is running
     if [ "$DGB_STATUS" = "running" ] && [ "$DGB2_STATUS" = "running" ]; then
         query_which_dgb_node="primary"
@@ -12758,7 +12790,7 @@ check_digibyte_core() {
 
     # If primary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
-    elif [ "$DGB_STATUS" = "startingup" ]; then
+    elif [ "$DGB_STATUS" = "startingup" ] && [ "$skip_startup_wait" = "no" ]; then
         every10secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bDigiByte Core is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -12810,7 +12842,7 @@ check_digibyte_core() {
 
     # If secondary DigiByte Node is currently in the process of starting up, we need to wait until it
     # can actually respond to requests so we can get the current version number from digibyte-cli
-    elif [ "$DGB2_STATUS" = "startingup" ]; then
+    elif [ "$DGB2_STATUS" = "startingup" ] && [ "$skip_startup_wait" = "no" ]; then
         every10secs=0
         progress="[${COL_BOLD_WHITE}◜ ${COL_NC}]"
         printf "%b %bDigiByte secondary node is in the process of starting up. This can take 10 mins or more.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
@@ -12930,8 +12962,21 @@ check_digibyte_core() {
     fi
 
     # Get the version number of the current DigiByte Node and write it to to the settings file
-    # Use whichever node is running to find this out (primary node, or the secondary testnet node, if we are running a Dual Node)
-    if [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
+    # This is read from the install folder if possible (see get_dgb_installed_version). Otherwise use whichever node is
+    # running to find this out (primary node, or the secondary testnet node, if we are running a Dual Node)
+    if [ "$dgb_folder_ver" != "" ]; then
+
+        str="Current Version:"
+        printf "%b %s" "${INFO}" "${str}"
+        DGB_VER_LOCAL="$dgb_folder_ver"
+        sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+        if [ "$DGB_PRERELEASE" = "YES" ]; then
+            printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}  [ Pre-release ]\\n" "${OVER}" "${INFO}" "${str}"
+        else
+            printf "%b%b %s DigiByte Core v${DGB_VER_LOCAL}\\n" "${OVER}" "${INFO}" "${str}"
+        fi
+
+    elif [ "$DGB_STATUS" = "running" ] || [ "$DGB2_STATUS" = "running" ]; then
 
         str="Current Version:"
         printf "%b %s" "${INFO}" "${str}"
@@ -17453,7 +17498,9 @@ menu_confirm_chosen_dgb_version() {
                     DGB_DO_INSTALL=""
                     DGB_INSTALL_TYPE=""
                     dgb_downgrade_requested=false
+                    DGB_WAIT_FOR_STARTUP=NO
                     check_digibyte_core
+                    DGB_WAIT_FOR_STARTUP=""
                 fi
                 ;;
             *)  # No - don't install it
@@ -20354,8 +20401,10 @@ install_or_upgrade() {
 
     ### PREVIOUS INSTALL - CHECK FOR UPDATES ###
 
-    # Check if DigiByte Core is installed, and if there is an upgrade available
+    # Check if DigiByte Core is installed, and if there is an upgrade available (no need to wait for it to start up)
+    DGB_WAIT_FOR_STARTUP=NO
     check_digibyte_core
+    DGB_WAIT_FOR_STARTUP=""
 
     # Check if DNSU is installed, and if there is an upgrade available
 #!!   check_dnsu
