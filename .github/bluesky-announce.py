@@ -28,6 +28,8 @@ SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
 MAX_CHARS = 290          # Bluesky allows 300 graphemes per post; counting code points (never fewer) keeps us safely under
 PDS = "https://bsky.social/xrpc"
 LABELS = {"New": "✨ New:", "Improvement": "🛠️ Improvement:", "Fix": "🐛 Fix:"}
+HASHTAGS_LINE = "#DigiByte #DGB #DigiNode"   # Added to the first post
+INLINE_TAGS = ["DigiNode", "DigiByte"]      # The first mention of each in a post becomes a hashtag
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -101,23 +103,44 @@ def build_thread(version, notes_file):
 
     release_url = RELEASE_URL.format(version=version)
     posts = [(f"{header['emoji']} {header['text'].replace('{version}', version)}\n\n"
-              f"{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes", [("Release notes", release_url)])]
+              f"{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}", [("Release notes", release_url)])]
 
     for note_type, text in notes:
         label = LABELS[note_type]
-        chunks = split_text(text, MAX_CHARS - len(label) - 1)
-        posts.append((f"{label} {chunks[0]}", []))
+        chunks = split_text(text, MAX_CHARS - len(label) - 1 - len(INLINE_TAGS))   # Room for the # signs
+        posts.append((add_inline_tags(f"{label} {chunks[0]}"), []))
         for chunk in chunks[1:]:
-            posts.append((chunk, []))
+            posts.append((add_inline_tags(chunk), []))
 
     link_text = sponsor["link_text"]
-    posts.append((f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}",
+    posts.append((add_inline_tags(f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}"),
                   [(link_text, SPONSOR_URL)]))
 
     for text, _ in posts:
         if len(text) > 300:
             sys.exit(f"ERROR: a post is too long ({len(text)} characters): {text[:60]}...")
     return posts
+
+
+def add_inline_tags(text):
+    """Turn the first mention of each INLINE_TAGS word in a post into a hashtag (e.g. DigiNode Setup -> #DigiNode Setup)."""
+    for word in INLINE_TAGS:
+        if re.search(rf"(?<![\w#]){word}\b", text) and f"#{word}" not in text:
+            text = re.sub(rf"(?<![\w#]){word}\b", f"#{word}", text, count=1)
+    return text
+
+
+def tag_facets(text):
+    """Bluesky marks hashtags separately, by their position in the text in UTF-8 bytes."""
+    facets = []
+    for m in re.finditer(r"(?<![\w#])#(DigiNode|DigiByte|DGB)\b", text):
+        start = len(text[:m.start()].encode("utf-8"))
+        end = len(text[:m.end()].encode("utf-8"))
+        facets.append({
+            "index": {"byteStart": start, "byteEnd": end},
+            "features": [{"$type": "app.bsky.richtext.facet#tag", "tag": m.group(1)}],
+        })
+    return facets
 
 
 def link_facets(text, links):
@@ -164,7 +187,7 @@ def send(posts):
             "langs": ["en"],
             "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
         }
-        facets = link_facets(text, links)
+        facets = link_facets(text, links) + tag_facets(text)
         if facets:
             record["facets"] = facets
         if parent:
@@ -191,6 +214,9 @@ def main():
             print(text)
             for link_text, url in links:
                 print(f"    [link: \"{link_text}\" -> {url}]")
+            tags = [f["features"][0]["tag"] for f in tag_facets(text)]
+            if tags:
+                print(f"    [hashtags: {', '.join('#' + t for t in tags)}]")
         return
     send(posts)
 
