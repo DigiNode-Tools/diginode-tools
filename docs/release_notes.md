@@ -1,5 +1,12 @@
 ## DigiNode Tools Release Notes
 
+DigiNode Tools v26.10.02 - 2026-10-11
+- New: When you quit DigiNode Dashboard and a DigiByte Core update is available, you can now choose "Don't ask me again". DigiNode Dashboard will then stop asking you to upgrade from the version of DigiByte Core you have installed, until you next upgrade or downgrade it. It still shows that an update is available, and you can upgrade at any time by running 'diginode-setup' and choosing Update. Updates to DigiNode Tools are still offered.
+- Improvement: DigiNode Setup no longer waits for DigiByte Core to finish starting up before checking for updates, which could take 10 minutes or more. It now reads the installed version from the DigiByte Core install folder, which also gives the exact version of pre-releases.
+- Fix: DigiByte Core is now given up to 10 minutes to shut down safely (previously 60 seconds). A node that is busy syncing, especially on a Raspberry Pi, could take longer than that to save its database, and was then force-stopped, which risks corrupting the blockchain data. Existing DigiNodes are updated automatically.
+- Fix: DigiNode Dashboard no longer sometimes shows the previous version of DigiNode Tools when it starts, e.g. straight after an upgrade.
+- Fix: DigiNode Dashboard no longer briefly shows a "du: cannot access" error at the bottom of the screen, about once a minute, while a DigiByte node is syncing.
+
 DigiNode Tools v26.10.01 - 2026-10-10
 - New: You can now install any version of DigiByte Core that has been verified for your DigiNode, going back to v7.17.2. Choose Version from the DigiNode Setup main menu to upgrade or downgrade. During a new install, you can choose to install the latest version (recommended) or an earlier one. Older pre-releases are always listed; a pre-release that is newer than the latest release is only listed if you use the --dgbpre flag. You are warned before installing an older version, and before downgrading to an older major version, which may require the blockchain to be resynced. You then confirm the version you chose, or go back and choose a different one.
 - New: Install a specific version of DigiByte Core from the command line with the --dgbver flag (e.g. --dgbver=8.26.2). For an unattended install, set UI_DGB_VERSION in diginode.settings.
