@@ -39,7 +39,7 @@ header="🚀 <b>DigiNode Tools v$VERSION is out!</b>"
 footer="To update, run <code>diginode-setup</code> and choose <b>Update</b>.
 <a href=\"$RELEASE_URL\">Release notes on GitHub</a>
 
-💙 DigiNode Tools is free, and I build it in my spare time. If you find it useful, please consider <a href=\"$SPONSOR_URL\">sponsoring me</a>. Thank you!"
+💙 Enjoying DigiNode Tools? Sponsors make it possible for me to spend more time on it, including the bigger features on the roadmap. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
 
 build() {
     printf '%s\n\n%s\n\n%s' "$header" "$1" "$footer"
