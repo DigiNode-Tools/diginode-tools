@@ -97,8 +97,9 @@ case "$MODE" in
         if [ "$(echo "$response" | jq -r '.ok')" = "true" ]; then
             echo "Pinned it"
         else
-            # Not worth failing over - the announcement was posted
-            echo "WARNING: couldn't pin it: $(echo "$response" | jq -r '.description // "no response"')" >&2
+            # The post was sent silently, so without the pin nobody was notified - report it
+            echo "ERROR: posted, but couldn't pin it (so members weren't notified): $(echo "$response" | jq -r '.description // "no response"')" >&2
+            exit 1
         fi
         ;;
 
