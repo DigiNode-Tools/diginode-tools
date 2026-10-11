@@ -1,6 +1,10 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools - Unreleased
+- New: DigiNode Setup can now install operating system updates for you automatically, once a day in the background (Debian, Ubuntu and Raspberry Pi OS). You are asked once: security and stability updates (recommended), all updates, or off. You can change this at any time from the new System option in the DigiNode Setup main menu. For an unattended install, set UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings.
+- New: Your DigiNode can now restart itself automatically when an update needs a restart to finish, such as a new Linux kernel. It only restarts when needed, at 04:00 (you can change the time from the System menu), and never while it is busy - for example while DigiNode Setup is running or software is being installed. If it is busy, it tries again every 30 minutes for the next two hours, and otherwise the next night. Your DigiByte node is shut down safely and starts again automatically.
+- New: If your DigiNode needs a restart to finish installing system updates, you are now told when DigiNode Setup finishes, when you close DigiNode Dashboard, and when you log in (if you use the DigiNode MOTD). It also tells you if an automatic restart was skipped, and why.
+- Fix: The reminder to install system updates now tells you to run 'sudo apt-get update && sudo apt-get upgrade'. Running only 'sudo apt-get upgrade' could fail with "404 Not Found" errors if the list of available updates was out of date.
 
 DigiNode Tools v26.10.04 - 2026-10-11
 - New: For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
