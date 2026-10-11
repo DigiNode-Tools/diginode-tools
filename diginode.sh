@@ -2242,7 +2242,17 @@ quit_message() {
       # Display a random DigiFact
       display_digifact_fixedwidth
 
-      printf "  %b %bThere are software updates available for your DigiNode:%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      # One update or several?
+      local update_count=0 them="them"
+      for u in "$ask_dgb_update" "$DGNT_UPDATE_AVAILABLE" "$IPFS_UPDATE_AVAILABLE" "$DGA_UPDATE_AVAILABLE"; do
+          [ "$u" = "yes" ] && update_count=$((update_count + 1))
+      done
+      if [ "$update_count" -eq 1 ]; then
+          them="it"
+          printf "  %b %bThere is a software update available for your DigiNode:%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      else
+          printf "  %b %bThere are software updates available for your DigiNode:%b\\n"  "${TICK}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+      fi
       printf "\\n"
       if [ "$ask_dgb_update" = "yes" ]; then
           printf "         DigiByte Core v%s  >>  v%s\\n" "$DGB_VER_LOCAL" "$DGB_VER_GITHUB"
@@ -2259,11 +2269,11 @@ quit_message() {
       printf "\\n"
 
       if [ "$ask_dgb_update" = "yes" ]; then
-          printf "         Would you like to install them now?\\n"
+          printf "         Would you like to install %s now?\\n" "$them"
           printf "         Y = Yes   N = No   D = Don't ask me again to upgrade from DigiByte Core v%s\\n" "$DGB_VER_LOCAL"
           read -n 1 -r -s -p "         Please choose Y, N or D: "
       else
-          read -n 1 -r -s -p "         Would you like to install them now? (Y/N)"
+          read -n 1 -r -s -p "         Would you like to install $them now? (Y/N)"
       fi
       printf "\\n"
 

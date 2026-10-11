@@ -9218,6 +9218,26 @@ fi
 
 
 # Create service so that DigiByte daemon will run at boot
+# DigiByte Core can take several minutes to shut down while it saves its database, especially on a Raspberry Pi that is
+# syncing. Older service files only allowed 60 seconds, after which systemd force-kills it, which can corrupt the
+# blockchain data. Allow 10 minutes (the same as Bitcoin Core) in existing service files. Normal shutdowns are still quick.
+fix_dgb_service_stop_timeout() {
+    local service_file updated="no"
+    for service_file in "$DGB_SYSTEMD_SERVICE_FILE" "$DGB2_SYSTEMD_SERVICE_FILE"; do
+        if [ -f "$service_file" ] && grep -q "^TimeoutStopSec=60s$" "$service_file"; then
+            str="Allowing $(basename "$service_file") up to 10 minutes to shut down safely..."
+            printf "%b %s" "${INFO}" "${str}"
+            sed -i -e "s/^TimeoutStopSec=60s$/TimeoutStopSec=600s/" "$service_file"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            updated="yes"
+        fi
+    done
+    if [ "$updated" = "yes" ]; then
+        systemctl daemon-reload
+        printf "\\n"
+    fi
+}
+
 create_digibyte_service() {
 
 # If you want to make changes to how DigiByte daemon services are created/managed for different systems, refer to this website:
@@ -9337,7 +9357,7 @@ ExecStart=${DGB_DAEMON} -daemon -pid=${DGB_SETTINGS_LOCATION}/digibyted.pid \\
 
 Restart=always
 PrivateTmp=true
-TimeoutStopSec=60s
+TimeoutStopSec=600s
 TimeoutStartSec=2s
 StartLimitInterval=120s
 StartLimitBurst=5
@@ -9551,7 +9571,7 @@ ExecStart=${DGB_DAEMON} -daemon -testnet -pid=${DGB_SETTINGS_LOCATION}/digibyted
 
 Restart=always
 PrivateTmp=true
-TimeoutStopSec=60s
+TimeoutStopSec=600s
 TimeoutStartSec=2s
 StartLimitInterval=120s
 StartLimitBurst=5
@@ -20449,6 +20469,9 @@ install_or_upgrade() {
 
     # Create/update digibyte.conf file
     create_digibyte_conf
+
+    # Give DigiByte Core long enough to shut down safely (before it is stopped for an upgrade)
+    fix_dgb_service_stop_timeout
 
     # Install/upgrade DigiByte Core
     do_digibyte_install_upgrade
