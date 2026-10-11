@@ -18328,17 +18328,24 @@ install_command_links() {
         make_command_link diginode-setup "$DGNT_SETUP_SCRIPT" "$DGNT_LOCATION/"
     fi
 
-    # DigiByte Core - every program in its bin folder (digibyte-cli, digibyted...). The links go via ~/digibyte,
-    # which always points to the installed version, so they keep working after an upgrade.
+    # DigiByte Core - its programs (digibyte-cli, digibyted...), but not test programs such as test_digibyte.
+    # The links go via ~/digibyte, which always points to the installed version, so they keep working after an upgrade.
     if [ -d "$DGB_INSTALL_LOCATION/bin" ]; then
-        local f
-        for f in "$DGB_INSTALL_LOCATION"/bin/*; do
+        local f link
+        for f in "$DGB_INSTALL_LOCATION"/bin/digibyte*; do
             if [ -f "$f" ] && [ -x "$f" ]; then
                 make_command_link "$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/"
             fi
         done
         # Remove links to programs that the installed version doesn't have
         remove_command_links "$DGB_INSTALL_LOCATION/bin/" only-if-target-missing
+        # Remove links to DigiByte Core programs that shouldn't be commands (e.g. test_digibyte)
+        for link in "$DGNT_COMMANDS_DIR"/*; do
+            if [ -L "$link" ] && [[ "$(readlink "$link")" == "$DGB_INSTALL_LOCATION/bin/"* ]] && [[ "$(basename "$link")" != digibyte* ]]; then
+                rm -f "$link"
+                printf "%b%b Removed command: %s\\n" "${OVER}" "${TICK}" "$(basename "$link")"
+            fi
+        done
     fi
 
     remove_old_bashrc_commands
