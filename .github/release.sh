@@ -14,10 +14,8 @@
 #                                         release notes for GitHub to $NOTES_FILE (default: release-notes.md)
 #   .github/release.sh bump VERSION       After VERSION is released: set the next placeholder version on develop, and
 #                                         start a new "Unreleased" section in the release notes
-#   .github/release.sh schedule DAYS      Schedule the next release for DAYS days from today, by writing the date to
-#                                         .github/release-on (commit it to develop). "cancel" removes it.
-#   .github/release.sh due                Exit 0 if a scheduled release is due today (the date in .github/release-on has
-#                                         arrived and there are release notes), and say why or why not
+#   .github/release.sh due                Exit 0 if the weekly release is due: it's 10:00 or later (UK time) and there
+#                                         are release notes under "Unreleased". Says why or why not.
 #
 # Release notes go under a "DigiNode Tools - Unreleased" heading at the top of docs/release_notes.md.
 
@@ -29,7 +27,6 @@ DASHBOARD="$ROOT/diginode.sh"
 NOTES="$ROOT/docs/release_notes.md"
 UNRELEASED="DigiNode Tools - Unreleased"
 TODAY=$(date -u +%Y-%m-%d)
-RELEASE_ON_FILE="$ROOT/.github/release-on"
 
 fail() { echo "ERROR: $1" >&2; exit 1; }
 
@@ -76,7 +73,6 @@ case "${1:-}" in
         [ "$entries" -gt 0 ] || fail "There is nothing under \"$UNRELEASED\" in docs/release_notes.md"
 
         set_version "$ver"
-        rm -f "$RELEASE_ON_FILE"   # The scheduled release (if any) is happening now
         heading="DigiNode Tools v$ver - $TODAY"
         sed -i.bak "s/^$UNRELEASED\$/$heading/" "$NOTES" && rm -f "$NOTES.bak"
 
@@ -99,41 +95,24 @@ case "${1:-}" in
         # Start a new Unreleased section above the release that was just made
         awk -v h="$UNRELEASED" 'done != 1 && /^DigiNode Tools v/ { print h; print ""; done = 1 } { print }' "$NOTES" > "$NOTES.new"
         mv "$NOTES.new" "$NOTES"
-
-        rm -f "$RELEASE_ON_FILE"
         echo "Develop is now v$next (placeholder until the next release)"
         ;;
 
-    schedule)
-        days="${2:?schedule needs a number of days, or cancel}"
-        if [ "$days" = "cancel" ]; then
-            rm -f "$RELEASE_ON_FILE"
-            echo "The scheduled release has been cancelled"
-            exit 0
-        fi
-        [[ "$days" =~ ^[0-9]+$ ]] && [ "$days" -ge 1 ] && [ "$days" -le 90 ] || fail "Days must be a number from 1 to 90"
-        # GNU date (GitHub Actions, Linux), or BSD date (Mac)
-        on=$(date -u -d "+$days days" +%Y-%m-%d 2>/dev/null || date -u -v+"$days"d +%Y-%m-%d)
-        echo "$on" > "$RELEASE_ON_FILE"
-        echo "The next release is scheduled for $on"
-        ;;
-
     due)
-        if [ ! -f "$RELEASE_ON_FILE" ]; then
-            echo "No release is scheduled"
+        # Weekly release (Tuesdays): the workflow runs at 09:07 and 10:07 UTC, so that one run is at 10:xx UK time
+        # whether or not it's summer time. Release at 10:00 UK time or later, if there is anything to release.
+        # (Once released, "Unreleased" is empty again, so the second run does nothing.)
+        uk_hour=${UK_HOUR:-$(TZ=Europe/London date +%H)}   # UK_HOUR can be set for testing
+        if [ "$((10#$uk_hour))" -lt 10 ]; then
+            echo "It's ${uk_hour}:xx UK time - the weekly release happens at 10:00"
             exit 1
         fi
-        on=$(tr -d '[:space:]' < "$RELEASE_ON_FILE")
-        [[ "$on" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || fail ".github/release-on doesn't contain a date (YYYY-MM-DD): $on"
-        if [[ "$TODAY" < "$on" ]]; then
-            echo "The next release is scheduled for $on - not yet"
+        entries=$(unreleased_entries)
+        if [ "$entries" -eq 0 ]; then
+            echo "Nothing to release - there is nothing under \"$UNRELEASED\" in docs/release_notes.md"
             exit 1
         fi
-        if [ "$(unreleased_entries)" -eq 0 ]; then
-            echo "A release was scheduled for $on, but there is nothing under \"$UNRELEASED\" in docs/release_notes.md"
-            exit 1
-        fi
-        echo "The release scheduled for $on is due"
+        echo "The weekly release is due ($entries release notes)"
         ;;
 
     *)
