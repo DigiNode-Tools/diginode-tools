@@ -35,6 +35,11 @@ notes=$(grep '^- ' "$NOTES_FILE" | sed 's/^- //' | html | sed -E \
     -e 's/^Fix: /🐛 <b>Fix:<\/b> /')
 [ -n "$notes" ] || { echo "ERROR: no release notes found in $NOTES_FILE" >&2; exit 1; }
 
+# Screenshots: '![alt text](https://...)' lines under the notes. Sent as a photo album after the announcement,
+# captioned with the alt text (Telegram allows up to 10 photos in an album).
+images_json=$(sed -nE 's/^[[:space:]]*!\[(.*)\]\((https:[^)]+)\)[[:space:]]*$/\2\t\1/p' "$NOTES_FILE" | head -10 \
+    | jq -R -s -c 'split("\n") | map(select(length > 0) | split("\t") | {type: "photo", media: .[0], caption: .[1]})')
+
 # The header and the sponsor line rotate, one per release (the wording is in .github/announcements.json, shared
 # with the Bluesky announcement). The release number (how many v* tags there are) picks them.
 TEXT_FILE="$(dirname "$0")/announcements.json"
@@ -79,6 +84,11 @@ case "$MODE" in
         echo "$message"
         echo
         echo "(${#message} characters)"
+        if [ "$(echo "$images_json" | jq 'length')" -gt 0 ]; then
+            echo
+            echo "Then a photo album:"
+            echo "$images_json" | jq -r '.[] | "  [photo: \(.media | split("/") | .[-2:] | join("/"))] \(.caption)"'
+        fi
         ;;
 
     send)
@@ -111,6 +121,28 @@ case "$MODE" in
             # The post was sent silently, so without the pin nobody was notified - report it
             echo "ERROR: posted, but couldn't pin it (so members weren't notified): $(echo "$response" | jq -r '.description // "no response"')" >&2
             exit 1
+        fi
+
+        # Then the screenshots, as an album (quietly - the pin has already notified people). Not worth failing over.
+        image_count=$(echo "$images_json" | jq 'length')
+        if [ "$image_count" -eq 1 ]; then
+            response=$(curl -sS --max-time 60 "$api/sendPhoto" \
+                --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+                --data-urlencode "photo=$(echo "$images_json" | jq -r '.[0].media')" \
+                --data-urlencode "caption=$(echo "$images_json" | jq -r '.[0].caption')" \
+                --data-urlencode "disable_notification=true")
+        elif [ "$image_count" -gt 1 ]; then
+            response=$(curl -sS --max-time 60 "$api/sendMediaGroup" \
+                --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
+                --data-urlencode "media=$images_json" \
+                --data-urlencode "disable_notification=true")
+        fi
+        if [ "$image_count" -gt 0 ]; then
+            if [ "$(echo "$response" | jq -r '.ok')" = "true" ]; then
+                echo "Sent $image_count screenshot(s)"
+            else
+                echo "WARNING: couldn't send the screenshots: $(echo "$response" | jq -r '.description // "no response"')" >&2
+            fi
         fi
         ;;
 

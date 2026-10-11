@@ -42,13 +42,18 @@ def release_count():
 
 
 def read_notes(path):
-    """Return [(type, text)] for each '- Type: text' line in the release notes."""
+    """Return [(type, text, images)] for each '- Type: text' line in the release notes. images is [(url, alt)] from
+    any '![alt](url)' lines under the note."""
     notes = []
     with open(path, encoding="utf-8") as f:
         for line in f:
             m = re.match(r"^- (New|Improvement|Fix): (.+)$", line.strip())
             if m:
-                notes.append((m.group(1), m.group(2)))
+                notes.append((m.group(1), m.group(2), []))
+                continue
+            img = re.match(r"^!\[(.*)\]\((https://\S+)\)$", line.strip())
+            if img and notes:
+                notes[-1][2].append((img.group(2), img.group(1)))
     return notes
 
 
@@ -81,7 +86,8 @@ def split_text(text, limit):
 
 
 def build_thread(version, notes_file):
-    """Return the thread as a list of posts. Each post is (text, links), links being [(link_text, url)]."""
+    """Return the thread as a list of posts. Each post is (text, links, images): links [(link_text, url)], images
+    [(url, alt)] (Bluesky allows up to 4 images per post)."""
     with open(os.path.join(HERE, "announcements.json"), encoding="utf-8") as f:
         wording = json.load(f)
     n = release_count()
@@ -91,7 +97,7 @@ def build_thread(version, notes_file):
     if not notes:
         sys.exit(f"ERROR: no release notes found in {notes_file}")
 
-    counts = {t: sum(1 for nt, _ in notes if nt == t) for t in LABELS}
+    counts = {t: sum(1 for nt, _, _ in notes if nt == t) for t in LABELS}
     parts = []
     if counts["New"]:
         parts.append(plural(counts["New"], "new feature", "new features"))
@@ -103,20 +109,20 @@ def build_thread(version, notes_file):
 
     release_url = RELEASE_URL.format(version=version)
     posts = [(f"{header['emoji']} {header['text'].replace('{version}', version)}\n\n"
-              f"{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}", [("Release notes", release_url)])]
+              f"{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}", [("Release notes", release_url)], [])]
 
-    for note_type, text in notes:
+    for note_type, text, images in notes:
         label = LABELS[note_type]
         chunks = split_text(text, MAX_CHARS - len(label) - 1 - len(INLINE_TAGS))   # Room for the # signs
-        posts.append((add_inline_tags(f"{label} {chunks[0]}"), []))
+        posts.append((add_inline_tags(f"{label} {chunks[0]}"), [], images[:4]))   # Screenshots go on the note's first post
         for chunk in chunks[1:]:
-            posts.append((add_inline_tags(chunk), []))
+            posts.append((add_inline_tags(chunk), [], []))
 
     link_text = sponsor["link_text"]
     posts.append((add_inline_tags(f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}"),
-                  [(link_text, SPONSOR_URL)]))
+                  [(link_text, SPONSOR_URL)], []))
 
-    for text, _ in posts:
+    for text, _, _ in posts:
         if len(text) > 300:
             sys.exit(f"ERROR: a post is too long ({len(text)} characters): {text[:60]}...")
     return posts
@@ -158,6 +164,40 @@ def link_facets(text, links):
     return facets
 
 
+def png_size(data):
+    """Width and height of a PNG (from its header), so Bluesky shows it at the right shape."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    return None
+
+
+def upload_image(url, alt, token):
+    """Download an image and upload it to Bluesky. Returns the embed entry, or None if it can't be used."""
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            data = response.read()
+            mime = response.headers.get_content_type()
+    except Exception as e:
+        print(f"WARNING: couldn't download {url} ({e}) - posting without it")
+        return None
+    if len(data) > 950_000:   # Bluesky's limit is about 1 MB
+        print(f"WARNING: {url} is too big for Bluesky ({len(data)} bytes) - posting without it")
+        return None
+    request = urllib.request.Request(f"{PDS}/com.atproto.repo.uploadBlob", data=data, method="POST",
+                                     headers={"Content-Type": mime, "Authorization": f"Bearer {token}"})
+    try:
+        with urllib.request.urlopen(request, timeout=60) as response:
+            blob = json.load(response)["blob"]
+    except urllib.error.HTTPError as e:
+        print(f"WARNING: couldn't upload {url} to Bluesky ({e.code}) - posting without it")
+        return None
+    entry = {"alt": alt, "image": blob}
+    size = png_size(data)
+    if size:
+        entry["aspectRatio"] = {"width": size[0], "height": size[1]}
+    return entry
+
+
 def api(method, body, token=None):
     request = urllib.request.Request(f"{PDS}/{method}", data=json.dumps(body).encode("utf-8"), method="POST",
                                      headers={"Content-Type": "application/json"})
@@ -180,7 +220,7 @@ def send(posts):
     token, did = session["accessJwt"], session["did"]
 
     root = parent = None
-    for number, (text, links) in enumerate(posts, 1):
+    for number, (text, links, images) in enumerate(posts, 1):
         record = {
             "$type": "app.bsky.feed.post",
             "text": text,
@@ -190,6 +230,10 @@ def send(posts):
         facets = link_facets(text, links) + tag_facets(text)
         if facets:
             record["facets"] = facets
+        if images:
+            embeds = [e for e in (upload_image(url, alt, token) for url, alt in images) if e]
+            if embeds:
+                record["embed"] = {"$type": "app.bsky.embed.images", "images": embeds}
         if parent:
             record["reply"] = {"root": root, "parent": parent}
         result = api("com.atproto.repo.createRecord",
@@ -209,11 +253,13 @@ def main():
     mode, version, notes_file = sys.argv[1:]
     posts = build_thread(version, notes_file)
     if mode == "preview":
-        for number, (text, links) in enumerate(posts, 1):
+        for number, (text, links, images) in enumerate(posts, 1):
             print(f"--- Post {number}/{len(posts)} ({len(text)} characters)")
             print(text)
             for link_text, url in links:
                 print(f"    [link: \"{link_text}\" -> {url}]")
+            for url, alt in images:
+                print(f"    [image: {url.rsplit('/', 2)[-2]}/{url.rsplit('/', 1)[-1]} - alt: \"{alt[:60]}...\"]")
             tags = [f["features"][0]["tag"] for f in tag_facets(text)]
             if tags:
                 print(f"    [hashtags: {', '.join('#' + t for t in tags)}]")

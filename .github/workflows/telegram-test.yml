@@ -1,0 +1,34 @@
+name: Telegram - test announcement (temporary)
+
+# Temporary: sends the next release's announcement to the private chat with the bot (NOT the group), so it can be
+# checked before the first real release. Remove this workflow afterwards. (Test: screenshots album)
+
+on:
+  push:
+    branches: [feature/bluesky-announce]
+    paths: [.github/workflows/telegram-test.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Send a test announcement to the private chat
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          private=$(curl -sf "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" \
+            | jq -r '[.result[] | .message.chat | select(. != null and .type == "private")] | last | .id // empty')
+          if [ -z "$private" ] || [[ "$private" == -* ]]; then
+            echo "No private chat found - send /start to the bot in a private chat first"; exit 1
+          fi
+          echo "Sending to a private chat only (not the group)"
+          # The notes the next release will have
+          awk '/^DigiNode Tools - Unreleased/{print "DigiNode Tools v26.10.05"; print ""; on=1; next} on && /^DigiNode Tools v/{exit} on && NF' \
+            docs/release_notes.md > "$RUNNER_TEMP/notes.md"
+          TELEGRAM_CHAT_ID="$private" .github/telegram-announce.sh send 26.10.05 "$RUNNER_TEMP/notes.md"
