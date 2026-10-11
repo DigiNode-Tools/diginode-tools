@@ -36,10 +36,21 @@ notes=$(grep '^- ' "$NOTES_FILE" | sed 's/^- //' | html | sed -E \
 [ -n "$notes" ] || { echo "ERROR: no release notes found in $NOTES_FILE" >&2; exit 1; }
 
 header="🚀 <b>DigiNode Tools v$VERSION is out!</b>"
+
+# The sponsor line rotates between these, one per release, so regular readers don't see the same one every week.
+# The release number (how many v* tags there are) picks the line.
+sponsor_lines=(
+    "💙 DigiNode Tools is free and always will be. Sponsorship gives me more time to build it, so releases like this keep coming. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
+    "💙 Enjoying DigiNode Tools? Sponsors make it possible for me to spend more time on it, including the bigger features on the roadmap. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
+    "💙 Find DigiNode Tools useful? Please support its development: <a href=\"$SPONSOR_URL\">become a sponsor</a>"
+)
+release_count=$(git -C "$(dirname "$0")" tag -l 'v*' 2>/dev/null | wc -l | tr -d ' ')
+sponsor_line="${sponsor_lines[$(( ${release_count:-0} % ${#sponsor_lines[@]} ))]}"
+
 footer="To update, run <code>diginode-setup</code> and choose <b>Update</b>.
 <a href=\"$RELEASE_URL\">Release notes on GitHub</a>
 
-💙 Enjoying DigiNode Tools? Sponsors make it possible for me to spend more time on it, including the bigger features on the roadmap. <a href=\"$SPONSOR_URL\">Become a sponsor</a>"
+$sponsor_line"
 
 build() {
     printf '%s\n\n%s\n\n%s' "$header" "$1" "$footer"
