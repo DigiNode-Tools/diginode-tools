@@ -357,6 +357,23 @@ get_term_size() {
     read -r LINES COLUMNS < <(stty size)
 }
 
+# Print the version of the latest DigiNode Tools release on GitHub (e.g. 26.10.02), or nothing if it can't be found.
+# This uses the github.com/.../releases/latest page, which redirects to the latest release, because the GitHub API only
+# allows 60 requests an hour from each IP address. When that runs out, the API returns an error instead of the version
+# (several DigiNodes on one connection, or a lot of testing, can do it), which previously caused the main branch to be
+# installed instead of the release. The API is only used if the release page can't be reached.
+get_dgnt_release_version() {
+    local tag
+    tag=$(curl -sI --max-time 10 https://github.com/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | tr -d '\r' | sed -n 's|^[Ll]ocation: .*/releases/tag/||p' | tail -1)
+    if [ -z "$tag" ]; then
+        tag=$(curl -sfL --max-time 10 https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r '.tag_name // empty' 2>/dev/null)
+    fi
+    tag="${tag#v}"
+    if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$tag"
+    fi
+}
+
 # Inform user if Verbose Mode is enabled
 is_verbose_mode() {
     if [ "$VERBOSE_MODE" = true ]; then
@@ -489,7 +506,7 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     if [ "$DGNT_RUN_LOCATION" = "remote" ]; then
 
         #lookup latest release version on Github (need jq installed for this query)
-        local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+        local dgnt_ver_release_query=$(get_dgnt_release_version)
 
         # If we get a response, update the stored release version
         if [ "$dgnt_ver_release_query" != "" ]; then
@@ -1564,7 +1581,7 @@ diginode_tools_update_settings() {
             fi
 
             # Let's get the current release version
-            local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+            local dgnt_ver_release_query=$(get_dgnt_release_version)
 
              # If we get a response, update the stored release version
             if [ "$dgnt_ver_release_query" != "" ]; then
@@ -13727,7 +13744,7 @@ printf " =============== Checking: DigiNode Tools ==============================
     local str
 
     #lookup latest release version on Github (need jq installed for this query)
-    local dgnt_ver_release_query=$(curl -sL https://api.github.com/repos/DigiNode-Tools/diginode-tools/releases/latest 2>/dev/null | jq -r ".tag_name" | sed 's/v//')
+    local dgnt_ver_release_query=$(get_dgnt_release_version)
 
     # If we get a response, update the stored release version
     if [ "$dgnt_ver_release_query" != "" ]; then
@@ -13802,11 +13819,22 @@ printf " =============== Checking: DigiNode Tools ==============================
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
     fi
 
-    # If there is no release version (i.e. it returns 'null'), use the main version
-    if [ "$DGNT_BRANCH_REMOTE" = "release" ] && [ "$DGNT_VER_RELEASE" = "null" ]; then
-        printf "%b DigiNode Tools release branch requested.\\n" "${INFO}"
-        printf "%b ERROR: Release branch is unavailable. main branch will be installed.\\n" "${CROSS}"
-        DGNT_BRANCH_REMOTE="main"
+    # If the latest release can't be found (e.g. GitHub can't be reached), don't install anything else instead -
+    # the main branch is only for final testing. Keep the installed version, or stop if this is a new install.
+    if [ "$DGNT_BRANCH_REMOTE" = "release" ] && ! [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        printf "%b %bUnable to find the latest release of DigiNode Tools on GitHub.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+        if [ "$DGNT_BRANCH_LOCAL" != "" ]; then
+            printf "%b DigiNode Tools will not be upgraded this time. Please try again later.\\n" "${INFO}"
+            printf "\\n"
+            DGNT_DO_INSTALL=NO
+            DGNT_INSTALL_TYPE="none"
+            DGNT_UPDATE_AVAILABLE=NO
+            return
+        else
+            printf "%b DigiNode Tools cannot be installed. Please check your internet connection and try again later.\\n" "${CROSS}"
+            printf "\\n"
+            exit 1
+        fi
     fi
 
    
