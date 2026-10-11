@@ -18311,6 +18311,8 @@ remove_old_bashrc_commands() {
             -e "/# Add DigiByte binary folder to path/d" \
             -e "\|^export PATH+=:$DGB_INSTALL_LOCATION/bin\$|d" \
             "$USER_HOME/.bashrc"
+        # Remove the blank lines that were added before each of them, if they're now left at the end of the file
+        sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$USER_HOME/.bashrc"
         printf "%b%b Removed the old DigiNode aliases and DigiByte path from .bashrc (no longer needed)\\n" "${OVER}" "${TICK}"
         return 0
     fi
