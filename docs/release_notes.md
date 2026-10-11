@@ -1,6 +1,7 @@
 ## DigiNode Tools Release Notes
 
 DigiNode Tools - Unreleased
+- New: For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
 - Improvement: DigiNode Dashboard now checks for new versions of DigiNode Tools once an hour (previously once a day), so fixes reach you sooner, e.g. while you watch your node sync.
 - Improvement: DigiNode Dashboard no longer checks for Kubo (IPFS) updates when Kubo isn't installed. This cuts an unneeded daily request to GitHub, which limits how often each internet connection can check for updates.
 

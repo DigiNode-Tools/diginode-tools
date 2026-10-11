@@ -3357,6 +3357,10 @@ get_dgnt_local_version() {
     elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
+        # Feature branch (installed with --dgntbranch=) - show the branch name
+        DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     fi
 }
 
