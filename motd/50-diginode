@@ -51,4 +51,9 @@ printf "         Launch 'DigiNode Setup': ${txtbld}diginode-setup${txtrst}\\n"
 printf "\\n"
 printf "      For help, append ${txtbld}--help${txtrst} to either command.\\n"
 printf "\\n"
+
+# Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
+if [ -x /usr/local/sbin/diginode-reboot ]; then
+    /usr/local/sbin/diginode-reboot --status
+fi
 printf "\\n"
