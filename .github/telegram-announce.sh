@@ -79,6 +79,7 @@ case "$MODE" in
             --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
             --data-urlencode "text=$message" \
             --data-urlencode "parse_mode=HTML" \
+            --data-urlencode "disable_notification=true" \
             --data-urlencode 'link_preview_options={"is_disabled":true}')
         if [ "$(echo "$response" | jq -r '.ok')" != "true" ]; then
             echo "ERROR: Telegram didn't accept the message: $(echo "$response" | jq -r '.description // "no response"')" >&2
@@ -87,11 +88,12 @@ case "$MODE" in
         message_id=$(echo "$response" | jq -r '.result.message_id')
         echo "Posted the release announcement in Telegram (message $message_id)"
 
-        # Pin it, so the latest release shows at the top of the group (quietly - the post itself already notified people)
+        # Pin it, so the latest release shows at the top of the group. The post above was sent silently, and the pin
+        # notifies everyone instead - including members who have muted the group - so each member gets one notification.
         response=$(curl -sS --max-time 30 "$api/pinChatMessage" \
             --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" \
             --data-urlencode "message_id=$message_id" \
-            --data-urlencode "disable_notification=true")
+            --data-urlencode "disable_notification=false")
         if [ "$(echo "$response" | jq -r '.ok')" = "true" ]; then
             echo "Pinned it"
         else
