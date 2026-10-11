@@ -17692,6 +17692,9 @@ menu_confirm_chosen_dgb_version() {
 
     # If they chose not to install it and there is nothing else to update, there is nothing more to do
     if [ "$DGB_REQ_INSTALL" != "YES" ] && [ "$DGA_ASK_UPGRADE" != "YES" ] && [ "$IPFS_ASK_UPGRADE" != "YES" ] && [ "$NODEJS_ASK_UPGRADE" != "YES" ] && [ "$DGNT_ASK_UPGRADE" != "YES" ]; then
+        # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+        menu_ask_system_updates
+        system_updates_apply
         ensure_dgb_nodes_running
         display_system_updates_reminder
         exit
@@ -17919,6 +17922,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             printf "\\n"
             # Carry on if they already chose to install a version of DigiByte Core
             if [ "$DGB_REQ_INSTALL" != "YES" ]; then
+                # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+                menu_ask_system_updates
+                system_updates_apply
                 ensure_dgb_nodes_running
                 display_system_updates_reminder
                 exit
@@ -17938,6 +17944,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
+          # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+          menu_ask_system_updates
+          system_updates_apply
           ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
