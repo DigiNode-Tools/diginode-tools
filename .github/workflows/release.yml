@@ -24,6 +24,7 @@ on:
 
 permissions:
   contents: write
+  issues: write   # To report a failed Telegram announcement
 
 concurrency:
   group: release
@@ -115,6 +116,13 @@ jobs:
             echo '```'
             echo "### GitHub release notes"
             cat "$NOTES_FILE"
+            if [ -x .github/telegram-announce.sh ]; then
+              echo
+              echo "### Telegram announcement"
+              echo '```html'
+              .github/telegram-announce.sh preview "$VERSION" "$NOTES_FILE"
+              echo '```'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
           cat "$GITHUB_STEP_SUMMARY"
 
@@ -128,6 +136,31 @@ jobs:
           # Push develop and main together, so they can't end up out of step
           git push --atomic origin develop main "v$VERSION"
           gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest
+
+      # Post the release notes in the DigiNode Tools Telegram group (as "DigiNode Tools Releases") and pin them.
+      # If this fails, the release has still been published - an issue is opened instead of failing the release.
+      - name: Announce on Telegram
+        id: announce
+        if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          if [ -x .github/telegram-announce.sh ]; then
+            .github/telegram-announce.sh send "$VERSION" "$NOTES_FILE"
+          fi
+
+      - name: Report a failed Telegram announcement
+        if: ${{ steps.announce.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          gh issue create --title "Telegram announcement failed for v$VERSION" \
+            --body "DigiNode Tools v$VERSION was released, but it couldn't be announced on Telegram. See the workflow run for the error: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Get develop ready for the next release
         if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
