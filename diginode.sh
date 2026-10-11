@@ -2368,6 +2368,11 @@ quit_message() {
       exit_locate_digibyte_reminder
   fi
 
+# Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
+if [ -x /usr/local/sbin/diginode-reboot ]; then
+    /usr/local/sbin/diginode-reboot --status
+fi
+
 if [ "$auto_quit" = true ]; then
     echo ""
     printf "%b DigiNode Dashboard quit automatically as it was left running\\n" "${INFO}"

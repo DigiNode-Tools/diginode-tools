@@ -579,6 +579,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DGB_CHAIN=MAINNET
     UI_DGB_VERSION=
     UI_SETUP_DIGINODE_MOTD=YES
+    UI_SYSTEM_AUTO_UPDATES=SECURITY
+    UI_SYSTEM_AUTO_REBOOT=NO
+    SYSTEM_AUTO_REBOOT_TIME=04:00
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
@@ -763,6 +766,20 @@ DGNT_DEV_BRANCH=$DGNT_DEV_BRANCH
 # This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
 INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 
+# AUTOMATIC SYSTEM UPDATES (Debian, Ubuntu and Raspberry Pi OS)
+# Choose whether operating system updates are installed automatically, once a day in the background.
+# SECURITY = security and stability updates (recommended), ALL = all available updates from every repository,
+# OFF = don't install updates automatically. If left blank, DigiNode Setup will ask you.
+# To change this, run 'diginode-setup' and choose System from the main menu (or edit it here and then run
+# DigiNode Setup > Update, which applies it).
+SYSTEM_AUTO_UPDATES=$SYSTEM_AUTO_UPDATES
+
+# Choose whether your DigiNode restarts automatically when an update needs a restart to finish (e.g. a new Linux
+# kernel). YES or NO. The restart is skipped if your DigiNode is busy (e.g. DigiNode Setup is running, or software
+# is being installed) and tried again later. SYSTEM_AUTO_REBOOT_TIME is the time to restart (system time, HH:MM).
+SYSTEM_AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
+SYSTEM_AUTO_REBOOT_TIME=$SYSTEM_AUTO_REBOOT_TIME
+
 
 #####################################
 ####### UNATTENDED INSTALL ##########
@@ -838,6 +855,12 @@ UI_DGB_VERSION=$UI_DGB_VERSION
 # Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
 # If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
 UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
+
+# Choose whether to install operating system updates automatically: SECURITY (recommended), ALL or OFF.
+# Choose whether to restart automatically (at 04:00) when an update needs a restart: YES or NO.
+# (Debian, Ubuntu and Raspberry Pi OS only.)
+UI_SYSTEM_AUTO_UPDATES=$UI_SYSTEM_AUTO_UPDATES
+UI_SYSTEM_AUTO_REBOOT=$UI_SYSTEM_AUTO_REBOOT
 
 
 #############################################
@@ -8312,6 +8335,9 @@ menu_existing_install() {
     opt7a="7 MOTD"
     opt7b="Enable or disable the DigiNode Custom MOTD."
 
+    optSa="S System"
+    optSb="Automatic system updates and restarts."
+
     opt8a="8 Extras"
     opt8b="Install optional extras for your DigiNode."
     
@@ -8324,7 +8350,7 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 74 12 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 23 74 13 \
     "${opt1a}"  "${opt1b}" \
     "${optVa}"  "${optVb}" \
     "${optBa}"  "${optBb}" \
@@ -8334,6 +8360,7 @@ menu_existing_install() {
     "${opt5a}"  "${opt5b}" \
     "${opt6a}"  "${opt6b}" \
     "${opt7a}"  "${opt7b}" \
+    "${optSa}"  "${optSb}" \
     "${opt8a}"  "${opt8b}" \
     "${opt9a}"  "${opt9b}" \
     "${opt0a}"  "${opt0b}" 3>&2 2>&1 1>&3 ) || \
@@ -8415,6 +8442,15 @@ menu_existing_install() {
             motd_check
             menu_ask_motd
             motd_do_install_uninstall
+            menu_existing_install
+            ;;
+        # Automatic system updates and restarts
+        ${optSa})
+            printf "%b You selected the SYSTEM option.\\n" "${INFO}"
+            printf "\\n"
+            system_updates_check
+            menu_ask_system_updates menu
+            system_updates_apply
             menu_existing_install
             ;;
         # Extras
@@ -10112,11 +10148,28 @@ final_messages() {
 
 display_system_updates_reminder() {
 
-    if [ "$system_updates_available" = "yes" ]; then
+    # Only show this once
+    if [ "$SYSTEM_UPDATES_REMINDER_SHOWN" = "YES" ]; then
+        return
+    fi
+    SYSTEM_UPDATES_REMINDER_SHOWN="YES"
+
+    # Don't suggest installing them by hand if they are about to be installed automatically
+    if [ "$system_updates_available" = "yes" ] && [ "$SYSTEM_AUTO_UPDATES" != "ALL" ]; then
         printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+        # Refresh the package lists first - they may be out of date by now, and installing from an old list can fail
+        if [ "$PKG_MANAGER" = "apt-get" ]; then
+            printf "%b To install them now enter: ${txtbld}sudo apt-get update && sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b To install them now enter: ${txtbld}sudo ${PKG_MANAGER} upgrade${txtrst}\\n" "${INDENT}"
+        fi
         printf "\\n"
+    fi
+
+    # Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
+    if [ -x "$DGNT_REBOOT_HELPER" ]; then
+        "$DGNT_REBOOT_HELPER" --status
     fi
 
 }
@@ -17639,6 +17692,9 @@ menu_confirm_chosen_dgb_version() {
 
     # If they chose not to install it and there is nothing else to update, there is nothing more to do
     if [ "$DGB_REQ_INSTALL" != "YES" ] && [ "$DGA_ASK_UPGRADE" != "YES" ] && [ "$IPFS_ASK_UPGRADE" != "YES" ] && [ "$NODEJS_ASK_UPGRADE" != "YES" ] && [ "$DGNT_ASK_UPGRADE" != "YES" ]; then
+        # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+        menu_ask_system_updates
+        system_updates_apply
         ensure_dgb_nodes_running
         display_system_updates_reminder
         exit
@@ -17866,6 +17922,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             printf "\\n"
             # Carry on if they already chose to install a version of DigiByte Core
             if [ "$DGB_REQ_INSTALL" != "YES" ]; then
+                # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+                menu_ask_system_updates
+                system_updates_apply
                 ensure_dgb_nodes_running
                 display_system_updates_reminder
                 exit
@@ -17885,6 +17944,9 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
+          # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+          menu_ask_system_updates
+          system_updates_apply
           ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
@@ -18242,6 +18304,422 @@ fi
 
 
 
+
+
+#####################################################################################################
+### FUNCTIONS - AUTOMATIC SYSTEM UPDATES AND RESTARTS
+#####################################################################################################
+
+# Automatic system updates use unattended-upgrades (Debian, Ubuntu and Raspberry Pi OS). The user's choice is saved
+# in diginode.settings (SYSTEM_AUTO_UPDATES, SYSTEM_AUTO_REBOOT, SYSTEM_AUTO_REBOOT_TIME) and applied each time
+# DigiNode Setup runs an update, so it is only asked once. Restarts are done by the DigiNode reboot helper
+# (diginode-reboot.sh), which never restarts while the DigiNode is busy. It also shows the "restart required"
+# reminder at the end of DigiNode Setup, when DigiNode Dashboard quits, and in the DigiNode MOTD.
+
+DGNT_REBOOT_HELPER=/usr/local/sbin/diginode-reboot
+DGNT_REBOOT_STATUS_DIR=/var/lib/diginode-tools
+DGNT_REBOOT_CONF=$DGNT_REBOOT_STATUS_DIR/auto-reboot.conf
+DGNT_AUTO_UPDATES_APT_CONF=/etc/apt/apt.conf.d/52diginode-auto-updates
+DGNT_APT_PERIODIC_CONF=/etc/apt/apt.conf.d/20auto-upgrades
+
+# Save a value in diginode.settings (adds the line if an older diginode.settings file doesn't have it yet)
+set_diginode_setting() {
+    local name="$1"
+    local value="$2"
+    if grep -q "^${name}=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^${name}=/s|.*|${name}=\"${value}\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "${name}=\"${value}\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# Automatic system updates are currently only supported on the Debian family (Debian, Ubuntu, Raspberry Pi OS)
+system_updates_supported() {
+    [ "$PKG_MANAGER" = "apt-get" ]
+}
+
+# Return a valid restart time (HH:MM), using 04:00 if the one in diginode.settings is missing or invalid
+system_auto_reboot_time() {
+    if [[ "$SYSTEM_AUTO_REBOOT_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+        echo "$SYSTEM_AUTO_REBOOT_TIME"
+    else
+        echo "04:00"
+    fi
+}
+
+# Find out whether automatic system updates and restarts are currently turned on
+system_updates_check() {
+
+    printf " =============== Checking: Automatic System Updates ====================\\n\\n"
+    # ==============================================================================
+
+    if ! system_updates_supported; then
+        SYSTEM_AUTO_UPDATES_CURRENT="UNSUPPORTED"
+        SYSTEM_AUTO_REBOOT_CURRENT="NO"
+        printf "%b Automatic system updates are not supported on this OS yet.\\n" "${INFO}"
+        printf "\\n"
+        return
+    fi
+
+    local uu_enabled=0
+    if dpkg -s unattended-upgrades >/dev/null 2>&1; then
+        eval "$(apt-config shell uu_enabled APT::Periodic::Unattended-Upgrade 2>/dev/null)"
+    fi
+
+    if [ "${uu_enabled:-0}" != "0" ]; then
+        if [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] && grep -q '"origin=\*"' "$DGNT_AUTO_UPDATES_APT_CONF"; then
+            SYSTEM_AUTO_UPDATES_CURRENT="ALL"
+        else
+            SYSTEM_AUTO_UPDATES_CURRENT="SECURITY"
+        fi
+        printf "%b%b Automatic system updates: ON (%s)\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES_CURRENT"
+    else
+        SYSTEM_AUTO_UPDATES_CURRENT="OFF"
+        printf "%b%b Automatic system updates: OFF\\n" "${OVER}" "${CROSS}"
+    fi
+
+    if systemctl is-enabled --quiet diginode-reboot.timer 2>/dev/null; then
+        SYSTEM_AUTO_REBOOT_CURRENT="YES"
+        printf "%b%b Automatic restarts: ON (%s)\\n" "${OVER}" "${TICK}" "$(system_auto_reboot_time)"
+    else
+        SYSTEM_AUTO_REBOOT_CURRENT="NO"
+        printf "%b%b Automatic restarts: OFF\\n" "${OVER}" "${CROSS}"
+    fi
+
+    printf "\\n"
+}
+
+# Ask whether to install system updates automatically, and whether to restart automatically when needed.
+# This is only asked once (the answer is saved in diginode.settings), unless it is chosen from the main menu.
+# Usage: menu_ask_system_updates [menu]
+menu_ask_system_updates() {
+
+    local from_menu="$1"
+
+    if [ "$SYSTEM_AUTO_UPDATES_CURRENT" = "UNSUPPORTED" ]; then
+        if [ "$from_menu" = "menu" ]; then
+            dialog --no-shadow --keep-tite --colors --backtitle "Automatic System Updates" --title "Automatic System Updates" --msgbox "\nAutomatic system updates are currently only supported on Debian, Ubuntu and Raspberry Pi OS." 9 "${c}"
+        fi
+        return
+    fi
+
+    # Already chosen - nothing to ask (unless this was chosen from the main menu)
+    if [ "$from_menu" != "menu" ]; then
+        case "$SYSTEM_AUTO_UPDATES" in
+            SECURITY|ALL|OFF ) return ;;
+        esac
+    fi
+
+    # Unattended mode - use the UI_ values in diginode.settings
+    if [ "$UNATTENDED_MODE" == true ]; then
+
+        printf " =============== Unattended Mode: Automatic System Updates =============\\n\\n"
+        # ==============================================================================
+
+        case "$UI_SYSTEM_AUTO_UPDATES" in
+            SECURITY|ALL|OFF )
+                SYSTEM_AUTO_UPDATES="$UI_SYSTEM_AUTO_UPDATES"
+                if [ "$UI_SYSTEM_AUTO_REBOOT" = "YES" ] && [ "$SYSTEM_AUTO_UPDATES" != "OFF" ]; then
+                    SYSTEM_AUTO_REBOOT="YES"
+                else
+                    SYSTEM_AUTO_REBOOT="NO"
+                fi
+                printf "%b Unattended Mode: Automatic system updates will be set to: %s  Automatic restarts: %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES" "$SYSTEM_AUTO_REBOOT"
+                printf "%b                  (Set from UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings)\\n" "${INDENT}"
+                set_diginode_setting SYSTEM_AUTO_UPDATES "$SYSTEM_AUTO_UPDATES"
+                set_diginode_setting SYSTEM_AUTO_REBOOT "$SYSTEM_AUTO_REBOOT"
+                ;;
+            * )
+                printf "%b Unattended Mode: Skipping automatic system updates. (UI_SYSTEM_AUTO_UPDATES is not set in diginode.settings.)\\n" "${INFO}"
+                ;;
+        esac
+        printf "\\n"
+        return
+    fi
+
+    printf " =============== Automatic System Updates ==============================\\n\\n"
+    # ==============================================================================
+
+    local current_text default_item
+    case "$SYSTEM_AUTO_UPDATES_CURRENT" in
+        SECURITY ) current_text="Currently: \Z2ON\Z0 - security and stability updates"; default_item="Security" ;;
+        ALL )      current_text="Currently: \Z2ON\Z0 - all updates"; default_item="All" ;;
+        * )        current_text="Currently: \Z1OFF\Z0"; default_item="Security" ;;
+    esac
+    case "$SYSTEM_AUTO_UPDATES" in
+        SECURITY ) default_item="Security" ;;
+        ALL )      default_item="All" ;;
+        OFF )      default_item="Off" ;;
+    esac
+
+    local choice
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Automatic System Updates" --title "Automatic System Updates" --default-item "$default_item" --cancel-label "Back" --menu "\n\Z4Would you like your DigiNode to install system updates automatically?\Z0\n\nKeeping the operating system up to date is important for the security of your DigiNode. Updates are installed in the background, once a day. (DigiByte Core and DigiNode Tools are not affected - DigiNode Setup still updates those.)\n\n$current_text\n\n" 20 "${c}" 3 \
+        "Security" "Security and stability updates (Recommended)" \
+        "All"      "All available updates, from every repository" \
+        "Off"      "Don't install updates automatically" 3>&2 2>&1 1>&3) || {
+        printf "%b You didn't change the automatic system updates.\\n" "${INFO}"
+        printf "\\n"
+        return
+    }
+
+    case "$choice" in
+        Security ) SYSTEM_AUTO_UPDATES="SECURITY" ;;
+        All )      SYSTEM_AUTO_UPDATES="ALL" ;;
+        Off )      SYSTEM_AUTO_UPDATES="OFF" ;;
+        * )        return ;;
+    esac
+    printf "%b You chose: Automatic system updates - %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES"
+
+    if [ "$SYSTEM_AUTO_UPDATES" = "OFF" ]; then
+        SYSTEM_AUTO_REBOOT="NO"
+    else
+        local reboot_time
+        reboot_time=$(system_auto_reboot_time)
+        local defaultno=""
+        if [ "$SYSTEM_AUTO_REBOOT" != "YES" ]; then
+            defaultno="--defaultno"
+        fi
+
+        if dialog --no-shadow --keep-tite --colors --backtitle "Automatic Restarts" --title "Automatic Restarts" $defaultno --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like your DigiNode to restart automatically when an update needs it?\Z0\n\nSome updates, such as a new Linux kernel, only take effect after a restart.\n\nIf you choose YES, your DigiNode will restart itself at ${reboot_time} (system time), but only when an update needs it. If it is busy (e.g. DigiNode Setup is running or software is being installed) the restart is skipped and tried again later. Your DigiByte node is shut down safely and starts again automatically.\n\nIf you choose NO, you will be reminded when a restart is needed." 19 "${c}"; then
+            SYSTEM_AUTO_REBOOT="YES"
+            printf "%b You chose: Automatic restarts - YES\\n" "${INFO}"
+
+            # From the main menu, also let them choose the time
+            if [ "$from_menu" = "menu" ]; then
+                local new_time
+                new_time=$(dialog --no-shadow --keep-tite --colors --backtitle "Automatic Restarts" --title "Automatic Restart Time" --inputbox "\nWhat time should your DigiNode restart, when an update needs it?\n\nEnter the time in 24-hour format (HH:MM), using the system time. If it is busy, it will try again every 30 minutes for the next 2 hours.\n\n" 14 "${c}" "$reboot_time" 3>&2 2>&1 1>&3) || new_time="$reboot_time"
+                if [[ "$new_time" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+                    SYSTEM_AUTO_REBOOT_TIME="$new_time"
+                else
+                    printf "%b \"%s\" is not a valid time (HH:MM) - keeping %s.\\n" "${WARN}" "$new_time" "$reboot_time"
+                    SYSTEM_AUTO_REBOOT_TIME="$reboot_time"
+                fi
+                printf "%b Automatic restart time: %s\\n" "${INFO}" "$SYSTEM_AUTO_REBOOT_TIME"
+            fi
+        else
+            SYSTEM_AUTO_REBOOT="NO"
+            printf "%b You chose: Automatic restarts - NO\\n" "${INFO}"
+        fi
+    fi
+
+    SYSTEM_AUTO_REBOOT_TIME=$(system_auto_reboot_time)
+    set_diginode_setting SYSTEM_AUTO_UPDATES "$SYSTEM_AUTO_UPDATES"
+    set_diginode_setting SYSTEM_AUTO_REBOOT "$SYSTEM_AUTO_REBOOT"
+    set_diginode_setting SYSTEM_AUTO_REBOOT_TIME "$SYSTEM_AUTO_REBOOT_TIME"
+    printf "\\n"
+}
+
+# Write a file only if its contents have changed. Usage: write_file_if_changed <file> <mode> <contents>
+# Returns 0 if the file was written, 1 if it was already up to date.
+write_file_if_changed() {
+    local file="$1"
+    local mode="$2"
+    local contents="$3"
+    if [ -f "$file" ] && [ "$(cat "$file")" = "$contents" ]; then
+        return 1
+    fi
+    printf '%s\n' "$contents" > "$file"
+    chmod "$mode" "$file"
+    chown root:root "$file"
+    return 0
+}
+
+# Install (or update) the DigiNode reboot helper. Done on every update, so the "restart required" reminder works
+# whether or not automatic updates are turned on.
+install_reboot_helper() {
+
+    local str
+
+    if [ ! -f "$DGNT_LOCATION/diginode-reboot.sh" ]; then
+        return
+    fi
+
+    if ! cmp -s "$DGNT_LOCATION/diginode-reboot.sh" "$DGNT_REBOOT_HELPER"; then
+        str="Installing DigiNode reboot helper to $DGNT_REBOOT_HELPER..."
+        printf "%b %s" "${INFO}" "${str}"
+        install -m 755 -o root -g root "$DGNT_LOCATION/diginode-reboot.sh" "$DGNT_REBOOT_HELPER"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    mkdir -p "$DGNT_REBOOT_STATUS_DIR"
+    chmod 755 "$DGNT_REBOOT_STATUS_DIR"
+}
+
+# Make the system match the choices in diginode.settings. Safe to run every time - it only changes what is different.
+system_updates_apply() {
+
+    local str
+
+    install_reboot_helper
+
+    if ! system_updates_supported; then
+        return
+    fi
+
+    # Not chosen yet - leave the system as it is
+    case "$SYSTEM_AUTO_UPDATES" in
+        SECURITY|ALL|OFF ) ;;
+        * ) return ;;
+    esac
+
+    if [ "$SYSTEM_AUTO_UPDATES" = "OFF" ]; then
+        SYSTEM_AUTO_REBOOT="NO"
+    fi
+
+    printf " =============== Apply: Automatic System Updates =======================\\n\\n"
+    # ==============================================================================
+
+    if [ "$SYSTEM_AUTO_UPDATES" != "OFF" ]; then
+
+        # Install unattended-upgrades, if needed
+        if ! dpkg -s unattended-upgrades >/dev/null 2>&1; then
+            str="Installing unattended-upgrades..."
+            printf "%b %s" "${INFO}" "${str}"
+            if "${PKG_INSTALL[@]}" unattended-upgrades &> /dev/null; then
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+                printf "%b %bAutomatic system updates could not be turned on. Please try again later.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                return
+            fi
+        fi
+
+        # Turn on the daily update check and install (this is what 'dpkg-reconfigure unattended-upgrades' does)
+        if write_file_if_changed "$DGNT_APT_PERIODIC_CONF" 644 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";'; then
+            printf "%b%b Turned on automatic system updates\\n" "${OVER}" "${TICK}"
+        fi
+
+        # Choose which updates are installed. The OS's own settings (50unattended-upgrades) already include its
+        # security updates. Tor is added because DigiNode uses it. ALL adds every repository.
+        # DigiNode Tools handles restarts itself (so it can skip them when busy), so unattended-upgrades must not.
+        local origins
+        if [ "$SYSTEM_AUTO_UPDATES" = "ALL" ]; then
+            origins='        "origin=*";'
+        else
+            origins='        "origin=TorProject";'
+        fi
+        if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
+// To change these settings, run 'diginode-setup' and choose System from the main menu.
+Unattended-Upgrade::Origins-Pattern {
+$origins
+};
+Unattended-Upgrade::Automatic-Reboot \"false\";"; then
+            # A mistake in an apt config file would break apt completely, so check it can be read
+            if apt-config dump >/dev/null 2>&1; then
+                printf "%b%b Automatic system updates set to: %s\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES"
+            else
+                rm -f "$DGNT_AUTO_UPDATES_APT_CONF"
+                printf "%b%b %bCould not set which updates are installed - using the system defaults.%b\\n" "${OVER}" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            fi
+        fi
+
+    else
+
+        # Turn off automatic installs (the package lists are still refreshed, so DigiNode can tell you about updates)
+        if dpkg -s unattended-upgrades >/dev/null 2>&1 || [ -f "$DGNT_APT_PERIODIC_CONF" ]; then
+            if write_file_if_changed "$DGNT_APT_PERIODIC_CONF" 644 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "0";'; then
+                printf "%b%b Turned off automatic system updates\\n" "${OVER}" "${TICK}"
+            fi
+        fi
+        if [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ]; then
+            rm -f "$DGNT_AUTO_UPDATES_APT_CONF"
+        fi
+
+    fi
+
+    # Automatic restarts
+    local reboot_time
+    reboot_time=$(system_auto_reboot_time)
+    mkdir -p "$DGNT_REBOOT_STATUS_DIR"
+    write_file_if_changed "$DGNT_REBOOT_CONF" 644 "# Written by DigiNode Setup from diginode.settings. Do not edit - run 'diginode-setup' and choose System instead.
+AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
+AUTO_REBOOT_TIME=$reboot_time"
+
+    if [ "$SYSTEM_AUTO_REBOOT" = "YES" ] && [ -x "$DGNT_REBOOT_HELPER" ]; then
+
+        # Try at the chosen time, then every 30 minutes for 2 hours (in case the DigiNode is busy).
+        # Persistent=false: a missed time is NOT made up after booting, which would restart the DigiNode just after it started.
+        local h m start t off on_calendar=""
+        h=${reboot_time%%:*}
+        m=${reboot_time##*:}
+        start=$(( 10#$h * 60 + 10#$m ))
+        for off in 0 30 60 90 120; do
+            t=$(( (start + off) % 1440 ))
+            on_calendar+="OnCalendar=*-*-* $(printf '%02d:%02d' $(( t / 60 )) $(( t % 60 ))):00"$'\n'
+        done
+
+        local units_changed="no"
+        if write_file_if_changed /etc/systemd/system/diginode-reboot.service 644 "[Unit]
+Description=DigiNode automatic restart (only if an update needs it, and never while busy)
+Documentation=https://diginode.tools
+
+[Service]
+Type=oneshot
+ExecStart=$DGNT_REBOOT_HELPER --auto"; then
+            units_changed="yes"
+        fi
+        if write_file_if_changed /etc/systemd/system/diginode-reboot.timer 644 "[Unit]
+Description=DigiNode automatic restart check (at $reboot_time, then every 30 minutes for 2 hours)
+
+[Timer]
+${on_calendar}Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target"; then
+            units_changed="yes"
+        fi
+        if [ "$units_changed" = "yes" ]; then
+            systemctl daemon-reload
+        fi
+        if ! systemctl is-enabled --quiet diginode-reboot.timer 2>/dev/null || [ "$units_changed" = "yes" ]; then
+            str="Turning on automatic restarts at $reboot_time..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl enable --now diginode-reboot.timer &>/dev/null
+            systemctl restart diginode-reboot.timer &>/dev/null
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+
+        if [ -f /etc/systemd/system/diginode-reboot.timer ]; then
+            str="Turning off automatic restarts..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl disable --now diginode-reboot.timer &>/dev/null
+            rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+            systemctl daemon-reload
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    fi
+
+    printf "%b Automatic system updates: %s   Automatic restarts: %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES" "$SYSTEM_AUTO_REBOOT"
+    printf "\\n"
+}
+
+# Remove DigiNode's automatic restarts and reboot helper when DigiNode Tools is uninstalled. The system's own
+# automatic security updates are left as they are (they keep the system secure, whether or not DigiNode is installed).
+uninstall_system_updates() {
+
+    local str
+
+    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
+
+        str="Removing DigiNode automatic restarts and reboot helper..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl disable --now diginode-reboot.timer &>/dev/null
+        rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+        systemctl daemon-reload &>/dev/null
+        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
+        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF"
+        rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b The system's own automatic security updates (if on) have been left as they are.\\n" "${INFO}"
+    fi
+}
 
 
 # Perform uninstall if requested
@@ -18739,6 +19217,7 @@ uninstall_do_now() {
 
             # Delete .bashrc path to DigiByte binary folder
             if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting path to DigiByte binary folder in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing path for DigiByte binaries
@@ -18900,10 +19379,13 @@ uninstall_do_now() {
     printf "\\n"
     donation_qrcode
     printf "\\n"
-    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
-    printf "\\n"
+    # The 'diginode' commands (or the DigiByte Core path) were removed from .bashrc, but this terminal session still
+    # remembers them until you log out. (A restart isn't needed.)
+    if [ "$UNINSTALL_SHELL_CHANGED" = "YES" ]; then
+        printf "%b %bLog out and back in (or open a new terminal) to finish removing the DigiNode commands.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Until then, this terminal still remembers the old 'diginode' commands, which no longer work.\\n" "${INDENT}"
+        printf "\\n"
+    fi
     exit
 
 }
@@ -18952,6 +19434,7 @@ uninstall_diginode_tools_now() {
 
             # Delete 'diginode-setup' alias
             if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode-setup' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
@@ -18962,6 +19445,7 @@ uninstall_diginode_tools_now() {
 
             # Delete 'diginode' alias
             if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
@@ -18969,6 +19453,9 @@ uninstall_diginode_tools_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
+
+            # Remove DigiNode's automatic restarts and reboot helper (they are part of DigiNode Tools)
+            uninstall_system_updates
 
 
             # Ask to delete diginode.settings if it exists
@@ -20546,6 +21033,9 @@ install_or_upgrade() {
     # Check if the DigiNode custom MOTD is already installed
     motd_check
 
+    # Check if automatic system updates and restarts are turned on
+    system_updates_check
+
     ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
 
     # Ask to install any upgrades, if there are any
@@ -20565,6 +21055,9 @@ install_or_upgrade() {
 
     # If this is a new install, ask to install the DigiNode MOTD
     menu_ask_motd
+
+    # Ask whether to install system updates automatically (only asked once - the choice is saved in diginode.settings)
+    menu_ask_system_updates
 
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
@@ -20620,6 +21113,12 @@ install_or_upgrade() {
     motd_do_install_uninstall
 
 
+    ### AUTOMATIC SYSTEM UPDATES ###
+
+    # Turn automatic system updates and restarts on or off, to match diginode.settings (and install the reboot helper)
+    system_updates_apply
+
+
     ### CHANGE THE HOSTNAME TO DIGINODE ###
 
     # Check if the hostname is set to 'diginode'
@@ -20658,6 +21157,9 @@ install_or_upgrade() {
 
     # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
     final_messages
+
+    # Let the user know if there are system updates available, or a restart is needed to finish installing them
+    display_system_updates_reminder
 
     # Share backup reminder
     backup_reminder
