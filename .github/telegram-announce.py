@@ -181,6 +181,12 @@ def send(messages):
 
     print(f"Posted the release announcement in Telegram ({len(messages)} messages)")
 
+    # Tell the workflow where it is (for the summary sent to the owner). Supergroup IDs are -100<id>; links use <id>.
+    if os.environ.get("GITHUB_OUTPUT") and first_id:
+        link_id = chat[4:] if chat.startswith("-100") else chat.lstrip("-")
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"post_url=https://t.me/c/{link_id}/{first_id}\n")
+
 
 def main():
     if len(sys.argv) != 4 or sys.argv[1] not in ("preview", "send"):

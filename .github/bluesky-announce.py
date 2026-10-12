@@ -273,7 +273,13 @@ def send(posts):
         print(f"Posted {number}/{len(posts)}")
 
     post_id = root["uri"].rsplit("/", 1)[-1]
-    print(f"Posted the release thread on Bluesky: https://bsky.app/profile/{handle}/post/{post_id}")
+    thread_url = f"https://bsky.app/profile/{handle}/post/{post_id}"
+    print(f"Posted the release thread on Bluesky: {thread_url}")
+
+    # Tell the workflow where it is (for the summary sent to the owner)
+    if os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"post_url={thread_url}\n")
 
 
 def main():
