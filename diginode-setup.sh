@@ -9901,7 +9901,7 @@ donation_qrcode() {
     # ==============================================================================
 
     echo "   I created DigiNode Tools to make it easy for everybody to run their"
-    echo "   own DigiByte Node. It's free and open source, and I build and"
+    echo "   own DigiByte Node. It's free, its code is public, and I build and"
     echo "   maintain it in my spare time, for the benefit of the DigiByte"
     echo "   community. If you find it useful, please consider sponsoring me,"
     echo "   so I can devote more time to it. Thank you for your support, Olly"

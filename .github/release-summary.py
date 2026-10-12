@@ -63,7 +63,7 @@ def reddit_post(version, notes):
             lines.append(f"  ([screenshot]({url}))")
     lines += ["", "**To update:** run `diginode-setup` and choose Update.", "",
               f"Release notes: {RELEASE_NOTES_URL}", "",
-              f"*(I'm the developer of DigiNode Tools. It's free and open source - if you find it useful, you can "
+              f"*(I'm the developer of DigiNode Tools. It's free - if you find it useful, you can "
               f"support it at {SPONSOR_URL})*"]
     return title, "\n".join(lines)
 
