@@ -13,9 +13,9 @@
 - Fix: **Correct command for installing system updates** - The reminder to install system updates now tells you to run 'sudo apt-get update && sudo apt-get upgrade'. Running only 'sudo apt-get upgrade' could fail with "404 Not Found" errors if the list of available updates was out of date.
 
 ### DigiNode Tools v26.10.04 - 2026-10-11
-- New: For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
-- Improvement: DigiNode Dashboard now checks for new versions of DigiNode Tools once an hour (previously once a day), so fixes reach you sooner, e.g. while you watch your node sync.
-- Improvement: DigiNode Dashboard no longer checks for Kubo (IPFS) updates when Kubo isn't installed. This cuts an unneeded daily request to GitHub, which limits how often each internet connection can check for updates.
+- New: **Test feature branches** - For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
+- Improvement: **Hourly update checks** - DigiNode Dashboard now checks for new versions of DigiNode Tools once an hour (previously once a day), so fixes reach you sooner, e.g. while you watch your node sync.
+- Improvement: **Fewer update checks** - DigiNode Dashboard no longer checks for Kubo (IPFS) updates when Kubo isn't installed. This cuts an unneeded daily request to GitHub, which limits how often each internet connection can check for updates.
 
 ### DigiNode Tools v26.10.03 - 2026-10-11
 - Fix: DigiNode Setup could install the main branch of DigiNode Tools (used for final testing) instead of the latest release. This happened when GitHub limited how often your DigiNode could check for updates. DigiNode Setup now finds the latest release in a way that isn't limited, and if it still can't find it, it keeps your current version rather than installing anything else.
