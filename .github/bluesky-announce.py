@@ -8,11 +8,12 @@
 #   .github/bluesky-announce.py preview VERSION NOTES_FILE   Print the thread (nothing is posted)
 #   .github/bluesky-announce.py send VERSION NOTES_FILE      Post the thread
 #
-# The thread: a first post with the header and a summary, one reply per release note (a long note continues in the
-# next reply, split between sentences - Bluesky allows 300 characters per post), and a last reply with how to update
-# and the sponsor line. The header and sponsor line rotate (wording in .github/announcements.json, shared with the
-# Telegram announcement). NOTES_FILE is the release notes written by 'release.sh prepare'.
-# Posting needs BLUESKY_HANDLE and BLUESKY_APP_PASSWORD (an app password, not the account password).
+# The thread, with every post numbered (1/ 2/ ...): a first post with the header, as much of the TL;DR (each note's
+# title) as fits ("…and more" if not) and hashtags; one reply per release note (a long note continues in the next
+# reply, split between sentences - Bluesky allows 300 characters per post); and a last post with how to update, the
+# sponsor line and a link to the release notes on the website. The header and sponsor line rotate (wording in
+# .github/announcements.json, shared with the Telegram announcement). NOTES_FILE is the release notes written by
+# 'release.sh prepare'.
 
 import datetime
 import json
@@ -24,6 +25,7 @@ import urllib.error
 import urllib.request
 
 RELEASE_NOTES_URL = "https://diginode.tools/release-notes/"
+RELEASE_NOTES_LINK_TEXT = "diginode.tools/release-notes"
 SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
 MAX_CHARS = 290          # Bluesky allows 300 graphemes per post; counting code points (never fewer) keeps us safely under
 PDS = "https://bsky.social/xrpc"
@@ -107,30 +109,20 @@ def build_thread(version, notes_file):
     if not notes:
         sys.exit(f"ERROR: no release notes found in {notes_file}")
 
-    counts = {t: sum(1 for nt, _, _, _ in notes if nt == t) for t in LABELS}
-    parts = []
-    if counts["New"]:
-        parts.append(plural(counts["New"], "new feature", "new features"))
-    if counts["Improvement"]:
-        parts.append(plural(counts["Improvement"], "improvement", "improvements"))
-    if counts["Fix"]:
-        parts.append(plural(counts["Fix"], "fix", "fixes"))
-    summary = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
-
-    # The first post: a TL;DR of the release (one line per note) if it fits, otherwise a count of the changes
+    # The first post: the header, then as much of the TL;DR (one line per note title) as fits, then the hashtags.
+    # Room is left for the post number (e.g. "1/ ") added at the end.
     title_line = f"{header['emoji']} {header['text'].replace('{version}', version)}"
-    tldr = "\n".join(f"{EMOJI[t]} {nt_title}" for t, nt_title, _, _ in notes)
-    notes_link = [("See recent release notes", RELEASE_NOTES_URL)]
-    first = f"{title_line}\n\n{tldr}\n\nDetails below 🧵 See recent release notes.\n\n{HASHTAGS_LINE}"
-    if len(first) <= MAX_CHARS:
-        posts = [(first, notes_link, [])]
-    else:
-        # Too long for one post: the counts first, then the TL;DR as the second post (if that fits)
-        first = f"{title_line}\n\n{summary[0].upper() + summary[1:]} 🧵\n\nSee recent release notes.\n\n{HASHTAGS_LINE}"
-        posts = [(first, notes_link, [])]
-        tldr_post = f"In this release:\n\n{tldr}"
-        if len(tldr_post) <= MAX_CHARS:
-            posts.append((tldr_post, [], []))
+    tail = f"\n\n🧵 {HASHTAGS_LINE}"
+    tldr_lines = [f"{EMOJI[t]} {nt_title}" for t, nt_title, _, _ in notes]
+    shown = []
+    for i, line in enumerate(tldr_lines):
+        more = "\n…and more" if i + 1 < len(tldr_lines) else ""
+        candidate = "\n".join(shown + [line])
+        if len(f"{title_line}\n\n{candidate}{more}{tail}") > MAX_CHARS:
+            break
+        shown.append(line)
+    tldr = "\n".join(shown) + ("" if len(shown) == len(tldr_lines) else "\n…and more")
+    posts = [(f"{title_line}\n\n{tldr}{tail}", [], [])]
 
     for note_type, note_title, text, images in notes:
         label = f"{EMOJI[note_type]} {LABELS[note_type]}: {note_title}\n\n"
@@ -143,9 +135,17 @@ def build_thread(version, notes_file):
         for chunk in chunks[1:]:
             posts.append((add_inline_tags(chunk), [], []))
 
+    # The last post: how to update, the sponsor line, and a link to the release notes on the website (in a post of
+    # its own if they don't all fit)
     link_text = sponsor["link_text"]
-    posts.append((add_inline_tags(f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}"),
-                  [(link_text, SPONSOR_URL)], []))
+    last = add_inline_tags(f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}")
+    notes_line = f"📜 Release notes for earlier versions: {RELEASE_NOTES_LINK_TEXT}"
+    notes_link = (RELEASE_NOTES_LINK_TEXT, RELEASE_NOTES_URL)
+    if len(f"{last}\n\n{notes_line}") <= MAX_CHARS:
+        posts.append((f"{last}\n\n{notes_line}", [(link_text, SPONSOR_URL), notes_link], []))
+    else:
+        posts.append((last, [(link_text, SPONSOR_URL)], []))
+        posts.append((notes_line, [notes_link], []))
 
     # Number the posts: 1/ 2/ 3/ ... (the splitting above leaves room for this)
     posts = [(f"{n}/ {text}", links, images) for n, (text, links, images) in enumerate(posts, 1)]

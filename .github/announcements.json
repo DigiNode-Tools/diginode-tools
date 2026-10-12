@@ -3,7 +3,7 @@
     "headers": [
         { "emoji": "🚀", "text": "DigiNode Tools v{version} is out!" },
         { "emoji": "📦", "text": "DigiNode Tools v{version} has been released" },
-        { "emoji": "🆙", "text": "Time to update: DigiNode Tools v{version}" },
+        { "emoji": "🆙", "text": "Time to update: DigiNode Tools v{version} is now available!" },
         { "emoji": "🔔", "text": "New release: DigiNode Tools v{version}" },
         { "emoji": "📣", "text": "DigiNode Tools v{version} is here" }
     ],
