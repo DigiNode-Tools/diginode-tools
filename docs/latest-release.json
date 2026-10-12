@@ -21,5 +21,10 @@
   "release_notes_url": "https://diginode.tools/release-notes/",
   "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.10.04",
   "next_release": "2026-10-20",
-  "release_schedule": "Every other Tuesday"
+  "release_schedule": "Every other Tuesday",
+  "schedule": {
+    "first_release_day": "2026-10-20",
+    "every_days": 14
+  },
+  "unreleased_notes_url": "https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/develop/docs/release_notes.md"
 }
