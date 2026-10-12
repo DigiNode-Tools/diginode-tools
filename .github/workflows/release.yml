@@ -130,10 +130,18 @@ jobs:
               .github/bluesky-announce.py preview "$VERSION" "$NOTES_FILE"
               echo '```'
             fi
+            if [ -x .github/release-summary.py ]; then
+              echo
+              echo "### Private summary for Olly (with the Reddit post)"
+              echo '```html'
+              .github/release-summary.py preview "$VERSION" "$NOTES_FILE"
+              echo '```'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
           cat "$GITHUB_STEP_SUMMARY"
 
       - name: Publish the release
+        id: publish
         if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -176,6 +184,26 @@ jobs:
             echo "Bluesky isn't set up yet (BLUESKY_HANDLE variable / BLUESKY_APP_PASSWORD secret) - skipping"
           elif [ -x .github/bluesky-announce.py ]; then
             .github/bluesky-announce.py send "$VERSION" "$NOTES_FILE"
+          fi
+
+      # Send Olly a private Telegram message: what was published (and whether each announcement worked), plus a
+      # ready-made Reddit post to copy. Runs even if an announcement failed, as long as the release was published.
+      - name: Send the release summary to Olly
+        if: ${{ always() && steps.publish.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+          GITHUB_RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ steps.prep.outputs.version }}
+          TELEGRAM_OUTCOME: ${{ steps.announce.outcome }}
+          TELEGRAM_POST_URL: ${{ steps.announce.outputs.post_url }}
+          BLUESKY_OUTCOME: ${{ steps.bluesky.outcome }}
+          BLUESKY_POST_URL: ${{ steps.bluesky.outputs.post_url }}
+          VERSION: ${{ steps.prep.outputs.version }}
+          NOTES_FILE: ${{ runner.temp }}/release-notes.md
+        run: |
+          if [ -x .github/release-summary.py ]; then
+            .github/release-summary.py send "$VERSION" "$NOTES_FILE"
           fi
 
       - name: Report a failed Bluesky announcement
