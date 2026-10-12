@@ -1,6 +1,6 @@
 # DigiNode Tools name and logo
 
-The DigiNode Tools name and logo belong to Olly Stedall. They aren't covered by the licence of any DigiNode Tools repository.
+The DigiNode Tools name and logo belong to Oliver Stedall (Olly). They aren't covered by the licence of any DigiNode Tools repository.
 
 You don't need to ask permission to use them to:
 
