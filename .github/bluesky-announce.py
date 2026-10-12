@@ -14,6 +14,8 @@
 # sponsor line and a link to the release notes on the website. The header and sponsor line rotate (wording in
 # .github/announcements.json, shared with the Telegram announcement). NOTES_FILE is the release notes written by
 # 'release.sh prepare'.
+# Posting needs BLUESKY_HANDLE (a repository variable) and BLUESKY_APP_PASSWORD (a secret - an app password, not the
+# account password).
 
 import datetime
 import json
