@@ -1,4 +1,4 @@
-Required Notice: Copyright (c) 2021-2026 Olly Stedall (https://diginode.tools)
+Required Notice: Copyright (c) 2021-2026 Oliver Stedall (https://diginode.tools)
 
 DigiNode Tools, including all previously released versions, is licensed under the PolyForm Perimeter License 1.0.0 below. The DigiNode Tools name and logo aren't covered by this licence - see [TRADEMARKS.md](TRADEMARKS.md). For a plain-English summary, see the [Licence FAQ](docs/licence_faq.md).
 
