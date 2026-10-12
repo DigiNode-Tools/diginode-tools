@@ -23,7 +23,7 @@ import sys
 import urllib.error
 import urllib.request
 
-RELEASE_URL = "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v{version}"
+RELEASE_NOTES_URL = "https://diginode.tools/release-notes/"
 SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
 MAX_CHARS = 290          # Bluesky allows 300 graphemes per post; counting code points (never fewer) keeps us safely under
 PDS = "https://bsky.social/xrpc"
@@ -117,17 +117,17 @@ def build_thread(version, notes_file):
         parts.append(plural(counts["Fix"], "fix", "fixes"))
     summary = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
 
-    release_url = RELEASE_URL.format(version=version)
     # The first post: a TL;DR of the release (one line per note) if it fits, otherwise a count of the changes
     title_line = f"{header['emoji']} {header['text'].replace('{version}', version)}"
     tldr = "\n".join(f"{EMOJI[t]} {nt_title}" for t, nt_title, _, _ in notes)
-    first = f"{title_line}\n\n{tldr}\n\nDetails 🧵 Release notes\n\n{HASHTAGS_LINE}"
+    notes_link = [("See recent release notes", RELEASE_NOTES_URL)]
+    first = f"{title_line}\n\n{tldr}\n\nDetails below 🧵 See recent release notes.\n\n{HASHTAGS_LINE}"
     if len(first) <= MAX_CHARS:
-        posts = [(first, [("Release notes", release_url)], [])]
+        posts = [(first, notes_link, [])]
     else:
         # Too long for one post: the counts first, then the TL;DR as the second post (if that fits)
-        first = f"{title_line}\n\n{summary[0].upper() + summary[1:]} 🧵\n\nRelease notes\n\n{HASHTAGS_LINE}"
-        posts = [(first, [("Release notes", release_url)], [])]
+        first = f"{title_line}\n\n{summary[0].upper() + summary[1:]} 🧵\n\nSee recent release notes.\n\n{HASHTAGS_LINE}"
+        posts = [(first, notes_link, [])]
         tldr_post = f"In this release:\n\n{tldr}"
         if len(tldr_post) <= MAX_CHARS:
             posts.append((tldr_post, [], []))
@@ -146,6 +146,9 @@ def build_thread(version, notes_file):
     link_text = sponsor["link_text"]
     posts.append((add_inline_tags(f"To update, run diginode-setup and choose Update.\n\n{sponsor['text']} {link_text}"),
                   [(link_text, SPONSOR_URL)], []))
+
+    # Number the posts: 1/ 2/ 3/ ... (the splitting above leaves room for this)
+    posts = [(f"{n}/ {text}", links, images) for n, (text, links, images) in enumerate(posts, 1)]
 
     for text, _, _ in posts:
         if len(text) > 300:
