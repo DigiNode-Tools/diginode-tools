@@ -90,7 +90,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -qam "Release v$VERSION"
           git checkout -q main
-          git merge --no-ff -q develop -m "Release v$VERSION (merge develop into main)"
+          # main should always end up matching develop. If a file was also changed on main (e.g. release notes or
+          # release files copied there by hand), develop's version wins, so the merge can't stop with a conflict.
+          git merge --no-ff -q -X theirs develop -m "Release v$VERSION (merge develop into main)"
           git tag -a "v$VERSION" -m "DigiNode Tools v$VERSION"
           echo "Merged into main and tagged v$VERSION (locally)"
 
