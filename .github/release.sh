@@ -16,8 +16,12 @@
 #                                         start a new "Unreleased" section in the release notes
 #   .github/release.sh due                Exit 0 if the weekly release is due: it's 10:00 or later (UK time) and there
 #                                         are release notes under "Unreleased". Says why or why not.
+#   .github/release.sh archive            Keep the latest 10 releases in docs/release_notes.md (shown on the website)
+#                                         and move older ones to the top of docs/release_notes_more.md. 'prepare' does
+#                                         this automatically.
 #
-# Release notes go under a "DigiNode Tools - Unreleased" heading at the top of docs/release_notes.md.
+# Release notes go under a "### DigiNode Tools - Unreleased" heading at the top of docs/release_notes.md. Each release
+# has a "### DigiNode Tools vYY.MM.NN - YYYY-MM-DD" heading.
 
 set -euo pipefail
 
@@ -25,14 +29,16 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SETUP="$ROOT/diginode-setup.sh"
 DASHBOARD="$ROOT/diginode.sh"
 NOTES="$ROOT/docs/release_notes.md"
-UNRELEASED="DigiNode Tools - Unreleased"
+MORE="$ROOT/docs/release_notes_more.md"
+KEEP_RELEASES=10    # How many releases release_notes.md (and so the website) shows
+UNRELEASED="### DigiNode Tools - Unreleased"
 TODAY=$(date -u +%Y-%m-%d)
 
 fail() { echo "ERROR: $1" >&2; exit 1; }
 
 # Count the release notes under the Unreleased heading
 unreleased_entries() {
-    awk -v h="$UNRELEASED" '$0 == h { on = 1; next } on && /^DigiNode Tools v/ { exit } on && /^- / { n++ } END { print n + 0 }' "$NOTES"
+    awk -v h="$UNRELEASED" '$0 == h { on = 1; next } on && /^### DigiNode Tools v/ { exit } on && /^- / { n++ } END { print n + 0 }' "$NOTES"
 }
 
 # Set the version number everywhere it appears in the two scripts
@@ -74,15 +80,18 @@ case "${1:-}" in
 
         set_version "$ver"
         heading="DigiNode Tools v$ver - $TODAY"
-        sed -i.bak "s/^$UNRELEASED\$/$heading/" "$NOTES" && rm -f "$NOTES.bak"
+        sed -i.bak "s/^$UNRELEASED\$/### $heading/" "$NOTES" && rm -f "$NOTES.bak"
 
-        # The GitHub release shows the heading, a blank line, then the entries (the same as earlier releases)
+        # The GitHub release shows the heading (as plain text), a blank line, then the entries (as earlier releases)
         notes_file="${NOTES_FILE:-$ROOT/release-notes.md}"
         {
             echo "$heading"
             echo ""
-            awk -v h="$heading" '$0 == h { on = 1; next } on && /^DigiNode Tools v/ { exit } on' "$NOTES" | sed '/^[[:space:]]*$/d'
+            awk -v h="### $heading" '$0 == h { on = 1; next } on && /^### DigiNode Tools v/ { exit } on && !/^\[View earlier releases\]/' "$NOTES" | sed '/^[[:space:]]*$/d'
         } > "$notes_file"
+
+        # The website shows the latest releases; older ones move to release_notes_more.md
+        "$ROOT/.github/archive-release-notes.py" "$NOTES" "$MORE" "$KEEP_RELEASES"
         echo "Prepared v$ver ($entries release notes)"
         ;;
 
@@ -93,7 +102,7 @@ case "${1:-}" in
         set_version "$next"
 
         # Start a new Unreleased section above the release that was just made
-        awk -v h="$UNRELEASED" 'done != 1 && /^DigiNode Tools v/ { print h; print ""; done = 1 } { print }' "$NOTES" > "$NOTES.new"
+        awk -v h="$UNRELEASED" 'done != 1 && /^### DigiNode Tools v/ { print h; print ""; done = 1 } { print }' "$NOTES" > "$NOTES.new"
         mv "$NOTES.new" "$NOTES"
         echo "Develop is now v$next (placeholder until the next release)"
         ;;
@@ -115,8 +124,12 @@ case "${1:-}" in
         echo "The weekly release is due ($entries release notes)"
         ;;
 
+    archive)
+        "$ROOT/.github/archive-release-notes.py" "$NOTES" "$MORE" "$KEEP_RELEASES"
+        ;;
+
     *)
-        sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
         exit 1
         ;;
 esac
