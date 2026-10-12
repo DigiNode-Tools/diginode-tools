@@ -14,8 +14,9 @@
 #                                         release notes for GitHub to $NOTES_FILE (default: release-notes.md)
 #   .github/release.sh bump VERSION       After VERSION is released: set the next placeholder version on develop, and
 #                                         start a new "Unreleased" section in the release notes
-#   .github/release.sh due                Exit 0 if the weekly release is due: it's 10:00 or later (UK time) and there
-#                                         are release notes under "Unreleased". Says why or why not.
+#   .github/release.sh due                Exit 0 if the scheduled release is due: it's a release Tuesday (every other
+#                                         Tuesday, from FIRST_RELEASE_DAY), 10:00 or later (UK time), and there are
+#                                         release notes under "Unreleased". Says why or why not.
 #   .github/release.sh archive            Keep the latest 10 releases in docs/release_notes.md (shown on the website)
 #                                         and move older ones to the top of docs/release_notes_more.md. 'prepare' does
 #                                         this automatically.
@@ -31,6 +32,8 @@ DASHBOARD="$ROOT/diginode.sh"
 NOTES="$ROOT/docs/release_notes.md"
 MORE="$ROOT/docs/release_notes_more.md"
 KEEP_RELEASES=10    # How many releases release_notes.md (and so the website) shows
+FIRST_RELEASE_DAY=2026-10-20   # The first scheduled release (a Tuesday); then every RELEASE_EVERY_DAYS days
+RELEASE_EVERY_DAYS=14
 UNRELEASED="### DigiNode Tools - Unreleased"
 TODAY=$(date -u +%Y-%m-%d)
 
@@ -108,12 +111,23 @@ case "${1:-}" in
         ;;
 
     due)
-        # Weekly release (Tuesdays): the workflow runs at 09:07 and 10:07 UTC, so that one run is at 10:xx UK time
-        # whether or not it's summer time. Release at 10:00 UK time or later, if there is anything to release.
+        # Scheduled release, every other Tuesday: the workflow runs at 09:07 and 10:07 UTC every Tuesday, so that one
+        # run is at 10:xx UK time whether or not it's summer time. Release only on a release Tuesday (FIRST_RELEASE_DAY,
+        # then every RELEASE_EVERY_DAYS days), at 10:00 UK time or later, if there is anything to release.
         # (Once released, "Unreleased" is empty again, so the second run does nothing.)
-        uk_hour=${UK_HOUR:-$(TZ=Europe/London date +%H)}   # UK_HOUR can be set for testing
+        uk_day=${UK_DAY:-$(TZ=Europe/London date +%Y-%m-%d)}   # UK_DAY and UK_HOUR can be set for testing
+        days=$(python3 -c "import datetime as d, sys; print((d.date.fromisoformat(sys.argv[1]) - d.date.fromisoformat(sys.argv[2])).days)" "$uk_day" "$FIRST_RELEASE_DAY")
+        if [ "$days" -lt 0 ] || [ $(( days % RELEASE_EVERY_DAYS )) -ne 0 ]; then
+            next=$(python3 -c "import datetime as d, sys
+first = d.date.fromisoformat(sys.argv[1]); today = d.date.fromisoformat(sys.argv[2]); every = int(sys.argv[3])
+n = first if today <= first else first + d.timedelta(days=-(-(today - first).days // every) * every)
+print(n.strftime('%A %d %B %Y'))" "$FIRST_RELEASE_DAY" "$uk_day" "$RELEASE_EVERY_DAYS")
+            echo "No release today - the next scheduled release is on $next"
+            exit 1
+        fi
+        uk_hour=${UK_HOUR:-$(TZ=Europe/London date +%H)}
         if [ "$((10#$uk_hour))" -lt 10 ]; then
-            echo "It's ${uk_hour}:xx UK time - the weekly release happens at 10:00"
+            echo "It's ${uk_hour}:xx UK time - the release happens at 10:00"
             exit 1
         fi
         entries=$(unreleased_entries)
@@ -121,7 +135,7 @@ case "${1:-}" in
             echo "Nothing to release - there is nothing under \"$UNRELEASED\" in docs/release_notes.md"
             exit 1
         fi
-        echo "The weekly release is due ($entries release notes)"
+        echo "The scheduled release is due ($entries release notes)"
         ;;
 
     archive)

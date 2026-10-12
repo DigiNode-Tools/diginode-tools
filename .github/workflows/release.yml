@@ -6,7 +6,8 @@ name: Release DigiNode Tools
 #
 # A dry run does all of this without pushing, tagging or publishing anything, and shows what would happen.
 #
-# Weekly release: every Tuesday at 10:00 UK time, if there is anything under "Unreleased" in the release notes.
+# Scheduled release: every other Tuesday at 10:00 UK time (from 20 October 2026; set in .github/release.sh), if there
+# is anything under "Unreleased" in the release notes.
 # Only merge features into develop when they are ready to release. For an emergency fix, merge it into develop and
 # run this manually (untick Dry run) to release straight away.
 # (Scheduled runs use this file from main, so changes to the schedule only take effect once they are on main.)
@@ -19,7 +20,8 @@ on:
         type: boolean
         default: true
   schedule:
-    # Tuesdays at 09:07 and 10:07 UTC - one of these is 10:xx UK time, summer or winter (release.sh due checks)
+    # Tuesdays at 09:07 and 10:07 UTC - one of these is 10:xx UK time, summer or winter. release.sh due checks the time,
+    # and that it's a release Tuesday (every other Tuesday)
     - cron: "7 9,10 * * 2"
 
 permissions:
@@ -36,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      # The weekly release is always real; a manual one follows the Dry run box
+      # The scheduled release is always real; a manual one follows the Dry run box
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
