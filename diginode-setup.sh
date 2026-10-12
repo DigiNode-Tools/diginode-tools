@@ -472,9 +472,8 @@ is_reset_mode() {
     if [ "$RESET_MODE" = true ]; then
         printf "%b %bReset Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Your DigiNode will be reset. All settings and configuration files\\n" "${INDENT}"
-        printf "%b will be deleted and recreated. DigiByte and DigiAssets\\n" "${INDENT}"
-        printf "%b software will be reinstalled. Any DigiByte blockchain data or\\n" "${INDENT}"
-        printf "%b DigiAsset metadata will also be optionally deleted.\\n" "${INDENT}"
+        printf "%b will be deleted and recreated, and DigiByte Core will be reinstalled.\\n" "${INDENT}"
+        printf "%b You can also choose to delete your DigiByte blockchain data.\\n" "${INDENT}"
         printf "\\n"
     fi
 
