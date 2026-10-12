@@ -95,6 +95,10 @@ case "${1:-}" in
 
         # The website shows the latest releases; older ones move to release_notes_more.md
         "$ROOT/.github/archive-release-notes.py" "$NOTES" "$MORE" "$KEEP_RELEASES"
+
+        # A summary of this release for the DigiNode Widgets (website banner) and anyone else who wants it
+        "$ROOT/.github/latest-release-json.py" "$notes_file" "$ROOT/docs/latest-release.json" "$ver" "$TODAY" \
+            "$FIRST_RELEASE_DAY" "$RELEASE_EVERY_DAYS"
         echo "Prepared v$ver ($entries release notes)"
         ;;
 

@@ -1,0 +1,25 @@
+{
+  "name": "DigiNode Tools",
+  "version": "26.10.04",
+  "tag": "v26.10.04",
+  "date": "2026-10-11",
+  "summary": "Test feature branches, hourly update checks and fewer update checks.",
+  "highlights": [
+    {
+      "type": "New",
+      "title": "Test feature branches"
+    },
+    {
+      "type": "Improvement",
+      "title": "Hourly update checks"
+    },
+    {
+      "type": "Improvement",
+      "title": "Fewer update checks"
+    }
+  ],
+  "release_notes_url": "https://diginode.tools/release-notes/",
+  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.10.04",
+  "next_release": "2026-10-20",
+  "release_schedule": "Every other Tuesday"
+}
