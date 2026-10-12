@@ -94,7 +94,9 @@ Go [here](https://diginode.tools/release-notes/) to view the release notes.
 
 These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
 
-## License
+## Licence
 
-DigiNode Tools is licensed under the PolyForm Perimeter 1.0.0 license. TL;DR — You're free to use, fork, modify, and redestribute DigiNode Tools for personal and nonprofit use under the same license. However, you may not re-release DigiNode Tools in an official capacity (i.e. on a custom website or custom URL) in a form which competes with the original DigiNode Tools. This is to ensure that there remains only one official release version of DigiNode Tools. If you're interested in using DigiNode Tools for commercial purposes, such as selling plug-and-play home servers with DigiNode Tools, etc — please contact olly@diginode.tools. For more information read the [Licence FAQ](https://diginode.tools/faq/). The full licence is [here](https://diginode.tools/software-licence/).
+DigiNode Tools is free to use for any purpose, and its code is public so anyone can see exactly what it does. It's licensed under the [PolyForm Perimeter 1.0.0](LICENCE.md) licence, which doesn't allow the code to be used to make a competing product, including a version for another blockchain. See the [Licence FAQ](docs/licence_faq.md) for a plain-English summary.
+
+The DigiNode Tools name and logo can be used to link to or write about DigiNode Tools - see [TRADEMARKS.md](TRADEMARKS.md).
 
