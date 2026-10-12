@@ -4,6 +4,7 @@
 
 ### DigiNode Tools v0.10.9 - 2025-02-12
 - New: Dashboard now displays the disk space used by the running blockchain
+  ![Screenshot of DigiNode Dashboard showing the new feature that displays the disk space used by each blockchain (41Gb for mainnet and 3.5Gb for testnet)](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/dashboard/blockchain-size.png)
 - New: DigiNode CLI and Dashboard now display the version number at launch
 - New: Uninstaller now prompts to uninstall Regtest and Signet blockchain data if present
 - Fix: When running a Dual Node, the secondary Testnet node now gets shutdown correctly before performing an uninstall

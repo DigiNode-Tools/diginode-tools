@@ -82,7 +82,9 @@
 
 ### DigiNode Tools v0.11.0 - 2025-04-19
 - New: DigiNode Dashboard now has a brand new port tester built for DigiNode Tools. It can test nodes at IPv4, IPv6 and onion addresses. The port tester is also available for anyone to use at: https://diginode.tools/digibyte-port-tester/
+  ![The DigiByte port tester built into DigiNode Dashboard, showing that the mainnet and testnet listening ports are open and the nodes are publicly accessible](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/port-tester/port-test-results.png)
 - New: DigiNode Dashboard now optionally displays the mempool data for each node. By default, Mempool data is displayed whenever transactions enter the mempool and is hidden if there are no transactions seen for 30 seconds. This way mempool data is shown only when there is mempool data to show. You can enable/disable displaying the mempool data by editing the variables SM_DISPLAY_MAINNET_MEMPOOL and SM_DISPLAY_TESTNET_MEMPOOL in diginode.settings. (Enter ```diginode --settings```). SM_MEMPOOL_DISPLAY_TIMEOUT can be used to set the timeout duration.
+  ![DigiNode Dashboard showing the new Mempool row (1 transaction, 222 bytes, total fee 0.0222 DGB) and the incoming and outgoing connections (11 peers: in 1, out 10)](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/dashboard/mempool-and-connections.png)
 - New: DigiNode Dashboard now displays the incoming and outgoing connections for your DigiByte node.
 - Improvement: peers.dat is now deleted each time you switch between running a Tor node and a clearnet node. This ensures the node starts with a fresh list of peers to connect to.
 - Improvement: Add message to Dashboard about DigiAsset Core support. Adding support for DigiAsset Core is not possible at this time due to a bug in DigiByte Core v8.22.x.
