@@ -19768,10 +19768,12 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools')
+        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools'), and tag each DigiFact's short
+        # link with ?dnt, so a click on it is counted as coming from DigiNode Tools (e.g. go.diginode.tools/7ttm?dnt)
         str="Remove DigiFacts about DigiNode Tools itself ..."
         printf "%b %s" "${INFO}" "${str}" 
-        sudo -u $USER_ACCOUNT jq 'with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))' "$digifacts_file" > "$digifacts_temp_file"
+        sudo -u $USER_ACCOUNT jq 'with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))
+            | map_values(if (.content | type) == "string" then .content |= gsub("(?<link>https://go\\.diginode\\.tools/[a-z0-9]{4})(?![a-zA-Z0-9?/])"; "\(.link)?dnt") else . end)' "$digifacts_file" > "$digifacts_temp_file"
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
