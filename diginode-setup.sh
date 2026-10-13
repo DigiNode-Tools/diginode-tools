@@ -4532,7 +4532,7 @@ rpi_microsd_check() {
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
                 printf "%b        The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
-                printf "%b   Tip: Booting from an SSD is stongly recommended. While a USB flash drive will\\n" "${INDENT}"
+                printf "%b   Tip: Booting from an SSD is strongly recommended. While a USB flash drive will\\n" "${INDENT}"
                 printf "%b        work, an SSD will perform better and is less prone to data corruption.\\n" "${INDENT}"
             fi
             
@@ -8231,7 +8231,7 @@ menu_first_install() {
     # Display the information to the user
 #!!    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 3 \
 #!!        "${opt1}" "${desc1}" \
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIMPORTANT: The option to install a full DigiNode (DigiByte + DigiAsset Node) is temporaily unavailable. Support for the new DigiAsset Core will be added in an upcoming release.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 2 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIMPORTANT: The option to install a full DigiNode (DigiByte + DigiAsset Node) is temporarily unavailable. Support for the new DigiAsset Core will be added in an upcoming release.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 2 \
         "${opt2}" "${desc2}" \
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
@@ -9198,7 +9198,7 @@ welcomeDialogs() {
     dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 23 ${c}
 
     #!! Temp message re digiasset node not working
-    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis features has temporarily been removed as the legacy DigiAsset Node software is no longer functioing correctly. Support the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
+    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis feature has temporarily been removed as the legacy DigiAsset Node software is no longer functioning correctly. Support for the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
 
     # Use must agree to the softare disclaimer
     disclaimerDialog
@@ -10150,11 +10150,17 @@ display_system_updates_reminder() {
     if [ "$system_updates_available" = "yes" ] && [ "$SYSTEM_AUTO_UPDATES" != "ALL" ]; then
         printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
+        # With security updates on, only the other updates are left for the user to install
+        local which_updates="them"
+        if [ "$SYSTEM_AUTO_UPDATES" = "SECURITY" ]; then
+            printf "%b Security updates are installed automatically.\\n" "${INDENT}"
+            which_updates="the others"
+        fi
         # Refresh the package lists first - they may be out of date by now, and installing from an old list can fail
         if [ "$PKG_MANAGER" = "apt-get" ]; then
-            printf "%b To install them now enter: ${txtbld}sudo apt-get update && sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+            printf "%b To install ${which_updates} now enter: ${txtbld}sudo apt-get update && sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
         else
-            printf "%b To install them now enter: ${txtbld}sudo ${PKG_MANAGER} upgrade${txtrst}\\n" "${INDENT}"
+            printf "%b To install ${which_updates} now enter: ${txtbld}sudo ${PKG_MANAGER} upgrade${txtrst}\\n" "${INDENT}"
         fi
         printf "\\n"
     fi
@@ -19834,7 +19840,7 @@ digifact_randomize() {
         digifact_title=$(jq -r ".\"$random_key\".title" "$digifacts_file")
         digifact_content=$(jq -r ".\"$random_key\".content" "$digifacts_file")
 
-        # Replace \n in string with <br> temporaily so it does not get interpreted prematurely
+        # Replace \n in string with <br> temporarily so it does not get interpreted prematurely
         digifact_content="${digifact_content//<br>/\\n}"
 
         # Declare the variable inside the function, right at the end
