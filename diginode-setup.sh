@@ -19759,10 +19759,10 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools'), and digifact78 for older data
+        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools')
         str="Remove DigiFacts about DigiNode Tools itself ..."
         printf "%b %s" "${INFO}" "${str}" 
-        sudo -u $USER_ACCOUNT jq 'del(.digifact78) | with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))' "$digifacts_file" > "$digifacts_temp_file"
+        sudo -u $USER_ACCOUNT jq 'with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))' "$digifacts_file" > "$digifacts_temp_file"
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
