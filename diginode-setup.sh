@@ -19635,7 +19635,7 @@ fi
 
 }
 
-# Download the DigiFacts file from Github (at most once every 24 hours)
+# Download the DigiFacts from digifacts.diginode.tools (at most once an hour). If it fails, the saved DigiFacts are kept.
 download_digifacts() {
 
     local digifacts_url="https://digifacts.diginode.tools/en/social.json"
@@ -19661,6 +19661,21 @@ download_digifacts() {
     local current_time=$(date +%s)  # in seconds
 
     printf "%b Checking for digifacts.json ...\\n" "${INFO}"
+
+    # The download didn't work: keep the saved DigiFacts, and try again in an hour (not every time DigiNode
+    # Dashboard starts). It's not an error the user needs to do anything about.
+    keep_saved_digifacts() {
+        if [ -f "$digifacts_file" ]; then
+            rm -f "$digifacts_file"
+        fi
+        if [ -f "$digifacts_backup_file" ]; then
+            mv "$digifacts_backup_file" "$digifacts_file"
+        fi
+        printf "%b%b %s No (%s) - keeping the saved DigiFacts.\\n" "${OVER}" "${INFO}" "${str}" "$1"
+        printf "%b The DigiFacts could not be updated just now. They will be updated again later.\\n" "${INDENT}"
+        SAVED_TIME_DIGIFACTS=$current_time
+        sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=\"$SAVED_TIME_DIGIFACTS\"|" $DGNT_SETTINGS_FILE
+    }
 
     # Function to download and process the digifacts.json
     download_and_process() {
@@ -19699,24 +19714,12 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if test ! -s "$digifacts_file"; then
-            if [ -f "$digifacts_file" ]; then
-                rm "$digifacts_file"
-            fi
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! File empty! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts web server may be down!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "nothing was downloaded"
             return 1
 
-        # New: Check for HTML response from Cloudflare
+        # A web page instead of the DigiFacts (e.g. an error page)
         elif grep -q -i "<!DOCTYPE html>" "$digifacts_file" || grep -q -i "<html" "$digifacts_file"; then
-            rm "$digifacts_file"
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! Received HTML instead of JSON. Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts service may be unreachable or returning a Cloudflare error.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "a web page was downloaded instead"
             return 1
 
         else
@@ -19733,12 +19736,7 @@ download_digifacts() {
         str="Is downloaded digifacts.json valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
         if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
-            rm "$digifacts_file"
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts.json was bad json. Is service down?%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "the download wasn't valid"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)
@@ -19761,10 +19759,10 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        str="Remove digifact78, as this describes DigiNode Tools ..."
+        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools'), and digifact78 for older data
+        str="Remove DigiFacts about DigiNode Tools itself ..."
         printf "%b %s" "${INFO}" "${str}" 
-        sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
+        sudo -u $USER_ACCOUNT jq 'del(.digifact78) | with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))' "$digifacts_file" > "$digifacts_temp_file"
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
