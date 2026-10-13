@@ -18536,9 +18536,12 @@ menu_ask_system_updates() {
     else
         local reboot_time
         reboot_time=$(system_auto_reboot_time)
-        local defaultno=""
-        if [ "$SYSTEM_AUTO_REBOOT" != "YES" ]; then
-            defaultno="--defaultno"
+        # Suggest Yes if restarts are already on, or if never asked before on a Raspberry Pi (almost always a
+        # dedicated DigiNode). Otherwise suggest No - e.g. on a VPS or a server that runs other things too, where a
+        # restart could be unwelcome (or need a disk password typed at boot). A previous No is always kept.
+        local defaultno="--defaultno"
+        if [ "$SYSTEM_AUTO_REBOOT" = "YES" ] || { [ -z "$SYSTEM_AUTO_REBOOT" ] && [ "$IS_RPI" = "YES" ]; }; then
+            defaultno=""
         fi
 
         if dialog --no-shadow --keep-tite --colors --backtitle "Automatic Restarts" --title "Automatic Restarts" $defaultno --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like your DigiNode to restart automatically when an update needs it?\Z0\n\nSome updates, such as a new Linux kernel, only take effect after a restart.\n\nIf you choose YES, your DigiNode will restart itself at ${reboot_time} (system time), but only when an update needs it. If it is busy (e.g. DigiNode Setup is running or software is being installed) the restart is skipped and tried again later. Your DigiByte node is shut down safely and starts again automatically.\n\nIf you choose NO, you will be reminded when a restart is needed." 19 "${c}"; then
