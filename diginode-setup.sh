@@ -132,9 +132,9 @@ DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 # Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
 
-# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools.
-DGNT_SPONSORS_URL="https://diginode.tools/sponsors/"
-DGNT_GITHUB_SPONSORS_URL="https://github.com/sponsors/DigiNode-Tools"
+# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools
+# (e.g. GitHub Sponsors), so new ways can be added there without changing DigiNode Tools.
+DGNT_SPONSORS_URL="https://diginode.tools/sponsor"
 
 # Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
 DGNT_SPONSORS_DATA_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
@@ -153,11 +153,12 @@ DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-
 DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
 
 
-# DigiNode Tools Social Accounts
-SOCIAL_BLUESKY_URL="https://bsky.app/profile/diginode.tools"
+# DigiNode Tools Social Accounts. Links outside diginode.tools go through go.diginode.tools (the DigiNode-Tools/go
+# repo), so where they go can be changed there - every DigiNode follows, without upgrading.
+SOCIAL_BLUESKY_URL="https://go.diginode.tools/bluesky"
 SOCIAL_BLUESKY_HANDLE="@diginode.tools"
 SOCIAL_NOSTR_NPUB=""
-SOCIAL_TELEGRAM_URL="https://t.me/DigiNodeTools"
+SOCIAL_TELEGRAM_URL="https://go.diginode.tools/telegram"
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -2460,7 +2461,7 @@ create_digibyte_conf() {
                 printf "\\n"
                 printf "%b[signet]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
                 printf "\\n"
-                printf "%b Please refer to the template here: https://jlopp.github.io/bitcoin-core-config-generator/\\n" "${INDENT}"
+                printf "%b Please refer to the template here: https://go.diginode.tools/conf-template\\n" "${INDENT}"
                 printf "\\n"
                 printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
                 printf "\\n"
@@ -6606,7 +6607,7 @@ swap_do_change() {
             printf "%b Please post a message in the 'DigiNode Tools' Telegram group including\\n" "${INDENT}"
             printf "%b the distro you are running ($detected_os).\\n" "${INDENT}"
             printf "\\n"
-            printf "%b Go here: https://t.me/+ked2VGZsLPAyN2Jk\\n" "${INFO}"
+            printf "%b Go here: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
             printf "\\n"
             exit 1
 
@@ -9225,7 +9226,7 @@ donationDialog() {
 dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
 \Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please sponsor or donate to support future development:
 
-             \Z4${DGNT_GITHUB_SPONSORS_URL}\Z0
+                   \Z4${DGNT_SPONSORS_URL}\Z0
 
 Alternatively, donate DigiByte (DGB):
 
@@ -9905,7 +9906,7 @@ donation_qrcode() {
     echo "   community. If you find it useful, please consider sponsoring me,"
     echo "   so I can devote more time to it. Thank you for your support, Olly"
     echo ""
-    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_GITHUB_SPONSORS_URL}\a${DGNT_GITHUB_SPONSORS_URL}\e]8;;\a${txtrst} <<"
+    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
@@ -9928,7 +9929,7 @@ donation_qrcode() {
     echo ""  
     echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
     echo ""
-    echo -e "                    >> Find me on Bluesky \e]8;;https://bsky.app/profile/olly.st\a@olly.st\e]8;;\a <<"
+    echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
     echo ""
 }
 
@@ -20072,7 +20073,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 13 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://go.diginode.tools/argon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -20085,7 +20086,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 12 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://go.diginode.tools/argon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
