@@ -3,8 +3,10 @@
 # Name:    release-summary.py
 # Purpose: After a release, send the owner (Olly) a private Telegram message from the DigiNode Tools Releases bot:
 #          what was published (with links, and whether each announcement worked), then a ready-made Reddit post for
-#          r/Digibyte (title and body to copy, and a link to Reddit's post page with the title filled in).
-#          Used by the "Release DigiNode Tools" GitHub Action. Posting to Reddit is left to the owner on purpose.
+#          r/Digibyte (title and body to copy, and a link to Reddit's post page with the title filled in), then a
+#          ready-made Ko-fi post (title and text to copy, and the release's screenshots as an album to save and attach).
+#          Used by the "Release DigiNode Tools" GitHub Action. Posting to Reddit and Ko-fi is left to the owner: Reddit
+#          on purpose, and Ko-fi has no way for a program to post.
 #
 # Usage:
 #   .github/release-summary.py preview VERSION NOTES_FILE   Print the messages (nothing is sent)
@@ -25,6 +27,8 @@ import urllib.request
 SUBREDDIT = "Digibyte"
 RELEASE_NOTES_URL = "https://diginode.tools/release-notes/"
 SPONSOR_URL = "https://diginode.tools/sponsors/"
+KOFI_NEW_POST_URL = "https://ko-fi.com/blog/editor?back=true"
+EMOJI = {"New": "✨", "Improvement": "🛠️", "Fix": "🐛"}   # As in the Bluesky TL;DR
 MAX_TEXT = 4000   # Telegram allows 4096 characters per message
 
 
@@ -68,8 +72,35 @@ def reddit_post(version, notes):
     return title, "\n".join(lines)
 
 
+def kofi_post(version, notes):
+    """The title and plain-text body of a Ko-fi post about the release, for the people who support DigiNode Tools."""
+    title = f"DigiNode Tools v{version} is out"
+    lines = ["Thank you for supporting DigiNode Tools! Here's what your support has helped make happen in this release.",
+             "", "TL;DR"]
+    lines += [f"{EMOJI.get(t, '•')} {nt or text[:80]}" for t, nt, text, _ in notes]
+    lines += ["", "What's new", ""]
+    for note_type, note_title, text, _images in notes:
+        lines += [f"{note_type}: {note_title}" if note_title else f"{note_type}:", text, ""]
+    lines += ["To update, run diginode-setup and choose Update.", "",
+              f"Release notes, with screenshots: {RELEASE_NOTES_URL}", "",
+              "Thank you!", "Olly"]
+    return title, "\n".join(lines)
+
+
+def chunked_pre(text):
+    """The text as tap-to-copy code blocks (Telegram HTML), split if it's too long for one message."""
+    messages, chunk = [], ""
+    for para in html.escape(text, quote=False).split("\n"):
+        if len(chunk) + len(para) + 20 > MAX_TEXT:
+            messages.append(f"<pre>{chunk}</pre>")
+            chunk = ""
+        chunk = f"{chunk}\n{para}" if chunk else para
+    messages.append(f"<pre>{chunk}</pre>")
+    return messages
+
+
 def build_messages(version, notes_file):
-    """Return the messages to send the owner (Telegram HTML)."""
+    """Return the messages to send the owner: Telegram HTML strings, or ("album", [(image_url, caption)])."""
     notes = read_notes(notes_file)
     if not notes:
         sys.exit(f"ERROR: no release notes found in {notes_file}")
@@ -98,16 +129,20 @@ def build_messages(version, notes_file):
                     "(the title is filled in), paste the body, and post.\n\n"
                     f"<b>Title:</b>\n<code>{html.escape(title, quote=False)}</code>")
 
-    messages = ["\n".join(summary), reddit_intro]
-    # The body, ready to copy (a code block is tap-to-copy in Telegram). Split if it's too long for one message.
-    escaped = html.escape(body, quote=False)
-    chunk = ""
-    for para in escaped.split("\n"):
-        if len(chunk) + len(para) + 20 > MAX_TEXT:
-            messages.append(f"<pre>{chunk}</pre>")
-            chunk = ""
-        chunk = f"{chunk}\n{para}" if chunk else para
-    messages.append(f"<pre>{chunk}</pre>")
+    # The body, ready to copy (a code block is tap-to-copy in Telegram)
+    messages = ["\n".join(summary), reddit_intro] + chunked_pre(body)
+
+    k_title, k_body = kofi_post(version, notes)
+    images = [(url, alt) for _, _, _, imgs in notes for url, alt in imgs][:10]   # Telegram albums hold up to 10
+    kofi_intro = ("☕ <b>Post it on Ko-fi?</b> (your supporters see it in their feed)\n\n"
+                  "1. Tap the title and the text below to copy them.\n"
+                  f"2. <a href=\"{html.escape(KOFI_NEW_POST_URL)}\">Open a new Ko-fi post</a>, paste them, "
+                  + ("and attach the screenshots from the album below (save them first).\n\n" if images else
+                     "and post.\n\n")
+                  + f"<b>Title:</b>\n<code>{html.escape(k_title, quote=False)}</code>")
+    messages += [kofi_intro] + chunked_pre(k_body)
+    if images:
+        messages.append(("album", images))
     return messages
 
 
@@ -135,13 +170,25 @@ def main():
     messages = build_messages(version, notes_file)
     if mode == "preview":
         for n, m in enumerate(messages, 1):
-            print(f"--- Private message {n}/{len(messages)} ({len(m)} characters)")
-            print(m)
+            if isinstance(m, tuple):
+                print(f"--- Private message {n}/{len(messages)} (album of {len(m[1])} screenshots)")
+                print("\n".join(f"{url}  ({alt})" for url, alt in m[1]))
+            else:
+                print(f"--- Private message {n}/{len(messages)} ({len(m)} characters)")
+                print(m)
         return
     if not os.environ.get("TELEGRAM_BOT_TOKEN") or not os.environ.get("TELEGRAM_OWNER_CHAT_ID"):
         print("The owner's Telegram ID (TELEGRAM_OWNER_CHAT_ID) isn't set - skipping the private summary")
         return
     for m in messages:
+        if isinstance(m, tuple):
+            if len(m[1]) == 1:   # An album needs at least 2
+                url, alt = m[1][0]
+                call("sendPhoto", {"chat_id": os.environ["TELEGRAM_OWNER_CHAT_ID"], "photo": url, "caption": alt[:1024]})
+            else:
+                media = [{"type": "photo", "media": url, "caption": alt[:1024]} for url, alt in m[1]]
+                call("sendMediaGroup", {"chat_id": os.environ["TELEGRAM_OWNER_CHAT_ID"], "media": json.dumps(media)})
+            continue
         call("sendMessage", {"chat_id": os.environ["TELEGRAM_OWNER_CHAT_ID"], "text": m, "parse_mode": "HTML",
                              "link_preview_options": json.dumps({"is_disabled": True})})
     print(f"Sent the release summary to the owner ({len(messages)} messages)")
