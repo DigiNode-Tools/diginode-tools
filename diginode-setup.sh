@@ -9895,6 +9895,58 @@ display_featured_sponsors() {
     echo ""
 }
 
+# Show the DGB address to donate to, with its QR code. Each donation should go to a new address, so the current one is
+# fetched from dgb-donate.json in the diginode-sponsors repo (kept up to date by its "Update DGB donations" Action). If it
+# can't be fetched, or doesn't look right, the original donation address is shown instead (it still works).
+display_dgb_donation_qrcode() {
+
+    local donate_json dgb_address line
+    local -a qr_lines=(
+        "▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"
+        "█ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"
+        "█ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"
+        "█▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"
+        "▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "
+        "█ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"
+        " ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"
+        " █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"
+        "▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"
+        "█ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"
+        "█ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "
+        "▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"
+        "█ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"
+        "█ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"
+        "█▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
+    )
+    dgb_address="dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+
+    # Only accept a valid DGB address, and a QR code made only of block characters and spaces, so nothing in the file
+    # can mess with the terminal
+    donate_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_DATA_URL/dgb-donate.json" 2>/dev/null)
+    if [ -n "$donate_json" ] && echo "$donate_json" | jq -e '
+        (.address | type == "string" and test("^(dgb1[02-9ac-hj-np-z]{20,80}|D[1-9A-HJ-NP-Za-km-z]{25,40})$"))
+        and (.qr_terminal | type == "array" and length >= 10 and length <= 25)
+        and all(.qr_terminal[]; type == "string" and test("^[█▀▄ ]{20,45}$"))' > /dev/null 2>&1; then
+        # Read both before using either, so the QR code and the address shown always match
+        local new_address new_line
+        local -a new_qr_lines=()
+        new_address=$(echo "$donate_json" | jq -r '.address')
+        while IFS= read -r new_line; do
+            new_qr_lines+=("$new_line")
+        done < <(echo "$donate_json" | jq -r '.qr_terminal[]')
+        if [ -n "$new_address" ] && [ "${#new_qr_lines[@]}" -ge 10 ]; then
+            dgb_address="$new_address"
+            qr_lines=("${new_qr_lines[@]}")
+        fi
+    fi
+
+    for line in "${qr_lines[@]}"; do
+        echo "                      $line"
+    done
+    echo ""
+    echo "               $dgb_address"
+}
+
 donation_qrcode() {  
 
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
@@ -9911,23 +9963,7 @@ donation_qrcode() {
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
-    echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
-    echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
-    echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
-    echo "                      █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
-    echo "                      ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
-    echo "                      █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
-    echo "                       ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
-    echo "                       █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
-    echo "                      ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
-    echo "                      █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
-    echo "                      █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
-    echo "                      ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
-    echo "                      █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
-    echo "                      █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
-    echo "                      █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
-    echo ""  
-    echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    display_dgb_donation_qrcode
     echo ""
     echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
     echo ""
