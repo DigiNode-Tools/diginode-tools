@@ -28,7 +28,7 @@ import urllib.request
 
 RELEASE_NOTES_URL = "https://diginode.tools/release-notes/"
 RELEASE_NOTES_LINK_TEXT = "diginode.tools/release-notes"
-SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
+SPONSOR_URL = "https://diginode.tools/sponsors/"
 MAX_CHARS = 290          # Bluesky allows 300 graphemes per post; counting code points (never fewer) keeps us safely under
 PDS = "https://bsky.social/xrpc"
 LABELS = {"New": "New", "Improvement": "Improvement", "Fix": "Fix"}

@@ -29,7 +29,7 @@ import urllib.parse
 import urllib.request
 
 RELEASE_URL = "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v{version}"
-SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
+SPONSOR_URL = "https://diginode.tools/sponsors/"
 LABELS = {"New": "New", "Improvement": "Improvement", "Fix": "Fix"}
 EMOJI = {"New": "✨", "Improvement": "🛠️", "Fix": "🐛"}
 MAX_TEXT = 4000      # Telegram allows 4096 characters per message

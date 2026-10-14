@@ -24,7 +24,7 @@ import urllib.request
 
 SUBREDDIT = "Digibyte"
 RELEASE_NOTES_URL = "https://diginode.tools/release-notes/"
-SPONSOR_URL = "https://github.com/sponsors/DigiNode-Tools"
+SPONSOR_URL = "https://diginode.tools/sponsors/"
 MAX_TEXT = 4000   # Telegram allows 4096 characters per message
 
 
