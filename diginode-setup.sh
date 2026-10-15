@@ -3014,7 +3014,7 @@ rpcpassword=$set_rpcpassword \\
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         # Update UPnP status in settings if it exists and is blank, otherwise append it
@@ -3824,7 +3824,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         # Update upnp status in settings if it exists and is blank, otherwise append it
