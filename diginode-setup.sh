@@ -5173,7 +5173,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to testnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\n\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." 22 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-testnet' is recommended." --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since you can then connect to it at diginode-testnet.local (e.g. ssh digibyte@diginode-testnet.local), which is easier than remembering its IP address.\n\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." 22 "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -5189,7 +5189,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode'?\Z0\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 18 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode'?\Z0\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since you can then connect to it at diginode.local (e.g. ssh digibyte@diginode.local), which is easier than remembering its IP address.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 18 "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode"
@@ -5221,7 +5221,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # A new testnet install, and the hostname is still 'diginode' from a previous install
     elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 21 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-testnet' is recommended." --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 21 "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -5929,7 +5929,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             # Ask the user if they want to create a swap file now, or exit
-            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file is too small." --title "Swap file is too small." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: Your swap file is too small.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\n\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \n\nWould you like to create a new swap file now?\n\n\nChoose CONTINUE to create a new swap file.\n\nChoose EXIT to quit DigiNode Setup." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file is too small." --title "Swap file is too small." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: Your swap file is too small.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the initial sync.\n\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \n\nWould you like to create a new swap file now?\n\n\nChoose CONTINUE to create a new swap file.\n\nChoose EXIT to quit DigiNode Setup." "${r}" "${c}"; then
                 #Nothing to do, continue
                 printf "%b You chose to exit to create a new swap file.\\n" "${INFO}"
             else
@@ -5947,7 +5947,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." 23 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the initial sync.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." 23 "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -6635,7 +6635,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
             printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -7631,7 +7631,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet from your USB backup stick.\n\nThe USB backup must previously have been made from the DigiNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
         printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
@@ -8227,12 +8227,12 @@ menu_first_install() {
     desc2="Install DigiByte Node ONLY."
 
     opt3="2 DigiNode Tools ONLY"
-    desc3="Use DigiNode Dashboard with an existing DigiByte Node."
+    desc3="Use DigiNode Dashboard with your existing node."
 
     # Display the information to the user
 #!!    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 3 \
 #!!        "${opt1}" "${desc1}" \
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIMPORTANT: The option to install a full DigiNode (DigiByte + DigiAsset Node) is temporarily unavailable. Support for the new DigiAsset Core will be added in an upcoming release.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 2 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 16 76 2 \
         "${opt2}" "${desc2}" \
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
     { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
@@ -9196,10 +9196,10 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 23 ${c}
+    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to set up and manage a DigiByte Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 17 ${c}
 
-    #!! Temp message re digiasset node not working
-    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis feature has temporarily been removed as the legacy DigiAsset Node software is no longer functioning correctly. Support for the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
+    #!! Temp message re digiasset node not working - no longer shown (setup doesn't mention the DigiAsset Node any more)
+#!!    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis feature has temporarily been removed as the legacy DigiAsset Node software is no longer functioning correctly. Support for the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
 
     # Use must agree to the softare disclaimer
     disclaimerDialog
@@ -11286,19 +11286,19 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     if [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         opt1a="1 BOTH"
-        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
+        opt1b=" Mainnet and testnet both over Tor. (Recommended)"
 
         opt2a="2 MAINNET ONLY"
-        opt2b=" Run DigiByte Mainnet over Tor. Testnet runs on clearnet."
+        opt2b=" Mainnet over Tor. Testnet on clearnet."
 
         opt3a="3 TESTNET ONLY"
-        opt3b=" Run DigiByte Testnet over Tor. Mainnet runs on clearnet."
+        opt3b=" Testnet over Tor. Mainnet on clearnet."
 
         opt4a="4 NEITHER"
-        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
+        opt4b=" Mainnet and testnet both on clearnet."
 
         # Display the information to the user
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 76 4 \
         "${opt1a}"  "${opt1b}" \
         "${opt2a}"  "${opt2b}" \
         "${opt3a}"  "${opt3b}" \
@@ -11418,19 +11418,19 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_tor_menu" = "yes" ]  && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         opt1a="1 BOTH"
-        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
+        opt1b=" Mainnet and testnet both over Tor. (Recommended)"
 
         opt2a="2 MAINNET ONLY"
-        opt2b=" Run DigiByte Mainnet node over Tor. Testnet runs on clearnet."
+        opt2b=" Mainnet over Tor. Testnet on clearnet."
 
         opt3a="3 TESTNET ONLY"
-        opt3b=" Run DigiByte Testnet node over Tor. Mainnet runs on clearnet."
+        opt3b=" Testnet over Tor. Mainnet on clearnet."
 
         opt4a="4 NEITHER"
-        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
+        opt4b=" Mainnet and testnet both on clearnet."
 
         # Display the information to the user
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 76 4 \
         "${opt1a}"  "${opt1b}" "${DGB_TOR_DUALNODE_FLAG}" \
         "${opt2a}"  "${opt2b}" "${DGB_TOR_MAINNET_ONLY_FLAG}" \
         "${opt3a}"  "${opt3b}" "${DGB_TOR_TESTNET_ONLY_FLAG}" \
@@ -20945,7 +20945,7 @@ main() {
 
 
             # Display the information to the user
-            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nTo learn more about DigiNode Tools, and how it can be used to setup and manage a DigiByte & DigiAsset Node, visit: $DGNT_WEBSITE_URL\n\nPlease choose an option:\n\n" 23 "${c}" 2 \
+            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nTo learn more about DigiNode Tools, and how it can be used to set up and manage a DigiByte Node, visit: $DGNT_WEBSITE_URL\n\nPlease choose an option:\n\n" 23 "${c}" 2 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
             { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
