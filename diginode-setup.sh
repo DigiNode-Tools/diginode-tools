@@ -149,7 +149,7 @@ DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  
 DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
 DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/       # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/        # Advice on how to forward ports with your router
+DGBH_URL_PORTFWD=https://diginode.tools/port-forwarding/        # Advice on how to forward ports with your router
 DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
 
 

@@ -6149,7 +6149,7 @@ printf "  ╔══════════════════════�
 printf "  ║                     ABOUT PORT FORWARDING                                  ║\\n"
 printf "  ╠════════════════════════════════════════════════════════════════════════════╣\\n"
 printf "  ║ For your DigiNode to work correctly you need to open the following ports   ║\\n"
-printf "  ║ on your router so the that other nodes on the Internet can find it:        ║\\n"
+printf "  ║ on your router so that other nodes on the Internet can find it:            ║\\n"
 printf "  ╠═══════════════════════════════╦════════════════════════════════════════════╣\\n"
 printf "  ║ SOFTWARE                      ║ PORT                                       ║\\n"
 if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then

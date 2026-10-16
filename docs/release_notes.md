@@ -17,6 +17,7 @@
 - Improvement: **Tidier setup screens** - DigiNode Setup's screens no longer talk about the DigiAsset Node, which can't currently be installed, and the notice about it is no longer shown when you first install. The Tor menu for a Dual Node now also fits in a normal-sized terminal window.
 - Fix: **Correct command for installing system updates** - The reminder to install system updates now tells you to run 'sudo apt-get update && sudo apt-get upgrade'. Running only 'sudo apt-get upgrade' could fail with "404 Not Found" errors if the list of available updates was out of date.
 - Fix: **UPnP can be turned on again** - Turning UPnP on from the DigiNode Setup menu did nothing if it had been turned off before: DigiByte Core restarted, but UPnP stayed off. Thanks to ZuneTracks for reporting it.
+- Fix: **Port Tester help link** - The port forwarding help link in the Port Tester now fits inside its box, using a shorter address (https://diginode.tools/port-forwarding/), and a typo above it is fixed.
 
 ### DigiNode Tools v26.10.04 - 2026-10-11
 - New: **Test feature branches** - For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
