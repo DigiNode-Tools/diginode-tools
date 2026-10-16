@@ -2236,12 +2236,6 @@ quit_message() {
 
       printf "\\n"
 
-      # Choose a random DigiFact
-#      digifact_randomize
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
-
       # One update or several?
       local update_count=0 them="them"
       for u in "$ask_dgb_update" "$DGNT_UPDATE_AVAILABLE" "$IPFS_UPDATE_AVAILABLE" "$DGA_UPDATE_AVAILABLE"; do
@@ -2314,14 +2308,9 @@ quit_message() {
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "YES" ] && [ "$updates_installed" = "no" ]; then
-
-        #Display donation QR code
+      # Display the sponsor link and donation QR code (every time you quit)
+      if [ "$updates_installed" = "no" ]; then
         donation_qrcode
-
-        # Don't show the donation plea again for at least 15 minutes
-        DONATION_PLEA="WAIT15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
       fi
 
       #Share backup reminder
@@ -2331,12 +2320,9 @@ quit_message() {
       exit_locate_digibyte_reminder
 
 
-  # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "YES" ]; then
+  # No updates to ask about: display the sponsor link and donation QR code (every time you quit)
+  else
       printf "\\n"
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
 
       #Display donation QR code
       donation_qrcode
@@ -2348,24 +2334,6 @@ quit_message() {
       exit_locate_digibyte_reminder
 
       printf "\\n"
-      # Don't show the donation plea again for at least 15 minutes
-      DONATION_PLEA="WAIT15"
-      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
-  else
-
-      # Choose a random DigiFact
- #     digifact_randomize
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
-
-      printf "\\n"
-
-      #Share backup reminder
-      backup_reminder
-
-      # Display reminder that you can manually specify the location of the DigiByte install folder
-      exit_locate_digibyte_reminder
   fi
 
 # Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
