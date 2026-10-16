@@ -8235,7 +8235,7 @@ menu_first_install() {
         UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 16 76 2 \
         "${opt2}" "${desc2}" \
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
+    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; printf "\n"; exit; }
 
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
@@ -8273,12 +8273,6 @@ install_diginode_tools_only() {
 
     # Display closing message
     closing_banner_message
-
-    # Choose a random DigiFact
-    digifact_randomize
-
-    # Display a random DigiFact
-    display_digifact_fixedwidth
 
     # Display donation QR Code
     donation_qrcode
@@ -8375,7 +8369,7 @@ menu_existing_install() {
     "${opt8a}"  "${opt8b}" \
     "${opt9a}"  "${opt9b}" \
     "${opt0a}"  "${opt0b}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -8503,7 +8497,7 @@ menu_extras() {
     UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "Extras Menu" --title "Extras Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -9168,16 +9162,6 @@ change_dgb_network() {
 
     # Display closing message
     closing_banner_message
-
-    if [[ "${NewInstall}" == false ]]; then
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        display_digifact_fixedwidth
-
-    fi
 
     # Display donation QR Code
     donation_qrcode
@@ -20948,7 +20932,7 @@ main() {
             UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nTo learn more about DigiNode Tools, and how it can be used to set up and manage a DigiByte Node, visit: $DGNT_WEBSITE_URL\n\nPlease choose an option:\n\n" 23 "${c}" 2 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
+            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; printf "\\n"; exit; }
 
             # Set the variable based on if the user chooses
             case ${UpdateCmd} in
@@ -20963,8 +20947,6 @@ main() {
                     printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
                     printf "\\n"
                     uninstall_diginode_tools_now
-                    digifact_randomize
-                    display_digifact_fixedwidth
                     donation_qrcode
                     printf "\\n"
                     exit
@@ -20980,9 +20962,6 @@ main() {
 
             else
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
-                printf "\\n"
-                digifact_randomize
-                display_digifact_fixedwidth
                 printf "\\n"
                 exit
             fi
@@ -21252,16 +21231,6 @@ install_or_upgrade() {
     ensure_dgb_nodes_running
 
     closing_banner_message
-
-    if [[ "${NewInstall}" == false ]]; then
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        display_digifact_fixedwidth
-
-    fi
 
     # Display donation QR Code
     donation_qrcode
