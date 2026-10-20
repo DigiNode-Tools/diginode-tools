@@ -17,7 +17,7 @@
 # -----------------------------------------------------------------------------------------------------
 
 DGNT_VER_LIVE=26.10.05
-# Last Updated: 2026-10-11
+# Last Updated: 2026-10-20
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")

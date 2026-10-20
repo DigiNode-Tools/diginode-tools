@@ -1,26 +1,70 @@
 {
   "name": "DigiNode Tools",
-  "version": "26.10.04",
-  "tag": "v26.10.04",
-  "date": "2026-10-11",
-  "summary": "Test feature branches, hourly update checks and fewer update checks.",
+  "version": "26.10.05",
+  "tag": "v26.10.05",
+  "date": "2026-10-20",
+  "summary": "Automatic system updates, automatic restarts when needed, restart reminders and more.",
   "highlights": [
     {
       "type": "New",
-      "title": "Test feature branches"
+      "title": "Automatic system updates"
+    },
+    {
+      "type": "New",
+      "title": "Automatic restarts when needed"
+    },
+    {
+      "type": "New",
+      "title": "Restart reminders"
     },
     {
       "type": "Improvement",
-      "title": "Hourly update checks"
+      "title": "Commands work straight away"
     },
     {
       "type": "Improvement",
-      "title": "Fewer update checks"
+      "title": "No restart needed after hostname, swap or reset changes"
+    },
+    {
+      "type": "Improvement",
+      "title": "No restart needed after an uninstall"
+    },
+    {
+      "type": "Improvement",
+      "title": "Calmer DigiFacts updates"
+    },
+    {
+      "type": "Improvement",
+      "title": "Links that stay up to date"
+    },
+    {
+      "type": "Improvement",
+      "title": "Support DigiNode Tools"
+    },
+    {
+      "type": "Improvement",
+      "title": "DigiFacts in the Dashboard only"
+    },
+    {
+      "type": "Improvement",
+      "title": "Tidier setup screens"
+    },
+    {
+      "type": "Fix",
+      "title": "Correct command for installing system updates"
+    },
+    {
+      "type": "Fix",
+      "title": "UPnP can be turned on again"
+    },
+    {
+      "type": "Fix",
+      "title": "Port Tester help link"
     }
   ],
   "release_notes_url": "https://diginode.tools/release-notes/",
-  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.10.04",
-  "next_release": "2026-10-20",
+  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.10.05",
+  "next_release": "2026-11-03",
   "release_schedule": "Every other Tuesday",
   "schedule": {
     "first_release_day": "2026-10-20",

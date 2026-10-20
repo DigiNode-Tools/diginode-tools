@@ -2,6 +2,10 @@
 
 [View the latest release notes](https://diginode.tools/release-notes/)
 
+### DigiNode Tools v0.10.10 - 2025-02-24
+- Fix: The time online for the Testnet node in the Dashboard now displays in UTC instead of local time
+- Fix: Fixed a showstopping bug that prevented DigiByte Core from being successfully upgraded from a pre-release to the latest release. Somehow I missed this till now. Apologies!
+
 ### DigiNode Tools v0.10.9 - 2025-02-12
 - New: Dashboard now displays the disk space used by the running blockchain
   ![Screenshot of DigiNode Dashboard showing the new feature that displays the disk space used by each blockchain (41Gb for mainnet and 3.5Gb for testnet)](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/dashboard/blockchain-size.png)

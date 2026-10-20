@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-### DigiNode Tools - Unreleased
+### DigiNode Tools v26.10.05 - 2026-10-20
 - New: **Automatic system updates** - DigiNode Setup can now install operating system updates for you automatically, once a day in the background (Debian, Ubuntu and Raspberry Pi OS). You are asked once: security and stability updates (recommended), all updates, or off. You can change this at any time from the new System option in the DigiNode Setup main menu. For an unattended install, set UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings.
   ![The new Automatic System Updates menu in DigiNode Setup, with the choice of security and stability updates (recommended), all updates, or off](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/auto-updates/menu.png)
 - New: **Automatic restarts when needed** - Your DigiNode can now restart itself automatically when an update needs a restart to finish, such as a new Linux kernel. It only restarts when needed, at 04:00 (you can change the time from the System menu), and never while it is busy - for example while DigiNode Setup is running or software is being installed. If it is busy, it tries again every 30 minutes for the next two hours, and otherwise the next night. Your DigiByte node is shut down safely and starts again automatically. You are asked whether you want this when you install - on a Raspberry Pi the suggested answer is Yes, and on other machines (such as a VPS) it is No.
@@ -101,9 +101,5 @@
 - Fix: If DigiFacts web service is down, errors are now handled more gracefully.
 - Fix: Spelling error in DigiFact Tip.
 - Fix: DigiByte Port tests now get automatically reenabled if enabling/disabling Tor.
-
-### DigiNode Tools v0.10.10 - 2025-02-24
-- Fix: The time online for the Testnet node in the Dashboard now displays in UTC instead of local time
-- Fix: Fixed a showstopping bug that prevented DigiByte Core from being successfully upgraded from a pre-release to the latest release. Somehow I missed this till now. Apologies!
 
 [View earlier releases](https://github.com/DigiNode-Tools/diginode-tools/blob/main/docs/release_notes_more.md)
