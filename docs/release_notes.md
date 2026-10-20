@@ -1,5 +1,7 @@
 ## DigiNode Tools Release Notes
 
+### DigiNode Tools - Unreleased
+
 ### DigiNode Tools v26.10.05 - 2026-10-20
 - New: **Automatic system updates** - DigiNode Setup can now install operating system updates for you automatically, once a day in the background (Debian, Ubuntu and Raspberry Pi OS). You are asked once: security and stability updates (recommended), all updates, or off. You can change this at any time from the new System option in the DigiNode Setup main menu. For an unattended install, set UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings.
   ![The new Automatic System Updates menu in DigiNode Setup, with the choice of security and stability updates (recommended), all updates, or off](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/auto-updates/menu.png)
