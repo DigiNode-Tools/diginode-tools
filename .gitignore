@@ -13,3 +13,6 @@ detect-pi.sh
 getdgbhash.sh
 sha256sum.json
 testpairing.sh
+
+# Python cache (from the release announcement scripts)
+__pycache__/

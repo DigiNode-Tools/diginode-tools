@@ -1,5 +1,24 @@
 ## DigiNode Tools Release Notes
 
+### DigiNode Tools v26.10.05 - 2026-10-20
+- New: **Automatic system updates** - DigiNode Setup can now install operating system updates for you automatically, once a day in the background (Debian, Ubuntu and Raspberry Pi OS). You are asked once: security and stability updates (recommended), all updates, or off. You can change this at any time from the new System option in the DigiNode Setup main menu. For an unattended install, set UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings.
+  ![The new Automatic System Updates menu in DigiNode Setup, with the choice of security and stability updates (recommended), all updates, or off](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/auto-updates/menu.png)
+- New: **Automatic restarts when needed** - Your DigiNode can now restart itself automatically when an update needs a restart to finish, such as a new Linux kernel. It only restarts when needed, at 04:00 (you can change the time from the System menu), and never while it is busy - for example while DigiNode Setup is running or software is being installed. If it is busy, it tries again every 30 minutes for the next two hours, and otherwise the next night. Your DigiByte node is shut down safely and starts again automatically. You are asked whether you want this when you install - on a Raspberry Pi the suggested answer is Yes, and on other machines (such as a VPS) it is No.
+  ![The Automatic Restarts question in DigiNode Setup, explaining that the DigiNode restarts itself at 04:00 only when an update needs it, and never while it is busy](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/auto-updates/restart-question.png)
+- New: **Restart reminders** - If your DigiNode needs a restart to finish installing system updates, you are now told when DigiNode Setup finishes, when you close DigiNode Dashboard, and when you log in (if you use the DigiNode MOTD). It also tells you if an automatic restart was skipped, and why.
+  ![The DigiNode login message saying the DigiNode needs to restart to finish installing system updates, and that it will restart automatically at 04:00](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/auto-updates/restart-reminder.png)
+- Improvement: **Commands work straight away** - The 'diginode' and 'diginode-setup' commands, and DigiByte Core's commands such as 'digibyte-cli', now work straight away after a new install - you no longer need to log out or restart first. They are now installed as commands in /usr/local/bin, instead of aliases in your .bashrc file, so they also work with sudo and in scripts, and they stop working straight away when you uninstall. Existing DigiNodes are switched over automatically the next time you run DigiNode Setup.
+- Improvement: **No restart needed after hostname, swap or reset changes** - DigiNode Setup no longer tells you to restart after changing your hostname, changing your swap file or doing a reset, as these now take effect straight away. If your hostname changes, just reconnect using the new name.
+- Improvement: **No restart needed after an uninstall** - After an uninstall, DigiNode Setup no longer tells you to restart your system, which wasn't needed. If the 'diginode' commands were removed, it now tells you to log out and back in instead, since the current terminal still remembers them.
+- Improvement: **Calmer DigiFacts updates** - DigiFacts now come from the new DigiFacts website. If they can't be updated (for example if you're offline), DigiNode Dashboard keeps showing the saved DigiFacts and tries again an hour later, instead of showing an error every time it starts.
+- Improvement: **Links that stay up to date** - Links in DigiNode Tools to places outside the DigiNode Tools website, such as the Telegram group and Bluesky, now go through go.diginode.tools. If one of them ever changes, it can be updated there, and your DigiNode follows straight away, without upgrading. The sponsor link now goes to diginode.tools/sponsor, which shows all the ways to support DigiNode Tools.
+- Improvement: **Support DigiNode Tools** - When you quit DigiNode Dashboard, it now always shows how to sponsor DigiNode Tools or donate DGB. Previously this was only shown some of the time.
+- Improvement: **DigiFacts in the Dashboard only** - DigiFacts are now only shown inside DigiNode Dashboard, and no longer when DigiNode Setup finishes or when you quit the Dashboard.
+- Improvement: **Tidier setup screens** - DigiNode Setup's screens no longer talk about the DigiAsset Node, which can't currently be installed, and the notice about it is no longer shown when you first install. The Tor menu for a Dual Node now also fits in a normal-sized terminal window.
+- Fix: **Correct command for installing system updates** - The reminder to install system updates now tells you to run 'sudo apt-get update && sudo apt-get upgrade'. Running only 'sudo apt-get upgrade' could fail with "404 Not Found" errors if the list of available updates was out of date.
+- Fix: **UPnP can be turned on again** - Turning UPnP on from the DigiNode Setup menu did nothing if it had been turned off before: DigiByte Core restarted, but UPnP stayed off. Thanks to ZuneTracks for reporting it.
+- Fix: **Port Tester help link** - The port forwarding help link in the Port Tester now fits inside its box, using a shorter address (https://diginode.tools/port-forwarding/), and a typo above it is fixed.
+
 ### DigiNode Tools v26.10.04 - 2026-10-11
 - New: **Test feature branches** - For development and testing, the --dgntbranch flag installs a feature branch of DigiNode Tools from GitHub (e.g. diginode-setup --dgntbranch=feature/plugins). The branch is checked before anything is changed, so a mistyped or missing branch leaves your current DigiNode Tools in place. Like --dgntdev, running DigiNode Setup without the flag returns you to the latest release.
 - Improvement: **Hourly update checks** - DigiNode Dashboard now checks for new versions of DigiNode Tools once an hour (previously once a day), so fixes reach you sooner, e.g. while you watch your node sync.
@@ -82,9 +101,5 @@
 - Fix: If DigiFacts web service is down, errors are now handled more gracefully.
 - Fix: Spelling error in DigiFact Tip.
 - Fix: DigiByte Port tests now get automatically reenabled if enabling/disabling Tor.
-
-### DigiNode Tools v0.10.10 - 2025-02-24
-- Fix: The time online for the Testnet node in the Dashboard now displays in UTC instead of local time
-- Fix: Fixed a showstopping bug that prevented DigiByte Core from being successfully upgraded from a pre-release to the latest release. Somehow I missed this till now. Apologies!
 
 [View earlier releases](https://github.com/DigiNode-Tools/diginode-tools/blob/main/docs/release_notes_more.md)

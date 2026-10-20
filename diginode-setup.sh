@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v26.10.04
+#           Name:  DigiNode Setup v26.10.05
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=26.10.04
-# Last Updated: 2026-10-11
+DGNT_VER_LIVE=26.10.05
+# Last Updated: 2026-10-20
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -132,9 +132,9 @@ DGNT_RELEASE_URL="https://github.com/DigiNode-Tools/diginode-tools.git"
 # Verified DigiByte Core releases (download URLs and SHA256 hashes). releases0.json is staging (--updatetest), releases1-4.json are the update groups.
 DGB_HASH_FILES_URL="https://raw.githubusercontent.com/DigiNode-Tools/digibyte-hashes/main"
 
-# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools.
-DGNT_SPONSORS_URL="https://diginode.tools/sponsors/"
-DGNT_GITHUB_SPONSORS_URL="https://github.com/sponsors/DigiNode-Tools"
+# Where to sponsor DigiNode Tools. The sponsors page on the website explains all the ways to support DigiNode Tools
+# (e.g. GitHub Sponsors), so new ways can be added there without changing DigiNode Tools.
+DGNT_SPONSORS_URL="https://diginode.tools/sponsor"
 
 # Featured Sponsors of DigiNode Tools, shown in the donation message. See: https://github.com/DigiNode-Tools/diginode-sponsors
 DGNT_SPONSORS_DATA_URL="https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main"
@@ -149,15 +149,16 @@ DGBH_URL_HARDWARE=https://diginode.tools/build-your-own-raspberry-pi-diginode/  
 DGBH_URL_USERCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the username
 DGBH_URL_HOSTCHANGE=https://diginode.tools/faq                                  # Advice on why you should change the hostname
 DGBH_URL_STATICIP=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/       # Advice on how to set a static IP
-DGBH_URL_PORTFWD=https://diginode.tools/raspberry-pi-setup/step-7-digibyte-port-forwarding/        # Advice on how to forward ports with your router
+DGBH_URL_PORTFWD=https://diginode.tools/port-forwarding/        # Advice on how to forward ports with your router
 DGBH_URL_ADVANCED=https://diginode.tools/advanced-features/                     # Advanced features
 
 
-# DigiNode Tools Social Accounts
-SOCIAL_BLUESKY_URL="https://bsky.app/profile/diginode.tools"
+# DigiNode Tools Social Accounts. Links outside diginode.tools go through go.diginode.tools (the DigiNode-Tools/go
+# repo), so where they go can be changed there - every DigiNode follows, without upgrading.
+SOCIAL_BLUESKY_URL="https://go.diginode.tools/bluesky"
 SOCIAL_BLUESKY_HANDLE="@diginode.tools"
 SOCIAL_NOSTR_NPUB=""
-SOCIAL_TELEGRAM_URL="https://t.me/DigiNodeTools"
+SOCIAL_TELEGRAM_URL="https://go.diginode.tools/telegram"
 
 # If update variable isn't specified, set to false
 if [ -z "$NewInstall" ]; then
@@ -472,9 +473,8 @@ is_reset_mode() {
     if [ "$RESET_MODE" = true ]; then
         printf "%b %bReset Mode: Enabled%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "%b Your DigiNode will be reset. All settings and configuration files\\n" "${INDENT}"
-        printf "%b will be deleted and recreated. DigiByte and DigiAssets\\n" "${INDENT}"
-        printf "%b software will be reinstalled. Any DigiByte blockchain data or\\n" "${INDENT}"
-        printf "%b DigiAsset metadata will also be optionally deleted.\\n" "${INDENT}"
+        printf "%b will be deleted and recreated, and DigiByte Core will be reinstalled.\\n" "${INDENT}"
+        printf "%b You can also choose to delete your DigiByte blockchain data.\\n" "${INDENT}"
         printf "\\n"
     fi
 
@@ -579,6 +579,9 @@ if [ ! -f "$DGNT_SETTINGS_FILE" ]; then
     UI_DGB_CHAIN=MAINNET
     UI_DGB_VERSION=
     UI_SETUP_DIGINODE_MOTD=YES
+    UI_SYSTEM_AUTO_UPDATES=SECURITY
+    UI_SYSTEM_AUTO_REBOOT=NO
+    SYSTEM_AUTO_REBOOT_TIME=04:00
 
     # SYSTEM VARIABLES
     DGB_INSTALL_LOCATION=$USER_HOME/digibyte
@@ -763,6 +766,20 @@ DGNT_DEV_BRANCH=$DGNT_DEV_BRANCH
 # This let's you choose whther system upgrades are installed alongside upgrades for the DigiNode software
 INSTALL_SYS_UPGRADES=$INSTALL_SYS_UPGRADES
 
+# AUTOMATIC SYSTEM UPDATES (Debian, Ubuntu and Raspberry Pi OS)
+# Choose whether operating system updates are installed automatically, once a day in the background.
+# SECURITY = security and stability updates (recommended), ALL = all available updates from every repository,
+# OFF = don't install updates automatically. If left blank, DigiNode Setup will ask you.
+# To change this, run 'diginode-setup' and choose System from the main menu (or edit it here and then run
+# DigiNode Setup > Update, which applies it).
+SYSTEM_AUTO_UPDATES=$SYSTEM_AUTO_UPDATES
+
+# Choose whether your DigiNode restarts automatically when an update needs a restart to finish (e.g. a new Linux
+# kernel). YES or NO. The restart is skipped if your DigiNode is busy (e.g. DigiNode Setup is running, or software
+# is being installed) and tried again later. SYSTEM_AUTO_REBOOT_TIME is the time to restart (system time, HH:MM).
+SYSTEM_AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
+SYSTEM_AUTO_REBOOT_TIME=$SYSTEM_AUTO_REBOOT_TIME
+
 
 #####################################
 ####### UNATTENDED INSTALL ##########
@@ -838,6 +855,12 @@ UI_DGB_VERSION=$UI_DGB_VERSION
 # Choose whther to setup the Custom DigiNode MOTD. The will display the DigiNode logo and instructions each time you login to your DigiNode over SSH.
 # If your DigiNode is not running on a dedicated device, you may want to disable this. Enter YES or NO.
 UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
+
+# Choose whether to install operating system updates automatically: SECURITY (recommended), ALL or OFF.
+# Choose whether to restart automatically (at 04:00) when an update needs a restart: YES or NO.
+# (Debian, Ubuntu and Raspberry Pi OS only.)
+UI_SYSTEM_AUTO_UPDATES=$UI_SYSTEM_AUTO_UPDATES
+UI_SYSTEM_AUTO_REBOOT=$UI_SYSTEM_AUTO_REBOOT
 
 
 #############################################
@@ -2438,7 +2461,7 @@ create_digibyte_conf() {
                 printf "\\n"
                 printf "%b[signet]%b\\n" "${COL_BOLD_WHITE}" "${COL_NC}"
                 printf "\\n"
-                printf "%b Please refer to the template here: https://jlopp.github.io/bitcoin-core-config-generator/\\n" "${INDENT}"
+                printf "%b Please refer to the template here: https://go.diginode.tools/conf-template\\n" "${INDENT}"
                 printf "\\n"
                 printf "%b Edit the digibyte.conf file:\\n" "${INDENT}"
                 printf "\\n"
@@ -2991,7 +3014,7 @@ rpcpassword=$set_rpcpassword \\
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         # Update UPnP status in settings if it exists and is blank, otherwise append it
@@ -3801,7 +3824,7 @@ bind=127.0.0.1=onion" $DGB_CONF_FILE
             if [ "$upnp" = "1" ]; then
                 echo "$INDENT   UPnP will be enabled for DigiByte Core"
                 echo "$INDENT   Updating digibyte.conf: upnp=$upnp"
-                sed -i -e "/^# upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
+                sed -i -e "/^upnp=/s|.*|upnp=$upnp|" $DGB_CONF_FILE
                 DGB_UPNP_STATUS_UPDATED="YES"
             fi
         # Update upnp status in settings if it exists and is blank, otherwise append it
@@ -4510,7 +4533,7 @@ rpi_microsd_check() {
                 printf "%b   Tip: For best performance, it is recommended to use an NVME SSD connected to the PCIe port.\\n" "${INDENT}"
                 printf "%b        The Pi 5 will run noticeably faster compared to the USB port.\\n" "${INDENT}"
             elif [[ "$pi4_check" == "Raspberry Pi 4" ]]; then
-                printf "%b   Tip: Booting from an SSD is stongly recommended. While a USB flash drive will\\n" "${INDENT}"
+                printf "%b   Tip: Booting from an SSD is strongly recommended. While a USB flash drive will\\n" "${INDENT}"
                 printf "%b        work, an SSD will perform better and is less prone to data corruption.\\n" "${INDENT}"
             fi
             
@@ -5150,7 +5173,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to testnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode-testnet.local:8090 which is obviously easier than remembering an IP address.\n\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." 22 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-testnet' is recommended." --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since you can then connect to it at diginode-testnet.local (e.g. ssh digibyte@diginode-testnet.local), which is easier than remembering its IP address.\n\nFurthermore, if you are planning to run two DigiNodes on your network, one on DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\\n\\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you may not want to change its hostname." 22 "${c}"; then
 
             HOSTNAME_DO_CHANGE="YES"
             HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -5166,7 +5189,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # An existing install which has some random hostname has been converted to mainnet
     elif [[ "$HOSTNAME_ASK_CHANGE" = "YES" ]] && [[ "$HOSTNAME" != "diginode-testnet" ]] && [[ "$HOSTNAME" != "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "MAINNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode'?\Z0\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since it will make the DigiAssets website available at http://diginode.local:8090 which is obviously easier than remembering an IP address.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 18 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode' is recommended." --title "Changing your hostname to 'diginode' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode'?\Z0\\n\\nIf you are running your DigiNode on a dedicated device on your local network, then this is recommended, since you can then connect to it at diginode.local (e.g. ssh digibyte@diginode.local), which is easier than remembering its IP address.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 18 "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode"
@@ -5198,7 +5221,7 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     # A new testnet install, and the hostname is still 'diginode' from a previous install
     elif [[ "$HOSTNAME" = "diginode" ]] && [[ "$DGB_NETWORK_FINAL" = "TESTNET" ]]; then
 
-        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-test' is recommended." --title "Changing your hostname to 'diginode-test' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 21 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "Changing your hostname to 'diginode-testnet' is recommended." --title "Changing your hostname to 'diginode-testnet' is recommended." --yesno "\nYour hostname is currently '$HOSTNAME'.\n\n\Z4Would you like to change your hostname to 'diginode-testnet'?\Z0\n\nIf you running your DigiNode on a dedicated device on your local network, then this is recommended. It will ensure that the hostname reflects that the DigiNode is running on testnet and not mainnet. Furthermore, if you are planning to run two DigiNodes on your network, one on the DigiByte mainnet and the other on testnet, this change will ensure that they do not conflict with each other.\n\nNote: If you are running your DigiNode remotely (e.g. on a VPS) or on a multi-purpose server then you likely do not want to change its hostname." 21 "${c}"; then
 
           HOSTNAME_DO_CHANGE="YES"
           HOSTNAME_CHANGE_TO="diginode-testnet"
@@ -5264,6 +5287,11 @@ if [[ "$HOSTNAME_DO_CHANGE" = "YES" ]]; then
             printf "\\n%b %bUnable to change hostname using hostnamectl (command not present). Trying manual method...%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
             hostname $NEW_HOSTNAME 2>/dev/null
             sudo sed -i "s/$CUR_HOSTNAME/$NEW_HOSTNAME/g" /etc/hostname 2>/dev/null
+        fi
+
+        # The new hostname takes effect straight away. Restart avahi so the new .local address works too.
+        if systemctl is-active --quiet avahi-daemon 2>/dev/null; then
+            systemctl restart avahi-daemon 2>/dev/null
         fi
 
     fi
@@ -5901,7 +5929,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
             # Ask the user if they want to create a swap file now, or exit
-            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file is too small." --title "Swap file is too small." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: Your swap file is too small.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\n\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \n\nWould you like to create a new swap file now?\n\n\nChoose CONTINUE to create a new swap file.\n\nChoose EXIT to quit DigiNode Setup." "${r}" "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file is too small." --title "Swap file is too small." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: Your swap file is too small.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the initial sync.\n\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended. \n\nWould you like to create a new swap file now?\n\n\nChoose CONTINUE to create a new swap file.\n\nChoose EXIT to quit DigiNode Setup." "${r}" "${c}"; then
                 #Nothing to do, continue
                 printf "%b You chose to exit to create a new swap file.\\n" "${INFO}"
             else
@@ -5919,7 +5947,7 @@ if [ "$SWAP_ASK_CHANGE" = "YES" ] && [ "$UNATTENDED_MODE" == false ]; then
 
         if [ "$skip_if_reentering_swap_size" != "yes" ]; then
 
-            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the intial sync. A DigiAsset Node requires around 3Gb RAM. In total, a FULL DigiNode running both can require up to 12Gb RAM.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." 23 "${c}"; then
+            if dialog --no-shadow --keep-tite --colors --backtitle "Swap file not detected." --title "Swap file not detected." --yes-label "Continue" --no-label "Exit" --yesno "\n\Z1WARNING: You need to create a swap file.\Z0\n\nA DigiByte Node typically requires around 6Gb RAM but this can reach 8Gb or more during the initial sync.\\n\\nIt is always advisable to have a swap file even if your system has enough RAM. As a bare minimum you should ensure that your total memory (system RAM and swap file combined) is not less than 12Gb. 16Gb is recommended.\n\nChoose CONTINUE To have DigiNode Setup assist you in creating a new swap file.\n\nChoose EXIT to quit DigiNode Setup and create a new swap file manually." 23 "${c}"; then
 
                 #Nothing to do, continue
                 printf "%b You chose to create a new swap file.\\n" "${INFO}"
@@ -6472,7 +6500,10 @@ swap_do_change() {
                 dialog --no-shadow --keep-tite --backtitle "Swap file created on USB stick" --title "Swap file created on USB stick" --msgbox "\nThe swap file has been setup on the USB stick. Do not unplug it or the DigiNode will not work." 8 ${c}
             fi
 
-            REBOOT_NEEDED="YES"
+            # The new swap file is turned on straight away. Only suggest a restart if it isn't active.
+            if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
+                REBOOT_NEEDED="YES"
+            fi
 
 
 
@@ -6562,7 +6593,10 @@ swap_do_change() {
 
             fi
 
-            REBOOT_NEEDED="YES"
+            # The new swap file is turned on straight away. Only suggest a restart if it isn't active.
+            if [ -z "$(swapon --show --noheadings 2>/dev/null)" ]; then
+                REBOOT_NEEDED="YES"
+            fi
 
         else
 
@@ -6573,7 +6607,7 @@ swap_do_change() {
             printf "%b Please post a message in the 'DigiNode Tools' Telegram group including\\n" "${INDENT}"
             printf "%b the distro you are running ($detected_os).\\n" "${INDENT}"
             printf "\\n"
-            printf "%b Go here: https://t.me/+ked2VGZsLPAyN2Jk\\n" "${INFO}"
+            printf "%b Go here: $SOCIAL_TELEGRAM_URL\\n" "${INFO}"
             printf "\\n"
             exit 1
 
@@ -6601,7 +6635,7 @@ usb_backup() {
 
 
         # Introduction to backup.
-        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet and/or DigiAsset Node settings to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
+        if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Backup" --title "DigiNode Backup" --yes-label "Continue" --no-label "Exit" --yesno "\nThis tool helps you backup your DigiByte wallet to a USB stick.\n\nIt is recommended that you use a USB stick that is not used for anything else, and that you store it somewhere safe and secure.\n\nYou do not require a lot of space for the backup - any small USB stick is fine. For best results, make sure it is formatted with exFAT.\n\n\Z1IMPORTANT: To perform a backup, you need access to a free USB slot on your DigiNode. If your DigiNode is running in the cloud, you may not be able to use this tool.\Z0" 19 "${c}"; then
             printf "%b You chose to begin the backup process.\\n\\n" "${INFO}"
         else
             printf "%b You chose not to begin the backup process. Returning to menu...\\n" "${INFO}"
@@ -7597,7 +7631,7 @@ usb_restore() {
 
 
     # Introduction to restore.
-    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet and/or DigiAsset Node settings from your USB Backup stick.\n\nThe USB backup must previously have been made from the DigNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Restore" --title "DigiNode Restore" --yes-label "Continue" --no-label "Exit" --yesno '\nThis tool will help you to restore your DigiByte wallet from your USB backup stick.\n\nThe USB backup must previously have been made from the DigiNode Setup Backup menu. Please have your DigiNode USB backup stick ready before continuing. \n\n\Z1WARNING: If you continue, your current wallet and settings will be replaced with the ones from the USB backup. Any funds in the current wallet will be lost!!\Z0' 16 "${c}"; then
         printf "%b You chose to begin the restore process.\\n\\n" "${INFO}"
     else
         printf "%b You chose not to begin the restore process. Returning to menu...\\n" "${INFO}"
@@ -8193,15 +8227,15 @@ menu_first_install() {
     desc2="Install DigiByte Node ONLY."
 
     opt3="2 DigiNode Tools ONLY"
-    desc3="Use DigiNode Dashboard with an existing DigiByte Node."
+    desc3="Use DigiNode Dashboard with your existing node."
 
     # Display the information to the user
 #!!    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install. A FULL DigiNode is recommended.\n\nRunning a DigiAsset Node supports the DigiByte network by helping to decentralize DigiAsset metadata. You can also use it to mint your own DigiAssets and earn \$DGB for hosting the community metadata.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 3 \
 #!!        "${opt1}" "${desc1}" \
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIMPORTANT: The option to install a full DigiNode (DigiByte + DigiAsset Node) is temporaily unavailable. Support for the new DigiAsset Core will be added in an upcoming release.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 21 83 2 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nPlease choose what to install.\n\nIf you already have a DigiByte Node on this machine, you can install DigiNode Tools ONLY to use the DigiNode Dashboard with it. Note: This may require you to tweak your setup to work.\n\nPlease choose an option:\n\n" 16 76 2 \
         "${opt2}" "${desc2}" \
         "${opt3}" "${desc3}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; digifact_randomize; display_digifact_fixedwidth; printf "\n"; exit; }
+    { printf "%b %bExit was selected.%b\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\n"; printf "\n"; exit; }
 
     # Set the variable based on if the user chooses
     case "${UpdateCmd}" in
@@ -8239,12 +8273,6 @@ install_diginode_tools_only() {
 
     # Display closing message
     closing_banner_message
-
-    # Choose a random DigiFact
-    digifact_randomize
-
-    # Display a random DigiFact
-    display_digifact_fixedwidth
 
     # Display donation QR Code
     donation_qrcode
@@ -8312,6 +8340,9 @@ menu_existing_install() {
     opt7a="7 MOTD"
     opt7b="Enable or disable the DigiNode Custom MOTD."
 
+    optSa="S System"
+    optSb="Automatic system updates and restarts."
+
     opt8a="8 Extras"
     opt8b="Install optional extras for your DigiNode."
     
@@ -8324,7 +8355,7 @@ menu_existing_install() {
 
     # Display the information to the user
 
-    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 22 74 12 \
+    UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiNode has been detected on this system.\n\nPlease choose from the following options:\n\n" 23 74 13 \
     "${opt1a}"  "${opt1b}" \
     "${optVa}"  "${optVb}" \
     "${optBa}"  "${optBb}" \
@@ -8334,10 +8365,11 @@ menu_existing_install() {
     "${opt5a}"  "${opt5b}" \
     "${opt6a}"  "${opt6b}" \
     "${opt7a}"  "${opt7b}" \
+    "${optSa}"  "${optSb}" \
     "${opt8a}"  "${opt8b}" \
     "${opt9a}"  "${opt9b}" \
     "${opt0a}"  "${opt0b}" 3>&2 2>&1 1>&3 ) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -8417,6 +8449,15 @@ menu_existing_install() {
             motd_do_install_uninstall
             menu_existing_install
             ;;
+        # Automatic system updates and restarts
+        ${optSa})
+            printf "%b You selected the SYSTEM option.\\n" "${INFO}"
+            printf "\\n"
+            system_updates_check
+            menu_ask_system_updates menu
+            system_updates_apply
+            menu_existing_install
+            ;;
         # Extras
         ${opt8a})
             printf "%b You selected the EXTRAS option.\\n" "${INFO}"
@@ -8456,7 +8497,7 @@ menu_extras() {
     UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "Extras Menu" --title "Extras Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
     "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; digifact_randomize; display_digifact_fixedwidth; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
+    { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
     # Set the variable based on if the user chooses
@@ -9122,16 +9163,6 @@ change_dgb_network() {
     # Display closing message
     closing_banner_message
 
-    if [[ "${NewInstall}" == false ]]; then
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        display_digifact_fixedwidth
-
-    fi
-
     # Display donation QR Code
     donation_qrcode
 
@@ -9149,10 +9180,10 @@ change_dgb_network() {
 # A function for displaying the dialogs the user sees when first running DigiNode Setup
 welcomeDialogs() {
     # Display the welcome dialog using an appropriately sized window via the calculation conducted earlier in the script
-    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to setup and manage a DigiByte Node and a DigiAsset Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nWith a \Z4DigiAsset Node\Z0 you are helping to decentralize and redistribute DigiAsset metadata. It also gives you the ability to create your own DigiAssets via the built-in web UI, and additionally lets you earn DGB in exchange for hosting the DigiAsset metadata of others. \n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 23 ${c}
+    dialog --no-shadow --keep-tite --colors --backtitle "Welcome to DigiNode Setup" --title "Welcome to DigiNode Setup" --msgbox "\nDigiNode Setup will help you to set up and manage a DigiByte Node on this device.\n\nRunning a \Z4DigiByte Full Node\Z0 means you have a complete copy of the DigiByte blockchain on your device and are helping contribute to the decentralization and security of the blockchain network.\n\nTo learn more, visit: $DGBH_URL_INTRO\n\n\ZbTip: To open a link from the terminal, hold Cmd (Mac) or Ctrl (Windows) and click the URL.\ZB" 17 ${c}
 
-    #!! Temp message re digiasset node not working
-    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis features has temporarily been removed as the legacy DigiAsset Node software is no longer functioing correctly. Support the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
+    #!! Temp message re digiasset node not working - no longer shown (setup doesn't mention the DigiAsset Node any more)
+#!!    dialog --no-shadow --keep-tite --colors --backtitle "IMPORTANT - Please Read!" --title "IMPORTANT - Please Read!" --msgbox "\n\Z1IMPORTANT: It is not currently possible to set up a DigiAsset Node.\Z0\\n\\nThis feature has temporarily been removed as the legacy DigiAsset Node software is no longer functioning correctly. Support for the new DigiAsset Core will be added in an upcoming release.\n\nFor now, you can still install a DigiByte Node." 14 ${c}
 
     # Use must agree to the softare disclaimer
     disclaimerDialog
@@ -9179,7 +9210,7 @@ donationDialog() {
 dialog --no-shadow --keep-tite --colors --backtitle "Please donate to support DigiNode Tools" --title "Please donate to support DigiNode Tools" --no-collapse --msgbox "
 \Z4DigiNode Tools is DONATIONWARE.\Z0 If you find it useful, please sponsor or donate to support future development:
 
-             \Z4${DGNT_GITHUB_SPONSORS_URL}\Z0
+                   \Z4${DGNT_SPONSORS_URL}\Z0
 
 Alternatively, donate DigiByte (DGB):
 
@@ -9848,41 +9879,77 @@ display_featured_sponsors() {
     echo ""
 }
 
+# Show the DGB address to donate to, with its QR code. Each donation should go to a new address, so the current one is
+# fetched from dgb-donate.json in the diginode-sponsors repo (kept up to date by its "Update DGB donations" Action). If it
+# can't be fetched, or doesn't look right, the original donation address is shown instead (it still works).
+display_dgb_donation_qrcode() {
+
+    local donate_json dgb_address line
+    local -a qr_lines=(
+        "▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"
+        "█ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"
+        "█ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"
+        "█▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"
+        "▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "
+        "█ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"
+        " ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"
+        " █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"
+        "▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"
+        "█ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"
+        "█ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "
+        "▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"
+        "█ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"
+        "█ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"
+        "█▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
+    )
+    dgb_address="dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+
+    # Only accept a valid DGB address, and a QR code made only of block characters and spaces, so nothing in the file
+    # can mess with the terminal
+    donate_json=$(curl -sfL --max-time 3 "$DGNT_SPONSORS_DATA_URL/dgb-donate.json" 2>/dev/null)
+    if [ -n "$donate_json" ] && echo "$donate_json" | jq -e '
+        (.address | type == "string" and test("^(dgb1[02-9ac-hj-np-z]{20,80}|D[1-9A-HJ-NP-Za-km-z]{25,40})$"))
+        and (.qr_terminal | type == "array" and length >= 10 and length <= 25)
+        and all(.qr_terminal[]; type == "string" and test("^[█▀▄ ]{20,45}$"))' > /dev/null 2>&1; then
+        # Read both before using either, so the QR code and the address shown always match
+        local new_address new_line
+        local -a new_qr_lines=()
+        new_address=$(echo "$donate_json" | jq -r '.address')
+        while IFS= read -r new_line; do
+            new_qr_lines+=("$new_line")
+        done < <(echo "$donate_json" | jq -r '.qr_terminal[]')
+        if [ -n "$new_address" ] && [ "${#new_qr_lines[@]}" -ge 10 ]; then
+            dgb_address="$new_address"
+            qr_lines=("${new_qr_lines[@]}")
+        fi
+    fi
+
+    for line in "${qr_lines[@]}"; do
+        echo "                      $line"
+    done
+    echo ""
+    echo "               $dgb_address"
+}
+
 donation_qrcode() {  
 
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
 
     echo "   I created DigiNode Tools to make it easy for everybody to run their"
-    echo "   own DigiByte Node. It's free and open source, and I build and"
+    echo "   own DigiByte Node. It's free, its code is public, and I build and"
     echo "   maintain it in my spare time, for the benefit of the DigiByte"
     echo "   community. If you find it useful, please consider sponsoring me,"
     echo "   so I can devote more time to it. Thank you for your support, Olly"
     echo ""
-    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_GITHUB_SPONSORS_URL}\a${DGNT_GITHUB_SPONSORS_URL}\e]8;;\a${txtrst} <<"
+    echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
-    echo "                      ▄▄▄▄▄▄▄  ▄    ▄ ▄▄▄▄▄ ▄▄▄▄▄▄▄"  
-    echo "                      █ ▄▄▄ █ ▀█▄█▀▀██  █▄█ █ ▄▄▄ █"  
-    echo "                      █ ███ █ ▀▀▄▀▄▀▄ █▀▀▄█ █ ███ █"  
-    echo "                      █▄▄▄▄▄█ █ █ ▄ ▄▀▄▀▄ █ █▄▄▄▄▄█"  
-    echo "                      ▄▄▄▄▄ ▄▄▄▄▄ █▄▄▀▄▄▄ ▄▄ ▄ ▄ ▄ "  
-    echo "                      █ ▄▀ ▄▄▄▀█ ▄▄ ▄▄▀  ▀█▄▀██▄ ▄▀"  
-    echo "                       ▀▀ ▄▀▄  █▀█ ▄ ▀ ▄  █  ▀▀█▄█▀"  
-    echo "                       █ █▀▄▄▀█ █ ▀▄▀▄██▄▀▄██▀▀▄ ▀▀"  
-    echo "                      ▄█▀ █▀▄▄    █▄█▀▄▄▀▀▄ ▀  █▄ ▀"  
-    echo "                      █ ▄██ ▄▀▀█ ▄▄█ ▄█▀▄▀▄█▀▀█▀▄▀▀"  
-    echo "                      █ ██▄ ▄▄ ▄▀█ ▄███▄▄▀▄▄▄▄▄▄▄▀ "  
-    echo "                      ▄▄▄▄▄▄▄ █▀▄ ▀ █▄▄▄ ██ ▄ █ ▀▀▀"  
-    echo "                      █ ▄▄▄ █ ▄█▀ █▄█▀▄▄▀▀█▄▄▄██▄▄█"  
-    echo "                      █ ███ █ █ ▀▄▄ ▀▄ ███  ▄█▄  █▀"  
-    echo "                      █▄▄▄▄▄█ █  █▄  █▄▄ ▀▀  ▀▄█▄▀ "
-    echo ""  
-    echo "               dgb1qv8psxjeqkau5s35qwh75zy6kp95yhxxw0d3kup"
+    display_dgb_donation_qrcode
     echo ""
-    echo -e "                    >> Find me on Bluesky \e]8;;https://bsky.app/profile/olly.st\a@olly.st\e]8;;\a <<"
+    echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
     echo ""
 }
 
@@ -10020,14 +10087,7 @@ final_messages() {
         printf "\\n"
         printf "%b To launch 'DigiNode Setup' enter: ${txtbld}diginode-setup${txtrst}\\n" "${INDENT}"
         printf "\\n"
-        printf "%b Note: If this is your first time installing DigiNode Tools,\\n" "${INDENT}"
-        printf "%b       these aliases will not work until you log out or reboot.\\n" "${INDENT}"
-        printf "\\n"
     elif [ "$RESET_MODE" = true ]; then
-        printf "%b %bAfter performing a reset, it is advisable to reboot your system.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
         printf "%b %b'DigiNode Tools' can be run locally from the command line.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To launch 'DigiNode Dashboard' enter: ${txtbld}diginode${txtrst}\\n" "${INDENT}"
@@ -10050,33 +10110,22 @@ final_messages() {
 
     # Display restart messages, if needed
     if [ "$HOSTNAME_DO_CHANGE" = "YES" ]; then
-        printf "%b %bYour hostname has been changed. You need to reboot now for the change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b %bYour hostname has been changed to '%s'.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${HOSTNAME_AFTER_REBOOT}" "${COL_NC}"
         printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
+        printf "%b This terminal still shows the old name until you reconnect.\\n" "${INDENT}"
         printf "\\n"
         if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
+            printf "%b To reconnect over SSH: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
             printf "\\n"
             printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
+            printf "%b To reconnect over SSH: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
         fi
         printf "\\n"
-    elif [ "$REBOOT_NEEDED" = "YES" ]; then
-        printf "%b %bYou need to reboot now for your swap file change to take effect.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-        printf "\\n"
-        printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
-        printf "\\n"
-        if [ "$HOSTNAME_AFTER_REBOOT" = "diginode" ] || [ "$HOSTNAME_AFTER_REBOOT" = "diginode-testnet" ]; then
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${HOSTNAME_AFTER_REBOOT}.local${txtrst}\\n" "${INDENT}"
-            printf "\\n"
-            printf "%b You can also try: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"
-        else
-            printf "%b Once rebooted, reconnect over SSH with: ${txtbld}ssh ${USER_ACCOUNT}@${IP4_INTERNAL}${txtrst}\\n" "${INDENT}"       
-        fi
-        printf "\\n"       
-    elif [ $NewInstall = true ]; then
-        printf "%b %bYou need to reboot your system so that the above aliases will work.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+    fi
+
+    if [ "$REBOOT_NEEDED" = "YES" ]; then
+        printf "%b %bYour new swap file isn't active yet. Restart your DigiNode to turn it on.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
         printf "%b To restart now enter: ${txtbld}sudo reboot${txtrst}\\n" "${INDENT}"
         printf "\\n"
@@ -10112,11 +10161,34 @@ final_messages() {
 
 display_system_updates_reminder() {
 
-    if [ "$system_updates_available" = "yes" ]; then
+    # Only show this once
+    if [ "$SYSTEM_UPDATES_REMINDER_SHOWN" = "YES" ]; then
+        return
+    fi
+    SYSTEM_UPDATES_REMINDER_SHOWN="YES"
+
+    # Don't suggest installing them by hand if they are about to be installed automatically
+    if [ "$system_updates_available" = "yes" ] && [ "$SYSTEM_AUTO_UPDATES" != "ALL" ]; then
         printf "%b %bThere are system updates available for your DigiNode.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
         printf "\\n"
-        printf "%b To install them now enter: ${txtbld}sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+        # With security updates on, only the other updates are left for the user to install
+        local which_updates="them"
+        if [ "$SYSTEM_AUTO_UPDATES" = "SECURITY" ]; then
+            printf "%b Security updates are installed automatically.\\n" "${INDENT}"
+            which_updates="the others"
+        fi
+        # Refresh the package lists first - they may be out of date by now, and installing from an old list can fail
+        if [ "$PKG_MANAGER" = "apt-get" ]; then
+            printf "%b To install ${which_updates} now enter: ${txtbld}sudo apt-get update && sudo apt-get upgrade${txtrst}\\n" "${INDENT}"
+        else
+            printf "%b To install ${which_updates} now enter: ${txtbld}sudo ${PKG_MANAGER} upgrade${txtrst}\\n" "${INDENT}"
+        fi
         printf "\\n"
+    fi
+
+    # Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
+    if [ -x "$DGNT_REBOOT_HELPER" ]; then
+        "$DGNT_REBOOT_HELPER" --status
     fi
 
 }
@@ -11198,19 +11270,19 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     if [ "$show_dgb_tor_menu" = "yes" ]  && [ "$NewInstall" = true ] && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         opt1a="1 BOTH"
-        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
+        opt1b=" Mainnet and testnet both over Tor. (Recommended)"
 
         opt2a="2 MAINNET ONLY"
-        opt2b=" Run DigiByte Mainnet over Tor. Testnet runs on clearnet."
+        opt2b=" Mainnet over Tor. Testnet on clearnet."
 
         opt3a="3 TESTNET ONLY"
-        opt3b=" Run DigiByte Testnet over Tor. Mainnet runs on clearnet."
+        opt3b=" Testnet over Tor. Mainnet on clearnet."
 
         opt4a="4 NEITHER"
-        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
+        opt4b=" Mainnet and testnet both on clearnet."
 
         # Display the information to the user
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --cancel-label "Exit" --menu "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 76 4 \
         "${opt1a}"  "${opt1b}" \
         "${opt2a}"  "${opt2b}" \
         "${opt3a}"  "${opt3b}" \
@@ -11330,19 +11402,19 @@ if [ ! "$UNATTENDED_MODE" == true ]; then
     elif [ "$show_dgb_tor_menu" = "yes" ]  && [ "$DGB_NETWORK_FINAL" = "MAINNET" ] && [ "$SETUP_DUAL_NODE" = "YES" ]; then
 
         opt1a="1 BOTH"
-        opt1b=" Run DigiByte Mainnet & Testnet Nodes over Tor. (Recommended)"
+        opt1b=" Mainnet and testnet both over Tor. (Recommended)"
 
         opt2a="2 MAINNET ONLY"
-        opt2b=" Run DigiByte Mainnet node over Tor. Testnet runs on clearnet."
+        opt2b=" Mainnet over Tor. Testnet on clearnet."
 
         opt3a="3 TESTNET ONLY"
-        opt3b=" Run DigiByte Testnet node over Tor. Mainnet runs on clearnet."
+        opt3b=" Testnet over Tor. Mainnet on clearnet."
 
         opt4a="4 NEITHER"
-        opt4b=" Neither DigiByte Mainnet or Testnet run over Tor. Both on clearnet."
+        opt4b=" Mainnet and testnet both on clearnet."
 
         # Display the information to the user
-        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 95 4 \
+        UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiByte Tor Selection" --title "DigiByte Tor Selection" --no-label "Cancel" --radiolist "\nPlease choose whether to run your DigiByte Nodes over Tor.\n\nRunning a DigiByte node over Tor hides your IP address, enhancing privacy and security by making it harder for others to trace your blockchain activity. In contrast, running a node over clearnet uses the regular internet, exposing your IP address and location, but generally offers faster connectivity.\n\nFor the Digibyte network, having more Tor nodes increases the overall privacy and security of the network, making it more resilient against surveillance and attacks.\n\nLearn more about Tor: https://www.torproject.org/\n\n" 22 76 4 \
         "${opt1a}"  "${opt1b}" "${DGB_TOR_DUALNODE_FLAG}" \
         "${opt2a}"  "${opt2b}" "${DGB_TOR_MAINNET_ONLY_FLAG}" \
         "${opt3a}"  "${opt3b}" "${DGB_TOR_TESTNET_ONLY_FLAG}" \
@@ -13740,18 +13812,8 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Add DigiByte binary folder to the path permanently (so it works after reboot)
-    str="Is DigiByte binary folder path already in .bashrc?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
-        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        # Append export path to .bashrc file
-        echo "" >> $USER_HOME/.bashrc
-        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
-        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
-        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    # Add the DigiByte Core commands (digibyte-cli etc.) to /usr/local/bin, so they work from any folder
+    install_command_links
 
 
     printf "\\n"
@@ -14133,47 +14195,8 @@ fi
         chmod +x $DGNT_MONITOR_SCRIPT
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
-        # Add alias so entering 'diginode' works from any folder
-        if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode' alias in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode=/s|.*|alias diginode='$DGNT_MONITOR_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Adding 'diginode' alias to .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode='$DGNT_MONITOR_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Add alias so entering 'diginode-setup' works from any folder
-        if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
-            str="Updating 'diginode-setup' alias in .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Update existing alias for 'diginode'
-            sed -i -e "/^alias diginode-setup=/s|.*|alias diginode-setup='$DGNT_SETUP_SCRIPT'|" $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        else
-            str="Adding 'diginode-setup' alias to .bashrc file..."
-            printf "%b %s" "${INFO}" "${str}"
-            # Append alias to .bashrc file
-            echo "" >> $USER_HOME/.bashrc
-            echo "# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder" >> $USER_HOME/.bashrc
-            echo "alias diginode-setup='$DGNT_SETUP_SCRIPT'" >> $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
-
-        # Load new aliases
-        if [ "$NewInstall" = true ]; then
-            str="Loading new aliases now..."
-            printf "%b %s" "${INFO}" "${str}"
-            sudo -u $USER_ACCOUNT source $USER_HOME/.bashrc
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
-        fi
+        # Add the 'diginode' and 'diginode-setup' commands to /usr/local/bin, so they work from any folder straight away
+        install_command_links
 
         # Update the DigiNode custom MOTD, if it is already installed
         if [ -f "/etc/update-motd.d/50-diginode" ]; then
@@ -14771,18 +14794,8 @@ printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
     fi
 
-    # Add DigiByte binary folder to the path permanently (so it works after reboot)
-    str="Is DigiByte binary folder path already in .bashrc?..."
-    printf "%b %s" "${INFO}" "${str}"
-    if grep -q "export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
-        printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
-    else
-        # Append export path to .bashrc file
-        echo "" >> $USER_HOME/.bashrc
-        echo "# Add DigiByte binary folder to path" >> $USER_HOME/.bashrc
-        echo "export PATH+=:$DGB_INSTALL_LOCATION/bin" >> $USER_HOME/.bashrc
-        printf "%b%b %s No - Added!\\n" "${OVER}" "${TICK}" "${str}"
-    fi
+    # Add the DigiByte Core commands (digibyte-cli etc.) to /usr/local/bin, so they work from any folder
+    install_command_links
 
 
     printf "\\n"
@@ -17639,6 +17652,10 @@ menu_confirm_chosen_dgb_version() {
 
     # If they chose not to install it and there is nothing else to update, there is nothing more to do
     if [ "$DGB_REQ_INSTALL" != "YES" ] && [ "$DGA_ASK_UPGRADE" != "YES" ] && [ "$IPFS_ASK_UPGRADE" != "YES" ] && [ "$NODEJS_ASK_UPGRADE" != "YES" ] && [ "$DGNT_ASK_UPGRADE" != "YES" ]; then
+        # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+        menu_ask_system_updates
+        system_updates_apply
+        install_command_links
         ensure_dgb_nodes_running
         display_system_updates_reminder
         exit
@@ -17866,6 +17883,10 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
             printf "\\n"
             # Carry on if they already chose to install a version of DigiByte Core
             if [ "$DGB_REQ_INSTALL" != "YES" ]; then
+                # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+                menu_ask_system_updates
+                system_updates_apply
+                install_command_links
                 ensure_dgb_nodes_running
                 display_system_updates_reminder
                 exit
@@ -17885,6 +17906,10 @@ if [[ "$DGB_ASK_UPGRADE" = "YES" ]] || [[ "$DGA_ASK_UPGRADE" = "YES" ]] || [[ "$
         else
           printf "%b You chose NOT to install any of the available updates.\\n" "${INFO}"
           printf "\\n"
+          # Ask about automatic system updates if not asked yet, and apply them (otherwise this would only happen when there are updates)
+          menu_ask_system_updates
+          system_updates_apply
+          install_command_links
           ensure_dgb_nodes_running
           display_system_updates_reminder
           exit
@@ -18242,6 +18267,544 @@ fi
 
 
 
+
+
+#####################################################################################################
+### FUNCTIONS - COMMANDS (diginode, diginode-setup, digibyte-cli...)
+#####################################################################################################
+
+# The DigiNode commands are links in /usr/local/bin, which is in everyone's PATH. They work as soon as they are
+# installed, and stop working as soon as they are removed - no need to log out or restart. (They used to be
+# aliases and a PATH line in ~/.bashrc, which only worked in new terminals and stayed after an uninstall.)
+
+DGNT_COMMANDS_DIR=/usr/local/bin
+
+# Create or update a command link, e.g. /usr/local/bin/diginode -> ~/diginode-tools/diginode.sh
+# A file or link that isn't DigiNode's (i.e. doesn't point inside <ours>) is left alone.
+# Usage: make_command_link <command> <target> <ours>
+make_command_link() {
+    local link="$DGNT_COMMANDS_DIR/$1"
+    local target="$2"
+    local ours="$3"
+    local current
+
+    if [ -L "$link" ]; then
+        current=$(readlink "$link")
+        if [ "$current" = "$target" ]; then
+            return 0
+        fi
+        case "$current" in
+            "$ours"* ) ;;
+            * )
+                printf "%b %bThe '%s' command was not created: %s already exists and isn't part of DigiNode.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "$1" "$link" "${COL_NC}"
+                return 1
+                ;;
+        esac
+    elif [ -e "$link" ]; then
+        printf "%b %bThe '%s' command was not created: %s already exists and isn't part of DigiNode.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "$1" "$link" "${COL_NC}"
+        return 1
+    fi
+
+    mkdir -p "$DGNT_COMMANDS_DIR"
+    ln -sfn "$target" "$link"
+    printf "%b%b Added command: %s\\n" "${OVER}" "${TICK}" "$1"
+}
+
+# Remove DigiNode's command links that point inside <ours> (only links, never other files)
+# Usage: remove_command_links <ours> [only-if-target-missing]
+remove_command_links() {
+    local ours="$1"
+    local only_missing="$2"
+    local link current
+    for link in "$DGNT_COMMANDS_DIR"/*; do
+        [ -L "$link" ] || continue
+        current=$(readlink "$link")
+        case "$current" in
+            "$ours"* )
+                if [ "$only_missing" = "only-if-target-missing" ] && [ -e "$current" ]; then
+                    continue
+                fi
+                rm -f "$link"
+                printf "%b%b Removed command: %s\\n" "${OVER}" "${TICK}" "$(basename "$link")"
+                ;;
+        esac
+    done
+}
+
+# Remove the old 'diginode' aliases and DigiByte PATH line from ~/.bashrc (replaced by the command links).
+# Returns 0 if anything was removed.
+remove_old_bashrc_commands() {
+    if [ ! -f "$USER_HOME/.bashrc" ]; then
+        return 1
+    fi
+    if grep -q -e "^alias diginode=" -e "^alias diginode-setup=" -e "^export PATH+=:$DGB_INSTALL_LOCATION/bin" "$USER_HOME/.bashrc"; then
+        sed -i \
+            -e "/# Alias for DigiNode tools so that entering 'diginode' will run this from any folder/d" \
+            -e "/^alias diginode=/d" \
+            -e "/# Alias for DigiNode tools so that entering 'diginode-setup' will run this from any folder/d" \
+            -e "/^alias diginode-setup=/d" \
+            -e "/# Add DigiByte binary folder to path/d" \
+            -e "\|^export PATH+=:$DGB_INSTALL_LOCATION/bin\$|d" \
+            "$USER_HOME/.bashrc"
+        # Remove the blank lines that were added before each of them, if they're now left at the end of the file
+        sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$USER_HOME/.bashrc"
+        printf "%b%b Removed the old DigiNode aliases and DigiByte path from .bashrc (no longer needed)\\n" "${OVER}" "${TICK}"
+        return 0
+    fi
+    return 1
+}
+
+# Create the commands for DigiNode Tools and DigiByte Core (whichever are installed). Safe to run every time.
+install_command_links() {
+
+    # DigiNode Tools
+    if [ -f "$DGNT_MONITOR_SCRIPT" ]; then
+        make_command_link diginode "$DGNT_MONITOR_SCRIPT" "$DGNT_LOCATION/"
+    fi
+    if [ -f "$DGNT_SETUP_SCRIPT" ]; then
+        make_command_link diginode-setup "$DGNT_SETUP_SCRIPT" "$DGNT_LOCATION/"
+    fi
+
+    # DigiByte Core - its programs (digibyte-cli, digibyted...), but not test programs such as test_digibyte.
+    # The links go via ~/digibyte, which always points to the installed version, so they keep working after an upgrade.
+    if [ -d "$DGB_INSTALL_LOCATION/bin" ]; then
+        local f link
+        for f in "$DGB_INSTALL_LOCATION"/bin/digibyte*; do
+            if [ -f "$f" ] && [ -x "$f" ]; then
+                make_command_link "$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/$(basename "$f")" "$DGB_INSTALL_LOCATION/bin/"
+            fi
+        done
+        # Remove links to programs that the installed version doesn't have
+        remove_command_links "$DGB_INSTALL_LOCATION/bin/" only-if-target-missing
+        # Remove links to DigiByte Core programs that shouldn't be commands (e.g. test_digibyte)
+        for link in "$DGNT_COMMANDS_DIR"/*; do
+            if [ -L "$link" ] && [[ "$(readlink "$link")" == "$DGB_INSTALL_LOCATION/bin/"* ]] && [[ "$(basename "$link")" != digibyte* ]]; then
+                rm -f "$link"
+                printf "%b%b Removed command: %s\\n" "${OVER}" "${TICK}" "$(basename "$link")"
+            fi
+        done
+    fi
+
+    remove_old_bashrc_commands
+}
+
+#####################################################################################################
+### FUNCTIONS - AUTOMATIC SYSTEM UPDATES AND RESTARTS
+#####################################################################################################
+
+# Automatic system updates use unattended-upgrades (Debian, Ubuntu and Raspberry Pi OS). The user's choice is saved
+# in diginode.settings (SYSTEM_AUTO_UPDATES, SYSTEM_AUTO_REBOOT, SYSTEM_AUTO_REBOOT_TIME) and applied each time
+# DigiNode Setup runs an update, so it is only asked once. Restarts are done by the DigiNode reboot helper
+# (diginode-reboot.sh), which never restarts while the DigiNode is busy. It also shows the "restart required"
+# reminder at the end of DigiNode Setup, when DigiNode Dashboard quits, and in the DigiNode MOTD.
+
+DGNT_REBOOT_HELPER=/usr/local/sbin/diginode-reboot
+DGNT_REBOOT_STATUS_DIR=/var/lib/diginode-tools
+DGNT_REBOOT_CONF=$DGNT_REBOOT_STATUS_DIR/auto-reboot.conf
+DGNT_AUTO_UPDATES_APT_CONF=/etc/apt/apt.conf.d/52diginode-auto-updates
+DGNT_APT_PERIODIC_CONF=/etc/apt/apt.conf.d/20auto-upgrades
+
+# Save a value in diginode.settings (adds the line if an older diginode.settings file doesn't have it yet)
+set_diginode_setting() {
+    local name="$1"
+    local value="$2"
+    if grep -q "^${name}=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^${name}=/s|.*|${name}=\"${value}\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "${name}=\"${value}\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# Automatic system updates are currently only supported on the Debian family (Debian, Ubuntu, Raspberry Pi OS)
+system_updates_supported() {
+    [ "$PKG_MANAGER" = "apt-get" ]
+}
+
+# Return a valid restart time (HH:MM), using 04:00 if the one in diginode.settings is missing or invalid
+system_auto_reboot_time() {
+    if [[ "$SYSTEM_AUTO_REBOOT_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+        echo "$SYSTEM_AUTO_REBOOT_TIME"
+    else
+        echo "04:00"
+    fi
+}
+
+# Find out whether automatic system updates and restarts are currently turned on
+system_updates_check() {
+
+    printf " =============== Checking: Automatic System Updates ====================\\n\\n"
+    # ==============================================================================
+
+    if ! system_updates_supported; then
+        SYSTEM_AUTO_UPDATES_CURRENT="UNSUPPORTED"
+        SYSTEM_AUTO_REBOOT_CURRENT="NO"
+        printf "%b Automatic system updates are not supported on this OS yet.\\n" "${INFO}"
+        printf "\\n"
+        return
+    fi
+
+    local uu_enabled=0
+    if dpkg -s unattended-upgrades >/dev/null 2>&1; then
+        eval "$(apt-config shell uu_enabled APT::Periodic::Unattended-Upgrade 2>/dev/null)"
+    fi
+
+    if [ "${uu_enabled:-0}" != "0" ]; then
+        if [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] && grep -q '"origin=\*"' "$DGNT_AUTO_UPDATES_APT_CONF"; then
+            SYSTEM_AUTO_UPDATES_CURRENT="ALL"
+        else
+            SYSTEM_AUTO_UPDATES_CURRENT="SECURITY"
+        fi
+        printf "%b%b Automatic system updates: ON (%s)\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES_CURRENT"
+    else
+        SYSTEM_AUTO_UPDATES_CURRENT="OFF"
+        printf "%b%b Automatic system updates: OFF\\n" "${OVER}" "${CROSS}"
+    fi
+
+    if systemctl is-enabled --quiet diginode-reboot.timer 2>/dev/null; then
+        SYSTEM_AUTO_REBOOT_CURRENT="YES"
+        printf "%b%b Automatic restarts: ON (%s)\\n" "${OVER}" "${TICK}" "$(system_auto_reboot_time)"
+    else
+        SYSTEM_AUTO_REBOOT_CURRENT="NO"
+        printf "%b%b Automatic restarts: OFF\\n" "${OVER}" "${CROSS}"
+    fi
+
+    printf "\\n"
+}
+
+# Ask whether to install system updates automatically, and whether to restart automatically when needed.
+# This is only asked once (the answer is saved in diginode.settings), unless it is chosen from the main menu.
+# Usage: menu_ask_system_updates [menu]
+menu_ask_system_updates() {
+
+    local from_menu="$1"
+
+    if [ "$SYSTEM_AUTO_UPDATES_CURRENT" = "UNSUPPORTED" ]; then
+        if [ "$from_menu" = "menu" ]; then
+            dialog --no-shadow --keep-tite --colors --backtitle "Automatic System Updates" --title "Automatic System Updates" --msgbox "\nAutomatic system updates are currently only supported on Debian, Ubuntu and Raspberry Pi OS." 9 "${c}"
+        fi
+        return
+    fi
+
+    # Already chosen - nothing to ask (unless this was chosen from the main menu)
+    if [ "$from_menu" != "menu" ]; then
+        case "$SYSTEM_AUTO_UPDATES" in
+            SECURITY|ALL|OFF ) return ;;
+        esac
+    fi
+
+    # Unattended mode - use the UI_ values in diginode.settings
+    if [ "$UNATTENDED_MODE" == true ]; then
+
+        printf " =============== Unattended Mode: Automatic System Updates =============\\n\\n"
+        # ==============================================================================
+
+        case "$UI_SYSTEM_AUTO_UPDATES" in
+            SECURITY|ALL|OFF )
+                SYSTEM_AUTO_UPDATES="$UI_SYSTEM_AUTO_UPDATES"
+                if [ "$UI_SYSTEM_AUTO_REBOOT" = "YES" ] && [ "$SYSTEM_AUTO_UPDATES" != "OFF" ]; then
+                    SYSTEM_AUTO_REBOOT="YES"
+                else
+                    SYSTEM_AUTO_REBOOT="NO"
+                fi
+                printf "%b Unattended Mode: Automatic system updates will be set to: %s  Automatic restarts: %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES" "$SYSTEM_AUTO_REBOOT"
+                printf "%b                  (Set from UI_SYSTEM_AUTO_UPDATES and UI_SYSTEM_AUTO_REBOOT in diginode.settings)\\n" "${INDENT}"
+                set_diginode_setting SYSTEM_AUTO_UPDATES "$SYSTEM_AUTO_UPDATES"
+                set_diginode_setting SYSTEM_AUTO_REBOOT "$SYSTEM_AUTO_REBOOT"
+                ;;
+            * )
+                printf "%b Unattended Mode: Skipping automatic system updates. (UI_SYSTEM_AUTO_UPDATES is not set in diginode.settings.)\\n" "${INFO}"
+                ;;
+        esac
+        printf "\\n"
+        return
+    fi
+
+    printf " =============== Automatic System Updates ==============================\\n\\n"
+    # ==============================================================================
+
+    local current_text default_item
+    case "$SYSTEM_AUTO_UPDATES_CURRENT" in
+        SECURITY ) current_text="Currently: \Z2ON\Z0 - security and stability updates"; default_item="Security" ;;
+        ALL )      current_text="Currently: \Z2ON\Z0 - all updates"; default_item="All" ;;
+        * )        current_text="Currently: \Z1OFF\Z0"; default_item="Security" ;;
+    esac
+    case "$SYSTEM_AUTO_UPDATES" in
+        SECURITY ) default_item="Security" ;;
+        ALL )      default_item="All" ;;
+        OFF )      default_item="Off" ;;
+    esac
+
+    local choice
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Automatic System Updates" --title "Automatic System Updates" --default-item "$default_item" --cancel-label "Back" --menu "\n\Z4Would you like your DigiNode to install system updates automatically?\Z0\n\nKeeping the operating system up to date is important for the security of your DigiNode. Updates are installed in the background, once a day. (DigiByte Core and DigiNode Tools are not affected - DigiNode Setup still updates those.)\n\n$current_text\n\n" 20 "${c}" 3 \
+        "Security" "Security and stability updates (Recommended)" \
+        "All"      "All available updates, from every repository" \
+        "Off"      "Don't install updates automatically" 3>&2 2>&1 1>&3) || {
+        printf "%b You didn't change the automatic system updates.\\n" "${INFO}"
+        printf "\\n"
+        return
+    }
+
+    case "$choice" in
+        Security ) SYSTEM_AUTO_UPDATES="SECURITY" ;;
+        All )      SYSTEM_AUTO_UPDATES="ALL" ;;
+        Off )      SYSTEM_AUTO_UPDATES="OFF" ;;
+        * )        return ;;
+    esac
+    printf "%b You chose: Automatic system updates - %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES"
+
+    if [ "$SYSTEM_AUTO_UPDATES" = "OFF" ]; then
+        SYSTEM_AUTO_REBOOT="NO"
+    else
+        local reboot_time
+        reboot_time=$(system_auto_reboot_time)
+        # Suggest Yes if restarts are already on, or if never asked before on a Raspberry Pi (almost always a
+        # dedicated DigiNode). Otherwise suggest No - e.g. on a VPS or a server that runs other things too, where a
+        # restart could be unwelcome (or need a disk password typed at boot). A previous No is always kept.
+        local defaultno="--defaultno"
+        if [ "$SYSTEM_AUTO_REBOOT" = "YES" ] || { [ -z "$SYSTEM_AUTO_REBOOT" ] && [ "$IS_RPI" = "YES" ]; }; then
+            defaultno=""
+        fi
+
+        if dialog --no-shadow --keep-tite --colors --backtitle "Automatic Restarts" --title "Automatic Restarts" $defaultno --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like your DigiNode to restart automatically when an update needs it?\Z0\n\nSome updates, such as a new Linux kernel, only take effect after a restart.\n\nIf you choose YES, your DigiNode will restart itself at ${reboot_time} (system time), but only when an update needs it. If it is busy (e.g. DigiNode Setup is running or software is being installed) the restart is skipped and tried again later. Your DigiByte node is shut down safely and starts again automatically.\n\nIf you choose NO, you will be reminded when a restart is needed." 19 "${c}"; then
+            SYSTEM_AUTO_REBOOT="YES"
+            printf "%b You chose: Automatic restarts - YES\\n" "${INFO}"
+
+            # From the main menu, also let them choose the time
+            if [ "$from_menu" = "menu" ]; then
+                local new_time
+                new_time=$(dialog --no-shadow --keep-tite --colors --backtitle "Automatic Restarts" --title "Automatic Restart Time" --inputbox "\nWhat time should your DigiNode restart, when an update needs it?\n\nEnter the time in 24-hour format (HH:MM), using the system time. If it is busy, it will try again every 30 minutes for the next 2 hours.\n\n" 14 "${c}" "$reboot_time" 3>&2 2>&1 1>&3) || new_time="$reboot_time"
+                if [[ "$new_time" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+                    SYSTEM_AUTO_REBOOT_TIME="$new_time"
+                else
+                    printf "%b \"%s\" is not a valid time (HH:MM) - keeping %s.\\n" "${WARN}" "$new_time" "$reboot_time"
+                    SYSTEM_AUTO_REBOOT_TIME="$reboot_time"
+                fi
+                printf "%b Automatic restart time: %s\\n" "${INFO}" "$SYSTEM_AUTO_REBOOT_TIME"
+            fi
+        else
+            SYSTEM_AUTO_REBOOT="NO"
+            printf "%b You chose: Automatic restarts - NO\\n" "${INFO}"
+        fi
+    fi
+
+    SYSTEM_AUTO_REBOOT_TIME=$(system_auto_reboot_time)
+    set_diginode_setting SYSTEM_AUTO_UPDATES "$SYSTEM_AUTO_UPDATES"
+    set_diginode_setting SYSTEM_AUTO_REBOOT "$SYSTEM_AUTO_REBOOT"
+    set_diginode_setting SYSTEM_AUTO_REBOOT_TIME "$SYSTEM_AUTO_REBOOT_TIME"
+    printf "\\n"
+}
+
+# Write a file only if its contents have changed. Usage: write_file_if_changed <file> <mode> <contents>
+# Returns 0 if the file was written, 1 if it was already up to date.
+write_file_if_changed() {
+    local file="$1"
+    local mode="$2"
+    local contents="$3"
+    if [ -f "$file" ] && [ "$(cat "$file")" = "$contents" ]; then
+        return 1
+    fi
+    printf '%s\n' "$contents" > "$file"
+    chmod "$mode" "$file"
+    chown root:root "$file"
+    return 0
+}
+
+# Install (or update) the DigiNode reboot helper. Done on every update, so the "restart required" reminder works
+# whether or not automatic updates are turned on.
+install_reboot_helper() {
+
+    local str
+
+    if [ ! -f "$DGNT_LOCATION/diginode-reboot.sh" ]; then
+        return
+    fi
+
+    if ! cmp -s "$DGNT_LOCATION/diginode-reboot.sh" "$DGNT_REBOOT_HELPER"; then
+        str="Installing DigiNode reboot helper to $DGNT_REBOOT_HELPER..."
+        printf "%b %s" "${INFO}" "${str}"
+        install -m 755 -o root -g root "$DGNT_LOCATION/diginode-reboot.sh" "$DGNT_REBOOT_HELPER"
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+    fi
+
+    mkdir -p "$DGNT_REBOOT_STATUS_DIR"
+    chmod 755 "$DGNT_REBOOT_STATUS_DIR"
+}
+
+# Make the system match the choices in diginode.settings. Safe to run every time - it only changes what is different.
+system_updates_apply() {
+
+    local str
+
+    install_reboot_helper
+
+    if ! system_updates_supported; then
+        return
+    fi
+
+    # Not chosen yet - leave the system as it is
+    case "$SYSTEM_AUTO_UPDATES" in
+        SECURITY|ALL|OFF ) ;;
+        * ) return ;;
+    esac
+
+    if [ "$SYSTEM_AUTO_UPDATES" = "OFF" ]; then
+        SYSTEM_AUTO_REBOOT="NO"
+    fi
+
+    printf " =============== Apply: Automatic System Updates =======================\\n\\n"
+    # ==============================================================================
+
+    if [ "$SYSTEM_AUTO_UPDATES" != "OFF" ]; then
+
+        # Install unattended-upgrades, if needed
+        if ! dpkg -s unattended-upgrades >/dev/null 2>&1; then
+            str="Installing unattended-upgrades..."
+            printf "%b %s" "${INFO}" "${str}"
+            if "${PKG_INSTALL[@]}" unattended-upgrades &> /dev/null; then
+                printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b%b %s Failed!\\n" "${OVER}" "${CROSS}" "${str}"
+                printf "%b %bAutomatic system updates could not be turned on. Please try again later.%b\\n" "${WARN}" "${COL_LIGHT_RED}" "${COL_NC}"
+                printf "\\n"
+                return
+            fi
+        fi
+
+        # Turn on the daily update check and install (this is what 'dpkg-reconfigure unattended-upgrades' does)
+        if write_file_if_changed "$DGNT_APT_PERIODIC_CONF" 644 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";'; then
+            printf "%b%b Turned on automatic system updates\\n" "${OVER}" "${TICK}"
+        fi
+
+        # Choose which updates are installed. The OS's own settings (50unattended-upgrades) already include its
+        # security updates. Tor is added because DigiNode uses it. ALL adds every repository.
+        # DigiNode Tools handles restarts itself (so it can skip them when busy), so unattended-upgrades must not.
+        local origins
+        if [ "$SYSTEM_AUTO_UPDATES" = "ALL" ]; then
+            origins='        "origin=*";'
+        else
+            origins='        "origin=TorProject";'
+        fi
+        if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
+// To change these settings, run 'diginode-setup' and choose System from the main menu.
+Unattended-Upgrade::Origins-Pattern {
+$origins
+};
+Unattended-Upgrade::Automatic-Reboot \"false\";"; then
+            # A mistake in an apt config file would break apt completely, so check it can be read
+            if apt-config dump >/dev/null 2>&1; then
+                printf "%b%b Automatic system updates set to: %s\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES"
+            else
+                rm -f "$DGNT_AUTO_UPDATES_APT_CONF"
+                printf "%b%b %bCould not set which updates are installed - using the system defaults.%b\\n" "${OVER}" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+            fi
+        fi
+
+    else
+
+        # Turn off automatic installs (the package lists are still refreshed, so DigiNode can tell you about updates)
+        if dpkg -s unattended-upgrades >/dev/null 2>&1 || [ -f "$DGNT_APT_PERIODIC_CONF" ]; then
+            if write_file_if_changed "$DGNT_APT_PERIODIC_CONF" 644 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "0";'; then
+                printf "%b%b Turned off automatic system updates\\n" "${OVER}" "${TICK}"
+            fi
+        fi
+        if [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ]; then
+            rm -f "$DGNT_AUTO_UPDATES_APT_CONF"
+        fi
+
+    fi
+
+    # Automatic restarts
+    local reboot_time
+    reboot_time=$(system_auto_reboot_time)
+    mkdir -p "$DGNT_REBOOT_STATUS_DIR"
+    write_file_if_changed "$DGNT_REBOOT_CONF" 644 "# Written by DigiNode Setup from diginode.settings. Do not edit - run 'diginode-setup' and choose System instead.
+AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
+AUTO_REBOOT_TIME=$reboot_time"
+
+    if [ "$SYSTEM_AUTO_REBOOT" = "YES" ] && [ -x "$DGNT_REBOOT_HELPER" ]; then
+
+        # Try at the chosen time, then every 30 minutes for 2 hours (in case the DigiNode is busy).
+        # Persistent=false: a missed time is NOT made up after booting, which would restart the DigiNode just after it started.
+        local h m start t off on_calendar=""
+        h=${reboot_time%%:*}
+        m=${reboot_time##*:}
+        start=$(( 10#$h * 60 + 10#$m ))
+        for off in 0 30 60 90 120; do
+            t=$(( (start + off) % 1440 ))
+            on_calendar+="OnCalendar=*-*-* $(printf '%02d:%02d' $(( t / 60 )) $(( t % 60 ))):00"$'\n'
+        done
+
+        local units_changed="no"
+        if write_file_if_changed /etc/systemd/system/diginode-reboot.service 644 "[Unit]
+Description=DigiNode automatic restart (only if an update needs it, and never while busy)
+Documentation=https://diginode.tools
+
+[Service]
+Type=oneshot
+ExecStart=$DGNT_REBOOT_HELPER --auto"; then
+            units_changed="yes"
+        fi
+        if write_file_if_changed /etc/systemd/system/diginode-reboot.timer 644 "[Unit]
+Description=DigiNode automatic restart check (at $reboot_time, then every 30 minutes for 2 hours)
+
+[Timer]
+${on_calendar}Persistent=false
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target"; then
+            units_changed="yes"
+        fi
+        if [ "$units_changed" = "yes" ]; then
+            systemctl daemon-reload
+        fi
+        if ! systemctl is-enabled --quiet diginode-reboot.timer 2>/dev/null || [ "$units_changed" = "yes" ]; then
+            str="Turning on automatic restarts at $reboot_time..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl enable --now diginode-reboot.timer &>/dev/null
+            systemctl restart diginode-reboot.timer &>/dev/null
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    else
+
+        if [ -f /etc/systemd/system/diginode-reboot.timer ]; then
+            str="Turning off automatic restarts..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl disable --now diginode-reboot.timer &>/dev/null
+            rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+            systemctl daemon-reload
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+
+    fi
+
+    printf "%b Automatic system updates: %s   Automatic restarts: %s\\n" "${INFO}" "$SYSTEM_AUTO_UPDATES" "$SYSTEM_AUTO_REBOOT"
+    printf "\\n"
+}
+
+# Remove DigiNode's automatic restarts and reboot helper when DigiNode Tools is uninstalled. The system's own
+# automatic security updates are left as they are (they keep the system secure, whether or not DigiNode is installed).
+uninstall_system_updates() {
+
+    local str
+
+    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
+
+        str="Removing DigiNode automatic restarts and reboot helper..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl disable --now diginode-reboot.timer &>/dev/null
+        rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+        systemctl daemon-reload &>/dev/null
+        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
+        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF"
+        rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "%b The system's own automatic security updates (if on) have been left as they are.\\n" "${INFO}"
+    fi
+}
 
 
 # Perform uninstall if requested
@@ -18737,8 +19300,12 @@ uninstall_do_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete .bashrc path to DigiByte binary folder
+            # Remove the DigiByte Core commands (digibyte-cli etc.) from /usr/local/bin
+            remove_command_links "$DGB_INSTALL_LOCATION/bin/"
+
+            # Delete .bashrc path to DigiByte binary folder (used by older versions of DigiNode Tools)
             if grep -q "$USER_HOME/digibyte/bin" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting path to DigiByte binary folder in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing path for DigiByte binaries
@@ -18900,10 +19467,14 @@ uninstall_do_now() {
     printf "\\n"
     donation_qrcode
     printf "\\n"
-    printf "%b %bIt is recommended that you restart your system having performed an uninstall.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
-    printf "\\n"
-    printf "%b To restart now enter: sudo reboot\\n" "${INDENT}"
-    printf "\\n"
+    # Older versions of DigiNode Tools used aliases (and a DigiByte Core path) in .bashrc. If they were removed, this
+    # terminal session still remembers them until you log out. (A restart isn't needed. The command links in
+    # /usr/local/bin used now are removed straight away.)
+    if [ "$UNINSTALL_SHELL_CHANGED" = "YES" ]; then
+        printf "%b %bLog out and back in (or open a new terminal) to finish removing the DigiNode commands.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+        printf "%b Until then, this terminal still remembers the old 'diginode' commands, which no longer work.\\n" "${INDENT}"
+        printf "\\n"
+    fi
     exit
 
 }
@@ -18950,8 +19521,12 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete 'diginode-setup' alias
+            # Remove the 'diginode' and 'diginode-setup' commands from /usr/local/bin (this takes effect straight away)
+            remove_command_links "$DGNT_LOCATION/"
+
+            # Delete 'diginode-setup' alias (used by older versions of DigiNode Tools)
             if grep -q "alias diginode-setup=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode-setup' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
@@ -18960,8 +19535,9 @@ uninstall_diginode_tools_now() {
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
 
-            # Delete 'diginode' alias
+            # Delete 'diginode' alias (used by older versions of DigiNode Tools)
             if grep -q "alias diginode=" "$USER_HOME/.bashrc"; then
+                UNINSTALL_SHELL_CHANGED="YES"
                 str="Deleting 'diginode' alias in .bashrc file..."
                 printf "%b %s" "${INFO}" "${str}"
                 # Delete existing alias for 'diginode'
@@ -18969,6 +19545,9 @@ uninstall_diginode_tools_now() {
                 sed -i '/alias diginode=/d' $USER_HOME/.bashrc
                 printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             fi
+
+            # Remove DigiNode's automatic restarts and reboot helper (they are part of DigiNode Tools)
+            uninstall_system_updates
 
 
             # Ask to delete diginode.settings if it exists
@@ -19086,10 +19665,10 @@ fi
 
 }
 
-# Download the DigiFacts file from Github (at most once every 24 hours)
+# Download the DigiFacts from digifacts.diginode.tools (at most once an hour). If it fails, the saved DigiFacts are kept.
 download_digifacts() {
 
-    local digifacts_url="https://digifacts.diginode.tools/?lang=en&format=social"
+    local digifacts_url="https://digifacts.diginode.tools/en/social.json"
     local digifacts_file="$DGNT_LOCATION/digifacts.json"
     local digifacts_backup_file="$DGNT_LOCATION/digifacts.json.backup"
     local digifacts_temp_file="$DGNT_LOCATION/digifacts.json.temp"
@@ -19112,6 +19691,21 @@ download_digifacts() {
     local current_time=$(date +%s)  # in seconds
 
     printf "%b Checking for digifacts.json ...\\n" "${INFO}"
+
+    # The download didn't work: keep the saved DigiFacts, and try again in an hour (not every time DigiNode
+    # Dashboard starts). It's not an error the user needs to do anything about.
+    keep_saved_digifacts() {
+        if [ -f "$digifacts_file" ]; then
+            rm -f "$digifacts_file"
+        fi
+        if [ -f "$digifacts_backup_file" ]; then
+            mv "$digifacts_backup_file" "$digifacts_file"
+        fi
+        printf "%b%b %s No (%s) - keeping the saved DigiFacts.\\n" "${OVER}" "${INFO}" "${str}" "$1"
+        printf "%b The DigiFacts could not be updated just now. They will be updated again later.\\n" "${INDENT}"
+        SAVED_TIME_DIGIFACTS=$current_time
+        sed -i -e "/^SAVED_TIME_DIGIFACTS=/s|.*|SAVED_TIME_DIGIFACTS=\"$SAVED_TIME_DIGIFACTS\"|" $DGNT_SETTINGS_FILE
+    }
 
     # Function to download and process the digifacts.json
     download_and_process() {
@@ -19150,24 +19744,12 @@ download_digifacts() {
         str="Is downloaded digifacts.json okay? ..."
         printf "%b %s" "${INFO}" "${str}"
         if test ! -s "$digifacts_file"; then
-            if [ -f "$digifacts_file" ]; then
-                rm "$digifacts_file"
-            fi
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! File empty! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts web server may be down!%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "nothing was downloaded"
             return 1
 
-        # New: Check for HTML response from Cloudflare
+        # A web page instead of the DigiFacts (e.g. an error page)
         elif grep -q -i "<!DOCTYPE html>" "$digifacts_file" || grep -q -i "<html" "$digifacts_file"; then
-            rm "$digifacts_file"
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! Received HTML instead of JSON. Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts service may be unreachable or returning a Cloudflare error.%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "a web page was downloaded instead"
             return 1
 
         else
@@ -19184,12 +19766,7 @@ download_digifacts() {
         str="Is downloaded digifacts.json valid json? ..."
         printf "%b %s" "${INFO}" "${str}"
         if sudo -u $USER_ACCOUNT ! jq empty "$digifacts_file" &> /dev/null; then
-            rm "$digifacts_file"
-            if [ -f "$digifacts_backup_file" ]; then
-                mv "$digifacts_backup_file" "$digifacts_file"
-            fi
-            printf "%b%b %s No! Bad JSON! Backup restored!\\n" "${OVER}" "${CROSS}" "${str}"
-            printf "%b %bERROR: DigiFacts.json was bad json. Is service down?%b\\n" "${INFO}" "${COL_LIGHT_RED}" "${COL_NC}"
+            keep_saved_digifacts "the download wasn't valid"
             return 1
         else
             # If the JSON is valid, delete the backup file (if it exists)
@@ -19212,10 +19789,12 @@ download_digifacts() {
             printf "%b%b %s Yes!\\n" "${OVER}" "${TICK}" "${str}"
         fi
 
-        # Remove DigiFact 78 since this promotes DigiNode Tools itself
-        str="Remove digifact78, as this describes DigiNode Tools ..."
+        # Remove DigiFacts about DigiNode Tools itself (those tagged 'diginode-tools'), and tag each DigiFact's short
+        # link with ?dnt, so a click on it is counted as coming from DigiNode Tools (e.g. go.diginode.tools/7ttm?dnt)
+        str="Remove DigiFacts about DigiNode Tools itself ..."
         printf "%b %s" "${INFO}" "${str}" 
-        sudo -u $USER_ACCOUNT jq 'del(.digifact78)' "$digifacts_file" > "$digifacts_temp_file"
+        sudo -u $USER_ACCOUNT jq 'with_entries(select(((.value.tags // []) | index("diginode-tools")) | not))
+            | map_values(if (.content | type) == "string" then .content |= gsub("(?<link>https://go\\.diginode\\.tools/[a-z0-9]{4})(?![a-zA-Z0-9?/])"; "\(.link)?dnt") else . end)' "$digifacts_file" > "$digifacts_temp_file"
         sudo -u $USER_ACCOUNT mv "$digifacts_temp_file" "$digifacts_file"
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
 
@@ -19287,7 +19866,7 @@ digifact_randomize() {
         digifact_title=$(jq -r ".\"$random_key\".title" "$digifacts_file")
         digifact_content=$(jq -r ".\"$random_key\".content" "$digifacts_file")
 
-        # Replace \n in string with <br> temporaily so it does not get interpreted prematurely
+        # Replace \n in string with <br> temporarily so it does not get interpreted prematurely
         digifact_content="${digifact_content//<br>/\\n}"
 
         # Declare the variable inside the function, right at the end
@@ -19514,7 +20093,7 @@ fi
 if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 13 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Install Argon One Daemon" --title "Install Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to install the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4. It will also work with the Argon Artik Fan Hat. If are not using these devices, do not install the software.\n\nMore info: https://go.diginode.tools/argon" 13 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to INSTALL the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -19527,7 +20106,7 @@ if [ "$ARGONFAN_INSTALL_TYPE" = "new" ]; then
 elif [ "$ARGONFAN_INSTALL_TYPE" = "upgrade" ]; then
 
     # Explain the need for a static address
-    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://github.com/kowalski7cc/argon-one-daemon" 12 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Upgrade Argon One Daemon" --title "Upgrade Argon One Daemon" --yes-label "Continue" --no-label "Exit"  --yesno "\n\Z4Would you like to upgrade the Argon One Daemon?\Z0\n\nThis software is used to manage the fan on the Argon ONE M.2 Case for the Raspberry Pi 4.\n\nMore info: https://go.diginode.tools/argon" 12 "${c}"; then
     #Nothing to do, continue
       printf "%b You choose to UPGRADE the Argon One Daemon.\\n" "${INFO}"
       printf "\\n"
@@ -20350,10 +20929,10 @@ main() {
 
 
             # Display the information to the user
-            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nTo learn more about DigiNode Tools, and how it can be used to setup and manage a DigiByte & DigiAsset Node, visit: $DGNT_WEBSITE_URL\n\nPlease choose an option:\n\n" 23 "${c}" 2 \
+            UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "DigiNode Setup - Main Menu" --title "DigiNode Setup - Main Menu" --cancel-label "Exit" --menu "\nAn existing DigiByte Node was discovered on this system, but since DigiNode Setup was not used to set it up originally, it cannot be used to manage it.\n\nDigiByte Node Location: $UNOFFICIAL_DIGIBYTE_NODE_LOCATION\n\nYou can check for updates to DigiNode Tools itself to upgrade the DigiNode Dashboard. You can also choose to Uninstall DigiNode Tools.\n\nTo learn more about DigiNode Tools, and how it can be used to set up and manage a DigiByte Node, visit: $DGNT_WEBSITE_URL\n\nPlease choose an option:\n\n" 23 "${c}" 2 \
             "${opt1a}"  "${opt1b}" \
             "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
-            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; digifact_randomize; display_digifact_fixedwidth; printf "\\n"; exit; }
+            { printf "%b %bExit was selected.%b\\n" "${INDENT}" "${COL_LIGHT_RED}" "${COL_NC}"; printf "\\n"; printf "\\n"; exit; }
 
             # Set the variable based on if the user chooses
             case ${UpdateCmd} in
@@ -20368,8 +20947,6 @@ main() {
                     printf "%b You selected the UNINSTALL option.\\n" "${INFO}"
                     printf "\\n"
                     uninstall_diginode_tools_now
-                    digifact_randomize
-                    display_digifact_fixedwidth
                     donation_qrcode
                     printf "\\n"
                     exit
@@ -20385,9 +20962,6 @@ main() {
 
             else
                 printf "%b Exiting: You chose not to install DigiNode Tools.\\n" "${INFO}"
-                printf "\\n"
-                digifact_randomize
-                display_digifact_fixedwidth
                 printf "\\n"
                 exit
             fi
@@ -20546,6 +21120,9 @@ install_or_upgrade() {
     # Check if the DigiNode custom MOTD is already installed
     motd_check
 
+    # Check if automatic system updates and restarts are turned on
+    system_updates_check
+
     ### UPDATES MENU - ASK TO INSTALL ANY UPDATES ###
 
     # Ask to install any upgrades, if there are any
@@ -20565,6 +21142,9 @@ install_or_upgrade() {
 
     # If this is a new install, ask to install the DigiNode MOTD
     menu_ask_motd
+
+    # Ask whether to install system updates automatically (only asked once - the choice is saved in diginode.settings)
+    menu_ask_system_updates
 
 
     ### INSTALL/UPGRADE DIGIBYTE CORE ###
@@ -20620,6 +21200,15 @@ install_or_upgrade() {
     motd_do_install_uninstall
 
 
+    ### AUTOMATIC SYSTEM UPDATES ###
+
+    # Turn automatic system updates and restarts on or off, to match diginode.settings (and install the reboot helper)
+    system_updates_apply
+
+    # Make sure the DigiNode commands are installed (older versions used aliases in .bashrc instead)
+    install_command_links
+
+
     ### CHANGE THE HOSTNAME TO DIGINODE ###
 
     # Check if the hostname is set to 'diginode'
@@ -20629,7 +21218,7 @@ install_or_upgrade() {
     hostname_ask_change
 
 
-    ### CHANGE HOSTNAME LAST BECAUSE MACHINE IMMEDIATELY NEEDS TO BE REBOOTED ###
+    ### CHANGE HOSTNAME LAST (THE SSH CONNECTION MAY NEED TO RECONNECT USING THE NEW NAME) ###
 
     # Change the hostname
     hostname_do_change
@@ -20643,21 +21232,14 @@ install_or_upgrade() {
 
     closing_banner_message
 
-    if [[ "${NewInstall}" == false ]]; then
-
-        # Choose a random DigiFact
-        digifact_randomize
-
-        # Display a random DigiFact
-        display_digifact_fixedwidth
-
-    fi
-
     # Display donation QR Code
     donation_qrcode
 
     # Show final messages - Display reboot message (and how to run DigiNode Dashboard)
     final_messages
+
+    # Let the user know if there are system updates available, or a restart is needed to finish installing them
+    display_system_updates_reminder
 
     # Share backup reminder
     backup_reminder

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v26.10.04
+#           Name:  DigiNode Dashboard v26.10.05
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=26.10.04
-# Last Updated: 2026-10-11
+DGNT_VER_LOCAL=26.10.05
+# Last Updated: 2026-10-20
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -2236,12 +2236,6 @@ quit_message() {
 
       printf "\\n"
 
-      # Choose a random DigiFact
-#      digifact_randomize
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
-
       # One update or several?
       local update_count=0 them="them"
       for u in "$ask_dgb_update" "$DGNT_UPDATE_AVAILABLE" "$IPFS_UPDATE_AVAILABLE" "$DGA_UPDATE_AVAILABLE"; do
@@ -2314,14 +2308,9 @@ quit_message() {
       fi
       printf "\\n"
 
-      if [ "$DONATION_PLEA" = "YES" ] && [ "$updates_installed" = "no" ]; then
-
-        #Display donation QR code
+      # Display the sponsor link and donation QR code (every time you quit)
+      if [ "$updates_installed" = "no" ]; then
         donation_qrcode
-
-        # Don't show the donation plea again for at least 15 minutes
-        DONATION_PLEA="WAIT15"
-        sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
       fi
 
       #Share backup reminder
@@ -2331,12 +2320,9 @@ quit_message() {
       exit_locate_digibyte_reminder
 
 
-  # if there are no updates available display the donation QR code (not more than once every 15 minutes)
-  elif [ "$DONATION_PLEA" = "YES" ]; then
+  # No updates to ask about: display the sponsor link and donation QR code (every time you quit)
+  else
       printf "\\n"
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
 
       #Display donation QR code
       donation_qrcode
@@ -2348,25 +2334,12 @@ quit_message() {
       exit_locate_digibyte_reminder
 
       printf "\\n"
-      # Don't show the donation plea again for at least 15 minutes
-      DONATION_PLEA="WAIT15"
-      sed -i -e "/^DONATION_PLEA=/s|.*|DONATION_PLEA=$DONATION_PLEA|" $DGNT_SETTINGS_FILE
-  else
-
-      # Choose a random DigiFact
- #     digifact_randomize
-
-      # Display a random DigiFact
-      display_digifact_fixedwidth
-
-      printf "\\n"
-
-      #Share backup reminder
-      backup_reminder
-
-      # Display reminder that you can manually specify the location of the DigiByte install folder
-      exit_locate_digibyte_reminder
   fi
+
+# Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
+if [ -x /usr/local/sbin/diginode-reboot ]; then
+    /usr/local/sbin/diginode-reboot --status
+fi
 
 if [ "$auto_quit" = true ]; then
     echo ""
@@ -6176,7 +6149,7 @@ printf "  ╔══════════════════════�
 printf "  ║                     ABOUT PORT FORWARDING                                  ║\\n"
 printf "  ╠════════════════════════════════════════════════════════════════════════════╣\\n"
 printf "  ║ For your DigiNode to work correctly you need to open the following ports   ║\\n"
-printf "  ║ on your router so the that other nodes on the Internet can find it:        ║\\n"
+printf "  ║ on your router so that other nodes on the Internet can find it:            ║\\n"
 printf "  ╠═══════════════════════════════╦════════════════════════════════════════════╣\\n"
 printf "  ║ SOFTWARE                      ║ PORT                                       ║\\n"
 if [ "$DGB_STATUS" = "running" ] || [ "$DGB_STATUS" = "startingup" ] || [ "$DGB_STATUS" = "stopped" ]; then
