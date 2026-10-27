@@ -2524,6 +2524,29 @@ fi
 }
 
 
+# Get a DigiByte node's sync progress as a value from 0 to 1, with 8 decimal places (empty if the node doesn't answer).
+#
+# Usage: get_dgb_sync_value [-testnet]
+#
+# Mainnet, regtest and signet use verificationprogress. On testnet26 that is always ~1.0, even while syncing, because
+# DigiByte Core has no testnet transaction data to estimate from (https://github.com/DigiByte-Core/digibyte/issues/461),
+# so testnet uses blocks/headers instead. On mainnet and testnet, the value stays below 1 until the node itself says
+# it has finished its initial block download. (printf turns very small values like 1.8e-07, seen at the start of a
+# sync, into a plain decimal.)
+get_dgb_sync_value() {
+    dgb_cli "$@" getblockchaininfo 2>/dev/null | jq -r '
+        . as $i
+        | (if $i.chain == "test" then
+               (if $i.initialblockdownload == false then 1
+                elif ($i.headers // 0) > 0 then $i.blocks / $i.headers
+                else 0 end)
+           else $i.verificationprogress end) as $v
+        | if $v == null then empty
+          elif ($i.chain == "main" or $i.chain == "test") and $i.initialblockdownload == true and $v > 0.9999 then 0.9999
+          else $v end' 2>/dev/null | awk '{printf "%.8f", $1}'
+}
+
+
 # Check for a DigiByte Core update. Only versions that have been verified for this DigiNode (i.e. their SHA256
 # hash has been published for this update group and CPU architecture) are offered, so the user is never told
 # about an update they can't install yet.
@@ -3491,8 +3514,7 @@ if [ "$DGB_STATUS" = "running" ]; then
   if [ "$DGB_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB_BLOCKSYNC_PROGRESS" = "" ]; then
 
     # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-    # (printf turns very small values like 1.8e-07, seen at the start of a sync, into a plain decimal)
-    DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+    DGB_BLOCKSYNC_VALUE_QUERY=$(get_dgb_sync_value)
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -3655,8 +3677,8 @@ if [ "$DGB2_STATUS" = "running" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
   # This will update the blockchain sync progress every second until it is fully synced
   if [ "$DGB2_BLOCKSYNC_PROGRESS" = "notsynced" ] || [ "$DGB2_BLOCKSYNC_PROGRESS" = "" ]; then
 
-    # Lookup the testnet sync progress value from debug.log. 
-    DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+    # Get the testnet sync progress
+    DGB2_BLOCKSYNC_VALUE_QUERY=$(get_dgb_sync_value -testnet)
  
     # Is the returned value numerical?
     re='^[0-9]+([.][0-9]+)?$'
@@ -4162,7 +4184,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Get the DigiByte Core sync progress (mainnet, testnet, regtest, signet)
-            DGB_BLOCKSYNC_VALUE_QUERY=$(dgb_cli getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+            DGB_BLOCKSYNC_VALUE_QUERY=$(get_dgb_sync_value)
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
@@ -4219,7 +4241,7 @@ if [ $TIME_DIF_1MIN -ge 60 ]; then
         if [ "$DGB2_BLOCKSYNC_PROGRESS" = "synced" ]; then
 
             # Lookup the sync progress value from debug.log for testnet
-            DGB2_BLOCKSYNC_VALUE_QUERY=$(dgb_cli -testnet getblockchaininfo 2>/dev/null | jq '.verificationprogress // empty' | awk '{printf "%.8f", $1}')
+            DGB2_BLOCKSYNC_VALUE_QUERY=$(get_dgb_sync_value -testnet)
          
             # Is the returned value numerical?
             re='^[0-9]+([.][0-9]+)?$'
