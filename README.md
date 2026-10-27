@@ -8,8 +8,8 @@ DigiNode Tools makes it easy to set up, monitor and manage a [DigiByte](https://
 - **DigiNode Dashboard** shows your node's status at a glance: sync progress, connections, disk space and more.
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-setup-main-menu.png" alt="DigiNode Setup main menu" width="420">
-<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-dashboard.png" alt="DigiNode Dashboard" width="420">
+<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-setup-main-menu.png" alt="DigiNode Setup main menu" width="48%">
+<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-dashboard.png" alt="DigiNode Dashboard" width="48%">
 </p>
 
 **Learn more at [diginode.tools](https://diginode.tools/)**, including [everything DigiNode Tools can do](https://diginode.tools/features/).
