@@ -2,21 +2,17 @@
 
 # DigiNode Tools
 
-### What's a DigiNode?
-A DigiNode is a device that runs a [DigiByte](https://digibyte.org/) Full Node and [DigiAsset Node](https://ipfs.digiassetx.com/) helping to further decentralize the DigiByte ecosystem. 
+DigiNode Tools makes it easy to set up, monitor and manage a [DigiByte](https://digibyte.org/) full node on a Raspberry Pi or an Ubuntu/Debian system. It's free, and its code is public so anyone can see exactly what it does.
 
-### What are DigiNode Tools?
-DigiNode Tools are a suite of Linux bash scripts that make it really easy to setup, monitor and manage a DigiNode on a Raspberry Pi 4 or Ubuntu/Debian system.
-- **DigiNode Setup** - Helps you to install, upgrade, backup and restore your DigiByte and/or DigAsset Node.
-- **DigiNode Dashboard** - Provides a live dashboard to quickly check the status of your DigiNode.
+- **DigiNode Setup** installs your DigiByte node and keeps it up to date. Its menus walk you through everything, so almost no Linux experience is needed.
+- **DigiNode Dashboard** shows your node's status at a glance: sync progress, connections, disk space and more.
 
-Learn more: [https://diginode.tools](https://diginode.tools)
+<p align="center">
+<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-setup-main-menu.png" alt="DigiNode Setup main menu" width="420">
+<img src="https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/website/screenshots/diginode-dashboard.png" alt="DigiNode Dashboard" width="420">
+</p>
 
-### What do I need to run a DigiNode?
-
-- A **Raspberry Pi 4 8Gb** is the recommended device for running a DigiNode. It offers the most user-friendly setup experience. See [here](https://diginode.tools/build-your-own-raspberry-pi-diginode/) for the parts you need.
-- DigiNode Tools also runs on most Ubuntu or Debian based systems. ARM64 and x86_64 hardware are both supported. A 64-bit OS is required. For more info, see the [System Requirements](https://diginode.tools/system-requirements/) on the official website.
-- DigiNode is designed to operate headless - i.e. no display, keyboard or mouse is required. Everything can be managed remotely from your main computer. (Note: These may be needed during setup on some Linux systems, but are not needed at all for the Raspberry Pi 4.)
+**Learn more at [diginode.tools](https://diginode.tools/)**, including [everything DigiNode Tools can do](https://diginode.tools/features/).
 
 <!-- sponsors:featured -->
 ## Featured Sponsors
@@ -30,34 +26,26 @@ Learn more: [https://diginode.tools](https://diginode.tools)
 <p align="center"><a href="https://github.com/sponsors/DigiNode-Tools"><img src="https://img.shields.io/badge/Sponsor%20on-GitHub-0066CC?style=for-the-badge&labelColor=002352&logo=githubsponsors&logoColor=EA4AAA" alt="Sponsor DigiNode Tools on GitHub"></a> <a href="https://ko-fi.com/diginode"><img src="https://img.shields.io/badge/Support%20on-Ko--fi-0066CC?style=for-the-badge&labelColor=002352&logo=kofi&logoColor=FF5E5B" alt="Support DigiNode Tools on Ko-fi"></a></p>
 <!-- /sponsors:featured -->
 
-## About DigiNode Tools
+## Get started
 
-![DigiNode Setup](images/diginode_install_menu.png)
-DigiNode Setup helps you to setup and manage your DigiNode:
+- **Raspberry Pi:** follow the [step-by-step setup guide](https://diginode.tools/raspberry-pi-setup/). See [Build a DigiNode](https://diginode.tools/build-your-own-raspberry-pi-diginode/) for the parts you need.
+- **Ubuntu or Debian:** check the [System Requirements](https://diginode.tools/system-requirements/), then run:
 
-- Intuitively walks you though the process of setting up a DigiByte Node and/or DigiAsset Node. 
-- Designed with less-technical users in mind - almost no linux command line experience required. Setup is entirely menu-driven.
-- Checks your system hardware and OS are compatible, and that there is sufficient disk space, memory and swap.
-- Install a mainnet or testnet DigiByte Node, or a Dual Node - run both simultaneously on the same system!
-- Automatic configuration - sets up optimal digibyte.conf, systemd services, RPC credentials, zero conf networking, UPnP port forwarding, custom MOTD etc.
-- Supports installing DigiByte Core pre-releases (Optional)
+  ```
+  curl -sSL setup.diginode.tools | bash
+  ```
 
-Manage you DigiNode via simple menus. Easily install software updates. Backup and restore. Uninstall and repair and more:
+## More information
 
-![DigiNode Main Menu](images/diginode_main_menu.png)
+- [Features](https://diginode.tools/features/) - everything DigiNode Tools can do
+- [Advanced Features](https://diginode.tools/advanced-features/) - launch flags and settings for power users
+- [FAQ](https://diginode.tools/faq/)
+- [Release notes](https://diginode.tools/release-notes/)
+- [DigiByte Port Tester](https://diginode.tools/digibyte-port-tester/) - check other nodes can reach yours
 
-Includes DigiNode Dashboard, a powerful tools for monitoring the status of your DigiByte and DigiAssets nodes:
+## Help
 
-![DigiNode Dashboard](images/diginode_dashboard.png)
-
-# ➡️ GET STARTED
-
-- Go [here](https://diginode.tools/raspberry-pi-setup/) for detailed step-by-step instructions on how to setup a DigiNode on a Raspberry Pi 4.
-- Go [here](https://diginode.tools/#getstarted) for how to setup a DigiNode on an Ubuntu or Debian system.
-
-## Support
-
-If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also contact [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky.
+If you need help, please join the [DigiNode Tools Telegram group](https://t.me/DigiNodeTools). You can also contact [@diginode.tools](https://bsky.app/profile/diginode.tools) on Bluesky, or see the [Support](https://diginode.tools/support/) page.
 
 <!-- sponsors:support -->
 ## Sponsor DigiNode Tools
@@ -84,17 +72,12 @@ Thank you for your support! You can find me on Bluesky [@olly.st](https://bsky.a
 Olly
 <!-- /sponsors:support -->
 
-## Release Notes
-
-Go [here](https://diginode.tools/release-notes/) to view the release notes.
-
 ## Disclaimer
 
-These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet. 
+These tools are provided as is. Use at your own risk. Always keep a backup of your DigiByte wallet.
 
 ## Licence
 
 DigiNode Tools is free to use for any purpose, and its code is public so anyone can see exactly what it does. It's licensed under the [PolyForm Perimeter 1.0.0](LICENCE.md) licence, which doesn't allow the code to be used to make a competing product, including a version for another blockchain. See the [Licence FAQ](docs/licence_faq.md) for a plain-English summary.
 
 The DigiNode Tools name and logo can be used to link to or write about DigiNode Tools - see [TRADEMARKS.md](TRADEMARKS.md).
-
