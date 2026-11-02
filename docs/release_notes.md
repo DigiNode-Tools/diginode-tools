@@ -1,6 +1,8 @@
 ## DigiNode Tools Release Notes
 
 ### DigiNode Tools - Unreleased
+- New: **Wallets menu** - The DigiNode Setup main menu has a new Wallets option, which replaces Backup and Restore. From it you can view your wallets and their balances, create a new wallet (with a passphrase to encrypt it, which is recommended), back up your wallets to a USB stick, and restore a wallet from a USB stick backup. On a Dual Node, you choose whether it is for your mainnet or testnet node. Restoring never replaces an existing wallet - the backup is restored as a new wallet, with a name you choose - and it can also restore a backup made with an earlier version of DigiNode Tools.
+- Fix: **USB wallet backup** - Backing up your wallet to a USB stick works again with current versions of DigiByte Core, which keep wallets in a different place and no longer create a wallet automatically. Every wallet on your node can now be backed up, not just the default one, and each backup is made by DigiByte Core itself and checked once it is on the USB stick. Your previous backup of each wallet is kept on the stick too. USB sticks formatted by an earlier version of DigiNode Tools now work again.
 - Fix: **Testnet sync progress** - On a Dual Node or a testnet node, DigiNode Dashboard showed the testnet blockchain as 100% synced while it was still syncing. This is caused by DigiByte Core, which always reports testnet as fully synced (reported to the DigiByte Core developers). DigiNode Dashboard now works out the testnet sync progress itself, and only shows a node as fully synced once DigiByte Core has finished its initial sync.
 
 ### DigiNode Tools v26.10.05 - 2026-10-20
