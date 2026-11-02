@@ -8686,7 +8686,12 @@ wallets_view() {
         text+="\n"
     done
 
-    dialog --no-shadow --keep-tite --colors --backtitle "View Wallets" --title "View Wallets" --msgbox "\n$text" "${r}" "${c}"
+    # Fit the window to the list (up to the full screen size)
+    local height
+    height=$(( $(printf '%b' "$text" | wc -l) + 6 ))
+    [ $height -gt $r ] && height=$r
+
+    dialog --no-shadow --keep-tite --colors --backtitle "View Wallets" --title "View Wallets" --msgbox "\n$text" "$height" "${c}"
 }
 
 # Ask for a new wallet name. Usage: wallet_ask_name "<title>" "<message>" "<suggested name>"
