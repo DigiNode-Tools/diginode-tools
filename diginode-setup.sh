@@ -9294,7 +9294,7 @@ wallet_find_files() {
 wallet_delete() {
 
     local title="Delete Wallet"
-    local wallet_choices=() i choice name display info balance balance_text="" was_loaded confirm unload_result path ibd backup_date
+    local wallet_choices=() i choice name display info balance balance_text="" funds_text="" was_loaded confirm unload_result path ibd backup_date
 
     wallet_choose_node "$title" || return
     wallet_list_all
@@ -9328,7 +9328,7 @@ wallet_delete() {
         balance=$(jq -r '((.balance // 0) + (.unconfirmed_balance // 0) + (.immature_balance // 0))' <<< "$info" 2>/dev/null)
         balance=$(printf "%.8f" "${balance:-0}" 2>/dev/null)
         if [ "$balance" != "0.00000000" ]; then
-            balance_text="\n\n\Z1\ZbWARNING: THIS WALLET HAS A BALANCE OF $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0\n\Z1If you delete it without a backup, this money will be lost forever.\Z0"
+            funds_text="\Z1\ZbWARNING: THIS WALLET CONTAINS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\nIf you delete it without a backup, you will lose this ${WALLET_NODE_UNIT[$WALLET_NODE]} forever.\Z0\n\n"
         fi
         ibd=$(wallet_cli getblockchaininfo 2>/dev/null | jq -r '.initialblockdownload' 2>/dev/null)
         if [ "$ibd" = "true" ]; then
@@ -9344,13 +9344,13 @@ wallet_delete() {
         balance_text+="\n\n\Z1This wallet has never been backed up with DigiNode Setup.\Z0"
     fi
 
-    if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --defaultno --yes-label "Continue" --no-label "Cancel" --yesno "\n\Z1You are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\Z0\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" "$(wallet_dialog_height "\n\nYou are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" 4)" "${c}"; then
+    if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --defaultno --yes-label "Continue" --no-label "Cancel" --yesno "\n$funds_text\Z1You are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\Z0\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" "$(wallet_dialog_height "\n\n$funds_text\nYou are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" 4)" "${c}"; then
         [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
         return
     fi
 
-    confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "\nTo permanently delete the wallet '$display', type:\n\n  \ZbI UNDERSTAND\ZB\n\n(in capitals), then choose OK." 13 "${c}" 3>&1 1>&2 2>&3)
+    confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "\nTo permanently delete the wallet '$display', type:\n\n  \Z1\ZbI UNDERSTAND\ZB\Z0\n\n(in capitals), then choose OK." 13 "${c}" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ] || [ "$confirm" != "I UNDERSTAND" ]; then
         [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
