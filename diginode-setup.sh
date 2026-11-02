@@ -9294,7 +9294,7 @@ wallet_find_files() {
 wallet_delete() {
 
     local title="Delete Wallet"
-    local wallet_choices=() i choice name display info balance funds_text="" backup_text warning_text was_loaded confirm unload_result path ibd backup_date
+    local wallet_choices=() i choice name display info balance="" funds_text="" backup_text warning_text confirm_text was_loaded confirm unload_result path ibd backup_date
 
     wallet_choose_node "$title" || return
     wallet_list_all
@@ -9353,7 +9353,14 @@ wallet_delete() {
         return
     fi
 
-    confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "\nTo permanently delete the wallet '$display', type:\n\n  \Z1\ZbI UNDERSTAND\ZB\Z0\n\n(in capitals), then choose OK." 13 "${c}" 3>&1 1>&2 2>&3)
+    # Remind them of the balance one last time, right where they confirm
+    confirm_text="\nTo permanently delete the wallet '$display', type:\n\n  \Z1\ZbI UNDERSTAND\ZB\Z0\n\n(in capitals), then choose OK."
+    if [ "$balance" != "" ] && [ "$balance" != "0.00000000" ]; then
+        confirm_text="\n\Z1\ZbTHIS WALLET HOLDS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0$confirm_text"
+    elif [ "$info" = "" ]; then
+        confirm_text="\n\Z1\ZbTHE BALANCE OF THIS WALLET COULD NOT BE CHECKED.\ZB\Z0$confirm_text"
+    fi
+    confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "$confirm_text" "$(wallet_dialog_height "$(sed 's/\\Z[0-9bBn]//g' <<< "$confirm_text")" 8)" "${c}" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ] || [ "$confirm" != "I UNDERSTAND" ]; then
         [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
