@@ -8641,6 +8641,15 @@ wallet_display_name() {
     fi
 }
 
+# Height for a dialog window that fits its text (wrapped to the window width), up to the full screen size.
+# Usage: wallet_dialog_height "<text>" <extra rows for the window frame and buttons>
+wallet_dialog_height() {
+    local height
+    height=$(( $(printf '%b' "$1" | fold -s -w $(( c - 4 )) | wc -l) + $2 ))
+    [ $height -gt $r ] && height=$r
+    echo $height
+}
+
 # Show the wallets on every node, with balances, in one window.
 wallets_view() {
 
@@ -8686,24 +8695,19 @@ wallets_view() {
         text+="\n"
     done
 
-    # Fit the window to the list (up to the full screen size)
-    local height
-    height=$(( $(printf '%b' "$text" | wc -l) + 6 ))
-    [ $height -gt $r ] && height=$r
-
-    dialog --no-shadow --keep-tite --colors --backtitle "View Wallets" --title "View Wallets" --msgbox "\n$text" "$height" "${c}"
+    dialog --no-shadow --keep-tite --colors --backtitle "View Wallets" --title "View Wallets" --msgbox "\n$text" "$(wallet_dialog_height "\n$text" 5)" "${c}"
 }
 
 # Ask for a new wallet name. Usage: wallet_ask_name "<title>" "<message>" "<suggested name>"
 # Sets WALLET_NEW_NAME. Returns 1 if cancelled. Names already used on the chosen node are refused.
 wallet_ask_name() {
 
-    local title="$1" message="$2" name="$3" i taken
+    local title="$1" message="$2\n\nUse letters, numbers, - and _ only (up to 40 characters)." name="$3" i taken
 
     wallet_list_all
 
     while true; do
-        name=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "$message\n\nUse letters, numbers, - and _ only (up to 40 characters)." 12 "${c}" "$name" 3>&1 1>&2 2>&3) || return 1
+        name=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "$message" "$(wallet_dialog_height "$message" 8)" "${c}" "$name" 3>&1 1>&2 2>&3) || return 1
 
         if ! [[ "$name" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$ ]]; then
             dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nPlease use letters, numbers, - and _ only, starting with a letter or number (up to 40 characters)." 9 "${c}"
@@ -8978,9 +8982,9 @@ wallet_backup_usb() {
     if [ "$failed_list" = "" ]; then
         DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$now"
         sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$now\"|" $DGNT_SETTINGS_FILE
-        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z2Backup complete.\Z0 These wallets were backed up:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." "${r}" "${c}"
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z2Backup complete.\Z0 These wallets were backed up:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." "$(wallet_dialog_height "\n\nBackup complete. These wallets were backed up:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." 4)" "${c}"
     else
-        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1Some wallets could not be backed up:\Z0\n\n$failed_list\nBacked up:\n\n${done_list:-  (none)\n}\nYou can now unplug the USB stick." "${r}" "${c}"
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1Some wallets could not be backed up:\Z0\n\n$failed_list\nBacked up:\n\n${done_list:-  (none)\n}\nYou can now unplug the USB stick." "$(wallet_dialog_height "\n\nSome wallets could not be backed up:\n\n$failed_list\nBacked up:\n\n${done_list:-  (none)\n}\nYou can now unplug the USB stick." 4)" "${c}"
     fi
 }
 
