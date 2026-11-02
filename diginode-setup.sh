@@ -8562,6 +8562,7 @@ wallet_find_nodes() {
     WALLET_NODE_CLI=()       # Command (and flags) that talks to the node
     WALLET_NODE_UNIT=()      # Currency unit for balances
     WALLET_NODE_DATADIR=()   # The node's data folder for this network (its debug.log says where its wallets are)
+    WALLET_NODE_TOOL=()      # Offline wallet tool (and flags), used to check a backup opens as a wallet
 
     diginode_tools_import_settings silent
     query_digibyte_chain
@@ -8578,6 +8579,12 @@ wallet_find_nodes() {
         SIGNET)  WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/signet") ;;
         *)       WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION") ;;
     esac
+    case "$DGB_NETWORK_CURRENT" in
+        TESTNET) WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -testnet") ;;
+        REGTEST) WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -regtest") ;;
+        SIGNET)  WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -signet") ;;
+        *)       WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet") ;;
+    esac
 
     if [ "$DGB_DUAL_NODE" = "YES" ]; then
         WALLET_NODE_NAME+=("DigiByte TESTNET")
@@ -8587,6 +8594,7 @@ wallet_find_nodes() {
         WALLET_NODE_CLI+=("dgb_cli -testnet")
         WALLET_NODE_UNIT+=("DGB")
         WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/$DGB_TESTNET_DIR")
+        WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -testnet")
     fi
 
     WALLET_NODE=0
@@ -8950,13 +8958,34 @@ wallet_backup_filename() {
     fi
 }
 
+# Check a wallet backup really is a working wallet: copy it back from the USB stick into a temporary wallet folder and
+# open it with the chain's offline wallet tool (digibyte-wallet), without the node. The backup itself is not changed.
+# Usage: wallet_verify_backup "<backup file>" "<temporary folder owned by the DigiNode user>"
+# Returns 0 if it opened as a wallet, 1 if not, 2 if there is no wallet tool to check it with.
+wallet_verify_backup() {
+
+    local backup="$1" work="$2/verify" tool="${WALLET_NODE_TOOL[$WALLET_NODE]}" out rc
+
+    [ -x "${tool%% *}" ] || return 2
+
+    sudo -u "$USER_ACCOUNT" mkdir -p "$work/wallet" "$work/data"
+    cp "$backup" "$work/wallet/wallet.dat"
+    chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$work/wallet/wallet.dat"
+
+    out=$(sudo -u "$USER_ACCOUNT" $tool -datadir="$work/data" -wallet="$work/wallet" info 2>&1)
+    rc=$?
+    sudo -u "$USER_ACCOUNT" rm -rf -- "$work"
+
+    [ $rc -eq 0 ] && grep -q '^Wallet info' <<< "$out"
+}
+
 # Back up wallets from the chosen node to a USB stick.
 # Backups go in diginode_backup/<chain>/<network>/<wallet>.dat; the previous backup of each wallet is kept as .old
 wallet_backup_usb() {
 
     local title="Backup Wallets"
     local checklist=() selected=() temp_loaded=() unencrypted=() done_list="" failed_list=""
-    local i choice name file info dest tmp_dir tmp_file now
+    local i choice name file info dest tmp_dir tmp_file now verified problem
 
     wallet_choose_node "$title" || return
     wallet_list_all
@@ -9027,17 +9056,32 @@ wallet_backup_usb() {
 
         [ -f "$dest/$file" ] && mv -f "$dest/$file" "$dest/$file.old"
 
+        verified=""
         if cp "$tmp_file" "$dest/$file" && [ "$(sha256sum < "$tmp_file")" = "$(sha256sum < "$dest/$file")" ]; then
-            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            wallet_verify_backup "$dest/$file" "$tmp_dir"
+            verified=$?
+        fi
+
+        if [ "$verified" = "0" ] || [ "$verified" = "2" ]; then
+            if [ "$verified" = "0" ]; then
+                printf "%b%b %s Done! (checked: the backup opens as a wallet)\\n" "${OVER}" "${TICK}" "${str}"
+            else
+                printf "%b%b %s Done! (not checked: no wallet tool found)\\n" "${OVER}" "${TICK}" "${str}"
+            fi
             done_list+="  - $(wallet_display_name "$name")\n"
             wallet_backup_record_set "$name" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
             echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backed up to $file" >> /media/usbbackup/diginode_backup/diginode_backup.log
         else
-            printf "%b%b %s FAILED! (the copy on the USB stick did not match)\\n" "${OVER}" "${CROSS}" "${str}"
+            if [ "$verified" = "1" ]; then
+                problem="the backup on the USB stick could not be opened as a wallet"
+            else
+                problem="the copy on the USB stick did not match"
+            fi
+            printf "%b%b %s FAILED! (%s)\\n" "${OVER}" "${CROSS}" "${str}" "$problem"
             failed_list+="  - $(wallet_display_name "$name")\n"
             rm -f "$dest/$file"
             [ -f "$dest/$file.old" ] && mv -f "$dest/$file.old" "$dest/$file"
-            echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backup FAILED (the copy on the USB stick did not match)" >> /media/usbbackup/diginode_backup/diginode_backup.log
+            echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backup FAILED ($problem)" >> /media/usbbackup/diginode_backup/diginode_backup.log
         fi
         rm -f "$tmp_file"
     done
@@ -9049,7 +9093,7 @@ wallet_backup_usb() {
     if [ "$failed_list" = "" ]; then
         DGB_WALLET_BACKUP_DATE_ON_DIGINODE="$now"
         sed -i -e "/^DGB_WALLET_BACKUP_DATE_ON_DIGINODE=/s|.*|DGB_WALLET_BACKUP_DATE_ON_DIGINODE=\"$now\"|" $DGNT_SETTINGS_FILE
-        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z2Backup complete.\Z0 These wallets were backed up:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." "$(wallet_dialog_height "\n\nBackup complete. These wallets were backed up:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." 4)" "${c}"
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z2Backup complete.\Z0 These wallets were backed up and checked:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." "$(wallet_dialog_height "\n\nBackup complete. These wallets were backed up and checked:\n\n$done_list\nYou can now unplug the USB stick. Keep it somewhere safe and secure." 4)" "${c}"
     else
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1Some wallets could not be backed up:\Z0\n\n$failed_list\nBacked up:\n\n${done_list:-  (none)\n}\nYou can now unplug the USB stick." "$(wallet_dialog_height "\n\nSome wallets could not be backed up:\n\n$failed_list\nBacked up:\n\n${done_list:-  (none)\n}\nYou can now unplug the USB stick." 4)" "${c}"
     fi
