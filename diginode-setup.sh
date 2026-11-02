@@ -8650,6 +8650,51 @@ wallet_list_all() {
     done
 }
 
+# Per-wallet backup record: when each wallet was last backed up to a USB stick by DigiNode Setup, so Delete can warn
+# about a wallet that has never been backed up. Kept in wallet-backups.json next to diginode.settings, keyed by
+# "<chain>/<network>/<wallet name>" (so it works for other chains too), e.g. {"digibyte/mainnet/savings": "2026-11-02T22:30:00Z"}
+WALLET_BACKUPS_FILE=$DGNT_SETTINGS_LOCATION/wallet-backups.json
+
+wallet_backup_key() {
+    echo "${WALLET_NODE_CHAIN[$WALLET_NODE]}/${WALLET_NODE_NETWORK[$WALLET_NODE]}/$1"
+}
+
+# Usage: wallet_backup_record_get "<wallet name>"   Prints the date of the last backup (UTC, ISO 8601), or nothing.
+wallet_backup_record_get() {
+    [ -f "$WALLET_BACKUPS_FILE" ] || return
+    jq -r --arg k "$(wallet_backup_key "$1")" '.[$k] // empty' "$WALLET_BACKUPS_FILE" 2>/dev/null
+}
+
+# Usage: wallet_backup_record_set "<wallet name>" "<date>"  (an empty date removes the record)
+wallet_backup_record_set() {
+    local key tmp
+    key=$(wallet_backup_key "$1")
+    tmp=$(mktemp)
+    if [ -f "$WALLET_BACKUPS_FILE" ] && jq -e 'type == "object"' "$WALLET_BACKUPS_FILE" >/dev/null 2>&1; then
+        cp "$WALLET_BACKUPS_FILE" "$tmp"
+    else
+        echo '{}' > "$tmp"
+    fi
+    if [ "$2" = "" ]; then
+        jq --arg k "$key" 'del(.[$k])' "$tmp" > "$tmp.new"
+    else
+        jq --arg k "$key" --arg d "$2" '.[$k] = $d' "$tmp" > "$tmp.new"
+    fi
+    if [ -s "$tmp.new" ]; then
+        mv "$tmp.new" "$WALLET_BACKUPS_FILE"
+        chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$WALLET_BACKUPS_FILE" 2>/dev/null
+        chmod 600 "$WALLET_BACKUPS_FILE"
+    fi
+    rm -f "$tmp" "$tmp.new"
+}
+
+# Usage: wallet_backup_record_text "<wallet name>"   Prints e.g. "2 Nov 2026 22:30" (local time), or nothing.
+wallet_backup_record_text() {
+    local d
+    d=$(wallet_backup_record_get "$1")
+    [ "$d" != "" ] && date -d "$d" '+%-d %b %Y %H:%M' 2>/dev/null
+}
+
 # The name to show for a wallet (the default wallet has no name)
 wallet_display_name() {
     if [ "$1" = "" ]; then
@@ -8671,7 +8716,7 @@ wallet_dialog_height() {
 # Show the wallets on every node, with balances, in one window.
 wallets_view() {
 
-    local text="" i j name info balance encrypted
+    local text="" i j name info balance encrypted backup_date
 
     wallet_find_nodes
 
@@ -8709,6 +8754,8 @@ wallets_view() {
             else
                 text+="  - $(wallet_display_name "$name"):  not loaded\n"
             fi
+            backup_date=$(wallet_backup_record_text "$name")
+            text+="      Last backup: ${backup_date:-never}\n"
         done
         text+="\n"
     done
@@ -8794,6 +8841,7 @@ wallet_create() {
 
     if jq -e '.name' <<< "$create_result" >/dev/null 2>&1; then
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        wallet_backup_record_set "$WALLET_NEW_NAME" ""
         if jq -e '.warnings | length > 0' <<< "$create_result" >/dev/null 2>&1; then
             printf "%b DigiByte Core says: %s\\n\\n" "${INFO}" "$(jq -r '.warnings | join(" ")' <<< "$create_result")"
         fi
@@ -8982,6 +9030,7 @@ wallet_backup_usb() {
         if cp "$tmp_file" "$dest/$file" && [ "$(sha256sum < "$tmp_file")" = "$(sha256sum < "$dest/$file")" ]; then
             printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
             done_list+="  - $(wallet_display_name "$name")\n"
+            wallet_backup_record_set "$name" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
             echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backed up to $file" >> /media/usbbackup/diginode_backup/diginode_backup.log
         else
             printf "%b%b %s FAILED! (the copy on the USB stick did not match)\\n" "${OVER}" "${CROSS}" "${str}"
@@ -9098,6 +9147,7 @@ wallet_restore_usb() {
 
     if jq -e '.name' <<< "$restore_result" >/dev/null 2>&1; then
         printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+        wallet_backup_record_set "$WALLET_NEW_NAME" ""
         if jq -e '.warnings | length > 0' <<< "$restore_result" >/dev/null 2>&1; then
             printf "%b DigiByte Core says: %s\\n\\n" "${INFO}" "$(jq -r '.warnings | join(" ")' <<< "$restore_result")"
         fi
@@ -9200,7 +9250,7 @@ wallet_find_files() {
 wallet_delete() {
 
     local title="Delete Wallet"
-    local wallet_choices=() i choice name display info balance balance_text="" was_loaded confirm unload_result path ibd
+    local wallet_choices=() i choice name display info balance balance_text="" was_loaded confirm unload_result path ibd backup_date
 
     wallet_choose_node "$title" || return
     wallet_list_all
@@ -9242,6 +9292,14 @@ wallet_delete() {
         fi
     fi
 
+    # Has it been backed up with DigiNode Setup?
+    backup_date=$(wallet_backup_record_text "$name")
+    if [ "$backup_date" != "" ]; then
+        balance_text+="\n\nThis wallet was last backed up to a USB stick on $backup_date."
+    else
+        balance_text+="\n\n\Z1This wallet has never been backed up with DigiNode Setup.\Z0"
+    fi
+
     if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --defaultno --yes-label "Continue" --no-label "Cancel" --yesno "\n\Z1You are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\Z0\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" "$(wallet_dialog_height "\n\nYou are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" 4)" "${c}"; then
         [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
@@ -9281,6 +9339,7 @@ wallet_delete() {
         fi
     done
     printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+    wallet_backup_record_set "$name" ""
 
     dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThe wallet '$display' has been deleted from the ${WALLET_NODE_NAME[$WALLET_NODE]} node." 8 "${c}"
 }
