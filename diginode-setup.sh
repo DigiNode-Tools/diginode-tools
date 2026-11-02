@@ -8323,7 +8323,7 @@ menu_existing_install() {
     optBb="Delete blockchain data to resync or free up space."
 
     opt2a="2 Wallets"
-    opt2b="View, create, back up and restore your wallets."
+    opt2b="View, create, back up, restore and delete wallets."
 
     opt4a="3 Chain"
     opt4b="Change DigiByte chain - mainnet, testnet or dual node."
@@ -8471,7 +8471,7 @@ menu_existing_install() {
 }
 
 
-# Function to display the Wallets menu: view, create, back up and restore wallets.
+# Function to display the Wallets menu: view, create, back up, restore and delete wallets.
 #
 # Built for current DigiByte Core (8.26 and later): wallets are descriptor wallets, each in its own folder, and
 # the node itself makes and restores backups (backupwallet / restorewallet), so DigiNode Setup never copies a
@@ -8496,16 +8496,20 @@ menu_wallets() {
     local wopt4a="4 Restore"
     local wopt4b="Restore a wallet from a USB stick backup."
 
-    local wopt5a="5 Main Menu"
-    local wopt5b="Return to the main menu."
+    local wopt5a="5 Delete"
+    local wopt5b="Permanently delete a wallet."
+
+    local wopt6a="6 Main Menu"
+    local wopt6b="Return to the main menu."
 
     local wallet_menu_choice
-    wallet_menu_choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Wallets Menu" --title "Wallets Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" 14 "${c}" 5 \
+    wallet_menu_choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Wallets Menu" --title "Wallets Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" 15 "${c}" 6 \
         "${wopt1a}"  "${wopt1b}" \
         "${wopt2a}"  "${wopt2b}" \
         "${wopt3a}"  "${wopt3b}" \
         "${wopt4a}"  "${wopt4b}" \
-        "${wopt5a}"  "${wopt5b}" 3>&2 2>&1 1>&3) || \
+        "${wopt5a}"  "${wopt5b}" \
+        "${wopt6a}"  "${wopt6b}" 3>&2 2>&1 1>&3) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; display_system_updates_reminder; backup_reminder; exit; }
 
     case ${wallet_menu_choice} in
@@ -8534,6 +8538,12 @@ menu_wallets() {
             menu_wallets
             ;;
         ${wopt5a})
+            printf "%b You selected the DELETE WALLET option.\\n" "${INFO}"
+            printf "\\n"
+            wallet_delete
+            menu_wallets
+            ;;
+        ${wopt6a})
             printf "%b You selected the MAIN MENU option.\\n" "${INFO}"
             printf "\\n"
             menu_existing_install
@@ -8551,6 +8561,7 @@ wallet_find_nodes() {
     WALLET_NODE_SERVICE=()   # systemd service of the node
     WALLET_NODE_CLI=()       # Command (and flags) that talks to the node
     WALLET_NODE_UNIT=()      # Currency unit for balances
+    WALLET_NODE_DATADIR=()   # The node's data folder for this network (its debug.log says where its wallets are)
 
     diginode_tools_import_settings silent
     query_digibyte_chain
@@ -8561,6 +8572,12 @@ wallet_find_nodes() {
     WALLET_NODE_SERVICE+=("digibyted")
     WALLET_NODE_CLI+=("dgb_cli")
     WALLET_NODE_UNIT+=("DGB")
+    case "$DGB_NETWORK_CURRENT" in
+        TESTNET) WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/$DGB_TESTNET_DIR") ;;
+        REGTEST) WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/regtest") ;;
+        SIGNET)  WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/signet") ;;
+        *)       WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION") ;;
+    esac
 
     if [ "$DGB_DUAL_NODE" = "YES" ]; then
         WALLET_NODE_NAME+=("DigiByte TESTNET")
@@ -8569,6 +8586,7 @@ wallet_find_nodes() {
         WALLET_NODE_SERVICE+=("digibyted-testnet")
         WALLET_NODE_CLI+=("dgb_cli -testnet")
         WALLET_NODE_UNIT+=("DGB")
+        WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/$DGB_TESTNET_DIR")
     fi
 
     WALLET_NODE=0
@@ -9089,6 +9107,182 @@ wallet_restore_usb() {
         printf "%b %s\\n\\n" "${INDENT}" "$restore_result"
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1The wallet could not be restored.\Z0\n\nDigiByte Core said:\n$restore_result" 14 "${c}"
     fi
+}
+
+
+# Find the wallet folder of the chosen node. Sets WALLET_DIR. Returns 1 if it can't be found.
+# DigiByte Core says which folder it uses in its debug.log when it starts; otherwise it is the "wallets" folder in
+# the node's data folder, if there is one, or else the data folder itself.
+wallet_find_dir() {
+
+    local datadir="${WALLET_NODE_DATADIR[$WALLET_NODE]}"
+    local logged
+
+    WALLET_DIR=""
+    logged=$(grep -a "Using wallet directory " "$datadir/debug.log" 2>/dev/null | tail -n 1 | sed 's/.*Using wallet directory //')
+    if [ "$logged" != "" ] && [ -d "$logged" ]; then
+        WALLET_DIR="$logged"
+    elif [ -d "$datadir/wallets" ]; then
+        WALLET_DIR="$datadir/wallets"
+    elif [ -d "$datadir" ]; then
+        WALLET_DIR="$datadir"
+    fi
+
+    [ "$WALLET_DIR" != "" ] && WALLET_DIR=$(realpath "$WALLET_DIR")
+    [ "$WALLET_DIR" != "" ]
+}
+
+# Work out exactly which files make up a wallet, and check it is safe to delete them. Sets WALLET_DELETE_PATHS.
+# Returns 1 (with the reason in WALLET_DELETE_PROBLEM) if anything looks unexpected - then nothing is deleted.
+wallet_find_files() {
+
+    local name="$1" path item
+
+    WALLET_DELETE_PATHS=()
+    WALLET_DELETE_PROBLEM=""
+
+    if ! wallet_find_dir; then
+        WALLET_DELETE_PROBLEM="The node's wallet folder could not be found."
+        return 1
+    fi
+
+    # Only plain names: never a path, and never anything outside the wallet folder
+    if [[ "$name" == */* ]] || [ "$name" = "." ] || [ "$name" = ".." ]; then
+        WALLET_DELETE_PROBLEM="This wallet is stored outside the node's wallet folder, so it can't be deleted from here."
+        return 1
+    fi
+
+    if [ "$name" = "" ]; then
+        # The default wallet is the wallet.dat file in the wallet folder itself
+        if [ ! -f "$WALLET_DIR/wallet.dat" ]; then
+            WALLET_DELETE_PROBLEM="The default wallet's file (wallet.dat) was not found in $WALLET_DIR."
+            return 1
+        fi
+        WALLET_DELETE_PATHS+=("$WALLET_DIR/wallet.dat")
+        [ -f "$WALLET_DIR/wallet.dat-journal" ] && WALLET_DELETE_PATHS+=("$WALLET_DIR/wallet.dat-journal")
+    else
+        path="$WALLET_DIR/$name"
+        if [ "$(dirname "$(realpath -m "$path")")" != "$WALLET_DIR" ]; then
+            WALLET_DELETE_PROBLEM="This wallet is stored outside the node's wallet folder, so it can't be deleted from here."
+            return 1
+        fi
+        if [ -L "$path" ]; then
+            WALLET_DELETE_PROBLEM="$path is a link, so it can't be deleted from here."
+            return 1
+        elif [ -d "$path" ]; then
+            # A wallet folder holds wallet.dat and the database's own files - anything else means it isn't safe
+            if [ ! -f "$path/wallet.dat" ]; then
+                WALLET_DELETE_PROBLEM="$path does not contain a wallet.dat file."
+                return 1
+            fi
+            for item in "$path"/* "$path"/.[!.]*; do
+                [ -e "$item" ] || continue
+                case "$(basename "$item")" in
+                    wallet.dat|wallet.dat-journal|db.log|database|.walletlock) ;;
+                    *)
+                        WALLET_DELETE_PROBLEM="$path contains other files ($(basename "$item")), so it was left alone."
+                        return 1 ;;
+                esac
+            done
+            WALLET_DELETE_PATHS+=("$path")
+        elif [ -f "$path" ]; then
+            # Older wallets can be a single file in the wallet folder
+            WALLET_DELETE_PATHS+=("$path")
+            [ -f "$path-journal" ] && WALLET_DELETE_PATHS+=("$path-journal")
+        else
+            WALLET_DELETE_PROBLEM="The wallet's files were not found in $WALLET_DIR."
+            return 1
+        fi
+    fi
+}
+
+# Permanently delete a wallet from the chosen node, after a firm confirmation.
+wallet_delete() {
+
+    local title="Delete Wallet"
+    local wallet_choices=() i choice name display info balance balance_text="" was_loaded confirm unload_result path ibd
+
+    wallet_choose_node "$title" || return
+    wallet_list_all
+
+    if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThere are no wallets on the ${WALLET_NODE_NAME[$WALLET_NODE]} node." 8 "${c}"
+        return
+    fi
+
+    for i in "${!WALLET_NAMES[@]}"; do
+        wallet_choices+=("$((i+1))" "$(wallet_display_name "${WALLET_NAMES[$i]}")")
+    done
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --cancel-label "Back" --menu "\nWhich wallet on the ${WALLET_NODE_NAME[$WALLET_NODE]} node would you like to delete?\n\n" 16 "${c}" 8 "${wallet_choices[@]}" 3>&2 2>&1 1>&3) || return
+    name="${WALLET_NAMES[$((choice-1))]}"
+    was_loaded="${WALLET_LOADED[$((choice-1))]}"
+    display=$(wallet_display_name "$name")
+
+    if ! wallet_find_files "$name"; then
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1The wallet '$display' was not deleted.\Z0\n\n$WALLET_DELETE_PROBLEM" 12 "${c}"
+        return
+    fi
+
+    # Check the balance (the wallet must be loaded for that)
+    if [ "$was_loaded" = "NO" ]; then
+        wallet_cli loadwallet "$name" >/dev/null 2>&1
+    fi
+    info=$(wallet_cli -rpcwallet="$name" getwalletinfo 2>/dev/null)
+    if [ "$info" = "" ]; then
+        balance_text="\n\n\Z1WARNING: The balance of this wallet could not be checked. It may still contain ${WALLET_NODE_UNIT[$WALLET_NODE]}.\Z0"
+    else
+        balance=$(jq -r '((.balance // 0) + (.unconfirmed_balance // 0) + (.immature_balance // 0))' <<< "$info" 2>/dev/null)
+        balance=$(printf "%.8f" "${balance:-0}" 2>/dev/null)
+        if [ "$balance" != "0.00000000" ]; then
+            balance_text="\n\n\Z1\ZbWARNING: THIS WALLET HAS A BALANCE OF $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0\n\Z1If you delete it without a backup, this money will be lost forever.\Z0"
+        fi
+        ibd=$(wallet_cli getblockchaininfo 2>/dev/null | jq -r '.initialblockdownload' 2>/dev/null)
+        if [ "$ibd" = "true" ]; then
+            balance_text+="\n\n\Z1The node is still syncing, so the balance shown may not be complete.\Z0"
+        fi
+    fi
+
+    if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --defaultno --yes-label "Continue" --no-label "Cancel" --yesno "\n\Z1You are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\Z0\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" "$(wallet_dialog_height "\n\nYou are about to PERMANENTLY DELETE the wallet '$display' from the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\n\nThis cannot be undone. Unless you have a backup of this wallet (Wallets > Backup) or its seed, anything in it will be lost forever.$balance_text" 4)" "${c}"; then
+        [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
+        return
+    fi
+
+    confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "\nTo permanently delete the wallet '$display', type:\n\n  \ZbI UNDERSTAND\ZB\n\n(in capitals), then choose OK." 13 "${c}" 3>&1 1>&2 2>&3)
+    if [ $? -ne 0 ] || [ "$confirm" != "I UNDERSTAND" ]; then
+        [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNothing was deleted." 7 "${c}"
+        return
+    fi
+
+    printf "%b You confirmed you want to delete the wallet '%s' from the %s node.\\n" "${INFO}" "$display" "${WALLET_NODE_NAME[$WALLET_NODE]}"
+
+    # Unload it, and remove it from the list of wallets the node loads at startup
+    str="Unloading wallet '$display'..."
+    printf "%b %s" "${INFO}" "${str}"
+    unload_result=$(wallet_cli unloadwallet "$name" false 2>&1)
+    if [ $? -ne 0 ] && jq -e --arg n "$name" 'index($n) != null' <<< "$(wallet_cli listwallets 2>/dev/null)" >/dev/null 2>&1; then
+        printf "%b%b %s FAILED!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1The wallet could not be unloaded, so it was not deleted.\Z0\n\nDigiByte Core said:\n$unload_result" 12 "${c}"
+        return
+    fi
+    printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+
+    str="Deleting wallet '$display'..."
+    printf "%b %s" "${INFO}" "${str}"
+    for path in "${WALLET_DELETE_PATHS[@]}"; do
+        sudo -u "$USER_ACCOUNT" rm -rf -- "$path"
+    done
+    for path in "${WALLET_DELETE_PATHS[@]}"; do
+        if [ -e "$path" ]; then
+            printf "%b%b %s FAILED!\\n\\n" "${OVER}" "${CROSS}" "${str}"
+            dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1The wallet could not be fully deleted.\Z0\n\nThis is still there:\n$path" 11 "${c}"
+            return
+        fi
+    done
+    printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+
+    dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThe wallet '$display' has been deleted from the ${WALLET_NODE_NAME[$WALLET_NODE]} node." 8 "${c}"
 }
 
 
