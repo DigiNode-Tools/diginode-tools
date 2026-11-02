@@ -8325,25 +8325,25 @@ menu_existing_install() {
     opt2a="2 Wallets"
     opt2b="View, create, back up and restore your wallets."
 
-    opt4a="5 Chain"
+    opt4a="3 Chain"
     opt4b="Change DigiByte chain - mainnet, testnet or dual node."
 
-    opt5a="6 Tor"
+    opt5a="4 Tor"
     opt5b="Enable or disable running your nodes over Tor."
 
-    opt6a="4 UPnP"
+    opt6a="5 UPnP"
     opt6b="Enable or disable UPnP to automatically forward ports."
 
-    opt7a="7 MOTD"
+    opt7a="6 MOTD"
     opt7b="Enable or disable the DigiNode Custom MOTD."
 
     optSa="S System"
     optSb="Automatic system updates and restarts."
 
-    opt8a="8 Extras"
+    opt8a="7 Extras"
     opt8b="Install optional extras for your DigiNode."
     
-    opt9a="9 Reset"
+    opt9a="8 Reset"
     opt9b="Reset all settings and reinstall DigiNode software."
 
     opt0a="0 Uninstall"
