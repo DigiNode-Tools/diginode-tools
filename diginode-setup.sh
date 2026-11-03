@@ -9294,7 +9294,7 @@ wallet_find_files() {
 wallet_delete() {
 
     local title="Delete Wallet"
-    local wallet_choices=() i choice name display info balance="" funds_text="" backup_text warning_text confirm_text was_loaded confirm unload_result path ibd backup_date
+    local wallet_choices=() i choice name display info balance="" funds_text="" backup_text warning_text confirm_text loss_text="" was_loaded confirm unload_result path ibd backup_date
 
     wallet_choose_node "$title" || return
     wallet_list_all
@@ -9323,12 +9323,14 @@ wallet_delete() {
     fi
     info=$(wallet_cli -rpcwallet="$name" getwalletinfo 2>/dev/null)
     if [ "$info" = "" ]; then
-        funds_text="\Z1\ZbWARNING: THE BALANCE OF THIS WALLET COULD NOT BE CHECKED.\ZB\nIt may still hold ${WALLET_NODE_UNIT[$WALLET_NODE]}. Without a backup, it would be lost forever.\Z0\n\n"
+        funds_text="\Z1\ZbWARNING: THE BALANCE OF THIS WALLET COULD NOT BE CHECKED.\ZB\Z0\n\n"
+        loss_text=" Without a backup, any ${WALLET_NODE_UNIT[$WALLET_NODE]} in it will be lost forever."
     else
         balance=$(jq -r '((.balance // 0) + (.unconfirmed_balance // 0) + (.immature_balance // 0))' <<< "$info" 2>/dev/null)
         balance=$(printf "%.8f" "${balance:-0}" 2>/dev/null)
         if [ "$balance" != "0.00000000" ]; then
-            funds_text="\Z1\ZbWARNING: THIS WALLET HOLDS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\nWithout a backup, this ${WALLET_NODE_UNIT[$WALLET_NODE]} will be lost forever.\Z0\n\n"
+            funds_text="\Z1\ZbWARNING: THIS WALLET HOLDS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0\n\n"
+            loss_text=" Without a backup, this ${WALLET_NODE_UNIT[$WALLET_NODE]} will be lost forever."
         fi
         ibd=$(wallet_cli getblockchaininfo 2>/dev/null | jq -r '.initialblockdownload' 2>/dev/null)
         if [ "$ibd" = "true" ]; then
@@ -9345,7 +9347,7 @@ wallet_delete() {
     fi
 
     # Funds first, then what is being deleted, the backup status, and what to do if unsure
-    warning_text="\n$funds_text\Z1You are about to permanently delete the wallet '$display' from your ${WALLET_NODE_NAME[$WALLET_NODE]} node.\Z0\n\nThis cannot be undone.\n\n$backup_text\n\nIf you're not sure, choose Cancel and back it up first (Wallets > Backup)."
+    warning_text="\n$funds_text\Z1You are about to permanently delete the wallet '$display' from your ${WALLET_NODE_NAME[$WALLET_NODE]} node.$loss_text\Z0\n\nThis cannot be undone.\n\n$backup_text\n\nIf you're not sure, choose Cancel and back it up first (Wallets > Backup)."
 
     if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --defaultno --yes-label "Continue" --no-label "Cancel" --yesno "$warning_text" "$(wallet_dialog_height "$(sed 's/\\Z[0-9bBn]//g' <<< "$warning_text")\n" 5)" "${c}"; then
         [ "$was_loaded" = "NO" ] && wallet_cli unloadwallet "$name" >/dev/null 2>&1
