@@ -9356,9 +9356,9 @@ wallet_delete() {
     # Remind them of the balance one last time, right where they confirm
     confirm_text="\nTo permanently delete the wallet '$display', type:\n\n  \Z1\ZbI UNDERSTAND\ZB\Z0\n\n(in capitals), then choose OK."
     if [ "$balance" != "" ] && [ "$balance" != "0.00000000" ]; then
-        confirm_text="\n\Z1\ZbTHIS WALLET HOLDS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0$confirm_text"
+        confirm_text="\n\Z1\ZbTHIS WALLET HOLDS $balance ${WALLET_NODE_UNIT[$WALLET_NODE]}.\ZB\Z0\n$confirm_text"
     elif [ "$info" = "" ]; then
-        confirm_text="\n\Z1\ZbTHE BALANCE OF THIS WALLET COULD NOT BE CHECKED.\ZB\Z0$confirm_text"
+        confirm_text="\n\Z1\ZbTHE BALANCE OF THIS WALLET COULD NOT BE CHECKED.\ZB\Z0\n$confirm_text"
     fi
     confirm=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --inputbox "$confirm_text" "$(wallet_dialog_height "$(sed 's/\\Z[0-9bBn]//g' <<< "$confirm_text")" 8)" "${c}" 3>&1 1>&2 2>&3)
     if [ $? -ne 0 ] || [ "$confirm" != "I UNDERSTAND" ]; then
