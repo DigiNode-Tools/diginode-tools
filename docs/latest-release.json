@@ -1,70 +1,30 @@
 {
   "name": "DigiNode Tools",
-  "version": "26.10.05",
-  "tag": "v26.10.05",
-  "date": "2026-10-20",
-  "summary": "Automatic system updates, automatic restarts when needed, restart reminders and more.",
+  "version": "26.11.01",
+  "tag": "v26.11.01",
+  "date": "2026-11-03",
+  "summary": "Wallets menu, delete a wallet safely, USB wallet backup and more.",
   "highlights": [
     {
       "type": "New",
-      "title": "Automatic system updates"
+      "title": "Wallets menu"
     },
     {
       "type": "New",
-      "title": "Automatic restarts when needed"
-    },
-    {
-      "type": "New",
-      "title": "Restart reminders"
-    },
-    {
-      "type": "Improvement",
-      "title": "Commands work straight away"
-    },
-    {
-      "type": "Improvement",
-      "title": "No restart needed after hostname, swap or reset changes"
-    },
-    {
-      "type": "Improvement",
-      "title": "No restart needed after an uninstall"
-    },
-    {
-      "type": "Improvement",
-      "title": "Calmer DigiFacts updates"
-    },
-    {
-      "type": "Improvement",
-      "title": "Links that stay up to date"
-    },
-    {
-      "type": "Improvement",
-      "title": "Support DigiNode Tools"
-    },
-    {
-      "type": "Improvement",
-      "title": "DigiFacts in the Dashboard only"
-    },
-    {
-      "type": "Improvement",
-      "title": "Tidier setup screens"
+      "title": "Delete a wallet safely"
     },
     {
       "type": "Fix",
-      "title": "Correct command for installing system updates"
+      "title": "USB wallet backup"
     },
     {
       "type": "Fix",
-      "title": "UPnP can be turned on again"
-    },
-    {
-      "type": "Fix",
-      "title": "Port Tester help link"
+      "title": "Testnet sync progress"
     }
   ],
   "release_notes_url": "https://diginode.tools/release-notes/",
-  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.10.05",
-  "next_release": "2026-11-03",
+  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.11.01",
+  "next_release": "2026-11-17",
   "release_schedule": "Every other Tuesday",
   "schedule": {
     "first_release_day": "2026-10-20",

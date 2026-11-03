@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-### DigiNode Tools - Unreleased
+### DigiNode Tools v26.11.01 - 2026-11-03
 - New: **Wallets menu** - The DigiNode Setup main menu has a new Wallets option, which replaces Backup and Restore. From it you can view your wallets and their balances, create a new wallet (with a passphrase to encrypt it, which is recommended), back up your wallets to a USB stick, restore a wallet from a USB stick backup, and delete a wallet you no longer need. DigiNode Setup now remembers when each wallet was last backed up, and shows it when you view your wallets. You can back up and restore both mainnet and testnet wallets, even if the node for that network isn't running - a wallet restored for a node that isn't running loads the next time it runs. Restoring never replaces an existing wallet - the backup is restored as a new wallet, with a name you choose - and it can also restore a backup made with an earlier version of DigiNode Tools.
   ![The new Wallets menu in DigiNode Setup, with options to view, create, back up, restore and delete wallets](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/wallets/menu.png)
 - New: **Delete a wallet safely** - The Wallets menu can delete a wallet you no longer need. Deleting a wallet is permanent, so DigiNode Setup makes sure you mean it. If the wallet still holds DGB, you get a clear warning in red showing its balance, and that without a backup it will be lost forever. You are also told when the wallet was last backed up, or that it has never been backed up. Cancel is the default, and to go ahead you must type I UNDERSTAND.
@@ -95,20 +95,5 @@
 - Improvement: Mempool bytes are hidden on narrower terminal windows to make the display cleaner.
 - Fix: When running a Dual Node, the Testnet listening port now displays correctly in the Dashboard while the node is starting up. (It was blank before)
 - Fix: Right border for Connections row in dashboard now fits better.
-
-### DigiNode Tools v0.11.0 - 2025-04-19
-- New: DigiNode Dashboard now has a brand new port tester built for DigiNode Tools. It can test nodes at IPv4, IPv6 and onion addresses. The port tester is also available for anyone to use at: https://diginode.tools/digibyte-port-tester/
-  ![The DigiByte port tester built into DigiNode Dashboard, showing that the mainnet and testnet listening ports are open and the nodes are publicly accessible](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/port-tester/port-test-results.png)
-- New: DigiNode Dashboard now optionally displays the mempool data for each node. By default, Mempool data is displayed whenever transactions enter the mempool and is hidden if there are no transactions seen for 30 seconds. This way mempool data is shown only when there is mempool data to show. You can enable/disable displaying the mempool data by editing the variables SM_DISPLAY_MAINNET_MEMPOOL and SM_DISPLAY_TESTNET_MEMPOOL in diginode.settings. (Enter ```diginode --settings```). SM_MEMPOOL_DISPLAY_TIMEOUT can be used to set the timeout duration.
-  ![DigiNode Dashboard showing the new Mempool row (1 transaction, 222 bytes, total fee 0.0222 DGB) and the incoming and outgoing connections (11 peers: in 1, out 10)](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/dashboard/mempool-and-connections.png)
-- New: DigiNode Dashboard now displays the incoming and outgoing connections for your DigiByte node.
-- Improvement: peers.dat is now deleted each time you switch between running a Tor node and a clearnet node. This ensures the node starts with a fresh list of peers to connect to.
-- Improvement: Add message to Dashboard about DigiAsset Core support. Adding support for DigiAsset Core is not possible at this time due to a bug in DigiByte Core v8.22.x.
-- Improvement: DigiNode Dashboard autoquit timer is now much more accurate.
-- Fix: Blockchain sync progress is now reset when the blockchain data is deleted or the network is changed.
-- Fix: Fahrenheit temperature is now displayed correctly.
-- Fix: If DigiFacts web service is down, errors are now handled more gracefully.
-- Fix: Spelling error in DigiFact Tip.
-- Fix: DigiByte Port tests now get automatically reenabled if enabling/disabling Tor.
 
 [View earlier releases](https://github.com/DigiNode-Tools/diginode-tools/blob/main/docs/release_notes_more.md)
