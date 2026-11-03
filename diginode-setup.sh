@@ -8551,51 +8551,65 @@ menu_wallets() {
     esac
 }
 
-# List the nodes whose wallets can be managed, one entry per node. Only DigiByte for now: another chain adds
-# its nodes here, with the CLI command that talks to each one.
+# List the networks whose wallets can be managed - mainnet and testnet, whether or not their node is running - one
+# entry per network. Only DigiByte for now: another chain adds its networks here, with the CLI command that talks to
+# the node running each one. A network whose node isn't running has no CLI command; its wallets are handled offline.
 wallet_find_nodes() {
 
     WALLET_NODE_NAME=()      # Shown to the user, e.g. "DigiByte MAINNET"
     WALLET_NODE_CHAIN=()     # Used for the backup folder on the USB stick, e.g. digibyte
     WALLET_NODE_NETWORK=()   # mainnet, testnet, regtest or signet (also used for the backup folder)
-    WALLET_NODE_SERVICE=()   # systemd service of the node
-    WALLET_NODE_CLI=()       # Command (and flags) that talks to the node
+    WALLET_NODE_SERVICE=()   # systemd service of the node running this network (empty if no node is set up for it)
+    WALLET_NODE_CLI=()       # Command (and flags) that talks to that node
     WALLET_NODE_UNIT=()      # Currency unit for balances
-    WALLET_NODE_DATADIR=()   # The node's data folder for this network (its debug.log says where its wallets are)
-    WALLET_NODE_TOOL=()      # Offline wallet tool (and flags), used to check a backup opens as a wallet
+    WALLET_NODE_DATADIR=()   # The data folder for this network (its debug.log says where its wallets are)
+    WALLET_NODE_TOOL=()      # Offline wallet tool (and flags), used to check wallets without the node
+    WALLET_NODE_STATE=()     # RUNNING, STARTING (not answering yet) or STOPPED
+
+    local networks="MAINNET TESTNET" net datadir flag service cli state
 
     diginode_tools_import_settings silent
     query_digibyte_chain
 
-    WALLET_NODE_NAME+=("DigiByte $DGB_NETWORK_CURRENT")
-    WALLET_NODE_CHAIN+=("digibyte")
-    WALLET_NODE_NETWORK+=("$(echo "$DGB_NETWORK_CURRENT" | tr '[:upper:]' '[:lower:]')")
-    WALLET_NODE_SERVICE+=("digibyted")
-    WALLET_NODE_CLI+=("dgb_cli")
-    WALLET_NODE_UNIT+=("DGB")
     case "$DGB_NETWORK_CURRENT" in
-        TESTNET) WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/$DGB_TESTNET_DIR") ;;
-        REGTEST) WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/regtest") ;;
-        SIGNET)  WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/signet") ;;
-        *)       WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION") ;;
-    esac
-    case "$DGB_NETWORK_CURRENT" in
-        TESTNET) WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -testnet") ;;
-        REGTEST) WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -regtest") ;;
-        SIGNET)  WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -signet") ;;
-        *)       WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet") ;;
+        REGTEST|SIGNET) networks="$networks $DGB_NETWORK_CURRENT" ;;
     esac
 
-    if [ "$DGB_DUAL_NODE" = "YES" ]; then
-        WALLET_NODE_NAME+=("DigiByte TESTNET")
+    for net in $networks; do
+        case "$net" in
+            MAINNET) datadir="$DGB_DATA_LOCATION"; flag="" ;;
+            TESTNET) datadir="$DGB_DATA_LOCATION/$DGB_TESTNET_DIR"; flag="-testnet" ;;
+            REGTEST) datadir="$DGB_DATA_LOCATION/regtest"; flag="-regtest" ;;
+            SIGNET)  datadir="$DGB_DATA_LOCATION/signet"; flag="-signet" ;;
+        esac
+
+        # Which node (if any) runs this network: the main node runs the current network, and a Dual Node also runs testnet
+        service=""; cli=""
+        if [ "$net" = "$DGB_NETWORK_CURRENT" ]; then
+            service="digibyted"; cli="dgb_cli"
+        elif [ "$net" = "TESTNET" ] && [ "$DGB_DUAL_NODE" = "YES" ]; then
+            service="digibyted-testnet"; cli="dgb_cli -testnet"
+        fi
+
+        state="STOPPED"
+        if [ "$service" != "" ] && check_service_active "$service"; then
+            if DGB_CLI_SPINNER=NO $cli listwallets >/dev/null 2>&1; then
+                state="RUNNING"
+            else
+                state="STARTING"
+            fi
+        fi
+
+        WALLET_NODE_NAME+=("DigiByte $net")
         WALLET_NODE_CHAIN+=("digibyte")
-        WALLET_NODE_NETWORK+=("testnet")
-        WALLET_NODE_SERVICE+=("digibyted-testnet")
-        WALLET_NODE_CLI+=("dgb_cli -testnet")
+        WALLET_NODE_NETWORK+=("$(echo "$net" | tr '[:upper:]' '[:lower:]')")
+        WALLET_NODE_SERVICE+=("$service")
+        WALLET_NODE_CLI+=("$cli")
         WALLET_NODE_UNIT+=("DGB")
-        WALLET_NODE_DATADIR+=("$DGB_DATA_LOCATION/$DGB_TESTNET_DIR")
-        WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet -testnet")
-    fi
+        WALLET_NODE_DATADIR+=("$datadir")
+        WALLET_NODE_TOOL+=("$DGB_INSTALL_LOCATION/bin/digibyte-wallet${flag:+ $flag}")
+        WALLET_NODE_STATE+=("$state")
+    done
 
     WALLET_NODE=0
 }
@@ -8605,42 +8619,87 @@ wallet_cli() {
     DGB_CLI_SPINNER=NO ${WALLET_NODE_CLI[$WALLET_NODE]} "$@"
 }
 
-# Ask which node to use (only when there is more than one) and check it is running and ready.
-# Usage: wallet_choose_node "<dialog title>"   Returns 1 if cancelled or the node can't be used.
+# Ask which network to use (only when there is more than one to choose from) and check it can be used. Create and
+# Delete need a running node; Backup also offers networks whose node isn't running but that have wallets, and Restore
+# networks whose node isn't running but that have a data folder (both are then done offline).
+# Usage: wallet_choose_node "<dialog title>" <create|delete|backup|restore>   Returns 1 if cancelled or not possible.
 wallet_choose_node() {
 
-    local title="$1"
-    local node_choices=()
-    local i choice
+    local title="$1" purpose="$2"
+    local node_choices=() candidates=() i choice label
 
     wallet_find_nodes
 
-    if [ ${#WALLET_NODE_NAME[@]} -gt 1 ]; then
-        for i in "${!WALLET_NODE_NAME[@]}"; do
-            node_choices+=("$((i+1))" "${WALLET_NODE_NAME[$i]} node")
-        done
-        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --cancel-label "Back" --menu "\nWhich node is this for?\n\n" 12 "${c}" "${#WALLET_NODE_NAME[@]}" "${node_choices[@]}" 3>&2 2>&1 1>&3) || return 1
-        WALLET_NODE=$((choice-1))
-    fi
+    for i in "${!WALLET_NODE_NAME[@]}"; do
+        WALLET_NODE=$i
+        case "${WALLET_NODE_STATE[$i]}" in
+            RUNNING|STARTING) candidates+=("$i") ;;
+            STOPPED)
+                # Wallets on a network whose node isn't running can still be backed up and restored (offline)
+                if [ "$purpose" = "backup" ]; then
+                    wallet_list_all
+                    [ ${#WALLET_NAMES[@]} -gt 0 ] && candidates+=("$i")
+                elif [ "$purpose" = "restore" ] && [ -d "${WALLET_NODE_DATADIR[$i]}" ]; then
+                    candidates+=("$i")
+                fi ;;
+        esac
+    done
 
-    if ! check_service_active "${WALLET_NODE_SERVICE[$WALLET_NODE]}"; then
-        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThe ${WALLET_NODE_NAME[$WALLET_NODE]} node is not running.\n\nPlease start it and try again." 9 "${c}"
+    if [ ${#candidates[@]} -eq 0 ]; then
+        if [ "$purpose" = "backup" ]; then
+            dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThere are no wallets on this DigiNode to back up." 7 "${c}"
+        else
+            dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNo DigiByte node is running.\n\nPlease start your node and try again." 9 "${c}"
+        fi
         return 1
     fi
 
-    if ! wallet_cli listwallets >/dev/null 2>&1; then
+    WALLET_NODE="${candidates[0]}"
+    if [ ${#candidates[@]} -gt 1 ]; then
+        for i in "${!candidates[@]}"; do
+            label="${WALLET_NODE_NAME[${candidates[$i]}]} node"
+            [ "${WALLET_NODE_STATE[${candidates[$i]}]}" = "STOPPED" ] && label="${WALLET_NODE_NAME[${candidates[$i]}]} (node not running)"
+            node_choices+=("$((i+1))" "$label")
+        done
+        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --cancel-label "Back" --menu "\nWhich network is this for?\n\n" 12 "${c}" "${#candidates[@]}" "${node_choices[@]}" 3>&2 2>&1 1>&3) || return 1
+        WALLET_NODE="${candidates[$((choice-1))]}"
+    fi
+
+    if [ "${WALLET_NODE_STATE[$WALLET_NODE]}" = "STARTING" ]; then
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThe ${WALLET_NODE_NAME[$WALLET_NODE]} node is still starting up.\n\nPlease try again in a minute." 9 "${c}"
+        return 1
+    fi
+
+    # Offline: make sure no DigiByte node is using this network's data after all (e.g. one started by hand)
+    if [ "${WALLET_NODE_STATE[$WALLET_NODE]}" = "STOPPED" ] && fuser -s "${WALLET_NODE_DATADIR[$WALLET_NODE]}/.lock" 2>/dev/null; then
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nA DigiByte node is using the ${WALLET_NODE_NAME[$WALLET_NODE]} data, but DigiNode Setup can't talk to it.\n\nPlease stop it, or start it as a DigiNode service, and try again." 10 "${c}"
         return 1
     fi
 }
 
-# List every wallet on the chosen node: loaded wallets and those in its wallet folder that are not loaded.
-# Sets WALLET_NAMES (the default wallet, if there is one, is the empty name "") and WALLET_LOADED (YES/NO).
+# List every wallet on the chosen network: loaded wallets and those in its wallet folder that are not loaded (if its node
+# isn't running, just those in its wallet folder). Sets WALLET_NAMES (the default wallet, if there is one, is the empty
+# name "") and WALLET_LOADED (YES/NO).
 wallet_list_all() {
 
-    local loaded_json dir_json name
+    local loaded_json dir_json name dir
     WALLET_NAMES=()
     WALLET_LOADED=()
+
+    # Offline: the wallets in the network's wallet folder (the default wallet is wallet.dat in the folder itself, every
+    # other wallet a folder holding a wallet.dat). The data folders of other networks are skipped.
+    if [ "${WALLET_NODE_STATE[$WALLET_NODE]}" != "RUNNING" ]; then
+        wallet_find_dir || return
+        [ -f "$WALLET_DIR/wallet.dat" ] && WALLET_NAMES+=("") && WALLET_LOADED+=("NO")
+        for dir in "$WALLET_DIR"/*/; do
+            name=$(basename "$dir")
+            [ -f "$dir/wallet.dat" ] || continue
+            case " $DGB_TESTNET_DIRS regtest signet " in *" $name "*) continue ;; esac
+            WALLET_NAMES+=("$name")
+            WALLET_LOADED+=("NO")
+        done
+        return
+    fi
 
     loaded_json=$(wallet_cli listwallets 2>/dev/null)
     [ "$loaded_json" = "" ] && loaded_json="[]"
@@ -8730,27 +8789,35 @@ wallets_view() {
 
     for i in "${!WALLET_NODE_NAME[@]}"; do
         WALLET_NODE=$i
-        text+="\Zb${WALLET_NODE_NAME[$i]} wallets:\ZB\n"
 
-        if ! check_service_active "${WALLET_NODE_SERVICE[$i]}"; then
-            text+="  The node is not running.\n\n"
-            continue
-        fi
-        if ! wallet_cli listwallets >/dev/null 2>&1; then
+        if [ "${WALLET_NODE_STATE[$i]}" = "STARTING" ]; then
+            text+="\Zb${WALLET_NODE_NAME[$i]} wallets:\ZB\n"
             text+="  The node is still starting up. Please try again in a minute.\n\n"
             continue
         fi
 
         wallet_list_all
 
-        if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
-            text+="  No wallets yet. Choose Create to make one.\n\n"
-            continue
+        if [ "${WALLET_NODE_STATE[$i]}" = "STOPPED" ]; then
+            # Only mention a network without a running node if it has wallets (or no node is set up to run it at all)
+            if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
+                [ "${WALLET_NODE_SERVICE[$i]}" != "" ] && text+="\Zb${WALLET_NODE_NAME[$i]} wallets:\ZB\n  The node is not running.\n\n"
+                continue
+            fi
+            text+="\Zb${WALLET_NODE_NAME[$i]} wallets\ZB (node not running - no balances):\n"
+        else
+            text+="\Zb${WALLET_NODE_NAME[$i]} wallets:\ZB\n"
+            if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
+                text+="  No wallets yet. Choose Create to make one.\n\n"
+                continue
+            fi
         fi
 
         for j in "${!WALLET_NAMES[@]}"; do
             name="${WALLET_NAMES[$j]}"
-            if [ "${WALLET_LOADED[$j]}" = "YES" ]; then
+            if [ "${WALLET_NODE_STATE[$i]}" = "STOPPED" ]; then
+                text+="  - $(wallet_display_name "$name")\n"
+            elif [ "${WALLET_LOADED[$j]}" = "YES" ]; then
                 info=$(wallet_cli -rpcwallet="$name" getwalletinfo 2>/dev/null)
                 balance=$(jq -r '.balance // 0' <<< "$info" 2>/dev/null)
                 balance=$(printf "%.8f" "${balance:-0}" 2>/dev/null)
@@ -8767,6 +8834,8 @@ wallets_view() {
         done
         text+="\n"
     done
+
+    [ "$text" = "" ] && text="No wallets were found.\n"
 
     dialog --no-shadow --keep-tite --colors --backtitle "View Wallets" --title "View Wallets" --msgbox "\n$text" "$(wallet_dialog_height "\n$text" 5)" "${c}"
 }
@@ -8791,6 +8860,7 @@ wallet_ask_name() {
         for i in "${WALLET_NAMES[@]}"; do
             [ "$i" = "$name" ] && taken=yes
         done
+        wallet_find_dir && [ -e "$WALLET_DIR/$name" ] && taken=yes
         if [ "$taken" = "yes" ]; then
             dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThere is already a wallet called '$name' on the ${WALLET_NODE_NAME[$WALLET_NODE]} node.\n\nPlease choose a different name." 10 "${c}"
             continue
@@ -8831,7 +8901,7 @@ wallet_create() {
     local title="Create Wallet"
     local create_result
 
-    wallet_choose_node "$title" || return
+    wallet_choose_node "$title" create || return
 
     wallet_ask_name "$title" "\nWhat would you like to call the new wallet on the ${WALLET_NODE_NAME[$WALLET_NODE]} node?" "" || return
 
@@ -8961,34 +9031,38 @@ wallet_backup_filename() {
 # Check a wallet backup really is a working wallet: copy it back from the USB stick into a temporary wallet folder and
 # open it with the chain's offline wallet tool (digibyte-wallet), without the node. The backup itself is not changed.
 # Usage: wallet_verify_backup "<backup file>" "<temporary folder owned by the DigiNode user>"
-# Returns 0 if it opened as a wallet, 1 if not, 2 if there is no wallet tool to check it with.
+# Returns 0 if it opened as a wallet, 1 if not, 2 if there is no wallet tool to check it with. The tool's report
+# (e.g. "Encrypted: yes") is left in WALLET_TOOL_INFO.
 wallet_verify_backup() {
 
-    local backup="$1" work="$2/verify" tool="${WALLET_NODE_TOOL[$WALLET_NODE]}" out rc
+    local backup="$1" work="$2/verify" tool="${WALLET_NODE_TOOL[$WALLET_NODE]}" rc
 
+    WALLET_TOOL_INFO=""
     [ -x "${tool%% *}" ] || return 2
 
     sudo -u "$USER_ACCOUNT" mkdir -p "$work/wallet" "$work/data"
     cp "$backup" "$work/wallet/wallet.dat"
     chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$work/wallet/wallet.dat"
 
-    out=$(sudo -u "$USER_ACCOUNT" $tool -datadir="$work/data" -wallet="$work/wallet" info 2>&1)
+    WALLET_TOOL_INFO=$(sudo -u "$USER_ACCOUNT" $tool -datadir="$work/data" -wallet="$work/wallet" info 2>&1)
     rc=$?
     sudo -u "$USER_ACCOUNT" rm -rf -- "$work"
 
-    [ $rc -eq 0 ] && grep -q '^Wallet info' <<< "$out"
+    [ $rc -eq 0 ] && grep -q '^Wallet info' <<< "$WALLET_TOOL_INFO"
 }
 
-# Back up wallets from the chosen node to a USB stick.
+# Back up wallets from the chosen network to a USB stick. With its node running, the node makes each backup; without,
+# the wallet files are copied as they are (they aren't in use). Either way the copy on the stick is then checked.
 # Backups go in diginode_backup/<chain>/<network>/<wallet>.dat; the previous backup of each wallet is kept as .old
 wallet_backup_usb() {
 
     local title="Backup Wallets"
     local checklist=() selected=() temp_loaded=() unencrypted=() done_list="" failed_list=""
-    local i choice name file info dest tmp_dir tmp_file now verified problem
+    local i choice name file info dest tmp_dir tmp_file now verified problem offline=no src
 
-    wallet_choose_node "$title" || return
+    wallet_choose_node "$title" backup || return
     wallet_list_all
+    [ "${WALLET_NODE_STATE[$WALLET_NODE]}" = "STOPPED" ] && offline=yes
 
     if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThere are no wallets on the ${WALLET_NODE_NAME[$WALLET_NODE]} node to back up." 8 "${c}"
@@ -8998,45 +9072,55 @@ wallet_backup_usb() {
     for i in "${!WALLET_NAMES[@]}"; do
         checklist+=("$((i+1))" "$(wallet_display_name "${WALLET_NAMES[$i]}")" "on")
     done
-    choice=$(dialog --no-shadow --keep-tite --colors --separate-output --backtitle "$title" --title "$title" --cancel-label "Back" --checklist "\nWhich wallets on the ${WALLET_NODE_NAME[$WALLET_NODE]} node would you like to back up?\n\n(Use the space bar to tick or untick a wallet.)\n\n" 18 "${c}" 8 "${checklist[@]}" 3>&2 2>&1 1>&3) || return
+    choice=$(dialog --no-shadow --keep-tite --colors --separate-output --backtitle "$title" --title "$title" --cancel-label "Back" --checklist "\nWhich ${WALLET_NODE_NAME[$WALLET_NODE]} wallets would you like to back up?\n\n(Use the space bar to tick or untick a wallet.)\n\n" 18 "${c}" 8 "${checklist[@]}" 3>&2 2>&1 1>&3) || return
     if [ "$choice" = "" ]; then
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nNo wallets were chosen, so nothing was backed up." 7 "${c}"
         return
     fi
     mapfile -t selected <<< "$choice"
 
-    # The node can only back up a loaded wallet: load any that aren't, and unload them again afterwards
+    # A folder of the DigiNode user's, where each backup is made before it is copied to the stick and checked
+    tmp_dir=$(sudo -u "$USER_ACCOUNT" mktemp -d "$USER_HOME/.diginode-wallet-backup.XXXXXX")
+
     for i in "${selected[@]}"; do
         name="${WALLET_NAMES[$((i-1))]}"
-        if [ "${WALLET_LOADED[$((i-1))]}" = "NO" ]; then
-            if wallet_cli loadwallet "$name" >/dev/null 2>&1; then
-                temp_loaded+=("$name")
+        if [ "$offline" = "yes" ]; then
+            # No node: check the wallet with the offline wallet tool, from a copy
+            src=$(wallet_file_path "$name")
+            if wallet_verify_backup "$src" "$tmp_dir" && ! grep -q '^Encrypted: yes' <<< "$WALLET_TOOL_INFO"; then
+                unencrypted+=("$(wallet_display_name "$name")")
             fi
-        fi
-        info=$(wallet_cli -rpcwallet="$name" getwalletinfo 2>/dev/null)
-        if [ "$info" != "" ] && ! jq -e 'has("unlocked_until")' <<< "$info" >/dev/null 2>&1; then
-            unencrypted+=("$(wallet_display_name "$name")")
+        else
+            # The node can only back up a loaded wallet: load any that aren't, and unload them again afterwards
+            if [ "${WALLET_LOADED[$((i-1))]}" = "NO" ]; then
+                if wallet_cli loadwallet "$name" >/dev/null 2>&1; then
+                    temp_loaded+=("$name")
+                fi
+            fi
+            info=$(wallet_cli -rpcwallet="$name" getwalletinfo 2>/dev/null)
+            if [ "$info" != "" ] && ! jq -e 'has("unlocked_until")' <<< "$info" >/dev/null 2>&1; then
+                unencrypted+=("$(wallet_display_name "$name")")
+            fi
         fi
     done
 
     if [ ${#unencrypted[@]} -gt 0 ]; then
         if ! dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --yes-label "Continue" --no-label "Cancel" --yesno "\n\Z1WARNING: These wallets are not encrypted:\Z0\n\n  $(printf '%s, ' "${unencrypted[@]}" | sed 's/, $//')\n\nAnyone who gets hold of the USB stick could spend from them. Keep the USB stick somewhere safe and secure." 13 "${c}"; then
             wallet_unload_list "${temp_loaded[@]}"
+            rmdir "$tmp_dir" 2>/dev/null
             return
         fi
     fi
 
     if ! usb_stick_mount "$title"; then
         wallet_unload_list "${temp_loaded[@]}"
+        rmdir "$tmp_dir" 2>/dev/null
         return
     fi
 
     dest="/media/usbbackup/diginode_backup/${WALLET_NODE_CHAIN[$WALLET_NODE]}/${WALLET_NODE_NETWORK[$WALLET_NODE]}"
     mkdir -p "$dest"
     now=$(date)
-
-    # The node writes the backup into a folder of the DigiNode user's, then it is copied to the stick and checked
-    tmp_dir=$(sudo -u "$USER_ACCOUNT" mktemp -d "$USER_HOME/.diginode-wallet-backup.XXXXXX")
 
     for i in "${selected[@]}"; do
         name="${WALLET_NAMES[$((i-1))]}"
@@ -9046,10 +9130,26 @@ wallet_backup_usb() {
         str="Backing up $(wallet_display_name "$name")..."
         printf "%b %s" "${INFO}" "${str}"
 
-        if ! wallet_cli -rpcwallet="$name" backupwallet "$tmp_file" >/dev/null 2>&1 || [ ! -s "$tmp_file" ]; then
-            printf "%b%b %s FAILED! (the node could not make the backup)\\n" "${OVER}" "${CROSS}" "${str}"
+        problem=""
+        if [ "$offline" = "yes" ]; then
+            # The node isn't running, so the wallet file isn't in use and can be copied as it is - unless something has it
+            # open, or the database has changes it never finished writing (a -journal file)
+            src=$(wallet_file_path "$name")
+            if fuser -s "$src" 2>/dev/null; then
+                problem="the wallet is in use"
+            elif [ -s "$src-journal" ]; then
+                problem="the wallet has unfinished changes - start its node once, then try again"
+            elif ! sudo -u "$USER_ACCOUNT" cp "$src" "$tmp_file" || [ ! -s "$tmp_file" ]; then
+                problem="the wallet file could not be copied"
+            fi
+        elif ! wallet_cli -rpcwallet="$name" backupwallet "$tmp_file" >/dev/null 2>&1 || [ ! -s "$tmp_file" ]; then
+            problem="the node could not make the backup"
+        fi
+
+        if [ "$problem" != "" ]; then
+            printf "%b%b %s FAILED! (%s)\\n" "${OVER}" "${CROSS}" "${str}" "$problem"
             failed_list+="  - $(wallet_display_name "$name")\n"
-            echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backup FAILED (the node could not make the backup)" >> /media/usbbackup/diginode_backup/diginode_backup.log
+            echo "$now ${WALLET_NODE_NAME[$WALLET_NODE]} wallet '$name': backup FAILED ($problem)" >> /media/usbbackup/diginode_backup/diginode_backup.log
             rm -f "$tmp_file"
             continue
         fi
@@ -9099,6 +9199,16 @@ wallet_backup_usb() {
     fi
 }
 
+# The wallet.dat of a wallet on the chosen network (for working offline)
+wallet_file_path() {
+    wallet_find_dir || return 1
+    if [ "$1" = "" ]; then
+        echo "$WALLET_DIR/wallet.dat"
+    else
+        echo "$WALLET_DIR/$1/wallet.dat"
+    fi
+}
+
 # Unload wallets that were only loaded to back them up
 wallet_unload_list() {
     local name
@@ -9107,23 +9217,31 @@ wallet_unload_list() {
     done
 }
 
-# Restore a wallet from a USB stick backup to the chosen node, under a name that isn't in use.
-# Also restores old backups made by earlier versions of DigiNode Setup (diginode_backup/wallet.dat).
+# Restore a wallet from a USB stick backup to the chosen network, under a name that isn't in use. With its node running,
+# the node restores it (restorewallet); without, it is put in the wallet folder and added to the node's startup list, so
+# it loads the next time the node runs. Also restores old backups made by earlier versions of DigiNode Setup
+# (diginode_backup/wallet.dat).
 wallet_restore_usb() {
 
     local title="Restore Wallet"
-    local backups=() backup_choices=() suggested=() i choice backup dir tmp_dir tmp_file restore_result now
+    local backups=() backup_choices=() suggested=() i choice backup dir tmp_dir tmp_file restore_result now offline=no
+    local settings target
 
-    wallet_choose_node "$title" || return
+    wallet_choose_node "$title" restore || return
+    [ "${WALLET_NODE_STATE[$WALLET_NODE]}" = "STOPPED" ] && offline=yes
 
-    if ! wallet_cli help restorewallet 2>/dev/null | grep -q '^restorewallet'; then
+    if [ "$offline" = "no" ] && ! wallet_cli help restorewallet 2>/dev/null | grep -q '^restorewallet'; then
         dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nRestoring a wallet needs DigiByte Core 8.26 or later.\n\nPlease update DigiByte Core first (main menu > Update)." 10 "${c}"
+        return
+    fi
+    if [ "$offline" = "yes" ] && ! wallet_find_dir; then
+        dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\nThe ${WALLET_NODE_NAME[$WALLET_NODE]} wallet folder could not be found." 8 "${c}"
         return
     fi
 
     usb_stick_mount "$title" || return
 
-    # Backups for this node's chain and network, newest backups first and previous backups (.old) after them
+    # Backups for this chain and network, newest backups first and previous backups (.old) after them
     dir="/media/usbbackup/diginode_backup/${WALLET_NODE_CHAIN[$WALLET_NODE]}/${WALLET_NODE_NETWORK[$WALLET_NODE]}"
     if [ -d "$dir" ]; then
         for backup in "$dir"/*.dat "$dir"/*.dat.old; do
@@ -9157,10 +9275,10 @@ wallet_restore_usb() {
         esac
     done
 
-    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --cancel-label "Cancel" --menu "\nWhich backup would you like to restore to the ${WALLET_NODE_NAME[$WALLET_NODE]} node?\n\n" 18 "${c}" 8 "${backup_choices[@]}" 3>&2 2>&1 1>&3) || { usb_stick_unmount; return; }
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --cancel-label "Cancel" --menu "\nWhich backup would you like to restore to ${WALLET_NODE_NAME[$WALLET_NODE]}?\n\n" 18 "${c}" 8 "${backup_choices[@]}" 3>&2 2>&1 1>&3) || { usb_stick_unmount; return; }
     backup="${backups[$((choice-1))]}"
 
-    if ! wallet_ask_name "$title" "\nWhat would you like to call the restored wallet?\n\nIt must be a name that isn't already used on this node - your existing wallets are never replaced." "${suggested[$((choice-1))]}"; then
+    if ! wallet_ask_name "$title" "\nWhat would you like to call the restored wallet?\n\nIt must be a name that isn't already used on ${WALLET_NODE_NAME[$WALLET_NODE]} - your existing wallets are never replaced." "${suggested[$((choice-1))]}"; then
         usb_stick_unmount
         return
     fi
@@ -9180,6 +9298,65 @@ wallet_restore_usb() {
         return
     fi
     usb_stick_unmount
+
+    if [ "$offline" = "yes" ]; then
+        restore_result=""
+        target="$WALLET_DIR/$WALLET_NEW_NAME"
+        settings="${WALLET_NODE_DATADIR[$WALLET_NODE]}/settings.json"
+
+        str="Restoring '$WALLET_NEW_NAME' to the ${WALLET_NODE_NAME[$WALLET_NODE]} wallet folder..."
+        printf "%b %s" "${INFO}" "${str}"
+
+        # Check the backup opens as a wallet before putting it in place
+        wallet_verify_backup "$tmp_file" "$tmp_dir"
+        case $? in
+            1) restore_result="The backup could not be opened as a wallet." ;;
+        esac
+        # Never write while a node is using this network's data, or over anything that is already there
+        if [ "$restore_result" = "" ] && fuser -s "${WALLET_NODE_DATADIR[$WALLET_NODE]}/.lock" 2>/dev/null; then
+            restore_result="A DigiByte node has started using the ${WALLET_NODE_NAME[$WALLET_NODE]} data. Please try again."
+        fi
+        if [ "$restore_result" = "" ] && [ -e "$target" ]; then
+            restore_result="$target already exists."
+        fi
+        if [ "$restore_result" = "" ] && [ -f "$settings" ] && ! jq -e 'type == "object"' "$settings" >/dev/null 2>&1; then
+            restore_result="$settings could not be read, so the wallet can't be added to the node's startup list."
+        fi
+
+        if [ "$restore_result" = "" ]; then
+            sudo -u "$USER_ACCOUNT" mkdir -m 700 "$target" \
+                && sudo -u "$USER_ACCOUNT" cp "$tmp_file" "$target/wallet.dat" \
+                && chmod 600 "$target/wallet.dat" \
+                && [ "$(sha256sum < "$tmp_file")" = "$(sha256sum < "$target/wallet.dat")" ] \
+                || restore_result="The wallet could not be copied into $target."
+        fi
+
+        # Add it to the list of wallets the node loads when it starts
+        if [ "$restore_result" = "" ]; then
+            [ -f "$settings" ] || echo '{}' | sudo -u "$USER_ACCOUNT" tee "$settings" >/dev/null
+            if sudo -u "$USER_ACCOUNT" jq --arg n "$WALLET_NEW_NAME" '.wallet = (((.wallet // []) + [$n]) | unique)' "$settings" > "$tmp_dir/settings.json" \
+                && [ -s "$tmp_dir/settings.json" ] \
+                && sudo -u "$USER_ACCOUNT" cp "$tmp_dir/settings.json" "$settings"; then
+                :
+            else
+                restore_result="The wallet was put in place, but could not be added to the node's startup list ($settings)."
+            fi
+            rm -f "$tmp_dir/settings.json"
+        fi
+
+        rm -f "$tmp_file"; rmdir "$tmp_dir" 2>/dev/null
+
+        if [ "$restore_result" = "" ]; then
+            printf "%b%b %s Done!\\n\\n" "${OVER}" "${TICK}" "${str}"
+            wallet_backup_record_set "$WALLET_NEW_NAME" ""
+            dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z2The wallet has been restored\Z0 as '$WALLET_NEW_NAME' for ${WALLET_NODE_NAME[$WALLET_NODE]}.\n\nIts node isn't running, so the wallet will load the next time it runs. The node will then check the blockchain for the wallet's transactions, which can take a while." 13 "${c}"
+        else
+            printf "%b%b %s FAILED!\\n" "${OVER}" "${CROSS}" "${str}"
+            printf "%b %s\\n\\n" "${INDENT}" "$restore_result"
+            dialog --no-shadow --keep-tite --colors --backtitle "$title" --title "$title" --msgbox "\n\Z1The wallet could not be restored.\Z0\n\n$restore_result" "$(wallet_dialog_height "\n\nThe wallet could not be restored.\n\n$restore_result" 4)" "${c}"
+        fi
+        return
+    fi
 
     str="Restoring '$WALLET_NEW_NAME' to the ${WALLET_NODE_NAME[$WALLET_NODE]} node. The node checks the blockchain for the wallet's transactions, which can take a long time - please wait..."
     printf "%b %s" "${INFO}" "${str}"
@@ -9296,7 +9473,7 @@ wallet_delete() {
     local title="Delete Wallet"
     local wallet_choices=() i choice name display info balance="" funds_text="" backup_text warning_text confirm_text loss_text="" was_loaded confirm unload_result path ibd backup_date
 
-    wallet_choose_node "$title" || return
+    wallet_choose_node "$title" delete || return
     wallet_list_all
 
     if [ ${#WALLET_NAMES[@]} -eq 0 ]; then
