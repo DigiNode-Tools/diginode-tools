@@ -49,8 +49,28 @@ def read_notes(path):
     return notes
 
 
+SPONSORS_DATA_URL = "https://raw.githubusercontent.com/DigiNode-Tools/diginode-sponsors/main/"
+FEATURES_URL = "https://diginode.tools/features/"
+RPI_GUIDE_URL = "https://diginode.tools/raspberry-pi-setup/"
+REDDIT_PLANS = 4   # How many of sponsor-info.json's plans the Reddit post lists
+
+
+def sponsors_data(name):
+    """A JSON file from diginode-sponsors (sponsor-info.json, dgb-donate.json, featured.json), or {} if unavailable."""
+    try:
+        with urllib.request.urlopen(SPONSORS_DATA_URL + name, timeout=20) as r:
+            return json.load(r)
+    except Exception as e:   # The post still works without it - just with less detail
+        print(f"Note: couldn't read {name} from diginode-sponsors ({e})", file=sys.stderr)
+        return {}
+
+
 def reddit_post(version, notes):
-    """The title and markdown body of a Reddit post about the release."""
+    """The title and markdown body of a Reddit post about the release.
+
+    Written for r/Digibyte readers who may not know DigiNode Tools: what it is first, then what's new, then a clear
+    ask to support it - with the pitch, plans, tiers and links from diginode-sponsors' sponsor-info.json (the same
+    text as the Sponsors page), and the current DGB address from dgb-donate.json."""
     titles = [t for _, t, _, _ in notes if t]
     title = f"DigiNode Tools v{version} released"
     if titles:
@@ -58,17 +78,59 @@ def reddit_post(version, notes):
         title += f": {listed}"
     title = title[:297] + "..." if len(title) > 300 else title   # Reddit allows 300 characters
 
-    lines = [f"I've just released DigiNode Tools v{version}. DigiNode Tools makes it easy to run your own DigiByte "
-             f"node on a Raspberry Pi or Linux server.", "", "**What's new**", ""]
+    info = sponsors_data("sponsor-info.json")
+    links = info.get("links", {})
+    page = links.get("page", SPONSOR_URL)
+
+    lines = [f"I've just released **DigiNode Tools v{version}**.", "",
+             "**New to DigiNode Tools?** It's a free set of tools that makes it easy to run your own DigiByte full "
+             "node - on a Raspberry Pi, or any Ubuntu or Debian server at home or in the cloud. **DigiNode Setup** "
+             "installs and configures everything through simple menus, so no Linux experience is needed, and "
+             "**DigiNode Dashboard** shows how your node is doing at a glance. Every node helps keep the DigiByte "
+             f"network decentralised and secure. See everything it can do: {FEATURES_URL}", "",
+             "It's free, its code is public, and I build it in my spare time - so it depends on sponsors and "
+             "donations. If you'd like to see it keep improving, please consider supporting it (details below 💙).",
+             "", f"**What's new in v{version}**", ""]
     for note_type, note_title, text, images in notes:
         heading = f"**{note_type}: {note_title}** - " if note_title else f"**{note_type}:** "
         lines.append(f"- {heading}{text}")
         for url, _alt in images:
             lines.append(f"  ([screenshot]({url}))")
-    lines += ["", "**To update:** run `diginode-setup` and choose Update.", "",
-              f"Release notes: {RELEASE_NOTES_URL}", "",
-              f"*(I'm the developer of DigiNode Tools. It's free - if you find it useful, you can "
-              f"support it at {SPONSOR_URL})*"]
+    lines += ["", "**Already running a DigiNode?** Run `diginode-setup` and choose Update.", "",
+              f"**Want to run one?** Follow the step-by-step Raspberry Pi guide: {RPI_GUIDE_URL} - or on Ubuntu or "
+              "Debian, run `curl -sSL setup.diginode.tools | bash`", "",
+              f"Full release notes: {RELEASE_NOTES_URL}", "", "---", "", "**💙 Please support DigiNode Tools**", ""]
+    if info.get("pitch"):
+        lines += [info["pitch"], ""]
+    # The first few plans (the rest, and what support pays for, are on the Sponsors page - keeps the post short)
+    plans = info.get("plans", [])[:REDDIT_PLANS]
+    if plans:
+        lines += ["Sponsorship brings these closer - some of the things I'd like to build next:", ""]
+        lines += [f"- {p}" for p in plans] + [f"- ...and more: {page}", ""]
+
+    tiers = {t.get("name"): t for t in info.get("tiers", [])}
+    monthly = [t["monthly"] for t in info.get("tiers", []) if t.get("monthly") and t.get("name") != "Featured Sponsor"]
+    ways = ["**Ways to support:**", ""]
+    ways.append(f"- **Sponsor monthly on GitHub**" + (f" (from ${min(monthly)}/month)" if monthly else "")
+                + f": {links.get('github', 'https://github.com/sponsors/DigiNode-Tools')}")
+    ways.append(f"- **Donate once, or monthly, on Ko-fi** (card or PayPal): {links.get('kofi', 'https://ko-fi.com/diginode')}")
+    address = sponsors_data("dgb-donate.json").get("address", "")
+    if re.fullmatch(r"dgb1[02-9ac-hj-np-z]{20,90}", address or ""):
+        ways.append(f"- **Send DGB** to the DigiNode Tools donation address: `{address}`")
+    featured = tiers.get("Featured Sponsor")
+    places = info.get("featured_places", 0)
+    if featured and places:
+        taken = len(sponsors_data("featured.json").get("featured", []))
+        free = max(0, places - taken)
+        if free:
+            # Same promise as the Featured Sponsor tier's perk in sponsor-info.json
+            ways.append(f"- **For businesses and projects:** become a Featured Sponsor (${featured.get('monthly')}/month) "
+                        "and put your brand in front of DigiByte node runners: your logo and link on the diginode.tools "
+                        "home page and sponsors page, and on the DigiNode Tools GitHub page, plus your name and link "
+                        "shown to everyone using DigiNode Setup and DigiNode Dashboard. "
+                        f"{free} of {places} places {'is' if free == 1 else 'are'} free.")
+    lines += ways + ["", f"Everything about sponsoring, and where your support goes: {page}", "",
+                     "Thank you! - Olly (I'm the developer of DigiNode Tools)"]
     return title, "\n".join(lines)
 
 
