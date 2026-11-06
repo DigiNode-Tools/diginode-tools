@@ -6192,6 +6192,16 @@ printf "  ╚══════════════════════�
 echo ""
 
 echo "                         Running Port Tests..."
+
+# The port numbers: set here because the messages for a skipped test use them too
+if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
+else
+    DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
+fi
+if [ "$DGB2_LISTEN_PORT" != "" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
+fi
 echo ""
 
 PORT_TEST_DATE=$(date +%s)
@@ -6571,7 +6581,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6582,7 +6592,7 @@ elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABL
 
 elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6592,7 +6602,7 @@ elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6823,7 +6833,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6834,7 +6844,7 @@ elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABL
 
 elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6844,7 +6854,7 @@ elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  

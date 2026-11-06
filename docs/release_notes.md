@@ -1,7 +1,7 @@
 ## DigiNode Tools Release Notes
 
 ### DigiNode Tools - Unreleased
-- Fix: **Tidier DigiNode Dashboard** - The port test no longer shows "Location: null" when a port is closed. The testnet node now says Peers, like the mainnet node. The DigiAsset Core message now fits inside its box on a 100 column terminal.
+- Fix: **Tidier DigiNode Dashboard** - The port test no longer shows "Location: null" when a port is closed. The testnet node now says Peers, like the mainnet node. The DigiAsset Core message now fits inside its box on a 100 column terminal. A port test skipped because it already passed now shows the port number.
 
 ### DigiNode Tools v26.11.01 - 2026-11-03
 - New: **Wallets menu** - The DigiNode Setup main menu has a new Wallets option, which replaces Backup and Restore. From it you can view your wallets and their balances, create a new wallet (with a passphrase to encrypt it, which is recommended), back up your wallets to a USB stick, restore a wallet from a USB stick backup, and delete a wallet you no longer need. DigiNode Setup now remembers when each wallet was last backed up, and shows it when you view your wallets. You can back up and restore both mainnet and testnet wallets, even if the node for that network isn't running - a wallet restored for a node that isn't running loads the next time it runs. Restoring never replaces an existing wallet - the backup is restored as a new wallet, with a name you choose - and it can also restore a backup made with an earlier version of DigiNode Tools.
