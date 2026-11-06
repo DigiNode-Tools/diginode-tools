@@ -1,15 +1,13 @@
 name: Release DigiNode Tools
 
-# Releases whatever is on develop: gives it this month's next version number (e.g. v26.10.01), updates the version and
-# date everywhere, merges develop into main, tags it, and publishes the GitHub release with its release notes. Then
-# develop gets a placeholder version for the next release.
+# On a release Tuesday: what sponsors have had for two weeks (the preview branch) is released to everyone, and what is
+# on develop becomes the new Sponsors Preview. See .github/release.sh.
 #
 # A dry run does all of this without pushing, tagging or publishing anything, and shows what would happen.
 #
-# Scheduled release: every other Tuesday at 10:00 UK time (from 20 October 2026; set in .github/release.sh), if there
-# is anything under "Unreleased" in the release notes.
-# Only merge features into develop when they are ready to release. For an emergency fix, merge it into develop and
-# run this manually (untick Dry run) to release straight away.
+# Scheduled: every other Tuesday at 10:00 UK time (from 20 October 2026; set in .github/release.sh).
+# Run by hand: releases the waiting preview straight away (a fix for it goes on develop and the preview branch), then
+# starts a new one. If no preview is waiting, tick Emergency to release develop straight to everyone.
 # (Scheduled runs use this file from main, so changes to the schedule only take effect once they are on main.)
 
 on:
@@ -19,6 +17,10 @@ on:
         description: "Dry run - show what would happen, without releasing anything"
         type: boolean
         default: true
+      emergency:
+        description: "Emergency: no preview is waiting, so release develop straight to everyone"
+        type: boolean
+        default: false
   schedule:
     # Tuesdays at 09:07 and 10:07 UTC - one of these is 10:xx UK time, summer or winter. release.sh due checks the time,
     # and that it's a release Tuesday (every other Tuesday)
@@ -46,19 +48,22 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      - name: Is a release due?
+      # release.sh runs from a copy: the steps below switch branches, which would change the file while it runs
+      - name: What should this run do?
         id: due
+        env:
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+          EMERGENCY: ${{ github.event_name == 'workflow_dispatch' && inputs.emergency }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            if reason=$(.github/release.sh due); then
-              echo "go=true" >> "$GITHUB_OUTPUT"
-            else
-              echo "go=false" >> "$GITHUB_OUTPUT"
-            fi
-            echo "$reason"
-          else
-            echo "go=true" >> "$GITHUB_OUTPUT"
-          fi
+          git branch -f main origin/main
+          git fetch -q origin preview:preview 2>/dev/null || git branch -f preview origin/main
+          cp .github/release.sh "$RUNNER_TEMP/release.sh"
+          echo "RELEASE_ROOT=$PWD" >> "$GITHUB_ENV"
+          echo "REL=$RUNNER_TEMP/release.sh" >> "$GITHUB_ENV"
+          RELEASE_ROOT=$PWD "$RUNNER_TEMP/release.sh" plan > "$RUNNER_TEMP/plan"
+          cat "$RUNNER_TEMP/plan"
+          cat "$RUNNER_TEMP/plan" >> "$GITHUB_OUTPUT"
+          echo "go=$(sed -n 's/^release=//p' "$RUNNER_TEMP/plan")" >> "$GITHUB_OUTPUT"
 
       - name: Check the scripts
         if: ${{ steps.due.outputs.go == 'true' }}
@@ -68,33 +73,24 @@ jobs:
           bash -n .github/release.sh
           echo "Syntax OK"
 
-      - name: Work out the version and prepare the release
+      - name: Prepare the release, merge it into main and tag it
         if: ${{ steps.due.outputs.go == 'true' }}
         id: prep
         env:
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
-        run: |
-          version=$(.github/release.sh version)
-          if git rev-parse -q --verify "refs/tags/v$version" > /dev/null; then
-            echo "::error::Tag v$version already exists"; exit 1
-          fi
-          .github/release.sh prepare "$version"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Commit, and merge develop into main
-        if: ${{ steps.due.outputs.go == 'true' }}
-        env:
-          VERSION: ${{ steps.prep.outputs.version }}
+          SOURCE: ${{ steps.due.outputs.source }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -qam "Release v$VERSION"
-          git checkout -q main
-          # main should always end up matching develop. If a file was also changed on main (e.g. release notes or
-          # release files copied there by hand), develop's version wins, so the merge can't stop with a conflict.
-          git merge --no-ff -q -X theirs develop -m "Release v$VERSION (merge develop into main)"
-          git tag -a "v$VERSION" -m "DigiNode Tools v$VERSION"
-          echo "Merged into main and tagged v$VERSION (locally)"
+          version=$("$REL" build "$SOURCE")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Merged $SOURCE into main and tagged v$version (locally)"
+
+      - name: Show what a cut would do (dry run)
+        if: ${{ env.DRY_RUN == 'true' }}
+        env:
+          CUT: ${{ steps.due.outputs.cut }}
+        run: echo "Start a new Sponsors Preview from develop - $CUT" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Summary
         if: ${{ steps.due.outputs.go == 'true' }}
@@ -110,10 +106,7 @@ jobs:
               echo "## Releasing DigiNode Tools v$VERSION"
             fi
             echo
-            echo "### What changes on develop"
-            echo '```diff'
-            git diff origin/develop develop -- diginode-setup.sh diginode.sh docs/release_notes.md
-            echo '```'
+            echo "### Released from: ${{ steps.due.outputs.source }}"
             echo "### Commits going into main"
             echo '```'
             git log --oneline origin/main..main
@@ -152,8 +145,7 @@ jobs:
           VERSION: ${{ steps.prep.outputs.version }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
         run: |
-          # Push develop and main together, so they can't end up out of step
-          git push --atomic origin develop main "v$VERSION"
+          git push --atomic origin main "v$VERSION"
           gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest
 
       # Post the release notes in the DigiNode Tools Telegram group (as "DigiNode Tools Releases") and pin them.
@@ -232,8 +224,32 @@ jobs:
         if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
         env:
           VERSION: ${{ steps.prep.outputs.version }}
+          SOURCE: ${{ steps.due.outputs.source }}
         run: |
-          git checkout -q develop
-          .github/release.sh bump "$VERSION"
-          git commit -qam "Develop: placeholder version for the next release"
+          "$REL" after "$VERSION" "$SOURCE"
           git push origin develop
+
+      # What is on develop becomes the new preview. With nothing new, the preview is simply the latest release.
+      - name: Start the next Sponsors Preview
+        id: cut
+        if: ${{ env.DRY_RUN != 'true' && (steps.due.outputs.cut == 'true' || steps.due.outputs.go == 'true') }}
+        env:
+          CUT: ${{ steps.due.outputs.cut }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_OWNER_CHAT_ID: ${{ secrets.TELEGRAM_OWNER_CHAT_ID }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$CUT" = "true" ]; then
+            preview_version=$("$REL" cut)
+            git push --atomic --force-with-lease=preview origin develop preview
+            text="Sponsors Preview v$preview_version has started. Sponsors will see it as an update; everyone else gets it on the next release Tuesday."
+          else
+            git push --force origin main:preview
+            text="No new Sponsors Preview: there is nothing new on develop."
+          fi
+          echo "$text"
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_OWNER_CHAT_ID" ]; then
+            curl -s --max-time 15 -o /dev/null "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+              --data-urlencode "chat_id=$TELEGRAM_OWNER_CHAT_ID" --data-urlencode "text=$text" || true
+          fi

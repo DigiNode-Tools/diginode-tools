@@ -3353,6 +3353,9 @@ get_dgnt_local_version() {
     elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL} Preview"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
         # Feature branch (installed with --dgntbranch=) - show the branch name
         DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
@@ -4482,8 +4485,8 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
     printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
     fi
 
-    # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(get_dgnt_release_version)
+    # Check for new release of DigiNode Tools on Github (or the Sponsors Preview, if this DigiNode is on it)
+    dgnt_ver_release_query=$(get_dgnt_channel_version)
     if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
