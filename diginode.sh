@@ -5315,9 +5315,9 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     if [ "$DGB2_STATUS" = "running" ]; then # Only display if secondary DigiByte Node is running
         if [ $DGB2_CONNECTIONS -le 8 ]; then
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
@@ -5429,7 +5429,7 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "
      # Clickable link. The link codes take up no space on screen, so widen the column by their length to keep the border aligned.
      dga_sponsor_link=$(printf '\e]8;;%s\a%s\e]8;;\a' "$DGNT_SPONSORS_URL" "$DGNT_SPONSORS_URL")
      printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
@@ -6423,17 +6423,17 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_MAINNET_PORT_TEST_ISP=$DGB_MAINNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION=$DGB_MAINNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION="$DGB_MAINNET_PORT_TEST_QUERY_CITY, $DGB_MAINNET_PORT_TEST_QUERY_REGION, $DGB_MAINNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
@@ -6677,17 +6677,17 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_TESTNET_PORT_TEST_ISP=$DGB_TESTNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION=$DGB_TESTNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION="$DGB_TESTNET_PORT_TEST_QUERY_CITY, $DGB_TESTNET_PORT_TEST_QUERY_REGION, $DGB_TESTNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
