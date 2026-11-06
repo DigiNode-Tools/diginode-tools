@@ -229,11 +229,12 @@ print(n.strftime('%A %d %B %Y'))" "$FIRST_RELEASE_DAY" "$uk_day" "$RELEASE_EVERY
 
     build)
         source_branch="${2:?build needs a source branch}"
+        exec 3>&1 1>&2   # Only the version goes to stdout: the workflow reads it
         cd "$ROOT"
         git checkout -q "$source_branch"
-        ver=$("$0" version)
+        ver=$(version_for_day "$TODAY")
         git rev-parse -q --verify "refs/tags/v$ver" > /dev/null && fail "Tag v$ver already exists"
-        "$0" prepare "$ver" >&2
+        "$0" prepare "$ver"
         git commit -qam "Release v$ver"
         tools_from=${TOOLS_FROM:-develop}
         git checkout -q main
@@ -245,7 +246,7 @@ print(n.strftime('%A %d %B %Y'))" "$FIRST_RELEASE_DAY" "$uk_day" "$RELEASE_EVERY
             git diff --cached --quiet || git commit -q --amend --no-edit
         fi
         git tag -a "v$ver" -m "DigiNode Tools v$ver"
-        echo "$ver"
+        echo "$ver" >&3
         ;;
 
     after)
@@ -267,12 +268,13 @@ PYEOF
             "$ROOT/.github/archive-release-notes.py" "$NOTES" "$MORE" "$KEEP_RELEASES"
             git checkout -q main -- docs/latest-release.json
         fi
-        "$0" bump "$ver" >&2
+        "$0" bump "$ver"
         git add -A docs diginode-setup.sh diginode.sh
         git commit -qm "Develop: placeholder version for the next release"
         ;;
 
     cut)
+        exec 3>&1 1>&2   # Only the version goes to stdout: the workflow reads it
         cd "$ROOT"
         git checkout -q develop
         [ -z "$(preview_heading)" ] || fail "There is already a Sponsors Preview waiting to be released"
@@ -284,14 +286,14 @@ PYEOF
         # which is what tells the website's banner that a release is coming.
         git checkout -q -B preview develop
         set_version "$ver"
-        git commit -qam "Sponsors Preview v$ver (to be released on $release_day)"
+        git commit -q --allow-empty -am "Sponsors Preview v$ver (to be released on $release_day)"
 
         # Develop: these notes are spoken for, and new ones start again under a new Unreleased heading
         git checkout -q develop
         sed -i.bak "s/^$UNRELEASED\$/$UNRELEASED\n\n$PREVIEW_HEADING ($TODAY)/" "$NOTES" && rm -f "$NOTES.bak"
         set_version "$(version_after "$ver")"
         git commit -qam "Sponsors Preview v$ver started: develop moves on to the next release"
-        echo "$ver"
+        echo "$ver" >&3
         ;;
 
     archive)
