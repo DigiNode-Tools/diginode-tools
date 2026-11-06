@@ -6199,7 +6199,7 @@ if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
 else
     DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
 fi
-if [ "$DGB2_LISTEN_PORT" != "" ]; then
+if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB2_LISTEN_PORT" != "" ]; then
     DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
 fi
 echo ""
