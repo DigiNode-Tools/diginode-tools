@@ -9641,9 +9641,9 @@ wallet_delete() {
 # Sponsors Preview: a thank you for sponsoring. This DigiNode gets each release of DigiNode Tools two weeks before
 # everyone else, from the preview branch (.github/release.sh moves it on each release Tuesday).
 #   GitHub sponsors sign in with GitHub (device flow, read:user only). The sign-in is kept in SPONSOR_PREVIEW_FILE and
-#   checked again on each run of DigiNode Setup. Ko-fi members enter the code from their welcome message.
-#   access.json in diginode-sponsors holds the GitHub app's client ID and a fingerprint of the current Ko-fi code, so
-#   both can change without a release. This is a thank you, not a lock: the code is public on purpose.
+#   checked again on each run of DigiNode Setup. Ko-fi members: personal monthly codes are planned (see CLAUDE.md).
+#   access.json in diginode-sponsors holds the GitHub app's client ID, so it can change without a release.
+#   This is a thank you, not a lock: the code is public on purpose.
 #   If someone stops sponsoring nothing is removed: they stay put, then rejoin normal releases when these catch up.
 # ------------------------------------------------------------------------------
 
@@ -9692,32 +9692,13 @@ sponsor_preview_access() {
     curl -sf --max-time 10 "$DGNT_SPONSORS_DATA_URL/access.json" 2>/dev/null | jq -r ".preview.$1 // empty" 2>/dev/null
 }
 
-sponsor_preview_code_fingerprint() {
-    printf 'diginode-preview:%s' "$1" | sha256sum | cut -d' ' -f1
-}
-
-# Is this DigiNode's saved access still good? Prints: active, none, signedout, changed or unknown
+# Is this DigiNode's saved access still good? Prints: active, none, signedout or unknown
 sponsor_preview_status() {
-    local value current
-    value=$(sponsor_preview_saved VALUE)
-    case "$(sponsor_preview_saved METHOD)" in
-        github)
-            sponsor_preview_github_status "$value"
-            ;;
-        kofi)
-            current=$(sponsor_preview_access kofi_code_sha256)
-            if [ -z "$current" ]; then
-                echo "unknown"
-            elif [ "$current" = "$value" ]; then
-                echo "active"
-            else
-                echo "changed"
-            fi
-            ;;
-        *)
-            echo "signedout"
-            ;;
-    esac
+    if [ "$(sponsor_preview_saved METHOD)" = "github" ]; then
+        sponsor_preview_github_status "$(sponsor_preview_saved VALUE)"
+    else
+        echo "signedout"
+    fi
 }
 
 # Run at the start of DigiNode Setup. A developer flag (--dgntdev etc.) takes priority. Never asks a question, so it
@@ -9736,7 +9717,6 @@ sponsor_preview_apply() {
             printf "%b This DigiNode has left the Sponsors Preview" "${INFO}"
             case "$status" in
                 none) printf ", as it no longer has a monthly sponsorship.\\n" ;;
-                changed) printf ", as the Ko-fi code has changed.\\n" ;;
                 *) printf ", as it needs you to sign in with GitHub again.\\n" ;;
             esac
             printf "%b Nothing is removed. To rejoin: diginode-setup --sponsorpreview\\n\\n" "${INDENT}"
@@ -9801,22 +9781,6 @@ sponsor_preview_github_signin() {
     return 1
 }
 
-sponsor_preview_kofi_code() {
-    local code current fingerprint
-    code=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Ko-fi members" --inputbox "\nEnter the code from your Ko-fi welcome message:" 9 "${c}" 3>&1 1>&2 2>&3) || return 1
-    code=$(printf '%s' "$code" | tr -d '[:space:]')
-    current=$(sponsor_preview_access kofi_code_sha256)
-    fingerprint=$(sponsor_preview_code_fingerprint "$code")
-    if [ -z "$current" ]; then
-        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nThe code couldn't be checked. Please try again later." 8 "${c}"
-        return 1
-    elif [ "$fingerprint" != "$current" ]; then
-        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nThat code isn't right. Please check it and try again." 8 "${c}"
-        return 1
-    fi
-    sponsor_preview_save kofi "$fingerprint"
-}
-
 # Join now, and offer to install the preview straight away
 sponsor_preview_joined() {
     sponsor_preview_setting "YES"
@@ -9850,12 +9814,12 @@ menu_sponsor_preview() {
 
     choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n\nPreviews have had less testing than normal releases. Your DigiByte Core version isn't affected.\n" 18 "${c}" 4 \
         "1 GitHub" "I sponsor on GitHub: sign in to check." \
-        "2 Ko-fi" "I'm a Ko-fi member: enter my code." \
+        "2 Ko-fi" "I'm a Ko-fi member." \
         "3 Sponsor" "How to become a sponsor." \
         "4 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
     case "$choice" in
         "1 GitHub") sponsor_preview_github_signin && sponsor_preview_joined ;;
-        "2 Ko-fi") sponsor_preview_kofi_code && sponsor_preview_joined ;;
+        "2 Ko-fi") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Ko-fi members" --msgbox "\nThe Sponsors Preview for Ko-fi members is coming soon.\n\nGitHub Sponsors works today, and checks your sponsorship automatically." 11 "${c}" ;;
         "3 Sponsor") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Become a sponsor" --msgbox "\nSponsor DigiNode Tools from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 10 "${c}" ;;
     esac
     menu_existing_install
