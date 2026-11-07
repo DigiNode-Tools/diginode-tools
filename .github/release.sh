@@ -21,7 +21,8 @@
 #                                         and move older ones to the top of docs/release_notes_more.md. 'prepare' does
 #                                         this automatically.
 #
-# Release notes go under a "### DigiNode Tools - Unreleased" heading at the top of docs/release_notes.md. Each release
+# Release notes go under a "### DigiNode Tools - Unreleased" heading at the top of docs/release_notes.md, optionally
+# starting with an "Intro: ..." line that sums up the whole release. Each release
 # has a "### DigiNode Tools vYY.MM.NN - YYYY-MM-DD" heading.
 
 set -euo pipefail
@@ -85,12 +86,15 @@ case "${1:-}" in
         heading="DigiNode Tools v$ver - $TODAY"
         sed -i.bak "s/^$UNRELEASED\$/### $heading/" "$NOTES" && rm -f "$NOTES.bak"
 
-        # The GitHub release shows the heading (as plain text), a blank line, then the entries (as earlier releases)
+        # The GitHub release shows the heading (as plain text), a blank line, then the entries (as earlier releases).
+        # An "Intro: ..." line (the release's summary, also the website post's first paragraph) becomes a paragraph
+        # of its own above the entries.
         notes_file="${NOTES_FILE:-$ROOT/release-notes.md}"
         {
             echo "$heading"
             echo ""
-            awk -v h="### $heading" '$0 == h { on = 1; next } on && /^### DigiNode Tools v/ { exit } on && !/^\[View earlier releases\]/' "$NOTES" | sed '/^[[:space:]]*$/d'
+            awk -v h="### $heading" '$0 == h { on = 1; next } on && /^### DigiNode Tools v/ { exit } on && !/^\[View earlier releases\]/' "$NOTES" | sed '/^[[:space:]]*$/d' \
+                | awk '/^Intro:/ { sub(/^Intro:[[:space:]]*/, ""); print; print ""; next } { print }'
         } > "$notes_file"
 
         # The website shows the latest releases; older ones move to release_notes_more.md
