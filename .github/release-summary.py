@@ -13,7 +13,7 @@
 #   .github/release-summary.py send VERSION NOTES_FILE      Send them
 #
 # Sending needs TELEGRAM_BOT_TOKEN and TELEGRAM_OWNER_CHAT_ID (the owner's Telegram user ID). The workflow also passes
-# what happened: GITHUB_RELEASE_URL, TELEGRAM_POST_URL / TELEGRAM_OUTCOME and BLUESKY_POST_URL / BLUESKY_OUTCOME.
+# what happened: GITHUB_RELEASE_URL and TELEGRAM_POST_URL / TELEGRAM_OUTCOME (Bluesky and Nostr are posted by the website).
 
 import html
 import json
@@ -178,7 +178,7 @@ def build_messages(version, notes_file):
     summary = [f"📦 <b>DigiNode Tools v{version} was released</b>", "",
                f"✅ GitHub release: <a href=\"{html.escape(gh_url)}\">view</a>" if gh_url else "✅ GitHub release",
                status("Telegram group", os.environ.get("TELEGRAM_OUTCOME", ""), os.environ.get("TELEGRAM_POST_URL", "")),
-               status("Bluesky thread", os.environ.get("BLUESKY_OUTCOME", ""), os.environ.get("BLUESKY_POST_URL", "")),
+               "🕐 Blog post, Bluesky and Nostr: posted by diginode.tools within the hour",
                "", "<b>What was published:</b>"]
     summary += [f"• {html.escape(t or text[:60], quote=False)}" for _, t, text, _ in notes]
 
