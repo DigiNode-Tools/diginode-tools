@@ -26,7 +26,7 @@ on:
 
 permissions:
   contents: write
-  issues: write   # To report a failed Telegram or Bluesky announcement
+  issues: write   # To report a failed Telegram announcement
 
 concurrency:
   group: release
@@ -127,13 +127,11 @@ jobs:
               .github/telegram-announce.py preview "$VERSION" "$NOTES_FILE"
               echo '```'
             fi
-            if [ -x .github/bluesky-announce.py ]; then
-              echo
-              echo "### Bluesky thread"
-              echo '```'
-              .github/bluesky-announce.py preview "$VERSION" "$NOTES_FILE"
-              echo '```'
-            fi
+            echo
+            echo "### Bluesky and Nostr announcement (posted by diginode.tools with the blog post)"
+            echo '```'
+            .github/announce.py show docs/release_notes.md "### DigiNode Tools v$VERSION - $(date -u +%Y-%m-%d)" 2>&1 || true
+            echo '```'
             if [ -x .github/release-summary.py ]; then
               echo
               echo "### Private summary for Olly (with the Reddit post)"
@@ -172,23 +170,10 @@ jobs:
             .github/telegram-announce.py send "$VERSION" "$NOTES_FILE"
           fi
 
-      # Post the release notes on Bluesky as a thread (from the DigiNode Tools account). Skipped until the app password
-      # secret is set. If this fails, the release has still been published - an issue is opened instead.
-      - name: Announce on Bluesky
-        id: bluesky
-        if: ${{ steps.due.outputs.go == 'true' && env.DRY_RUN != 'true' }}
-        continue-on-error: true
-        env:
-          BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
-          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
-          VERSION: ${{ steps.prep.outputs.version }}
-          NOTES_FILE: ${{ runner.temp }}/release-notes.md
-        run: |
-          if [ -z "$BLUESKY_APP_PASSWORD" ] || [ -z "$BLUESKY_HANDLE" ]; then
-            echo "Bluesky isn't set up yet (BLUESKY_HANDLE variable / BLUESKY_APP_PASSWORD secret) - skipping"
-          elif [ -x .github/bluesky-announce.py ]; then
-            .github/bluesky-announce.py send "$VERSION" "$NOTES_FILE"
-          fi
+      # Bluesky and Nostr: no longer posted from here. The diginode.tools website writes the release's blog post, then
+      # posts the Announce line from the release notes, with a link to the post, on Bluesky (Atmosphere Publishing,
+      # which also makes the post's comment thread) and Nostr - see the website repo's release-post workflow. The old
+      # Bluesky thread (.github/bluesky-announce.py) was switched off on 2026-11-10 (Olly's choice).
 
       # Send Olly a private Telegram message: what was published (and whether each announcement worked), plus a
       # ready-made Reddit post to copy. Runs even if an announcement failed, as long as the release was published.
@@ -201,23 +186,12 @@ jobs:
           GITHUB_RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ steps.prep.outputs.version }}
           TELEGRAM_OUTCOME: ${{ steps.announce.outcome }}
           TELEGRAM_POST_URL: ${{ steps.announce.outputs.post_url }}
-          BLUESKY_OUTCOME: ${{ steps.bluesky.outcome }}
-          BLUESKY_POST_URL: ${{ steps.bluesky.outputs.post_url }}
           VERSION: ${{ steps.prep.outputs.version }}
           NOTES_FILE: ${{ runner.temp }}/release-notes.md
         run: |
           if [ -x .github/release-summary.py ]; then
             .github/release-summary.py send "$VERSION" "$NOTES_FILE"
           fi
-
-      - name: Report a failed Bluesky announcement
-        if: ${{ steps.bluesky.outcome == 'failure' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.prep.outputs.version }}
-        run: |
-          gh issue create --title "Bluesky announcement failed for v$VERSION" \
-            --body "DigiNode Tools v$VERSION was released, but the Bluesky thread couldn't be posted (or was only partly posted). See the workflow run for the error: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       - name: Report a failed Telegram announcement
         if: ${{ steps.announce.outcome == 'failure' }}
