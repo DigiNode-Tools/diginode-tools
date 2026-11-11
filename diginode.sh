@@ -5435,6 +5435,9 @@ if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
 elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
+elif [ "$DGA_STATUS" = "not_detected" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+     # Sponsors aren't asked again (Olly 2026-11-11)
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "DigiAsset Core support is on its way." " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
      printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "

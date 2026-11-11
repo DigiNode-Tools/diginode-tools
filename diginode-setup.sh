@@ -11378,7 +11378,21 @@ display_dgb_donation_qrcode() {
     echo "               $dgb_address"
 }
 
-donation_qrcode() {  
+donation_qrcode() {
+
+    # Sponsors on the Sponsors Preview (their sponsorship is checked on every DigiNode Setup run) aren't asked again
+    # (Olly 2026-11-11): a thank you instead. The Featured Sponsors stay, as they paid to be seen.
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        printf " =============== ${txtbylw}THANK YOU FOR SPONSORING DIGINODE TOOLS${txtrst} ===============\\n\\n"
+        echo "   Your support is what keeps DigiNode Tools improving. As a sponsor,"
+        echo "   you get each new release two weeks before everyone else."
+        echo "   Thank you, Olly"
+        echo ""
+        display_featured_sponsors
+        echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
+        echo ""
+        return
+    fi
 
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
