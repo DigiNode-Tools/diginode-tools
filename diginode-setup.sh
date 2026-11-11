@@ -387,6 +387,94 @@ get_dgnt_preview_version() {
     fi
 }
 
+# The day the waiting Sponsors Preview is released to everyone, as YYYY-MM-DD: the next release Tuesday (every 14 days
+# from 2026-10-20, as in .github/release.sh), or today if it's a release Tuesday before 10:00 UK time.
+dgnt_preview_public_day() {
+    local first=1792454400 today_uk now days next   # first = 2026-10-20 00:00 UTC
+    today_uk=$(TZ=Europe/London date +%Y-%m-%d)
+    now=$(date -u -d "$today_uk" +%s 2>/dev/null) || return 0
+    days=$(( (now - first) / 86400 ))
+    if [ $(( days % 14 )) -eq 0 ] && [ "$((10#$(TZ=Europe/London date +%H)))" -lt 10 ]; then
+        next=$now
+    else
+        next=$(( first + (days / 14 + 1) * 14 * 86400 ))
+    fi
+    date -u -d "@$next" +%Y-%m-%d
+}
+
+# Save a setting in diginode.settings (adding it if this DigiNode's settings file is older than the setting)
+dgnt_save_setting() {
+    if grep -q "^$1=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^$1=/s|.*|$1=\"$2\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "$1=\"$2\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# What the waiting Sponsors Preview brings, for the "Coming on ..." line shown to everyone else when quitting the
+# Dashboard: the bold titles of the notes under "Unreleased" on the preview branch, its version and its public day.
+# Saved in diginode.settings (DGNT_PREVIEW_VER, DGNT_PREVIEW_TITLES, DGNT_PREVIEW_PUBLIC). Empty when there is no
+# preview, or nothing new in it.
+dgnt_check_preview_coming() {
+    local notes titles ver=""
+    notes=$(curl -sf --max-time 10 https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/docs/release_notes.md 2>/dev/null)
+    titles=$(printf '%s\n' "$notes" | awk '$0 == "### DigiNode Tools - Unreleased" { on = 1; next } on && /^### / { exit } on && /^- / && match($0, /\*\*[^*]+\*\*/) { t = substr($0, RSTART + 2, RLENGTH - 4); out = out (out ? ", " : "") t } END { print out }')
+    titles=${titles//\"/}
+    titles=${titles//|/}
+    [ -n "$titles" ] && ver=$(get_dgnt_preview_version)
+    # Nothing is coming if the preview isn't newer than the latest release (e.g. read just as it was released)
+    if [ -n "$ver" ] && [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$ver")" -le "$(version "$DGNT_VER_RELEASE")" ]; then
+        ver=""
+    fi
+    [ -n "$ver" ] || titles=""
+    DGNT_PREVIEW_VER="$ver"; DGNT_PREVIEW_TITLES="$titles"
+    DGNT_PREVIEW_PUBLIC=""; [ -n "$titles" ] && DGNT_PREVIEW_PUBLIC=$(dgnt_preview_public_day)
+    dgnt_save_setting DGNT_PREVIEW_VER "$DGNT_PREVIEW_VER"
+    dgnt_save_setting DGNT_PREVIEW_TITLES "$DGNT_PREVIEW_TITLES"
+    dgnt_save_setting DGNT_PREVIEW_PUBLIC "$DGNT_PREVIEW_PUBLIC"
+}
+
+# "Coming on 15 Dec: A, B and 2 more." - whole titles that fit in the width, then how many more (same in motd/50-diginode)
+dgnt_preview_coming_text() {
+    local when="$1" max="$3" line="" t n=0 total shown=0
+    local IFS=$'\n'
+    local titles=($(printf '%s\n' "$2" | sed 's/, /\n/g'))
+    total=${#titles[@]}
+    for t in "${titles[@]}"; do
+        n=$(( n + 1 ))
+        local try="${line:+$line, }$t"
+        local rest=$(( total - n ))
+        local tail="."; [ $rest -gt 0 ] && tail=" and $rest more."
+        if [ $shown -eq 0 ] || [ $(( ${#when} + 12 + ${#try} + ${#tail} )) -le $max ]; then
+            line="$try"; shown=$n
+        else
+            break
+        fi
+    done
+    local more=$(( total - shown ))
+    if [ $more -gt 0 ]; then line="$line and $more more."; else line="$line."; fi
+    line="Coming on $when: $line"
+    [ ${#line} -le $max ] || line="${line:0:$(( max - 3 ))}..."
+    echo "$line"
+}
+
+# "Coming on 15 Dec: ..." for DigiNodes not on the Sponsors Preview, while it has something newer than this DigiNode
+# and its public day hasn't passed. Prints nothing otherwise.
+dgnt_preview_coming_line() {
+    local when line max=74
+    [ "$SPONSOR_PREVIEW" = "YES" ] && return 0
+    [ -n "$DGNT_PREVIEW_TITLES" ] && [ -n "$DGNT_PREVIEW_VER" ] && [ -n "$DGNT_PREVIEW_PUBLIC" ] || return 0
+    [[ "$DGNT_PREVIEW_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 0
+    [ -n "$DGNT_VER_LOCAL" ] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_LOCAL")" ] && return 0
+    [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_RELEASE")" ] && return 0
+    [[ "$(TZ=Europe/London date +%Y-%m-%d)" > "$DGNT_PREVIEW_PUBLIC" ]] && return 0
+    when=$(date -u -d "$DGNT_PREVIEW_PUBLIC" "+%-d %b" 2>/dev/null) || return 0
+    line=$(dgnt_preview_coming_text "$when" "$DGNT_PREVIEW_TITLES" $max)
+    echo "   $line"
+    echo -e "   Sponsors have it now: ${txtbld}diginode-setup --sponsorpreview${txtrst}"
+    echo ""
+}
+
 # Print the version this DigiNode should compare itself with: the Sponsors Preview's, or the latest release's
 get_dgnt_channel_version() {
     local ver=""
@@ -975,6 +1063,12 @@ DGNT_BRANCH_LOCAL="$DGNT_BRANCH_LOCAL"
 # Sponsors Preview: YES means this DigiNode gets each DigiNode Tools release two weeks early, as a thank you for
 # sponsoring. Change it from the DigiNode Setup menu (Extras > Sponsors Preview), or with: diginode-setup --sponsorpreview
 SPONSOR_PREVIEW="$SPONSOR_PREVIEW"
+
+# What the waiting Sponsors Preview brings (checked hourly by DigiNode Dashboard): its version, the titles of its
+# release notes and the day it's released to everyone. Shown when quitting the Dashboard to DigiNodes not on it.
+DGNT_PREVIEW_VER="$DGNT_PREVIEW_VER"
+DGNT_PREVIEW_TITLES="$DGNT_PREVIEW_TITLES"
+DGNT_PREVIEW_PUBLIC="$DGNT_PREVIEW_PUBLIC"
 
 # DIGIBYTE NODE STATUS UPDATER:
 DNSU_INSTALL_LOCATION=$DNSU_INSTALL_LOCATION
@@ -11297,6 +11391,7 @@ donation_qrcode() {
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
+    dgnt_preview_coming_line
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""

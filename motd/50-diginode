@@ -52,6 +52,44 @@ printf "\\n"
 printf "      For help, append ${txtbld}--help${txtrst} to either command.\\n"
 printf "\\n"
 
+# Sponsors Preview: what's coming in the next release, which sponsors already have (saved hourly by DigiNode Dashboard
+# in diginode.settings). Shown only while it's newer than this DigiNode and its public day hasn't passed.
+# This runs as root, so the settings file is only read as text, never run (it belongs to the DigiNode's user).
+dgnt_settings=$(ls /home/*/.digibyte/diginode.settings 2>/dev/null | head -1)
+if [ -n "$dgnt_settings" ] && [ -r "$dgnt_settings" ]; then
+    dgnt_get() { sed -n "s/^$1=\"\{0,1\}\([^\"]*\)\"\{0,1\}$/\1/p" "$dgnt_settings" | tail -1; }
+    dgnt_ver_num() { echo "$1" | awk -F. '{ printf("%d%03d%03d\n", $1, $2, $3) }'; }
+    p_sponsor=$(dgnt_get SPONSOR_PREVIEW); p_ver=$(dgnt_get DGNT_PREVIEW_VER); p_titles=$(dgnt_get DGNT_PREVIEW_TITLES)
+    p_public=$(dgnt_get DGNT_PREVIEW_PUBLIC); p_local=$(dgnt_get DGNT_VER_LOCAL); p_release=$(dgnt_get DGNT_VER_RELEASE)
+    # Already released to everyone? Then nothing is coming.
+    if [[ "$p_ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "$p_release" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+       && [ "$(dgnt_ver_num "$p_ver")" -le "$(dgnt_ver_num "$p_release")" ]; then
+        p_titles=""
+    fi
+    if [ "$p_sponsor" != "YES" ] && [ -n "$p_titles" ] && [[ "$p_ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+       && [[ "$p_public" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && [[ ! "$(TZ=Europe/London date +%Y-%m-%d)" > "$p_public" ]] \
+       && { ! [[ "$p_local" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [ "$(dgnt_ver_num "$p_ver")" -gt "$(dgnt_ver_num "$p_local")" ]; }; then
+        # Whole titles that fit, then how many more (as dgnt_preview_coming_text in diginode-setup.sh)
+        p_when=$(date -u -d "$p_public" "+%-d %b"); p_list=""; p_shown=0
+        IFS=$'\n' read -r -d '' -a p_all < <(printf '%s\n' "$p_titles" | sed 's/, /\n/g'; printf '\0')
+        for p_t in "${p_all[@]}"; do
+            p_try="${p_list:+$p_list, }$p_t"; p_rest=$(( ${#p_all[@]} - p_shown - 1 ))
+            p_tail="."; [ $p_rest -gt 0 ] && p_tail=" and $p_rest more."
+            if [ $p_shown -eq 0 ] || [ $(( ${#p_when} + 12 + ${#p_try} + ${#p_tail} )) -le 74 ]; then
+                p_list="$p_try"; p_shown=$(( p_shown + 1 ))
+            else
+                break
+            fi
+        done
+        p_more=$(( ${#p_all[@]} - p_shown ))
+        if [ $p_more -gt 0 ]; then p_line="Coming on $p_when: $p_list and $p_more more."; else p_line="Coming on $p_when: $p_list."; fi
+        [ ${#p_line} -le 74 ] || p_line="${p_line:0:71}..."
+        printf "      %s\\n" "$p_line"
+        printf "      Sponsors have it now: ${txtbld}diginode-setup --sponsorpreview${txtrst}\\n"
+        printf "\\n"
+    fi
+fi
+
 # Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
 if [ -x /usr/local/sbin/diginode-reboot ]; then
     /usr/local/sbin/diginode-reboot --status

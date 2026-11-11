@@ -4498,6 +4498,11 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
         fi
     fi
 
+    # What the Sponsors Preview brings, for the "Coming on ..." line when quitting (only shown to DigiNodes not on it)
+    if [ "$SPONSOR_PREVIEW" != "YES" ]; then
+        dgnt_check_preview_coming
+    fi
+
     # reset 1 hour timer (also if the check failed, e.g. no Internet, so it isn't retried every second)
     SAVED_TIME_DGNT_CHECK=$TIME_NOW_UNIX
     if grep -q "^SAVED_TIME_DGNT_CHECK=" $DGNT_SETTINGS_FILE; then
