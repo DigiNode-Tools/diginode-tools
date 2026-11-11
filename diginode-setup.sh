@@ -11035,10 +11035,10 @@ donation_qrcode() {
     # ==============================================================================
 
     echo "   I created DigiNode Tools to make it easy for everybody to run their"
-    echo "   own DigiByte Node. It's free, its code is public, and I build and"
-    echo "   maintain it in my spare time, for the benefit of the DigiByte"
-    echo "   community. If you find it useful, please consider sponsoring me,"
-    echo "   so I can devote more time to it. Thank you for your support, Olly"
+    echo "   own DigiByte Node. It's free, and I build and maintain it in my"
+    echo "   spare time, for the benefit of the DigiByte community. If you find"
+    echo "   it useful, please consider sponsoring me, so I can devote more"
+    echo "   time to it. Thank you for your support, Olly"
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
