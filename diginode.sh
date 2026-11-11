@@ -5436,8 +5436,15 @@ if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
-     # Sponsors aren't asked again (Olly 2026-11-11)
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "DigiAsset Core support is on its way." " ║ "
+     # Sponsors aren't asked to sponsor (Olly 2026-11-11): no DigiAsset row at all. The line above is the divider that
+     # ends the section before (the same width), so go back up and draw the table's bottom edge over it.
+     # (Every DigiByte Node section ends with that divider; with any other status, show a plain row instead.)
+     if [[ "$DGB_STATUS" =~ ^(running|stopped|not_detected|startingup)$ ]]; then
+         printf '\e[1A' && echo "$sm_row_05"
+         dga_row_hidden="yes"
+     else
+         printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "DigiAsset Core support is on its way." " ║ "
+     fi
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
      printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "
@@ -5446,7 +5453,8 @@ elif [ "$DGA_STATUS" = "not_detected" ]; then
      printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
 fi
 
-echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+[ "$dga_row_hidden" = "yes" ] || echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+dga_row_hidden=""
 
 
 # STATUS MONITOR DASHBOARD - SOFTWARE
