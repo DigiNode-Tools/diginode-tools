@@ -11383,11 +11383,11 @@ donation_qrcode() {
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
 
-    echo "   I created DigiNode Tools to make it easy for everybody to run their"
-    echo "   own DigiByte Node. It's free, its code is public, and I build and"
-    echo "   maintain it in my spare time, for the benefit of the DigiByte"
-    echo "   community. If you find it useful, please consider sponsoring me,"
-    echo "   so I can devote more time to it. Thank you for your support, Olly"
+    echo "   Running and monitoring your DigiByte node with DigiNode Tools is"
+    echo "   free, but it isn't free to make. It only keeps improving because"
+    echo "   people sponsor it. Without that support, I can't keep giving it the"
+    echo "   time it needs. If you run a DigiNode, please sponsor me. It really"
+    echo "   does make a difference. Thank you, Olly"
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
