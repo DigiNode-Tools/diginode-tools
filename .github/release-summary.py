@@ -13,7 +13,7 @@
 #   .github/release-summary.py send VERSION NOTES_FILE      Send them
 #
 # Sending needs TELEGRAM_BOT_TOKEN and TELEGRAM_OWNER_CHAT_ID (the owner's Telegram user ID). The workflow also passes
-# what happened: GITHUB_RELEASE_URL, TELEGRAM_POST_URL / TELEGRAM_OUTCOME and BLUESKY_POST_URL / BLUESKY_OUTCOME.
+# what happened: GITHUB_RELEASE_URL and TELEGRAM_POST_URL / TELEGRAM_OUTCOME (Bluesky and Nostr are posted by the website).
 
 import html
 import json
@@ -43,7 +43,7 @@ def read_notes(path):
                 title, text = (t.group(1), t.group(2)) if t else (None, m.group(2))
                 notes.append((m.group(1), title, text, []))
                 continue
-            img = re.match(r"^!\[(.*)\]\((https://\S+)\)$", line.strip())
+            img = re.match(r'^!\[(.*)\]\((https://\S+)(?:\s+"[^"]*")?\)$', line.strip())   # optional "caption" after the address
             if img and notes:
                 notes[-1][3].append((img.group(2), img.group(1)))
     return notes
@@ -178,7 +178,7 @@ def build_messages(version, notes_file):
     summary = [f"📦 <b>DigiNode Tools v{version} was released</b>", "",
                f"✅ GitHub release: <a href=\"{html.escape(gh_url)}\">view</a>" if gh_url else "✅ GitHub release",
                status("Telegram group", os.environ.get("TELEGRAM_OUTCOME", ""), os.environ.get("TELEGRAM_POST_URL", "")),
-               status("Bluesky thread", os.environ.get("BLUESKY_OUTCOME", ""), os.environ.get("BLUESKY_POST_URL", "")),
+               "🕐 Blog post, Bluesky and Nostr: posted by diginode.tools within the hour",
                "", "<b>What was published:</b>"]
     summary += [f"• {html.escape(t or text[:60], quote=False)}" for _, t, text, _ in notes]
 

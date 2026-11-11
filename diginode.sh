@@ -5318,9 +5318,9 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     if [ "$DGB2_STATUS" = "running" ]; then # Only display if secondary DigiByte Node is running
         if [ $DGB2_CONNECTIONS -le 8 ]; then
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
@@ -5432,7 +5432,7 @@ elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "
      # Clickable link. The link codes take up no space on screen, so widen the column by their length to keep the border aligned.
      dga_sponsor_link=$(printf '\e]8;;%s\a%s\e]8;;\a' "$DGNT_SPONSORS_URL" "$DGNT_SPONSORS_URL")
      printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
@@ -6195,6 +6195,16 @@ printf "  ╚══════════════════════�
 echo ""
 
 echo "                         Running Port Tests..."
+
+# The port numbers: set here because the messages for a skipped test use them too
+if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
+else
+    DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
+fi
+if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB2_LISTEN_PORT" != "" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
+fi
 echo ""
 
 PORT_TEST_DATE=$(date +%s)
@@ -6272,7 +6282,7 @@ if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]  && [ "$DGB_MAINNET_PORT_TEST_ENABLED"
     if [ "$DGB_MAINNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_MAINNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
@@ -6300,7 +6310,7 @@ if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" 
     if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
@@ -6327,7 +6337,7 @@ if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] 
     if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
@@ -6426,17 +6436,17 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_MAINNET_PORT_TEST_ISP=$DGB_MAINNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION=$DGB_MAINNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION="$DGB_MAINNET_PORT_TEST_QUERY_CITY, $DGB_MAINNET_PORT_TEST_QUERY_REGION, $DGB_MAINNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
@@ -6574,7 +6584,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6585,7 +6595,7 @@ elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABL
 
 elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6595,7 +6605,7 @@ elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6680,17 +6690,17 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_TESTNET_PORT_TEST_ISP=$DGB_TESTNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION=$DGB_TESTNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION="$DGB_TESTNET_PORT_TEST_QUERY_CITY, $DGB_TESTNET_PORT_TEST_QUERY_REGION, $DGB_TESTNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
@@ -6826,7 +6836,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6837,7 +6847,7 @@ elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABL
 
 elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6847,7 +6857,7 @@ elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  

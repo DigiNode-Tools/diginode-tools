@@ -58,7 +58,7 @@ def read_notes(path):
                 title, text = (t.group(1), t.group(2)) if t else (short_title(m.group(2)), m.group(2))
                 notes.append((m.group(1), title, text, []))
                 continue
-            img = re.match(r"^!\[(.*)\]\((https://\S+)\)$", line.strip())
+            img = re.match(r'^!\[(.*)\]\((https://\S+)(?:\s+"[^"]*")?\)$', line.strip())   # optional "caption" after the address
             if img and notes:
                 notes[-1][3].append((img.group(2), img.group(1)))
     return notes
