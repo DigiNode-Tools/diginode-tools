@@ -1,8 +1,9 @@
 ## DigiNode Tools Release Notes
 
 ### DigiNode Tools - Unreleased
-Intro: This release tidies up DigiNode Dashboard. The port test now works even when your external IP address can't be found, and several small display problems have been fixed.
-Announce: 📣 The DigiNode Dashboard port test now works even when your external IP address can't be found, and a few small display problems are fixed.
+Intro: This release fixes automatic security updates on Raspberry Pi OS, which weren't installing updates to important parts of the system, such as the Linux kernel. It also tidies up DigiNode Dashboard: the port test now works even when your external IP address can't be found, and several small display problems have been fixed.
+Announce: 📣 Automatic security updates on Raspberry Pi OS now include the Linux kernel and other important packages. Plus a tidier DigiNode Dashboard, with a port test that works even when your external IP address can't be found.
+- Fix: **Security updates on Raspberry Pi OS** - On Raspberry Pi OS, automatic security updates weren't installing updates to some of the most important parts of the system, including the Linux kernel, the C library (libc6), OpenSSL and the login system (PAM). Raspberry Pi OS uses its own versions of these, which Debian's security updates can't replace. Security updates now include them. If your DigiNode has been missing them, the first run may install a lot of updates at once, and your DigiNode will need to restart to finish (automatically, if you turned on automatic restarts).
 - Fix: **Tidier DigiNode Dashboard** - The port test no longer shows "Location: null" when a port is closed. The testnet node now says Peers, like the mainnet node. The DigiAsset Core message now fits inside its box on a 100 column terminal. A port test skipped because it already passed now shows the port number. The port test also works now if your external IP address could not be found.
 
 ### DigiNode Tools v26.11.01 - 2026-11-03

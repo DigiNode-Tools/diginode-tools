@@ -19518,6 +19518,11 @@ system_updates_supported() {
     [ "$PKG_MANAGER" = "apt-get" ]
 }
 
+# Exit 0 if apt gets packages from the Raspberry Pi archive (Raspberry Pi OS)
+system_has_raspberrypi_archive() {
+    apt-cache policy 2>/dev/null | grep -q 'o=Raspberry Pi Foundation,'
+}
+
 # Return a valid restart time (HH:MM), using 04:00 if the one in diginode.settings is missing or invalid
 system_auto_reboot_time() {
     if [[ "$SYSTEM_AUTO_REBOOT_TIME" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
@@ -19776,17 +19781,30 @@ APT::Periodic::Unattended-Upgrade "1";'; then
 
         # Choose which updates are installed. The OS's own settings (50unattended-upgrades) already include its
         # security updates. Tor is added because DigiNode uses it. ALL adds every repository.
+        # Raspberry Pi OS replaces many Debian packages (the Linux kernel, libc6, openssl, PAM...) with its own
+        # builds from archive.raspberrypi.com. Their version numbers are higher than Debian's, so Debian's security
+        # updates can never replace them, and the Raspberry Pi archive has no separate security section. So on
+        # Raspberry Pi OS the whole Raspberry Pi archive is needed to get security updates for those packages.
         # DigiNode Tools handles restarts itself (so it can skip them when busy), so unattended-upgrades must not.
         local origins
         if [ "$SYSTEM_AUTO_UPDATES" = "ALL" ]; then
             origins='        "origin=*";'
         else
             origins='        "origin=TorProject";'
+            if system_has_raspberrypi_archive; then
+                origins="$origins
+        \"origin=Raspberry Pi Foundation\";"
+            fi
         fi
+        # The Raspberry Pi bootloader (rpi-eeprom) is never updated by unattended-upgrades: a new bootloader is
+        # installed when the Pi starts, so DigiNode Tools updates it itself, only when it is safe to.
         if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
 // To change these settings, run 'diginode-setup' and choose System from the main menu.
 Unattended-Upgrade::Origins-Pattern {
 $origins
+};
+Unattended-Upgrade::Package-Blacklist {
+        \"^rpi-eeprom\$\";
 };
 Unattended-Upgrade::Automatic-Reboot \"false\";"; then
             # A mistake in an apt config file would break apt completely, so check it can be read
