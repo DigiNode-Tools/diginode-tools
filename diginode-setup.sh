@@ -11289,6 +11289,11 @@ display_system_updates_reminder() {
         "$DGNT_REBOOT_HELPER" --status
     fi
 
+    # Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+    if [ -x "$DGNT_PI_HELPER" ]; then
+        "$DGNT_PI_HELPER" --status
+    fi
+
 }
 
 stop_service() {
@@ -19497,6 +19502,7 @@ install_command_links() {
 # reminder at the end of DigiNode Setup, when DigiNode Dashboard quits, and in the DigiNode MOTD.
 
 DGNT_REBOOT_HELPER=/usr/local/sbin/diginode-reboot
+DGNT_PI_HELPER=/usr/local/sbin/diginode-pi          # Raspberry Pi power and temperature warnings (diginode-pi.sh)
 DGNT_REBOOT_STATUS_DIR=/var/lib/diginode-tools
 DGNT_REBOOT_CONF=$DGNT_REBOOT_STATUS_DIR/auto-reboot.conf
 DGNT_AUTO_UPDATES_APT_CONF=/etc/apt/apt.conf.d/52diginode-auto-updates
@@ -19731,6 +19737,16 @@ install_reboot_helper() {
 
     mkdir -p "$DGNT_REBOOT_STATUS_DIR"
     chmod 755 "$DGNT_REBOOT_STATUS_DIR"
+
+    # The Raspberry Pi helper (power and temperature warnings) - installed on a Raspberry Pi only
+    if [ -f "$DGNT_LOCATION/diginode-pi.sh" ] && tr -d '\0' < /proc/device-tree/model 2>/dev/null | grep -q '^Raspberry Pi'; then
+        if ! cmp -s "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"; then
+            str="Installing DigiNode Raspberry Pi helper to $DGNT_PI_HELPER..."
+            printf "%b %s" "${INFO}" "${str}"
+            install -m 755 -o root -g root "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
 }
 
 # Make the system match the choices in diginode.settings. Safe to run every time - it only changes what is different.
@@ -19907,14 +19923,14 @@ uninstall_system_updates() {
 
     local str
 
-    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
+    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_PI_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
 
         str="Removing DigiNode automatic restarts and reboot helper..."
         printf "%b %s" "${INFO}" "${str}"
         systemctl disable --now diginode-reboot.timer &>/dev/null
         rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
         systemctl daemon-reload &>/dev/null
-        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
+        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_PI_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
         rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF"
         rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"

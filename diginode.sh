@@ -2341,6 +2341,11 @@ if [ -x /usr/local/sbin/diginode-reboot ]; then
     /usr/local/sbin/diginode-reboot --status
 fi
 
+# Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+if [ -x /usr/local/sbin/diginode-pi ]; then
+    /usr/local/sbin/diginode-pi --status
+fi
+
 if [ "$auto_quit" = true ]; then
     echo ""
     printf "%b DigiNode Dashboard quit automatically as it was left running\\n" "${INFO}"
@@ -3415,8 +3420,17 @@ if [ "$temperature" != "" ]; then
   TEMP_C=$((temperature/1000))
 
   # Convert temperature to Degrees F
-  TEMP_F=$(echo "scale=1; (($temperature / 1000) * 9 / 5) + 32" | bc | awk '{printf("%d\n", $1 + 0.5)}') 
+  TEMP_F=$(echo "scale=1; (($temperature / 1000) * 9 / 5) + 32" | bc | awk '{printf("%d\n", $1 + 0.5)}')
 
+fi
+
+# Raspberry Pi warnings (short of power, too hot, USB power limited) - checked every 10 seconds
+if [ -x /usr/local/sbin/diginode-pi ] && [ $(( SECONDS - ${pi_flags_checked:--100} )) -ge 10 ]; then
+    pi_flags_checked=$SECONDS
+    pi_flags=$(/usr/local/sbin/diginode-pi --flags 2>/dev/null)
+    case "$pi_flags" in *power=now*) PI_POWER=now ;; *power=earlier*) PI_POWER=earlier ;; *) PI_POWER=ok ;; esac
+    case "$pi_flags" in *heat=now*) PI_HEAT=now ;; *heat=earlier*) PI_HEAT=earlier ;; *) PI_HEAT=ok ;; esac
+    case "$pi_flags" in *usb=limited*) PI_USB=limited ;; *) PI_USB=ok ;; esac
 fi
 
 # ------------------------------------------------------------------------------
@@ -4849,6 +4863,17 @@ right_border="  ║ "
 right_border_width=${#right_border} 
 
 # Three/two column row (first two narrow columns are one static string, main content is 3rd.)
+# Print the long text if it fits in column three (after <used> characters already in it), else the short one.
+# Usage: pi_fit_col3 "<col 1+2 text>" <used> "<long text>" "<short text>"
+pi_fit_col3() {
+    local available=$(( term_width - ${#1} - right_border_width - $2 ))
+    if [ "${#3}" -le "$available" ]; then
+        printf "%s" "$3"
+    else
+        printf "%s" "$4"
+    fi
+}
+
 db_content_c1_c2_c3f() {
     local combined_col1_2_text="$1"
     local col3_text="$2"
@@ -5832,6 +5857,27 @@ fi
 if [ "$temperature" != "" ]; then
     col_1_2_text=" ║                ║    TEMPERATURE ║  "
     col3_text="$TEMP_C °C     $TEMP_F °F"
+    # On a Raspberry Pi, say if it is too hot and slowing itself down (now in red, earlier in yellow)
+    if [ "$PI_HEAT" = "now" ]; then
+        col3_text="${dbcol_bred}$TEMP_C °C     $TEMP_F °F     $(pi_fit_col3 "$col_1_2_text" 21 "Too hot: slowing down" "Too hot!")${dbcol_rst}"
+    elif [ "$PI_HEAT" = "earlier" ]; then
+        col3_text="$TEMP_C °C     $TEMP_F °F     ${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 21 "Got too hot earlier" "Too hot earlier")${dbcol_rst}"
+    fi
+    db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+fi
+
+# STATUS MONITOR DASHBOARD - SYSTEM - POWER (Raspberry Pi only, and only when there is a problem)
+
+if [ "${PI_POWER:-ok}" != "ok" ] || [ "${PI_USB:-ok}" != "ok" ]; then
+    col_1_2_text=" ║                ║          POWER ║  "
+    if [ "$PI_POWER" = "now" ]; then
+        col3_text="${dbcol_bred}$(pi_fit_col3 "$col_1_2_text" 0 "Under-voltage now: use the official power supply" "Under-voltage now!")${dbcol_rst}"
+    elif [ "$PI_POWER" = "earlier" ]; then
+        col3_text="${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 0 "Under-voltage since start: use the official power supply" "Under-voltage since start")${dbcol_rst}"
+    else
+        col3_text="${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 0 "USB power limited: use the official 27W power supply" "USB power limited")${dbcol_rst}"
+    fi
     db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 fi

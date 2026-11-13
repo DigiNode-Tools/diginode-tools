@@ -56,4 +56,9 @@ printf "\\n"
 if [ -x /usr/local/sbin/diginode-reboot ]; then
     /usr/local/sbin/diginode-reboot --status
 fi
+
+# Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+if [ -x /usr/local/sbin/diginode-pi ]; then
+    /usr/local/sbin/diginode-pi --status
+fi
 printf "\\n"
