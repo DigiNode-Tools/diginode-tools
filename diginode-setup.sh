@@ -19798,6 +19798,9 @@ APT::Periodic::Unattended-Upgrade "1";'; then
         fi
         # The Raspberry Pi bootloader (rpi-eeprom) is never updated by unattended-upgrades: a new bootloader is
         # installed when the Pi starts, so DigiNode Tools updates it itself, only when it is safe to.
+        # Keep config files that were changed (e.g. Raspberry Pi OS changes /etc/initramfs-tools/initramfs.conf),
+        # instead of asking: unattended-upgrades skips any update that would ask, so without this those packages
+        # are never updated. The new packaged version is saved next to it as .dpkg-dist.
         if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
 // To change these settings, run 'diginode-setup' and choose System from the main menu.
 Unattended-Upgrade::Origins-Pattern {
@@ -19806,7 +19809,11 @@ $origins
 Unattended-Upgrade::Package-Blacklist {
         \"^rpi-eeprom\$\";
 };
-Unattended-Upgrade::Automatic-Reboot \"false\";"; then
+Unattended-Upgrade::Automatic-Reboot \"false\";
+Dpkg::Options {
+        \"--force-confdef\";
+        \"--force-confold\";
+};"; then
             # A mistake in an apt config file would break apt completely, so check it can be read
             if apt-config dump >/dev/null 2>&1; then
                 printf "%b%b Automatic system updates set to: %s\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES"
