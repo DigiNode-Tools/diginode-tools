@@ -100,6 +100,13 @@ reboot_required_reason() {
         return 0
     fi
 
+    # A Raspberry Pi bootloader update has been prepared (see diginode-pi.sh)
+    local eeprom
+    if [ -x /usr/local/sbin/diginode-pi ] && eeprom=$(/usr/local/sbin/diginode-pi --eeprom-pending); then
+        echo "$eeprom"
+        return 0
+    fi
+
     # Fedora
     if command -v needs-restarting >/dev/null 2>&1; then
         if ! needs-restarting -r >/dev/null 2>&1; then
