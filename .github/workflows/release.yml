@@ -36,7 +36,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     env:
       # The scheduled release is always real; a manual one follows the Dry run box
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
@@ -152,7 +152,45 @@ jobs:
         run: |
           # Push develop and main together, so they can't end up out of step
           git push --atomic origin develop main "v$VERSION"
-          gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest
+          # Attach this release's diginode-setup.sh. setup.diginode.tools redirects to
+          # releases/latest/download/diginode-setup.sh, so EVERY install and upgrade needs this file on the latest release.
+          # (gh creates the release as a draft, uploads the file, then publishes it, so a failed upload never leaves a
+          # published release without the script.)
+          mkdir -p "$RUNNER_TEMP/asset"
+          git show "v$VERSION:diginode-setup.sh" > "$RUNNER_TEMP/asset/diginode-setup.sh"
+          gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest \
+            "$RUNNER_TEMP/asset/diginode-setup.sh"
+
+      # Check that what setup.diginode.tools hands out is now exactly this release's diginode-setup.sh: once through the
+      # GitHub address it redirects to, and once through setup.diginode.tools itself (as users run it). Opens an issue
+      # if not, because then new installs and upgrades may be broken.
+      - name: Check the setup script download
+        id: check_download
+        if: ${{ steps.publish.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          want=$(git show "v$VERSION:diginode-setup.sh" | sha256sum | cut -d' ' -f1)
+          for url in https://github.com/DigiNode-Tools/diginode-tools/releases/latest/download/diginode-setup.sh \
+                     https://setup.diginode.tools; do
+            ok=no
+            for _ in $(seq 1 18); do   # up to 6 minutes (the old PHP caches the latest tag for 5)
+              got=$(curl -sSL --max-time 30 "$url" | sha256sum | cut -d' ' -f1)
+              if [ "$got" = "$want" ]; then ok=yes; break; fi
+              sleep 20
+            done
+            if [ "$ok" = yes ]; then echo "OK: $url"; else echo "::error::$url does not give v$VERSION's diginode-setup.sh"; exit 1; fi
+          done
+
+      - name: Report a failed setup script check
+        if: ${{ steps.check_download.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          gh issue create --title "setup.diginode.tools does not give v$VERSION's setup script" \
+            --body "DigiNode Tools v$VERSION was released, but setup.diginode.tools (or the release download it redirects to: releases/latest/download/diginode-setup.sh) does not give this release's diginode-setup.sh. New installs and upgrades may be broken - check the release has the diginode-setup.sh file attached. See the workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
       # Post the release notes in the DigiNode Tools Telegram group (as "DigiNode Tools Releases") and pin them.
       # If this fails, the release has still been published - an issue is opened instead of failing the release.
