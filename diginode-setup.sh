@@ -4666,7 +4666,7 @@ fi
 }
 
 # Which operating system this is, for DigiNode Dashboard's OS row. Sets:
-#   OS_NAME        e.g. "Ubuntu 24.04.3 LTS", "Debian GNU/Linux 13 (trixie)", "Raspberry Pi OS 12 (bookworm)"
+#   OS_NAME        e.g. "Ubuntu 24.04.3 LTS", "Debian GNU/Linux 13 (trixie)", "Raspberry Pi OS Lite 12 (bookworm)"
 #   OS_BITS        "64-bit" or "32-bit" (of the programs, not just the kernel)
 #   OS_ID, OS_VERSION_ID, OS_CODENAME   from /etc/os-release (OS_ID is "raspios" on Raspberry Pi OS)
 # Raspberry Pi OS calls itself Debian in /etc/os-release; it is recognised by /etc/rpi-issue, which only it has.
@@ -4679,7 +4679,14 @@ get_os_info() {
     IFS=$'\t' read -r OS_ID OS_VERSION_ID OS_CODENAME pretty < <( . /etc/os-release 2>/dev/null; printf '%s\t%s\t%s\t%s\n' "${ID:-}" "${VERSION_ID:-}" "${VERSION_CODENAME:-}" "${PRETTY_NAME:-}" )
     if [ "$OS_ID" = "debian" ] && [ -f /etc/rpi-issue ]; then
         OS_ID="raspios"
-        OS_NAME="Raspberry Pi OS ${OS_VERSION_ID}${OS_CODENAME:+ ($OS_CODENAME)}"
+        # Lite: the image was built only to pi-gen's stage2 (the desktop versions go on to stage4/stage5), and no
+        # desktop has been installed since
+        local edition=""
+        if grep -q 'stage2[[:space:]]*$' /etc/rpi-issue 2>/dev/null \
+           && ! dpkg-query -W -f='${Status}\n' raspberrypi-ui-mods 'rpd-*' 2>/dev/null | grep -q "install ok installed"; then
+            edition=" Lite"
+        fi
+        OS_NAME="Raspberry Pi OS${edition} ${OS_VERSION_ID}${OS_CODENAME:+ ($OS_CODENAME)}"
     else
         OS_NAME="${pretty:-$OS_ID $OS_VERSION_ID}"
     fi
