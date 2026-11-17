@@ -1,5 +1,7 @@
 ## DigiNode Tools Release Notes
 
+### DigiNode Tools - Unreleased
+
 ### DigiNode Tools v26.11.02 - 2026-11-17
 Intro: Monthly sponsors of DigiNode Tools can now join the Sponsors Preview, and get each new release two weeks before everyone else. This release also takes better care of your Raspberry Pi: it warns you if your Pi is short of power or getting too hot, can keep its bootloader up to date, and automatic security updates on Raspberry Pi OS now include the Linux kernel. Plus a tidier DigiNode Dashboard, which now also shows your operating system and when a new version of it is available.
 Announce: 📣 New: Sponsors Preview. Monthly sponsors now get each DigiNode Tools release two weeks early. Plus better care for your Raspberry Pi: power and temperature warnings, bootloader updates and kernel security updates. #DigiByte #DigiNode
