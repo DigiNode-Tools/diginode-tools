@@ -9916,7 +9916,7 @@ menu_sponsor_preview() {
         return
     fi
 
-    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n" 14 "${c}" 3 \
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n" 12 "${c}" 3 \
         "1 GitHub" "I sponsor on GitHub: sign in to check." \
         "2 Sponsor" "How to become a sponsor." \
         "3 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
