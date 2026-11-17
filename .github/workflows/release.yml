@@ -169,7 +169,8 @@ jobs:
             echo "::notice::No WEBSITE_DISPATCH_TOKEN secret - the website's own schedule will write the blog post"
             exit 0
           fi
-          gh workflow run release-post.yml -R DigiNode-Tools/diginode.tools -f version="v$VERSION" -f dry_run=false
+          # --ref: the token can only start workflows, not look up the repo's default branch
+          gh workflow run release-post.yml -R DigiNode-Tools/diginode.tools --ref main -f version="v$VERSION" -f dry_run=false
           echo "Started the blog post for v$VERSION on diginode.tools"
 
       # Check that what setup.diginode.tools hands out is now exactly this release's diginode-setup.sh: once through the
