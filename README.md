@@ -50,14 +50,14 @@ If you need help, please join the [DigiNode Tools Telegram group](https://t.me/D
 <!-- sponsors:support -->
 ## Sponsor DigiNode Tools
 
-I created DigiNode Tools to make it easy for everybody to run their own DigiByte Node. It's free, its code is public so anyone can see exactly what it does, and I build and maintain it in my spare time. The more people who sponsor me, the more time I can devote to it.
+I created DigiNode Tools to make it easy for everybody to run their own DigiByte Node. It's free to use, and its code is public, so anyone can audit it and see exactly what it does on their node. The more people who sponsor me, the more time I can devote to it.
 
 <a href="https://github.com/sponsors/DigiNode-Tools"><img src="https://img.shields.io/badge/Sponsor%20on-GitHub-0066CC?style=for-the-badge&labelColor=002352&logo=githubsponsors&logoColor=EA4AAA" alt="Sponsor DigiNode Tools on GitHub"></a> <a href="https://ko-fi.com/diginode"><img src="https://img.shields.io/badge/Support%20on-Ko--fi-0066CC?style=for-the-badge&labelColor=002352&logo=kofi&logoColor=FF5E5B" alt="Support DigiNode Tools on Ko-fi"></a>
 
-**[Sponsor DigiNode Tools on GitHub](https://github.com/sponsors/DigiNode-Tools)** or **[support me on Ko-fi](https://ko-fi.com/diginode)**. You can give monthly or make a one-time donation, from as little as you like. The tiers are the same on both.
+**[Sponsor DigiNode Tools on GitHub](https://github.com/sponsors/DigiNode-Tools)** monthly, from $10 a month, or make a one-time donation of any amount on GitHub Sponsors or **[Ko-fi](https://ko-fi.com/diginode)**.
 
 - **Patron** ($100 a month): your name on the [sponsors page](https://diginode.tools/sponsors/), linked to your GitHub profile or website if you like.
-- **Featured Sponsor** ($300 a month, only 3 places): for businesses and projects. Your logo and link on the [diginode.tools](https://diginode.tools) home page, sponsors page and every blog post, and on the [DigiNode Tools GitHub page](https://github.com/DigiNode-Tools/diginode-tools), plus your name and link shown to everyone using DigiNode Setup and DigiNode Dashboard. Featured Sponsors are approved by me. If your sponsorship isn't approved, it will be refunded. After sponsoring, [add your logo using this form](https://github.com/DigiNode-Tools/diginode-sponsors/issues/new?template=featured-sponsor.yml) (on Ko-fi, give your Ko-fi name in the form, or send me your logo, name and website in a Ko-fi message).
+- **Featured Sponsor** ($300 a month, only 3 places): for businesses and projects. Your logo and link on the [diginode.tools](https://diginode.tools) home page, sponsors page and every blog post, and on the [DigiNode Tools GitHub page](https://github.com/DigiNode-Tools/diginode-tools), plus your name and link shown to everyone using DigiNode Setup and DigiNode Dashboard. Featured Sponsors are approved by me. If your sponsorship isn't approved, it will be refunded. After sponsoring, [add your logo using this form](https://github.com/DigiNode-Tools/diginode-sponsors/issues/new?template=featured-sponsor.yml).
 
 To see what your support helps with, and what I hope to work on next, visit [diginode.tools/sponsors](https://diginode.tools/sponsors/).
 
