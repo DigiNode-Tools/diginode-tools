@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Dashboard v26.11.01
+#           Name:  DigiNode Dashboard v26.11.02
 #
 #        Purpose:  Monitor and manage the status of you DigiByte Node and DigiAsset Node.
 #          
@@ -47,8 +47,8 @@
 # The version number should be three numbers seperated by a period
 # Do not change this number or the mechanism for installing updates may no longer work.
 
-DGNT_VER_LOCAL=26.11.01
-# Last Updated: 2026-11-03
+DGNT_VER_LOCAL=26.11.02
+# Last Updated: 2026-11-17
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LOCAL_FW=$(printf "%-9s" "v$DGNT_VER_LOCAL")
@@ -2341,6 +2341,43 @@ if [ -x /usr/local/sbin/diginode-reboot ]; then
     /usr/local/sbin/diginode-reboot --status
 fi
 
+# Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+if [ -x /usr/local/sbin/diginode-pi ]; then
+    /usr/local/sbin/diginode-pi --status
+fi
+
+# A newer version of the operating system is available (checked daily, shown on the OS row). DigiNode Tools can't
+# upgrade the OS, so just advise how, for each OS that is checked
+if [ "$OS_NEW_VERSION" != "" ] && [ "$OS_NEW_VERSION_FOR" = "$OS_VERSION_ID" ]; then
+    os_family="" os_current="$OS_VERSION_ID${OS_CODENAME:+ ($OS_CODENAME)}"
+    case "$OS_ID" in
+        raspios) os_family="Raspberry Pi OS" ;;
+        ubuntu) os_family="Ubuntu"; os_current="$OS_VERSION_ID" ;;
+        debian) os_family="Debian" ;;
+    esac
+    if [ "$os_family" != "" ]; then
+        printf "  %b A new version of %s is available: %b%s%b\\n" "${INFO}" "$os_family" "${txtbld}" "$OS_NEW_VERSION" "${txtrst}"
+        printf "        You're running %s. DigiNode Tools can't upgrade your\\n" "$os_current"
+        case "$OS_ID" in
+            raspios)
+                printf "        operating system for you, so please plan to move to it when you can.\\n"
+                printf "        Raspberry Pi recommends a fresh install rather than upgrading.\\n"
+                printf "        Back up your DigiByte wallet first.\\n"
+                ;;
+            ubuntu)
+                printf "        operating system for you, so please upgrade it when you can.\\n"
+                printf "        Back up your DigiByte wallet first, then run: %bsudo do-release-upgrade%b\\n" "${txtbld}" "${txtrst}"
+                ;;
+            debian)
+                printf "        operating system for you, so please upgrade it when you can.\\n"
+                printf "        Back up your DigiByte wallet first, then follow Debian's guide:\\n"
+                printf "        https://www.debian.org/releases/stable/releasenotes\\n"
+                ;;
+        esac
+        printf "\\n"
+    fi
+fi
+
 if [ "$auto_quit" = true ]; then
     echo ""
     printf "%b DigiNode Dashboard quit automatically as it was left running\\n" "${INFO}"
@@ -3353,6 +3390,9 @@ get_dgnt_local_version() {
     elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL} Preview"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
         # Feature branch (installed with --dgntbranch=) - show the branch name
         DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
@@ -3415,8 +3455,17 @@ if [ "$temperature" != "" ]; then
   TEMP_C=$((temperature/1000))
 
   # Convert temperature to Degrees F
-  TEMP_F=$(echo "scale=1; (($temperature / 1000) * 9 / 5) + 32" | bc | awk '{printf("%d\n", $1 + 0.5)}') 
+  TEMP_F=$(echo "scale=1; (($temperature / 1000) * 9 / 5) + 32" | bc | awk '{printf("%d\n", $1 + 0.5)}')
 
+fi
+
+# Raspberry Pi warnings (short of power, too hot, USB power limited) - checked every 10 seconds
+if [ -x /usr/local/sbin/diginode-pi ] && [ $(( SECONDS - ${pi_flags_checked:--100} )) -ge 10 ]; then
+    pi_flags_checked=$SECONDS
+    pi_flags=$(/usr/local/sbin/diginode-pi --flags 2>/dev/null)
+    case "$pi_flags" in *power=now*) PI_POWER=now ;; *power=earlier*) PI_POWER=earlier ;; *) PI_POWER=ok ;; esac
+    case "$pi_flags" in *heat=now*) PI_HEAT=now ;; *heat=earlier*) PI_HEAT=earlier ;; *) PI_HEAT=ok ;; esac
+    case "$pi_flags" in *usb=limited*) PI_USB=limited ;; *) PI_USB=ok ;; esac
 fi
 
 # ------------------------------------------------------------------------------
@@ -4482,8 +4531,8 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
     printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
     fi
 
-    # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(get_dgnt_release_version)
+    # Check for new release of DigiNode Tools on Github (or the Sponsors Preview, if this DigiNode is on it)
+    dgnt_ver_release_query=$(get_dgnt_channel_version)
     if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -4495,6 +4544,11 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
         fi
     fi
 
+    # What the Sponsors Preview brings, for the "Coming on ..." line when quitting (only shown to DigiNodes not on it)
+    if [ "$SPONSOR_PREVIEW" != "YES" ]; then
+        dgnt_check_preview_coming
+    fi
+
     # reset 1 hour timer (also if the check failed, e.g. no Internet, so it isn't retried every second)
     SAVED_TIME_DGNT_CHECK=$TIME_NOW_UNIX
     if grep -q "^SAVED_TIME_DGNT_CHECK=" $DGNT_SETTINGS_FILE; then
@@ -4502,6 +4556,15 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
     else
         echo "SAVED_TIME_DGNT_CHECK=\"$SAVED_TIME_DGNT_CHECK\"" >> $DGNT_SETTINGS_FILE
     fi
+fi
+
+# Check for a newer version of the operating system straight away if it hasn't been checked for this version of it
+# yet (a new install, the first run after updating DigiNode Tools, or after the OS was upgraded); then once a day, below
+if [ "$OS_NEW_VERSION_FOR" != "$OS_VERSION_ID" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for a new version of the operating system...\\n" "${INFO}"
+    fi
+    check_os_new_version
 fi
 
 # ------------------------------------------------------------------------------
@@ -4630,6 +4693,14 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
     fi
 
 
+
+    # Is there a newer version of the operating system? (shown on the OS row)
+    if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+        if [ "$STARTUP_LOOP" = true ]; then
+        printf "%b Checking for a new version of the operating system...\\n" "${INFO}"
+        fi
+        check_os_new_version
+    fi
 
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date +%s)"
@@ -4849,6 +4920,17 @@ right_border="  ║ "
 right_border_width=${#right_border} 
 
 # Three/two column row (first two narrow columns are one static string, main content is 3rd.)
+# Print the long text if it fits in column three (after <used> characters already in it), else the short one.
+# Usage: pi_fit_col3 "<col 1+2 text>" <used> "<long text>" "<short text>"
+pi_fit_col3() {
+    local available=$(( term_width - ${#1} - right_border_width - $2 ))
+    if [ "${#3}" -le "$available" ]; then
+        printf "%s" "$3"
+    else
+        printf "%s" "$4"
+    fi
+}
+
 db_content_c1_c2_c3f() {
     local combined_col1_2_text="$1"
     local col3_text="$2"
@@ -5315,9 +5397,9 @@ if [ "$DGB_DUAL_NODE" = "YES" ]; then
 
     if [ "$DGB2_STATUS" = "running" ]; then # Only display if secondary DigiByte Node is running
         if [ $DGB2_CONNECTIONS -le 8 ]; then
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_low}s %29s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ ${txtbred}$DGB2_CONNECTIONS_MSG${txtrst} ]" " ║ "
         else
-            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Nodes  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
+            printf " ║ DIGIBYTE NODE  ║    CONNECTIONS ║  " && printf "%-${col_width_dgb_connections_max}s %13s %-3s\n" "$DGB2_CONNECTIONS Peers  ( In: $DGB2_PEERS_IN | Out: $DGB2_PEERS_OUT )" "[ $DGB2_CONNECTIONS_MSG ]" " ║ "
         fi
         # Display the TESTNET network chain border
         echo "$sm_row_02_testnet" # "║" "(TESTNET)" "╠" "═" "╬" "═" "╣"
@@ -5427,15 +5509,26 @@ if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
 elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
+elif [ "$DGA_STATUS" = "not_detected" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+     # Sponsors aren't asked to sponsor (Olly 2026-11-11): no DigiAsset row at all. The line above is the divider that
+     # ends the section before (the same width), so go back up and draw the table's bottom edge over it.
+     # (Every DigiByte Node section ends with that divider; with any other status, show a plain row instead.)
+     if [[ "$DGB_STATUS" =~ ^(running|stopped|not_detected|startingup)$ ]]; then
+         printf '\e[1A' && echo "$sm_row_05"
+         dga_row_hidden="yes"
+     else
+         printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "DigiAsset Core support is on its way." " ║ "
+     fi
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
-     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Would you like DigiAsset Core support? Please sponsor DigiNode Tools.${txtrst}" " ║ "
+     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "
      # Clickable link. The link codes take up no space on screen, so widen the column by their length to keep the border aligned.
      dga_sponsor_link=$(printf '\e]8;;%s\a%s\e]8;;\a' "$DGNT_SPONSORS_URL" "$DGNT_SPONSORS_URL")
      printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
 fi
 
-echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+[ "$dga_row_hidden" = "yes" ] || echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+dga_row_hidden=""
 
 
 # STATUS MONITOR DASHBOARD - SOFTWARE
@@ -5721,25 +5814,72 @@ echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 
 # STATUS MONITOR DASHBOARD - SYSTEM - DEVICE
 
+# "SYSTEM" goes on the first row of the section
+sys_section_title=" ║ SYSTEM         ║"
+
 if [ "$MODEL" != "" ]; then
 
-    col_1_2_text=" ║ SYSTEM         ║         DEVICE ║  "
+    col_1_2_text="$sys_section_title         DEVICE ║  "
     col3_text="$MODEL"
-    col4_text="$MODELMEM RAM"
-    db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    # On a narrow terminal, drop the board revision (" Rev 1.4") so it fits beside the RAM
+    if [ "$MODELMEM" != "" ] && [ $(( ${#col_1_2_text} + ${#MODEL} + 1 + ${#MODELMEM} + 8 + right_border_width )) -gt "$term_width" ]; then
+        col3_text="${MODEL% Rev *}"
+    fi
+    if [ "$MODELMEM" != "" ]; then
+        col4_text="$MODELMEM RAM"
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    else
+        db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    fi
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    sys_section_title=" ║                ║"
+
+fi
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - OS
+# The operating system, with "64-bit" after it if there's room, and a newer version of it in the right column when
+# there is one (checked once a day; ignored if the OS has been upgraded since)
+
+if [ "$OS_NAME" != "" ]; then
+
+    col_1_2_text="$sys_section_title             OS ║  "
+    os_new=""
+    if [ "$OS_NEW_VERSION" != "" ] && [ "$OS_NEW_VERSION_FOR" = "$OS_VERSION_ID" ]; then
+        os_new="New: $OS_NEW_VERSION"
+    fi
+    # What fits: drop "64-bit" first, then shorten "New: 13 (trixie)" to "New: 13", then the name's "(codename)"
+    os_space=$(( term_width - ${#col_1_2_text} - right_border_width - 1 ))
+    os_full="$OS_NAME${OS_BITS:+ $OS_BITS}"
+    os_short_name=$(echo "$OS_NAME" | sed 's/ ([^)]*)$//')
+    os_short_new=$(echo "$os_new" | sed 's/ ([^)]*)$//')
+    os_new_width=0
+    [ "$os_new" != "" ] && os_new_width=$(( ${#os_new} + 4 ))   # the right column and its "[  ]"
+    os_short_new_width=0
+    [ "$os_new" != "" ] && os_short_new_width=$(( ${#os_short_new} + 4 ))
+    if [ $(( ${#os_full} + os_new_width )) -le $os_space ]; then
+        col3_text="$os_full"
+    elif [ $(( ${#OS_NAME} + os_new_width )) -le $os_space ]; then
+        col3_text="$OS_NAME"
+    elif [ $(( ${#OS_NAME} + os_short_new_width )) -le $os_space ]; then
+        col3_text="$OS_NAME"; os_new="$os_short_new"
+    else
+        col3_text="$os_short_name"; [ "$os_new" != "" ] && os_new="$os_short_new"
+    fi
+    if [ "$os_new" != "" ]; then
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "${dbcol_bylw}${os_new}${dbcol_rst}"
+    else
+        db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    fi
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    sys_section_title=" ║                ║"
 
 fi
 
 
 # STATUS MONITOR DASHBOARD - SYSTEM - DISK USAGE
 
-# Display the section title, if the device was not displayed above
-if [ "$MODEL" != "" ]; then
-    col_1_2_text=" ║                ║     DISK USAGE ║  "
-else
-    col_1_2_text=" ║ SYSTEM         ║     DISK USAGE ║  "
-fi
+col_1_2_text="$sys_section_title     DISK USAGE ║  "
 
 if [ "$DGB_DATA_DISKUSED_PERC_CLEAN" -ge "80" ]; then # Display current disk usage percentage in red if it is 80% or over
     col3_text="${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${dbcol_bred}$DGB_DATA_DISKUSED_PERC${dbcol_rst} )"
@@ -5832,6 +5972,27 @@ fi
 if [ "$temperature" != "" ]; then
     col_1_2_text=" ║                ║    TEMPERATURE ║  "
     col3_text="$TEMP_C °C     $TEMP_F °F"
+    # On a Raspberry Pi, say if it is too hot and slowing itself down (now in red, earlier in yellow)
+    if [ "$PI_HEAT" = "now" ]; then
+        col3_text="${dbcol_bred}$TEMP_C °C     $TEMP_F °F     $(pi_fit_col3 "$col_1_2_text" 21 "Too hot: slowing down" "Too hot!")${dbcol_rst}"
+    elif [ "$PI_HEAT" = "earlier" ]; then
+        col3_text="$TEMP_C °C     $TEMP_F °F     ${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 21 "Got too hot earlier" "Too hot earlier")${dbcol_rst}"
+    fi
+    db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+fi
+
+# STATUS MONITOR DASHBOARD - SYSTEM - POWER (Raspberry Pi only, and only when there is a problem)
+
+if [ "${PI_POWER:-ok}" != "ok" ] || [ "${PI_USB:-ok}" != "ok" ]; then
+    col_1_2_text=" ║                ║          POWER ║  "
+    if [ "$PI_POWER" = "now" ]; then
+        col3_text="${dbcol_bred}$(pi_fit_col3 "$col_1_2_text" 0 "Under-voltage now: use the official power supply" "Under-voltage now!")${dbcol_rst}"
+    elif [ "$PI_POWER" = "earlier" ]; then
+        col3_text="${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 0 "Under-voltage since start: use the official power supply" "Under-voltage since start")${dbcol_rst}"
+    else
+        col3_text="${dbcol_bylw}$(pi_fit_col3 "$col_1_2_text" 0 "USB power limited: use the official 27W power supply" "USB power limited")${dbcol_rst}"
+    fi
     db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
 fi
@@ -6192,6 +6353,16 @@ printf "  ╚══════════════════════�
 echo ""
 
 echo "                         Running Port Tests..."
+
+# The port numbers: set here because the messages for a skipped test use them too
+if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
+else
+    DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
+fi
+if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB2_LISTEN_PORT" != "" ]; then
+    DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
+fi
 echo ""
 
 PORT_TEST_DATE=$(date +%s)
@@ -6269,7 +6440,7 @@ if [ "$DGB_NETWORK_CURRENT" = "MAINNET" ]  && [ "$DGB_MAINNET_PORT_TEST_ENABLED"
     if [ "$DGB_MAINNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_MAINNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_MAINNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_MAINNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_MAINNET_LISTEN_PORT=$DGB_LISTEN_PORT
@@ -6297,7 +6468,7 @@ if [ "$DGB_NETWORK_CURRENT" = "TESTNET" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" 
     if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_TESTNET_LISTEN_PORT=$DGB_LISTEN_PORT
@@ -6324,7 +6495,7 @@ if [ "$DGB_DUAL_NODE" = "YES" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ] 
     if [ "$DGB_TESTNET_PORT_TEST_ADDRESS" != "" ]; then
         DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_3}${DGB_TESTNET_PORT_TEST_ADDRESS}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     else
-        DGB_MAINNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}${DGB_PORT_TEST_QUERY_CMD_5}${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
+        DGB_TESTNET_PORT_TEST_QUERY_CMD="${DGB_PORT_TEST_QUERY_CMD_1}${DGB_PORT_TEST_QUERY_CMD_2}?port=${DGB_PORT_TEST_QUERY_CMD_6_TESTNET}${DGB_PORT_TEST_QUERY_CMD_7}${DGB_PORT_TEST_QUERY_CMD_8_TESTNET}${DGB_PORT_TEST_QUERY_CMD_9}"
     fi
 
     DGB_TESTNET_LISTEN_PORT=$DGB2_LISTEN_PORT
@@ -6423,17 +6594,17 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_MAINNET_PORT_TEST_ISP=$DGB_MAINNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION=$DGB_MAINNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_MAINNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_MAINNET_PORT_TEST_LOCATION="$DGB_MAINNET_PORT_TEST_QUERY_CITY, $DGB_MAINNET_PORT_TEST_QUERY_REGION, $DGB_MAINNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
@@ -6571,7 +6742,7 @@ if [ "$DO_MAINNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6582,7 +6753,7 @@ elif [ "$DGB_MAINNET_STATUS" = "startingup" ] && [ "$DGB_MAINNET_PORT_TEST_ENABL
 
 elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6592,7 +6763,7 @@ elif [ "$DGB_MAINNET_STATUS" = "stopped" ] && [ "$DGB_MAINNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_MAINNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT open? ... "
+        str="Is DigiByte MAINNET listening port $DGB_MAINNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6677,17 +6848,17 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
     fi
 
     # Port test - Get ISP
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_ISP" != "null" ]; then
         DGB_TESTNET_PORT_TEST_ISP=$DGB_TESTNET_PORT_TEST_QUERY_ISP
     fi
 
     # Port test - Get Location - onion
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_LOCATION" != "null" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION=$DGB_TESTNET_PORT_TEST_QUERY_LOCATION
     fi
 
     # Port test - Get Location
-    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
+    if [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_CITY" != "null" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_REGION" != "" ] && [ "$DGB_TESTNET_PORT_TEST_QUERY_COUNTRY" != "" ]; then
         DGB_TESTNET_PORT_TEST_LOCATION="$DGB_TESTNET_PORT_TEST_QUERY_CITY, $DGB_TESTNET_PORT_TEST_QUERY_REGION, $DGB_TESTNET_PORT_TEST_QUERY_COUNTRY"
     fi
 
@@ -6823,7 +6994,7 @@ if [ "$DO_TESTNET_PORT_TEST" = "YES" ]; then
 
 elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6834,7 +7005,7 @@ elif [ "$DGB_TESTNET_STATUS" = "startingup" ] && [ "$DGB_TESTNET_PORT_TEST_ENABL
 
 elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "YES" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6844,7 +7015,7 @@ elif [ "$DGB_TESTNET_STATUS" = "stopped" ] && [ "$DGB_TESTNET_PORT_TEST_ENABLED"
 
 elif [ "$DGB_TESTNET_PORT_TEST_ENABLED" = "NO" ]; then
 
-        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT open? ... "
+        str="Is DigiByte TESTNET listening port $DGB_TESTNET_LISTEN_PORT OPEN? ... "
         printf "%b %s" "${INFO}" "${str}" 
 
         printf "%b%b %s TEST SKIPPED!\\n" "${OVER}" "${SKIP}" "${str}"  
@@ -6998,6 +7169,8 @@ startup_checks() {
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it is compatible.
+  get_device_info                  # What the computer is, if it isn't a Raspberry Pi (for the DEVICE row)
+  get_os_info                      # Which operating system this is (for the OS row)
   set_sys_variables                # Set various system variables once we know we are on linux
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version

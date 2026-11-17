@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#           Name:  DigiNode Setup v26.11.01
+#           Name:  DigiNode Setup v26.11.02
 #
 #        Purpose:  Install and manage a DigiByte Node and DigiAsset Node via the linux command line.
 #          
@@ -16,8 +16,8 @@
 #
 # -----------------------------------------------------------------------------------------------------
 
-DGNT_VER_LIVE=26.11.01
-# Last Updated: 2026-11-03
+DGNT_VER_LIVE=26.11.02
+# Last Updated: 2026-11-17
 
 # Convert to a fixed width string of 9 characters to display in the script
 DGNT_VER_LIVE_FW=$(printf "%-9s" "v$DGNT_VER_LIVE")
@@ -111,6 +111,7 @@ HOSTNAME_TESTNET="diginode-testnet"
 # There should be no reason to change this, and it is unadvisable to do.
 DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
+SPONSOR_PREVIEW_FILE=$DGNT_SETTINGS_LOCATION/.sponsor-preview
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
@@ -175,6 +176,7 @@ c=70
 RESET_MODE=false
 UNATTENDED_MODE=false
 DGNT_BRANCH_REMOTE="release"
+SPONSOR_PREVIEW_MENU=false
 UNINSTALL=false
 SKIP_OS_CHECK=false
 SKIP_PKG_UPDATE_CHECK=false
@@ -195,6 +197,7 @@ for var in "$@"; do
         "--dgntdev" ) DGNT_BRANCH_REMOTE="develop";; 
         "--dgntmain" ) DGNT_BRANCH_REMOTE="main";;
         "--dgntbranch="* ) DGNT_BRANCH_REMOTE="${var#--dgntbranch=}";;
+        "--sponsorpreview" ) SPONSOR_PREVIEW_MENU=true;;
 #!!        "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
@@ -333,10 +336,8 @@ display_help() {
         printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbver=x.x.x%b  - Install a specific version of DigiByte Core (e.g. --dgbver=8.26.2). Use to upgrade or downgrade.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   Only versions that have been verified for your DigiNode can be installed.\\n" "${INDENT}"
-        printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dgntbranch=x%b  - Developer Mode: Install a feature branch of DigiNode Tools (e.g. --dgntbranch=feature/plugins).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
  #!!       printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
+        printf "%b %b--sponsorpreview%b - Sponsors Preview: thank you to my sponsors - get each release two weeks early.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--uninstall%b     - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--reset%b         - Reset your DigiNode settings and reinstall your DigiNode software.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -375,6 +376,115 @@ get_dgnt_release_version() {
     if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "$tag"
     fi
+}
+
+# Print the version on the Sponsors Preview branch, or nothing if it can't be found
+get_dgnt_preview_version() {
+    local ver
+    ver=$(curl -sf --max-time 10 https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/diginode.sh 2>/dev/null | grep -m1 '^DGNT_VER_LOCAL=' | cut -d'=' -f2)
+    if [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$ver"
+    fi
+}
+
+# The day the waiting Sponsors Preview is released to everyone, as YYYY-MM-DD: the next release Tuesday (every 14 days
+# from 2026-10-20, as in .github/release.sh), or today if it's a release Tuesday before 10:00 UK time.
+dgnt_preview_public_day() {
+    local first=1792454400 today_uk now days next   # first = 2026-10-20 00:00 UTC
+    today_uk=$(TZ=Europe/London date +%Y-%m-%d)
+    now=$(date -u -d "$today_uk" +%s 2>/dev/null) || return 0
+    days=$(( (now - first) / 86400 ))
+    if [ $(( days % 14 )) -eq 0 ] && [ "$((10#$(TZ=Europe/London date +%H)))" -lt 10 ]; then
+        next=$now
+    else
+        next=$(( first + (days / 14 + 1) * 14 * 86400 ))
+    fi
+    date -u -d "@$next" +%Y-%m-%d
+}
+
+# Save a setting in diginode.settings (adding it if this DigiNode's settings file is older than the setting)
+dgnt_save_setting() {
+    if grep -q "^$1=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^$1=/s|.*|$1=\"$2\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "$1=\"$2\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# What the waiting Sponsors Preview brings, for the "Coming on ..." line shown to everyone else when quitting the
+# Dashboard: the bold titles of the notes under "Unreleased" on the preview branch, its version and its public day.
+# Saved in diginode.settings (DGNT_PREVIEW_VER, DGNT_PREVIEW_TITLES, DGNT_PREVIEW_PUBLIC). Empty when there is no
+# preview, or nothing new in it.
+dgnt_check_preview_coming() {
+    local notes titles ver=""
+    notes=$(curl -sf --max-time 10 https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/docs/release_notes.md 2>/dev/null)
+    titles=$(printf '%s\n' "$notes" | awk '$0 == "### DigiNode Tools - Unreleased" { on = 1; next } on && /^### / { exit } on && /^- / && match($0, /\*\*[^*]+\*\*/) { t = substr($0, RSTART + 2, RLENGTH - 4); out = out (out ? ", " : "") t } END { print out }')
+    titles=${titles//\"/}
+    titles=${titles//|/}
+    [ -n "$titles" ] && ver=$(get_dgnt_preview_version)
+    # Nothing is coming if the preview isn't newer than the latest release (e.g. read just as it was released)
+    if [ -n "$ver" ] && [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$ver")" -le "$(version "$DGNT_VER_RELEASE")" ]; then
+        ver=""
+    fi
+    [ -n "$ver" ] || titles=""
+    DGNT_PREVIEW_VER="$ver"; DGNT_PREVIEW_TITLES="$titles"
+    DGNT_PREVIEW_PUBLIC=""; [ -n "$titles" ] && DGNT_PREVIEW_PUBLIC=$(dgnt_preview_public_day)
+    dgnt_save_setting DGNT_PREVIEW_VER "$DGNT_PREVIEW_VER"
+    dgnt_save_setting DGNT_PREVIEW_TITLES "$DGNT_PREVIEW_TITLES"
+    dgnt_save_setting DGNT_PREVIEW_PUBLIC "$DGNT_PREVIEW_PUBLIC"
+}
+
+# "Coming on 15 Dec: A, B and 2 more." - whole titles that fit in the width, then how many more (same in motd/50-diginode)
+dgnt_preview_coming_text() {
+    local when="$1" max="$3" line="" t n=0 total shown=0
+    local IFS=$'\n'
+    local titles=($(printf '%s\n' "$2" | sed 's/, /\n/g'))
+    total=${#titles[@]}
+    for t in "${titles[@]}"; do
+        n=$(( n + 1 ))
+        local try="${line:+$line, }$t"
+        local rest=$(( total - n ))
+        local tail="."; [ $rest -gt 0 ] && tail=" and $rest more."
+        if [ $shown -eq 0 ] || [ $(( ${#when} + 12 + ${#try} + ${#tail} )) -le $max ]; then
+            line="$try"; shown=$n
+        else
+            break
+        fi
+    done
+    local more=$(( total - shown ))
+    if [ $more -gt 0 ]; then line="$line and $more more."; else line="$line."; fi
+    line="Coming on $when: $line"
+    [ ${#line} -le $max ] || line="${line:0:$(( max - 3 ))}..."
+    echo "$line"
+}
+
+# "Coming on 15 Dec: ..." for DigiNodes not on the Sponsors Preview, while it has something newer than this DigiNode
+# and its public day hasn't passed. Prints nothing otherwise.
+dgnt_preview_coming_line() {
+    local when line max=74
+    [ "$SPONSOR_PREVIEW" = "YES" ] && return 0
+    [ -n "$DGNT_PREVIEW_TITLES" ] && [ -n "$DGNT_PREVIEW_VER" ] && [ -n "$DGNT_PREVIEW_PUBLIC" ] || return 0
+    [[ "$DGNT_PREVIEW_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 0
+    [ -n "$DGNT_VER_LOCAL" ] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_LOCAL")" ] && return 0
+    [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_RELEASE")" ] && return 0
+    [[ "$(TZ=Europe/London date +%Y-%m-%d)" > "$DGNT_PREVIEW_PUBLIC" ]] && return 0
+    when=$(date -u -d "$DGNT_PREVIEW_PUBLIC" "+%-d %b" 2>/dev/null) || return 0
+    line=$(dgnt_preview_coming_text "$when" "$DGNT_PREVIEW_TITLES" $max)
+    echo "   $line"
+    echo -e "   Sponsors have it now: ${txtbld}diginode-setup --sponsorpreview${txtrst}"
+    echo ""
+}
+
+# Print the version this DigiNode should compare itself with: the Sponsors Preview's, or the latest release's
+get_dgnt_channel_version() {
+    local ver=""
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        ver=$(get_dgnt_preview_version)
+    fi
+    if [ "$ver" = "" ]; then
+        ver=$(get_dgnt_release_version)
+    fi
+    echo "$ver"
 }
 
 # Inform user if Verbose Mode is enabled
@@ -780,6 +890,12 @@ SYSTEM_AUTO_UPDATES=$SYSTEM_AUTO_UPDATES
 SYSTEM_AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
 SYSTEM_AUTO_REBOOT_TIME=$SYSTEM_AUTO_REBOOT_TIME
 
+# RASPBERRY PI BOOTLOADER UPDATES (Raspberry Pi 4 and 5 only)
+# AUTO = install new stable releases of the Raspberry Pi bootloader automatically. They are installed at the next
+# restart, and never while your Raspberry Pi is short of power. OFF = leave the bootloader as it is.
+# If left blank, DigiNode Setup will ask you. To change this, run 'diginode-setup' and choose System from the main menu.
+SYSTEM_EEPROM_UPDATES=$SYSTEM_EEPROM_UPDATES
+
 
 #####################################
 ####### UNATTENDED INSTALL ##########
@@ -861,6 +977,10 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 # (Debian, Ubuntu and Raspberry Pi OS only.)
 UI_SYSTEM_AUTO_UPDATES=$UI_SYSTEM_AUTO_UPDATES
 UI_SYSTEM_AUTO_REBOOT=$UI_SYSTEM_AUTO_REBOOT
+
+# Choose whether to update the Raspberry Pi bootloader automatically: AUTO (recommended) or OFF. Left blank = AUTO.
+# (Raspberry Pi 4 and 5 only.)
+UI_SYSTEM_EEPROM_UPDATES=$UI_SYSTEM_EEPROM_UPDATES
 
 
 #############################################
@@ -949,6 +1069,21 @@ DGNT_VER_RELEASE="$DGNT_VER_RELEASE"
 # This is updated automatically every time DigiNode Tools is installed/upgraded. 
 # It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
 DGNT_BRANCH_LOCAL="$DGNT_BRANCH_LOCAL"
+
+# Sponsors Preview: YES means this DigiNode gets each DigiNode Tools release two weeks early, as a thank you for
+# sponsoring. Change it from the DigiNode Setup menu (Extras > Sponsors Preview), or with: diginode-setup --sponsorpreview
+SPONSOR_PREVIEW="$SPONSOR_PREVIEW"
+
+# What the waiting Sponsors Preview brings (checked hourly by DigiNode Dashboard): its version, the titles of its
+# release notes and the day it's released to everyone. Shown when quitting the Dashboard to DigiNodes not on it.
+DGNT_PREVIEW_VER="$DGNT_PREVIEW_VER"
+DGNT_PREVIEW_TITLES="$DGNT_PREVIEW_TITLES"
+DGNT_PREVIEW_PUBLIC="$DGNT_PREVIEW_PUBLIC"
+
+# A newer version of the operating system, if there is one (checked daily by DigiNode Dashboard and shown on its OS
+# row), and the OS version it was checked for (an OS upgraded since is never shown an old answer)
+OS_NEW_VERSION="$OS_NEW_VERSION"
+OS_NEW_VERSION_FOR="$OS_NEW_VERSION_FOR"
 
 # DIGIBYTE NODE STATUS UPDATER:
 DNSU_INSTALL_LOCATION=$DNSU_INSTALL_LOCATION
@@ -1728,8 +1863,34 @@ is_dgnt_feature_branch() {
     esac
 }
 
+# A one-way fingerprint of this machine's ID: enough to recognise a machine, without showing its ID
+dgnt_machine_fingerprint() {
+    [ -r /etc/machine-id ] || return 1
+    printf 'diginode-dev:%s' "$(cat /etc/machine-id)" | sha256sum | cut -d' ' -f1
+}
+
+# Developer Mode (--dgntdev, --dgntbranch=) installs unfinished code, so it only runs on machines used to develop
+# DigiNode Tools. They are listed in access.json in diginode-sponsors, so a machine can be added without a release.
+dgnt_require_dev_machine() {
+    local fingerprint
+    fingerprint=$(dgnt_machine_fingerprint)
+    if [ -n "$fingerprint" ] && curl -sf --max-time 10 "$DGNT_SPONSORS_DATA_URL/access.json" 2>/dev/null | grep -qi "\"$fingerprint\""; then
+        return 0
+    fi
+    printf "%b %bDeveloper Mode is only for the machines used to develop DigiNode Tools.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b It installs unfinished code that could break your DigiNode. Nothing has been changed.\\n" "${INDENT}"
+    printf "%b Want new releases early? See: diginode-setup --sponsorpreview\\n" "${INDENT}"
+    printf "%b This machine: %s\\n\\n" "${INDENT}" "${fingerprint:-no machine ID found}"
+    exit 1
+}
+
 # Function to set the DigiNode Tools Dev branch to use
 set_dgnt_branch() {
+
+    # Developer Mode only runs on development machines
+    if [ "$DGNT_BRANCH_REMOTE" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        dgnt_require_dev_machine
+    fi
 
     # If a feature branch was requested with --dgntbranch=, check it is a valid branch name and exists on GitHub.
     # This is done before anything else, because installing DigiNode Tools deletes the current version first.
@@ -4502,6 +4663,183 @@ else
     fi
 fi
 
+}
+
+# Which operating system this is, for DigiNode Dashboard's OS row. Sets:
+#   OS_NAME        e.g. "Ubuntu 24.04.3 LTS", "Debian GNU/Linux 13 (trixie)", "Raspberry Pi OS Lite 12 (bookworm)"
+#   OS_BITS        "64-bit" or "32-bit" (of the programs, not just the kernel)
+#   OS_ID, OS_VERSION_ID, OS_CODENAME   from /etc/os-release (OS_ID is "raspios" on Raspberry Pi OS)
+# Raspberry Pi OS calls itself Debian in /etc/os-release; it is recognised by /etc/rpi-issue, which only it has.
+# (Multi-chain note: nothing here is chain specific.)
+get_os_info() {
+    OS_NAME="" OS_BITS="" OS_ID="" OS_VERSION_ID="" OS_CODENAME=""
+    [ -r /etc/os-release ] || return 0
+    local pretty
+    # Read in a subshell, so the file's variables don't leak into ours
+    IFS=$'\t' read -r OS_ID OS_VERSION_ID OS_CODENAME pretty < <( . /etc/os-release 2>/dev/null; printf '%s\t%s\t%s\t%s\n' "${ID:-}" "${VERSION_ID:-}" "${VERSION_CODENAME:-}" "${PRETTY_NAME:-}" )
+    if [ "$OS_ID" = "debian" ] && [ -f /etc/rpi-issue ]; then
+        OS_ID="raspios"
+        # Lite: the image was built only to pi-gen's stage2 (the desktop versions go on to stage4/stage5), and no
+        # desktop has been installed since
+        local edition=""
+        if grep -q 'stage2[[:space:]]*$' /etc/rpi-issue 2>/dev/null \
+           && ! dpkg-query -W -f='${Status}\n' raspberrypi-ui-mods 'rpd-*' 2>/dev/null | grep -q "install ok installed"; then
+            edition=" Lite"
+        fi
+        OS_NAME="Raspberry Pi OS${edition} ${OS_VERSION_ID}${OS_CODENAME:+ ($OS_CODENAME)}"
+    else
+        OS_NAME="${pretty:-$OS_ID $OS_VERSION_ID}"
+    fi
+    case "$(getconf LONG_BIT 2>/dev/null)" in
+        64) OS_BITS="64-bit" ;;
+        32) OS_BITS="32-bit" ;;
+    esac
+    return 0
+}
+
+# What the computer is, for DigiNode Dashboard's DEVICE row on systems that aren't a Raspberry Pi (rpi_check sets
+# MODEL and MODELMEM on a Pi). Sets MODEL (e.g. "Intel NUC12WSHi5", "Hetzner vServer (virtual machine)",
+# "Virtual machine (KVM)") from the firmware's (DMI) maker and product name, and MODELMEM (rounded RAM, e.g. "8GB").
+# MODEL stays empty if nothing useful is reported.
+get_device_info() {
+    [ "$MODEL" != "" ] && return 0
+    local dmi=/sys/class/dmi/id vendor="" product="" virt="" virt_name=""
+    [ -r "$dmi/sys_vendor" ] && vendor=$(tr -d '\0' < "$dmi/sys_vendor" | xargs 2>/dev/null)
+    [ -r "$dmi/product_name" ] && product=$(tr -d '\0' < "$dmi/product_name" | xargs 2>/dev/null)
+    # Lenovo puts a part number in product_name and the model name in product_version
+    if [[ "${vendor,,}" == lenovo* ]] && [ -r "$dmi/product_version" ]; then
+        local lenovo_name
+        lenovo_name=$(tr -d '\0' < "$dmi/product_version" | xargs 2>/dev/null)
+        [ -n "$lenovo_name" ] && product="$lenovo_name" && vendor="Lenovo"
+    fi
+    # Placeholder text some makers leave in, and the names hypervisors give their virtual hardware
+    local junk='^(to be filled.*|system manufacturer|system product name|default string|not specified|none|unknown|o\.e\.m\.?|oem|n/a|0+|1234567890|)$'
+    local hypervisor='^(qemu|innotek gmbh|virtualbox|vmware.*|microsoft corporation|xen|red hat|bochs|parallels.*|apple inc\.)$'
+    [[ "${vendor,,}" =~ $junk ]] && vendor=""
+    [[ "${product,,}" =~ $junk ]] && product=""
+
+    if is_command systemd-detect-virt; then
+        virt=$(systemd-detect-virt 2>/dev/null)
+    fi
+    case "$virt" in
+        ""|none) virt_name="" ;;
+        kvm|qemu) virt_name="KVM" ;;
+        vmware) virt_name="VMware" ;;
+        microsoft) virt_name="Hyper-V" ;;
+        oracle) virt_name="VirtualBox" ;;
+        xen) virt_name="Xen" ;;
+        apple) virt_name="Apple" ;;
+        parallels) virt_name="Parallels" ;;
+        lxc|lxc-libvirt|openvz|docker|podman|systemd-nspawn|wsl) virt_name="container" ;;
+        *) virt_name="$virt" ;;
+    esac
+
+    if [ "$virt_name" = "container" ]; then
+        MODEL="Container ($virt)"
+    elif [ -n "$virt_name" ]; then
+        if [ -n "$vendor" ] && ! [[ "${vendor,,}" =~ $hypervisor ]]; then
+            MODEL="$vendor${product:+ $product} (virtual machine)"   # e.g. a VPS provider that names its servers
+        else
+            MODEL="Virtual machine ($virt_name)"
+        fi
+    elif [ -n "$vendor" ] || [ -n "$product" ]; then
+        # Don't repeat the maker if the product name already starts with it
+        if [ -n "$vendor" ] && [ -n "$product" ] && [[ "${product,,}" == "${vendor,,}"* ]]; then
+            MODEL="$product"
+        else
+            MODEL="$vendor${vendor:+${product:+ }}$product"
+        fi
+    fi
+
+    if [ -n "$MODEL" ] && [ -z "$MODELMEM" ]; then
+        MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo 2>/dev/null)
+    fi
+    return 0
+}
+
+# Is a newer version of this operating system available? Run once a day by DigiNode Dashboard. Saves OS_NEW_VERSION
+# (what to show, e.g. "13 (trixie)" or "26.04 LTS", empty if none or unknown) and OS_NEW_VERSION_FOR (the
+# version it was worked out for, so an OS that has since been upgraded never shows an old answer) in diginode.settings.
+#   Ubuntu: Ubuntu's own list of releases, the one its upgrade tool reads (LTS only, unless the system is set to
+#           be offered every release in /etc/update-manager/release-upgrades; nothing if it is set to never) - the
+#           next release the upgrade tool would offer, as it goes one at a time (22.04 is offered 24.04, not 26.04).
+#           A new LTS appears there once Ubuntu offers the upgrade (usually at its .1 release).
+#   Debian: the version of Debian's current stable release.
+#   Raspberry Pi OS: the Debian release the newest 64-bit Raspberry Pi OS Lite image is built on.
+# Other systems aren't checked. Only reads public files; never changes anything on the system.
+check_os_new_version() {
+    get_os_info
+    local new="" major current_major
+    current_major=${OS_VERSION_ID%%.*}
+    case "$OS_ID" in
+        ubuntu)
+            local prompt="lts" url line dist="" ver="" supported="" best=""
+            if [ -r /etc/update-manager/release-upgrades ]; then
+                prompt=$(sed -n 's/^[[:space:]]*Prompt[[:space:]]*=[[:space:]]*//p' /etc/update-manager/release-upgrades | tail -1 | tr -d '[:space:]')
+            fi
+            case "$prompt" in
+                never) prompt="" ;;
+                normal) url="https://changelogs.ubuntu.com/meta-release" ;;
+                *) url="https://changelogs.ubuntu.com/meta-release-lts" ;;
+            esac
+            if [ -n "$prompt" ]; then
+                # Blocks of "Dist: ...", "Version: 26.04.1 LTS", "Supported: 1", separated by blank lines
+                while IFS= read -r line; do
+                    case "$line" in
+                        Dist:*) dist=${line#Dist: } ;;
+                        Version:*) ver=${line#Version: } ;;
+                        Supported:*) supported=${line#Supported: } ;;
+                        "")
+                            # The first newer supported release: what the upgrade tool offers next (it goes one
+                            # LTS at a time, e.g. 22.04 -> 24.04 -> 26.04)
+                            if [ -z "$best" ] && [ "$supported" = "1" ] && [ -n "$ver" ] && [ -n "$OS_VERSION_ID" ] \
+                               && [ "$(version "$(echo "${ver%% *}" | cut -d. -f1-2)")" -gt "$(version "$(echo "$OS_VERSION_ID" | cut -d. -f1-2)")" ]; then
+                                best="$ver"
+                            fi
+                            dist="" ver="" supported="" ;;
+                    esac
+                done < <(curl --max-time 10 -sfL "$url" 2>/dev/null; echo)
+                # "26.04.1 LTS" -> "26.04 LTS"
+                [ -n "$best" ] && new=$(echo "$best" | sed -E 's/^([0-9]+\.[0-9]+)(\.[0-9]+)?/\1/')
+            fi
+            ;;
+        debian)
+            local release
+            release=$(curl --max-time 10 -sfL https://deb.debian.org/debian/dists/stable/Release 2>/dev/null | head -20)
+            major=$(echo "$release" | sed -n 's/^Version: *\([0-9]*\).*/\1/p')
+            local codename
+            codename=$(echo "$release" | sed -n 's/^Codename: *//p')
+            if [[ "$major" =~ ^[0-9]+$ ]] && [[ "$current_major" =~ ^[0-9]+$ ]] && [ "$major" -gt "$current_major" ]; then
+                new="$major${codename:+ ($codename)}"
+            fi
+            ;;
+        raspios)
+            # Newest image folder, e.g. raspios_lite_arm64-2025-10-01/, then the codename in its image file name
+            local base="https://downloads.raspberrypi.com/raspios_lite_arm64/images/" folder file codename
+            folder=$(curl --max-time 10 -sfL "$base" 2>/dev/null | grep -o 'raspios_lite_arm64-[0-9-]*/' | sort -u | tail -1)
+            if [ -n "$folder" ]; then
+                file=$(curl --max-time 10 -sfL "$base$folder" 2>/dev/null | grep -o '[0-9-]*-raspios-[a-z]*-arm64-lite\.img\.xz' | head -1)
+                codename=$(echo "$file" | sed -n 's/^[0-9-]*-raspios-\([a-z]*\)-arm64-lite\.img\.xz$/\1/p')
+            fi
+            if [ -n "$codename" ] && [ "$codename" != "$OS_CODENAME" ]; then
+                # Its Debian version number, from Debian itself
+                major=$(curl --max-time 10 -sfL "https://deb.debian.org/debian/dists/$codename/Release" 2>/dev/null | head -20 | sed -n 's/^Version: *\([0-9]*\).*/\1/p')
+                if [[ "$major" =~ ^[0-9]+$ ]] && [[ "$current_major" =~ ^[0-9]+$ ]] && [ "$major" -gt "$current_major" ]; then
+                    new="$major ($codename)"
+                fi
+            fi
+            ;;
+    esac
+
+    # Only letters, numbers, dots, spaces and brackets (the settings file is read as bash)
+    [[ "$new" =~ ^[A-Za-z0-9.\ ()]{1,40}$ ]] || new=""
+    OS_NEW_VERSION="$new"
+    OS_NEW_VERSION_FOR="$OS_VERSION_ID"
+    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+        dgnt_save_setting OS_NEW_VERSION "$OS_NEW_VERSION"
+        dgnt_save_setting OS_NEW_VERSION_FOR "$OS_NEW_VERSION_FOR"
+    fi
+    return 0
 }
 
 # This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
@@ -8310,6 +8648,12 @@ lookup_external_ip() {
 # Function to display the upgrade menu when a previous install has been detected
 menu_existing_install() {
 
+    # diginode-setup --sponsorpreview goes straight to the Sponsors Preview
+    if [ "$SPONSOR_PREVIEW_MENU" = true ]; then
+        SPONSOR_PREVIEW_MENU=false
+        menu_sponsor_preview
+    fi
+
     printf " =============== MAIN MENU =============================================\\n\\n"
     # ==============================================================================
 
@@ -9579,6 +9923,192 @@ wallet_delete() {
 
 
 # Function to display the extras menu, which is used to install optional software for the DigiNode
+# ------------------------------------------------------------------------------
+# Sponsors Preview: a thank you for sponsoring. This DigiNode gets each release of DigiNode Tools two weeks before
+# everyone else, from the preview branch (.github/release.sh moves it on each release Tuesday).
+#   GitHub sponsors sign in with GitHub (device flow, read:user only). The sign-in is kept in SPONSOR_PREVIEW_FILE and
+#   checked again on each run of DigiNode Setup. Monthly sponsorship is on GitHub Sponsors only (Ko-fi is for one-time donations).
+#   access.json in diginode-sponsors holds the GitHub app's client ID, so it can change without a release.
+#   This is a thank you, not a lock: the code is public on purpose.
+#   If someone stops sponsoring nothing is removed: they stay put, then rejoin normal releases when these catch up.
+# ------------------------------------------------------------------------------
+
+sponsor_preview_saved() {
+    [ -r "$SPONSOR_PREVIEW_FILE" ] && sed -n "s/^$1=//p" "$SPONSOR_PREVIEW_FILE" | head -1
+}
+
+sponsor_preview_save() {
+    ( umask 077; printf 'METHOD=%s\nVALUE=%s\n' "$1" "$2" > "$SPONSOR_PREVIEW_FILE" )
+    chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$SPONSOR_PREVIEW_FILE" 2>/dev/null
+    chmod 600 "$SPONSOR_PREVIEW_FILE"
+}
+
+sponsor_preview_setting() {
+    SPONSOR_PREVIEW="$1"
+    if grep -q "^SPONSOR_PREVIEW=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^SPONSOR_PREVIEW=/s|.*|SPONSOR_PREVIEW=\"$1\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "SPONSOR_PREVIEW=\"$1\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# Is this GitHub sign-in a current monthly sponsor? Prints: active, none, signedout or unknown (couldn't tell)
+# The token goes to curl on its input, not its command line, so it never shows in the process list.
+sponsor_preview_github_status() {
+    local response code body
+    response=$(printf 'header = "Authorization: bearer %s"\n' "$1" | curl -s --max-time 10 -K - \
+        -H 'Content-Type: application/json' -w '\n%{http_code}' \
+        -d '{"query":"{organization(login:\"DigiNode-Tools\"){sponsorshipForViewerAsSponsor(activeOnly:true){isOneTimePayment}}}"}' \
+        https://api.github.com/graphql 2>/dev/null)
+    code=$(printf '%s' "$response" | tail -1)
+    body=$(printf '%s' "$response" | sed '$d')
+    if [ "$code" = "401" ]; then
+        echo "signedout"
+    elif [ "$code" != "200" ] || ! is_command jq || [ "$(printf '%s' "$body" | jq -r 'has("errors")' 2>/dev/null)" != "false" ]; then
+        echo "unknown"
+    elif [ "$(printf '%s' "$body" | jq -r '.data.organization.sponsorshipForViewerAsSponsor.isOneTimePayment' 2>/dev/null)" = "false" ]; then
+        echo "active"
+    else
+        echo "none"
+    fi
+}
+
+# Print a field of the preview section of access.json, or nothing
+sponsor_preview_access() {
+    curl -sf --max-time 10 "$DGNT_SPONSORS_DATA_URL/access.json" 2>/dev/null | jq -r ".preview.$1 // empty" 2>/dev/null
+}
+
+# Is this DigiNode's saved access still good? Prints: active, none, signedout or unknown
+sponsor_preview_status() {
+    if [ "$(sponsor_preview_saved METHOD)" = "github" ]; then
+        sponsor_preview_github_status "$(sponsor_preview_saved VALUE)"
+    else
+        echo "signedout"
+    fi
+}
+
+# Run at the start of DigiNode Setup. A developer flag (--dgntdev etc.) takes priority. Never asks a question, so it
+# is safe in unattended mode. If GitHub can't be reached the DigiNode stays on the preview.
+sponsor_preview_apply() {
+    [ "$SPONSOR_PREVIEW" = "YES" ] || return 0
+    [ "$DGNT_BRANCH_REMOTE" = "release" ] || return 0
+    local status
+    status=$(sponsor_preview_status)
+    case "$status" in
+        active|unknown)
+            DGNT_BRANCH_REMOTE="preview"
+            ;;
+        *)
+            sponsor_preview_setting "NO"
+            printf "%b This DigiNode has left the Sponsors Preview" "${INFO}"
+            case "$status" in
+                none) printf ", as it no longer has a monthly sponsorship.\\n" ;;
+                *) printf ", as it needs you to sign in with GitHub again.\\n" ;;
+            esac
+            printf "%b Nothing is removed. To rejoin: diginode-setup --sponsorpreview\\n\\n" "${INDENT}"
+            ;;
+    esac
+}
+
+# GitHub device flow: show a code, the sponsor enters it at github.com/login/device. Saves the sign-in if they sponsor.
+sponsor_preview_github_signin() {
+    local client_id response device_code user_code interval expires waited=0 token status error
+    client_id=$(sponsor_preview_access github_client_id)
+    if ! [[ "$client_id" =~ ^[A-Za-z0-9_.-]{10,64}$ ]]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nSigning in with GitHub isn't available right now. Please try again later." 8 "${c}"
+        return 1
+    fi
+    response=$(curl -s --max-time 15 -H 'Accept: application/json' -d "client_id=$client_id" -d "scope=read:user" https://github.com/login/device/code 2>/dev/null)
+    device_code=$(printf '%s' "$response" | jq -r '.device_code // empty' 2>/dev/null)
+    user_code=$(printf '%s' "$response" | jq -r '.user_code // empty' 2>/dev/null)
+    interval=$(printf '%s' "$response" | jq -r '.interval // 5' 2>/dev/null)
+    expires=$(printf '%s' "$response" | jq -r '.expires_in // 900' 2>/dev/null)
+    if [ -z "$device_code" ] || ! [[ "$user_code" =~ ^[A-Z0-9-]{4,16}$ ]] || ! [[ "$interval" =~ ^[0-9]+$ ]] || ! [[ "$expires" =~ ^[0-9]+$ ]]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nGitHub couldn't be reached. Please try again later." 8 "${c}"
+        return 1
+    fi
+
+    clear
+    printf "\\n"
+    printf "%b On any device, open: %bhttps://github.com/login/device%b\\n\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+    printf "%b and enter this code: %b%s%b\\n\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "$user_code" "${COL_NC}"
+    printf "%b Sign in with the GitHub account you sponsor from. DigiNode Tools only asks to read your\\n" "${INDENT}"
+    printf "%b profile, to check you are a sponsor. It can't change anything on your account.\\n\\n" "${INDENT}"
+    printf "%b Waiting for you to enter the code..." "${INFO}"
+
+    while [ "$waited" -lt "$expires" ]; do
+        sleep "$interval"
+        waited=$(( waited + interval ))
+        response=$(curl -s --max-time 15 -H 'Accept: application/json' -d "client_id=$client_id" -d "device_code=$device_code" \
+            -d "grant_type=urn:ietf:params:oauth:grant-type:device_code" https://github.com/login/oauth/access_token 2>/dev/null)
+        token=$(printf '%s' "$response" | jq -r '.access_token // empty' 2>/dev/null)
+        [ -n "$token" ] && break
+        error=$(printf '%s' "$response" | jq -r '.error // empty' 2>/dev/null)
+        case "$error" in
+            slow_down) interval=$(( interval + 5 )) ;;
+            access_denied|expired_token) break ;;
+        esac
+    done
+    printf "\\n\\n"
+
+    if [ -z "$token" ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nYou weren't signed in, so nothing has changed." 8 "${c}"
+        return 1
+    fi
+    status=$(sponsor_preview_github_status "$token")
+    if [ "$status" = "active" ]; then
+        sponsor_preview_save github "$token"
+        return 0
+    elif [ "$status" = "none" ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "No monthly sponsorship found" --msgbox "\nThat GitHub account doesn't have a monthly sponsorship of DigiNode Tools.\n\nThe Sponsors Preview is a thank you for monthly sponsors, from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 13 "${c}"
+    else
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nYour sponsorship couldn't be checked. Please try again later." 8 "${c}"
+    fi
+    return 1
+}
+
+# Join now, and offer to install the preview straight away
+sponsor_preview_joined() {
+    sponsor_preview_setting "YES"
+    DGNT_BRANCH_REMOTE="preview"
+    if dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Thank you!" --yesno "\nThank you for sponsoring DigiNode Tools!\n\nThis DigiNode will now get each release two weeks before everyone else.\n\nCheck for a preview now?" 12 "${c}"; then
+        check_diginode_tools
+        if [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
+            DGNT_DO_INSTALL=YES
+        fi
+        diginode_tools_do_install
+    fi
+    closing_banner_message
+    exit 0
+}
+
+menu_sponsor_preview() {
+    local choice
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nThis DigiNode is on the Sponsors Preview. Thank you for your support!\n" 13 "${c}" 2 \
+            "1 Leave" "Go back to normal releases." \
+            "2 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
+        if [ "$choice" = "1 Leave" ]; then
+            rm -f "$SPONSOR_PREVIEW_FILE"
+            sponsor_preview_setting "NO"
+            DGNT_BRANCH_REMOTE="release"
+            dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nDone. Nothing is removed: this DigiNode keeps what it has, and rejoins normal releases when they catch up." 9 "${c}"
+        fi
+        menu_existing_install
+        return
+    fi
+
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n" 12 "${c}" 3 \
+        "1 GitHub" "I sponsor on GitHub: sign in to check." \
+        "2 Sponsor" "How to become a sponsor." \
+        "3 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
+    case "$choice" in
+        "1 GitHub") sponsor_preview_github_signin && sponsor_preview_joined ;;
+        "2 Sponsor") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Become a sponsor" --msgbox "\nSponsor DigiNode Tools monthly on GitHub Sponsors, from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 10 "${c}" ;;
+    esac
+    menu_existing_install
+}
+
 menu_extras() {
 
     printf " =============== EXTRAS MENU ===========================================\\n\\n"
@@ -9587,14 +10117,18 @@ menu_extras() {
     opt1a="1 Argon One Daemon"
     opt1b="Install fan software for Argon ONE RPi4 case."
 
-    opt2a="2 Main Menu"
-    opt2b="Return to the main menu."
+    opt2a="2 Sponsors Preview"
+    opt2b="For sponsors: get each release two weeks early."
+
+    opt3a="3 Main Menu"
+    opt3b="Return to the main menu."
 
 
     # Display the information to the user
     UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "Extras Menu" --title "Extras Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
@@ -9606,8 +10140,13 @@ menu_extras() {
             printf "\\n"
             install_argon_one_fan_software
             ;;
-        # USB Stick Backup
         ${opt2a})
+            printf "%b You selected the SPONSORS PREVIEW option.\\n" "${INFO}"
+            printf "\\n"
+            menu_sponsor_preview
+            ;;
+        # Main menu
+        ${opt3a})
             printf "%b You selected the MAIN MENU option.\\n" "${INFO}"
             printf "\\n"
             menu_existing_install
@@ -10952,6 +11491,46 @@ closing_banner_message() {
             # ==============================================================================
         fi
     fi
+
+    display_new_versions
+}
+
+# After installing or upgrading, say which version is now running. For a release or a Sponsors Preview, also say
+# what's new in it (the "Intro:" line of its release notes, wrapped to fit the terminal) and link to its blog post.
+# diginode.tools/release/vX.Y.Z/ finds the post, wherever it is (a preview's post is dated two weeks earlier, and
+# short releases can share a post). Feature branches, develop and main just give the branch.
+display_new_versions() {
+    local width notes heading intro preview_label=""
+    width=$(tput cols 2>/dev/null)
+    [[ "$width" =~ ^[0-9]+$ ]] || width=80
+    [ "$width" -gt 100 ] && width=100
+    width=$(( width - 6 ))
+
+    if [ "$DGNT_JUST_INSTALLED" = "YES" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ] || [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+            notes="$DGNT_LOCATION/docs/release_notes.md"
+            if [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+                heading="### DigiNode Tools - Unreleased"   # a preview's notes stay under Unreleased until it is released
+                preview_label=" (Sponsors Preview)"
+            else
+                heading="### DigiNode Tools v${DGNT_VER_LOCAL} "
+            fi
+            intro=$(awk -v h="$heading" 'index($0, h) == 1 { f = 1; next } f && /^### / { exit } f && /^Intro:/ { sub(/^Intro:[ \t]*/, ""); print; exit }' "$notes" 2>/dev/null \
+                | sed -E 's/\*\*//g; s/\[([^]]*)\]\([^)]*\)/\1/g')
+            printf "   You are now running %bDigiNode Tools v%s%b%s\\n\\n" "${txtbld}" "${DGNT_VER_LOCAL}" "${txtrst}" "${preview_label}"
+            if [ -n "$intro" ]; then
+                printf '%s\n' "$intro" | fold -s -w "$width" | sed -e 's/[[:space:]]*$//' -e 's/^/   /'
+                printf "\\n"
+            fi
+            printf "   Learn more: https://diginode.tools/release/v%s/\\n\\n" "${DGNT_VER_LOCAL}"
+        elif [ -n "$DGNT_BRANCH_LOCAL" ]; then
+            printf "   You are now running the %bDigiNode Tools %s branch%b\\n\\n" "${txtbld}" "${DGNT_BRANCH_LOCAL}" "${txtrst}"
+        fi
+    fi
+
+    if [ "$DGB_JUST_INSTALLED" = "YES" ] && [ -n "$DGB_VER_LOCAL" ]; then
+        printf "   You are now running %bDigiByte Core v%s%b\\n\\n" "${txtbld}" "${DGB_VER_LOCAL}" "${txtrst}"
+    fi
 }
 
 
@@ -11029,19 +11608,34 @@ display_dgb_donation_qrcode() {
     echo "               $dgb_address"
 }
 
-donation_qrcode() {  
+donation_qrcode() {
+
+    # Sponsors on the Sponsors Preview (their sponsorship is checked on every DigiNode Setup run) aren't asked again
+    # (Olly 2026-11-11): a thank you instead. The Featured Sponsors stay, as they paid to be seen.
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        printf " =============== ${txtbylw}THANK YOU FOR SPONSORING DIGINODE TOOLS${txtrst} ===============\\n\\n"
+        echo "   Your support is what keeps DigiNode Tools improving. As a sponsor,"
+        echo "   you get each new release two weeks before everyone else."
+        echo "   Thank you, Olly"
+        echo ""
+        display_featured_sponsors
+        echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
+        echo ""
+        return
+    fi
 
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
 
-    echo "   I created DigiNode Tools to make it easy for everybody to run their"
-    echo "   own DigiByte Node. It's free, its code is public, and I build and"
-    echo "   maintain it in my spare time, for the benefit of the DigiByte"
-    echo "   community. If you find it useful, please consider sponsoring me,"
-    echo "   so I can devote more time to it. Thank you for your support, Olly"
+    echo "   Running and monitoring your DigiByte node with DigiNode Tools is"
+    echo "   free, but it isn't free to make. It only keeps improving because"
+    echo "   people sponsor it. Without that support, I can't keep giving it the"
+    echo "   time it needs. If you run a DigiNode, please sponsor me. It really"
+    echo "   does make a difference. Thank you, Olly"
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
+    dgnt_preview_coming_line
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
@@ -11287,6 +11881,11 @@ display_system_updates_reminder() {
     # Remind the user if a restart is needed to finish installing system updates (e.g. a new Linux kernel)
     if [ -x "$DGNT_REBOOT_HELPER" ]; then
         "$DGNT_REBOOT_HELPER" --status
+    fi
+
+    # Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+    if [ -x "$DGNT_PI_HELPER" ]; then
+        "$DGNT_PI_HELPER" --status
     fi
 
 }
@@ -14817,6 +15416,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     set_dgb_testnet_params
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -15010,7 +15610,9 @@ printf " =============== Checking: DigiNode Tools ==============================
     fi
 
     # Requested branch
-    if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "preview" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        printf "%b This DigiNode is on the Sponsors Preview. Thank you for your support!\\n" "${INFO}"
+    elif [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
     elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
@@ -15064,6 +15666,10 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ] && [ $(version $DGNT_VER_LOCAL) -gt $(version $DGNT_VER_RELEASE) ]; then
+            # Left the Sponsors Preview: nothing is taken away. It moves back when the release catches up.
+            printf "%b DigiNode Tools stays on the Sponsors Preview v${DGNT_VER_LOCAL} until that version is released.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
             printf "%b %bDigiNode Tools will be upgraded from the ${DGNT_BRANCH_LOCAL} branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
@@ -15116,6 +15722,33 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
+        fi
+
+    # Sponsors Preview: only upgrade when there is something new (unlike a feature branch, which always reinstalls)
+    elif [ "$DGNT_BRANCH_REMOTE" = "preview" ] && [ "$DGNT_BRANCH_LOCAL" != "" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        local preview_ver preview_commit local_commit
+        preview_ver=$(get_dgnt_preview_version)
+        local ls_ok=yes ls_out
+        ls_out=$(git ls-remote https://github.com/DigiNode-Tools/diginode-tools.git refs/heads/preview 2>/dev/null) || ls_ok=no
+        preview_commit=$(printf '%s' "$ls_out" | cut -f1)
+        local_commit=$(git -C $DGNT_LOCATION rev-parse HEAD 2>/dev/null)
+        if [ "$ls_ok" = "yes" ] && [ "$preview_commit" = "" ]; then
+            # GitHub answered, but there is no preview branch: no preview is running at the moment
+            printf "%b Upgrade not required. There is nothing new on the Sponsors Preview yet.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$preview_ver" = "" ] || [ "$preview_commit" = "" ]; then
+            printf "%b The Sponsors Preview could not be checked. Please try again later.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ] && [ "$preview_commit" = "$local_commit" ]; then
+            printf "%b Upgrade not required. You have the latest Sponsors Preview.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$DGNT_BRANCH_LOCAL" = "release" ] && [ $(version $DGNT_VER_LOCAL) -ge $(version $preview_ver) ]; then
+            printf "%b Upgrade not required. There is nothing newer on the Sponsors Preview yet.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        else
+            printf "%b %bDigiNode Tools can be upgraded to the Sponsors Preview v${preview_ver}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_ASK_UPGRADE=YES
         fi
 
     # Upgrade to a feature branch (--dgntbranch=)
@@ -15279,12 +15912,20 @@ fi
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+            DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL} Preview"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
         elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
             DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY branch\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
         fi
+
+        # Remembered for display_new_versions, at the end
+        DGNT_JUST_INSTALLED="YES"
 
         # Make downloads executable
         str="Making DigiNode scripts executable..."
@@ -15799,6 +16440,7 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -19497,6 +20139,7 @@ install_command_links() {
 # reminder at the end of DigiNode Setup, when DigiNode Dashboard quits, and in the DigiNode MOTD.
 
 DGNT_REBOOT_HELPER=/usr/local/sbin/diginode-reboot
+DGNT_PI_HELPER=/usr/local/sbin/diginode-pi          # Raspberry Pi power and temperature warnings (diginode-pi.sh)
 DGNT_REBOOT_STATUS_DIR=/var/lib/diginode-tools
 DGNT_REBOOT_CONF=$DGNT_REBOOT_STATUS_DIR/auto-reboot.conf
 DGNT_AUTO_UPDATES_APT_CONF=/etc/apt/apt.conf.d/52diginode-auto-updates
@@ -19516,6 +20159,11 @@ set_diginode_setting() {
 # Automatic system updates are currently only supported on the Debian family (Debian, Ubuntu, Raspberry Pi OS)
 system_updates_supported() {
     [ "$PKG_MANAGER" = "apt-get" ]
+}
+
+# Exit 0 if apt gets packages from the Raspberry Pi archive (Raspberry Pi OS)
+system_has_raspberrypi_archive() {
+    apt-cache policy 2>/dev/null | grep -q 'o=Raspberry Pi Foundation,'
 }
 
 # Return a valid restart time (HH:MM), using 04:00 if the one in diginode.settings is missing or invalid
@@ -19566,6 +20214,17 @@ system_updates_check() {
         printf "%b%b Automatic restarts: OFF\\n" "${OVER}" "${CROSS}"
     fi
 
+    if system_has_eeprom; then
+        local eeprom_now=""
+        [ -x "$DGNT_PI_HELPER" ] && eeprom_now=$("$DGNT_PI_HELPER" --eeprom-version)
+        [ -n "$eeprom_now" ] && eeprom_now=" (your bootloader: $eeprom_now)"
+        if systemctl is-enabled --quiet diginode-pi.timer 2>/dev/null; then
+            printf "%b%b Automatic Raspberry Pi bootloader updates: ON%s\\n" "${OVER}" "${TICK}" "$eeprom_now"
+        else
+            printf "%b%b Automatic Raspberry Pi bootloader updates: OFF%s\\n" "${OVER}" "${CROSS}" "$eeprom_now"
+        fi
+    fi
+
     printf "\\n"
 }
 
@@ -19573,6 +20232,121 @@ system_updates_check() {
 # This is only asked once (the answer is saved in diginode.settings), unless it is chosen from the main menu.
 # Usage: menu_ask_system_updates [menu]
 menu_ask_system_updates() {
+    menu_ask_system_updates_os "$@"
+    menu_ask_eeprom_updates "$@"
+}
+
+# Exit 0 if this is a Raspberry Pi with a bootloader EEPROM that rpi-eeprom-update can update (Pi 4, 400, 5, 500, CM4, CM5)
+system_has_eeprom() {
+    tr -d '\0' < /proc/device-tree/model 2>/dev/null | grep -qE '^Raspberry Pi (4|400|5|500|Compute Module 4|Compute Module 5)( |$)' \
+        && command -v rpi-eeprom-update >/dev/null 2>&1
+}
+
+# Ask whether to update the Raspberry Pi bootloader automatically (saved as SYSTEM_EEPROM_UPDATES = AUTO or OFF).
+# Asked once (existing DigiNodes too), unless it is chosen from the main menu.
+# Usage: menu_ask_eeprom_updates [menu]
+menu_ask_eeprom_updates() {
+
+    local from_menu="$1"
+
+    system_has_eeprom || return 0
+
+    if [ "$from_menu" != "menu" ]; then
+        case "$SYSTEM_EEPROM_UPDATES" in
+            AUTO|OFF ) return ;;
+        esac
+    fi
+
+    if [ "$UNATTENDED_MODE" == true ]; then
+        case "$UI_SYSTEM_EEPROM_UPDATES" in
+            OFF ) SYSTEM_EEPROM_UPDATES="OFF" ;;
+            * )   SYSTEM_EEPROM_UPDATES="AUTO" ;;
+        esac
+        printf "%b Unattended Mode: Automatic bootloader updates will be set to: %s (from UI_SYSTEM_EEPROM_UPDATES in diginode.settings)\\n" "${INFO}" "$SYSTEM_EEPROM_UPDATES"
+        printf "\\n"
+        set_diginode_setting SYSTEM_EEPROM_UPDATES "$SYSTEM_EEPROM_UPDATES"
+        return
+    fi
+
+    # The running bootloader's release date, e.g. 30 Oct 2026
+    local eeprom_ts eeprom_now="unknown"
+    eeprom_ts=$(vcgencmd bootloader_version 2>/dev/null | awk '$1 == "timestamp" { print $2; exit }')
+    if [[ "$eeprom_ts" =~ ^[0-9]{9,11}$ ]]; then
+        eeprom_now=$(date -u -d "@$eeprom_ts" '+%-d %b %Y')
+    fi
+
+    local defaultno=""
+    if [ "$SYSTEM_EEPROM_UPDATES" = "OFF" ]; then
+        defaultno="--defaultno"
+    fi
+
+    if dialog --no-shadow --keep-tite --colors --backtitle "Raspberry Pi Bootloader Updates" --title "Raspberry Pi Bootloader Updates" $defaultno --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like your Raspberry Pi's bootloader to be kept up to date automatically?\Z0\n\nThe bootloader is the software built into your Raspberry Pi that starts it up. Raspberry Pi releases updates to it that fix problems and improve support for SSDs and other hardware.\n\nIf you choose YES (recommended), DigiNode Tools checks once a day for a new stable release, and it is installed the next time your Raspberry Pi restarts. It is never installed while your Raspberry Pi is short of power, as losing power while it is being installed could stop it starting.\n\nYour bootloader: $eeprom_now" 22 "${c}"; then
+        SYSTEM_EEPROM_UPDATES="AUTO"
+    else
+        SYSTEM_EEPROM_UPDATES="OFF"
+    fi
+    printf "%b You chose: Automatic bootloader updates - %s\\n" "${INFO}" "$SYSTEM_EEPROM_UPDATES"
+    printf "\\n"
+    set_diginode_setting SYSTEM_EEPROM_UPDATES "$SYSTEM_EEPROM_UPDATES"
+}
+
+# Turn the daily bootloader update check (diginode-pi.timer) on or off, to match SYSTEM_EEPROM_UPDATES
+system_eeprom_apply() {
+
+    local str units_changed="no"
+
+    system_has_eeprom || return 0
+    [ -x "$DGNT_PI_HELPER" ] || return 0
+
+    if [ "$SYSTEM_EEPROM_UPDATES" = "AUTO" ]; then
+        if write_file_if_changed /etc/systemd/system/diginode-pi.service 644 "[Unit]
+Description=DigiNode Raspberry Pi bootloader update check (never while short of power or busy)
+Documentation=https://diginode.tools
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Nice=10
+ExecStart=$DGNT_PI_HELPER --daily"; then
+            units_changed="yes"
+        fi
+        if write_file_if_changed /etc/systemd/system/diginode-pi.timer 644 "[Unit]
+Description=DigiNode Raspberry Pi bootloader update check (daily, and 10 minutes after starting)
+
+[Timer]
+OnBootSec=10min
+OnCalendar=daily
+RandomizedDelaySec=6h
+Persistent=true
+
+[Install]
+WantedBy=timers.target"; then
+            units_changed="yes"
+        fi
+        if [ "$units_changed" = "yes" ]; then
+            systemctl daemon-reload
+        fi
+        if ! systemctl is-enabled --quiet diginode-pi.timer 2>/dev/null || [ "$units_changed" = "yes" ]; then
+            str="Turning on automatic Raspberry Pi bootloader updates..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl enable --now diginode-pi.timer &>/dev/null
+            systemctl restart diginode-pi.timer &>/dev/null
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
+    elif [ "$SYSTEM_EEPROM_UPDATES" = "OFF" ] && [ -f /etc/systemd/system/diginode-pi.timer ]; then
+        str="Turning off automatic Raspberry Pi bootloader updates..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl disable --now diginode-pi.timer &>/dev/null
+        rm -f /etc/systemd/system/diginode-pi.timer /etc/systemd/system/diginode-pi.service
+        systemctl daemon-reload
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+}
+
+menu_ask_system_updates_os() {
 
     local from_menu="$1"
 
@@ -19726,6 +20500,16 @@ install_reboot_helper() {
 
     mkdir -p "$DGNT_REBOOT_STATUS_DIR"
     chmod 755 "$DGNT_REBOOT_STATUS_DIR"
+
+    # The Raspberry Pi helper (power and temperature warnings) - installed on a Raspberry Pi only
+    if [ -f "$DGNT_LOCATION/diginode-pi.sh" ] && tr -d '\0' < /proc/device-tree/model 2>/dev/null | grep -q '^Raspberry Pi'; then
+        if ! cmp -s "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"; then
+            str="Installing DigiNode Raspberry Pi helper to $DGNT_PI_HELPER..."
+            printf "%b %s" "${INFO}" "${str}"
+            install -m 755 -o root -g root "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
 }
 
 # Make the system match the choices in diginode.settings. Safe to run every time - it only changes what is different.
@@ -19734,6 +20518,9 @@ system_updates_apply() {
     local str
 
     install_reboot_helper
+
+    # Raspberry Pi bootloader updates (separate from the operating system updates below)
+    system_eeprom_apply
 
     if ! system_updates_supported; then
         return
@@ -19776,19 +20563,39 @@ APT::Periodic::Unattended-Upgrade "1";'; then
 
         # Choose which updates are installed. The OS's own settings (50unattended-upgrades) already include its
         # security updates. Tor is added because DigiNode uses it. ALL adds every repository.
+        # Raspberry Pi OS replaces many Debian packages (the Linux kernel, libc6, openssl, PAM...) with its own
+        # builds from archive.raspberrypi.com. Their version numbers are higher than Debian's, so Debian's security
+        # updates can never replace them, and the Raspberry Pi archive has no separate security section. So on
+        # Raspberry Pi OS the whole Raspberry Pi archive is needed to get security updates for those packages.
         # DigiNode Tools handles restarts itself (so it can skip them when busy), so unattended-upgrades must not.
         local origins
         if [ "$SYSTEM_AUTO_UPDATES" = "ALL" ]; then
             origins='        "origin=*";'
         else
             origins='        "origin=TorProject";'
+            if system_has_raspberrypi_archive; then
+                origins="$origins
+        \"origin=Raspberry Pi Foundation\";"
+            fi
         fi
+        # The Raspberry Pi bootloader (rpi-eeprom) is never updated by unattended-upgrades: a new bootloader is
+        # installed when the Pi starts, so DigiNode Tools updates it itself, only when it is safe to.
+        # Keep config files that were changed (e.g. Raspberry Pi OS changes /etc/initramfs-tools/initramfs.conf),
+        # instead of asking: unattended-upgrades skips any update that would ask, so without this those packages
+        # are never updated. The new packaged version is saved next to it as .dpkg-dist.
         if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
 // To change these settings, run 'diginode-setup' and choose System from the main menu.
 Unattended-Upgrade::Origins-Pattern {
 $origins
 };
-Unattended-Upgrade::Automatic-Reboot \"false\";"; then
+Unattended-Upgrade::Package-Blacklist {
+        \"^rpi-eeprom\$\";
+};
+Unattended-Upgrade::Automatic-Reboot \"false\";
+Dpkg::Options {
+        \"--force-confdef\";
+        \"--force-confold\";
+};"; then
             # A mistake in an apt config file would break apt completely, so check it can be read
             if apt-config dump >/dev/null 2>&1; then
                 printf "%b%b Automatic system updates set to: %s\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES"
@@ -19889,15 +20696,16 @@ uninstall_system_updates() {
 
     local str
 
-    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
+    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_PI_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
 
         str="Removing DigiNode automatic restarts and reboot helper..."
         printf "%b %s" "${INFO}" "${str}"
-        systemctl disable --now diginode-reboot.timer &>/dev/null
+        systemctl disable --now diginode-reboot.timer diginode-pi.timer &>/dev/null
         rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+        rm -f /etc/systemd/system/diginode-pi.timer /etc/systemd/system/diginode-pi.service
         systemctl daemon-reload &>/dev/null
-        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
-        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF"
+        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_PI_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
+        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF" "$DGNT_REBOOT_STATUS_DIR/eeprom.status"
         rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b The system's own automatic security updates (if on) have been left as they are.\\n" "${INFO}"
@@ -20660,7 +21468,7 @@ uninstall_diginode_tools_now() {
                     if [ -f "$DGNT_SETTINGS_FILE" ]; then
                         str="Deleting diginode.settings file..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -f $DGNT_SETTINGS_FILE
+                        rm -f "$SPONSOR_PREVIEW_FILE" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -21921,6 +22729,9 @@ main() {
 
     # import diginode settings
     diginode_tools_import_settings
+
+    # If this DigiNode is on the Sponsors Preview, check it still can be, and use that branch
+    sponsor_preview_apply
 
     # update diginode settings if there is a new version
     diginode_tools_update_settings

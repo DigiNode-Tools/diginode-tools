@@ -2,6 +2,12 @@
 
 [View the latest release notes](https://diginode.tools/release-notes/)
 
+### DigiNode Tools v0.11.1 - 2025-04-20
+- Improvement: Default auto quit duration for the DigiNode Dashboard has been changed to 24 hours (1440 minutes).
+- Improvement: Mempool bytes are hidden on narrower terminal windows to make the display cleaner.
+- Fix: When running a Dual Node, the Testnet listening port now displays correctly in the Dashboard while the node is starting up. (It was blank before)
+- Fix: Right border for Connections row in dashboard now fits better.
+
 ### DigiNode Tools v0.11.0 - 2025-04-19
 - New: DigiNode Dashboard now has a brand new port tester built for DigiNode Tools. It can test nodes at IPv4, IPv6 and onion addresses. The port tester is also available for anyone to use at: https://diginode.tools/digibyte-port-tester/
   ![The DigiByte port tester built into DigiNode Dashboard, showing that the mainnet and testnet listening ports are open and the nodes are publicly accessible](https://raw.githubusercontent.com/DigiNode-Tools/diginode-media/main/screenshots/port-tester/port-test-results.png)

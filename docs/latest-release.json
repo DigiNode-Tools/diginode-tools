@@ -1,34 +1,46 @@
 {
   "name": "DigiNode Tools",
-  "version": "26.11.01",
-  "tag": "v26.11.01",
-  "date": "2026-11-03",
-  "summary": "Wallets menu, delete a wallet safely, USB wallet backup and more.",
+  "version": "26.11.02",
+  "tag": "v26.11.02",
+  "date": "2026-11-17",
+  "summary": "Sponsors Preview, automatic Raspberry Pi bootloader updates and more.",
   "highlights": [
     {
       "type": "New",
-      "title": "Wallets menu"
+      "title": "Sponsors Preview"
     },
     {
       "type": "New",
-      "title": "Delete a wallet safely"
+      "title": "Automatic Raspberry Pi bootloader updates"
+    },
+    {
+      "type": "New",
+      "title": "Raspberry Pi power and temperature warnings"
+    },
+    {
+      "type": "New",
+      "title": "What's new after an update"
+    },
+    {
+      "type": "New",
+      "title": "Operating system on DigiNode Dashboard"
     },
     {
       "type": "Fix",
-      "title": "USB wallet backup"
+      "title": "Security updates on Raspberry Pi OS"
     },
     {
       "type": "Fix",
-      "title": "Testnet sync progress"
+      "title": "Tidier DigiNode Dashboard"
     }
   ],
   "release_notes_url": "https://diginode.tools/release-notes/",
-  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.11.01",
-  "next_release": "2026-11-17",
+  "github_url": "https://github.com/DigiNode-Tools/diginode-tools/releases/tag/v26.11.02",
+  "next_release": "2026-12-01",
   "release_schedule": "Every other Tuesday",
   "schedule": {
     "first_release_day": "2026-10-20",
     "every_days": 14
   },
-  "unreleased_notes_url": "https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/develop/docs/release_notes.md"
+  "unreleased_notes_url": "https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/docs/release_notes.md"
 }
