@@ -17,6 +17,9 @@
 #      caption ('![alt](url "Caption")'; the note's text if it has none). Notes without screenshots are only in the
 #      blog post.
 #   3. A last message: how to update, and the sponsor call to action.
+# Before sending, it waits until the blog post is live (diginode.tools/release/vX/ leads to the post rather than the
+# GitHub release), because the website writes the post on its own schedule after the release. It checks every minute,
+# for up to TELEGRAM_WAIT_MINUTES (default 240), then posts anyway: the link still works, going to the GitHub release.
 # The header rotates (wording in .github/announcements.json); the sponsor text is its "telegram_sponsor".
 # NOTES_FILE is the release notes written by 'release.sh prepare'; screenshots are '![alt](url)' lines under a note.
 # Sending needs TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID (GitHub secrets).
@@ -27,6 +30,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -152,9 +156,63 @@ def call(method, params):
     return result["result"]
 
 
-def send(messages):
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+USER_AGENT = "DigiNodeToolsReleaseBot/1.0 (+https://diginode.tools)"   # Cloudflare refuses Python's default one
+
+
+def post_is_live(version):
+    """True once diginode.tools/release/vX/ redirects to a post on diginode.tools, and that page loads. None if the
+    site can't be checked (e.g. Cloudflare refuses the request), so the caller doesn't wait for nothing."""
+    url = POST_URL.format(version=version)
+    try:
+        urllib.request.build_opener(_NoRedirect).open(urllib.request.Request(url, headers={"User-Agent": USER_AGENT}), timeout=30)
+        return False   # no redirect at all: unexpected, treat as not ready
+    except urllib.error.HTTPError as e:
+        if not 300 <= e.code < 400:
+            return None
+        location = e.headers.get("Location", "")
+    except Exception:
+        return None
+    target = urllib.parse.urljoin(url, location)
+    if not target.startswith("https://diginode.tools/") or "/release/" in target or "/topics/" in target:
+        return False
+    try:
+        with urllib.request.urlopen(urllib.request.Request(target, headers={"User-Agent": USER_AGENT}), timeout=30) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
+def wait_for_post(version):
+    minutes = int(os.environ.get("TELEGRAM_WAIT_MINUTES", "240"))
+    deadline = time.time() + minutes * 60
+    unreachable = 0
+    while True:
+        live = post_is_live(version)
+        if live:
+            print(f"The blog post for v{version} is live")
+            return
+        unreachable = unreachable + 1 if live is None else 0
+        if unreachable >= 3:
+            print("Can't check diginode.tools from here - posting now (the link goes to the GitHub release until the "
+                  "post is live)")
+            return
+        if time.time() >= deadline:
+            print(f"The blog post for v{version} isn't live after {minutes} minutes - posting anyway "
+                  f"(the link goes to the GitHub release until it is)")
+            return
+        print(f"Waiting for the blog post for v{version}...", flush=True)
+        time.sleep(60)
+
+
+def send(messages, version):
     if not os.environ.get("TELEGRAM_BOT_TOKEN") or not os.environ.get("TELEGRAM_CHAT_ID"):
         sys.exit("ERROR: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
+    wait_for_post(version)
     chat = os.environ["TELEGRAM_CHAT_ID"]
     common = {"chat_id": chat, "parse_mode": "HTML", "disable_notification": "true"}
     first_id = None
@@ -207,7 +265,7 @@ def main():
                     if caption:
                         print(f"    Caption: {caption}")
         return
-    send(messages)
+    send(messages, version)
 
 
 if __name__ == "__main__":
