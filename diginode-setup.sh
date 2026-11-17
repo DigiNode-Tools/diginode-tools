@@ -111,6 +111,7 @@ HOSTNAME_TESTNET="diginode-testnet"
 # There should be no reason to change this, and it is unadvisable to do.
 DGNT_SETTINGS_LOCATION=$USER_HOME/.digibyte
 DGNT_SETTINGS_FILE=$DGNT_SETTINGS_LOCATION/diginode.settings
+SPONSOR_PREVIEW_FILE=$DGNT_SETTINGS_LOCATION/.sponsor-preview
 
 # This is the URLs where the install script is hosted. This is used primarily for testing.
 DGNT_VERSIONS_URL=versions.diginode.tools    # Used to query TXT record containing compatible OS'es
@@ -175,6 +176,7 @@ c=70
 RESET_MODE=false
 UNATTENDED_MODE=false
 DGNT_BRANCH_REMOTE="release"
+SPONSOR_PREVIEW_MENU=false
 UNINSTALL=false
 SKIP_OS_CHECK=false
 SKIP_PKG_UPDATE_CHECK=false
@@ -195,6 +197,7 @@ for var in "$@"; do
         "--dgntdev" ) DGNT_BRANCH_REMOTE="develop";; 
         "--dgntmain" ) DGNT_BRANCH_REMOTE="main";;
         "--dgntbranch="* ) DGNT_BRANCH_REMOTE="${var#--dgntbranch=}";;
+        "--sponsorpreview" ) SPONSOR_PREVIEW_MENU=true;;
 #!!        "--dgadev" ) DGA_BRANCH="development";; 
         "--uninstall" ) UNINSTALL=true;;
         "--skiposcheck" ) SKIP_OS_CHECK=true;;
@@ -333,10 +336,8 @@ display_help() {
         printf "%b %b--dgbnopre%b      - Downgrade from pre-release version of DigiByte Core to latest release.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--dgbver=x.x.x%b  - Install a specific version of DigiByte Core (e.g. --dgbver=8.26.2). Use to upgrade or downgrade.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b                   Only versions that have been verified for your DigiNode can be installed.\\n" "${INDENT}"
-        printf "%b %b--dgntdev%b       - Developer Mode: Install the dev branch of DigiNode Tools.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b %b--dgntbranch=x%b  - Developer Mode: Install a feature branch of DigiNode Tools (e.g. --dgntbranch=feature/plugins).\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
  #!!       printf "%b %b--dgadev%b        - Developer Mode: Install the dev branch of DigiAsset Node.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
-        printf "%b                   WARNING: Developer Mode should only be used for testing and may break your existing setup.\\n" "${INDENT}"
+        printf "%b %b--sponsorpreview%b - Sponsors Preview: thank you to my sponsors - get each release two weeks early.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--uninstall%b     - Uninstall DigiNode software from your system. DigiByte wallet will not be harmed.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "%b %b--reset%b         - Reset your DigiNode settings and reinstall your DigiNode software.\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
         printf "\\n"
@@ -375,6 +376,115 @@ get_dgnt_release_version() {
     if [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
         echo "$tag"
     fi
+}
+
+# Print the version on the Sponsors Preview branch, or nothing if it can't be found
+get_dgnt_preview_version() {
+    local ver
+    ver=$(curl -sf --max-time 10 https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/diginode.sh 2>/dev/null | grep -m1 '^DGNT_VER_LOCAL=' | cut -d'=' -f2)
+    if [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "$ver"
+    fi
+}
+
+# The day the waiting Sponsors Preview is released to everyone, as YYYY-MM-DD: the next release Tuesday (every 14 days
+# from 2026-10-20, as in .github/release.sh), or today if it's a release Tuesday before 10:00 UK time.
+dgnt_preview_public_day() {
+    local first=1792454400 today_uk now days next   # first = 2026-10-20 00:00 UTC
+    today_uk=$(TZ=Europe/London date +%Y-%m-%d)
+    now=$(date -u -d "$today_uk" +%s 2>/dev/null) || return 0
+    days=$(( (now - first) / 86400 ))
+    if [ $(( days % 14 )) -eq 0 ] && [ "$((10#$(TZ=Europe/London date +%H)))" -lt 10 ]; then
+        next=$now
+    else
+        next=$(( first + (days / 14 + 1) * 14 * 86400 ))
+    fi
+    date -u -d "@$next" +%Y-%m-%d
+}
+
+# Save a setting in diginode.settings (adding it if this DigiNode's settings file is older than the setting)
+dgnt_save_setting() {
+    if grep -q "^$1=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^$1=/s|.*|$1=\"$2\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "$1=\"$2\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# What the waiting Sponsors Preview brings, for the "Coming on ..." line shown to everyone else when quitting the
+# Dashboard: the bold titles of the notes under "Unreleased" on the preview branch, its version and its public day.
+# Saved in diginode.settings (DGNT_PREVIEW_VER, DGNT_PREVIEW_TITLES, DGNT_PREVIEW_PUBLIC). Empty when there is no
+# preview, or nothing new in it.
+dgnt_check_preview_coming() {
+    local notes titles ver=""
+    notes=$(curl -sf --max-time 10 https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/docs/release_notes.md 2>/dev/null)
+    titles=$(printf '%s\n' "$notes" | awk '$0 == "### DigiNode Tools - Unreleased" { on = 1; next } on && /^### / { exit } on && /^- / && match($0, /\*\*[^*]+\*\*/) { t = substr($0, RSTART + 2, RLENGTH - 4); out = out (out ? ", " : "") t } END { print out }')
+    titles=${titles//\"/}
+    titles=${titles//|/}
+    [ -n "$titles" ] && ver=$(get_dgnt_preview_version)
+    # Nothing is coming if the preview isn't newer than the latest release (e.g. read just as it was released)
+    if [ -n "$ver" ] && [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$ver")" -le "$(version "$DGNT_VER_RELEASE")" ]; then
+        ver=""
+    fi
+    [ -n "$ver" ] || titles=""
+    DGNT_PREVIEW_VER="$ver"; DGNT_PREVIEW_TITLES="$titles"
+    DGNT_PREVIEW_PUBLIC=""; [ -n "$titles" ] && DGNT_PREVIEW_PUBLIC=$(dgnt_preview_public_day)
+    dgnt_save_setting DGNT_PREVIEW_VER "$DGNT_PREVIEW_VER"
+    dgnt_save_setting DGNT_PREVIEW_TITLES "$DGNT_PREVIEW_TITLES"
+    dgnt_save_setting DGNT_PREVIEW_PUBLIC "$DGNT_PREVIEW_PUBLIC"
+}
+
+# "Coming on 15 Dec: A, B and 2 more." - whole titles that fit in the width, then how many more (same in motd/50-diginode)
+dgnt_preview_coming_text() {
+    local when="$1" max="$3" line="" t n=0 total shown=0
+    local IFS=$'\n'
+    local titles=($(printf '%s\n' "$2" | sed 's/, /\n/g'))
+    total=${#titles[@]}
+    for t in "${titles[@]}"; do
+        n=$(( n + 1 ))
+        local try="${line:+$line, }$t"
+        local rest=$(( total - n ))
+        local tail="."; [ $rest -gt 0 ] && tail=" and $rest more."
+        if [ $shown -eq 0 ] || [ $(( ${#when} + 12 + ${#try} + ${#tail} )) -le $max ]; then
+            line="$try"; shown=$n
+        else
+            break
+        fi
+    done
+    local more=$(( total - shown ))
+    if [ $more -gt 0 ]; then line="$line and $more more."; else line="$line."; fi
+    line="Coming on $when: $line"
+    [ ${#line} -le $max ] || line="${line:0:$(( max - 3 ))}..."
+    echo "$line"
+}
+
+# "Coming on 15 Dec: ..." for DigiNodes not on the Sponsors Preview, while it has something newer than this DigiNode
+# and its public day hasn't passed. Prints nothing otherwise.
+dgnt_preview_coming_line() {
+    local when line max=74
+    [ "$SPONSOR_PREVIEW" = "YES" ] && return 0
+    [ -n "$DGNT_PREVIEW_TITLES" ] && [ -n "$DGNT_PREVIEW_VER" ] && [ -n "$DGNT_PREVIEW_PUBLIC" ] || return 0
+    [[ "$DGNT_PREVIEW_VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 0
+    [ -n "$DGNT_VER_LOCAL" ] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_LOCAL")" ] && return 0
+    [[ "$DGNT_VER_RELEASE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$(version "$DGNT_PREVIEW_VER")" -le "$(version "$DGNT_VER_RELEASE")" ] && return 0
+    [[ "$(TZ=Europe/London date +%Y-%m-%d)" > "$DGNT_PREVIEW_PUBLIC" ]] && return 0
+    when=$(date -u -d "$DGNT_PREVIEW_PUBLIC" "+%-d %b" 2>/dev/null) || return 0
+    line=$(dgnt_preview_coming_text "$when" "$DGNT_PREVIEW_TITLES" $max)
+    echo "   $line"
+    echo -e "   Sponsors have it now: ${txtbld}diginode-setup --sponsorpreview${txtrst}"
+    echo ""
+}
+
+# Print the version this DigiNode should compare itself with: the Sponsors Preview's, or the latest release's
+get_dgnt_channel_version() {
+    local ver=""
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        ver=$(get_dgnt_preview_version)
+    fi
+    if [ "$ver" = "" ]; then
+        ver=$(get_dgnt_release_version)
+    fi
+    echo "$ver"
 }
 
 # Inform user if Verbose Mode is enabled
@@ -949,6 +1059,16 @@ DGNT_VER_RELEASE="$DGNT_VER_RELEASE"
 # This is updated automatically every time DigiNode Tools is installed/upgraded. 
 # It stores the DigiNode Tools github branch that is currently installed (e.g. develop/main/release)
 DGNT_BRANCH_LOCAL="$DGNT_BRANCH_LOCAL"
+
+# Sponsors Preview: YES means this DigiNode gets each DigiNode Tools release two weeks early, as a thank you for
+# sponsoring. Change it from the DigiNode Setup menu (Extras > Sponsors Preview), or with: diginode-setup --sponsorpreview
+SPONSOR_PREVIEW="$SPONSOR_PREVIEW"
+
+# What the waiting Sponsors Preview brings (checked hourly by DigiNode Dashboard): its version, the titles of its
+# release notes and the day it's released to everyone. Shown when quitting the Dashboard to DigiNodes not on it.
+DGNT_PREVIEW_VER="$DGNT_PREVIEW_VER"
+DGNT_PREVIEW_TITLES="$DGNT_PREVIEW_TITLES"
+DGNT_PREVIEW_PUBLIC="$DGNT_PREVIEW_PUBLIC"
 
 # DIGIBYTE NODE STATUS UPDATER:
 DNSU_INSTALL_LOCATION=$DNSU_INSTALL_LOCATION
@@ -1728,8 +1848,34 @@ is_dgnt_feature_branch() {
     esac
 }
 
+# A one-way fingerprint of this machine's ID: enough to recognise a machine, without showing its ID
+dgnt_machine_fingerprint() {
+    [ -r /etc/machine-id ] || return 1
+    printf 'diginode-dev:%s' "$(cat /etc/machine-id)" | sha256sum | cut -d' ' -f1
+}
+
+# Developer Mode (--dgntdev, --dgntbranch=) installs unfinished code, so it only runs on machines used to develop
+# DigiNode Tools. They are listed in access.json in diginode-sponsors, so a machine can be added without a release.
+dgnt_require_dev_machine() {
+    local fingerprint
+    fingerprint=$(dgnt_machine_fingerprint)
+    if [ -n "$fingerprint" ] && curl -sf --max-time 10 "$DGNT_SPONSORS_DATA_URL/access.json" 2>/dev/null | grep -qi "\"$fingerprint\""; then
+        return 0
+    fi
+    printf "%b %bDeveloper Mode is only for the machines used to develop DigiNode Tools.%b\\n" "${CROSS}" "${COL_LIGHT_RED}" "${COL_NC}"
+    printf "%b It installs unfinished code that could break your DigiNode. Nothing has been changed.\\n" "${INDENT}"
+    printf "%b Want new releases early? See: diginode-setup --sponsorpreview\\n" "${INDENT}"
+    printf "%b This machine: %s\\n\\n" "${INDENT}" "${fingerprint:-no machine ID found}"
+    exit 1
+}
+
 # Function to set the DigiNode Tools Dev branch to use
 set_dgnt_branch() {
+
+    # Developer Mode only runs on development machines
+    if [ "$DGNT_BRANCH_REMOTE" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_REMOTE"; then
+        dgnt_require_dev_machine
+    fi
 
     # If a feature branch was requested with --dgntbranch=, check it is a valid branch name and exists on GitHub.
     # This is done before anything else, because installing DigiNode Tools deletes the current version first.
@@ -8310,6 +8456,12 @@ lookup_external_ip() {
 # Function to display the upgrade menu when a previous install has been detected
 menu_existing_install() {
 
+    # diginode-setup --sponsorpreview goes straight to the Sponsors Preview
+    if [ "$SPONSOR_PREVIEW_MENU" = true ]; then
+        SPONSOR_PREVIEW_MENU=false
+        menu_sponsor_preview
+    fi
+
     printf " =============== MAIN MENU =============================================\\n\\n"
     # ==============================================================================
 
@@ -9579,6 +9731,192 @@ wallet_delete() {
 
 
 # Function to display the extras menu, which is used to install optional software for the DigiNode
+# ------------------------------------------------------------------------------
+# Sponsors Preview: a thank you for sponsoring. This DigiNode gets each release of DigiNode Tools two weeks before
+# everyone else, from the preview branch (.github/release.sh moves it on each release Tuesday).
+#   GitHub sponsors sign in with GitHub (device flow, read:user only). The sign-in is kept in SPONSOR_PREVIEW_FILE and
+#   checked again on each run of DigiNode Setup. Monthly sponsorship is on GitHub Sponsors only (Ko-fi is for one-time donations).
+#   access.json in diginode-sponsors holds the GitHub app's client ID, so it can change without a release.
+#   This is a thank you, not a lock: the code is public on purpose.
+#   If someone stops sponsoring nothing is removed: they stay put, then rejoin normal releases when these catch up.
+# ------------------------------------------------------------------------------
+
+sponsor_preview_saved() {
+    [ -r "$SPONSOR_PREVIEW_FILE" ] && sed -n "s/^$1=//p" "$SPONSOR_PREVIEW_FILE" | head -1
+}
+
+sponsor_preview_save() {
+    ( umask 077; printf 'METHOD=%s\nVALUE=%s\n' "$1" "$2" > "$SPONSOR_PREVIEW_FILE" )
+    chown "$USER_ACCOUNT":"$USER_ACCOUNT" "$SPONSOR_PREVIEW_FILE" 2>/dev/null
+    chmod 600 "$SPONSOR_PREVIEW_FILE"
+}
+
+sponsor_preview_setting() {
+    SPONSOR_PREVIEW="$1"
+    if grep -q "^SPONSOR_PREVIEW=" "$DGNT_SETTINGS_FILE"; then
+        sed -i -e "/^SPONSOR_PREVIEW=/s|.*|SPONSOR_PREVIEW=\"$1\"|" "$DGNT_SETTINGS_FILE"
+    else
+        echo "SPONSOR_PREVIEW=\"$1\"" >> "$DGNT_SETTINGS_FILE"
+    fi
+}
+
+# Is this GitHub sign-in a current monthly sponsor? Prints: active, none, signedout or unknown (couldn't tell)
+# The token goes to curl on its input, not its command line, so it never shows in the process list.
+sponsor_preview_github_status() {
+    local response code body
+    response=$(printf 'header = "Authorization: bearer %s"\n' "$1" | curl -s --max-time 10 -K - \
+        -H 'Content-Type: application/json' -w '\n%{http_code}' \
+        -d '{"query":"{organization(login:\"DigiNode-Tools\"){sponsorshipForViewerAsSponsor(activeOnly:true){isOneTimePayment}}}"}' \
+        https://api.github.com/graphql 2>/dev/null)
+    code=$(printf '%s' "$response" | tail -1)
+    body=$(printf '%s' "$response" | sed '$d')
+    if [ "$code" = "401" ]; then
+        echo "signedout"
+    elif [ "$code" != "200" ] || ! is_command jq || [ "$(printf '%s' "$body" | jq -r 'has("errors")' 2>/dev/null)" != "false" ]; then
+        echo "unknown"
+    elif [ "$(printf '%s' "$body" | jq -r '.data.organization.sponsorshipForViewerAsSponsor.isOneTimePayment' 2>/dev/null)" = "false" ]; then
+        echo "active"
+    else
+        echo "none"
+    fi
+}
+
+# Print a field of the preview section of access.json, or nothing
+sponsor_preview_access() {
+    curl -sf --max-time 10 "$DGNT_SPONSORS_DATA_URL/access.json" 2>/dev/null | jq -r ".preview.$1 // empty" 2>/dev/null
+}
+
+# Is this DigiNode's saved access still good? Prints: active, none, signedout or unknown
+sponsor_preview_status() {
+    if [ "$(sponsor_preview_saved METHOD)" = "github" ]; then
+        sponsor_preview_github_status "$(sponsor_preview_saved VALUE)"
+    else
+        echo "signedout"
+    fi
+}
+
+# Run at the start of DigiNode Setup. A developer flag (--dgntdev etc.) takes priority. Never asks a question, so it
+# is safe in unattended mode. If GitHub can't be reached the DigiNode stays on the preview.
+sponsor_preview_apply() {
+    [ "$SPONSOR_PREVIEW" = "YES" ] || return 0
+    [ "$DGNT_BRANCH_REMOTE" = "release" ] || return 0
+    local status
+    status=$(sponsor_preview_status)
+    case "$status" in
+        active|unknown)
+            DGNT_BRANCH_REMOTE="preview"
+            ;;
+        *)
+            sponsor_preview_setting "NO"
+            printf "%b This DigiNode has left the Sponsors Preview" "${INFO}"
+            case "$status" in
+                none) printf ", as it no longer has a monthly sponsorship.\\n" ;;
+                *) printf ", as it needs you to sign in with GitHub again.\\n" ;;
+            esac
+            printf "%b Nothing is removed. To rejoin: diginode-setup --sponsorpreview\\n\\n" "${INDENT}"
+            ;;
+    esac
+}
+
+# GitHub device flow: show a code, the sponsor enters it at github.com/login/device. Saves the sign-in if they sponsor.
+sponsor_preview_github_signin() {
+    local client_id response device_code user_code interval expires waited=0 token status error
+    client_id=$(sponsor_preview_access github_client_id)
+    if ! [[ "$client_id" =~ ^[A-Za-z0-9_.-]{10,64}$ ]]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nSigning in with GitHub isn't available right now. Please try again later." 8 "${c}"
+        return 1
+    fi
+    response=$(curl -s --max-time 15 -H 'Accept: application/json' -d "client_id=$client_id" -d "scope=read:user" https://github.com/login/device/code 2>/dev/null)
+    device_code=$(printf '%s' "$response" | jq -r '.device_code // empty' 2>/dev/null)
+    user_code=$(printf '%s' "$response" | jq -r '.user_code // empty' 2>/dev/null)
+    interval=$(printf '%s' "$response" | jq -r '.interval // 5' 2>/dev/null)
+    expires=$(printf '%s' "$response" | jq -r '.expires_in // 900' 2>/dev/null)
+    if [ -z "$device_code" ] || ! [[ "$user_code" =~ ^[A-Z0-9-]{4,16}$ ]] || ! [[ "$interval" =~ ^[0-9]+$ ]] || ! [[ "$expires" =~ ^[0-9]+$ ]]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nGitHub couldn't be reached. Please try again later." 8 "${c}"
+        return 1
+    fi
+
+    clear
+    printf "\\n"
+    printf "%b On any device, open: %bhttps://github.com/login/device%b\\n\\n" "${INDENT}" "${COL_BOLD_WHITE}" "${COL_NC}"
+    printf "%b and enter this code: %b%s%b\\n\\n" "${INDENT}" "${COL_LIGHT_GREEN}" "$user_code" "${COL_NC}"
+    printf "%b Sign in with the GitHub account you sponsor from. DigiNode Tools only asks to read your\\n" "${INDENT}"
+    printf "%b profile, to check you are a sponsor. It can't change anything on your account.\\n\\n" "${INDENT}"
+    printf "%b Waiting for you to enter the code..." "${INFO}"
+
+    while [ "$waited" -lt "$expires" ]; do
+        sleep "$interval"
+        waited=$(( waited + interval ))
+        response=$(curl -s --max-time 15 -H 'Accept: application/json' -d "client_id=$client_id" -d "device_code=$device_code" \
+            -d "grant_type=urn:ietf:params:oauth:grant-type:device_code" https://github.com/login/oauth/access_token 2>/dev/null)
+        token=$(printf '%s' "$response" | jq -r '.access_token // empty' 2>/dev/null)
+        [ -n "$token" ] && break
+        error=$(printf '%s' "$response" | jq -r '.error // empty' 2>/dev/null)
+        case "$error" in
+            slow_down) interval=$(( interval + 5 )) ;;
+            access_denied|expired_token) break ;;
+        esac
+    done
+    printf "\\n\\n"
+
+    if [ -z "$token" ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nYou weren't signed in, so nothing has changed." 8 "${c}"
+        return 1
+    fi
+    status=$(sponsor_preview_github_status "$token")
+    if [ "$status" = "active" ]; then
+        sponsor_preview_save github "$token"
+        return 0
+    elif [ "$status" = "none" ]; then
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "No monthly sponsorship found" --msgbox "\nThat GitHub account doesn't have a monthly sponsorship of DigiNode Tools.\n\nThe Sponsors Preview is a thank you for monthly sponsors, from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 13 "${c}"
+    else
+        dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nYour sponsorship couldn't be checked. Please try again later." 8 "${c}"
+    fi
+    return 1
+}
+
+# Join now, and offer to install the preview straight away
+sponsor_preview_joined() {
+    sponsor_preview_setting "YES"
+    DGNT_BRANCH_REMOTE="preview"
+    if dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Thank you!" --yesno "\nThank you for sponsoring DigiNode Tools!\n\nThis DigiNode will now get each release two weeks before everyone else.\n\nCheck for a preview now?" 12 "${c}"; then
+        check_diginode_tools
+        if [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
+            DGNT_DO_INSTALL=YES
+        fi
+        diginode_tools_do_install
+    fi
+    closing_banner_message
+    exit 0
+}
+
+menu_sponsor_preview() {
+    local choice
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nThis DigiNode is on the Sponsors Preview. Thank you for your support!\n" 13 "${c}" 2 \
+            "1 Leave" "Go back to normal releases." \
+            "2 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
+        if [ "$choice" = "1 Leave" ]; then
+            rm -f "$SPONSOR_PREVIEW_FILE"
+            sponsor_preview_setting "NO"
+            DGNT_BRANCH_REMOTE="release"
+            dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --msgbox "\nDone. Nothing is removed: this DigiNode keeps what it has, and rejoins normal releases when they catch up." 9 "${c}"
+        fi
+        menu_existing_install
+        return
+    fi
+
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n" 14 "${c}" 3 \
+        "1 GitHub" "I sponsor on GitHub: sign in to check." \
+        "2 Sponsor" "How to become a sponsor." \
+        "3 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
+    case "$choice" in
+        "1 GitHub") sponsor_preview_github_signin && sponsor_preview_joined ;;
+        "2 Sponsor") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Become a sponsor" --msgbox "\nSponsor DigiNode Tools monthly on GitHub Sponsors, from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 10 "${c}" ;;
+    esac
+    menu_existing_install
+}
+
 menu_extras() {
 
     printf " =============== EXTRAS MENU ===========================================\\n\\n"
@@ -9587,14 +9925,18 @@ menu_extras() {
     opt1a="1 Argon One Daemon"
     opt1b="Install fan software for Argon ONE RPi4 case."
 
-    opt2a="2 Main Menu"
-    opt2b="Return to the main menu."
+    opt2a="2 Sponsors Preview"
+    opt2b="For sponsors: get each release two weeks early."
+
+    opt3a="3 Main Menu"
+    opt3b="Return to the main menu."
 
 
     # Display the information to the user
     UpdateCmd=$(dialog --no-shadow --keep-tite --colors --backtitle "Extras Menu" --title "Extras Menu" --cancel-label "Exit" --menu "\nPlease choose from the following options:\n\n" "${r}" "${c}" 3 \
     "${opt1a}"  "${opt1b}" \
-    "${opt2a}"  "${opt2b}" 3>&2 2>&1 1>&3) || \
+    "${opt2a}"  "${opt2b}" \
+    "${opt3a}"  "${opt3b}" 3>&2 2>&1 1>&3) || \
     { printf "%b Exit was selected, exiting DigiNode Setup\\n" "${INDENT}"; echo ""; closing_banner_message; donation_qrcode; backup_reminder; display_system_updates_reminder; exit; }
 
 
@@ -9606,8 +9948,13 @@ menu_extras() {
             printf "\\n"
             install_argon_one_fan_software
             ;;
-        # USB Stick Backup
         ${opt2a})
+            printf "%b You selected the SPONSORS PREVIEW option.\\n" "${INFO}"
+            printf "\\n"
+            menu_sponsor_preview
+            ;;
+        # Main menu
+        ${opt3a})
             printf "%b You selected the MAIN MENU option.\\n" "${INFO}"
             printf "\\n"
             menu_existing_install
@@ -10952,6 +11299,46 @@ closing_banner_message() {
             # ==============================================================================
         fi
     fi
+
+    display_new_versions
+}
+
+# After installing or upgrading, say which version is now running. For a release or a Sponsors Preview, also say
+# what's new in it (the "Intro:" line of its release notes, wrapped to fit the terminal) and link to its blog post.
+# diginode.tools/release/vX.Y.Z/ finds the post, wherever it is (a preview's post is dated two weeks earlier, and
+# short releases can share a post). Feature branches, develop and main just give the branch.
+display_new_versions() {
+    local width notes heading intro preview_label=""
+    width=$(tput cols 2>/dev/null)
+    [[ "$width" =~ ^[0-9]+$ ]] || width=80
+    [ "$width" -gt 100 ] && width=100
+    width=$(( width - 6 ))
+
+    if [ "$DGNT_JUST_INSTALLED" = "YES" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ] || [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+            notes="$DGNT_LOCATION/docs/release_notes.md"
+            if [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+                heading="### DigiNode Tools - Unreleased"   # a preview's notes stay under Unreleased until it is released
+                preview_label=" (Sponsors Preview)"
+            else
+                heading="### DigiNode Tools v${DGNT_VER_LOCAL} "
+            fi
+            intro=$(awk -v h="$heading" 'index($0, h) == 1 { f = 1; next } f && /^### / { exit } f && /^Intro:/ { sub(/^Intro:[ \t]*/, ""); print; exit }' "$notes" 2>/dev/null \
+                | sed -E 's/\*\*//g; s/\[([^]]*)\]\([^)]*\)/\1/g')
+            printf "   You are now running %bDigiNode Tools v%s%b%s\\n\\n" "${txtbld}" "${DGNT_VER_LOCAL}" "${txtrst}" "${preview_label}"
+            if [ -n "$intro" ]; then
+                printf '%s\n' "$intro" | fold -s -w "$width" | sed -e 's/[[:space:]]*$//' -e 's/^/   /'
+                printf "\\n"
+            fi
+            printf "   Learn more: https://diginode.tools/release/v%s/\\n\\n" "${DGNT_VER_LOCAL}"
+        elif [ -n "$DGNT_BRANCH_LOCAL" ]; then
+            printf "   You are now running the %bDigiNode Tools %s branch%b\\n\\n" "${txtbld}" "${DGNT_BRANCH_LOCAL}" "${txtrst}"
+        fi
+    fi
+
+    if [ "$DGB_JUST_INSTALLED" = "YES" ] && [ -n "$DGB_VER_LOCAL" ]; then
+        printf "   You are now running %bDigiByte Core v%s%b\\n\\n" "${txtbld}" "${DGB_VER_LOCAL}" "${txtrst}"
+    fi
 }
 
 
@@ -11029,7 +11416,21 @@ display_dgb_donation_qrcode() {
     echo "               $dgb_address"
 }
 
-donation_qrcode() {  
+donation_qrcode() {
+
+    # Sponsors on the Sponsors Preview (their sponsorship is checked on every DigiNode Setup run) aren't asked again
+    # (Olly 2026-11-11): a thank you instead. The Featured Sponsors stay, as they paid to be seen.
+    if [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        printf " =============== ${txtbylw}THANK YOU FOR SPONSORING DIGINODE TOOLS${txtrst} ===============\\n\\n"
+        echo "   Your support is what keeps DigiNode Tools improving. As a sponsor,"
+        echo "   you get each new release two weeks before everyone else."
+        echo "   Thank you, Olly"
+        echo ""
+        display_featured_sponsors
+        echo -e "                    >> Find me on Bluesky \e]8;;https://go.diginode.tools/olly\a@olly.st\e]8;;\a <<"
+        echo ""
+        return
+    fi
 
     printf " ================== ${txtbylw}PLEASE SUPPORT DIGINODE TOOLS${txtrst} ======================\\n\\n"
     # ==============================================================================
@@ -11042,6 +11443,7 @@ donation_qrcode() {
     echo ""
     echo -e "   >> Sponsor or donate: ${txtbld}\e]8;;${DGNT_SPONSORS_URL}\a${DGNT_SPONSORS_URL}\e]8;;\a${txtrst} <<"
     echo ""
+    dgnt_preview_coming_line
     display_featured_sponsors
     echo "                     Alternatively, donate DigiByte (DGB):"
     echo ""
@@ -14817,6 +15219,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     set_dgb_testnet_params
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -15010,7 +15413,9 @@ printf " =============== Checking: DigiNode Tools ==============================
     fi
 
     # Requested branch
-    if [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
+    if [ "$DGNT_BRANCH_REMOTE" = "preview" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        printf "%b This DigiNode is on the Sponsors Preview. Thank you for your support!\\n" "${INFO}"
+    elif [ "$DGNT_BRANCH_REMOTE" = "develop" ]; then
         printf "%b DigiNode Tools develop branch requested.\\n" "${INFO}"
     elif [ "$DGNT_BRANCH_REMOTE" = "main" ]; then
         printf "%b DigiNode Tools main branch requested.\\n" "${INFO}"
@@ -15064,6 +15469,10 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools will be upgraded from the main branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
             DGNT_DO_INSTALL=YES
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ] && [ $(version $DGNT_VER_LOCAL) -gt $(version $DGNT_VER_RELEASE) ]; then
+            # Left the Sponsors Preview: nothing is taken away. It moves back when the release catches up.
+            printf "%b DigiNode Tools stays on the Sponsors Preview v${DGNT_VER_LOCAL} until that version is released.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
         elif [ "$DGNT_BRANCH_LOCAL" = "develop" ] || is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
             printf "%b %bDigiNode Tools will be upgraded from the ${DGNT_BRANCH_LOCAL} branch to the v${DGNT_VER_RELEASE} release version.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="upgrade"
@@ -15116,6 +15525,33 @@ printf " =============== Checking: DigiNode Tools ==============================
             printf "%b %bDigiNode Tools main branch will be installed.%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
             DGNT_INSTALL_TYPE="new"
             DGNT_DO_INSTALL=YES
+        fi
+
+    # Sponsors Preview: only upgrade when there is something new (unlike a feature branch, which always reinstalls)
+    elif [ "$DGNT_BRANCH_REMOTE" = "preview" ] && [ "$DGNT_BRANCH_LOCAL" != "" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+        local preview_ver preview_commit local_commit
+        preview_ver=$(get_dgnt_preview_version)
+        local ls_ok=yes ls_out
+        ls_out=$(git ls-remote https://github.com/DigiNode-Tools/diginode-tools.git refs/heads/preview 2>/dev/null) || ls_ok=no
+        preview_commit=$(printf '%s' "$ls_out" | cut -f1)
+        local_commit=$(git -C $DGNT_LOCATION rev-parse HEAD 2>/dev/null)
+        if [ "$ls_ok" = "yes" ] && [ "$preview_commit" = "" ]; then
+            # GitHub answered, but there is no preview branch: no preview is running at the moment
+            printf "%b Upgrade not required. There is nothing new on the Sponsors Preview yet.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$preview_ver" = "" ] || [ "$preview_commit" = "" ]; then
+            printf "%b The Sponsors Preview could not be checked. Please try again later.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ] && [ "$preview_commit" = "$local_commit" ]; then
+            printf "%b Upgrade not required. You have the latest Sponsors Preview.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$DGNT_BRANCH_LOCAL" = "release" ] && [ $(version $DGNT_VER_LOCAL) -ge $(version $preview_ver) ]; then
+            printf "%b Upgrade not required. There is nothing newer on the Sponsors Preview yet.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        else
+            printf "%b %bDigiNode Tools can be upgraded to the Sponsors Preview v${preview_ver}%b\\n" "${INFO}" "${COL_LIGHT_GREEN}" "${COL_NC}"
+            DGNT_INSTALL_TYPE="upgrade"
+            DGNT_ASK_UPGRADE=YES
         fi
 
     # Upgrade to a feature branch (--dgntbranch=)
@@ -15279,12 +15715,20 @@ fi
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
+        elif [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+            DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL} Preview"
+            sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+            printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY\\n" "${INFO}"
+            DIGINODE_UPGRADED="YES"
         elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
             DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
             sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY branch\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
         fi
+
+        # Remembered for display_new_versions, at the end
+        DGNT_JUST_INSTALLED="YES"
 
         # Make downloads executable
         str="Making DigiNode scripts executable..."
@@ -15799,6 +16243,7 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
@@ -20660,7 +21105,7 @@ uninstall_diginode_tools_now() {
                     if [ -f "$DGNT_SETTINGS_FILE" ]; then
                         str="Deleting diginode.settings file..."
                         printf "%b %s" "${INFO}" "${str}"
-                        rm -f $DGNT_SETTINGS_FILE
+                        rm -f "$SPONSOR_PREVIEW_FILE" $DGNT_SETTINGS_FILE
                         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
                     fi
 
@@ -21921,6 +22366,9 @@ main() {
 
     # import diginode settings
     diginode_tools_import_settings
+
+    # If this DigiNode is on the Sponsors Preview, check it still can be, and use that branch
+    sponsor_preview_apply
 
     # update diginode settings if there is a new version
     diginode_tools_update_settings

@@ -3353,6 +3353,9 @@ get_dgnt_local_version() {
     elif [ "$DGNT_BRANCH_LOCAL" = "main" ]; then
         DGNT_VER_LOCAL_DISPLAY="main-branch"
         sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
+    elif [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+        DGNT_VER_LOCAL_DISPLAY="v${DGNT_VER_LOCAL} Preview"
+        sed -i -e "/^DGNT_VER_LOCAL_DISPLAY=/s|.*|DGNT_VER_LOCAL_DISPLAY=\"$DGNT_VER_LOCAL_DISPLAY\"|" $DGNT_SETTINGS_FILE
     elif is_dgnt_feature_branch "$DGNT_BRANCH_LOCAL"; then
         # Feature branch (installed with --dgntbranch=) - show the branch name
         DGNT_VER_LOCAL_DISPLAY="$DGNT_BRANCH_LOCAL"
@@ -4482,8 +4485,8 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
     printf "%b Checking for DigiNode Tools update...\\n" "${INFO}"
     fi
 
-    # Check for new release of DigiNode Tools on Github
-    dgnt_ver_release_query=$(get_dgnt_release_version)
+    # Check for new release of DigiNode Tools on Github (or the Sponsors Preview, if this DigiNode is on it)
+    dgnt_ver_release_query=$(get_dgnt_channel_version)
     if [ "$dgnt_ver_release_query" != "" ]; then
         DGNT_VER_RELEASE=$dgnt_ver_release_query
         sed -i -e "/^DGNT_VER_RELEASE=/s|.*|DGNT_VER_RELEASE=\"$DGNT_VER_RELEASE\"|" $DGNT_SETTINGS_FILE
@@ -4493,6 +4496,11 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
         else
           DGNT_UPDATE_AVAILABLE="yes"
         fi
+    fi
+
+    # What the Sponsors Preview brings, for the "Coming on ..." line when quitting (only shown to DigiNodes not on it)
+    if [ "$SPONSOR_PREVIEW" != "YES" ]; then
+        dgnt_check_preview_coming
     fi
 
     # reset 1 hour timer (also if the check failed, e.g. no Internet, so it isn't retried every second)
@@ -5427,6 +5435,16 @@ if [ "$DGA_STATUS" = "running" ] && [ "$DGA_CONSOLE_QUERY" != "" ]; then
 
 elif [ "$DGA_STATUS" = "stopped" ]; then
     printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node is not running.${txtrst}" " ║ "
+elif [ "$DGA_STATUS" = "not_detected" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
+     # Sponsors aren't asked to sponsor (Olly 2026-11-11): no DigiAsset row at all. The line above is the divider that
+     # ends the section before (the same width), so go back up and draw the table's bottom edge over it.
+     # (Every DigiByte Node section ends with that divider; with any other status, show a plain row instead.)
+     if [[ "$DGB_STATUS" =~ ^(running|stopped|not_detected|startingup)$ ]]; then
+         printf '\e[1A' && echo "$sm_row_05"
+         dga_row_hidden="yes"
+     else
+         printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status_nocolor}s %-3s\n" "DigiAsset Core support is on its way." " ║ "
+     fi
 elif [ "$DGA_STATUS" = "not_detected" ]; then
 #    printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbred}DigiAsset Node not detected.${txtrst}" " ║ "
      printf " ║ DIGIASSET NODE ║         STATUS ║  " && printf "%-${col_width_dgb_status}s %-3s\n" "${txtbylw}Want DigiAsset Core? Please sponsor DigiNode Tools.${txtrst}" " ║ "
@@ -5435,7 +5453,8 @@ elif [ "$DGA_STATUS" = "not_detected" ]; then
      printf " ║                ║                ║  " && printf "%-$(( col_width_dgb_status_nocolor + ${#dga_sponsor_link} - ${#DGNT_SPONSORS_URL} ))s %-3s\n" "Sponsor: $dga_sponsor_link" " ║ "
 fi
 
-echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+[ "$dga_row_hidden" = "yes" ] || echo "$sm_row_05" # "╚" "═" "╩" "═" "╩" "═" "╝"
+dga_row_hidden=""
 
 
 # STATUS MONITOR DASHBOARD - SOFTWARE

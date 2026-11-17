@@ -69,9 +69,9 @@ def main():
         "next_release": nxt.isoformat(),
         "release_schedule": "Every other Tuesday",
         # The release Tuesdays: first_release_day, then every every_days days. A release only happens on one if there
-        # are unreleased notes on develop, so widgets should only show the next one when there are.
+        # are notes waiting on the preview branch (next to be released), so widgets should only show the next one when there are.
         "schedule": {"first_release_day": first_day, "every_days": step},
-        "unreleased_notes_url": "https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/develop/docs/release_notes.md",
+        "unreleased_notes_url": "https://raw.githubusercontent.com/DigiNode-Tools/diginode-tools/preview/docs/release_notes.md",
     }
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
