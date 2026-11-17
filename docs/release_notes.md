@@ -1,6 +1,6 @@
 ## DigiNode Tools Release Notes
 
-### DigiNode Tools - Unreleased
+### DigiNode Tools v26.11.02 - 2026-11-17
 Intro: Monthly sponsors of DigiNode Tools can now join the Sponsors Preview, and get each new release two weeks before everyone else. This release also takes better care of your Raspberry Pi: it warns you if your Pi is short of power or getting too hot, can keep its bootloader up to date, and automatic security updates on Raspberry Pi OS now include the Linux kernel. Plus a tidier DigiNode Dashboard, which now also shows your operating system and when a new version of it is available.
 Announce: 📣 New: Sponsors Preview. Monthly sponsors now get each DigiNode Tools release two weeks early. Plus better care for your Raspberry Pi: power and temperature warnings, bootloader updates and kernel security updates. #DigiByte #DigiNode
 - New: **Sponsors Preview** - Monthly sponsors of DigiNode Tools can now get each release two weeks before everyone else, as a thank you for their support. Run `diginode-setup --sponsorpreview`, or find it under Extras in the DigiNode Setup main menu. Sign in with the GitHub account you sponsor from, and it is checked automatically. Find out more at https://diginode.tools/sponsors/
@@ -106,11 +106,5 @@ Announce: 📣 Your DigiByte wallets now have a home of their own in DigiNode Se
 ### DigiNode Tools v0.11.2 - 2025-04-22
 - Improvement: The Port Tester now gets re-enabled automatically 24 hours after the test was last successfully passed.
 - Fix: Hopefully the startup error that is occasionally been seen is now fixed.
-
-### DigiNode Tools v0.11.1 - 2025-04-20
-- Improvement: Default auto quit duration for the DigiNode Dashboard has been changed to 24 hours (1440 minutes).
-- Improvement: Mempool bytes are hidden on narrower terminal windows to make the display cleaner.
-- Fix: When running a Dual Node, the Testnet listening port now displays correctly in the Dashboard while the node is starting up. (It was blank before)
-- Fix: Right border for Connections row in dashboard now fits better.
 
 [View earlier releases](https://github.com/DigiNode-Tools/diginode-tools/blob/main/docs/release_notes_more.md)
