@@ -11299,6 +11299,46 @@ closing_banner_message() {
             # ==============================================================================
         fi
     fi
+
+    display_new_versions
+}
+
+# After installing or upgrading, say which version is now running. For a release or a Sponsors Preview, also say
+# what's new in it (the "Intro:" line of its release notes, wrapped to fit the terminal) and link to its blog post.
+# diginode.tools/release/vX.Y.Z/ finds the post, wherever it is (a preview's post is dated two weeks earlier, and
+# short releases can share a post). Feature branches, develop and main just give the branch.
+display_new_versions() {
+    local width notes heading intro preview_label=""
+    width=$(tput cols 2>/dev/null)
+    [[ "$width" =~ ^[0-9]+$ ]] || width=80
+    [ "$width" -gt 100 ] && width=100
+    width=$(( width - 6 ))
+
+    if [ "$DGNT_JUST_INSTALLED" = "YES" ]; then
+        if [ "$DGNT_BRANCH_LOCAL" = "release" ] || [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+            notes="$DGNT_LOCATION/docs/release_notes.md"
+            if [ "$DGNT_BRANCH_LOCAL" = "preview" ]; then
+                heading="### DigiNode Tools - Unreleased"   # a preview's notes stay under Unreleased until it is released
+                preview_label=" (Sponsors Preview)"
+            else
+                heading="### DigiNode Tools v${DGNT_VER_LOCAL} "
+            fi
+            intro=$(awk -v h="$heading" 'index($0, h) == 1 { f = 1; next } f && /^### / { exit } f && /^Intro:/ { sub(/^Intro:[ \t]*/, ""); print; exit }' "$notes" 2>/dev/null \
+                | sed -E 's/\*\*//g; s/\[([^]]*)\]\([^)]*\)/\1/g')
+            printf "   You are now running %bDigiNode Tools v%s%b%s\\n\\n" "${txtbld}" "${DGNT_VER_LOCAL}" "${txtrst}" "${preview_label}"
+            if [ -n "$intro" ]; then
+                printf '%s\n' "$intro" | fold -s -w "$width" | sed -e 's/[[:space:]]*$//' -e 's/^/   /'
+                printf "\\n"
+            fi
+            printf "   Learn more: https://diginode.tools/release/v%s/\\n\\n" "${DGNT_VER_LOCAL}"
+        elif [ -n "$DGNT_BRANCH_LOCAL" ]; then
+            printf "   You are now running the %bDigiNode Tools %s branch%b\\n\\n" "${txtbld}" "${DGNT_BRANCH_LOCAL}" "${txtrst}"
+        fi
+    fi
+
+    if [ "$DGB_JUST_INSTALLED" = "YES" ] && [ -n "$DGB_VER_LOCAL" ]; then
+        printf "   You are now running %bDigiByte Core v%s%b\\n\\n" "${txtbld}" "${DGB_VER_LOCAL}" "${txtrst}"
+    fi
 }
 
 
@@ -15179,6 +15219,7 @@ if [ "$DGB_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     set_dgb_testnet_params
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
@@ -15685,6 +15726,9 @@ fi
             printf "%b New local version: $DGNT_VER_LOCAL_DISPLAY branch\\n" "${INFO}"
             DIGINODE_UPGRADED="YES"
         fi
+
+        # Remembered for display_new_versions, at the end
+        DGNT_JUST_INSTALLED="YES"
 
         # Make downloads executable
         str="Making DigiNode scripts executable..."
@@ -16199,6 +16243,7 @@ if [ "$DNSU_DO_INSTALL" = "YES" ]; then
     # Update diginode.settings with new DigiByte Core local version number and the install/upgrade date
     DGB_VER_LOCAL=$DGB_VER_GITHUB
     sed -i -e "/^DGB_VER_LOCAL=/s|.*|DGB_VER_LOCAL=\"$DGB_VER_LOCAL\"|" $DGNT_SETTINGS_FILE
+    DGB_JUST_INSTALLED="YES"   # for display_new_versions, at the end
     if [ "$DGB_INSTALL_TYPE" = "new" ]; then
         sed -i -e "/^DGB_INSTALL_DATE=/s|.*|DGB_INSTALL_DATE=\"$(date)\"|" $DGNT_SETTINGS_FILE
     elif [ "$DGB_INSTALL_TYPE" = "upgrade" ]; then
