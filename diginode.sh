@@ -4653,6 +4653,14 @@ if [ $TIME_DIF_1DAY -ge 86400 ]; then
 
 
 
+    # Is there a newer version of the operating system? (shown on the OS row)
+    if [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+        if [ "$STARTUP_LOOP" = true ]; then
+        printf "%b Checking for a new version of the operating system...\\n" "${INFO}"
+        fi
+        check_os_new_version
+    fi
+
     # reset 24 hour timer
     SAVED_TIME_1DAY="$(date +%s)"
     sed -i -e "/^SAVED_TIME_1DAY=/s|.*|SAVED_TIME_1DAY=\"$(date +%s)\"|" $DGNT_SETTINGS_FILE
@@ -5765,25 +5773,72 @@ echo "$sm_row_03" # "╠" "═" "╬" "═" "╬" "═" "╣"
 
 # STATUS MONITOR DASHBOARD - SYSTEM - DEVICE
 
+# "SYSTEM" goes on the first row of the section
+sys_section_title=" ║ SYSTEM         ║"
+
 if [ "$MODEL" != "" ]; then
 
-    col_1_2_text=" ║ SYSTEM         ║         DEVICE ║  "
+    col_1_2_text="$sys_section_title         DEVICE ║  "
     col3_text="$MODEL"
-    col4_text="$MODELMEM RAM"
-    db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    # On a narrow terminal, drop the board revision (" Rev 1.4") so it fits beside the RAM
+    if [ "$MODELMEM" != "" ] && [ $(( ${#col_1_2_text} + ${#MODEL} + 1 + ${#MODELMEM} + 8 + right_border_width )) -gt "$term_width" ]; then
+        col3_text="${MODEL% Rev *}"
+    fi
+    if [ "$MODELMEM" != "" ]; then
+        col4_text="$MODELMEM RAM"
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "$col4_text"
+    else
+        db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    fi
     echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    sys_section_title=" ║                ║"
+
+fi
+
+
+# STATUS MONITOR DASHBOARD - SYSTEM - OS
+# The operating system, with "64-bit" after it if there's room, and a newer version of it in the right column when
+# there is one (checked once a day; ignored if the OS has been upgraded since)
+
+if [ "$OS_NAME" != "" ]; then
+
+    col_1_2_text="$sys_section_title             OS ║  "
+    os_new=""
+    if [ "$OS_NEW_VERSION" != "" ] && [ "$OS_NEW_VERSION_FOR" = "$OS_VERSION_ID" ]; then
+        os_new="New: $OS_NEW_VERSION"
+    fi
+    # What fits: drop "64-bit" first, then shorten "New: 13 (trixie)" to "New: 13", then the name's "(codename)"
+    os_space=$(( term_width - ${#col_1_2_text} - right_border_width - 1 ))
+    os_full="$OS_NAME${OS_BITS:+ $OS_BITS}"
+    os_short_name=$(echo "$OS_NAME" | sed 's/ ([^)]*)$//')
+    os_short_new=$(echo "$os_new" | sed 's/ ([^)]*)$//')
+    os_new_width=0
+    [ "$os_new" != "" ] && os_new_width=$(( ${#os_new} + 4 ))   # the right column and its "[  ]"
+    os_short_new_width=0
+    [ "$os_new" != "" ] && os_short_new_width=$(( ${#os_short_new} + 4 ))
+    if [ $(( ${#os_full} + os_new_width )) -le $os_space ]; then
+        col3_text="$os_full"
+    elif [ $(( ${#OS_NAME} + os_new_width )) -le $os_space ]; then
+        col3_text="$OS_NAME"
+    elif [ $(( ${#OS_NAME} + os_short_new_width )) -le $os_space ]; then
+        col3_text="$OS_NAME"; os_new="$os_short_new"
+    else
+        col3_text="$os_short_name"; [ "$os_new" != "" ] && os_new="$os_short_new"
+    fi
+    if [ "$os_new" != "" ]; then
+        db_content_c1_c2_c3f_c4 "$col_1_2_text" "$col3_text" "${dbcol_bylw}${os_new}${dbcol_rst}"
+    else
+        db_content_c1_c2_c3f "$col_1_2_text" "$col3_text"
+    fi
+    echo "$sm_row_04" # "║" " " "╠" "═" "╬" "═" "╣"
+    sys_section_title=" ║                ║"
 
 fi
 
 
 # STATUS MONITOR DASHBOARD - SYSTEM - DISK USAGE
 
-# Display the section title, if the device was not displayed above
-if [ "$MODEL" != "" ]; then
-    col_1_2_text=" ║                ║     DISK USAGE ║  "
-else
-    col_1_2_text=" ║ SYSTEM         ║     DISK USAGE ║  "
-fi
+col_1_2_text="$sys_section_title     DISK USAGE ║  "
 
 if [ "$DGB_DATA_DISKUSED_PERC_CLEAN" -ge "80" ]; then # Display current disk usage percentage in red if it is 80% or over
     col3_text="${DGB_DATA_DISKUSED_HR}b of ${DGB_DATA_DISKTOTAL_HR}b ( ${dbcol_bred}$DGB_DATA_DISKUSED_PERC${dbcol_rst} )"
@@ -7073,6 +7128,8 @@ startup_checks() {
   set_text_editor                  # Set the system text editor
   sys_check                        # Perform basic OS check - is this Linux? Is it 64bit?
   rpi_check                        # Look for Raspberry Pi hardware. If found, only continue if it is compatible.
+  get_device_info                  # What the computer is, if it isn't a Raspberry Pi (for the DEVICE row)
+  get_os_info                      # Which operating system this is (for the OS row)
   set_sys_variables                # Set various system variables once we know we are on linux
   diginode_tools_create_settings   # Create diginode.settings file (if it does not exist)
   diginode_tools_update_settings   # Update the diginode.settings file if there is a new version

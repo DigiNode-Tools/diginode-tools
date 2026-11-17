@@ -1080,6 +1080,11 @@ DGNT_PREVIEW_VER="$DGNT_PREVIEW_VER"
 DGNT_PREVIEW_TITLES="$DGNT_PREVIEW_TITLES"
 DGNT_PREVIEW_PUBLIC="$DGNT_PREVIEW_PUBLIC"
 
+# A newer version of the operating system, if there is one (checked daily by DigiNode Dashboard and shown on its OS
+# row), and the OS version it was checked for (an OS upgraded since is never shown an old answer)
+OS_NEW_VERSION="$OS_NEW_VERSION"
+OS_NEW_VERSION_FOR="$OS_NEW_VERSION_FOR"
+
 # DIGIBYTE NODE STATUS UPDATER:
 DNSU_INSTALL_LOCATION=$DNSU_INSTALL_LOCATION
 DNSU_INSTALL_DATE="$DNSU_INSTALL_DATE"
@@ -4658,6 +4663,176 @@ else
     fi
 fi
 
+}
+
+# Which operating system this is, for DigiNode Dashboard's OS row. Sets:
+#   OS_NAME        e.g. "Ubuntu 24.04.3 LTS", "Debian GNU/Linux 13 (trixie)", "Raspberry Pi OS 12 (bookworm)"
+#   OS_BITS        "64-bit" or "32-bit" (of the programs, not just the kernel)
+#   OS_ID, OS_VERSION_ID, OS_CODENAME   from /etc/os-release (OS_ID is "raspios" on Raspberry Pi OS)
+# Raspberry Pi OS calls itself Debian in /etc/os-release; it is recognised by /etc/rpi-issue, which only it has.
+# (Multi-chain note: nothing here is chain specific.)
+get_os_info() {
+    OS_NAME="" OS_BITS="" OS_ID="" OS_VERSION_ID="" OS_CODENAME=""
+    [ -r /etc/os-release ] || return 0
+    local pretty
+    # Read in a subshell, so the file's variables don't leak into ours
+    IFS=$'\t' read -r OS_ID OS_VERSION_ID OS_CODENAME pretty < <( . /etc/os-release 2>/dev/null; printf '%s\t%s\t%s\t%s\n' "${ID:-}" "${VERSION_ID:-}" "${VERSION_CODENAME:-}" "${PRETTY_NAME:-}" )
+    if [ "$OS_ID" = "debian" ] && [ -f /etc/rpi-issue ]; then
+        OS_ID="raspios"
+        OS_NAME="Raspberry Pi OS ${OS_VERSION_ID}${OS_CODENAME:+ ($OS_CODENAME)}"
+    else
+        OS_NAME="${pretty:-$OS_ID $OS_VERSION_ID}"
+    fi
+    case "$(getconf LONG_BIT 2>/dev/null)" in
+        64) OS_BITS="64-bit" ;;
+        32) OS_BITS="32-bit" ;;
+    esac
+    return 0
+}
+
+# What the computer is, for DigiNode Dashboard's DEVICE row on systems that aren't a Raspberry Pi (rpi_check sets
+# MODEL and MODELMEM on a Pi). Sets MODEL (e.g. "Intel NUC12WSHi5", "Hetzner vServer (virtual machine)",
+# "Virtual machine (KVM)") from the firmware's (DMI) maker and product name, and MODELMEM (rounded RAM, e.g. "8GB").
+# MODEL stays empty if nothing useful is reported.
+get_device_info() {
+    [ "$MODEL" != "" ] && return 0
+    local dmi=/sys/class/dmi/id vendor="" product="" virt="" virt_name=""
+    [ -r "$dmi/sys_vendor" ] && vendor=$(tr -d '\0' < "$dmi/sys_vendor" | xargs 2>/dev/null)
+    [ -r "$dmi/product_name" ] && product=$(tr -d '\0' < "$dmi/product_name" | xargs 2>/dev/null)
+    # Lenovo puts a part number in product_name and the model name in product_version
+    if [[ "${vendor,,}" == lenovo* ]] && [ -r "$dmi/product_version" ]; then
+        local lenovo_name
+        lenovo_name=$(tr -d '\0' < "$dmi/product_version" | xargs 2>/dev/null)
+        [ -n "$lenovo_name" ] && product="$lenovo_name" && vendor="Lenovo"
+    fi
+    # Placeholder text some makers leave in, and the names hypervisors give their virtual hardware
+    local junk='^(to be filled.*|system manufacturer|system product name|default string|not specified|none|unknown|o\.e\.m\.?|oem|n/a|0+|1234567890|)$'
+    local hypervisor='^(qemu|innotek gmbh|virtualbox|vmware.*|microsoft corporation|xen|red hat|bochs|parallels.*|apple inc\.)$'
+    [[ "${vendor,,}" =~ $junk ]] && vendor=""
+    [[ "${product,,}" =~ $junk ]] && product=""
+
+    if is_command systemd-detect-virt; then
+        virt=$(systemd-detect-virt 2>/dev/null)
+    fi
+    case "$virt" in
+        ""|none) virt_name="" ;;
+        kvm|qemu) virt_name="KVM" ;;
+        vmware) virt_name="VMware" ;;
+        microsoft) virt_name="Hyper-V" ;;
+        oracle) virt_name="VirtualBox" ;;
+        xen) virt_name="Xen" ;;
+        apple) virt_name="Apple" ;;
+        parallels) virt_name="Parallels" ;;
+        lxc|lxc-libvirt|openvz|docker|podman|systemd-nspawn|wsl) virt_name="container" ;;
+        *) virt_name="$virt" ;;
+    esac
+
+    if [ "$virt_name" = "container" ]; then
+        MODEL="Container ($virt)"
+    elif [ -n "$virt_name" ]; then
+        if [ -n "$vendor" ] && ! [[ "${vendor,,}" =~ $hypervisor ]]; then
+            MODEL="$vendor${product:+ $product} (virtual machine)"   # e.g. a VPS provider that names its servers
+        else
+            MODEL="Virtual machine ($virt_name)"
+        fi
+    elif [ -n "$vendor" ] || [ -n "$product" ]; then
+        # Don't repeat the maker if the product name already starts with it
+        if [ -n "$vendor" ] && [ -n "$product" ] && [[ "${product,,}" == "${vendor,,}"* ]]; then
+            MODEL="$product"
+        else
+            MODEL="$vendor${vendor:+${product:+ }}$product"
+        fi
+    fi
+
+    if [ -n "$MODEL" ] && [ -z "$MODELMEM" ]; then
+        MODELMEM=$(awk '/^MemTotal:/ { if ($2 < 1048576) printf "%.0fMB\n", $2 / 1024; else printf "%.0fGB\n", $2 / 1024 / 1024 }' /proc/meminfo 2>/dev/null)
+    fi
+    return 0
+}
+
+# Is a newer version of this operating system available? Run once a day by DigiNode Dashboard. Saves OS_NEW_VERSION
+# (what to show, e.g. "13 (trixie)" or "26.04 LTS", empty if none or unknown) and OS_NEW_VERSION_FOR (the
+# version it was worked out for, so an OS that has since been upgraded never shows an old answer) in diginode.settings.
+#   Ubuntu: Ubuntu's own list of releases, the one its upgrade tool reads (LTS only, unless the system is set to
+#           be offered every release in /etc/update-manager/release-upgrades; nothing if it is set to never) - the
+#           next release the upgrade tool would offer, as it goes one at a time (22.04 is offered 24.04, not 26.04).
+#           A new LTS appears there once Ubuntu offers the upgrade (usually at its .1 release).
+#   Debian: the version of Debian's current stable release.
+#   Raspberry Pi OS: the Debian release the newest 64-bit Raspberry Pi OS Lite image is built on.
+# Other systems aren't checked. Only reads public files; never changes anything on the system.
+check_os_new_version() {
+    get_os_info
+    local new="" major current_major
+    current_major=${OS_VERSION_ID%%.*}
+    case "$OS_ID" in
+        ubuntu)
+            local prompt="lts" url line dist="" ver="" supported="" best=""
+            if [ -r /etc/update-manager/release-upgrades ]; then
+                prompt=$(sed -n 's/^[[:space:]]*Prompt[[:space:]]*=[[:space:]]*//p' /etc/update-manager/release-upgrades | tail -1 | tr -d '[:space:]')
+            fi
+            case "$prompt" in
+                never) prompt="" ;;
+                normal) url="https://changelogs.ubuntu.com/meta-release" ;;
+                *) url="https://changelogs.ubuntu.com/meta-release-lts" ;;
+            esac
+            if [ -n "$prompt" ]; then
+                # Blocks of "Dist: ...", "Version: 26.04.1 LTS", "Supported: 1", separated by blank lines
+                while IFS= read -r line; do
+                    case "$line" in
+                        Dist:*) dist=${line#Dist: } ;;
+                        Version:*) ver=${line#Version: } ;;
+                        Supported:*) supported=${line#Supported: } ;;
+                        "")
+                            # The first newer supported release: what the upgrade tool offers next (it goes one
+                            # LTS at a time, e.g. 22.04 -> 24.04 -> 26.04)
+                            if [ -z "$best" ] && [ "$supported" = "1" ] && [ -n "$ver" ] && [ -n "$OS_VERSION_ID" ] \
+                               && [ "$(version "$(echo "${ver%% *}" | cut -d. -f1-2)")" -gt "$(version "$(echo "$OS_VERSION_ID" | cut -d. -f1-2)")" ]; then
+                                best="$ver"
+                            fi
+                            dist="" ver="" supported="" ;;
+                    esac
+                done < <(curl --max-time 10 -sfL "$url" 2>/dev/null; echo)
+                # "26.04.1 LTS" -> "26.04 LTS"
+                [ -n "$best" ] && new=$(echo "$best" | sed -E 's/^([0-9]+\.[0-9]+)(\.[0-9]+)?/\1/')
+            fi
+            ;;
+        debian)
+            local release
+            release=$(curl --max-time 10 -sfL https://deb.debian.org/debian/dists/stable/Release 2>/dev/null | head -20)
+            major=$(echo "$release" | sed -n 's/^Version: *\([0-9]*\).*/\1/p')
+            local codename
+            codename=$(echo "$release" | sed -n 's/^Codename: *//p')
+            if [[ "$major" =~ ^[0-9]+$ ]] && [[ "$current_major" =~ ^[0-9]+$ ]] && [ "$major" -gt "$current_major" ]; then
+                new="$major${codename:+ ($codename)}"
+            fi
+            ;;
+        raspios)
+            # Newest image folder, e.g. raspios_lite_arm64-2025-10-01/, then the codename in its image file name
+            local base="https://downloads.raspberrypi.com/raspios_lite_arm64/images/" folder file codename
+            folder=$(curl --max-time 10 -sfL "$base" 2>/dev/null | grep -o 'raspios_lite_arm64-[0-9-]*/' | sort -u | tail -1)
+            if [ -n "$folder" ]; then
+                file=$(curl --max-time 10 -sfL "$base$folder" 2>/dev/null | grep -o '[0-9-]*-raspios-[a-z]*-arm64-lite\.img\.xz' | head -1)
+                codename=$(echo "$file" | sed -n 's/^[0-9-]*-raspios-\([a-z]*\)-arm64-lite\.img\.xz$/\1/p')
+            fi
+            if [ -n "$codename" ] && [ "$codename" != "$OS_CODENAME" ]; then
+                # Its Debian version number, from Debian itself
+                major=$(curl --max-time 10 -sfL "https://deb.debian.org/debian/dists/$codename/Release" 2>/dev/null | head -20 | sed -n 's/^Version: *\([0-9]*\).*/\1/p')
+                if [[ "$major" =~ ^[0-9]+$ ]] && [[ "$current_major" =~ ^[0-9]+$ ]] && [ "$major" -gt "$current_major" ]; then
+                    new="$major ($codename)"
+                fi
+            fi
+            ;;
+    esac
+
+    # Only letters, numbers, dots, spaces and brackets (the settings file is read as bash)
+    [[ "$new" =~ ^[A-Za-z0-9.\ ()]{1,40}$ ]] || new=""
+    OS_NEW_VERSION="$new"
+    OS_NEW_VERSION_FOR="$OS_VERSION_ID"
+    if [ -f "$DGNT_SETTINGS_FILE" ]; then
+        dgnt_save_setting OS_NEW_VERSION "$OS_NEW_VERSION"
+        dgnt_save_setting OS_NEW_VERSION_FOR "$OS_NEW_VERSION_FOR"
+    fi
+    return 0
 }
 
 # This will check if the Raspbery Pi is booting from a microSD card, rather than an external drive connected via USB
