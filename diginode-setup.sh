@@ -9879,7 +9879,7 @@ sponsor_preview_github_signin() {
 sponsor_preview_joined() {
     sponsor_preview_setting "YES"
     DGNT_BRANCH_REMOTE="preview"
-    if dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Thank you!" --yesno "\nThank you for sponsoring DigiNode Tools!\n\nThis DigiNode will now get each release two weeks early. Previews have had less testing than normal releases, so please tell me if you find a problem.\n\nCheck for a preview now?" 14 "${c}"; then
+    if dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Thank you!" --yesno "\nThank you for sponsoring DigiNode Tools!\n\nThis DigiNode will now get each release two weeks before everyone else.\n\nCheck for a preview now?" 12 "${c}"; then
         check_diginode_tools
         if [ "$DGNT_INSTALL_TYPE" = "upgrade" ]; then
             DGNT_DO_INSTALL=YES
@@ -9906,7 +9906,7 @@ menu_sponsor_preview() {
         return
     fi
 
-    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n\nPreviews have had less testing than normal releases. Your DigiByte Core version isn't affected.\n" 17 "${c}" 3 \
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n" 14 "${c}" 3 \
         "1 GitHub" "I sponsor on GitHub: sign in to check." \
         "2 Sponsor" "How to become a sponsor." \
         "3 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
@@ -15490,9 +15490,15 @@ printf " =============== Checking: DigiNode Tools ==============================
     elif [ "$DGNT_BRANCH_REMOTE" = "preview" ] && [ "$DGNT_BRANCH_LOCAL" != "" ] && [ "$SPONSOR_PREVIEW" = "YES" ]; then
         local preview_ver preview_commit local_commit
         preview_ver=$(get_dgnt_preview_version)
-        preview_commit=$(git ls-remote https://github.com/DigiNode-Tools/diginode-tools.git refs/heads/preview 2>/dev/null | cut -f1)
+        local ls_ok=yes ls_out
+        ls_out=$(git ls-remote https://github.com/DigiNode-Tools/diginode-tools.git refs/heads/preview 2>/dev/null) || ls_ok=no
+        preview_commit=$(printf '%s' "$ls_out" | cut -f1)
         local_commit=$(git -C $DGNT_LOCATION rev-parse HEAD 2>/dev/null)
-        if [ "$preview_ver" = "" ] || [ "$preview_commit" = "" ]; then
+        if [ "$ls_ok" = "yes" ] && [ "$preview_commit" = "" ]; then
+            # GitHub answered, but there is no preview branch: no preview is running at the moment
+            printf "%b Upgrade not required. There is nothing new on the Sponsors Preview yet.\\n" "${INFO}"
+            DGNT_INSTALL_TYPE="none"
+        elif [ "$preview_ver" = "" ] || [ "$preview_commit" = "" ]; then
             printf "%b The Sponsors Preview could not be checked. Please try again later.\\n" "${INFO}"
             DGNT_INSTALL_TYPE="none"
         elif [ "$DGNT_BRANCH_LOCAL" = "preview" ] && [ "$preview_commit" = "$local_commit" ]; then
