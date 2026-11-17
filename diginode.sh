@@ -2346,6 +2346,38 @@ if [ -x /usr/local/sbin/diginode-pi ]; then
     /usr/local/sbin/diginode-pi --status
 fi
 
+# A newer version of the operating system is available (checked daily, shown on the OS row). DigiNode Tools can't
+# upgrade the OS, so just advise how, for each OS that is checked
+if [ "$OS_NEW_VERSION" != "" ] && [ "$OS_NEW_VERSION_FOR" = "$OS_VERSION_ID" ]; then
+    os_family="" os_current="$OS_VERSION_ID${OS_CODENAME:+ ($OS_CODENAME)}"
+    case "$OS_ID" in
+        raspios) os_family="Raspberry Pi OS" ;;
+        ubuntu) os_family="Ubuntu"; os_current="$OS_VERSION_ID" ;;
+        debian) os_family="Debian" ;;
+    esac
+    if [ "$os_family" != "" ]; then
+        printf "  %b A new version of %s is available: %b%s%b\\n" "${INFO}" "$os_family" "${txtbld}" "$OS_NEW_VERSION" "${txtrst}"
+        printf "        You're running %s. DigiNode Tools can't upgrade your\\n" "$os_current"
+        case "$OS_ID" in
+            raspios)
+                printf "        operating system for you, so please plan to move to it when you can.\\n"
+                printf "        Raspberry Pi recommends a fresh install rather than upgrading.\\n"
+                printf "        Back up your DigiByte wallet first.\\n"
+                ;;
+            ubuntu)
+                printf "        operating system for you, so please upgrade it when you can.\\n"
+                printf "        Back up your DigiByte wallet first, then run: %bsudo do-release-upgrade%b\\n" "${txtbld}" "${txtrst}"
+                ;;
+            debian)
+                printf "        operating system for you, so please upgrade it when you can.\\n"
+                printf "        Back up your DigiByte wallet first, then follow Debian's guide:\\n"
+                printf "        https://www.debian.org/releases/stable/releasenotes\\n"
+                ;;
+        esac
+        printf "\\n"
+    fi
+fi
+
 if [ "$auto_quit" = true ]; then
     echo ""
     printf "%b DigiNode Dashboard quit automatically as it was left running\\n" "${INFO}"
