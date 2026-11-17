@@ -4526,6 +4526,15 @@ if [ $TIME_DIF_DGNT_CHECK -ge 3600 ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
     fi
 fi
 
+# Check for a newer version of the operating system straight away if it hasn't been checked for this version of it
+# yet (a new install, the first run after updating DigiNode Tools, or after the OS was upgraded); then once a day, below
+if [ "$OS_NEW_VERSION_FOR" != "$OS_VERSION_ID" ] && [ "$IP4_EXTERNAL" != "OFFLINE" ]; then
+    if [ "$STARTUP_LOOP" = true ]; then
+    printf "%b Checking for a new version of the operating system...\\n" "${INFO}"
+    fi
+    check_os_new_version
+fi
+
 # ------------------------------------------------------------------------------
 #    Run once every 24 hours
 #    Check for new version of DigiByte Core
