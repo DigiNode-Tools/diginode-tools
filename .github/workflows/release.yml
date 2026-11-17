@@ -153,6 +153,25 @@ jobs:
           gh release create "v$VERSION" --verify-tag --title "DigiNode Tools v$VERSION" --notes-file "$NOTES_FILE" --latest \
             "$RUNNER_TEMP/asset/diginode-setup.sh"
 
+      # Start the release's blog post on diginode.tools straight away (its "Release post" workflow, for this version,
+      # not a dry run) instead of waiting for the website's own schedule. The post then goes live within minutes, and
+      # Bluesky and Nostr follow it; the Telegram announcement below waits for it. Needs the WEBSITE_DISPATCH_TOKEN
+      # secret (fine-grained token: DigiNode-Tools org, only diginode.tools, Actions read and write). Without it, or if
+      # this fails, the website's schedule (every 15 minutes on Tuesdays) still writes the post.
+      - name: Start the blog post on diginode.tools
+        if: ${{ steps.publish.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.WEBSITE_DISPATCH_TOKEN }}
+          VERSION: ${{ steps.prep.outputs.version }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::notice::No WEBSITE_DISPATCH_TOKEN secret - the website's own schedule will write the blog post"
+            exit 0
+          fi
+          gh workflow run release-post.yml -R DigiNode-Tools/diginode.tools -f version="v$VERSION" -f dry_run=false
+          echo "Started the blog post for v$VERSION on diginode.tools"
+
       # Check that what setup.diginode.tools hands out is now exactly this release's diginode-setup.sh: once through the
       # GitHub address it redirects to, and once through setup.diginode.tools itself (as users run it). Opens an issue
       # if not, because then new installs and upgrades may be broken.
