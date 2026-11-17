@@ -3,7 +3,7 @@
 ### DigiNode Tools - Unreleased
 Intro: This release tidies up DigiNode Dashboard. The port test now works even when your external IP address can't be found, and several small display problems have been fixed.
 Announce: 📣 The DigiNode Dashboard port test now works even when your external IP address can't be found, and a few small display problems are fixed.
-- New: **Sponsors Preview** - Monthly sponsors of DigiNode Tools can now get each release two weeks before everyone else, as a thank you for their support. Run `diginode-setup --sponsorpreview`, or find it under Extras in the DigiNode Setup main menu. Sign in with the GitHub account you sponsor from, and it is checked automatically. Ko-fi members will be able to join soon. Find out more at https://diginode.tools/sponsors/
+- New: **Sponsors Preview** - Monthly sponsors of DigiNode Tools can now get each release two weeks before everyone else, as a thank you for their support. Run `diginode-setup --sponsorpreview`, or find it under Extras in the DigiNode Setup main menu. Sign in with the GitHub account you sponsor from, and it is checked automatically. Find out more at https://diginode.tools/sponsors/
 - Fix: **Tidier DigiNode Dashboard** - The port test no longer shows "Location: null" when a port is closed. The testnet node now says Peers, like the mainnet node. The DigiAsset Core message now fits inside its box on a 100 column terminal. A port test skipped because it already passed now shows the port number. The port test also works now if your external IP address could not be found.
 
 ### DigiNode Tools v26.11.01 - 2026-11-03

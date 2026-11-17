@@ -9735,7 +9735,7 @@ wallet_delete() {
 # Sponsors Preview: a thank you for sponsoring. This DigiNode gets each release of DigiNode Tools two weeks before
 # everyone else, from the preview branch (.github/release.sh moves it on each release Tuesday).
 #   GitHub sponsors sign in with GitHub (device flow, read:user only). The sign-in is kept in SPONSOR_PREVIEW_FILE and
-#   checked again on each run of DigiNode Setup. Ko-fi members: personal monthly codes are planned (see CLAUDE.md).
+#   checked again on each run of DigiNode Setup. Monthly sponsorship is on GitHub Sponsors only (Ko-fi is for one-time donations).
 #   access.json in diginode-sponsors holds the GitHub app's client ID, so it can change without a release.
 #   This is a thank you, not a lock: the code is public on purpose.
 #   If someone stops sponsoring nothing is removed: they stay put, then rejoin normal releases when these catch up.
@@ -9906,15 +9906,13 @@ menu_sponsor_preview() {
         return
     fi
 
-    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n\nPreviews have had less testing than normal releases. Your DigiByte Core version isn't affected.\n" 18 "${c}" 4 \
+    choice=$(dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Sponsors Preview" --cancel-label "Back" --menu "\nA thank you for monthly sponsors: get each release of DigiNode Tools two weeks before everyone else.\n\nPreviews have had less testing than normal releases. Your DigiByte Core version isn't affected.\n" 17 "${c}" 3 \
         "1 GitHub" "I sponsor on GitHub: sign in to check." \
-        "2 Ko-fi" "I'm a Ko-fi member." \
-        "3 Sponsor" "How to become a sponsor." \
-        "4 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
+        "2 Sponsor" "How to become a sponsor." \
+        "3 Back" "Return to the main menu." 3>&2 2>&1 1>&3) || choice=""
     case "$choice" in
         "1 GitHub") sponsor_preview_github_signin && sponsor_preview_joined ;;
-        "2 Ko-fi") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Ko-fi members" --msgbox "\nThe Sponsors Preview for Ko-fi members is coming soon.\n\nGitHub Sponsors works today, and checks your sponsorship automatically." 11 "${c}" ;;
-        "3 Sponsor") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Become a sponsor" --msgbox "\nSponsor DigiNode Tools from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 10 "${c}" ;;
+        "2 Sponsor") dialog --no-shadow --keep-tite --colors --backtitle "Sponsors Preview" --title "Become a sponsor" --msgbox "\nSponsor DigiNode Tools monthly on GitHub Sponsors, from \$10 a month:\n\n\Z4$DGNT_SPONSORS_URL\Zn" 10 "${c}" ;;
     esac
     menu_existing_install
 }
