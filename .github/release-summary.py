@@ -88,7 +88,7 @@ def reddit_post(version, notes):
              "installs and configures everything through simple menus, so no Linux experience is needed, and "
              "**DigiNode Dashboard** shows how your node is doing at a glance. Every node helps keep the DigiByte "
              f"network decentralised and secure. See everything it can do: {FEATURES_URL}", "",
-             "It's free, its code is public, and I build it in my spare time - so it depends on sponsors and "
+             "Running your node with it is free - so DigiNode Tools depends on sponsors and "
              "donations. If you'd like to see it keep improving, please consider supporting it (details below 💙).",
              "", f"**What's new in v{version}**", ""]
     for note_type, note_title, text, images in notes:
