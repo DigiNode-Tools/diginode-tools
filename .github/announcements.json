@@ -5,7 +5,7 @@
         { "emoji": "📦", "text": "DigiNode Tools v{version} has been released" },
         { "emoji": "🆙", "text": "Time to update: DigiNode Tools v{version} is now available!" },
         { "emoji": "🔔", "text": "New release: DigiNode Tools v{version}" },
-        { "emoji": "📣", "text": "DigiNode Tools v{version} is here" }
+        { "emoji": "📣", "text": "DigiNode Tools v{version} is here!" }
     ],
     "telegram_sponsor": { "text": "💙 Running your DigiByte node with DigiNode Tools is free, but it isn't free to make. It only keeps improving because people sponsor it. If you run a DigiNode, please sponsor me monthly on GitHub. As a thank you, you'll get each new release two weeks before everyone else, with the Sponsors Preview.", "link_text": "Become a sponsor" },
     "sponsor_lines": [

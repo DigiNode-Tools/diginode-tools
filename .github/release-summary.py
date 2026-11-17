@@ -4,9 +4,10 @@
 # Purpose: After a release, send the owner (Olly) a private Telegram message from the DigiNode Tools Releases bot:
 #          what was published (with links, and whether each announcement worked), then a ready-made Reddit post for
 #          r/Digibyte (title and body to copy, and a link to Reddit's post page with the title filled in), then a
-#          ready-made Ko-fi post (title and text to copy, and the release's screenshots as an album to save and attach).
-#          Used by the "Release DigiNode Tools" GitHub Action. Posting to Reddit and Ko-fi is left to the owner: Reddit
-#          on purpose, and Ko-fi has no way for a program to post.
+#          ready-made Ko-fi post (title and text to copy, and the release's screenshots as an album to save and attach),
+#          and a ready-made post for X (@DigiNodeTools): one tap opens X with it filled in.
+#          Used by the "Release DigiNode Tools" GitHub Action. Posting to Reddit, Ko-fi and X is left to the owner:
+#          Reddit on purpose, Ko-fi has no way for a program to post, and X's API isn't free (Olly 2026-11-17).
 #
 # Usage:
 #   .github/release-summary.py preview VERSION NOTES_FILE   Print the messages (nothing is sent)
@@ -19,6 +20,7 @@ import html
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.parse
@@ -30,6 +32,11 @@ SPONSOR_URL = "https://diginode.tools/sponsors/"
 KOFI_NEW_POST_URL = "https://ko-fi.com/blog/editor?back=true"
 EMOJI = {"New": "✨", "Improvement": "🛠️", "Fix": "🐛"}   # As in the Bluesky TL;DR
 MAX_TEXT = 4000   # Telegram allows 4096 characters per message
+HERE = os.path.dirname(os.path.abspath(__file__))
+POST_URL = "https://diginode.tools/release/v{version}/"   # finds the release's blog post (diginode.tools)
+X_LIMIT = 280      # X counts every link as 23 characters, and emoji and some other characters as 2
+X_URL_LENGTH = 23
+X_HASHTAGS = ["#DigiByte", "#DigiNode"]
 
 
 def read_notes(path):
@@ -178,7 +185,7 @@ def build_messages(version, notes_file):
     summary = [f"📦 <b>DigiNode Tools v{version} was released</b>", "",
                f"✅ GitHub release: <a href=\"{html.escape(gh_url)}\">view</a>" if gh_url else "✅ GitHub release",
                status("Telegram group", os.environ.get("TELEGRAM_OUTCOME", ""), os.environ.get("TELEGRAM_POST_URL", "")),
-               "🕐 Blog post, Bluesky and Nostr: posted by diginode.tools within the hour",
+               "🕐 Blog post, Bluesky and Nostr: posted by diginode.tools (the Telegram post waits for the blog post)",
                "", "<b>What was published:</b>"]
     summary += [f"• {html.escape(t or text[:60], quote=False)}" for _, t, text, _ in notes]
 
@@ -205,7 +212,101 @@ def build_messages(version, notes_file):
     messages += [kofi_intro] + chunked_pre(k_body)
     if images:
         messages.append(("album", images))
+
+    x_text = x_post(version)
+    x_intro = ("𝕏 <b>Post it on X?</b>\n\n"
+               f"<a href=\"{html.escape('https://x.com/intent/post?text=' + urllib.parse.quote(x_text))}\">"
+               "Open X with this post filled in</a>, check it and post. Or copy it:")
+    messages += [x_intro, f"<pre>{html.escape(x_text, quote=False)}</pre>"]
     return messages
+
+
+def release_line(version, name):
+    """The 'Name: ...' line (Intro or Announce) under this release's heading in docs/release_notes.md ('' if none)."""
+    heading = f"### DigiNode Tools v{version} "
+    found = False
+    try:
+        with open(os.path.join(HERE, "..", "docs", "release_notes.md"), encoding="utf-8") as f:
+            for line in f:
+                if line.startswith(heading):
+                    found = True
+                elif found and line.startswith("### "):
+                    break
+                elif found and line.startswith(f"{name}:"):
+                    text = line[len(name) + 1:].strip()
+                    text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
+                    return re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", text)
+    except OSError:
+        pass
+    return ""
+
+
+def x_length(text):
+    """Length as X counts it: links count as 23; most characters 1; emoji, CJK and other wide characters 2."""
+    count = 0
+    for part in re.split(r"(https?://\S+)", text):
+        if re.match(r"https?://", part):
+            count += X_URL_LENGTH
+            continue
+        for ch in part:
+            o = ord(ch)
+            if o in (0x200D, 0xFE0F):   # joiners and emoji variation selectors: part of the emoji before them
+                continue
+            light = o <= 0x10FF or 0x2000 <= o <= 0x200D or 0x2010 <= o <= 0x201F or 0x2032 <= o <= 0x2037
+            count += 1 if light else 2
+    return count
+
+
+def x_post(version):
+    """One post for X: the release header (rotating, as on Telegram), a summary (the Announce line without its emoji
+    and hashtags, or else the Intro), #DigiByte and #DigiNode (a word in the summary becomes the hashtag where it
+    can, otherwise added at the end), and the blog post link. To fit one post, the last sentence is shortened at its
+    colon or last comma, or dropped, until it fits."""
+    try:
+        with open(os.path.join(HERE, "announcements.json"), encoding="utf-8") as f:
+            headers = json.load(f)["headers"]
+        tags = subprocess.run(["git", "-C", HERE, "tag", "-l", "v*"], capture_output=True, text=True).stdout.split()
+        header = headers[len(tags) % len(headers)]
+        title = f"{header['emoji']} {header['text'].replace('{version}', version)}"
+    except Exception:
+        title = f"📣 DigiNode Tools v{version} is here!"
+
+    summary = release_line(version, "Announce")
+    summary = re.sub(r"(?:\s*#\w+)+\s*$", "", summary)        # the hashtags at the end
+    summary = re.sub(r"^[^\w\"'(]+", "", summary).strip()      # the leading emoji
+    if not summary:
+        summary = release_line(version, "Intro")
+    link = POST_URL.format(version=version)
+
+    def compose(text):
+        missing = []
+        for tag in X_HASHTAGS:
+            word = tag[1:]
+            # 'DigiByte' anywhere, 'DigiNode' only on its own (not the start of 'DigiNode Tools')
+            pattern = rf"(?<![#\w]){word}\b" + (r"(?! Tools)" if word == "DigiNode" else "")
+            text, n = re.subn(pattern, tag, text, count=1)
+            if not n:
+                missing.append(tag)
+        text = f"{text} {' '.join(missing)}".strip() if missing else text
+        return f"{title}\n\n{text}\n\n{link}"
+
+    sentences = re.split(r"(?<=[.!?])\s+", summary)
+    while True:
+        post = compose(" ".join(sentences))
+        if x_length(post) <= X_LIMIT or not sentences:
+            break
+        last = sentences[-1]
+        # Shorten the last sentence before dropping it: at its colon first (so a list isn't cut short and passed off
+        # as complete), else at its last comma
+        cut = last.find(":") if ":" in last else max(last.rfind(","), last.rfind(";"))
+        if cut > 0:
+            sentences[-1] = last[:cut].rstrip() + "."
+        elif len(sentences) > 1:
+            sentences.pop()
+        else:   # one sentence still too long: cut it at a word
+            words = sentences[0].split()
+            sentences = [" ".join(words[:-1]).rstrip(",;:") + "…"] if len(words) > 1 else []
+    return post
 
 
 def call(method, params):
