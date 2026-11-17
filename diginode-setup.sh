@@ -890,6 +890,12 @@ SYSTEM_AUTO_UPDATES=$SYSTEM_AUTO_UPDATES
 SYSTEM_AUTO_REBOOT=$SYSTEM_AUTO_REBOOT
 SYSTEM_AUTO_REBOOT_TIME=$SYSTEM_AUTO_REBOOT_TIME
 
+# RASPBERRY PI BOOTLOADER UPDATES (Raspberry Pi 4 and 5 only)
+# AUTO = install new stable releases of the Raspberry Pi bootloader automatically. They are installed at the next
+# restart, and never while your Raspberry Pi is short of power. OFF = leave the bootloader as it is.
+# If left blank, DigiNode Setup will ask you. To change this, run 'diginode-setup' and choose System from the main menu.
+SYSTEM_EEPROM_UPDATES=$SYSTEM_EEPROM_UPDATES
+
 
 #####################################
 ####### UNATTENDED INSTALL ##########
@@ -971,6 +977,10 @@ UI_SETUP_DIGINODE_MOTD=$UI_SETUP_DIGINODE_MOTD
 # (Debian, Ubuntu and Raspberry Pi OS only.)
 UI_SYSTEM_AUTO_UPDATES=$UI_SYSTEM_AUTO_UPDATES
 UI_SYSTEM_AUTO_REBOOT=$UI_SYSTEM_AUTO_REBOOT
+
+# Choose whether to update the Raspberry Pi bootloader automatically: AUTO (recommended) or OFF. Left blank = AUTO.
+# (Raspberry Pi 4 and 5 only.)
+UI_SYSTEM_EEPROM_UPDATES=$UI_SYSTEM_EEPROM_UPDATES
 
 
 #############################################
@@ -11691,6 +11701,11 @@ display_system_updates_reminder() {
         "$DGNT_REBOOT_HELPER" --status
     fi
 
+    # Warn if the Raspberry Pi is short of power, too hot, or has limited its USB power
+    if [ -x "$DGNT_PI_HELPER" ]; then
+        "$DGNT_PI_HELPER" --status
+    fi
+
 }
 
 stop_service() {
@@ -19942,6 +19957,7 @@ install_command_links() {
 # reminder at the end of DigiNode Setup, when DigiNode Dashboard quits, and in the DigiNode MOTD.
 
 DGNT_REBOOT_HELPER=/usr/local/sbin/diginode-reboot
+DGNT_PI_HELPER=/usr/local/sbin/diginode-pi          # Raspberry Pi power and temperature warnings (diginode-pi.sh)
 DGNT_REBOOT_STATUS_DIR=/var/lib/diginode-tools
 DGNT_REBOOT_CONF=$DGNT_REBOOT_STATUS_DIR/auto-reboot.conf
 DGNT_AUTO_UPDATES_APT_CONF=/etc/apt/apt.conf.d/52diginode-auto-updates
@@ -19961,6 +19977,11 @@ set_diginode_setting() {
 # Automatic system updates are currently only supported on the Debian family (Debian, Ubuntu, Raspberry Pi OS)
 system_updates_supported() {
     [ "$PKG_MANAGER" = "apt-get" ]
+}
+
+# Exit 0 if apt gets packages from the Raspberry Pi archive (Raspberry Pi OS)
+system_has_raspberrypi_archive() {
+    apt-cache policy 2>/dev/null | grep -q 'o=Raspberry Pi Foundation,'
 }
 
 # Return a valid restart time (HH:MM), using 04:00 if the one in diginode.settings is missing or invalid
@@ -20011,6 +20032,17 @@ system_updates_check() {
         printf "%b%b Automatic restarts: OFF\\n" "${OVER}" "${CROSS}"
     fi
 
+    if system_has_eeprom; then
+        local eeprom_now=""
+        [ -x "$DGNT_PI_HELPER" ] && eeprom_now=$("$DGNT_PI_HELPER" --eeprom-version)
+        [ -n "$eeprom_now" ] && eeprom_now=" (your bootloader: $eeprom_now)"
+        if systemctl is-enabled --quiet diginode-pi.timer 2>/dev/null; then
+            printf "%b%b Automatic Raspberry Pi bootloader updates: ON%s\\n" "${OVER}" "${TICK}" "$eeprom_now"
+        else
+            printf "%b%b Automatic Raspberry Pi bootloader updates: OFF%s\\n" "${OVER}" "${CROSS}" "$eeprom_now"
+        fi
+    fi
+
     printf "\\n"
 }
 
@@ -20018,6 +20050,121 @@ system_updates_check() {
 # This is only asked once (the answer is saved in diginode.settings), unless it is chosen from the main menu.
 # Usage: menu_ask_system_updates [menu]
 menu_ask_system_updates() {
+    menu_ask_system_updates_os "$@"
+    menu_ask_eeprom_updates "$@"
+}
+
+# Exit 0 if this is a Raspberry Pi with a bootloader EEPROM that rpi-eeprom-update can update (Pi 4, 400, 5, 500, CM4, CM5)
+system_has_eeprom() {
+    tr -d '\0' < /proc/device-tree/model 2>/dev/null | grep -qE '^Raspberry Pi (4|400|5|500|Compute Module 4|Compute Module 5)( |$)' \
+        && command -v rpi-eeprom-update >/dev/null 2>&1
+}
+
+# Ask whether to update the Raspberry Pi bootloader automatically (saved as SYSTEM_EEPROM_UPDATES = AUTO or OFF).
+# Asked once (existing DigiNodes too), unless it is chosen from the main menu.
+# Usage: menu_ask_eeprom_updates [menu]
+menu_ask_eeprom_updates() {
+
+    local from_menu="$1"
+
+    system_has_eeprom || return 0
+
+    if [ "$from_menu" != "menu" ]; then
+        case "$SYSTEM_EEPROM_UPDATES" in
+            AUTO|OFF ) return ;;
+        esac
+    fi
+
+    if [ "$UNATTENDED_MODE" == true ]; then
+        case "$UI_SYSTEM_EEPROM_UPDATES" in
+            OFF ) SYSTEM_EEPROM_UPDATES="OFF" ;;
+            * )   SYSTEM_EEPROM_UPDATES="AUTO" ;;
+        esac
+        printf "%b Unattended Mode: Automatic bootloader updates will be set to: %s (from UI_SYSTEM_EEPROM_UPDATES in diginode.settings)\\n" "${INFO}" "$SYSTEM_EEPROM_UPDATES"
+        printf "\\n"
+        set_diginode_setting SYSTEM_EEPROM_UPDATES "$SYSTEM_EEPROM_UPDATES"
+        return
+    fi
+
+    # The running bootloader's release date, e.g. 30 Oct 2026
+    local eeprom_ts eeprom_now="unknown"
+    eeprom_ts=$(vcgencmd bootloader_version 2>/dev/null | awk '$1 == "timestamp" { print $2; exit }')
+    if [[ "$eeprom_ts" =~ ^[0-9]{9,11}$ ]]; then
+        eeprom_now=$(date -u -d "@$eeprom_ts" '+%-d %b %Y')
+    fi
+
+    local defaultno=""
+    if [ "$SYSTEM_EEPROM_UPDATES" = "OFF" ]; then
+        defaultno="--defaultno"
+    fi
+
+    if dialog --no-shadow --keep-tite --colors --backtitle "Raspberry Pi Bootloader Updates" --title "Raspberry Pi Bootloader Updates" $defaultno --yes-label "Yes" --no-label "No" --yesno "\n\Z4Would you like your Raspberry Pi's bootloader to be kept up to date automatically?\Z0\n\nThe bootloader is the software built into your Raspberry Pi that starts it up. Raspberry Pi releases updates to it that fix problems and improve support for SSDs and other hardware.\n\nIf you choose YES (recommended), DigiNode Tools checks once a day for a new stable release, and it is installed the next time your Raspberry Pi restarts. It is never installed while your Raspberry Pi is short of power, as losing power while it is being installed could stop it starting.\n\nYour bootloader: $eeprom_now" 22 "${c}"; then
+        SYSTEM_EEPROM_UPDATES="AUTO"
+    else
+        SYSTEM_EEPROM_UPDATES="OFF"
+    fi
+    printf "%b You chose: Automatic bootloader updates - %s\\n" "${INFO}" "$SYSTEM_EEPROM_UPDATES"
+    printf "\\n"
+    set_diginode_setting SYSTEM_EEPROM_UPDATES "$SYSTEM_EEPROM_UPDATES"
+}
+
+# Turn the daily bootloader update check (diginode-pi.timer) on or off, to match SYSTEM_EEPROM_UPDATES
+system_eeprom_apply() {
+
+    local str units_changed="no"
+
+    system_has_eeprom || return 0
+    [ -x "$DGNT_PI_HELPER" ] || return 0
+
+    if [ "$SYSTEM_EEPROM_UPDATES" = "AUTO" ]; then
+        if write_file_if_changed /etc/systemd/system/diginode-pi.service 644 "[Unit]
+Description=DigiNode Raspberry Pi bootloader update check (never while short of power or busy)
+Documentation=https://diginode.tools
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Nice=10
+ExecStart=$DGNT_PI_HELPER --daily"; then
+            units_changed="yes"
+        fi
+        if write_file_if_changed /etc/systemd/system/diginode-pi.timer 644 "[Unit]
+Description=DigiNode Raspberry Pi bootloader update check (daily, and 10 minutes after starting)
+
+[Timer]
+OnBootSec=10min
+OnCalendar=daily
+RandomizedDelaySec=6h
+Persistent=true
+
+[Install]
+WantedBy=timers.target"; then
+            units_changed="yes"
+        fi
+        if [ "$units_changed" = "yes" ]; then
+            systemctl daemon-reload
+        fi
+        if ! systemctl is-enabled --quiet diginode-pi.timer 2>/dev/null || [ "$units_changed" = "yes" ]; then
+            str="Turning on automatic Raspberry Pi bootloader updates..."
+            printf "%b %s" "${INFO}" "${str}"
+            systemctl enable --now diginode-pi.timer &>/dev/null
+            systemctl restart diginode-pi.timer &>/dev/null
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+            printf "\\n"
+        fi
+    elif [ "$SYSTEM_EEPROM_UPDATES" = "OFF" ] && [ -f /etc/systemd/system/diginode-pi.timer ]; then
+        str="Turning off automatic Raspberry Pi bootloader updates..."
+        printf "%b %s" "${INFO}" "${str}"
+        systemctl disable --now diginode-pi.timer &>/dev/null
+        rm -f /etc/systemd/system/diginode-pi.timer /etc/systemd/system/diginode-pi.service
+        systemctl daemon-reload
+        printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        printf "\\n"
+    fi
+}
+
+menu_ask_system_updates_os() {
 
     local from_menu="$1"
 
@@ -20171,6 +20318,16 @@ install_reboot_helper() {
 
     mkdir -p "$DGNT_REBOOT_STATUS_DIR"
     chmod 755 "$DGNT_REBOOT_STATUS_DIR"
+
+    # The Raspberry Pi helper (power and temperature warnings) - installed on a Raspberry Pi only
+    if [ -f "$DGNT_LOCATION/diginode-pi.sh" ] && tr -d '\0' < /proc/device-tree/model 2>/dev/null | grep -q '^Raspberry Pi'; then
+        if ! cmp -s "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"; then
+            str="Installing DigiNode Raspberry Pi helper to $DGNT_PI_HELPER..."
+            printf "%b %s" "${INFO}" "${str}"
+            install -m 755 -o root -g root "$DGNT_LOCATION/diginode-pi.sh" "$DGNT_PI_HELPER"
+            printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
+        fi
+    fi
 }
 
 # Make the system match the choices in diginode.settings. Safe to run every time - it only changes what is different.
@@ -20179,6 +20336,9 @@ system_updates_apply() {
     local str
 
     install_reboot_helper
+
+    # Raspberry Pi bootloader updates (separate from the operating system updates below)
+    system_eeprom_apply
 
     if ! system_updates_supported; then
         return
@@ -20221,19 +20381,39 @@ APT::Periodic::Unattended-Upgrade "1";'; then
 
         # Choose which updates are installed. The OS's own settings (50unattended-upgrades) already include its
         # security updates. Tor is added because DigiNode uses it. ALL adds every repository.
+        # Raspberry Pi OS replaces many Debian packages (the Linux kernel, libc6, openssl, PAM...) with its own
+        # builds from archive.raspberrypi.com. Their version numbers are higher than Debian's, so Debian's security
+        # updates can never replace them, and the Raspberry Pi archive has no separate security section. So on
+        # Raspberry Pi OS the whole Raspberry Pi archive is needed to get security updates for those packages.
         # DigiNode Tools handles restarts itself (so it can skip them when busy), so unattended-upgrades must not.
         local origins
         if [ "$SYSTEM_AUTO_UPDATES" = "ALL" ]; then
             origins='        "origin=*";'
         else
             origins='        "origin=TorProject";'
+            if system_has_raspberrypi_archive; then
+                origins="$origins
+        \"origin=Raspberry Pi Foundation\";"
+            fi
         fi
+        # The Raspberry Pi bootloader (rpi-eeprom) is never updated by unattended-upgrades: a new bootloader is
+        # installed when the Pi starts, so DigiNode Tools updates it itself, only when it is safe to.
+        # Keep config files that were changed (e.g. Raspberry Pi OS changes /etc/initramfs-tools/initramfs.conf),
+        # instead of asking: unattended-upgrades skips any update that would ask, so without this those packages
+        # are never updated. The new packaged version is saved next to it as .dpkg-dist.
         if write_file_if_changed "$DGNT_AUTO_UPDATES_APT_CONF" 644 "// Automatic system updates - this file is managed by DigiNode Tools. Any changes will be overwritten.
 // To change these settings, run 'diginode-setup' and choose System from the main menu.
 Unattended-Upgrade::Origins-Pattern {
 $origins
 };
-Unattended-Upgrade::Automatic-Reboot \"false\";"; then
+Unattended-Upgrade::Package-Blacklist {
+        \"^rpi-eeprom\$\";
+};
+Unattended-Upgrade::Automatic-Reboot \"false\";
+Dpkg::Options {
+        \"--force-confdef\";
+        \"--force-confold\";
+};"; then
             # A mistake in an apt config file would break apt completely, so check it can be read
             if apt-config dump >/dev/null 2>&1; then
                 printf "%b%b Automatic system updates set to: %s\\n" "${OVER}" "${TICK}" "$SYSTEM_AUTO_UPDATES"
@@ -20334,15 +20514,16 @@ uninstall_system_updates() {
 
     local str
 
-    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
+    if [ -f /etc/systemd/system/diginode-reboot.timer ] || [ -f "$DGNT_REBOOT_HELPER" ] || [ -f "$DGNT_PI_HELPER" ] || [ -f "$DGNT_AUTO_UPDATES_APT_CONF" ] || [ -d "$DGNT_REBOOT_STATUS_DIR" ]; then
 
         str="Removing DigiNode automatic restarts and reboot helper..."
         printf "%b %s" "${INFO}" "${str}"
-        systemctl disable --now diginode-reboot.timer &>/dev/null
+        systemctl disable --now diginode-reboot.timer diginode-pi.timer &>/dev/null
         rm -f /etc/systemd/system/diginode-reboot.timer /etc/systemd/system/diginode-reboot.service
+        rm -f /etc/systemd/system/diginode-pi.timer /etc/systemd/system/diginode-pi.service
         systemctl daemon-reload &>/dev/null
-        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
-        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF"
+        rm -f "$DGNT_REBOOT_HELPER" "$DGNT_PI_HELPER" "$DGNT_AUTO_UPDATES_APT_CONF"
+        rm -f "$DGNT_REBOOT_STATUS_DIR/reboot.status" "$DGNT_REBOOT_CONF" "$DGNT_REBOOT_STATUS_DIR/eeprom.status"
         rmdir "$DGNT_REBOOT_STATUS_DIR" 2>/dev/null
         printf "%b%b %s Done!\\n" "${OVER}" "${TICK}" "${str}"
         printf "%b The system's own automatic security updates (if on) have been left as they are.\\n" "${INFO}"
